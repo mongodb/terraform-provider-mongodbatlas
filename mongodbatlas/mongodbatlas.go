@@ -25,6 +25,9 @@ type Client struct {
 	BaseURL   *url.URL
 	UserAgent string
 
+	//Services used for communicating with the API
+	DatabaseUsers DatabaseUsersService
+
 	onRequestCompleted RequestCompletionCallback
 }
 
@@ -68,6 +71,8 @@ func NewClient(httpClient *http.Client) *Client {
 	baseURL, _ := url.Parse(defaultBaseURL)
 
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
+
+	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
 
 	return c
 }
@@ -203,7 +208,7 @@ func CheckResponse(r *http.Response) error {
 	if err == nil && len(data) > 0 {
 		err := json.Unmarshal(data, errorResponse)
 		if err != nil {
-			log.Printf("[DEBUG] %s", err)
+			log.Printf("[DEBUG] unmarshal error response: %s", err)
 			errorResponse.Reason = string(data)
 		}
 	}
