@@ -1,5 +1,7 @@
 package mongodbatlas
 
+import client "github.com/mongodb-partners/go-client-mongodbatlas/mongodbatlas"
+
 //Config ...
 type Config struct {
 	Username string
@@ -8,5 +10,6 @@ type Config struct {
 
 //NewClient ...
 func (c *Config) NewClient() interface{} {
-	return nil
+	//Initialize the MongoDB Atlas API Client.
+	return client.NewClient(nil)
 }
