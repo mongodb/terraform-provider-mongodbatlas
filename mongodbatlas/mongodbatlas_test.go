@@ -240,7 +240,7 @@ func TestCheckResponse(t *testing.T) {
 	res := &http.Response{
 		Request:    &http.Request{},
 		StatusCode: http.StatusBadRequest,
-		Body:       ioutil.NopCloser(strings.NewReader(`{"error":"400", "reason":"r", "detail":"d"}`)),
+		Body:       ioutil.NopCloser(strings.NewReader(`{"error":400, "reason":"r", "detail":"d"}`)),
 	}
 	err := CheckResponse(res).(*ErrorResponse)
 
@@ -250,7 +250,7 @@ func TestCheckResponse(t *testing.T) {
 
 	expected := &ErrorResponse{
 		Response:  res,
-		ErrorCode: "400",
+		ErrorCode: 400,
 		Reason:    "r",
 		Detail:    "d",
 	}

@@ -19,7 +19,7 @@ const (
 	mediaType      = "application/json"
 )
 
-// Client managees communication with MongoDBAtlas v1.0 API
+// Client manages communication with MongoDBAtlas v1.0 API
 type Client struct {
 	client    *http.Client
 	BaseURL   *url.URL
@@ -53,13 +53,13 @@ type ErrorResponse struct {
 	// HTTP response that caused this error
 	Response *http.Response
 	//The error code, which is simply the HTTP status code.
-	ErrorCode string `json:"Error"`
+	ErrorCode int `json:"Error"`
 
 	//A short description of the error, which is simply the HTTP status phrase.
-	Reason string
+	Reason string `json:"reason"`
 
 	//A more detailed description of the error.
-	Detail string
+	Detail string `json:"detail,omitempty"`
 }
 
 // NewClient returns a new MongoDBAtlas API Client
