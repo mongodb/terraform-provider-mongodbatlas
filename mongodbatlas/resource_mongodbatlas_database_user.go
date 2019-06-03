@@ -70,6 +70,29 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 }
 
 func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
+	//Get client connection.
+	conn := meta.(*matlas.Client)
+	groupID := d.Get("group_id").(string)
+	username := d.Id()
+
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+
+	if err != nil {
+		return fmt.Errorf("error getting database user information: %s", err)
+	}
+
+	if err := d.Set("username", dbUser.Username); err != nil {
+		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
+		return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
+		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
@@ -128,4 +151,20 @@ func expandRoles(d *schema.ResourceData) []matlas.Role {
 		}
 	}
 	return roles
+}
+
+func flattenRoles(roles []matlas.Role) []map[string]interface{} {
+	roleList := make([]map[string]interface{}, 0)
+
+	if roles != nil {
+		for _, v := range roles {
+			roleList = append(roleList, map[string]interface{}{
+				"role_name":       v.RoleName,
+				"database_name":   v.DatabaseName,
+				"collection_name": v.CollectionName,
+			})
+		}
+	}
+
+	return roleList
 }
