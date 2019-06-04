@@ -4,8 +4,8 @@ import client "github.com/mongodb-partners/go-client-mongodbatlas/mongodbatlas"
 
 //Config ...
 type Config struct {
-	Username string
-	APIKey   string
+	PublicKey  string
+	PrivateKey string
 }
 
 //NewClient ...

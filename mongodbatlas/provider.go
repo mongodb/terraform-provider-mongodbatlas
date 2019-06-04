@@ -9,17 +9,17 @@ import (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"username": {
+			"public_key": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_USERNAME", ""),
-				Description: "MongoDB Atlas username",
+				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_PUBLIC_KEY", ""),
+				Description: "MongoDB Atlas Programmatic Public Key",
 			},
-			"api_key": {
+			"private_key": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_API_KEY", ""),
-				Description: "MongoDB Atlas API Key",
+				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_PRIVATE_KEY", ""),
+				Description: "MongoDB Atlas Programmatic Private Key",
 			},
 		},
 
@@ -33,8 +33,8 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		Username: d.Get("username").(string),
-		APIKey:   d.Get("api_key").(string),
+		PublicKey:  d.Get("public_key").(string),
+		PrivateKey: d.Get("private_key").(string),
 	}
 	return config.NewClient(), nil
 }
