@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	matlas "github.com/mongodb-partners/go-client-mongodbatlas/mongodbatlas"
+	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {

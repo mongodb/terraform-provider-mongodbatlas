@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 )
 
@@ -34,12 +34,6 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
-			},
-			"delete_after_date": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
 			},
 			"roles": {
 				Type:     schema.TypeList,
@@ -112,10 +106,6 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		dbUserReq.Password = v.(string)
 	}
 
-	if v, ok := d.GetOk("delete_after_date"); ok {
-		dbUserReq.DeleteAfterDate = v.(string)
-	}
-
 	dbUserRes, _, err := conn.DatabaseUsers.Create(context.Background(), groupID, dbUserReq)
 
 	if err != nil {
@@ -128,7 +118,31 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	//Get client connection.
+	conn := meta.(*matlas.Client)
+	groupID := d.Get("group_id").(string)
+	username := d.Id()
+
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+
+	if err != nil {
+		return fmt.Errorf("error getting database user information: %s", err)
+	}
+
+	if d.HasChange("password") {
+		dbUser.Password = d.Get("password").(string)
+	}
+
+	if d.HasChange("roles") {
+		dbUser.Roles = expandRoles(d)
+	}
+	_, _, err = conn.DatabaseUsers.Update(context.Background(), groupID, username, dbUser)
+
+	if err != nil {
+		return fmt.Errorf("error updating database user(%s): %s", username, err)
+	}
+
+	return resourceMongoDBAtlasDatabaseUserRead(d, meta)
 }
 
 func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
