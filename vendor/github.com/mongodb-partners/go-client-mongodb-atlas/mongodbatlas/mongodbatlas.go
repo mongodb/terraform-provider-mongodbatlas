@@ -4,12 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"reflect"
+	"strconv"
+
+	"github.com/google/go-querystring/query"
 )
 
 const (
@@ -19,7 +24,7 @@ const (
 	mediaType      = "application/json"
 )
 
-// Client managees communication with MongoDBAtlas v1.0 API
+// Client manages communication with MongoDBAtlas v1.0 API
 type Client struct {
 	client    *http.Client
 	BaseURL   *url.URL
@@ -39,13 +44,17 @@ type Response struct {
 	*http.Response
 
 	// Links that were returned with the response.
-	Links *[]Link
+	Links []*Link `json:"links"`
 }
 
-//Link is the link to sub-resources and/or related resources.
-type Link struct {
-	Rel  string
-	Href string
+// ListOptions specifies the optional parameters to List methods that
+// support pagination.
+type ListOptions struct {
+	// For paginated result sets, page of results to retrieve.
+	PageNum int `url:"pageNum,omitempty"`
+
+	// For paginated result sets, the number of results to include per page.
+	ItemsPerPage int `url:"itemsPerPage,omitempty"`
 }
 
 //ErrorResponse reports the error caused by an API request.
@@ -53,13 +62,54 @@ type ErrorResponse struct {
 	// HTTP response that caused this error
 	Response *http.Response
 	//The error code, which is simply the HTTP status code.
-	ErrorCode string `json:"Error"`
+	ErrorCode int `json:"Error"`
 
 	//A short description of the error, which is simply the HTTP status phrase.
-	Reason string
+	Reason string `json:"reason"`
 
 	//A more detailed description of the error.
-	Detail string
+	Detail string `json:"detail,omitempty"`
+}
+
+func (resp *Response) getCurrentPageLink() (*Link, error) {
+	if link := resp.getLinkByRef("self"); link != nil {
+		return link, nil
+	}
+	return nil, errors.New("no self link found")
+}
+
+func (resp *Response) getLinkByRef(ref string) *Link {
+	for i := range resp.Links {
+		if resp.Links[i].Rel == ref {
+			return resp.Links[i]
+		}
+	}
+	return nil
+}
+
+//IsLastPage returns true if the current page is the last page
+func (resp *Response) IsLastPage() bool {
+	return resp.getLinkByRef("next") == nil
+}
+
+//CurrentPage gets the current page for list pagination request.
+func (resp *Response) CurrentPage() (int, error) {
+	link, err := resp.getCurrentPageLink()
+	if err != nil {
+		return 0, err
+	}
+
+	pageNumStr, err := link.getHrefQueryParam("pageNum")
+	if err != nil {
+		return 0, err
+	}
+
+	pageNum, err := strconv.Atoi(pageNumStr)
+	if err != nil {
+		return 0, fmt.Errorf("error getting current page: %s", err)
+	}
+
+	return pageNum, nil
 }
 
 // NewClient returns a new MongoDBAtlas API Client
@@ -230,4 +280,31 @@ func DoRequestWithClient(
 	req *http.Request) (*http.Response, error) {
 	req = req.WithContext(ctx)
 	return client.Do(req)
+}
+
+func setListOptions(s string, opt interface{}) (string, error) {
+	v := reflect.ValueOf(opt)
+
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return s, nil
+	}
+
+	origURL, err := url.Parse(s)
+	if err != nil {
+		return s, err
+	}
+
+	origValues := origURL.Query()
+
+	newValues, err := query.Values(opt)
+	if err != nil {
+		return s, err
+	}
+
+	for k, v := range newValues {
+		origValues[k] = v
+	}
+
+	origURL.RawQuery = origValues.Encode()
+	return origURL.String(), nil
 }

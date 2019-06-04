@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	matlas "github.com/mongodb-partners/go-client-mongodbatlas/mongodbatlas"
+	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasDatabaseUser() *schema.Resource {

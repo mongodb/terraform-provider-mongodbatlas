@@ -12,7 +12,7 @@ const dbUsersBasePath = "groups/%s/databaseUsers"
 // endpoints of the MongoDB Atlas API.
 //See more: https://docs.atlas.mongodb.com/reference/api/database-users/index.html
 type DatabaseUsersService interface {
-	List(context.Context, string) ([]DatabaseUser, *Response, error)
+	List(context.Context, string, *ListOptions) ([]DatabaseUser, *Response, error)
 	Get(context.Context, string, string) (*DatabaseUser, *Response, error)
 	Create(context.Context, string, *DatabaseUser) (*DatabaseUser, *Response, error)
 	Update(context.Context, string, string, *DatabaseUser) (*DatabaseUser, *Response, error)
@@ -30,41 +30,53 @@ var _ DatabaseUsersService = &DatabaseUsersServiceOp{}
 // Role allows the user to perform particular actions on the specified database.
 // A role on the admin database can include privileges that apply to the other databases as well.
 type Role struct {
+	RoleName       string `json:"roleName,omitempty"`
 	DatabaseName   string `json:"databaseName,omitempty"`
 	CollectionName string `json:"collectionName,omitempty"`
-	RoleName       string `json:"roleName,omitempty"`
 }
 
 // DatabaseUser represents MongoDB users in your cluster.
 type DatabaseUser struct {
+	Roles           []Role `json:"roles,omitempty"`
 	GroupID         string `json:"groupId,omitempty"`
 	Username        string `json:"username,omitempty"`
 	Password        string `json:"password,omitempty"`
 	DatabaseName    string `json:"databaseName,omitempty"`
+	LDAPAuthType    string `json:"ldapAuthType,omitempty"`
 	DeleteAfterDate string `json:"deleteAfterDate,omitempty"`
-	Roles           []Role `json:"roles,omitempty"`
 }
 
 // databaseUserListResponse is the response from the DatabaseUserService.List.
-type databaseUserListResponse struct {
+type databaseUsers struct {
+	Links      []*Link        `json:"links"`
 	Results    []DatabaseUser `json:"results"`
 	TotalCount int            `json:"totalCount"`
 }
 
 //List gets all users in the project.
 //See more: https://docs.atlas.mongodb.com/reference/api/database-users-get-all-users/
-func (s *DatabaseUsersServiceOp) List(ctx context.Context, groupID string) ([]DatabaseUser, *Response, error) {
+func (s *DatabaseUsersServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]DatabaseUser, *Response, error) {
 	path := fmt.Sprintf(dbUsersBasePath, groupID)
+
+	//Add query params from listOptions
+	path, err := setListOptions(path, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	root := new(databaseUserListResponse)
+	root := new(databaseUsers)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
+	}
+
+	if l := root.Links; l != nil {
+		resp.Links = l
 	}
 
 	return root.Results, resp, nil
