@@ -1,3 +1,3 @@
-module github.com/mongodb-partners/go-client-mongodbatlas
+module github.com/mongodb-partners/go-client-mongodb-atlas
 
 go 1.12
