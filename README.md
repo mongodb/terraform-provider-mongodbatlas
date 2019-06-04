@@ -1,1 +1,1 @@
-# go-client-mongodbatlas
+# go-client-mongodb-atlas
