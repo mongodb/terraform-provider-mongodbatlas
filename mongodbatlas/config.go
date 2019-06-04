@@ -1,6 +1,6 @@
 package mongodbatlas
 
-import client "github.com/mongodb-partners/go-client-mongodbatlas/mongodbatlas"
+import client "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 
 //Config ...
 type Config struct {

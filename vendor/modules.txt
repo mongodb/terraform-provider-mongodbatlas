@@ -178,8 +178,8 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.0
 github.com/mitchellh/reflectwalk
-# github.com/mongodb-partners/go-client-mongodbatlas v0.0.0 => ../go-client-mongodbatlas/
-github.com/mongodb-partners/go-client-mongodbatlas/mongodbatlas
+# github.com/mongodb-partners/go-client-mongodb-atlas v0.0.0 => ../go-client-mongodb-atlas/
+github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
 # github.com/posener/complete v1.2.1
