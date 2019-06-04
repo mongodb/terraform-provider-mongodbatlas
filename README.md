@@ -1,1 +1,1 @@
-# terraform-provider-mongodbatlas
+# terraform-provider-mongodb-atlas
