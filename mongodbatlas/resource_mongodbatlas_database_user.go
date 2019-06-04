@@ -146,6 +146,19 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
+	//Get client connection.
+	conn := meta.(*matlas.Client)
+	groupID := d.Get("group_id").(string)
+	username := d.Id()
+
+	_, err := conn.DatabaseUsers.Delete(context.Background(), groupID, username)
+
+	if err != nil {
+		return fmt.Errorf("error deleting database user (%s): %s", username, err)
+	}
+
+	d.SetId("")
+
 	return nil
 }
 
