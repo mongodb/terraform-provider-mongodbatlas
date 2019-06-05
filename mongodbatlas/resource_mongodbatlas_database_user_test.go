@@ -51,6 +51,32 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 }
 
+func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
+	groupID := "5cf5a45a9ccf6400e60981b6"
+	databaseUsername := "test-acc-username"
+	importStateID := fmt.Sprintf("%s-%s", groupID, databaseUsername)
+
+	resourceName := "mongodbatlas_database_user.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserConfig(groupID, "read"),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateId:           importStateID,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)

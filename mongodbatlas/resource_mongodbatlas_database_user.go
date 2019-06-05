@@ -2,7 +2,11 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -15,6 +19,9 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 		Read:   resourceMongoDBAtlasDatabaseUserRead,
 		Update: resourceMongoDBAtlasDatabaseUserUpdate,
 		Delete: resourceMongoDBAtlasDatabaseUserDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasDatabaseUserImportState,
+		},
 		Schema: map[string]*schema.Schema{
 			"group_id": {
 				Type:     schema.TypeString,
@@ -160,6 +167,30 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	d.SetId("")
 
 	return nil
+}
+
+func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a database user, use the format {group_id}-{username}")
+	}
+
+	groupID := parts[0]
+	username := parts[1]
+
+	u, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import user %s in group %s, error: %s", username, groupID, err)
+	}
+
+	d.SetId(u.Username)
+	if err := d.Set("group_id", u.GroupID); err != nil {
+		log.Printf("[WARN] Error setting group for (%s): %s", d.Id(), err)
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func expandRoles(d *schema.ResourceData) []matlas.Role {
