@@ -17,7 +17,7 @@ func TestDatabaseUsers_ListDatabaseUsers(t *testing.T) {
 		fmt.Fprint(w, `{"results": [{"groupId":"1", "username":"test-username"},{"groupId":"1", "username":"test-username-1"}], "totalCount":2}`)
 	})
 
-	dbUsers, _, err := client.DatabaseUsers.List(ctx, "1")
+	dbUsers, _, err := client.DatabaseUsers.List(ctx, "1", nil)
 	if err != nil {
 		t.Errorf("DatabaseUsers.List returned error: %v", err)
 	}
@@ -26,6 +26,96 @@ func TestDatabaseUsers_ListDatabaseUsers(t *testing.T) {
 	if !reflect.DeepEqual(dbUsers, expected) {
 		t.Errorf("DatabaseUsers.List\n got=%#v\nwant=%#v", dbUsers, expected)
 	}
+}
+
+func TestDatabaseUsers_ListDatabaseUsersMultiplePages(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/groups/1/databaseUsers", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+
+		dr := databaseUsers{
+			Results: []DatabaseUser{
+				{GroupID: "1", Username: "test-one"},
+				{GroupID: "1", Username: "test-two"},
+			},
+			Links: []*Link{
+				{Href: "http://example.com/api/atlas/v1.0/groups/1/databaseUsers?pageNum=2&itemsPerPage=2", Rel: "self"},
+				{Href: "http://example.com/api/atlas/v1.0/groups/1/databaseUsers?pageNum=2&itemsPerPage=2", Rel: "previous"},
+			},
+		}
+
+		b, err := json.Marshal(dr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Fprint(w, string(b))
+	})
+
+	_, resp, err := client.DatabaseUsers.List(ctx, "1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkCurrentPage(t, resp, 2)
+}
+
+func TestDatabaseUsers_RetrievePageByNumber(t *testing.T) {
+	setup()
+	defer teardown()
+
+	jBlob := `
+	{
+		"links": [
+			{
+				"href": "http://example.com/api/atlas/v1.0/groups/1/databaseUsers?pageNum=1&itemsPerPage=1",
+				"rel": "previous"
+			},
+			{
+				"href": "http://example.com/api/atlas/v1.0/groups/1/databaseUsers?pageNum=2&itemsPerPage=1",
+				"rel": "self"
+			},
+			{
+				"href": "http://example.com/api/atlas/v1.0/groups/1/databaseUsers?itemsPerPage=3&pageNum=2",
+				"rel": "next"
+			}
+		],
+		"results": [
+			{
+				"databaseName": "admin",
+				"groupId": "1",
+				"ldapAuthType": "NONE",
+				"links": [
+					{
+						"href": "http://example.com/api/atlas/v1.0/groups/1/databaseUsers/admin/test-test",
+						"rel": "self"
+					}
+				],
+				"roles": [
+					{
+						"databaseName": "admin",
+						"roleName": "atlasAdmin"
+					}
+				],
+				"username": "test-test"
+			}
+		],
+		"totalCount": 3
+	}`
+
+	mux.HandleFunc("/groups/1/databaseUsers", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, jBlob)
+	})
+
+	opt := &ListOptions{PageNum: 2}
+	_, resp, err := client.DatabaseUsers.List(ctx, "1", opt)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkCurrentPage(t, resp, 2)
 }
 
 func TestDatabaseUsers_Create(t *testing.T) {

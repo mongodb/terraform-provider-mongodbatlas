@@ -363,3 +363,14 @@ func TestCustomBaseURL_badURL(t *testing.T) {
 
 	testURLParseError(t, err)
 }
+
+func checkCurrentPage(t *testing.T, resp *Response, expectedPage int) {
+	p, err := resp.CurrentPage()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if p != expectedPage {
+		t.Fatalf("expected current page to be '%d', was '%d'", expectedPage, p)
+	}
+}
