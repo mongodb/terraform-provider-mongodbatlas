@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
@@ -74,6 +75,5 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(dbUser.Username)
-
 	return nil
 }

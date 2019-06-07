@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 
+	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/hashicorp/terraform/helper/schema"
 
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
@@ -16,8 +18,9 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 		Read: dataSourceMongoDBAtlasDatabaseUsersRead,
 		Schema: map[string]*schema.Schema{
 			"group_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"results": {
 				Type:     schema.TypeList,
@@ -76,7 +79,7 @@ func dataSourceMongoDBAtlasDatabaseUsersRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error getting database users information: %s", err)
 	}
 
-	if err := d.Set("results", flattenDbUsers(dbUsers)); err != nil {
+	if err := d.Set("results", flattenDBUsers(dbUsers)); err != nil {
 		return fmt.Errorf("error setting `result` for database users: %s", err)
 	}
 
@@ -85,7 +88,7 @@ func dataSourceMongoDBAtlasDatabaseUsersRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func flattenDbUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
+func flattenDBUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
 	var dbUsersMap []map[string]interface{}
 
 	if len(dbUsers) > 0 {
