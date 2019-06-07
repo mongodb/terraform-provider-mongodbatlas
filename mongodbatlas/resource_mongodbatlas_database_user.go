@@ -213,16 +213,12 @@ func expandRoles(d *schema.ResourceData) []matlas.Role {
 
 func flattenRoles(roles []matlas.Role) []map[string]interface{} {
 	roleList := make([]map[string]interface{}, 0)
-
-	if roles != nil {
-		for _, v := range roles {
-			roleList = append(roleList, map[string]interface{}{
-				"role_name":       v.RoleName,
-				"database_name":   v.DatabaseName,
-				"collection_name": v.CollectionName,
-			})
-		}
+	for _, v := range roles {
+		roleList = append(roleList, map[string]interface{}{
+			"role_name":       v.RoleName,
+			"database_name":   v.DatabaseName,
+			"collection_name": v.CollectionName,
+		})
 	}
-
 	return roleList
 }

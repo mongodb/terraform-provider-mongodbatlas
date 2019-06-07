@@ -23,7 +23,9 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 
-		DataSourcesMap: map[string]*schema.Resource{},
+		DataSourcesMap: map[string]*schema.Resource{
+			"mongodbatlas_database_user": dataSourceMongoDBAtlasDatabaseUser(),
+		},
 
 		ResourcesMap: map[string]*schema.Resource{
 			"mongodbatlas_database_user": resourceMongoDBAtlasDatabaseUser(),
