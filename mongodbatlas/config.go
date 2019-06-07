@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	digest "github.com/Sectorbob/mlab-ns2/gae/ns/digest"
+	"github.com/hashicorp/terraform/helper/logging"
 	matlasClient "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 )
 
@@ -13,7 +14,7 @@ type Config struct {
 
 //NewClient ...
 func (c *Config) NewClient() interface{} {
-	// setup a transport to handle disgest
+	// setup a transport to handle digest
 	transport := digest.NewTransport(c.PublicKey, c.PrivateKey)
 
 	// initialize the client
@@ -21,6 +22,8 @@ func (c *Config) NewClient() interface{} {
 	if err != nil {
 		return err
 	}
+
+	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
 	//Initialize the MongoDB Atlas API Client.
 	return matlasClient.NewClient(client)

@@ -24,7 +24,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"mongodbatlas_database_user": dataSourceMongoDBAtlasDatabaseUser(),
+			"mongodbatlas_database_user":  dataSourceMongoDBAtlasDatabaseUser(),
+			"mongodbatlas_database_users": dataSourceMongoDBAtlasDatabaseUsers(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
