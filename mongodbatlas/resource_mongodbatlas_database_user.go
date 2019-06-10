@@ -23,7 +23,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 			State: resourceMongoDBAtlasDatabaseUserImportState,
 		},
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -73,10 +73,10 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	groupID := d.Get("group_id").(string)
+	projectID := d.Get("project_id").(string)
 	username := d.Id()
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
 
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
@@ -100,11 +100,11 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	groupID := d.Get("group_id").(string)
+	projectID := d.Get("project_id").(string)
 
 	dbUserReq := &matlas.DatabaseUser{
 		Roles:        expandRoles(d),
-		GroupID:      groupID,
+		GroupID:      projectID,
 		Username:     d.Get("username").(string),
 		DatabaseName: d.Get("database_name").(string),
 	}
@@ -113,7 +113,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		dbUserReq.Password = v.(string)
 	}
 
-	dbUserRes, _, err := conn.DatabaseUsers.Create(context.Background(), groupID, dbUserReq)
+	dbUserRes, _, err := conn.DatabaseUsers.Create(context.Background(), projectID, dbUserReq)
 
 	if err != nil {
 		return fmt.Errorf("error creating database user: %s", err)
@@ -127,10 +127,10 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	groupID := d.Get("group_id").(string)
+	projectID := d.Get("project_id").(string)
 	username := d.Id()
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
 
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
@@ -143,7 +143,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	if d.HasChange("roles") {
 		dbUser.Roles = expandRoles(d)
 	}
-	_, _, err = conn.DatabaseUsers.Update(context.Background(), groupID, username, dbUser)
+	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
 
 	if err != nil {
 		return fmt.Errorf("error updating database user(%s): %s", username, err)
@@ -155,10 +155,10 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	groupID := d.Get("group_id").(string)
+	projectID := d.Get("project_id").(string)
 	username := d.Id()
 
-	_, err := conn.DatabaseUsers.Delete(context.Background(), groupID, username)
+	_, err := conn.DatabaseUsers.Delete(context.Background(), projectID, username)
 
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
@@ -174,20 +174,20 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a database user, use the format {group_id}-{username}")
+		return nil, errors.New("import format error: to import a database user, use the format {project_id}-{username}")
 	}
 
-	groupID := parts[0]
+	projectID := parts[0]
 	username := parts[1]
 
-	u, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+	u, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import user %s in group %s, error: %s", username, groupID, err)
+		return nil, fmt.Errorf("couldn't import user %s in project %s, error: %s", username, projectID, err)
 	}
 
 	d.SetId(u.Username)
-	if err := d.Set("group_id", u.GroupID); err != nil {
-		log.Printf("[WARN] Error setting group for (%s): %s", d.Id(), err)
+	if err := d.Set("project_id", u.GroupID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
 
 	return []*schema.ResourceData{d}, nil

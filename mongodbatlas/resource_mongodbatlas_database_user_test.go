@@ -15,7 +15,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
 	resourceName := "mongodbatlas_database_user.test"
-	groupID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,11 +23,11 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(groupID, "atlasAdmin"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "atlasAdmin"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, "test-acc-username"),
-					resource.TestCheckResourceAttrSet(resourceName, "group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", "test-acc-username"),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
@@ -35,11 +35,11 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(groupID, "read"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, "test-acc-username"),
-					resource.TestCheckResourceAttrSet(resourceName, "group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", "test-acc-username"),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
@@ -52,9 +52,9 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
-	groupID := "5cf5a45a9ccf6400e60981b6"
+	projectID := "5cf5a45a9ccf6400e60981b6"
 	databaseUsername := "test-acc-username"
-	importStateID := fmt.Sprintf("%s-%s", groupID, databaseUsername)
+	importStateID := fmt.Sprintf("%s-%s", projectID, databaseUsername)
 
 	resourceName := "mongodbatlas_database_user.test"
 
@@ -64,7 +64,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(groupID, "read"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -89,9 +89,9 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] groupId: %s", rs.Primary.Attributes["group_id"])
+		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["group_id"], rs.Primary.ID); err == nil {
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -119,7 +119,7 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the database user
-		_, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["group_id"], rs.Primary.ID)
+		_, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID)
 
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", rs.Primary.ID)
@@ -129,12 +129,12 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasDatabaseUserConfig(groupID, roleName string) string {
+func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_database_user" "test" {
 	username      = "test-acc-username"
 	password      = "test-acc-password"
-	group_id      = "%s"
+	project_id    = "%s"
 	database_name = "admin"
 	
 	roles {
@@ -142,5 +142,5 @@ resource "mongodbatlas_database_user" "test" {
 		database_name = "admin"
 	}
 }
-`, groupID, roleName)
+`, projectID, roleName)
 }
