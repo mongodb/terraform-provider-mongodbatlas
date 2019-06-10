@@ -14,7 +14,7 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ~> **NOTE:** All arguments including the password will be stored in the raw state as plain-text. [Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html)
 
--> **NOTE:** Groups and projects are synonymous terms. Your {GROUP-ID} is the same as your project ID. For existing groups, your group/project ID remains the same. The resource and corresponding endpoints use the term groups.
+-> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
@@ -22,7 +22,7 @@ Each user has a set of roles that provide access to the project’s databases. U
 resource "mongodbatlas_database_user" "test" {
 	username      = "test-acc-username"
 	password      = "test-acc-password"
-	group_id      = "%s"
+	project_id    = "<PROJECT-ID>"
 	database_name = "admin"
 	
 	roles {
@@ -40,7 +40,7 @@ resource "mongodbatlas_database_user" "test" {
 ## Argument Reference
 
 * `database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
-* `group_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the database user.
 * `password` - (Optional) User's initial password. This is required to create the user but may be removed after.
 
 ~> **NOTE:** Password may show up in logs, and it will be stored in the state file as plain-text. Password can be changed in the web interface to increase security.
@@ -70,7 +70,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Database users can be imported using project ID and username, in the format `GROUPID-USERNAME`, e.g.
+Database users can be imported using project ID and username, in the format `PROJECTID-USERNAME`, e.g.
 
 ```
 $ terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user
