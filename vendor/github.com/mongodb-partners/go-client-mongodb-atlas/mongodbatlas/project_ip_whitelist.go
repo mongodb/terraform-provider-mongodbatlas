@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
-const projectIPWhitelistPath = "/groups/%s/whitelist"
+const projectIPWhitelistPath = "groups/%s/whitelist"
 
 //ProjectIPWhitelistService is an interface for interfacing with the Project IP Whitelist
 // endpoints of the MongoDB Atlas API.
@@ -27,20 +28,20 @@ type ProjectIPWhitelistServiceOp struct {
 
 var _ ProjectIPWhitelistService = &ProjectIPWhitelistServiceOp{}
 
-
 // ProjectIPWhitelist represents MongoDB project's IP whitelist.
 type ProjectIPWhitelist struct {
-	CRDRBlock           string `json:"cidrBlock,omitempty"`
-	IPAddress         string `json:"ipAddress,omitempty"`
-	Comment        string `json:"comment,omitempty"`
+	Comment         string `json:"comment,omitempty"`
+	GroupID         string `json:"groupId,omitempty"`
+	CIDRBlock       string `json:"cidrBlock,omitempty"`
+	IPAddress       string `json:"ipAddress,omitempty"`
 	DeleteAfterDate string `json:"deleteAfterDate,omitempty"`
 }
 
 // projectIPWhitelistsResponse is the response from the ProjectIPWhitelistService.List.
 type projectIPWhitelistsResponse struct {
-	Links      []*Link        `json:"links"`
+	Links      []*Link              `json:"links"`
 	Results    []ProjectIPWhitelist `json:"results"`
-	TotalCount int            `json:"totalCount"`
+	TotalCount int                  `json:"totalCount"`
 }
 
 //Get all whitelist entries in the project associated to {GROUP-ID}.
@@ -80,7 +81,8 @@ func (s *ProjectIPWhitelistServiceOp) Get(ctx context.Context, groupID string, w
 	}
 
 	basePath := fmt.Sprintf(projectIPWhitelistPath, groupID)
-	path := fmt.Sprintf("%s/%s", basePath, whiteListEntry)
+	escapedEntry := url.PathEscape(whiteListEntry)
+	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
@@ -159,7 +161,8 @@ func (s *ProjectIPWhitelistServiceOp) Delete(ctx context.Context, groupID string
 	}
 
 	basePath := fmt.Sprintf(projectIPWhitelistPath, groupID)
-	path := fmt.Sprintf("%s/admin/%s", basePath, whitelistEntry)
+	escapedEntry := url.PathEscape(whitelistEntry)
+	path := fmt.Sprintf("%s/whitelist/%s", basePath, escapedEntry)
 
 	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
