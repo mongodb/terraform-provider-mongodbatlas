@@ -2,7 +2,10 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -159,5 +162,27 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("To import an ip whitelist, use the format {project_id}-{cidr block}")
+	}
+	projectID := parts[0]
+	whitelistEntry := parts[1]
+
+	log.Printf("[DEBUG] whitelist entry: %s", whitelistEntry)
+
+	ipEntry, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, whitelistEntry)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't import ip whitelist %s in project_id %s, error: %s", whitelistEntry, projectID, err.Error())
+	}
+
+	d.SetId(ipEntry.CIDRBlock)
+	if err := d.Set("project_id", ipEntry.GroupID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		return []*schema.ResourceData{d}, err
+	}
+
 	return []*schema.ResourceData{d}, nil
 }
