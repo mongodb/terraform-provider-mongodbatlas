@@ -9,7 +9,7 @@ import (
 
 func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_database_users.test"
-	groupID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
 
 	roleName := "atlasAdmin"
 
@@ -18,14 +18,14 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfig(groupID, roleName),
+				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user", "id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user_1", "id"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(groupID, roleName),
+				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(projectID, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.username"),
@@ -37,12 +37,12 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 
 }
 
-func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(groupID, roleName string) string {
+func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_database_user" "db_user" {
 	username      = "test-acc-username"
 	password      = "test-acc-password"
-	group_id      = "%[1]s"
+	project_id    = "%[1]s"
 	database_name = "admin"
 	
 	roles {
@@ -54,7 +54,7 @@ resource "mongodbatlas_database_user" "db_user" {
 resource "mongodbatlas_database_user" "db_user_1" {
 	username      = "test-acc-username-1"
 	password      = "test-acc-password-1"
-	group_id      = "%[1]s"
+	project_id    = "%[1]s"
 	database_name = "admin"
 	
 	roles {
@@ -63,15 +63,15 @@ resource "mongodbatlas_database_user" "db_user_1" {
 	}
 }
 
-`, groupID, roleName)
+`, projectID, roleName)
 }
 
-func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(groupID, roleName string) string {
+func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(projectID, roleName string) string {
 	return fmt.Sprintf(`
 %s
 
 data "mongodbatlas_database_users" "test" {
-	group_id = "%s"
+	project_id = "%s"
 }
-`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(groupID, roleName), groupID)
+`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName), projectID)
 }

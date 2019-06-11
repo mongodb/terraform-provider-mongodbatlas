@@ -12,7 +12,7 @@ description: |-
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
--> **NOTE:** Groups and projects are synonymous terms. Your {GROUP-ID} is the same as your project ID. For existing groups, your group/project ID remains the same. The resource and corresponding endpoints use the term groups.
+-> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 

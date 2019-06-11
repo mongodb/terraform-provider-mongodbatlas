@@ -12,7 +12,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
 	resourceName := "data.mongodbatlas_database_user.test"
-	groupID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
 
 	roleName := "atlasAdmin"
 
@@ -21,11 +21,11 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(groupID, roleName),
+				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, "test-acc-username"),
-					resource.TestCheckResourceAttrSet(resourceName, "group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", "test-acc-username"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", roleName),
@@ -37,12 +37,12 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 }
 
-func testAccMongoDBAtlasDatabaseUserDataSourceConfig(groupID, roleName string) string {
+func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_database_user" "test" {
 	username      = "test-acc-username"
 	password      = "test-acc-password"
-	group_id      = "%s"
+	project_id    = "%s"
 	database_name = "admin"
 	
 	roles {
@@ -52,8 +52,8 @@ resource "mongodbatlas_database_user" "test" {
 }
 
 data "mongodbatlas_database_user" "test" {
-	group_id = mongodbatlas_database_user.test.group_id
-	username = mongodbatlas_database_user.test.username
+	username   = mongodbatlas_database_user.test.username
+	project_id = mongodbatlas_database_user.test.project_id
 }
-`, groupID, roleName)
+`, projectID, roleName)
 }

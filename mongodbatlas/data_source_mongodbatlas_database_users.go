@@ -17,7 +17,7 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasDatabaseUsersRead,
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
@@ -27,7 +27,7 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"group_id": {
+						"project_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -71,9 +71,9 @@ func dataSourceMongoDBAtlasDatabaseUsersRead(d *schema.ResourceData, meta interf
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 
-	groupID := d.Get("group_id").(string)
+	projectID := d.Get("project_id").(string)
 
-	dbUsers, _, err := conn.DatabaseUsers.List(context.Background(), groupID, nil)
+	dbUsers, _, err := conn.DatabaseUsers.List(context.Background(), projectID, nil)
 
 	if err != nil {
 		return fmt.Errorf("error getting database users information: %s", err)
@@ -98,7 +98,7 @@ func flattenDBUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
 			dbUsersMap[k] = map[string]interface{}{
 				"roles":         flattenRoles(dbUser.Roles),
 				"username":      dbUser.Username,
-				"group_id":      dbUser.GroupID,
+				"project_id":    dbUser.GroupID,
 				"database_name": dbUser.DatabaseName,
 			}
 		}
