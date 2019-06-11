@@ -13,7 +13,7 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasDatabaseUserRead,
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -53,10 +53,10 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	groupID := d.Get("group_id").(string)
+	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), groupID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
 
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)

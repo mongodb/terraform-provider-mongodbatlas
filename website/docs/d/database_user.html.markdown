@@ -20,7 +20,7 @@ Each user has a set of roles that provide access to the project’s databases. U
 resource "mongodbatlas_database_user" "test" {
 	username      = "test-acc-username"
 	password      = "test-acc-password"
-	group_id      = "%s"
+	project_id      = "%s"
 	database_name = "admin"
 	
 	roles {
@@ -35,7 +35,7 @@ resource "mongodbatlas_database_user" "test" {
 }
 
 data "mongodbatlas_database_user" "test" {
-	group_id = mongodbatlas_database_user.test.group_id
+	project_id = mongodbatlas_database_user.test.project_id
 	username = mongodbatlas_database_user.test.username
 }
 
@@ -44,7 +44,7 @@ data "mongodbatlas_database_user" "test" {
 ## Argument Reference
 
 * `username` - (Required) Username for authenticating to MongoDB.
-* `group_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the database user.
 
 ## Attributes Reference
 
