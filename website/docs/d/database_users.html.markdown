@@ -12,7 +12,7 @@ description: |-
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
+-> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
 
@@ -20,7 +20,7 @@ Each user has a set of roles that provide access to the project’s databases. U
 resource "mongodbatlas_database_user" "test" {
 	username      = "test-acc-username"
 	password      = "test-acc-password"
-	group_id      = "<GROUP-ID>"
+	project_id      = "<PROJECT-ID>"
 	database_name = "admin"
 	
 	roles {
@@ -35,14 +35,14 @@ resource "mongodbatlas_database_user" "test" {
 }
 
 data "mongodbatlas_database_user" "test" {
-	group_id = mongodbatlas_database_user.test.group_id
+	project_id = mongodbatlas_database_user.test.project_id
 }
 
 ```
 
 ## Argument Reference
 
-* `group_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the database user.
 
 ## Attributes Reference
 
@@ -54,7 +54,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Database Uer
 
-* `group_id` - ID of the Atlas project the user belongs to.
+* `project_id` - ID of the Atlas project the user belongs to.
 * `username` - Username for authenticating to MongoDB.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `database_name` - The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
