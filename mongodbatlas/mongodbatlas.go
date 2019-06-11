@@ -31,7 +31,8 @@ type Client struct {
 	UserAgent string
 
 	//Services used for communicating with the API
-	DatabaseUsers DatabaseUsersService
+	DatabaseUsers      DatabaseUsersService
+	ProjectIPWhitelist ProjectIPWhitelistService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -123,6 +124,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 
 	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
+	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
 
 	return c
 }

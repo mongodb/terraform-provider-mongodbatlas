@@ -42,24 +42,6 @@ func testMethod(t *testing.T, r *http.Request, expected string) {
 	}
 }
 
-type values map[string]string
-
-func testFormValues(t *testing.T, r *http.Request, values values) {
-	expected := url.Values{}
-	for k, v := range values {
-		expected.Add(k, v)
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		t.Fatalf("parseForm(): %v", err)
-	}
-
-	if !reflect.DeepEqual(expected, r.Form) {
-		t.Errorf("Request parameters = %v, expected %v", r.Form, expected)
-	}
-}
-
 func testURLParseError(t *testing.T, err error) {
 	if err == nil {
 		t.Errorf("Expected error to be returned")
