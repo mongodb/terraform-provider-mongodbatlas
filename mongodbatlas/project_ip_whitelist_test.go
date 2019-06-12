@@ -196,6 +196,28 @@ func TestProjectIPWhitelist_GetProjectIPWhitelist(t *testing.T) {
 	}
 }
 
+func TestProjectIPWhitelist_GetProjectIPWhitelistByCIDR(t *testing.T) {
+	setup()
+	defer teardown()
+
+	cidr := "0.0.0.0/32"
+
+	mux.HandleFunc(fmt.Sprintf("/groups/1/whitelist/%s", cidr), func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, fmt.Sprintf(`{"cidrBlock":"%s"}`, cidr))
+	})
+
+	projectIPWhitelists, _, err := client.ProjectIPWhitelist.Get(ctx, "1", cidr)
+	if err != nil {
+		t.Errorf("ProjectIPWhitelist.Get returned error: %v", err)
+	}
+
+	expected := &ProjectIPWhitelist{CIDRBlock: cidr}
+	if !reflect.DeepEqual(projectIPWhitelists, expected) {
+		t.Errorf("ProjectIPWhitelist.Get\n got=%#v\nwant=%#v", projectIPWhitelists, expected)
+	}
+}
+
 func TestProjectIPWhitelist_Update(t *testing.T) {
 	setup()
 	defer teardown()

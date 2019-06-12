@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -44,7 +45,7 @@ type projectIPWhitelistsResponse struct {
 	TotalCount int                  `json:"totalCount"`
 }
 
-//Get all whitelist entries in the project associated to {GROUP-ID}.
+//List all whitelist entries in the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/whitelist-get-all/
 func (s *ProjectIPWhitelistServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]ProjectIPWhitelist, *Response, error) {
 	path := fmt.Sprintf(projectIPWhitelistPath, groupID)
@@ -83,6 +84,8 @@ func (s *ProjectIPWhitelistServiceOp) Get(ctx context.Context, groupID string, w
 	basePath := fmt.Sprintf(projectIPWhitelistPath, groupID)
 	escapedEntry := url.PathEscape(whiteListEntry)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
+
+	log.Printf("[DEBUG] GET PATH : %s", path)
 
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
