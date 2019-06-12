@@ -6,6 +6,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
@@ -16,6 +17,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 	resourceName := "mongodbatlas_database_user.test"
 	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,24 +25,24 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "atlasAdmin"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "atlasAdmin", username),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, "test-acc-username"),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", "test-acc-username"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read", username),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, "test-acc-username"),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", "test-acc-username"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
@@ -53,8 +55,10 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	projectID := "5cf5a45a9ccf6400e60981b6"
-	databaseUsername := "test-acc-username"
-	importStateID := fmt.Sprintf("%s-%s", projectID, databaseUsername)
+
+	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	importStateID := fmt.Sprintf("%s-%s", projectID, username)
 
 	resourceName := "mongodbatlas_database_user.test"
 
@@ -64,7 +68,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read", username),
 			},
 			{
 				ResourceName:            resourceName,
@@ -129,18 +133,18 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName string) string {
+func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_database_user" "test" {
-	username      = "test-acc-username"
+	username      = "%[3]s"
 	password      = "test-acc-password"
-	project_id    = "%s"
+	project_id    = "%[1]s"
 	database_name = "admin"
 	
 	roles {
-		role_name     = "%s"
+		role_name     = "%[2]s"
 		database_name = "admin"
 	}
 }
-`, projectID, roleName)
+`, projectID, roleName, username)
 }
