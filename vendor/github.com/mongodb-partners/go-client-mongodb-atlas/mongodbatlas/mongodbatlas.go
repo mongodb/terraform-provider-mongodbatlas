@@ -33,6 +33,7 @@ type Client struct {
 	//Services used for communicating with the API
 	DatabaseUsers      DatabaseUsersService
 	ProjectIPWhitelist ProjectIPWhitelistService
+	Clusters           ClusterService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -125,6 +126,7 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
+	c.Clusters = &ClusterServiceOp{client: c}
 
 	return c
 }
