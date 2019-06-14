@@ -34,6 +34,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_database_user":        resourceMongoDBAtlasDatabaseUser(),
 			"mongodbatlas_project_ip_whitelist": resourceMongoDBAtlasProjectIPWhitelist(),
 			"mongodbatlas_project":              resourceMongoDBAtlasProject(),
+			"mongodbatlas_cluster":              resourceMongoDBAtlasCluster(),
 		},
 
 		ConfigureFunc: providerConfigure,
