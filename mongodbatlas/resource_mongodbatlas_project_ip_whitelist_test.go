@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
@@ -15,10 +16,14 @@ import (
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_basic(t *testing.T) {
 	var projectIPEntry matlas.ProjectIPWhitelist
 
+	randInt := acctest.RandIntRange(0, 255)
+
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	projectID := "5cf5a45a9ccf6400e60981b6" //Modify until project data source is created.
-	cidrBlock := "179.154.224.129/32"
-	ipAddress := "179.154.224.129"
+	cidrBlock := fmt.Sprintf("179.154.224.%d/32", randInt)
+	ipAddress := fmt.Sprintf("179.154.224.%d", randInt)
+	cidrBlockUpdated := fmt.Sprintf("179.154.224.%d/32", randInt)
+	ipAddressUpdated := fmt.Sprintf("179.154.224.%d", randInt)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,12 +41,12 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfig(projectID, "179.154.224.128/32"),
+				Config: testAccMongoDBAtlasProjectIPWhitelistConfig(projectID, cidrBlockUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName, &projectIPEntry),
-					testAccCheckMongoDBAtlasProjectIPWhitelistAttributes(&projectIPEntry, "179.154.224.128"),
+					testAccCheckMongoDBAtlasProjectIPWhitelistAttributes(&projectIPEntry, ipAddressUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", "179.154.224.128/32"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlockUpdated),
 					resource.TestCheckResourceAttr(resourceName, "comment", "for tf acc testing"),
 				),
 			},
@@ -50,9 +55,27 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_basic(t *testing.T) {
 
 }
 
+func TestAccResourceMongoDBAtlasProjectIPWhitelist_basicBadCIDR(t *testing.T) {
+	projectID := "5cf5a45a9ccf6400e60981b6" //Modify until project data source is created.
+	cidrBlock := "179.154.224.256/32"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMongoDBAtlasProjectIPWhitelistConfig(projectID, cidrBlock),
+				ExpectError: regexp.MustCompile("expected cidr_block to contain a valid CIDR"),
+			},
+		},
+	})
+
+}
+
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_basicInvalid(t *testing.T) {
 	projectID := "5cf5a45a9ccf6400e60981b6" //Modify until project data source is created.
-	cidrBlock := "179.154.224.129/32"
+	cidrBlock := "179.154.224.256/32"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -70,8 +93,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_basicInvalid(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
+	randInt := acctest.RandIntRange(0, 255)
 	projectID := "5cf5a45a9ccf6400e60981b6"
-	ipEntry := "179.154.224.130/32"
+	ipEntry := fmt.Sprintf("179.154.224.%d/32", randInt)
 	importStateID := fmt.Sprintf("%s-%s", projectID, ipEntry)
 
 	resourceName := "mongodbatlas_project_ip_whitelist.test"

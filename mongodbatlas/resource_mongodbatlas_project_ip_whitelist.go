@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -37,12 +38,35 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"ip_address"},
+				ValidateFunc: func(i interface{}, k string) (s []string, es []error) {
+					v, ok := i.(string)
+					if !ok {
+						es = append(es, fmt.Errorf("expected type of %s to be string", k))
+						return
+					}
+
+					_, ipnet, err := net.ParseCIDR(v)
+					if err != nil {
+						es = append(es, fmt.Errorf(
+							"expected %s to contain a valid CIDR, got: %s with err: %s", k, v, err))
+						return
+					}
+
+					if ipnet == nil || v != ipnet.String() {
+						es = append(es, fmt.Errorf(
+							"expected %s to contain a valid network CIDR, expected %s, got %s",
+							k, ipnet, v))
+						return
+					}
+					return
+				},
 			},
 			"ip_address": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.SingleIP(),
 			},
 			"comment": {
 				Type:         schema.TypeString,
