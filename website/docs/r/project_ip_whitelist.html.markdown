@@ -35,8 +35,6 @@ resource "mongodbatlas_project_ip_whitelist" "ip" {
 * `ip_address` - (Optional) The whitelisted IP address. Mutually exclusive with `cidr_block`.
 * `comment` - (Optional) Comment to add to the whitelist entry.
 
--> **IMPORTANT** You cannot set AWS security groups as temporary whitelist entries.
-
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
