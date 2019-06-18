@@ -19,8 +19,8 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_projects.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_projects.test", "org_id"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
 			},
 			{
@@ -33,7 +33,7 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 
 func testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_projects" "test" {
+		resource "mongodbatlas_project" "test" {
 			name   = "%[1]s"
 			org_id = "%[2]s"
 		}

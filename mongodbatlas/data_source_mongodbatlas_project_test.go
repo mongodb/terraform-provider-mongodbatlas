@@ -23,9 +23,9 @@ func TestAccDataSourceMongoDBAtlasProject_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDataSourceProjectConfig(projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists("mongodbatlas_projects.test", &project),
-					resource.TestCheckResourceAttrSet("mongodbatlas_projects.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_projects.test", "org_id"),
+					testAccCheckMongoDBAtlasProjectExists("mongodbatlas_project.test", &project),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
 			},
 			{
@@ -41,7 +41,7 @@ func TestAccDataSourceMongoDBAtlasProject_basic(t *testing.T) {
 
 func testAccMongoDBAtlasDataSourceProjectConfig(projectName, orgID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_projects" "test" {
+		resource "mongodbatlas_project" "test" {
 			name   = "%[1]s"
 			org_id = "%[2]s"
 		}
@@ -53,7 +53,7 @@ func testAccMongoDBAtlasProjectConfigWithDS(projectName, orgID string) string {
 		%s
 
 		data "mongodbatlas_project" "test" {
-			name = "${mongodbatlas_projects.test.name}"
+			name = "${mongodbatlas_project.test.name}"
 		}
 	`, testAccMongoDBAtlasDataSourceProjectConfig(projectName, orgID))
 }
