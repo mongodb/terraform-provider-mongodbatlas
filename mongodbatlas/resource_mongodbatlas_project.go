@@ -9,11 +9,11 @@ import (
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 )
 
-func resourceMongoDBAtlasProjects() *schema.Resource {
+func resourceMongoDBAtlasProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasProjectsCreate,
-		Read:   resourceMongoDBAtlasProjectsRead,
-		Delete: resourceMongoDBAtlasProjectsDelete,
+		Create: resourceMongoDBAtlasProjectCreate,
+		Read:   resourceMongoDBAtlasProjectRead,
+		Delete: resourceMongoDBAtlasProjectDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceMongoDBAtlasProjects() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Id()
@@ -65,7 +65,7 @@ func resourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceMongoDBAtlasProjectsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 
@@ -80,10 +80,10 @@ func resourceMongoDBAtlasProjectsCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(projectRes.ID)
-	return resourceMongoDBAtlasProjectsRead(d, meta)
+	return resourceMongoDBAtlasProjectRead(d, meta)
 }
 
-func resourceMongoDBAtlasProjectsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Id()

@@ -12,10 +12,10 @@ import (
 	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasProjects_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 	var project matlas.Project
 
-	resourceName := "mongodbatlas_projects.test"
+	resourceName := "mongodbatlas_project.test"
 	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 	orgID := "5b71ff2f96e82120d0aaec14"
 	clusterCount := "0"
@@ -55,7 +55,7 @@ func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 	projectName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	orgID := "5b71ff2f96e82120d0aaec14"
 
-	resourceName := "mongodbatlas_projects.test"
+	resourceName := "mongodbatlas_project.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -93,7 +93,7 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 			return nil
 		}
 
-		return fmt.Errorf("database user(%s) does not exist", rs.Primary.ID)
+		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
 	}
 }
 
@@ -110,7 +110,7 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_projects" {
+		if rs.Type != "mongodbatlas_project" {
 			continue
 		}
 
@@ -124,7 +124,7 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 
 func testAccMongoDBAtlasPropjectConfig(projectName, orgID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_projects" "test" {
+		resource "mongodbatlas_project" "test" {
 			name   = "%s"
 			org_id = "%s"
 		}
