@@ -205,6 +205,8 @@ github.com/mitchellh/mapstructure
 github.com/mitchellh/reflectwalk
 # github.com/mongodb-partners/go-client-mongodb-atlas v0.0.0 => ../go-client-mongodb-atlas/
 github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas
+# github.com/mwielbut/pointy v1.1.0
+github.com/mwielbut/pointy
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
 # github.com/posener/complete v1.2.1
@@ -215,6 +217,8 @@ github.com/posener/complete/match
 # github.com/spf13/afero v1.2.1
 github.com/spf13/afero
 github.com/spf13/afero/mem
+# github.com/spf13/cast v1.3.0
+github.com/spf13/cast
 # github.com/ulikunitz/xz v0.5.5
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/xlog
