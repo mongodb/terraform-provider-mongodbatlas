@@ -32,7 +32,7 @@ type Client struct {
 
 	//Services used for communicating with the API
 	DatabaseUsers DatabaseUsersService
-	Project       ProjectService
+	Projects      ProjectsService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -124,7 +124,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 
 	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
-	c.Project = &ProjectServiceOp{client: c}
+	c.Projects = &ProjectsServiceOp{client: c}
 	return c
 }
 
