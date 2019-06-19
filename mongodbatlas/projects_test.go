@@ -45,9 +45,9 @@ func TestProject_GetAllProjects(t *testing.T) {
 		}`)
 	})
 
-	projects, _, err := client.Project.GetAllProjects(ctx)
+	projects, _, err := client.Projects.GetAllProjects(ctx)
 	if err != nil {
-		t.Errorf("Project.GetAllProjects returned error: %v", err)
+		t.Errorf("Projects.GetAllProjects returned error: %v", err)
 	}
 
 	expected := &Projects{
@@ -89,7 +89,7 @@ func TestProject_GetAllProjects(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(projects, expected) {
-		t.Errorf("Project.GetAllProjects\n got=%#v\nwant=%#v", projects, expected)
+		t.Errorf("Projects.GetAllProjects\n got=%#v\nwant=%#v", projects, expected)
 	}
 }
 
@@ -114,9 +114,9 @@ func TestProject_GetOneProject(t *testing.T) {
 		}`)
 	})
 
-	projectResponse, _, err := client.Project.GetOneProject(ctx, projectID)
+	projectResponse, _, err := client.Projects.GetOneProject(ctx, projectID)
 	if err != nil {
-		t.Errorf("Project.GetOneProject returned error: %v", err)
+		t.Errorf("Projects.GetOneProject returned error: %v", err)
 	}
 
 	expected := &Project{
@@ -134,7 +134,7 @@ func TestProject_GetOneProject(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(projectResponse, expected) {
-		t.Errorf("Project.GetOneProject\n got=%#v\nwant=%#v", projectResponse, expected)
+		t.Errorf("Projects.GetOneProject\n got=%#v\nwant=%#v", projectResponse, expected)
 	}
 }
 
@@ -159,9 +159,9 @@ func TestProject_GetOneProjectByName(t *testing.T) {
 		}`)
 	})
 
-	projectResponse, _, err := client.Project.GetOneProjectByName(ctx, projectName)
+	projectResponse, _, err := client.Projects.GetOneProjectByName(ctx, projectName)
 	if err != nil {
-		t.Errorf("Project.GetOneProject returned error: %v", err)
+		t.Errorf("Projects.GetOneProject returned error: %v", err)
 	}
 
 	expected := &Project{
@@ -182,7 +182,7 @@ func TestProject_GetOneProjectByName(t *testing.T) {
 		t.Error(diff)
 	}
 	if !reflect.DeepEqual(projectResponse, expected) {
-		t.Errorf("Project.GetOneProject\n got=%#v\nwant=%#v", projectResponse, expected)
+		t.Errorf("Projects.GetOneProject\n got=%#v\nwant=%#v", projectResponse, expected)
 	}
 }
 
@@ -209,9 +209,9 @@ func TestProject_Create(t *testing.T) {
 		}`)
 	})
 
-	project, _, err := client.Project.Create(ctx, createRequest)
+	project, _, err := client.Projects.Create(ctx, createRequest)
 	if err != nil {
-		t.Errorf("Project.Create returned error: %v", err)
+		t.Errorf("Projects.Create returned error: %v", err)
 	}
 
 	expected := &Project{
@@ -246,9 +246,9 @@ func TestProject_Delete(t *testing.T) {
 		testMethod(t, r, http.MethodDelete)
 	})
 
-	_, err := client.Project.Delete(ctx, projectID)
+	_, err := client.Projects.Delete(ctx, projectID)
 	if err != nil {
-		t.Errorf("Project.Delete returned error: %v", err)
+		t.Errorf("Projects.Delete returned error: %v", err)
 	}
 }
 
@@ -285,9 +285,9 @@ func TestProject_GetProjectTeamsAssigned(t *testing.T) {
 		}`)
 	})
 
-	teamsAssigned, _, err := client.Project.GetProjectTeamsAssigned(ctx, projectID)
+	teamsAssigned, _, err := client.Projects.GetProjectTeamsAssigned(ctx, projectID)
 	if err != nil {
-		t.Errorf("Project.GetProjectTeamsAssigned returned error: %v", err)
+		t.Errorf("Projects.GetProjectTeamsAssigned returned error: %v", err)
 	}
 
 	expected := &TeamsAssigned{
@@ -317,7 +317,7 @@ func TestProject_GetProjectTeamsAssigned(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(teamsAssigned, expected) {
-		t.Errorf("Project.GetProjectTeamsAssigned\n got=%+v\nwant=%+v", teamsAssigned, expected)
+		t.Errorf("Projects.GetProjectTeamsAssigned\n got=%+v\nwant=%+v", teamsAssigned, expected)
 	}
 }
 
@@ -353,9 +353,9 @@ func TestProject_AddTeamsToProject(t *testing.T) {
 		}`)
 	})
 
-	team, _, err := client.Project.AddTeamsToProject(ctx, projectID, createRequest)
+	team, _, err := client.Projects.AddTeamsToProject(ctx, projectID, createRequest)
 	if err != nil {
-		t.Errorf("Project.AddTeamsToProject returned error: %v", err)
+		t.Errorf("Projects.AddTeamsToProject returned error: %v", err)
 	}
 
 	expected := &TeamsAssigned{
