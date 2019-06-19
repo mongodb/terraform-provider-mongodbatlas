@@ -32,6 +32,8 @@ resource "mongodbatlas_project" "my_project" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The project id.
+* `created` - The ISO-8601-formatted timestamp of when Atlas created the project..
+* `cluster_count` - The number of Atlas clusters deployed in the project..
 
 ## Import
 
