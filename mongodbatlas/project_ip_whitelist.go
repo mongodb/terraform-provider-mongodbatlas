@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -84,8 +83,6 @@ func (s *ProjectIPWhitelistServiceOp) Get(ctx context.Context, groupID string, w
 	basePath := fmt.Sprintf(projectIPWhitelistPath, groupID)
 	escapedEntry := url.PathEscape(whiteListEntry)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
-
-	log.Printf("[DEBUG] GET PATH : %s", path)
 
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
