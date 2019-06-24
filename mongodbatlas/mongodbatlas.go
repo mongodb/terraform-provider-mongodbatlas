@@ -34,7 +34,7 @@ type Client struct {
 	DatabaseUsers      DatabaseUsersService
 	ProjectIPWhitelist ProjectIPWhitelistService
 	Projects           ProjectsService
-	Clusters           ClusterService
+	Clusters           ClustersService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -129,7 +129,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
 	c.Projects = &ProjectsServiceOp{client: c}
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
-	c.Clusters = &ClusterServiceOp{client: c}
+	c.Clusters = &ClustersServiceOp{client: c}
 
 	return c
 }

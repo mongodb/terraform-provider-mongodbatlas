@@ -9,10 +9,10 @@ import (
 
 const clustersPath = "groups/%s/clusters"
 
-//ClusterService is an interface for interfacing with the Clusters
+//ClustersService is an interface for interfacing with the Clusters
 // endpoints of the MongoDB Atlas API.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters/
-type ClusterService interface {
+type ClustersService interface {
 	List(context.Context, string, *ListOptions) ([]Cluster, *Response, error)
 	Get(context.Context, string, string) (*Cluster, *Response, error)
 	Create(context.Context, string, *Cluster) (*Cluster, *Response, error)
@@ -20,13 +20,13 @@ type ClusterService interface {
 	Delete(context.Context, string, string) (*Response, error)
 }
 
-//ClusterServiceOp handles communication with the Cluster related methods
+//ClustersServiceOp handles communication with the Cluster related methods
 // of the MongoDB Atlas API
-type ClusterServiceOp struct {
+type ClustersServiceOp struct {
 	client *Client
 }
 
-var _ ClusterService = &ClusterServiceOp{}
+var _ ClustersService = &ClustersServiceOp{}
 
 type AutoScaling struct {
 	DiskGBEnabled *bool `json:"diskGBEnabled,omitempty"`
@@ -89,7 +89,7 @@ type Cluster struct {
 	StateName                string                   `json:"stateName,omitempty"`
 }
 
-// clustersResponse is the response from the ClusterService.List.
+// clustersResponse is the response from the ClustersService.List.
 type clustersResponse struct {
 	Links      []*Link   `json:"links,omitempty"`
 	Results    []Cluster `json:"results,omitempty"`
@@ -98,7 +98,7 @@ type clustersResponse struct {
 
 //List all clusters in the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-all/
-func (s *ClusterServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Cluster, *Response, error) {
+func (s *ClustersServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Cluster, *Response, error) {
 	path := fmt.Sprintf(clustersPath, groupID)
 
 	//Add query params from listOptions
@@ -127,7 +127,7 @@ func (s *ClusterServiceOp) List(ctx context.Context, groupID string, listOptions
 
 //Get gets the cluster specified to {ClUSTER-NAME} from the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-one/
-func (s *ClusterServiceOp) Get(ctx context.Context, groupID string, clusterName string) (*Cluster, *Response, error) {
+func (s *ClustersServiceOp) Get(ctx context.Context, groupID string, clusterName string) (*Cluster, *Response, error) {
 	if clusterName == "" {
 		return nil, nil, NewArgError("name", "must be set")
 	}
@@ -152,7 +152,7 @@ func (s *ClusterServiceOp) Get(ctx context.Context, groupID string, clusterName 
 
 //Add a cluster to the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-create-one/
-func (s *ClusterServiceOp) Create(ctx context.Context, groupID string, createRequest *Cluster) (*Cluster, *Response, error) {
+func (s *ClustersServiceOp) Create(ctx context.Context, groupID string, createRequest *Cluster) (*Cluster, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}
@@ -175,7 +175,7 @@ func (s *ClusterServiceOp) Create(ctx context.Context, groupID string, createReq
 
 //Update a cluster in the project associated to {GROUP-ID}
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-modify-one/
-func (s *ClusterServiceOp) Update(ctx context.Context, groupID string, clusterName string, updateRequest *Cluster) (*Cluster, *Response, error) {
+func (s *ClustersServiceOp) Update(ctx context.Context, groupID string, clusterName string, updateRequest *Cluster) (*Cluster, *Response, error) {
 	if updateRequest == nil {
 		return nil, nil, NewArgError("updateRequest", "cannot be nil")
 	}
@@ -199,7 +199,7 @@ func (s *ClusterServiceOp) Update(ctx context.Context, groupID string, clusterNa
 
 //Delete the cluster specified to {CLUSTER-NAME} from the project associated to {GROUP-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/clusters-delete-one/
-func (s *ClusterServiceOp) Delete(ctx context.Context, groupID string, clusterName string) (*Response, error) {
+func (s *ClustersServiceOp) Delete(ctx context.Context, groupID string, clusterName string) (*Response, error) {
 	if clusterName == "" {
 		return nil, NewArgError("clusterName", "must be set")
 	}
