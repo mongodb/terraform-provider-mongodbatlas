@@ -90,7 +90,7 @@ func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{})
 
 	_, err := conn.Project.Delete(context.Background(), projectID)
 	if err != nil {
-		return fmt.Errorf("error deleting database user (%s): %s", projectID, err)
+		return fmt.Errorf("error deleting project (%s): %s", projectID, err)
 	}
 
 	d.SetId("")
