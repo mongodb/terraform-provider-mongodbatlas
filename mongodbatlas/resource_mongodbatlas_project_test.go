@@ -88,7 +88,7 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["id"])
 
-		if projectResp, _, err := conn.Project.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
+		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
 			*project = *projectResp
 			return nil
 		}
@@ -114,7 +114,7 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := conn.Project.Delete(context.Background(), rs.Primary.ID)
+		_, err := conn.Projects.Delete(context.Background(), rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}

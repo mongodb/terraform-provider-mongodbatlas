@@ -45,7 +45,7 @@ func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) e
 	conn := meta.(*matlas.Client)
 	projectID := d.Id()
 
-	projectRes, _, err := conn.Project.GetOneProject(context.Background(), projectID)
+	projectRes, _, err := conn.Projects.GetOneProject(context.Background(), projectID)
 	if err != nil {
 		return fmt.Errorf("error getting project information: %s", err)
 	}
@@ -74,7 +74,7 @@ func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{})
 		Name:  d.Get("name").(string),
 	}
 
-	projectRes, _, err := conn.Project.Create(context.Background(), projectReq)
+	projectRes, _, err := conn.Projects.Create(context.Background(), projectReq)
 	if err != nil {
 		return fmt.Errorf("error creating project: %s", err)
 	}
@@ -88,7 +88,7 @@ func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{})
 	conn := meta.(*matlas.Client)
 	projectID := d.Id()
 
-	_, err := conn.Project.Delete(context.Background(), projectID)
+	_, err := conn.Projects.Delete(context.Background(), projectID)
 	if err != nil {
 		return fmt.Errorf("error deleting project (%s): %s", projectID, err)
 	}
