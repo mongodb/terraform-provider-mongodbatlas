@@ -145,7 +145,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(d *schema.ResourceData, met
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"queued", "inProgress", "failed"},
 		Target:     []string{"completed"},
-		Refresh:    resourceClusterRefreshFunc(requestParameters, conn),
+		Refresh:    resourceCloudProviderSnapshotRefreshFunc(requestParameters, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -180,7 +180,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotDelete(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceClusterRefreshFunc(requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) resource.StateRefreshFunc {
+func resourceCloudProviderSnapshotRefreshFunc(requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 
