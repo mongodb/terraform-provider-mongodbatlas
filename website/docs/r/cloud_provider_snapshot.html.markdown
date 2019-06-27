@@ -8,7 +8,8 @@ description: |-
 
 # mongodbatlas_cloud_provider_snapshot
 
-`mongodbatlas_cloud_provider_snapshot` provides an Cloud Provider Snapshot entry resource. Atlas Cloud Provider Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service provider.
+`mongodbatlas_cloud_provider_snapshot` provides a resource to take a cloud provider snapshot on demand.
+On-demand snapshots happen immediately, unlike scheduled snapshots which occur at regular intervals. If there is already an on-demand snapshot with a status of queued or inProgress, you must wait until Atlas has completed the on-demand snapshot before taking another.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -36,13 +37,15 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Unique identifier of the snapshot.
 * `created_at` - UTC ISO 8601 formatted point in time when Atlas took the snapshot.
+* `description` - Description of the snapshot. Only present for on-demand snapshots.
 * `expires_at` - UTC ISO 8601 formatted point in time when Atlas will delete the snapshot.
 * `master_key_uuid` - Unique ID of the AWS KMS Customer Master Key used to encrypt the snapshot. Only visible for clusters using Encryption at Rest via Customer KMS.
 * `mongod_version` - Version of the MongoDB server.
 * `snapshot_type` - Specified the type of snapshot. Valid values are onDemand and scheduled.
-* `status` - Current status of the snapshot. One of the following values: queued, inProgress, completed, failed.
+* `status` - Current status of the snapshot. One of the following values will be returned: queued, inProgress, completed, failed.
 * `storage_size_bytes` - Specifies the size of the snapshot in bytes.
 * `type` - Specifies the type of cluster: replicaSet or shardedCluster.
+
 ## Import
 
 Cloud Provider Snapshot entries can be imported using project group_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `GROUPID-CLUSTERNAME-SNAPSHOTID`, e.g.
