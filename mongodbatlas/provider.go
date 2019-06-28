@@ -24,12 +24,14 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"mongodbatlas_database_user":  dataSourceMongoDBAtlasDatabaseUser(),
-			"mongodbatlas_database_users": dataSourceMongoDBAtlasDatabaseUsers(),
-			"mongodbatlas_project":        dataSourceMongoDBAtlasProject(),
-			"mongodbatlas_projects":       dataSourceMongoDBAtlasProjects(),
-			"mongodbatlas_cluster":        dataSourceMongoDBAtlasCluster(),
-			"mongodbatlas_clusters":       dataSourceMongoDBAtlasClusters(),
+			"mongodbatlas_database_user":            dataSourceMongoDBAtlasDatabaseUser(),
+			"mongodbatlas_database_users":           dataSourceMongoDBAtlasDatabaseUsers(),
+			"mongodbatlas_project":                  dataSourceMongoDBAtlasProject(),
+			"mongodbatlas_projects":                 dataSourceMongoDBAtlasProjects(),
+      "mongodbatlas_cluster":                  dataSourceMongoDBAtlasCluster(),
+			"mongodbatlas_clusters":                 dataSourceMongoDBAtlasClusters(),
+			"mongodbatlas_cloud_provider_snapshot":  dataSourceMongoDBAtlasCloudProviderSnapshot(),
+			"mongodbatlas_cloud_provider_snapshots": dataSourceMongoDBAtlasCloudProviderSnapshots(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
