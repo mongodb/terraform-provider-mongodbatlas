@@ -38,7 +38,7 @@ func dataSourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{})
 	conn := meta.(*matlas.Client)
 	projectName := d.Get("name").(string)
 
-	project, _, err := conn.Project.GetOneProjectByName(context.Background(), projectName)
+	project, _, err := conn.Projects.GetOneProjectByName(context.Background(), projectName)
 	if err != nil {
 		return fmt.Errorf("error getting project information: %s", err)
 	}

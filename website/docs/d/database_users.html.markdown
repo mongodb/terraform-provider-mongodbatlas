@@ -1,12 +1,12 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: database_user"
-sidebar_current: "docs-mongodbatlas-datasource-database_user"
+page_title: "MongoDB Atlas: database_users"
+sidebar_current: "docs-mongodbatlas-datasource-database_users"
 description: |-
-    Describes a Database User.
+    Describes a Database Users.
 ---
 
-# mongodb_atlas_database_user
+# mongodb_atlas_database_users
 
 `mongodb_atlas_database_user` describe all Database Users. This represents a database user which will be applied to all clusters within the project.
 
@@ -42,7 +42,7 @@ data "mongodbatlas_database_user" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to get all database users.
 
 ## Attributes Reference
 
