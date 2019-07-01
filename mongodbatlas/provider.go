@@ -44,6 +44,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_snapshot":             resourceMongoDBAtlasCloudProviderSnapshot(),
 			"mongodbatlas_network_container":                   resourceMongoDBAtlasNetworkContainer(),
 			"mongodbatlas_cloud_provider_snapshot_restore_job": resourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
+			"mongodbatlas_network_peering":                     resourceMongoDBAtlasNetworkPeering(),
 		},
 
 		ConfigureFunc: providerConfigure,
