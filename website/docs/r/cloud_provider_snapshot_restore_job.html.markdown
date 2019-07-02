@@ -1,0 +1,90 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
+sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot_restore_job"
+description: |-
+    Provides an Cloud Provider Snapshot Restore Job resource.
+---
+
+# mongodbatlas_cloud_provider_snapshot_restore_job
+
+`mongodbatlas_cloud_provider_snapshot_restore_job` provides a resource to create a new restore job from a cloud provider snapshot associated to the specified cluster. The restore job depends of the type of restore job to create it: 
+* **automated:** Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId.
+
+* **download:** Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. The contents of the archive contain the data files for your Atlas cluster.
+
+-> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
+
+## Example Usage
+
+### Example automated delivery type.
+
+```hcl
+resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+  group_id      = "5cf5a45a9ccf6400e60981b6"
+  cluster_name  = "MyCluster"
+  snapshot_id   = "5d1b654ecf09a24b888f4c79"
+  delivery_type = {
+    automated           = true
+    target_cluster_name = "MyTargetCluster"
+    target_group_id     = "5cf5a45a9ccf6400e60981b6"
+  }
+}
+```
+### Example download delivered type.
+
+```hcl
+resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+  group_id      = "5cf5a45a9ccf6400e60981b6"
+  cluster_name  = "MyCluster"
+  snapshot_id   = "5d1b654ecf09a24b888f4c79"
+  delivery_type = {
+    download = true
+  }
+}
+```
+
+## Argument Reference
+
+* `group_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
+* `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
+* `snapshot_id` - (Required) Unique identifier of the snapshot to restore.
+* `delivery_type` - (Required) Type of restore job to create. Possible values are: **download** or **automated**, only one must be set it in ``true``.
+
+### Download
+Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. 
+
+### Automated
+Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId. if you want to use automated delivery type, you must to set the following arguments:
+
+* `targetClusterName` - (Required) 	Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
+* `targetGroupId` - (Required) 	Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
+
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `cancelled` -	Indicates whether the restore job was canceled.
+* `createdAt` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
+* `deliveryType` - Type of restore job to create. Possible values are: automated and download.
+* `deliveryUrl` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
+* `expired` -	Indicates whether the restore job expired.
+* `expiresAt` -	UTC ISO 8601 formatted point in time when the restore job expires.
+* `finishedAt` -	UTC ISO 8601 formatted point in time when the restore job completed.
+* `id` -	The unique identifier of the restore job.
+* `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
+* `snapshotId` -	Unique identifier of the source snapshot ID of the restore job.
+* `targetGroupId` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
+* `targetClusterName` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
+* `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
+
+## Import
+
+Cloud Provider Snapshot Restore Job entries can be imported using project group_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `GROUPID-CLUSTERNAME-JOBID`, e.g.
+
+```
+$ terraform import mongodbatlas_cloud_provider_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
+```
+
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs/)
