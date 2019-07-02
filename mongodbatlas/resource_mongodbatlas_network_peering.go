@@ -236,13 +236,15 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf(errorPeersCreate, err)
 	}
 
+	d.SetId(peer.ID)
+
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(peer.ID, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
+		MinTimeout: 10 * time.Second,
+		Delay:      30 * time.Second,
 	}
 
 	// Wait, catching any errors
@@ -251,8 +253,6 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf(errorPeersCreate, err)
 	}
 
-	d.SetId(peer.ID)
-
 	return resourceMongoDBAtlasNetworkPeeringRead(d, meta)
 }
 
@@ -260,87 +260,87 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	name := d.Get("name").(string)
+	peerID := d.Id()
 
-	peer, resp, err := conn.Peers.Get(context.Background(), projectID, name)
+	peer, resp, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf(errorPeersRead, name, err)
+		return fmt.Errorf(errorPeersRead, peerID, err)
 	}
 
 	if err := d.Set("accepter_region_name", peer.AccepterRegionName); err != nil {
-		return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("aws_account_id", peer.AWSAccountId); err != nil {
-		return fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("route_table_cidr_block", peer.RouteTableCIDRBlock); err != nil {
-		return fmt.Errorf("error setting `route_table_cidr_block` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `route_table_cidr_block` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("vpc_id", peer.VpcID); err != nil {
-		return fmt.Errorf("error setting `vpc_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `vpc_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("connection_id", peer.ConnectionID); err != nil {
-		return fmt.Errorf("error setting `connection_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `connection_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("error_state_name", peer.ErrorStateName); err != nil {
-		return fmt.Errorf("error setting `error_state_name` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `error_state_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("atlas_id", peer.ID); err != nil {
-		return fmt.Errorf("error setting `atlas_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `atlas_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("status_name", peer.StatusName); err != nil {
-		return fmt.Errorf("error setting `status_name` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `status_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("atlas_cidr_block", peer.AtlasCIDRBlock); err != nil {
-		return fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("azure_directory_id", peer.AzureDirectoryID); err != nil {
-		return fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionId); err != nil {
-		return fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("resource_group_name", peer.ResourceGroupName); err != nil {
-		return fmt.Errorf("error setting `resource_group_name` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `resource_group_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("vnet_name", peer.VNetName); err != nil {
-		return fmt.Errorf("error setting `vnet_name` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `vnet_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("error_state", peer.ErrorState); err != nil {
-		return fmt.Errorf("error setting `error_state` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `error_state` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("status", peer.Status); err != nil {
-		return fmt.Errorf("error setting `status` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `status` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("gcp_project_id", peer.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `gcp_project_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("network_name", peer.NetworkName); err != nil {
-		return fmt.Errorf("error setting `network_name` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `network_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("error_message", peer.ErrorMessage); err != nil {
-		return fmt.Errorf("error setting `error_message` for Network Peering Connection (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `error_message` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	return nil
@@ -350,7 +350,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	name := d.Get("name").(string)
+	peerID := d.Id()
 
 	peer := new(matlas.Peer)
 
@@ -404,16 +404,16 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 
 	// Has changes
 	if !reflect.DeepEqual(peer, matlas.Peer{}) {
-		_, _, err := conn.Peers.Update(context.Background(), projectID, name, peer)
+		_, _, err := conn.Peers.Update(context.Background(), projectID, peerID, peer)
 		if err != nil {
-			return fmt.Errorf(errorPeersUpdate, name, err)
+			return fmt.Errorf(errorPeersUpdate, peerID, err)
 		}
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(name, projectID, conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
