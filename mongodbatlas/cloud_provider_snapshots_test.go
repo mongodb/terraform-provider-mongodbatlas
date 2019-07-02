@@ -257,7 +257,7 @@ func TestCloudProviderSnapshots_Create(t *testing.T) {
 		t.Error(diff)
 	}
 	if !reflect.DeepEqual(cloudProviderSnapshot, expected) {
-		t.Errorf("DatabaseUsers.Get\n got=%#v\nwant=%#v", cloudProviderSnapshot, expected)
+		t.Errorf("CloudProviderSnapshots.Create\n got=%#v\nwant=%#v", cloudProviderSnapshot, expected)
 	}
 }
 
