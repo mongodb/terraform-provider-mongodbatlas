@@ -17,32 +17,30 @@ install:
 # packages that live there.
 # See: https://github.com/golang/go/issues/12933
 - bash scripts/gogetcookie.sh
-- make tools
+#- make tools
 
 script:
-- make lint
-- make test
-- make website-lint
-- make website-test
+  - pwd
+  - make lint
 
-matrix:
-  fast_finish: true
-  allow_failures:
-    - go: tip
-  include:
-  - go: "1.12.x"
-    name: "Code Lint"
-    script: make lint
-  - go: "1.12.x"
-    name: "Code UnitTest"
-    script: make test
-  - go: "1.12.x"
-    name: "Code Acceptance Test"
-    script: make testacc
-  - go: "1.12.x"
-    name: "Website"
-    script:
-      - make website-test
-      - make website-lint
+# matrix:
+#   fast_finish: true
+#   allow_failures:
+#     - go: tip
+#   include:
+#   - go: "1.12.x"
+#     name: "Code Lint"
+#     script: make lint
+#   - go: "1.12.x"
+#     name: "Code UnitTest"
+#     script: make test
+#   - go: "1.12.x"
+#     name: "Code Acceptance Test"
+#     script: make testacc
+#   - go: "1.12.x"
+#     name: "Website"
+#     script:
+#       - make website-test
+#       - make website-lint
 env:
   - GOFLAGS=-mod=vendor GO111MODULE=on
