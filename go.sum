@@ -348,6 +348,8 @@ github.com/mitchellh/panicwrap v0.0.0-20190213213626-17011010aaa4/go.mod h1:YYMf
 github.com/mitchellh/prefixedio v0.0.0-20190213213902-5733675afd51/go.mod h1:kB1naBgV9ORnkiTVeyJOI1DavaJkG4oNIq0Af6ZVKUo=
 github.com/mitchellh/reflectwalk v1.0.0 h1:9D+8oIskB4VJBN5SFlmc27fSlIBZaov1Wpk/IfikLNY=
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
+github.com/mongodb-partners/go-client-mongodb-atlas v0.0.0-20190701200211-67237e3c6330 h1:bnoS/iuyLhWCRCby05GPBBOD/n8pK+lEkRYJfj6PYgo=
+github.com/mongodb-partners/go-client-mongodb-atlas v0.0.0-20190701200211-67237e3c6330/go.mod h1:wrnvHWZU2s9gS18Dc3wMmbOSggHOjNJ1Juw2+iPEcec=
 github.com/mongodb/go-client-mongodb-atlas v0.0.0-20190708162703-1e64eacf179a h1:K79wyVVC6etzU1fOd2cJAEYmrWXH95srErNFM5Nckdc=
 github.com/mongodb/go-client-mongodb-atlas v0.0.0-20190708162703-1e64eacf179a/go.mod h1:jtcobJML1zMJ1QhdQwkcBiKzZGOTo3k9eo1Ztt6NA5s=
 github.com/mozilla/tls-observatory v0.0.0-20180409132520-8791a200eb40/go.mod h1:SrKMQvPiws7F7iqYp8/TX+IhxCYhzr6N/1yb8cwHsGk=
