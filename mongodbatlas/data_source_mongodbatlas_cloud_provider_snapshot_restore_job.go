@@ -1,0 +1,133 @@
+package mongodbatlas
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/terraform/helper/schema"
+
+	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+)
+
+func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
+	return &schema.Resource{
+		Read: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
+		Schema: map[string]*schema.Schema{
+			"group_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"cluster_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"job_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"cancelled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"created_at": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"delivery_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"delivery_url": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"expired": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"expires_at": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"finished_at": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"snapshot_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"target_group_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"target_cluster_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"timestamp": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+
+	requestParameters := &matlas.SnapshotReqPathParameters{
+		JobID:       d.Get("job_id").(string),
+		GroupID:     d.Get("group_id").(string),
+		ClusterName: d.Get("cluster_name").(string),
+	}
+
+	snapshotRes, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
+	if err != nil {
+		return fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err)
+	}
+
+	if err = d.Set("cancelled", snapshotRes.Cancelled); err != nil {
+		return fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("created_at", snapshotRes.CreatedAt); err != nil {
+		return fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("delivery_type", snapshotRes.DeliveryType); err != nil {
+		return fmt.Errorf("error setting `delivery_type` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("delivery_url", snapshotRes.DeliveryURL); err != nil {
+		return fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("expired", snapshotRes.Expired); err != nil {
+		return fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("expires_at", snapshotRes.ExpiresAt); err != nil {
+		return fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("finished_at", snapshotRes.FinishedAt); err != nil {
+		return fmt.Errorf("error setting `finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("snapshot_id", snapshotRes.SnapshotID); err != nil {
+		return fmt.Errorf("error setting `snapshotId` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("target_group_id", snapshotRes.TargetGroupID); err != nil {
+		return fmt.Errorf("error setting `targetGroupId` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("target_cluster_name", snapshotRes.TargetClusterName); err != nil {
+		return fmt.Errorf("error setting `targetClusterName` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("timestamp", snapshotRes.Timestamp); err != nil {
+		return fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+
+	d.SetId(snapshotRes.ID)
+
+	return nil
+}
