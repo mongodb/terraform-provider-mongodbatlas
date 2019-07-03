@@ -32,11 +32,11 @@ matrix:
     script: make test
   - go: "1.12.x"
     name: "Code Acceptance Test"
-    script: make testacc
+    script: travis_wait 60 make testacc
   - go: "1.12.x"
     name: "Website"
     script:
-      - make website-test
+      #- make website-test #commented until Terraform Provider Program Validation
       - make website-lint
 env:
   - GOFLAGS=-mod=vendor GO111MODULE=on

@@ -136,7 +136,7 @@ In addition to all arguments above, the following attributes are exported:
     - AZURE - Microsoft Azure 
 
 * `provider_disk_iops` - The maximum input/output operations per second (IOPS) the system can perform. The possible values depend on the selected providerSettings.instanceSizeName and diskSizeGB.
-* `provider_disk_type_name` - Azure disk type of the server’s root volume. If ommitted, Atlas uses the default disk type for the selected providerSettings.instanceSizeName.
+* `provider_disk_type_name` - Azure disk type of the server’s root volume. If omitted, Atlas uses the default disk type for the selected providerSettings.instanceSizeName.
 * `provider_encrypt_ebs_volume` - If enabled, the Amazon EBS encryption feature encrypts the server’s root volume for both data at rest within the volume and for data moving between the volume and the instance.
 * `provider_region_name` - Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.
 
