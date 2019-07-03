@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: project_ip_whitelist"
-sidebar_current: "docs-mongodbatlas-resource-project_ip_whitelist"
+sidebar_current: "docs-mongodbatlas-resource-project-ip-whitelist"
 description: |-
     Provides an IP Whitelist resource.
 ---

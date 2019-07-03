@@ -6,9 +6,9 @@ description: |-
     Describes a Database User.
 ---
 
-# mongodb_atlas_database_user
+# mongodbatlas_database_user
 
-`mongodb_atlas_database_user` describe a Database User. This represents a database user which will be applied to all clusters within the project.
+`mongodbatlas_database_user` describe a Database User. This represents a database user which will be applied to all clusters within the project.
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
