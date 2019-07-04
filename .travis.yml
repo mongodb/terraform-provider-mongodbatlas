@@ -1,0 +1,26 @@
+dist: xenial
+sudo: required
+services:
+  - docker
+language: go
+
+git:
+  depth: 1
+
+install:
+- make tools
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - go: tip
+  include:
+  - go: "1.12.x"
+    name: "Code Lint"
+    script: make lint
+  - go: "1.12.x"
+    name: "Code UnitTest"
+    script: make test
+
+env:
+  - GO111MODULE=on

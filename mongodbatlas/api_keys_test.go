@@ -380,13 +380,13 @@ func TestAPIKeys_Delete(t *testing.T) {
 	defer teardown()
 
 	orgID := "1"
-	username := "test-username"
+	apiKeyID := "5c47503320eef5699e1cce8d"
 
-	mux.HandleFunc(fmt.Sprintf("/orgs/%s/apiKeys/admin/%s", orgID, username), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(fmt.Sprintf("/orgs/%s/apiKeys/%s", orgID, apiKeyID), func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodDelete)
 	})
 
-	_, err := client.APIKeys.Delete(ctx, orgID, username)
+	_, err := client.APIKeys.Delete(ctx, orgID, apiKeyID)
 	if err != nil {
 		t.Errorf("APIKey.Delete returned error: %v", err)
 	}
