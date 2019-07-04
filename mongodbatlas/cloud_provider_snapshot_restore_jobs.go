@@ -111,7 +111,7 @@ func (s *CloudProviderSnapshotRestoreJobsServiceOp) Get(ctx context.Context, req
 	return root, resp, err
 }
 
-//Create 	creates a new restore job from a cloud provider snapshot associated to the specified cluster.
+//Create creates a new restore job from a cloud provider snapshot associated to the specified cluster.
 //See more: https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs-create-one/
 func (s *CloudProviderSnapshotRestoreJobsServiceOp) Create(ctx context.Context, requestParameters *SnapshotReqPathParameters, createRequest *CloudProviderSnapshotRestoreJob) (*CloudProviderSnapshotRestoreJob, *Response, error) {
 	// Verify if is download or automated
