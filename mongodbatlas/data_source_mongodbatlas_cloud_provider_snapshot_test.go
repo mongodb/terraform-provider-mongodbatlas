@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {

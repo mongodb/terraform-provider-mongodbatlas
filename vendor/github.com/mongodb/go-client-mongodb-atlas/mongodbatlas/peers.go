@@ -137,7 +137,7 @@ func (s *PeersServiceOp) Create(ctx context.Context, groupID string, createReque
 }
 
 //Update a peer connection in the project associated to {GROUP-ID}
-//See more: https://docs.atlas.mongodb.com/reference/api/peers-modify-one/
+//See more: https://docs.atlas.mongodb.com/reference/api/vpc-update-peering-connection/
 func (s *PeersServiceOp) Update(ctx context.Context, groupID string, peerID string, updateRequest *Peer) (*Peer, *Response, error) {
 	if updateRequest == nil {
 		return nil, nil, NewArgError("updateRequest", "cannot be nil")

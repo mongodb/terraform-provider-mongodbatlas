@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {

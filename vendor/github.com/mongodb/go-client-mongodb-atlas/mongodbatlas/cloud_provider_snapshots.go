@@ -56,6 +56,7 @@ type SnapshotReqPathParameters struct {
 	GroupID     string `json:"groupId,omitempty"`     // The unique identifier of the project for the Atlas cluster.
 	SnapshotID  string `json:"snapshotId,omitempty"`  // The unique identifier of the snapshot you want to retrieve.
 	ClusterName string `json:"clusterName,omitempty"` // The name of the Atlas cluster that contains the snapshots you want to retrieve.
+	JobID       string `json:"jobId,omitempty"`       //The unique identifier of the restore job to retrieve.
 }
 
 //GetAllCloudProviderSnapshots gets all cloud provider snapshots for the specified cluster.
@@ -98,7 +99,7 @@ func (s *CloudProviderSnapshotsServiceOp) GetOneCloudProviderSnapshot(ctx contex
 		return nil, nil, NewArgError("clusterName", "must be set")
 	}
 	if requestParameters.SnapshotID == "" {
-		return nil, nil, NewArgError("snapshotID", "must be set")
+		return nil, nil, NewArgError("snapshotId", "must be set")
 	}
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/snapshots/%s", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName, requestParameters.SnapshotID)
@@ -156,7 +157,7 @@ func (s *CloudProviderSnapshotsServiceOp) Delete(ctx context.Context, requestPar
 		return nil, NewArgError("clusterName", "must be set")
 	}
 	if requestParameters.SnapshotID == "" {
-		return nil, NewArgError("snapshotID", "must be set")
+		return nil, NewArgError("snapshotId", "must be set")
 	}
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/snapshots/%s", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName, requestParameters.SnapshotID)

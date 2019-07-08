@@ -3,7 +3,7 @@ package mongodbatlas
 import (
 	digest "github.com/Sectorbob/mlab-ns2/gae/ns/digest"
 	"github.com/hashicorp/terraform/helper/logging"
-	matlasClient "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlasClient "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 //Config ...

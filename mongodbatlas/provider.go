@@ -40,6 +40,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_project":                 resourceMongoDBAtlasProject(),
 			"mongodbatlas_cluster":                 resourceMongoDBAtlasCluster(),
 			"mongodbatlas_cloud_provider_snapshot": resourceMongoDBAtlasCloudProviderSnapshot(),
+			"mongodbatlas_network_container":       resourceMongoDBAtlasNetworkContainer(),
 		},
 
 		ConfigureFunc: providerConfigure,
