@@ -6,7 +6,7 @@ description: |-
     Provides a Database User resource.
 ---
 
-# mongodb_atlas_database_user
+# mongodbatlas_database_user
 
 `mongodb_atlas_database_user` provides a Database User resource. This represents a database user which will be applied to all clusters within the project.
 
