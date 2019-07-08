@@ -8,11 +8,10 @@ build: fmtcheck
 
 
 test: fmtcheck
-	go test $(TEST) -timeout=30s -parallel=4
+	go test $(TEST) -timeout=30s -parallel=4 -cover
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w ./main.go
 	gofmt -s -w ./$(PKG_NAME)
 
 fmtcheck:
