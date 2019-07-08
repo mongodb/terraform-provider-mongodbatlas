@@ -39,6 +39,7 @@ type Client struct {
 	APIKeys                          APIKeysService
 	CloudProviderSnapshotRestoreJobs CloudProviderSnapshotRestoreJobsService
 	Peers                            PeersService
+	Containers                       ContainersService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -138,6 +139,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.APIKeys = &APIKeysServiceOp{client: c}
 	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
 	c.Peers = &PeersServiceOp{client: c}
+	c.Containers = &ContainersServiceOp{client: c}
 
 	return c
 }
