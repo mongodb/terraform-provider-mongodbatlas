@@ -19,7 +19,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
 
-	groupID := "5d0f1f73cf09a29120e173cf"
+	projectID := "5d0f1f73cf09a29120e173cf"
 	clusterName := "MyClusterTest"
 	description := "SomeDescription"
 	retentionInDays := "1"
@@ -30,11 +30,11 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(groupID, clusterName, description, retentionInDays),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName, &cloudProviderSnapshot),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotAttributes(&cloudProviderSnapshot, retentionInDays),
-					resource.TestCheckResourceAttr(resourceName, "group_id", groupID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", retentionInDays),
@@ -48,7 +48,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) 
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
 
-	groupID := "5d0f1f73cf09a29120e173cf"
+	projectID := "5d0f1f73cf09a29120e173cf"
 	clusterName := "MyClusterTest"
 	description := "SomeDescription"
 	retentionInDays := "1"
@@ -59,7 +59,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) 
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(groupID, clusterName, description, retentionInDays),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays),
 			},
 			{
 				ResourceName:            resourceName,
@@ -88,7 +88,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			SnapshotID:  rs.Primary.ID,
-			GroupID:     rs.Primary.Attributes["group_id"],
+			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
 
@@ -120,7 +120,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy(s *terraform.State) er
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			SnapshotID:  rs.Primary.ID,
-			GroupID:     rs.Primary.Attributes["group_id"],
+			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
 
@@ -139,17 +139,17 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["group_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.ID), nil
 	}
 }
 
-func testAccMongoDBAtlasCloudProviderSnapshotConfig(groupID, clusterName, description, retentionInDays string) string {
+func testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
-			group_id          = "%s"
+			project_id        = "%s"
 			cluster_name      = "%s"
 			description       = "%s"
 			retention_in_days = %s
 		}
-	`, groupID, clusterName, description, retentionInDays)
+	`, projectID, clusterName, description, retentionInDays)
 }

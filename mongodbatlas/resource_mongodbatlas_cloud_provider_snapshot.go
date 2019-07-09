@@ -23,7 +23,7 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 			State: resourceMongoDBAtlasCloudProviderSnapshotImportState,
 		},
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -85,7 +85,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, meta 
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  d.Id(),
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -126,7 +126,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(d *schema.ResourceData, met
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -167,7 +167,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotDelete(d *schema.ResourceData, met
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  d.Id(),
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -205,7 +205,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotImportState(d *schema.ResourceData
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a cloudProviderSnapshot, use the format {group_id}-{cluster_name}-{snapshot_id}")
+		return nil, errors.New("import format error: to import a cloudProviderSnapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
 	}
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -220,8 +220,8 @@ func resourceMongoDBAtlasCloudProviderSnapshotImportState(d *schema.ResourceData
 	}
 
 	d.SetId(u.ID)
-	if err := d.Set("group_id", requestParameters.GroupID); err != nil {
-		log.Printf("[WARN] Error setting group_id for (%s): %s", d.Id(), err)
+	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
 	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
 		log.Printf("[WARN] Error setting cluster_name for (%s): %s", d.Id(), err)
