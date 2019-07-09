@@ -17,7 +17,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -70,7 +70,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, met
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  d.Get("snapshot_id").(string),
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
