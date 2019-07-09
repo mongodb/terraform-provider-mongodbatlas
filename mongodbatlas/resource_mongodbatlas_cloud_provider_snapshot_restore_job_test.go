@@ -16,7 +16,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 
-	groupID := "5cf5a45a9ccf6400e60981b6"
+	projectID := "5cf5a45a9ccf6400e60981b6"
 	clusterName := "MyCluster"
 	description := "myDescription"
 	retentionInDays := "1"
@@ -29,16 +29,16 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(groupID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName, &cloudProviderSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobAttributes(&cloudProviderSnapshotRestoreJob, "automated"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type.target_cluster_name", targetClusterName),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.target_group_id", targetGroupID),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type.target_project_id", targetGroupID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(groupID, clusterName, description, retentionInDays),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID, clusterName, description, retentionInDays),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName, &cloudProviderSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobAttributes(&cloudProviderSnapshotRestoreJob, "download"),
@@ -53,7 +53,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 
-	groupID := "5cf5a45a9ccf6400e60981b6"
+	projectID := "5cf5a45a9ccf6400e60981b6"
 	clusterName := "MyCluster"
 	description := "myDescription"
 	retentionInDays := "1"
@@ -66,7 +66,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(groupID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
 			},
 			{
 				ResourceName:            resourceName,
@@ -95,7 +95,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName 
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			JobID:       rs.Primary.ID,
-			GroupID:     rs.Primary.Attributes["group_id"],
+			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
 
@@ -125,7 +125,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy(s *terraform
 		}
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
-			GroupID:     rs.Primary.Attributes["group_id"],
+			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 			JobID:       rs.Primary.ID,
 		}
@@ -151,44 +151,44 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobImportStateIDFunc(re
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["group_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.ID), nil
 	}
 }
 
-func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(groupID, clusterName, description, retentionInDays, targetClusterName, targetGroupID string) string {
+func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
-			group_id          = "%s"
+			project_id          = "%s"
 			cluster_name      = "%s"
 			description       = "%s"
 			retention_in_days = %s
 		}
 		
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-			group_id      = "${mongodbatlas_cloud_provider_snapshot.test.group_id}"
+			project_id      = "${mongodbatlas_cloud_provider_snapshot.test.project_id}"
 			cluster_name  = "${mongodbatlas_cloud_provider_snapshot.test.cluster_name}"
 			snapshot_id   = "${mongodbatlas_cloud_provider_snapshot.test.id}"
 			delivery_type = {
 				automated           = true
 				target_cluster_name = "%s"
-				target_group_id     = "%s"
+				target_project_id     = "%s"
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}
-	`, groupID, clusterName, description, retentionInDays, targetClusterName, targetGroupID)
+	`, projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID)
 }
 
-func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(groupID, clusterName, description, retentionInDays string) string {
+func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
-			group_id          = "%s"
+			project_id          = "%s"
 			cluster_name      = "%s"
 			description       = "%s"
 			retention_in_days = %s
 		}
 		
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-			group_id      = "${mongodbatlas_cloud_provider_snapshot.test.group_id}"
+			project_id      = "${mongodbatlas_cloud_provider_snapshot.test.project_id}"
 			cluster_name  = "${mongodbatlas_cloud_provider_snapshot.test.cluster_name}"
 			snapshot_id   = "${mongodbatlas_cloud_provider_snapshot.test.id}"
 			delivery_type = {
@@ -196,5 +196,5 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(groupID, c
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}
-	`, groupID, clusterName, description, retentionInDays)
+	`, projectID, clusterName, description, retentionInDays)
 }

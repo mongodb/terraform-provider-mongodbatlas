@@ -21,7 +21,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 			State: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState,
 		},
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -54,7 +54,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"target_group_id": {
+						"target_project_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -73,16 +73,16 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 						if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
 							errs = append(errs, fmt.Errorf("%q target_cluster_name must be set", key))
 						}
-						if targetGroupID, ok := v["target_group_id"]; !ok || targetGroupID == "" {
-							errs = append(errs, fmt.Errorf("%q target_group_id must be set", key))
+						if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
+							errs = append(errs, fmt.Errorf("%q target_project_id must be set", key))
 						}
 					}
 					if v["download"] == "true" && (v["automated"] == "false" || v["automated"] == "" || !automated) {
 						if targetClusterName, ok := v["target_cluster_name"]; ok || targetClusterName == "" {
 							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key))
 						}
-						if targetGroupID, ok := v["target_group_id"]; ok || targetGroupID == "" {
-							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_group_id when you are using download delivery type", key))
+						if targetGroupID, ok := v["target_project_id"]; ok || targetGroupID == "" {
+							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key))
 						}
 					}
 					return
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceD
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       d.Id(),
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -167,7 +167,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -180,7 +180,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 		SnapshotID:        d.Get("snapshot_id").(string),
 		DeliveryType:      deliveryType,
 		TargetClusterName: d.Get("delivery_type.target_cluster_name").(string),
-		TargetGroupID:     d.Get("delivery_type.target_group_id").(string),
+		TargetGroupID:     d.Get("delivery_type.target_project_id").(string),
 	}
 
 	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(context.Background(), requestParameters, snapshotReq)
@@ -196,7 +196,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(d *schema.Resourc
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 		JobID:       d.Id(),
 	}
@@ -220,7 +220,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {group_id}-{cluster_name}-{job_id}")
+		return nil, errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}-{cluster_name}-{job_id}")
 	}
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -234,8 +234,8 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 		return nil, fmt.Errorf("couldn't import cloudProviderSnapshotRestoreJob %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
 	}
 
-	if err := d.Set("group_id", requestParameters.GroupID); err != nil {
-		log.Printf("[WARN] Error setting group_id for (%s): %s", d.Id(), err)
+	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
 	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
 		log.Printf("[WARN] Error setting cluster_name for (%s): %s", d.Id(), err)
