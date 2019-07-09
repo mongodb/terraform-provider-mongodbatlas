@@ -52,7 +52,7 @@ In addition to all arguments above, the following attributes are exported:
 * `results` - A list where each represents a Database user.
 
 
-### Database Uer
+### Database User
 
 * `project_id` - ID of the Atlas project the user belongs to.
 * `username` - Username for authenticating to MongoDB.
