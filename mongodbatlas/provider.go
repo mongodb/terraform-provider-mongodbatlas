@@ -32,6 +32,8 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_clusters":                 dataSourceMongoDBAtlasClusters(),
 			"mongodbatlas_cloud_provider_snapshot":  dataSourceMongoDBAtlasCloudProviderSnapshot(),
 			"mongodbatlas_cloud_provider_snapshots": dataSourceMongoDBAtlasCloudProviderSnapshots(),
+			"mongodbatlas_network_container":        dataSourceMongoDBAtlasNetworkContainer(),
+			"mongodbatlas_network_containers":       dataSourceMongoDBAtlasNetworkContainers(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -40,6 +42,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_project":                 resourceMongoDBAtlasProject(),
 			"mongodbatlas_cluster":                 resourceMongoDBAtlasCluster(),
 			"mongodbatlas_cloud_provider_snapshot": resourceMongoDBAtlasCloudProviderSnapshot(),
+			"mongodbatlas_network_container":       resourceMongoDBAtlasNetworkContainer(),
 		},
 
 		ConfigureFunc: providerConfigure,

@@ -35,8 +35,8 @@ Usage:
 
 ```hcl
 provider "mongodbatlas" {
-  public_key = "" //required
-  private_key  = "" //required
+  public_key = "" #required
+  private_key  = "" #required
 }
 ```
 

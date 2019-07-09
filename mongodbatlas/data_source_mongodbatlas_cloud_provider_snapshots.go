@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
