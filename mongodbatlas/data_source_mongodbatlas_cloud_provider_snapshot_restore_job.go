@@ -6,14 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -63,7 +63,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"target_group_id": {
+			"target_project_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -84,7 +84,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.Resourc
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       d.Get("job_id").(string),
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -117,7 +117,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.Resourc
 	if err = d.Set("snapshot_id", snapshotRes.SnapshotID); err != nil {
 		return fmt.Errorf("error setting `snapshotId` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
 	}
-	if err = d.Set("target_group_id", snapshotRes.TargetGroupID); err != nil {
+	if err = d.Set("target_project_id", snapshotRes.TargetGroupID); err != nil {
 		return fmt.Errorf("error setting `targetGroupId` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
 	}
 	if err = d.Set("target_cluster_name", snapshotRes.TargetClusterName); err != nil {

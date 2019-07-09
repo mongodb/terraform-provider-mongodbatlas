@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead,
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -66,7 +66,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"target_group_id": {
+						"target_project_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -93,7 +93,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(d *schema.Resour
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     d.Get("group_id").(string),
+		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
@@ -129,7 +129,7 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 				"expires_at":          cloudProviderSnapshotRestoreJob.ExpiresAt,
 				"finished_at":         cloudProviderSnapshotRestoreJob.FinishedAt,
 				"snapshot_id":         cloudProviderSnapshotRestoreJob.SnapshotID,
-				"target_group_id":     cloudProviderSnapshotRestoreJob.TargetGroupID,
+				"target_project_id":   cloudProviderSnapshotRestoreJob.TargetGroupID,
 				"target_cluster_name": cloudProviderSnapshotRestoreJob.TargetClusterName,
 				"timestamp":           cloudProviderSnapshotRestoreJob.Timestamp,
 			}

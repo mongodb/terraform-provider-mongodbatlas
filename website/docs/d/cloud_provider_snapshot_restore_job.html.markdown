@@ -16,25 +16,25 @@ description: |-
 
 ```hcl
 resource "mongodbatlas_cloud_provider_snapshot" "test" {
-  group_id          = "5cf5a45a9ccf6400e60981b6"
+  project_id          = "5cf5a45a9ccf6400e60981b6"
   cluster_name      = "MyCluster"
   description       = "MyDescription"
   retention_in_days = 1
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  group_id     = "5cf5a45a9ccf6400e60981b6"
+  project_id     = "5cf5a45a9ccf6400e60981b6"
   cluster_name = "MyCluster"
   snapshot_id  = "${mongodbatlas_cloud_provider_snapshot.test.id}"
   delivery_type = {
     automated = true
     target_cluster_name = "MyCluster"
-    target_group_id     = "5cf5a45a9ccf6400e60981b6"
+    target_project_id     = "5cf5a45a9ccf6400e60981b6"
   }
 }
 
 data "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  group_id     = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.group_id}"
+  project_id     = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id}"
   cluster_name = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name}"
   job_id       = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.id}"
 }
@@ -42,7 +42,7 @@ data "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 
 ## Argument Reference
 
-* `group_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve the restore job.
 * `job_id` - (Required) The unique identifier of the restore job to retrieve.
 

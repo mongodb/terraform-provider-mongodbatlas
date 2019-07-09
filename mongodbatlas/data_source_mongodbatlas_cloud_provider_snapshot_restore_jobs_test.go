@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *testing.T) {
-	groupID := "5cf5a45a9ccf6400e60981b6"
+	projectID := "5cf5a45a9ccf6400e60981b6"
 	clusterName := "MyCluster"
 
 	resource.Test(t, resource.TestCase{
@@ -16,17 +16,17 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *test
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithDS(groupID, clusterName),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithDS(projectID, clusterName),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithDS(groupID, clusterName string) string {
+func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithDS(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
-			group_id     = "%s"
+			project_id     = "%s"
 			cluster_name = "%s"
-		}`, groupID, clusterName)
+		}`, projectID, clusterName)
 }
