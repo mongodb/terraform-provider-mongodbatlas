@@ -21,13 +21,13 @@ description: |-
 
 ```hcl
 resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  group_id      = "5cf5a45a9ccf6400e60981b6"
+  project_id      = "5cf5a45a9ccf6400e60981b6"
   cluster_name  = "MyCluster"
   snapshot_id   = "5d1b654ecf09a24b888f4c79"
   delivery_type = {
     automated           = true
     target_cluster_name = "MyTargetCluster"
-    target_group_id     = "5cf5a45a9ccf6400e60981b6"
+    target_project_id     = "5cf5a45a9ccf6400e60981b6"
   }
 }
 ```
@@ -35,7 +35,7 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 
 ```hcl
 resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  group_id      = "5cf5a45a9ccf6400e60981b6"
+  project_id      = "5cf5a45a9ccf6400e60981b6"
   cluster_name  = "MyCluster"
   snapshot_id   = "5d1b654ecf09a24b888f4c79"
   delivery_type = {
@@ -46,7 +46,7 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 
 ## Argument Reference
 
-* `group_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
 * `snapshot_id` - (Required) Unique identifier of the snapshot to restore.
 * `delivery_type` - (Required) Type of restore job to create. Possible values are: **download** or **automated**, only one must be set it in ``true``.
@@ -81,7 +81,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Provider Snapshot Restore Job entries can be imported using project group_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `GROUPID-CLUSTERNAME-JOBID`, e.g.
+Cloud Provider Snapshot Restore Job entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `GROUPID-CLUSTERNAME-JOBID`, e.g.
 
 ```
 $ terraform import mongodbatlas_cloud_provider_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
