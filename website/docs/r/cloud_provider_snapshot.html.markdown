@@ -17,7 +17,7 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
 
 ```hcl
 resource "mongodbatlas_cloud_provider_snapshot" "test" {
-  group_id          = "<GROUP-ID>"
+  project_id        = "<PROJECT-ID>"
   cluster_name      = "MyClusterName"
   description       = "SomeDescription"
   retention_in_days = 1
@@ -26,7 +26,7 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 
 ## Argument Reference
 
-* `group_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots you want to retrieve.
 * `description` - (Required) Description of the on-demand snapshot.
 * `retention_in_days` - (Required) The number of days that Atlas should retain the on-demand snapshot. Must be at least 1.
@@ -48,7 +48,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Provider Snapshot entries can be imported using project group_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `GROUPID-CLUSTERNAME-SNAPSHOTID`, e.g.
+Cloud Provider Snapshot entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-SNAPSHOTID`, e.g.
 
 ```
 $ terraform import mongodbatlas_cloud_provider_snapshot.test 5d0f1f73cf09a29120e173cf-MyClusterTest-5d116d82014b764445b2f9b5
