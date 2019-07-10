@@ -167,6 +167,9 @@ func (s *ContainersServiceOp) Delete(ctx context.Context, groupID string, contai
 		return nil, err
 	}
 
+	//To avoid API Issues
+	req.Header.Del("Content-Type")
+
 	resp, err := s.client.Do(ctx, req, nil)
 
 	return resp, err
