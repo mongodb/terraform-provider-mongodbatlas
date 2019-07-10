@@ -18,22 +18,18 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 	var encryptionAtRest = matlas.EncryptionAtRest{}
 
 	resourceName := "mongodbatlas_encryption_at_rest.test"
-	groupID := "5d0f1f73cf09a29120e173cf"
-
-	if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
-		t.Fatal("`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` mus be set for acceptance testing")
-	}
+	projectID := "5d0f1f73cf09a29120e173cf"
 
 	awsKms := matlas.AwsKms{
 		Enabled:             pointy.Bool(true),
 		AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
 		SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		CustomerMasterKeyID: "030gce02-586d-48d2-a966-05ea954fde0g",
+		CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
 		Region:              "US_EAST_1",
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -42,7 +38,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName, &encryptionAtRest),
 					testAccCheckMongoDBAtlasEncryptionAtRestAttributes(&encryptionAtRest, pointy.Bool(true)),
-					resource.TestCheckResourceAttr(resourceName, "group_id", groupID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms.enabled", cast.ToString(awsKms.Enabled)),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms.access_key_id", awsKms.AccessKeyID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms.secret_access_key", awsKms.SecretAccessKey),
@@ -55,13 +51,14 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
+	t.Skip()
 	var encryptionAtRest = matlas.EncryptionAtRest{}
 
 	resourceName := "mongodbatlas_encryption_at_rest.test"
-	groupID := "5d0f1f73cf09a29120e173cf"
+	projectID := "5d0f1f73cf09a29120e173cf"
 
 	if os.Getenv("AZURE_KEY_IDENTIFIER") == "" || os.Getenv("AZURE_SECRET") == "" {
-		t.Fatal("`AZURE_KEY_IDENTIFIER` and `AZURE_SECRET` mus be set for acceptance testing")
+		t.Fatal("`AZURE_KEY_IDENTIFIER` and `AZURE_SECRET` must be set for acceptance testing")
 	}
 
 	azureKeyVault := matlas.AzureKeyVault{
@@ -86,7 +83,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName, &encryptionAtRest),
 					testAccCheckMongoDBAtlasEncryptionAtRestAttributes(&encryptionAtRest, pointy.Bool(true)),
-					resource.TestCheckResourceAttr(resourceName, "group_id", groupID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault.enabled", cast.ToString(azureKeyVault.Enabled)),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault.client_id", azureKeyVault.ClientID),
 					resource.TestCheckResourceAttr(resourceName, "azure_key_vault.azure_environment", azureKeyVault.AzureEnvironment),
@@ -103,13 +100,15 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
+	t.Skip()
+
 	var encryptionAtRest = matlas.EncryptionAtRest{}
 
 	resourceName := "mongodbatlas_encryption_at_rest.test"
-	groupID := "5d0f1f73cf09a29120e173cf"
+	projectID := "5d0f1f73cf09a29120e173cf"
 
 	if os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GOOGLE_KEY_VERSION_RESOURCE_ID") == "" {
-		t.Fatal("`GOOGLE_SERVICE_ACCOUNT_KEY` and `GOOGLE_KEY_VERSION_RESOURCE_ID` mus be set for acceptance testing")
+		t.Fatal("`GOOGLE_SERVICE_ACCOUNT_KEY` and `GOOGLE_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
 	}
 
 	googleCloudKms := matlas.GoogleCloudKms{
@@ -128,7 +127,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName, &encryptionAtRest),
 					testAccCheckMongoDBAtlasEncryptionAtRestAttributes(&encryptionAtRest, pointy.Bool(true)),
-					resource.TestCheckResourceAttr(resourceName, "group_id", groupID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.enabled", cast.ToString(googleCloudKms.Enabled)),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.service_account_key", googleCloudKms.ServiceAccountKey),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.key_version_resource_id", googleCloudKms.KeyVersionResourceID),
@@ -189,10 +188,10 @@ func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(aw *matlas.AwsKms) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(aws *matlas.AwsKms) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			group_id = "5d0f1f73cf09a29120e173cf"
+			project_id = "5d0f1f73cf09a29120e173cf"
 
 		  aws_kms = {
 				enabled                = %s
@@ -202,13 +201,13 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(aw *matlas.AwsKms) string {
 				region                 = "%s"
 			}
 		}
-	`, cast.ToString(*aw.Enabled), aw.AccessKeyID, aw.SecretAccessKey, aw.CustomerMasterKeyID, aw.Region)
+	`, cast.ToString(*aws.Enabled), aws.AccessKeyID, aws.SecretAccessKey, aws.CustomerMasterKeyID, aws.Region)
 }
 
-func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(az *matlas.AzureKeyVault) string {
+func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(azure *matlas.AzureKeyVault) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			group_id = "5d0f1f73cf09a29120e173cf"
+			project_id = "5d0f1f73cf09a29120e173cf"
 
 		  azure_key_vault = {
 				enabled             = %s
@@ -222,14 +221,14 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(az *matlas.AzureKeyV
 				tenant_id  					= "%s"
 			}
 		}
-	`, cast.ToString(*az.Enabled), az.ClientID, az.AzureEnvironment, az.SubscriptionID, az.ResourceGroupName,
-		az.KeyVaultName, az.KeyIdentifier, az.Secret, az.TenantID)
+	`, cast.ToString(*azure.Enabled), azure.ClientID, azure.AzureEnvironment, azure.SubscriptionID, azure.ResourceGroupName,
+		azure.KeyVaultName, azure.KeyIdentifier, azure.Secret, azure.TenantID)
 }
 
 func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(google *matlas.GoogleCloudKms) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			group_id = "5d0f1f73cf09a29120e173cf"
+			project_id = "5d0f1f73cf09a29120e173cf"
 
 		  google_cloud_kms = {
 				enabled                 = %s
@@ -238,4 +237,10 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(google *matlas.Goog
 			}
 		}
 	`, cast.ToString(*google.Enabled), google.ServiceAccountKey, google.KeyVersionResourceID)
+}
+
+func checkAwsEnv(t *testing.T) {
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" || os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
+		t.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_CUSTOMER_MASTER_KEY_ID` must be set for acceptance testing")
+	}
 }
