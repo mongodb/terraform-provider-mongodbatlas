@@ -4,42 +4,62 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
+
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.test"
 	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
-	containerID := "5d081429c56c980dc2b810d4"
-	vpcID := "vpc-id"
-	awsAccountID := "awdAccount"
+	vpcID := os.Getenv("AWS_VPC_ID")
+	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
+	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
+	awsRegion := os.Getenv("AWS_REGION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnv(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkPeeringConfig(projectID, containerID, vpcID, awsAccountID),
+				Config: testAccMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
-					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, containerID),
+					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, vpcCIDRBlock),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "container_id", containerID),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_id", vpcID),
 					resource.TestCheckResourceAttr(resourceName, "aws_account_id", awsAccountID),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
 		},
 	})
 
+}
+
+func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.ID), nil
+	}
 }
 
 func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *matlas.Peer) resource.TestCheckFunc {
@@ -65,12 +85,11 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 	}
 }
 
-func testAccCheckMongoDBAtlasNetworkPeeringAttributes(peer *matlas.Peer, cID string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasNetworkPeeringAttributes(peer *matlas.Peer, vpcCIDRBlock string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if peer.ContainerID != cID {
-			return fmt.Errorf("bad container ID: %s", peer.ContainerID)
+		if peer.RouteTableCIDRBlock != vpcCIDRBlock {
+			return fmt.Errorf("bad vpcCIDRBlock: %s", peer.RouteTableCIDRBlock)
 		}
-
 		return nil
 	}
 }
@@ -94,16 +113,23 @@ func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasNetworkPeeringConfig(projectID, containerID, vpcID, awsAccountID string) string {
+func testAccMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_network_peering" "test" {
-	accepter_region_name	= "us-west-1"	
-	project_id    			= "%s"
-	container_id            = "%s"
-	provider_name           = "AWS"
-	route_table_cidr_block  = "192.168.0.0/24"
-	vpc_id					= "%s"
-	aws_account_id			= "%s"
+resource "mongodbatlas_network_container" "test" {
+	project_id   		= "%[1]s"
+	atlas_cidr_block    = "192.168.248.0/21"
+	provider_name		= "AWS"
+	region_name			= "%[5]s"
 }
-`, projectID, containerID, vpcID, awsAccountID)
+
+resource "mongodbatlas_network_peering" "test" {
+	accepter_region_name	= "us-east-1"	
+	project_id    			= "%[1]s"
+	container_id            = mongodbatlas_network_container.test.id
+	provider_name           = "AWS"
+	route_table_cidr_block  = "%[4]s"
+	vpc_id					= "%[2]s"
+	aws_account_id			= "%[3]s"
+}
+`, projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }
