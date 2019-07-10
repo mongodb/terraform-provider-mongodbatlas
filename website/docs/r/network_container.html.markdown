@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: network_container"
 sidebar_current: "docs-mongodbatlas-resource-network-container"
 description: |-
-    Provides a Cluster resource.
+    Provides a Network Peering resource.
 ---
 
 # mongodb_atlas_network_container
