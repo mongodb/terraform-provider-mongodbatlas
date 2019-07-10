@@ -18,7 +18,7 @@ You can use the following clouds: AWS CMK, AZURE KEY VAULT and GOOGLE KEY VAULT 
 
 ```hcl
 resource "mongodbatlas_encryption_at_rest" "test" {
-  group_id          = "<GROUP-ID>"
+  project_id          = "<PROJECT-ID>"
  
   aws_kms = {
     enabled                = true
@@ -51,7 +51,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 
 ## Argument Reference
 
-* `group_id` - (Required) The unique identifier for the project.
+* `project_id` - (Required) The unique identifier for the project.
 * `aws_kms` - (Required) Specifies AWS KMS configuration details and whether Encryption at Rest is enabled for an Atlas project.
 * `azure_key_vault` - (Required) Specifies Azure Key Vault configuration details and whether Encryption at Rest is enabled for an Atlas project.
 * `google_cloud_kms` - (Required) Specifies GCP KMS configuration details and whether Encryption at Rest is enabled for an Atlas project.

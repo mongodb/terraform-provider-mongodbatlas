@@ -18,7 +18,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 		Delete:   resourceMongoDBAtlasEncryptionAtRestDelete,
 		Importer: &schema.ResourceImporter{},
 		Schema: map[string]*schema.Schema{
-			"group_id": {
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -143,7 +143,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
-		GroupID: d.Get("group_id").(string),
+		GroupID: d.Get("project_id").(string),
 		AwsKms: matlas.AwsKms{
 			Enabled:             pointy.Bool(cast.ToBool(d.Get("aws_kms.enabled"))),
 			AccessKeyID:         d.Get("aws_kms.access_key_id").(string),
@@ -174,7 +174,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("error creating Encryption at Rest: %s", err)
 	}
 
-	d.SetId(d.Get("group_id").(string))
+	d.SetId(d.Get("project_id").(string))
 	return resourceMongoDBAtlasEncryptionAtRestRead(d, meta)
 }
 
