@@ -8,11 +8,12 @@ description: |-
 
 # mongodbatlas_cloud_provider_snapshot_restore_jobs
 
-`mongodbatlas_cloud_provider_snapshot_restore_jobs` provides an Cloud Provider Snapshot Restore Jobs entry datasource. Get all cloud provider snapshot restore jobs for the specified cluster.
+`mongodbatlas_cloud_provider_snapshot_restore_jobs` provides a Cloud Provider Snapshot Restore Jobs entry datasource. Gets all cloud provider snapshot restore jobs for the specified cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
+First create a snapshot of the desired cluster. Then request that snapshot be restored in an automated fashion to the designated cluster and project.
 
 ```hcl
 resource "mongodbatlas_cloud_provider_snapshot" "test" {
