@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 
-	matlas "github.com/mongodb-partners/go-client-mongodb-atlas/mongodbatlas"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 const (
@@ -239,10 +239,10 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 	d.SetId(peer.ID)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE"},
+		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
+		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(peer.ID, projectID, conn),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      30 * time.Second,
 	}
@@ -271,8 +271,11 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf(errorPeersRead, peerID, err)
 	}
 
-	if err := d.Set("accepter_region_name", peer.AccepterRegionName); err != nil {
-		return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)
+	//Workaround until fix.
+	if peer.AccepterRegionName != "" {
+		if err := d.Set("accepter_region_name", peer.AccepterRegionName); err != nil {
+			return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)
+		}
 	}
 
 	if err := d.Set("aws_account_id", peer.AWSAccountId); err != nil {
@@ -411,8 +414,8 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE"},
+		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
+		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
