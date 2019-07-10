@@ -486,6 +486,23 @@ func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta 
 		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("container_id", peer.ContainerID); err != nil {
+		log.Printf("[WARN] Error setting container_id for (%s): %s", d.Id(), err)
+	}
+
+	//Check wich provider is using.
+
+	provider := "AWS"
+	if peer.VNetName != "" {
+		provider = "AZURE"
+	} else if peer.NetworkName != "" {
+		provider = "GCP"
+	}
+
+	if err := d.Set("provider_name", provider); err != nil {
+		log.Printf("[WARN] Error setting provider_name for (%s): %s", d.Id(), err)
+	}
+
 	return []*schema.ResourceData{d}, nil
 }
 

@@ -45,7 +45,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ImportStateVerifyIgnore: []string{"accepter_region_name"},
 			},
 		},
 	})
