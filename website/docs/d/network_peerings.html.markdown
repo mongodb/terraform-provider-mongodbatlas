@@ -1,14 +1,14 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: network_peering"
-sidebar_current: "docs-mongodbatlas-datasource-network-peering"
+page_title: "MongoDB Atlas: network_peerings"
+sidebar_current: "docs-mongodbatlas-datasource-network-peerings"
 description: |-
-    Describes a Network Peering.
+    Describes all Network Peering Connections.
 ---
 
 # mongodb_atlas_network_peering
 
-`mongodb_atlas_network_peering` describes a Network Peering Connection.
+`mongodb_atlas_network_peerings` describes all Network Peering Connections.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 
@@ -29,22 +29,25 @@ resource "mongodbatlas_network_peering" "test" {
 }
 
 
-data "mongodbatlas_network_peering" "test" {
+data "mongodbatlas_network_peerings" "test" {
     project_id = mongodbatlas_network_peering.test.project_id
-    peering_id = mongodbatlas_network_peering.test.id
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
-* `peering_id` - (Required) Atlas assigned unique ID for the peering connection.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Network Peering Connection ID.
+* `results` - A list where each represents a Network Peering Connection.
+
+### Network Peering Connection
+
+* `peering_id` - Atlas assigned unique ID for the peering connection.
 * `connection_id` - Unique identifier for the peering connection.
 * `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `aws_account_id` - Account ID of the owner of the peer VPC.
@@ -64,4 +67,4 @@ In addition to all arguments above, the following attributes are exported:
 * `network_name` - Name of the network peer to which Atlas connects.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 
-See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-get-connection/)
+See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-get-connections-list/)
