@@ -81,7 +81,7 @@ resource "mongodbatlas_network_peering" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Network Peering Container ID.
-* `connection_id` -
+* `connection_id` -  Unique identifier for the peering connection.
 * `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `aws_account_id` - Account ID of the owner of the peer VPC.
 * `provider_name` - Cloud provider for this VPC peering connection. If omitted, Atlas sets this parameter to AWS. (Possible Values `AWS`, `AZURE`, `GCP`).
