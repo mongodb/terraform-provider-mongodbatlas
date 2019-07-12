@@ -34,6 +34,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_snapshots": dataSourceMongoDBAtlasCloudProviderSnapshots(),
 			"mongodbatlas_network_container":        dataSourceMongoDBAtlasNetworkContainer(),
 			"mongodbatlas_network_containers":       dataSourceMongoDBAtlasNetworkContainers(),
+			"mongodbatlas_network_peering":          dataSourceMongoDBAtlasNetworkPeering(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
