@@ -4,24 +4,22 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
-	var cloudProviderSnapshot = matlas.CloudProviderSnapshot{
-		RetentionInDays: 1,
-	}
+	var cloudProviderSnapshot = matlas.CloudProviderSnapshot{}
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
 
-	projectID := "5d0f1f73cf09a29120e173cf"
-	clusterName := "MyClusterTest"
-	description := "SomeDescription"
+	projectID := "5cf5a45a9ccf6400e60981b6"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
 
 	resource.Test(t, resource.TestCase{
@@ -33,7 +31,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName, &cloudProviderSnapshot),
-					testAccCheckMongoDBAtlasCloudProviderSnapshotAttributes(&cloudProviderSnapshot, retentionInDays),
+					testAccCheckMongoDBAtlasCloudProviderSnapshotAttributes(&cloudProviderSnapshot, description),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
@@ -48,9 +46,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) 
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
 
-	projectID := "5d0f1f73cf09a29120e173cf"
-	clusterName := "MyClusterTest"
-	description := "SomeDescription"
+	projectID := "5cf5a45a9ccf6400e60981b6"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
 
 	resource.Test(t, resource.TestCase{
@@ -92,8 +90,9 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
 
-		_, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+		res, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 		if err == nil {
+			*cloudProviderSnapshot = *res
 			return nil
 		}
 
@@ -101,10 +100,10 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 	}
 }
 
-func testAccCheckMongoDBAtlasCloudProviderSnapshotAttributes(cloudProviderSnapshot *matlas.CloudProviderSnapshot, retentionInDays string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasCloudProviderSnapshotAttributes(cloudProviderSnapshot *matlas.CloudProviderSnapshot, description string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if strconv.Itoa(cloudProviderSnapshot.RetentionInDays) != retentionInDays {
-			return fmt.Errorf("bad cloudProviderSnapshot retentionInDays: %s", strconv.Itoa(cloudProviderSnapshot.RetentionInDays))
+		if cloudProviderSnapshot.Description != description {
+			return fmt.Errorf("bad cloudProviderSnapshot description: %s", cloudProviderSnapshot.Description)
 		}
 		return nil
 	}
@@ -124,9 +123,9 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy(s *terraform.State) er
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
 
-		_, err := conn.CloudProviderSnapshots.Delete(context.Background(), requestParameters)
+		res, _, _ := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 
-		if err != nil {
+		if res != nil {
 			return fmt.Errorf("cloudProviderSnapshot (%s) still exists", rs.Primary.ID)
 		}
 	}
@@ -145,9 +144,24 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName
 
 func testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 5
+
+			
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_1"
+			provider_instance_size_name = "M10"
+			provider_backup_enabled     = true //enable cloud provider snapshots
+			provider_disk_iops          = 100
+			provider_encrypt_ebs_volume = false
+		}
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
-			project_id        = "%s"
-			cluster_name      = "%s"
+			project_id        = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_cluster.my_cluster.name
 			description       = "%s"
 			retention_in_days = %s
 		}
