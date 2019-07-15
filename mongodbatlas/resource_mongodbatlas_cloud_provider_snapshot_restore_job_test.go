@@ -6,6 +6,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -17,10 +18,10 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 	resourceName := "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 
 	projectID := "5cf5a45a9ccf6400e60981b6"
-	clusterName := "MyCluster"
-	description := "myDescription"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
-	targetClusterName := "MyCluster"
+	targetClusterName := clusterName
 	targetGroupID := "5cf5a45a9ccf6400e60981b6"
 
 	resource.Test(t, resource.TestCase{
@@ -54,10 +55,10 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 	resourceName := "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 
 	projectID := "5cf5a45a9ccf6400e60981b6"
-	clusterName := "MyCluster"
-	description := "myDescription"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
-	targetClusterName := "MyCluster"
+	targetClusterName := clusterName
 	targetGroupID := "5cf5a45a9ccf6400e60981b6"
 
 	resource.Test(t, resource.TestCase{
@@ -130,16 +131,10 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy(s *terraform
 			JobID:       rs.Primary.ID,
 		}
 
-		snapshotReq, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
-		if err != nil {
-			return fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err)
-		}
+		res, _, _ := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
 
-		if snapshotReq.DeliveryType == "download" {
-			_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(context.Background(), requestParameters)
-			if err != nil {
-				return fmt.Errorf("cloudProviderSnapshotRestoreJob (%s) still exists", rs.Primary.ID)
-			}
+		if res != nil {
+			return fmt.Errorf("cloudProviderSnapshotRestoreJob (%s) still exists", rs.Primary.ID)
 		}
 	}
 	return nil
@@ -157,21 +152,35 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobImportStateIDFunc(re
 
 func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 5
+
+		//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_1"
+			provider_instance_size_name = "M10"
+			provider_backup_enabled     = true   // enable cloud provider snapshots
+			provider_disk_iops          = 100
+			provider_encrypt_ebs_volume = false
+		}
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
-			project_id          = "%s"
-			cluster_name      = "%s"
+			project_id        = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_cluster.my_cluster.name
 			description       = "%s"
 			retention_in_days = %s
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-			project_id      = "${mongodbatlas_cloud_provider_snapshot.test.project_id}"
-			cluster_name  = "${mongodbatlas_cloud_provider_snapshot.test.cluster_name}"
-			snapshot_id   = "${mongodbatlas_cloud_provider_snapshot.test.id}"
-			delivery_type = {
+			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
+			delivery_type   = {
 				automated           = true
 				target_cluster_name = "%s"
-				target_project_id     = "%s"
+				target_project_id   = "%s"
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}
@@ -180,18 +189,32 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 
 func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 5
+	
+		//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_1"
+			provider_instance_size_name = "M10"
+			provider_backup_enabled     = true   // enable cloud provider snapshots
+			provider_disk_iops          = 100
+			provider_encrypt_ebs_volume = false
+		}
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
-			project_id          = "%s"
-			cluster_name      = "%s"
+			project_id        = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_cluster.my_cluster.name
 			description       = "%s"
 			retention_in_days = %s
 		}
 		
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-			project_id      = "${mongodbatlas_cloud_provider_snapshot.test.project_id}"
-			cluster_name  = "${mongodbatlas_cloud_provider_snapshot.test.cluster_name}"
-			snapshot_id   = "${mongodbatlas_cloud_provider_snapshot.test.id}"
-			delivery_type = {
+			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
+			delivery_type   = {
 				download = true
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
