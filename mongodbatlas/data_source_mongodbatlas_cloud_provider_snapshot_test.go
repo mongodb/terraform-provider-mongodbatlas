@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
@@ -11,10 +12,9 @@ import (
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 	var cloudProviderSnapshot matlas.CloudProviderSnapshot
 
-	resourceName := "data.mongodbatlas_cloud_provider_snapshot.test"
-	projectID := "5d0f1f73cf09a29120e173cf"
-	clusterName := "MyClusterTest"
-	description := "SomeDescription"
+	projectID := "5cf5a45a9ccf6400e60981b6"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
 
 	resource.Test(t, resource.TestCase{
@@ -31,35 +31,37 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_cloud_provider_snapshot.test", "retention_in_days"),
 				),
 			},
-			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotConfigWithDS(),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName, &cloudProviderSnapshot),
-					resource.TestCheckResourceAttrSet(resourceName, "snapshot_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cluster_name"),
-				),
-			},
 		},
 	})
 }
 
 func testAccMongoDBAtlasDataSourceCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_provider_snapshot" "test" {
-		project_id          = "%s"
-		cluster_name      = "%s"
-		description       = "%s"
-		retention_in_days = %s
-	}
-`, projectID, clusterName, description, retentionInDays)
-}
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 5
+			
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_1"
+			provider_instance_size_name = "M10"
+			provider_backup_enabled     = true //enable cloud provider snapshots
+			provider_disk_iops          = 100
+			provider_encrypt_ebs_volume = false
+		}
 
-func testAccMongoDBAtlasCloudProviderSnapshotConfigWithDS() string {
-	return `
+		resource "mongodbatlas_cloud_provider_snapshot" "test" {
+			project_id        = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_cluster.my_cluster.name
+			description       = "%s"
+			retention_in_days = %s
+		}
+
 		data "mongodbatlas_cloud_provider_snapshot" "test" {
-			snapshot_id  = "5d1285acd5ec13b6c2d1726a"
-			project_id     = "${mongodbatlas_cloud_provider_snapshot.test.project_id}"
-			cluster_name = "${mongodbatlas_cloud_provider_snapshot.test.cluster_name}"
-		}`
+			snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
+			project_id   = mongodbatlas_cloud_provider_snapshot.test.project_id
+			cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+		}
+`, projectID, clusterName, description, retentionInDays)
 }
