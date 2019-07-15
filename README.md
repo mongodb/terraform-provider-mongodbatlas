@@ -8,7 +8,7 @@ description: |-
 
 # MongoDB Atlas Provider
 
-- Website: [https://www.mongodb.com](https://www.mongodb.com)
+- Website: [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
 
 
 # Requirements
@@ -24,7 +24,7 @@ Clone repository to: `$HOME/development/terraform-providers/`
 
 ```
 $ mkdir -p $HOME/development/terraform-providers/; cd $HOME/development/terraform-providers/
-$ git clone git@github.com:terraform-providers/terraform-mongodbatlas
+$ git clone git@github.com:mongodb/terraform-mongodbatlas
 ...
 ```
 
