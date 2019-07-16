@@ -19,7 +19,7 @@ func TestProjectAPIKeys_Assign(t *testing.T) {
 
 	_, err := client.ProjectAPIKeys.Assign(ctx, groupID, projectID)
 	if err != nil {
-		t.Errorf("ProjectIPWhitelist.Assign returned error: %v", err)
+		t.Errorf("ProjectAPIKeys.Assign returned error: %v", err)
 	}
 }
 
@@ -36,6 +36,6 @@ func TestProjectAPIKeys_Unassign(t *testing.T) {
 
 	_, err := client.ProjectAPIKeys.Unassign(ctx, groupID, projectID)
 	if err != nil {
-		t.Errorf("ProjectIPWhitelist.Assign returned error: %v", err)
+		t.Errorf("ProjectAPIKeys.Unassign returned error: %v", err)
 	}
 }
