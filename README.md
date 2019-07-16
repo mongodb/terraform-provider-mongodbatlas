@@ -1,12 +1,3 @@
----
-layout: "mongodbatlas"
-page_title: "Provider: MongoDB Atlas"
-sidebar_current: "docs-mongodbatlas"
-description: |-
-  The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Altas Services. The provider needs to be configured with the proper credentials before it can be used.
-  
----
-
 # MongoDB Atlas Provider
 
 This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas. 
@@ -16,7 +7,7 @@ For general information about Terraform, visit the [official website](https://ww
 
 
 # Requirements
-- [Terraform](https://www.terraform.io/downloads.html) 0.11+
+- [Terraform](https://www.terraform.io/downloads.html) 0.12+
 - [Go](https://golang.org/doc/install) 1.12 (to build the provider plugin)
 
 # Developing the Provider
