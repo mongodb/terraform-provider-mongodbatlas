@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -13,7 +14,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
 	resourceName := "data.mongodbatlas_database_user.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	roleName := "atlasAdmin"
 
@@ -42,21 +43,21 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_database_user" "test" {
-	username      = "%[3]s"
-	password      = "test-acc-password"
-	project_id    = "%[1]s"
-	database_name = "admin"
-	
-	roles {
-		role_name     = "%[2]s"
-		database_name = "admin"
-	}
-}
+		resource "mongodbatlas_database_user" "test" {
+			username      = "%[3]s"
+			password      = "test-acc-password"
+			project_id    = "%[1]s"
+			database_name = "admin"
+			
+			roles {
+				role_name     = "%[2]s"
+				database_name = "admin"
+			}
+		}
 
-data "mongodbatlas_database_user" "test" {
-	username   = mongodbatlas_database_user.test.username
-	project_id = mongodbatlas_database_user.test.project_id
-}
-`, projectID, roleName, username)
+		data "mongodbatlas_database_user" "test" {
+			username   = mongodbatlas_database_user.test.username
+			project_id = mongodbatlas_database_user.test.project_id
+		}
+	`, projectID, roleName, username)
 }

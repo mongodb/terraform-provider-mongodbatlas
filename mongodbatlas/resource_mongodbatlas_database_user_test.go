@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -16,7 +17,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
 	resourceName := "mongodbatlas_database_user.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
@@ -54,7 +55,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
@@ -135,16 +136,16 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 
 func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_database_user" "test" {
-	username      = "%[3]s"
-	password      = "test-acc-password"
-	project_id    = "%[1]s"
-	database_name = "admin"
-	
-	roles {
-		role_name     = "%[2]s"
-		database_name = "admin"
-	}
-}
-`, projectID, roleName, username)
+		resource "mongodbatlas_database_user" "test" {
+			username      = "%[3]s"
+			password      = "test-acc-password"
+			project_id    = "%[1]s"
+			database_name = "admin"
+			
+			roles {
+				role_name     = "%[2]s"
+				database_name = "admin"
+			}
+		}
+	`, projectID, roleName, username)
 }

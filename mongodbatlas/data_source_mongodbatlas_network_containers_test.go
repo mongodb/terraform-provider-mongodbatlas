@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -15,7 +16,7 @@ func TestAccDataSourceMongoDBAtlasNetworkContainers_basic(t *testing.T) {
 	randInt := acctest.RandIntRange(0, 255)
 
 	resourceName := "mongodbatlas_network_container.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("10.8.%d.0/24", randInt)
 	dataSourceName := "data.mongodbatlas_network_containers.test"
 
@@ -53,21 +54,21 @@ func TestAccDataSourceMongoDBAtlasNetworkContainers_basic(t *testing.T) {
 
 func testAccMongoDBAtlasNetworkContainersDSConfig(projectID, cidrBlock string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_network_container" "test" {
-	project_id   		= "%s"
-	atlas_cidr_block    = "%s"
-	provider_name		= "AWS"
-	region_name			= "EU_WEST_1"
-}
-`, projectID, cidrBlock)
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		 = "%s"
+			atlas_cidr_block = "%s"
+			provider_name		 = "AWS"
+			region_name			 = "EU_WEST_1"
+		}
+	`, projectID, cidrBlock)
 }
 
 func testAccMongoDBAtlasNetworkContainersDataSourceConfigWithDS(projectID, cidrBlock string) string {
 	return fmt.Sprintf(`
-%s
+		%s
 
-data "mongodbatlas_network_containers" "test" {
-	project_id = "%s"
-}
-`, testAccMongoDBAtlasNetworkContainersDSConfig(projectID, cidrBlock), projectID)
+		data "mongodbatlas_network_containers" "test" {
+			project_id = "%s"
+		}
+	`, testAccMongoDBAtlasNetworkContainersDSConfig(projectID, cidrBlock), projectID)
 }

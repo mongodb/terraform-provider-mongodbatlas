@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -16,7 +17,7 @@ func TestAccResourceMongoDBAtlasCluster_basic(t *testing.T) {
 	var cluster matlas.Cluster
 
 	resourceName := "mongodbatlas_cluster.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
@@ -59,7 +60,7 @@ func TestAccResourceMongoDBAtlasCluster_MultiRegion(t *testing.T) {
 	var cluster matlas.Cluster
 
 	resourceName := "mongodbatlas_cluster.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-multi-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
@@ -108,7 +109,7 @@ func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
 	var cluster matlas.Cluster
 
 	resourceName := "mongodbatlas_cluster.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
@@ -140,7 +141,7 @@ func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
@@ -221,103 +222,103 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 
 func testAccMongoDBAtlasClusterConfig(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_cluster" "test" {
-	project_id   = "%s"
-	name         = "%s"
-	disk_size_gb = 100
-	num_shards   = 1
-	
-	replication_factor           = 3
-	backup_enabled               = %s
-	auto_scaling_disk_gb_enabled = true
-	
-	//Provider Settings "block"
-	provider_name               = "AWS"
-	provider_disk_iops          = 300
-	provider_encrypt_ebs_volume = false
-	provider_instance_size_name = "M40"
-	provider_region_name        = "US_EAST_1"
-}
-`, projectID, name, backupEnabled)
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 100
+			num_shards   = 1
+			
+			replication_factor           = 3
+			backup_enabled               = %s
+			auto_scaling_disk_gb_enabled = true
+			
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_disk_iops          = 300
+			provider_encrypt_ebs_volume = false
+			provider_instance_size_name = "M40"
+			provider_region_name        = "US_EAST_1"
+		}
+	`, projectID, name, backupEnabled)
 }
 
 func testAccMongoDBAtlasClusterConfigMultiRegion(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_cluster" "test" {
-	project_id     = "%s"
-	name           = "%s"
-	disk_size_gb   = 100
-	num_shards     = 1
-	backup_enabled = %s
-	cluster_type   = "REPLICASET"
+		resource "mongodbatlas_cluster" "test" {
+			project_id     = "%s"
+			name           = "%s"
+			disk_size_gb   = 100
+			num_shards     = 1
+			backup_enabled = %s
+			cluster_type   = "REPLICASET"
 
-	//Provider Settings "block"
-	provider_name               = "AWS"
-	provider_disk_iops          = 300
-	provider_instance_size_name = "M10"
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_disk_iops          = 300
+			provider_instance_size_name = "M10"
 
-	replication_specs {
-		num_shards = 1
-		regions_config {
-			region_name     = "US_EAST_1"
-			electable_nodes = 3
-			priority        = 7
-			read_only_nodes = 0
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
+				regions_config {
+					region_name     = "US_EAST_2"
+					electable_nodes = 2
+					priority        = 6
+					read_only_nodes = 0
+				}
+				regions_config {
+					region_name     = "US_WEST_1"
+					electable_nodes = 2
+					priority        = 5
+					read_only_nodes = 2
+				}
+			}
 		}
-		regions_config {
-			region_name     = "US_EAST_2"
-			electable_nodes = 2
-			priority        = 6
-			read_only_nodes = 0
-		}
-		regions_config {
-			region_name     = "US_WEST_1"
-			electable_nodes = 2
-			priority        = 5
-			read_only_nodes = 2
-		}
-	}
-}
-`, projectID, name, backupEnabled)
+	`, projectID, name, backupEnabled)
 }
 
 func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_cluster" "test" {
-	project_id              = "%s"
-	name                    = "%s"
-	disk_size_gb            = 80
-	num_shards              = 1
-	backup_enabled          = %s
-	provider_backup_enabled = true
-	cluster_type            = "GEOSHARDED"
-	
-	//Provider Settings "block"
-	provider_name               = "AWS"
-	provider_disk_iops          = 240
-	provider_instance_size_name = "M30"
-	
-	replication_specs {
-		zone_name  = "Zone 1"
-		num_shards = 2
-		regions_config {
-		region_name     = "US_EAST_1"
-		electable_nodes = 3
-		priority        = 7
-		read_only_nodes = 0
+		resource "mongodbatlas_cluster" "test" {
+			project_id              = "%s"
+			name                    = "%s"
+			disk_size_gb            = 80
+			num_shards              = 1
+			backup_enabled          = %s
+			provider_backup_enabled = true
+			cluster_type            = "GEOSHARDED"
+			
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_disk_iops          = 240
+			provider_instance_size_name = "M30"
+			
+			replication_specs {
+				zone_name  = "Zone 1"
+				num_shards = 2
+				regions_config {
+				region_name     = "US_EAST_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+				}
+			}
+			
+			replication_specs { 
+				zone_name  = "Zone 2"
+				num_shards = 2
+				regions_config {
+				region_name     = "EU_CENTRAL_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+				}
+			}
 		}
-	}
-	
-	replication_specs { 
-		zone_name  = "Zone 2"
-		num_shards = 2
-		regions_config {
-		region_name     = "EU_CENTRAL_1"
-		electable_nodes = 3
-		priority        = 7
-		read_only_nodes = 0
-		}
-	}
-	}
-`, projectID, name, backupEnabled)
+	`, projectID, name, backupEnabled)
 }

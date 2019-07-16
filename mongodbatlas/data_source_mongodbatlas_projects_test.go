@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -10,7 +11,7 @@ import (
 
 func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
-	orgID := "5b71ff2f96e82120d0aaec14"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -37,14 +38,13 @@ func testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID string) stri
 			name   = "%[1]s"
 			org_id = "%[2]s"
 		}
-`, projectName, orgID)
+	`, projectName, orgID)
 }
 
 func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string) string {
 	return fmt.Sprintf(`
 		%s
 
-		data "mongodbatlas_projects" "test" {
-		}
+		data "mongodbatlas_projects" "test" {}
 	`, testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID))
 }

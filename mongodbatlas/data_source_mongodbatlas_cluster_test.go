@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -14,7 +15,7 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 
 	resourceName := "mongodbatlas_cluster.test"
 	dataSourceName := "data.mongodbatlas_cluster.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
@@ -48,28 +49,28 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 
 func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_cluster" "test" {
-	project_id   = "%s"
-	name         = "%s"
-	disk_size_gb = 100
-	num_shards   = 1
-	
-	replication_factor           = 3
-	backup_enabled               = %s
-	auto_scaling_disk_gb_enabled = true
-	
-	//Provider Settings "block"
-	provider_name               = "AWS"
-	provider_disk_iops          = 300
-	provider_encrypt_ebs_volume = false
-	provider_instance_size_name = "M40"
-	provider_region_name        = "US_EAST_1"
-}
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 100
+			num_shards   = 1
+			
+			replication_factor           = 3
+			backup_enabled               = %s
+			auto_scaling_disk_gb_enabled = true
+			
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_disk_iops          = 300
+			provider_encrypt_ebs_volume = false
+			provider_instance_size_name = "M40"
+			provider_region_name        = "US_EAST_1"
+		}
 
 
-data "mongodbatlas_cluster" "test" {
-	project_id = mongodbatlas_cluster.test.project_id
-	name 	   = mongodbatlas_cluster.test.name
-}
-`, projectID, name, backupEnabled)
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.test.project_id
+			name 	   = mongodbatlas_cluster.test.name
+		}
+	`, projectID, name, backupEnabled)
 }
