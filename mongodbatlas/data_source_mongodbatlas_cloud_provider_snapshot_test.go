@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,7 +13,7 @@ import (
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 	var cloudProviderSnapshot matlas.CloudProviderSnapshot
 
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"

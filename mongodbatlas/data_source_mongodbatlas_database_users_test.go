@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -10,7 +11,7 @@ import (
 
 func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_database_users.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	roleName := "atlasAdmin"
@@ -41,39 +42,38 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 
 func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_database_user" "db_user" {
-	username      = "%[3]s"
-	password      = "test-acc-password"
-	project_id    = "%[1]s"
-	database_name = "admin"
-	
-	roles {
-		role_name     = "%[2]s"
-		database_name = "admin"
-	}
-}
+		resource "mongodbatlas_database_user" "db_user" {
+			username      = "%[3]s"
+			password      = "test-acc-password"
+			project_id    = "%[1]s"
+			database_name = "admin"
+			
+			roles {
+				role_name     = "%[2]s"
+				database_name = "admin"
+			}
+		}
 
-resource "mongodbatlas_database_user" "db_user_1" {
-	username      = "%[3]s-1"
-	password      = "test-acc-password-1"
-	project_id    = "%[1]s"
-	database_name = "admin"
-	
-	roles {
-		role_name     = "%[2]s"
-		database_name = "admin"
-	}
-}
-
-`, projectID, roleName, username)
+		resource "mongodbatlas_database_user" "db_user_1" {
+			username      = "%[3]s-1"
+			password      = "test-acc-password-1"
+			project_id    = "%[1]s"
+			database_name = "admin"
+			
+			roles {
+				role_name     = "%[2]s"
+				database_name = "admin"
+			}
+		}
+	`, projectID, roleName, username)
 }
 
 func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
-%s
+		%s
 
-data "mongodbatlas_database_users" "test" {
-	project_id = "%s"
-}
-`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username), projectID)
+		data "mongodbatlas_database_users" "test" {
+			project_id = "%s"
+		}
+	`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username), projectID)
 }

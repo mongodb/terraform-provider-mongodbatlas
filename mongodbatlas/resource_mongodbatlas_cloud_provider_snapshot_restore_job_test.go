@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -17,12 +18,12 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
 	targetClusterName := clusterName
-	targetGroupID := "5cf5a45a9ccf6400e60981b6"
+	targetGroupID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -54,12 +55,12 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
 	targetClusterName := clusterName
-	targetGroupID := "5cf5a45a9ccf6400e60981b6"
+	targetGroupID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

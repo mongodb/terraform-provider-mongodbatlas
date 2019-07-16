@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -17,7 +18,7 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 
 	resourceName := "mongodbatlas_project.test"
 	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
-	orgID := "5b71ff2f96e82120d0aaec14"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	clusterCount := "0"
 	projectNameUpdated := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 
@@ -53,7 +54,7 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 
 	projectName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	orgID := "5b71ff2f96e82120d0aaec14"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
 	resourceName := "mongodbatlas_project.test"
 
@@ -114,8 +115,8 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := conn.Projects.Delete(context.Background(), rs.Primary.ID)
-		if err == nil {
+		projectRes, _, _ := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
+		if projectRes != nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}
 	}
@@ -128,5 +129,5 @@ func testAccMongoDBAtlasPropjectConfig(projectName, orgID string) string {
 			name   = "%s"
 			org_id = "%s"
 		}
-`, projectName, orgID)
+	`, projectName, orgID)
 }

@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -14,7 +15,7 @@ func TestAccDataSourceMongoDBAtlasProject_basic(t *testing.T) {
 
 	resourceName := "data.mongodbatlas_project.test"
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
-	orgID := "5b71ff2f96e82120d0aaec14"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

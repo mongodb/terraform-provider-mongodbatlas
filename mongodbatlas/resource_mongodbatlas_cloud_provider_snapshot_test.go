@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -17,7 +18,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
 
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
@@ -46,7 +47,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) 
 
 	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
 
-	projectID := "5cf5a45a9ccf6400e60981b6"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
@@ -149,7 +150,6 @@ func testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, desc
 			name         = "%s"
 			disk_size_gb = 5
 
-			
 			//Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_1"
