@@ -37,6 +37,7 @@ type Client struct {
 	Clusters               ClustersService
 	CloudProviderSnapshots CloudProviderSnapshotsService
 	APIKeys                APIKeysService
+	ProjectAPIKeys         ProjectAPIKeysService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -134,6 +135,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Clusters = &ClustersServiceOp{client: c}
 	c.CloudProviderSnapshots = &CloudProviderSnapshotsServiceOp{client: c}
 	c.APIKeys = &APIKeysServiceOp{client: c}
+	c.ProjectAPIKeys = &ProjectAPIKeysOp{client: c}
 
 	return c
 }
