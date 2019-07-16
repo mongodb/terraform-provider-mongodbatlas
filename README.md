@@ -4,11 +4,15 @@ page_title: "Provider: MongoDB Atlas"
 sidebar_current: "docs-mongodbatlas"
 description: |-
   The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Altas Services. The provider needs to be configured with the proper credentials before it can be used.
+  
 ---
 
 # MongoDB Atlas Provider
 
-- Website: [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas. 
+Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
+
+For general information about Terraform, visit the [official website](https://www.terraform.io) and the [GitHub project page](https://github.com/hashicorp/terraform).
 
 
 # Requirements
@@ -62,13 +66,23 @@ Atlas `provider` block:
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
+You must also configure the `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` enviroment variables before make the test:
+
+```
+$ export MONGODB_ATLAS_PROJECT_ID=5cf5a45a9ccf6400e60981b6
+$ export MONGODB_ATLAS_ORG_ID=5b71ff2f96e82120d0aaec14
+```
+
+Then you can run the test with:
+
+
 ```
 $ make test
 ```
 
 In order to run the full suite of Acceptance tests, run ``make testacc``.
 
-Note: Acceptance tests create real resources, and often cost money to run. Please read Running an Acceptance Test in the contribution guidelines for more information on usage.
+Note: Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
 
 ```
 $ make testacc
@@ -80,7 +94,15 @@ Contributing
 
 Terraform is the work of thousands of contributors. We appreciate your help!
 
-To contribute, please read the contribution guidelines: [Contributing to Terraform - MongoDB Atlas Provider](/CONTRIBUTING.md)
+We welcome issues of all kinds including feature requests, bug reports, and general questions within this repo.
 
-Issues on GitHub are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
+To contribute, please read the Terraform contribution guidelines:
+https://www.terraform.io/docs/extend/community/contributing.html
 
+Note: Additional guidelines for this Provider may be added in a future CONTRIBUTING file.
+
+If you have issues on GitHub, they are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
+
+Thanks
+---------------------------
+We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
