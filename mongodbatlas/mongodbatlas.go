@@ -37,7 +37,7 @@ type Client struct {
 	Clusters                         ClustersService
 	CloudProviderSnapshots           CloudProviderSnapshotsService
 	APIKeys                          APIKeysService
-	ProjectAPIKeys         ProjectAPIKeysService
+	ProjectAPIKeys                   ProjectAPIKeysService
 	CloudProviderSnapshotRestoreJobs CloudProviderSnapshotRestoreJobsService
 	Peers                            PeersService
 	Containers                       ContainersService
