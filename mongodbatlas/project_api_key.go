@@ -6,12 +6,14 @@ import (
 	"net/http"
 )
 
-const projectAPIKeysPath = "groups/%s/apiKeys/%s"
+const projectAPIKeysPath = "groups/%s/apiKeys"
 
 //ProjectAPIKeysService is an interface for interfacing with the APIKeys
 // endpoints of the MongoDB Atlas API.
 //See more: https://docs.atlas.mongodb.com/reference/api/apiKeys/#organization-api-keys-on-projects-endpoints
 type ProjectAPIKeysService interface {
+	List(context.Context, string, *ListOptions) ([]APIKey, *Response, error)
+	Create(context.Context, string, *APIKeyInput) (*APIKey, *Response, error)
 	Assign(context.Context, string, string) (*Response, error)
 	Unassign(context.Context, string, string) (*Response, error)
 }
@@ -24,20 +26,74 @@ type ProjectAPIKeysOp struct {
 
 var _ ProjectAPIKeysService = &ProjectAPIKeysOp{}
 
-//Assign an API-KEY related to {ORG-ID} to a the project with {PROJECT-ID}.
+//List all API-KEY in the organization associated to {GROUP-ID}.
+//See more: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/
+func (s *ProjectAPIKeysOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]APIKey, *Response, error) {
+	path := fmt.Sprintf(projectAPIKeysPath, groupID)
+
+	//Add query params from listOptions
+	path, err := setListOptions(path, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(apiKeysResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	if l := root.Links; l != nil {
+		resp.Links = l
+	}
+
+	return root.Results, resp, nil
+}
+
+//Create an API Key by the {GROUP-ID}.
+//See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-orgs-create-one/
+func (s *ProjectAPIKeysOp) Create(ctx context.Context, groupID string, createRequest *APIKeyInput) (*APIKey, *Response, error) {
+	if createRequest == nil {
+		return nil, nil, NewArgError("createRequest", "cannot be nil")
+	}
+
+	path := fmt.Sprintf(apiKeysPath, groupID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(APIKey)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
+}
+
+//Assign an API-KEY related to {GROUP-ID} to a the project with {PROJECT-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-orgs-get-all/
-func (s *ProjectAPIKeysOp) Assign(ctx context.Context, orgID string, projectID string) (*Response, error) {
-	if orgID == "" {
+func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID string) (*Response, error) {
+	if groupID == "" {
 		return nil, NewArgError("apiKeyID", "must be set")
 	}
 
-	if projectID == "" {
-		return nil, NewArgError("projectID", "must be set")
+	if keyID == "" {
+		return nil, NewArgError("keyID", "must be set")
 	}
 
-	basePath := fmt.Sprintf(projectAPIKeysPath, orgID, projectID)
+	basePath := fmt.Sprintf(projectAPIKeysPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, basePath, nil)
+	path := fmt.Sprintf("%s/%s", basePath, keyID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -47,20 +103,22 @@ func (s *ProjectAPIKeysOp) Assign(ctx context.Context, orgID string, projectID s
 	return resp, err
 }
 
-//Unassign an API-KEY related to {ORG-ID} to a the project with {PROJECT-ID}.
+//Unassign an API-KEY related to {GROUP-ID} to a the project with {PROJECT-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-orgs-get-all/
-func (s *ProjectAPIKeysOp) Unassign(ctx context.Context, orgID string, projectID string) (*Response, error) {
-	if orgID == "" {
+func (s *ProjectAPIKeysOp) Unassign(ctx context.Context, groupID string, keyID string) (*Response, error) {
+	if groupID == "" {
 		return nil, NewArgError("apiKeyID", "must be set")
 	}
 
-	if projectID == "" {
-		return nil, NewArgError("projectID", "must be set")
+	if keyID == "" {
+		return nil, NewArgError("keyID", "must be set")
 	}
 
-	basePath := fmt.Sprintf(projectAPIKeysPath, orgID, projectID)
+	basePath := fmt.Sprintf(projectAPIKeysPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, basePath, nil)
+	path := fmt.Sprintf("%s/%s", basePath, keyID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
