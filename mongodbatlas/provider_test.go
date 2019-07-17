@@ -32,3 +32,12 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
 	}
 }
+
+func checkPeeringEnv(t *testing.T) {
+	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
+		os.Getenv("AWS_VPC_ID") == "" ||
+		os.Getenv("AWS_VPC_CIDR_BLOCK") == "" ||
+		os.Getenv("AWS_REGION") == "" {
+		t.Fatal("`AWS_ACCOUNT_ID`, `AWS_VPC_ID`, `AWS_VPC_CIDR_BLOCK` and `AWS_VPC_ID` must be set for  network peering acceptance testing")
+	}
+}
