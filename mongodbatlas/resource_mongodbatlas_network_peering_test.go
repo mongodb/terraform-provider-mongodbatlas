@@ -17,7 +17,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.test"
-	projectID := "5cf5a45a9ccf6400e60981b6" // Modify until project data source is created.
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
 	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
