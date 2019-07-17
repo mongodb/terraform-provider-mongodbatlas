@@ -40,6 +40,7 @@ type Client struct {
 	CloudProviderSnapshotRestoreJobs CloudProviderSnapshotRestoreJobsService
 	Peers                            PeersService
 	Containers                       ContainersService
+	EncryptionsAtRest                EncryptionsAtRestService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -140,6 +141,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
 	c.Peers = &PeersServiceOp{client: c}
 	c.Containers = &ContainersServiceOp{client: c}
+	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
 
 	return c
 }
