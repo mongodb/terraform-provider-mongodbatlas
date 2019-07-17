@@ -31,13 +31,17 @@ type Client struct {
 	UserAgent string
 
 	//Services used for communicating with the API
-	DatabaseUsers          DatabaseUsersService
-	ProjectIPWhitelist     ProjectIPWhitelistService
-	Projects               ProjectsService
-	Clusters               ClustersService
-	CloudProviderSnapshots CloudProviderSnapshotsService
-	APIKeys                APIKeysService
+	DatabaseUsers                    DatabaseUsersService
+	ProjectIPWhitelist               ProjectIPWhitelistService
+	Projects                         ProjectsService
+	Clusters                         ClustersService
+	CloudProviderSnapshots           CloudProviderSnapshotsService
+	APIKeys                          APIKeysService
 	ProjectAPIKeys         ProjectAPIKeysService
+	CloudProviderSnapshotRestoreJobs CloudProviderSnapshotRestoreJobsService
+	Peers                            PeersService
+	Containers                       ContainersService
+	EncryptionsAtRest                EncryptionsAtRestService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -136,6 +140,10 @@ func NewClient(httpClient *http.Client) *Client {
 	c.CloudProviderSnapshots = &CloudProviderSnapshotsServiceOp{client: c}
 	c.APIKeys = &APIKeysServiceOp{client: c}
 	c.ProjectAPIKeys = &ProjectAPIKeysOp{client: c}
+	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
+	c.Peers = &PeersServiceOp{client: c}
+	c.Containers = &ContainersServiceOp{client: c}
+	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
 
 	return c
 }

@@ -118,7 +118,7 @@ func TestProjectIPWhitelist_Create(t *testing.T) {
 	groupID := "1"
 
 	createRequest := []*ProjectIPWhitelist{
-		&ProjectIPWhitelist{
+		{
 			GroupID:   groupID,
 			CIDRBlock: "0.0.0.1/12",
 		},
@@ -126,7 +126,7 @@ func TestProjectIPWhitelist_Create(t *testing.T) {
 
 	mux.HandleFunc(fmt.Sprintf("/groups/%s/whitelist", groupID), func(w http.ResponseWriter, r *http.Request) {
 		expected := []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"cidrBlock": "0.0.0.1/12",
 				"groupId":   groupID,
 			},
@@ -225,13 +225,13 @@ func TestProjectIPWhitelist_Update(t *testing.T) {
 	groupID := "1"
 	ipAddress := "0.0.0.1"
 
-	createRequest := []*ProjectIPWhitelist{&ProjectIPWhitelist{
+	createRequest := []*ProjectIPWhitelist{{
 		GroupID:   groupID,
 		IPAddress: ipAddress,
 	}}
 
 	mux.HandleFunc(fmt.Sprintf("/groups/%s/whitelist/%s", groupID, ipAddress), func(w http.ResponseWriter, r *http.Request) {
-		expected := []map[string]interface{}{map[string]interface{}{
+		expected := []map[string]interface{}{{
 			"ipAddress": ipAddress,
 			"groupId":   groupID,
 		}}
