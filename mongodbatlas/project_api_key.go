@@ -62,7 +62,7 @@ func (s *ProjectAPIKeysOp) Create(ctx context.Context, groupID string, createReq
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}
 
-	path := fmt.Sprintf(apiKeysPath, groupID)
+	path := fmt.Sprintf(projectAPIKeysPath, groupID)
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
