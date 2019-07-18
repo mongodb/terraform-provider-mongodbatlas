@@ -24,8 +24,10 @@ $ git clone git@github.com:mongodb/terraform-mongodbatlas
 ```
 
 Enter the provider directory and run `make tools`. This will install the needed tools for the provider.
-
+```
 $ make tools
+```
+
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the $GOPATH/bin directory.
 
 ```
@@ -45,11 +47,11 @@ For either installation method, documentation about the provider specific config
 
 # Testing the Provider
 
-In order to test the provider, you can run `make test`. You need to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
-`alias` and `version`), the following arguments are supported in the MongoDB
+In order to test the provider, you can run `make test`. Along with [generic provider arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
+`project_id` and `org_id`), the following arguments are supported in the MongoDB
 Atlas `provider` block:
 
-* `public_key` - (Optional) This is the MongoDB Atlas API publick_key. It must be
+* `public_key` - (Optional) This is the MongoDB Atlas API public_key. It must be
   provided, but it can also be sourced from the `MONGODB_ATLAS_PUBLIC_KEY`
   environment variable.
 
@@ -57,7 +59,7 @@ Atlas `provider` block:
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
-You must also configure the `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` enviroment variables before make the test:
+You must also configure the `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` enviroment variables before running the test:
 
 ```
 $ export MONGODB_ATLAS_PROJECT_ID=5cf5a45a9ccf6400e60981b6
