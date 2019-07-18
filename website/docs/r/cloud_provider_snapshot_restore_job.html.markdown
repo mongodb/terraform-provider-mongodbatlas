@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
 sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot_restore_job"
 description: |-
-    Provides an Cloud Provider Snapshot Restore Job resource.
+    Provides a Cloud Provider Snapshot Restore Job resource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_restore_job
@@ -57,8 +57,8 @@ Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId.
 ### Automated
 Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId. if you want to use automated delivery type, you must to set the following arguments:
 
-* `targetClusterName` - (Required) 	Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
-* `targetGroupId` - (Required) 	Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
+* `target_cluster_name` - (Required) 	Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
+* `target_group_id` - (Required) 	Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
 
 
 ## Attributes Reference
@@ -66,17 +66,17 @@ Atlas automatically restores the snapshot with snapshotId to the Atlas cluster w
 In addition to all arguments above, the following attributes are exported:
 
 * `cancelled` -	Indicates whether the restore job was canceled.
-* `createdAt` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
-* `deliveryType` - Type of restore job to create. Possible values are: automated and download.
-* `deliveryUrl` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
+* `created_at` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
+* `delivery_type` - Type of restore job to create. Possible values are: automated and download.
+* `delivery_url` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
 * `expired` -	Indicates whether the restore job expired.
-* `expiresAt` -	UTC ISO 8601 formatted point in time when the restore job expires.
-* `finishedAt` -	UTC ISO 8601 formatted point in time when the restore job completed.
+* `expires_at` -	UTC ISO 8601 formatted point in time when the restore job expires.
+* `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
 * `id` -	The unique identifier of the restore job.
 * `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
-* `snapshotId` -	Unique identifier of the source snapshot ID of the restore job.
-* `targetGroupId` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
-* `targetClusterName` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
+* `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
+* `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
+* `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 
 ## Import
