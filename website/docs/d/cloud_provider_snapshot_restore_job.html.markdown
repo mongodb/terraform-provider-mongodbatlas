@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
 sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_job"
 description: |-
-    Provides an Cloud Provider Snapshot Restore Job Datasource.
+    Provides a Cloud Provider Snapshot Restore Job Datasource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_restore_job
@@ -52,16 +52,16 @@ data "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `cancelled` -	Indicates whether the restore job was canceled.
-* `createdAt` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
-* `deliveryType` - Type of restore job to create. Possible values are: automated and download.
-* `deliveryUrl` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
+* `created_at` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
+* `delivery_type` - Type of restore job to create. Possible values are: automated and download.
+* `delivery_url` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
 * `expired` -	Indicates whether the restore job expired.
-* `expiresAt` -	UTC ISO 8601 formatted point in time when the restore job expires.
-* `finishedAt` -	UTC ISO 8601 formatted point in time when the restore job completed.
+* `expires_at` -	UTC ISO 8601 formatted point in time when the restore job expires.
+* `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
 * `id` -	The unique identifier of the restore job.
-* `snapshotId` -	Unique identifier of the source snapshot ID of the restore job.
-* `targetGroupId` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
-* `targetClusterName` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
+* `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
+* `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
+* `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs-get-one/)
