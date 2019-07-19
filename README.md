@@ -59,6 +59,8 @@ Atlas `provider` block:
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
+Note: the programmatic API key used in acceptance tests needs sufficient user role privileges to be able to create some resources. For more information about user roles visit: https://docs.atlas.mongodb.com/reference/user-roles
+
 You must also configure the `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` enviroment variables before running the test:
 
 ```
