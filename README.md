@@ -61,12 +61,31 @@ Atlas `provider` block:
 
 Note: the programmatic API key used in acceptance tests needs sufficient user role privileges to be able to create some resources. For more information about user roles visit: https://docs.atlas.mongodb.com/reference/user-roles
 
-You must also configure the `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` enviroment variables before running the test:
+You must also configure the following enviroment variables before running the test:
 
-```
+#### MongoDB Atlas env variables
+```sh
 $ export MONGODB_ATLAS_PROJECT_ID=5cf5a45a9ccf6400e60981b6
 $ export MONGODB_ATLAS_ORG_ID=5b71ff2f96e82120d0aaec14
 ```
+#### AWS env variables
+
+- For `Network Peering` resource configuration:
+```sh
+$ export AWS_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
+$ export AWS_VPC_ID=<YOUR_VPC_ID>
+$ export AWS_VPC_CIDR_BLOCK=<YOUR_VPC_CIDR_BLOCK>
+$ export AWS_REGION=<YOUR_REGION>
+```
+Note: For more information about Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+
+- For `Encryption at Rest` resource configuration:
+```sh
+$ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
+$ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
+$ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
+```
+Note: For more information about Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
 
 Then you can run the test with:
 
