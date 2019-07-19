@@ -47,8 +47,8 @@ For either installation method, documentation about the provider specific config
 
 # Testing the Provider
 
-In order to test the provider, you can run `make test`. Along with [generic provider arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
-`project_id` and `org_id`), the following arguments are supported in the MongoDB
+In order to test the provider, you can run `make test`. You need to [meta-arguments](https://www.terraform.io/docs/configuration/providers.html) such as 
+`alias` and `version`, the following arguments are supported in the MongoDB
 Atlas `provider` block:
 
 * `public_key` - (Optional) This is the MongoDB Atlas API public_key. It must be
