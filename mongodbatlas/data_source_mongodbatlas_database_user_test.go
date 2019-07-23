@@ -20,7 +20,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

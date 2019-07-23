@@ -146,9 +146,9 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(d *schema.ResourceData, met
 		Pending:    []string{"queued", "inProgress", "failed"},
 		Target:     []string{"completed"},
 		Refresh:    resourceCloudProviderSnapshotRefreshFunc(requestParameters, conn),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
+		Timeout:    3 * time.Hour,
+		MinTimeout: 60 * time.Second,
+		Delay:      5 * time.Minute,
 	}
 
 	// Wait, catching any errors
@@ -184,7 +184,14 @@ func resourceCloudProviderSnapshotRefreshFunc(requestParameters *matlas.Snapshot
 	return func() (interface{}, string, error) {
 		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 
-		if err != nil || c.Status == "failed" {
+		// log.Printf("C --------------------------- \n\n %+v \n\n", c)
+		// log.Printf("R --------------------------- \n\n %+v \n\n", resp)
+		// log.Printf("E --------------------------- \n\n %s \n\n", err)
+
+		if err != nil && c == nil && resp == nil {
+			log.Printf("Error reading MongoDB cloudProviderSnapshot: %s: %s", requestParameters.SnapshotID, err)
+			return nil, "", err
+		} else if err != nil || c.Status == "failed" {
 			if resp.StatusCode == 404 {
 				return 42, "DELETED", nil
 			}

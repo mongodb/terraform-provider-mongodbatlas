@@ -179,7 +179,7 @@ func (p *Provider) Stop() error {
 // TestReset resets any state stored in the Provider, and will call TestReset
 // on Meta if it implements the TestProvider interface.
 // This may be used to reset the schema.Provider at the start of a test, and is
-// automatically called by resource.Test.
+// automatically called by resource.ParallelTest.
 func (p *Provider) TestReset() error {
 	p.stopInit()
 	if p.MetaReset != nil {

@@ -299,7 +299,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(d.Get("name").(string), projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
@@ -734,7 +734,19 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 func resourceClusterRefreshFunc(name, projectID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.Clusters.Get(context.Background(), projectID, name)
-		if err != nil {
+
+		log.Printf("LOG C----------------------------\n\n %+v \n\n ----------------------------", c)
+		log.Printf("LOG R----------------------------\n\n %+v \n\n ----------------------------", resp)
+		log.Printf("LOG E----------------------------\n\n %+v \n\n ----------------------------", err)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			log.Printf("Error reading MongoDB cluster: %s: %s", name, err)
+			return nil, "", err
+		} else if err != nil {
 			if resp.StatusCode == 404 {
 				return 42, "DELETED", nil
 			}

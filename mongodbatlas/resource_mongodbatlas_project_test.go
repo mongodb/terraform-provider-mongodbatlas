@@ -22,7 +22,7 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 	clusterCount := "0"
 	projectNameUpdated := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
@@ -58,7 +58,7 @@ func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 
 	resourceName := "mongodbatlas_project.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,

@@ -132,6 +132,7 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	}
 
 	//Get the project ip whitelist created.
+	// Validate the ipAdrress !
 	projectIPWhitelist := resp[0]
 
 	d.SetId(projectIPWhitelist.CIDRBlock)

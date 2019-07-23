@@ -25,7 +25,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 	targetClusterName := clusterName
 	targetGroupID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
@@ -62,7 +62,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 	targetClusterName := clusterName
 	targetGroupID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
@@ -160,7 +160,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 
 		//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_1"
+			provider_region_name        = "EU_WEST_2"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true   // enable cloud provider snapshots
 			provider_disk_iops          = 100
@@ -197,7 +197,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 	
 		//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_1"
+			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true   // enable cloud provider snapshots
 			provider_disk_iops          = 100
