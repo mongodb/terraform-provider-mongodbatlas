@@ -59,16 +59,32 @@ Atlas `provider` block:
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
-Note: the programmatic API key used in acceptance tests needs sufficient user role privileges to be able to create some resources. For more information about user roles visit: https://docs.atlas.mongodb.com/reference/user-roles
+~> **Notice:**  If you have not `public_key` and `private_key` you must create a programmatic API key to configure the provider, see [Creating Programmatic API key](#Creating-Programmatic-API-key) but if you already have one, you can continue with [Configuring environment variables](#Configuring-environment-variables)
 
-You must also configure the following enviroment variables before running the test:
+#### Creating Programmatic API key
 
-#### MongoDB Atlas env variables
+It's necessary to generate and configuring an API key for your organization to be able to use the acceptance test the right way. To grant programmatic access to an organization or project using only the [API](https://docs.atlas.mongodb.com/api/) you need to know:
+
+  1. The programmatic API key has two parts: a Public Key and a Private Key.
+  
+  1. Must be granted roles as you would Users to make sure the API Keys can call API endpoints without errors. To see more about user roles visit:  https://docs.atlas.mongodb.com/reference/user-roles.
+
+  1. It can belong to one organization but may be granted access to any number of projects in that organization.
+ 
+  1. To create appropriate a programmatic API key to access a project you must to set the API key as `Project Owner` user role to has sufficient privileges to be able to create some resources. For see more details on how to create a programmatic API key visit https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys.
+
+  1. Ensure when you are creating the API key that the whitelist entries provide appropriate coverage for all clients which require API access. An empty API whitelist grants access to all API endpoints except those resources that explicitly require whitelisting. 
+
+#### Configuring environment variables
+
+You must also configure the following environment variables before running the test:
+ 
+##### MongoDB Atlas env variables
 ```sh
 $ export MONGODB_ATLAS_PROJECT_ID=5cf5a45a9ccf6400e60981b6
 $ export MONGODB_ATLAS_ORG_ID=5b71ff2f96e82120d0aaec14
 ```
-#### AWS env variables
+##### AWS env variables
 
 - For `Network Peering` resource configuration:
 ```sh
@@ -77,7 +93,7 @@ $ export AWS_VPC_ID=<YOUR_VPC_ID>
 $ export AWS_VPC_CIDR_BLOCK=<YOUR_VPC_CIDR_BLOCK>
 $ export AWS_REGION=<YOUR_REGION>
 ```
-Note: For more information about Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+~> **Notice:** For more information about Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
 
 - For `Encryption at Rest` resource configuration:
 ```sh
@@ -85,7 +101,7 @@ $ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
 $ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
 $ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
 ```
-Note: For more information about Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+~> **Notice:** For more information about Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
 
 Then you can run the test with:
 
@@ -96,7 +112,7 @@ $ make test
 
 In order to run the full suite of Acceptance tests, run ``make testacc``.
 
-Note: Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
+~> **Notice:** Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
 
 ```
 $ make testacc
