@@ -184,10 +184,6 @@ func resourceCloudProviderSnapshotRefreshFunc(requestParameters *matlas.Snapshot
 	return func() (interface{}, string, error) {
 		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 
-		// log.Printf("C --------------------------- \n\n %+v \n\n", c)
-		// log.Printf("R --------------------------- \n\n %+v \n\n", resp)
-		// log.Printf("E --------------------------- \n\n %s \n\n", err)
-
 		if err != nil && c == nil && resp == nil {
 			log.Printf("Error reading MongoDB cloudProviderSnapshot: %s: %s", requestParameters.SnapshotID, err)
 			return nil, "", err
