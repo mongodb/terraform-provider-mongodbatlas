@@ -735,10 +735,6 @@ func resourceClusterRefreshFunc(name, projectID string, client *matlas.Client) r
 	return func() (interface{}, string, error) {
 		c, resp, err := client.Clusters.Get(context.Background(), projectID, name)
 
-		log.Printf("LOG C----------------------------\n\n %+v \n\n ----------------------------", c)
-		log.Printf("LOG R----------------------------\n\n %+v \n\n ----------------------------", resp)
-		log.Printf("LOG E----------------------------\n\n %+v \n\n ----------------------------", err)
-
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
