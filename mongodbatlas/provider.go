@@ -1,6 +1,10 @@
 package mongodbatlas
 
 import (
+	"encoding/base64"
+	"log"
+	"strings"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -62,4 +66,29 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		PrivateKey: d.Get("private_key").(string),
 	}
 	return config.NewClient(), nil
+}
+
+func encodeStateID(values ...string) string {
+	encodedValues := make([]string, 0)
+
+	for _, value := range values {
+		encodedValues = append(encodedValues, base64.StdEncoding.EncodeToString([]byte(value)))
+	}
+	return strings.Join(encodedValues, "-")
+}
+
+func decodeStateID(stateID string) []string {
+	decodedValues := make([]string, 0)
+	encodedValues := strings.Split(stateID, "-")
+
+	for _, value := range encodedValues {
+		v, err := base64.StdEncoding.DecodeString(value)
+		if err != nil {
+			log.Printf("[WARN] error decoding state ID: %s", err)
+		}
+
+		decodedValues = append(decodedValues, string(v))
+	}
+
+	return decodedValues
 }

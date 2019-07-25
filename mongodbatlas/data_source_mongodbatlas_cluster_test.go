@@ -18,7 +18,7 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
@@ -64,7 +64,7 @@ func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled s
 			provider_disk_iops          = 300
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M40"
-			provider_region_name        = "US_EAST_1"
+			provider_region_name        = "US_EAST_2"
 		}
 
 

@@ -58,7 +58,7 @@ func testAccMongoDBAtlasNetworkContainersDSConfig(projectID, cidrBlock string) s
 			project_id   		 = "%s"
 			atlas_cidr_block = "%s"
 			provider_name		 = "AWS"
-			region_name			 = "EU_WEST_1"
+			region_name			 = "US_EAST_1"
 		}
 	`, projectID, cidrBlock)
 }

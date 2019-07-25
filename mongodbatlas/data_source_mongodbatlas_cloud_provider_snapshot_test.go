@@ -18,7 +18,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 	description := fmt.Sprintf("My description in %s", clusterName)
 	retentionInDays := "1"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -45,7 +45,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotConfig(projectID, cluster
 			
 			//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "US_EAST_1"
+			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
 			provider_disk_iops          = 100

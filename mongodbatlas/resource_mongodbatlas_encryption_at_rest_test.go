@@ -28,7 +28,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 		Region:              "US_EAST_1",
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -73,7 +73,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 		TenantID:          "e8e4b6ba-ff32-4c88-a9af-EXAMPLEID",
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -117,7 +117,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 		KeyVersionResourceID: os.Getenv("GOOGLE_KEY_VERSION_RESOURCE_ID"),
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -237,10 +237,4 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(google *matlas.Goog
 			}
 		}
 	`, cast.ToString(*google.Enabled), google.ServiceAccountKey, google.KeyVersionResourceID)
-}
-
-func checkAwsEnv(t *testing.T) {
-	if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" || os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
-		t.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_CUSTOMER_MASTER_KEY_ID` must be set for acceptance testing")
-	}
 }
