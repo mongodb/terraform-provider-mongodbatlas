@@ -131,17 +131,14 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("error creating project IP whitelist: %s", err)
 	}
 
-	//Get the project ip whitelist created.
-	// Validate the ipAdrress !
-	projectIPWhitelist := resp[0]
-
-	d.SetId(projectIPWhitelist.CIDRBlock)
-
-	if projectIPWhitelist.CIDRBlock == "" {
-		d.SetId(projectIPWhitelist.IPAddress)
+	for _, entry := range resp {
+		if (req.CIDRBlock != "" && entry.CIDRBlock == req.CIDRBlock) ||
+			(req.IPAddress != "" && entry.IPAddress == req.IPAddress) {
+			d.SetId(entry.CIDRBlock)
+			return resourceMongoDBAtlasProjectIPWhitelistRead(d, meta)
+		}
 	}
-
-	return resourceMongoDBAtlasProjectIPWhitelistRead(d, meta)
+	return fmt.Errorf("MongoDB Project IP Whitelist with CIDR block: %s and IP Address: %s could not be found in the response from MongoDB Atlas", req.CIDRBlock, req.IPAddress)
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistUpdate(d *schema.ResourceData, meta interface{}) error {

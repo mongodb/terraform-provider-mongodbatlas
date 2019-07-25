@@ -51,7 +51,7 @@ func testAccDSMongoDBAtlasNetworkPeeringsConfig(projectID, vpcID, awsAccountID, 
 	return fmt.Sprintf(`
 resource "mongodbatlas_network_container" "test" {
 	project_id   		= "%[1]s"
-	atlas_cidr_block    = "192.168.248.0/21"
+	atlas_cidr_block    = "192.168.208.0/21"
 	provider_name		= "AWS"
 	region_name			= "%[5]s"
 }
