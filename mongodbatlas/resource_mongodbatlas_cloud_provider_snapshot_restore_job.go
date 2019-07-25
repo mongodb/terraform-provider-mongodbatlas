@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -218,7 +217,8 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(d *schema.Resourc
 func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
+	parts := decodeStateID(d.Id())
+
 	if len(parts) != 3 {
 		return nil, errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}-{cluster_name}-{job_id}")
 	}
@@ -239,6 +239,22 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 	}
 	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
 		log.Printf("[WARN] Error setting cluster_name for (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("snapshot_id", u.SnapshotID); err != nil {
+		log.Printf("[WARN] Error setting snapshot_id for (%s): %s", d.Id(), err)
+	}
+
+	deliveryType := make(map[string]interface{})
+
+	if u.DeliveryType == "automated" {
+		deliveryType["automated"] = "true"
+		deliveryType["target_cluster_name"] = u.TargetClusterName
+		deliveryType["target_project_id"] = u.TargetGroupID
+	}
+
+	if err := d.Set("delivery_type", deliveryType); err != nil {
+		log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(u.ID)
