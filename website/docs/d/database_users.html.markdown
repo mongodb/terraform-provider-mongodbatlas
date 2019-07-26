@@ -1,14 +1,14 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: database_users"
-sidebar_current: "docs-mongodbatlas-datasource-database_users"
+sidebar_current: "docs-mongodbatlas-datasource-database-users"
 description: |-
     Describes a Database Users.
 ---
 
 # mongodb_atlas_database_users
 
-`mongodb_atlas_database_user` describe all Database Users. This represents a database user which will be applied to all clusters within the project.
+`mongodb_atlas_database_users` describe all Database Users. This represents a database user which will be applied to all clusters within the project.
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
@@ -34,7 +34,7 @@ resource "mongodbatlas_database_user" "test" {
 	}
 }
 
-data "mongodbatlas_database_user" "test" {
+data "mongodbatlas_database_users" "test" {
 	project_id = mongodbatlas_database_user.test.project_id
 }
 
@@ -63,9 +63,9 @@ In addition to all arguments above, the following attributes are exported:
 
 Block mapping a user's role to a database / collection. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well.
 
-**NOTE:** The available privilege actions for custom MongoDB roles support a subset of MongoDB commands. See Unsupported Commands in M10+ Clusters for more information.
+-> **NOTE:** The available privilege actions for custom MongoDB roles support a subset of MongoDB commands. See Unsupported Commands in M10+ Clusters for more information.
 
-**IMPORTANT** If a user is assigned a custom MongoDB role, they cannot be assigned any other roles.
+~> **IMPORTANT:** If a user is assigned a custom MongoDB role, they cannot be assigned any other roles.
 
 * `name` - Name of the role to grant.
 * database_name -  Database on which the user has the specified role. A role on the `admin` database can include privileges that apply to the other databases.

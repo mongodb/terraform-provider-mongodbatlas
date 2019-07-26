@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: project"
 sidebar_current: "docs-mongodbatlas-resource-project"
 description: |-
-		Provides a Project resource.
+    Provides a Database User resource.
 ---
 
 # mongodb_atlas_project

@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: network_containers"
 sidebar_current: "docs-mongodbatlas-datasource-network-containers"
 description: |-
-    Describes a Cluster resource.
+    Describes all Network Peering Containers in the project.
 ---
 
 # mongodb_atlas_network_containers
