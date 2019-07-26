@@ -16,12 +16,35 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
-  project_id        = "<PROJECT-ID>"
-  cluster_name      = "MyClusterName"
-  description       = "SomeDescription"
-  retention_in_days = 1
-}
+  resource "mongodbatlas_cluster" "my_cluster" {
+    project_id   = "5cf5a45a9ccf6400e60981b6"
+    name         = "MyCluster"
+    disk_size_gb = 5
+
+  //Provider Settings "block"
+    provider_name               = "AWS"
+    provider_region_name        = "EU_WEST_2"
+    provider_instance_size_name = "M10"
+    provider_backup_enabled     = true   // enable cloud provider snapshots
+    provider_disk_iops          = 100
+    provider_encrypt_ebs_volume = false
+  }
+
+  resource "mongodbatlas_cloud_provider_snapshot" "test" {
+    project_id        = mongodbatlas_cluster.my_cluster.project_id
+    cluster_name      = mongodbatlas_cluster.my_cluster.name
+    description       = "myDescription"
+    retention_in_days = 1
+  }
+  
+  resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+    project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+    cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+    snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+    delivery_type = {
+      download = true
+    }
+  }
 ```
 
 ## Argument Reference
@@ -35,8 +58,8 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Terraform Unique ID for this resource, no confundir con el snapshot_id.
-* `snaphost_id` -  Unique identifier of the snapshot.
+* `snapshot_id` - Unique identifier of the snapshot.
+* `id` -	Unique identifier used for terraform for internal manages.
 * `created_at` - UTC ISO 8601 formatted point in time when Atlas took the snapshot.
 * `description` - Description of the snapshot. Only present for on-demand snapshots.
 * `expires_at` - UTC ISO 8601 formatted point in time when Atlas will delete the snapshot.

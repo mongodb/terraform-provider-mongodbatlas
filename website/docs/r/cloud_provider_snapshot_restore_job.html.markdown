@@ -20,28 +20,72 @@ description: |-
 ### Example automated delivery type.
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  project_id      = "5cf5a45a9ccf6400e60981b6"
-  cluster_name  = "MyCluster"
-  snapshot_id   = "5d1b654ecf09a24b888f4c79"
-  delivery_type = {
-    automated           = true
-    target_cluster_name = "MyTargetCluster"
-    target_project_id     = "5cf5a45a9ccf6400e60981b6"
+  resource "mongodbatlas_cluster" "my_cluster" {
+    project_id   = "5cf5a45a9ccf6400e60981b6"
+    name         = "MyCluster"
+    disk_size_gb = 5
+
+  //Provider Settings "block"
+    provider_name               = "AWS"
+    provider_region_name        = "EU_WEST_2"
+    provider_instance_size_name = "M10"
+    provider_backup_enabled     = true   // enable cloud provider snapshots
+    provider_disk_iops          = 100
+    provider_encrypt_ebs_volume = false
   }
-}
+
+  resource "mongodbatlas_cloud_provider_snapshot" "test" {
+    project_id        = mongodbatlas_cluster.my_cluster.project_id
+    cluster_name      = mongodbatlas_cluster.my_cluster.name
+    description       = "myDescription"
+    retention_in_days = 1
+  }
+
+  resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+    project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+    cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+    snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+    delivery_type   = {
+      automated           = true
+      target_cluster_name = "MyCluster"
+      target_project_id   = "5cf5a45a9ccf6400e60981b6"
+    }
+    depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
+  }
 ```
+
 ### Example download delivery type.
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  project_id      = "5cf5a45a9ccf6400e60981b6"
-  cluster_name  = "MyCluster"
-  snapshot_id   = "5d1b654ecf09a24b888f4c79"
-  delivery_type = {
-    download = true
+  resource "mongodbatlas_cluster" "my_cluster" {
+    project_id   = "5cf5a45a9ccf6400e60981b6"
+    name         = "MyCluster"
+    disk_size_gb = 5
+
+  //Provider Settings "block"
+    provider_name               = "AWS"
+    provider_region_name        = "EU_WEST_2"
+    provider_instance_size_name = "M10"
+    provider_backup_enabled     = true   // enable cloud provider snapshots
+    provider_disk_iops          = 100
+    provider_encrypt_ebs_volume = false
   }
-}
+
+  resource "mongodbatlas_cloud_provider_snapshot" "test" {
+    project_id        = mongodbatlas_cluster.my_cluster.project_id
+    cluster_name      = mongodbatlas_cluster.my_cluster.name
+    description       = "myDescription"
+    retention_in_days = 1
+  }
+  
+  resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+    project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+    cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+    snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+    delivery_type = {
+      download = true
+    }
+  }
 ```
 
 ## Argument Reference
@@ -65,6 +109,7 @@ Atlas automatically restores the snapshot with snapshotId to the Atlas cluster w
 
 In addition to all arguments above, the following attributes are exported:
 
+* `snapshot_restore_job_id` - The unique identifier of the restore job.
 * `cancelled` -	Indicates whether the restore job was canceled.
 * `created_at` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
 * `delivery_type` - Type of restore job to create. Possible values are: automated and download.
@@ -72,7 +117,7 @@ In addition to all arguments above, the following attributes are exported:
 * `expired` -	Indicates whether the restore job expired.
 * `expires_at` -	UTC ISO 8601 formatted point in time when the restore job expires.
 * `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
-* `id` -	The unique identifier of the restore job.
+* `id` -	Unique identifier used for terraform for internal manages.
 * `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
 * `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.

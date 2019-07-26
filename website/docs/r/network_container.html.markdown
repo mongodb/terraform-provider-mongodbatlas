@@ -20,12 +20,22 @@ description: |-
 ### Example with AWS.
 
 ```hcl
-resource "mongodbatlas_network_container" "test" {
-  project_id       = "<YOUR-PROJECT-ID>"
-  atlas_cidr_block = "10.8.0.0/21"
-  provider_name    = "AWS"
-  region_name      = "US_EAST_1"
-}
+  resource "mongodbatlas_network_container" "test" {
+    project_id       = "<YOUR-PROJECT-ID>"
+    atlas_cidr_block = "10.8.0.0/21"
+    provider_name    = "AWS"
+    region_name      = "US_EAST_1"
+  }
+
+  resource "mongodbatlas_network_peering" "test" {
+    accepter_region_name	  = "us-east-1"	
+    project_id    			    = mongodbatlas_network_container.test.project_id
+    container_id            = mongodbatlas_network_container.test.container_id
+    provider_name           = "AWS"
+    route_table_cidr_block  = <AWS_VPC_CIDR_BLOCK>
+    vpc_id					        = <AWS_VPC_ID>
+    aws_account_id	        = <AWS_ACCOUNT_ID>
+  }
 ```
 
 ### Example with GCP
@@ -62,7 +72,8 @@ resource "mongodbatlas_network_container" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The Network Peering Container ID.
+* `container_id` - The Network Peering Container ID.
+* `id` -	Unique identifier used for terraform for internal manages.
 * `region_name` - AWS region.
 * `region` - Azure region where the container resides.
 * `azure_subscription_id` - Unique identifer of the Azure subscription in which the VNet resides.
