@@ -68,17 +68,16 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	return config.NewClient(), nil
 }
 
-func encodeStateID(values ...string) string {
+func encodeStateID(values map[string]string) string {
 	encodedValues := make([]string, 0)
-
-	for _, value := range values {
-		encodedValues = append(encodedValues, base64.StdEncoding.EncodeToString([]byte(value)))
+	for key, value := range values {
+		encodedValues = append(encodedValues, base64.StdEncoding.EncodeToString([]byte(key+":"+value)))
 	}
 	return strings.Join(encodedValues, "-")
 }
 
-func decodeStateID(stateID string) []string {
-	decodedValues := make([]string, 0)
+func decodeStateID(stateID string) map[string]string {
+	decodedValues := make(map[string]string)
 	encodedValues := strings.Split(stateID, "-")
 
 	for _, value := range encodedValues {
@@ -86,9 +85,8 @@ func decodeStateID(stateID string) []string {
 		if err != nil {
 			log.Printf("[WARN] error decoding state ID: %s", err)
 		}
-
-		decodedValues = append(decodedValues, string(v))
+		keyValue := strings.Split(string(v), ":")
+		decodedValues[keyValue[0]] = keyValue[1]
 	}
-
 	return decodedValues
 }
