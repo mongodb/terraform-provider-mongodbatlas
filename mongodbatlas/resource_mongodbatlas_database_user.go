@@ -73,23 +73,21 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	username := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	username := ids["username"]
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
 
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
-
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
-
 	if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
 		return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
 	}
-
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
 	}
@@ -119,7 +117,10 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error creating database user: %s", err)
 	}
 
-	d.SetId(dbUserRes.Username)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"username":   dbUserRes.Username,
+	}))
 
 	return resourceMongoDBAtlasDatabaseUserRead(d, meta)
 }
@@ -127,8 +128,9 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	username := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	username := ids["username"]
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
 
@@ -155,17 +157,15 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	username := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	username := ids["username"]
 
 	_, err := conn.DatabaseUsers.Delete(context.Background(), projectID, username)
 
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
 	}
-
-	d.SetId("")
-
 	return nil
 }
 
@@ -185,7 +185,11 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 		return nil, fmt.Errorf("couldn't import user %s in project %s, error: %s", username, projectID, err)
 	}
 
-	d.SetId(u.Username)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"username":   u.Username,
+	}))
+
 	if err := d.Set("project_id", u.GroupID); err != nil {
 		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}

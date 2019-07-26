@@ -80,6 +80,10 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"container_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -111,7 +115,10 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf(errorContainterCreate, err)
 	}
 
-	d.SetId(container.ID)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":   projectID,
+		"container_id": container.ID,
+	}))
 
 	return resourceMongoDBAtlasNetworkContainerRead(d, meta)
 }
@@ -119,62 +126,60 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 func resourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	containerID := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	containerID := ids["container_id"]
 
 	container, resp, err := conn.Containers.Get(context.Background(), projectID, containerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
+
 			return nil
 		}
 		return fmt.Errorf(errorContainerRead, containerID, err)
 	}
 
 	if err = d.Set("region_name", container.RegionName); err != nil {
-		return fmt.Errorf("error setting `region_name` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `region_name` for Network Container (%s): %s", containerID, err)
 	}
 
 	if err = d.Set("region", container.Region); err != nil {
-		return fmt.Errorf("error setting `region` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `region` for Network Container (%s): %s", containerID, err)
 	}
 
 	if err = d.Set("azure_subscription_id", container.AzureSubscriptionID); err != nil {
-		return fmt.Errorf("error setting `azure_subscription_id` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `azure_subscription_id` for Network Container (%s): %s", containerID, err)
 	}
-
 	if err = d.Set("provisioned", container.Provisioned); err != nil {
-		return fmt.Errorf("error setting `provisioned` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `provisioned` for Network Container (%s): %s", containerID, err)
 	}
-
 	if err = d.Set("gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", containerID, err)
 	}
-
 	if err = d.Set("network_name", container.NetworkName); err != nil {
-		return fmt.Errorf("error setting `network_name` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `network_name` for Network Container (%s): %s", containerID, err)
 	}
-
 	if err = d.Set("gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", containerID, err)
 	}
-
 	if err = d.Set("vpc_id", container.VPCID); err != nil {
-		return fmt.Errorf("error setting `vpc_id` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `vpc_id` for Network Container (%s): %s", containerID, err)
 	}
-
 	if err = d.Set("vnet_name", container.VNetName); err != nil {
-		return fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", containerID, err)
 	}
-
+	if err = d.Set("container_id", container.ID); err != nil {
+		return fmt.Errorf("error setting `container_id` for Network Container (%s): %s", containerID, err)
+	}
 	return nil
 }
 
 func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	cID := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	containerID := ids["container_id"]
 
 	container := new(matlas.Container)
 
@@ -197,9 +202,9 @@ func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta int
 
 	// Has changes
 	if !reflect.DeepEqual(container, matlas.Container{}) {
-		_, _, err := conn.Containers.Update(context.Background(), projectID, cID, container)
+		_, _, err := conn.Containers.Update(context.Background(), projectID, containerID, container)
 		if err != nil {
-			return fmt.Errorf(errorContainerUpdate, cID, err)
+			return fmt.Errorf(errorContainerUpdate, containerID, err)
 		}
 	}
 
@@ -209,17 +214,14 @@ func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta int
 func resourceMongoDBAtlasNetworkContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	cID := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	containerID := ids["container_id"]
 
-	_, err := conn.Containers.Delete(context.Background(), projectID, cID)
-
+	_, err := conn.Containers.Delete(context.Background(), projectID, containerID)
 	if err != nil {
-		return fmt.Errorf(errorContainerDelete, cID, err)
+		return fmt.Errorf(errorContainerDelete, containerID, err)
 	}
-
-	d.SetId("")
-
 	return nil
 }
 
@@ -232,26 +234,29 @@ func resourceMongoDBAtlasNetworkContainerImportState(d *schema.ResourceData, met
 	}
 
 	projectID := parts[0]
-	cID := parts[1]
+	containerID := parts[1]
 
-	u, _, err := conn.Containers.Get(context.Background(), projectID, cID)
+	u, _, err := conn.Containers.Get(context.Background(), projectID, containerID)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import container %s in project %s, error: %s", cID, projectID, err)
+		return nil, fmt.Errorf("couldn't import container %s in project %s, error: %s", containerID, projectID, err)
 	}
 
-	d.SetId(u.ID)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":   projectID,
+		"container_id": u.ID,
+	}))
 
 	if err := d.Set("project_id", projectID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting project_id for (%s): %s", containerID, err)
 	}
-
 	if err := d.Set("provider_name", u.ProviderName); err != nil {
-		log.Printf("[WARN] Error setting provider_name for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting provider_name for (%s): %s", containerID, err)
 	}
-
 	if err := d.Set("atlas_cidr_block", u.AtlasCIDRBlock); err != nil {
-		log.Printf("[WARN] Error setting atlas_cidr_block for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting atlas_cidr_block for (%s): %s", containerID, err)
 	}
-
+	if err = d.Set("container_id", u.ID); err != nil {
+		log.Printf("[WARN] Error setting container_id (%s): %s", containerID, err)
+	}
 	return []*schema.ResourceData{d}, nil
 }

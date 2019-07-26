@@ -90,18 +90,17 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
+		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID); err == nil {
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"]); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
-
-		return fmt.Errorf("database user(%s) does not exist", rs.Primary.ID)
+		return fmt.Errorf("database user(%s) does not exist", rs.Primary.Attributes["project_id"])
 	}
 }
 
@@ -110,7 +109,6 @@ func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser,
 		if dbUser.Username != username {
 			return fmt.Errorf("bad username: %s", dbUser.Username)
 		}
-
 		return nil
 	}
 }
@@ -124,13 +122,12 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the database user
-		_, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID)
+		_, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"])
 
 		if err == nil {
-			return fmt.Errorf("database user (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("database user (%s) still exists", rs.Primary.Attributes["project_id"])
 		}
 	}
-
 	return nil
 }
 

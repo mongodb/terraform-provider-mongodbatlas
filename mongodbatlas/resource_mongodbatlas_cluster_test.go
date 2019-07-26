@@ -143,9 +143,9 @@ func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
-	importStateID := fmt.Sprintf("%s-%s", projectID, name)
+	importStateID := fmt.Sprintf("%s-%s", projectID, clusterName)
 
 	resourceName := "mongodbatlas_cluster.test"
 
@@ -155,7 +155,7 @@ func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfig(projectID, name, "true"),
+				Config: testAccMongoDBAtlasClusterConfig(projectID, clusterName, "true"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -196,7 +196,6 @@ func testAccCheckMongoDBAtlasClusterAttributes(cluster *matlas.Cluster, name str
 		if cluster.Name != name {
 			return fmt.Errorf("bad name: %s", cluster.Name)
 		}
-
 		return nil
 	}
 }

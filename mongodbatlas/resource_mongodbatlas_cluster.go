@@ -43,6 +43,10 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"cluster_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -60,7 +64,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     schema.TypeString, //Convert to Bool
+							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
 						},
@@ -313,7 +317,11 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorCreate, err)
 	}
 
-	d.SetId(cluster.ID)
+	d.SetId(encodeStateID(map[string]string{
+		"cluster_id":   cluster.ID,
+		"project_id":   projectID,
+		"cluster_name": cluster.Name,
+	}))
 
 	return resourceMongoDBAtlasClusterRead(d, meta)
 }
@@ -321,95 +329,82 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	name := d.Get("name").(string)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
 
-	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, name)
+	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
+
 			return nil
 		}
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
 
+	if err := d.Set("cluster_id", cluster.ID); err != nil {
+		return fmt.Errorf(errorRead, clusterName, err)
+	}
 	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
 		return fmt.Errorf(errorRead, name, err)
-	}
 
 	//Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
 	if cluster.NumShards != nil {
 		if err := d.Set("num_shards", cluster.NumShards); err != nil {
-			return fmt.Errorf(errorRead, name, err)
+			return fmt.Errorf(errorRead, clusterName, err)
 		}
 	}
 
 	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("mongo_uri", cluster.MongoURI); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("mongo_uri_updated", cluster.MongoURIUpdated); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("mongo_uri_with_options", cluster.MongoURIWithOptions); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("paused", cluster.Paused); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("srv_address", cluster.SrvAddress); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("state_name", cluster.StateName); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if cluster.ProviderSettings != nil {
 		flattenProviderSettings(d, *cluster.ProviderSettings)
 	}
-
 	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
-
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
 	}
 
 	return nil
@@ -418,8 +413,9 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	name := d.Get("name").(string)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
 
 	cluster := new(matlas.Cluster)
 
@@ -446,7 +442,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("replication_specs") {
 		replicationSpecs, err := expandReplicationSpecs(d)
 		if err != nil {
-			return fmt.Errorf(errorUpdate, name, err)
+			return fmt.Errorf(errorUpdate, clusterName, err)
 		}
 		cluster.ReplicationSpecs = replicationSpecs
 	}
@@ -454,51 +450,43 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("auto_scaling_disk_gb_enabled") {
 		cluster.AutoScaling.DiskGBEnabled = pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool))
 	}
-
 	if d.HasChange("encryption_at_rest_provider") {
 		cluster.EncryptionAtRestProvider = d.Get("encryption_at_rest_provider").(string)
 	}
-
 	if d.HasChange("mongo_db_major_version") {
 		cluster.MongoDBMajorVersion = d.Get("mongo_db_major_version").(string)
 	}
-
 	if d.HasChange("cluster_type") {
 		cluster.ClusterType = d.Get("cluster_type").(string)
 	}
-
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
 	}
-
 	if d.HasChange("disk_size_gb") {
 		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
 	}
-
 	if d.HasChange("provider_backup_enabled") {
 		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
 	}
-
 	if d.HasChange("replication_factor") {
 		cluster.ReplicationFactor = pointy.Int64(cast.ToInt64(d.Get("replication_factor")))
 	}
-
 	if d.HasChange("num_shards") {
 		cluster.NumShards = pointy.Int64(cast.ToInt64(d.Get("num_shards")))
 	}
 
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
-		_, _, err := conn.Clusters.Update(context.Background(), projectID, name, cluster)
+		_, _, err := conn.Clusters.Update(context.Background(), projectID, clusterName, cluster)
 		if err != nil {
-			return fmt.Errorf(errorUpdate, name, err)
+			return fmt.Errorf(errorUpdate, clusterName, err)
 		}
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterRefreshFunc(name, projectID, conn),
+		Refresh:    resourceClusterRefreshFunc(clusterName, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -516,8 +504,9 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	clusterName := d.Get("name").(string)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
 
 	_, err := conn.Clusters.Delete(context.Background(), projectID, clusterName)
 
@@ -541,9 +530,6 @@ func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf(errorDelete, clusterName, err)
 	}
-
-	d.SetId("")
-
 	return nil
 }
 
@@ -563,11 +549,15 @@ func resourceMongoDBAtlasClusterImportState(d *schema.ResourceData, meta interfa
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", name, projectID, err)
 	}
 
-	d.SetId(u.ID)
+	d.SetId(encodeStateID(map[string]string{
+		"cluster_id":   u.ID,
+		"project_id":   projectID,
+		"cluster_name": u.Name,
+	}))
+
 	if err := d.Set("project_id", u.GroupID); err != nil {
 		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
-
 	if err := d.Set("name", u.Name); err != nil {
 		log.Printf("[WARN] Error setting name for (%s): %s", d.Id(), err)
 	}

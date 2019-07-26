@@ -40,6 +40,24 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 	}
 }
 
+func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{}) error {
+	//Get client connection.
+	conn := meta.(*matlas.Client)
+
+	projectReq := &matlas.Project{
+		OrgID: d.Get("org_id").(string),
+		Name:  d.Get("name").(string),
+	}
+
+	projectRes, _, err := conn.Projects.Create(context.Background(), projectReq)
+	if err != nil {
+		return fmt.Errorf("error creating project: %s", err)
+	}
+
+	d.SetId(projectRes.ID)
+	return resourceMongoDBAtlasProjectRead(d, meta)
+}
+
 func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
@@ -65,24 +83,6 @@ func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
-	conn := meta.(*matlas.Client)
-
-	projectReq := &matlas.Project{
-		OrgID: d.Get("org_id").(string),
-		Name:  d.Get("name").(string),
-	}
-
-	projectRes, _, err := conn.Projects.Create(context.Background(), projectReq)
-	if err != nil {
-		return fmt.Errorf("error creating project: %s", err)
-	}
-
-	d.SetId(projectRes.ID)
-	return resourceMongoDBAtlasProjectRead(d, meta)
-}
-
 func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
@@ -92,7 +92,5 @@ func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("error deleting project (%s): %s", projectID, err)
 	}
-
-	d.SetId("")
 	return nil
 }

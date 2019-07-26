@@ -203,7 +203,6 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 	clusters, resp, err := conn.Clusters.List(context.Background(), projectID, nil)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("error reading cluster list for project(%s): %s", projectID, err)

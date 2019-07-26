@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"testing"
@@ -131,14 +130,11 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string, ipEnt
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
-
-		if resp, _, err := conn.ProjectIPWhitelist.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID); err == nil {
+		if resp, _, err := conn.ProjectIPWhitelist.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cidr_block"]); err == nil {
 			*ipEntry = *resp
 			return nil
 		}
-
-		return fmt.Errorf("project ip whitelist entry (%s) does not exist", rs.Primary.ID)
+		return fmt.Errorf("project ip whitelist entry (%s) does not exist", rs.Primary.Attributes["cidr_block"])
 	}
 }
 
@@ -147,7 +143,6 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistAttributes(ipEntry *matlas.Projec
 		if ipEntry.IPAddress != ipAddress {
 			return fmt.Errorf("bad ipAddress: %s", ipEntry.IPAddress)
 		}
-
 		return nil
 	}
 }
@@ -159,12 +154,11 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistDestroy(s *terraform.State) error
 		if rs.Type != "mongodbatlas_project_ip_whitelist" {
 			continue
 		}
-
 		// Try to find the project ip whitelist entry
-		_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID)
+		_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cidr_block"])
 
 		if err == nil {
-			return fmt.Errorf("project ip whitelist entry (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("project ip whitelist entry (%s) still exists", rs.Primary.Attributes["cidr_block"])
 		}
 	}
 	return nil

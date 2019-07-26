@@ -91,7 +91,7 @@ func testAccCheckMongoDBAtlasNetworkContainerImportStateIDFunc(resourceName stri
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]), nil
 	}
 }
 
@@ -109,12 +109,11 @@ func testAccCheckMongoDBAtlasNetworkContainerExists(resourceName string, contain
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
 
-		if containerResp, _, err := conn.Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID); err == nil {
+		if containerResp, _, err := conn.Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"]); err == nil {
 			*container = *containerResp
 			return nil
 		}
-
-		return fmt.Errorf("container(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
+		return fmt.Errorf("container(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])
 	}
 }
 
@@ -123,7 +122,6 @@ func testAccCheckMongoDBAtlasNetworkContainerAttributes(container *matlas.Contai
 		if container.ProviderName != providerName {
 			return fmt.Errorf("bad provider name: %s", container.ProviderName)
 		}
-
 		return nil
 	}
 }
@@ -137,13 +135,12 @@ func testAccCheckMongoDBAtlasNetworkContainerDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the container
-		_, _, err := conn.Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"])
+		_, _, err := conn.Containers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])
 
 		if err == nil {
-			return fmt.Errorf("container (%s:%s) still exists", rs.Primary.Attributes["name"], rs.Primary.ID)
+			return fmt.Errorf("container (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["container_id"])
 		}
 	}
-
 	return nil
 }
 

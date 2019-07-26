@@ -195,7 +195,6 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, name)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf(errorRead, name, err)

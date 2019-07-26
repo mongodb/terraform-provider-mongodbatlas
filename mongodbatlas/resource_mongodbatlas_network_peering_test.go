@@ -58,7 +58,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"]), nil
 	}
 }
 
@@ -70,18 +70,19 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
+
+		if rs.Primary.Attributes["peer_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
 
-		if peerResp, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID); err == nil {
+		if peerResp, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"]); err == nil {
 			*peer = *peerResp
 			return nil
 		}
 
-		return fmt.Errorf("peer(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.ID)
+		return fmt.Errorf("peer(%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])
 	}
 }
 
@@ -103,33 +104,32 @@ func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the peer
-		_, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.ID)
+		_, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])
 
 		if err == nil {
-			return fmt.Errorf("peer (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("peer (%s) still exists", rs.Primary.Attributes["peer_id"])
 		}
 	}
-
 	return nil
 }
 
 func testAccMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_network_container" "test" {
-	project_id   		= "%[1]s"
-	atlas_cidr_block    = "192.168.208.0/21"
-	provider_name		= "AWS"
-	region_name			= "%[5]s"
-}
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		  = "%[1]s"
+			atlas_cidr_block  = "192.168.208.0/21"
+			provider_name		  = "AWS"
+			region_name			  = "%[5]s"
+		}
 
-resource "mongodbatlas_network_peering" "test" {
-	accepter_region_name	= "us-east-1"	
-	project_id    			= "%[1]s"
-	container_id            = mongodbatlas_network_container.test.id
-	provider_name           = "AWS"
-	route_table_cidr_block  = "%[4]s"
-	vpc_id					= "%[2]s"
-	aws_account_id			= "%[3]s"
-}
-`, projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
+		resource "mongodbatlas_network_peering" "test" {
+			accepter_region_name	  = "us-east-1"	
+			project_id    			    = "%[1]s"
+			container_id            = mongodbatlas_network_container.test.container_id
+			provider_name           = "AWS"
+			route_table_cidr_block  = "%[4]s"
+			vpc_id					= "%[2]s"
+			aws_account_id	= "%[3]s"
+		}
+	`, projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }
