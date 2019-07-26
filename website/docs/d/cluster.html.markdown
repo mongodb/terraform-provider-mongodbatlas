@@ -10,11 +10,11 @@ description: |-
 
 `mongodb_atlas_cluster` describes a Cluster. The. The data source requires your Project ID.
 
-~> **IMPORTANT:** Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
-
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-~> **IMPORTANT:** If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
+~> **IMPORTANT:** 
+<br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
+<br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
 ## Example Usage
 

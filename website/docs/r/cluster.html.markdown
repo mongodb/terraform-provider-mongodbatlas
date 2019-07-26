@@ -10,12 +10,11 @@ description: |-
 
 `mongodb_atlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
 
-
-~> **IMPORTANT:** Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
-
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-~> **IMPORTANT:** If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
+~> **IMPORTANT:** 
+<br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
+<br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
 ## Example Usage
 
@@ -125,6 +124,17 @@ resource "mongodbatlas_cluster" "cluster-test" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
+* `provider_name` - (Required) Cloud service provider on which the servers are provisioned.
+* `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
+
+    The possible values are:
+
+    - `AWS` - Amazon AWS
+    - `GCP` - Google Cloud Platform
+    - `AZURE` - Microsoft Azure
+    - `TENANT` - A multi-tenant deployment on one of the supported cloud service providers. Only valid when providerSettings.instanceSizeName is either M2 or M5.
+* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.
+* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.
 * `auto_scaling_disk_gb_enabled` - (Optional) Specifies whether disk auto-scaling is enabled. The default is true.
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
@@ -139,47 +149,26 @@ resource "mongodbatlas_cluster" "cluster-test" {
 * `bi_connector` - (Optional) Specifies BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
 * `cluster_type` - (Optional) Specifies the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
 
-    -> **WHEN SHOULD YOU USE CLUSTERTYPE?** 
-
-        You set replicationSpecs.(Required)
-        You are deploying Global Clusters. (Required)
-        You are deploying non-Global replica sets and sharded clusters.	(Optional)
+    -> **WHEN SHOULD YOU USE CLUSTERTYPE?**
+      When you set replication_specs, when you are deploying Global Clusters or when you are deploying non-Global replica sets and sharded clusters.
 
     Accepted values include:
-
-        - `REPLICASET` Replica set
-        - `SHARDED`	Sharded cluster
-        - `GEOSHARDED` Global Cluster
+      - `REPLICASET` Replica set
+      - `SHARDED`	Sharded cluster
+      - `GEOSHARDED` Global Cluster
 
 * `disk_size_gb` - (Optional) The size in gigabytes of the server’s root volume. You can add capacity by increasing this number, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive integer.
 
     The minimum disk size for dedicated clusters is 10GB for AWS and GCP, and 32GB for Azure. If you specify diskSizeGB with a lower disk size, Atlas defaults to the minimum disk size value.
 
 * `encryption_at_rest_provider` - (Optional) Set the Encryption at Rest parameter.
-
-* `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
-* `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters:
-
-    - 3.4
-    - 3.6
-    - 4.0
-
-    You must set this value to 4.0 if `provider_instance_size_name` is either M2 or M5.
+* `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `3.4`, `3.6` or `4.0`. You must set this value to `4.0` if `provider_instance_size_name` is either M2 or M5.
 * `num_shards` - (Optional) Selects whether the cluster is a replica set or a sharded cluster. If you use the replicationSpecs parameter, you must set num_shards.
 * `provider_backup_enabled` - (Optional) Flag indicating if the cluster uses Cloud Provider Snapshots for backups.
 
     If true, the cluster uses Cloud Provider Snapshots for backups. If providerBackupEnabled and backupEnabled are false, the cluster does not use Atlas backups.
 
     You cannot enable cloud provider snapshots if you have an existing cluster in the project with Continuous Backups enabled.
-* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.
-* `provider_name` - (Required) Cloud service provider on which the servers are provisioned.
-
-    The possible values are:
-
-    - AWS - Amazon AWS
-    - GCP - Google Cloud Platform
-    - AZURE - Microsoft Azure
-    - TENANT - A multi-tenant deployment on one of the supported cloud service providers. Only valid when providerSettings.instanceSizeName is either M2 or M5.
 * `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.
 
     This setting is only valid when providerSetting.providerName is TENANT and providerSetting.instanceSizeName is M2 or M5.
@@ -223,8 +212,8 @@ Specifies BI Connector for Atlas configuration.
 
 Configuration for cluster regions. 
 
-* `id` - (Optional) Unique identifer of the replication document for a zone in a Global Cluster.
 * `num_shards` - (Required) Number of shards to deploy in the specified zone.
+* `id` - (Optional) Unique identifer of the replication document for a zone in a Global Cluster.
 * `regions_config` - (Optional) Physical location of the region. Each regionsConfig document describes the region’s priority in elections and the number and type of MongoDB nodes Atlas deploys to the region. You must order each regionsConfigs document by regionsConfig.priority, descending. See [Region Config](#region-config) below for more details.
 * `zone_name` - (Optional) Name for the zone in a Global Cluster.
 
