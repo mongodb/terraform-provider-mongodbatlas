@@ -73,7 +73,7 @@ resource "mongodbatlas_network_container" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `container_id` - The Network Peering Container ID.
-* `id` -	Unique identifier used for terraform for internal manages.
+* `id` -	The Terraform's unique identifier used internally for state management.
 * `region_name` - AWS region.
 * `region` - Azure region where the container resides.
 * `azure_subscription_id` - Unique identifer of the Azure subscription in which the VNet resides.

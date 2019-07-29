@@ -117,7 +117,7 @@ In addition to all arguments above, the following attributes are exported:
 * `expired` -	Indicates whether the restore job expired.
 * `expires_at` -	UTC ISO 8601 formatted point in time when the restore job expires.
 * `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
-* `id` -	Unique identifier used for terraform for internal manages.
+* `id` -	The Terraform's unique identifier used internally for state management.
 * `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
 * `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
