@@ -364,7 +364,8 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorRead, clusterName, err)
 	}
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorRead, clusterName, err)
+	}
 
 	//Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
 	if cluster.NumShards != nil {
