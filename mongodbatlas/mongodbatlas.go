@@ -42,6 +42,7 @@ type Client struct {
 	Peers                            PeersService
 	Containers                       ContainersService
 	EncryptionsAtRest                EncryptionsAtRestService
+	WhitelistAPIKeys                 WhitelistAPIKeysService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -144,6 +145,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Peers = &PeersServiceOp{client: c}
 	c.Containers = &ContainersServiceOp{client: c}
 	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
+	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
 
 	return c
 }
