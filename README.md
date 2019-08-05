@@ -24,8 +24,10 @@ $ git clone git@github.com:mongodb/terraform-mongodbatlas
 ```
 
 Enter the provider directory and run `make tools`. This will install the needed tools for the provider.
-
+```
 $ make tools
+```
+
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the $GOPATH/bin directory.
 
 ```
@@ -39,17 +41,15 @@ $ $GOPATH/bin/terraform-provider-mongodbatlas
 
 To use a released provider in your Terraform environment, run [`terraform init`](https://www.terraform.io/docs/commands/init.html) and Terraform will automatically install the provider. To specify a particular provider version when installing released providers, see the [`Terraform documentation on provider versioning`](https://www.terraform.io/docs/configuration/providers.html#version-provider-versions).
 
-To instead use a custom-built provider in your Terraform environment (e.g. the provider binary from the build instructions above), follow the instructions to [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run terraform init to initialize it.
+To instead use a custom-built provider in your Terraform environment (e.g. the provider binary from the build instructions above), follow the instructions to [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
 
 For either installation method, documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
 
 # Testing the Provider
 
-In order to test the provider, you can run `make test`. You need to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
-`alias` and `version`), the following arguments are supported in the MongoDB
-Atlas `provider` block:
+In order to test the provider, you can run `make test`. You can use [meta-arguments](https://www.terraform.io/docs/configuration/providers.html) such as `alias` and `version`. The following arguments are supported in the MongoDB Atlas `provider` block:
 
-* `public_key` - (Optional) This is the MongoDB Atlas API publick_key. It must be
+* `public_key` - (Optional) This is the MongoDB Atlas API public_key. It must be
   provided, but it can also be sourced from the `MONGODB_ATLAS_PUBLIC_KEY`
   environment variable.
 
@@ -57,28 +57,56 @@ Atlas `provider` block:
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
-You must also configure the `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` enviroment variables before make the test:
+~> **Notice:**  If you do not have a `public_key` and `private_key` you must create a programmatic API key to configure the provider (see [Creating Programmatic API key](#Creating-Programmatic-API-key)). If you already have one, you can continue with [Configuring environment variables](#Configuring-environment-variables)
 
-```
-$ export MONGODB_ATLAS_PROJECT_ID=5cf5a45a9ccf6400e60981b6
-$ export MONGODB_ATLAS_ORG_ID=5b71ff2f96e82120d0aaec14
-```
+# Running the acceptance test
 
-Then you can run the test with:
+#### Programmatic API key
 
+It's necessary to generate and configure an API key for your organization for the acceptance test to succeed. To grant programmatic access to an organization or project using only the [API](https://docs.atlas.mongodb.com/api/) you need to know:
 
+  1. The programmatic API key has two parts: a Public Key and a Private Key. To see more details on how to create a programmatic API key visit https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys.
+  
+  1. The programmatic API key must be granted roles sufficient for the acceptance test to succeed. The Organization Owner and Project Owner roles should be sufficient. You can see the available roles at https://docs.atlas.mongodb.com/reference/user-roles.
+
+  1. You must [configure Atlas API Access](https://docs.atlas.mongodb.com/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs. 
+
+#### Configuring environment variables
+
+You must also configure the following environment variables before running the test:
+ 
+##### MongoDB Atlas env variables
+```sh
+$ export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
+$ export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
 ```
-$ make test
+##### AWS env variables
+
+- For `Network Peering` resource configuration:
+```sh
+$ export AWS_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
+$ export AWS_VPC_ID=<YOUR_VPC_ID>
+$ export AWS_VPC_CIDR_BLOCK=<YOUR_VPC_CIDR_BLOCK>
+$ export AWS_REGION=<YOUR_REGION>
 ```
+~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+
+- For `Encryption at Rest` resource configuration:
+```sh
+$ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
+$ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
+$ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
+```
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+
 
 In order to run the full suite of Acceptance tests, run ``make testacc``.
 
-Note: Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
+~> **Notice:** Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
 
 ```
 $ make testacc
 ```
-For more information about how to get this programmatic API Keys see the following [link](https://docs.atlas.mongodb.com/configure-api-access/#manage-programmatic-access-to-an-organization).
 
 Contributing
 ---------------------------
