@@ -225,7 +225,7 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorRead, name, err)
 	}
 
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBVersion); err != nil {
+	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
 		return fmt.Errorf(errorRead, name, err)
 	}
 
