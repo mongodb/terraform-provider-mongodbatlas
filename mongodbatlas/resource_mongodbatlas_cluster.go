@@ -357,7 +357,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorRead, name, err)
 	}
 
-	if err := d.Set("mongo_db_major_version", cluster.MongoDBVersion); err != nil {
+	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
 		return fmt.Errorf(errorRead, name, err)
 	}
 
@@ -628,8 +628,10 @@ func flattenProviderSettings(d *schema.ResourceData, settings matlas.ProviderSet
 		log.Printf("[WARN] error setting cluster `backing_provider_name`: %s", err)
 	}
 
-	if err := d.Set("provider_disk_iops", settings.DiskIOPS); err != nil {
-		log.Printf("[WARN] error setting cluster `disk_iops`: %s", err)
+	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
+		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
+			log.Printf("[WARN] error setting cluster `disk_iops`: %s", err)
+		}
 	}
 
 	if err := d.Set("provider_disk_type_name", settings.DiskTypeName); err != nil {

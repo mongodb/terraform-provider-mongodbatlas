@@ -231,10 +231,11 @@ func testAccMongoDBAtlasClusterConfig(projectID, name, backupEnabled string) str
 			replication_factor           = 3
 			backup_enabled               = %s
 			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version = "4.0"
 			
 			//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 300
+			provider_disk_iops 			= 300
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M40"
 			provider_region_name        = "EU_CENTRAL_1"
