@@ -1,12 +1,16 @@
-## [Unreleased](https://github.com/mongodb/go-client-mongodb-atlas/tree/HEAD)
-
-
-**Closed issues:**
-
-- Add JobID attr to SnapshotReqPathParameters struct  [\#8](https://github.com/mongodb-partners/go-client-mongodb-atlas/issues/8)
+## [v0.0.2](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.0.2) (2019-08-08)
+[Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.0.1...v0.0.2)
 
 **Merged pull requests:**
 
+- change implementation of the array whitelistAPIKeysReq [\#14](https://github.com/mongodb/go-client-mongodb-atlas/pull/14) ([PacoDw](https://github.com/PacoDw))
+- Chore: Sort the services alphabetically [\#13](https://github.com/mongodb/go-client-mongodb-atlas/pull/13) ([thetonymaster](https://github.com/thetonymaster))
+- Whitelist API Keys [\#11](https://github.com/mongodb/go-client-mongodb-atlas/pull/11) ([PacoDw](https://github.com/PacoDw))
+
+## [v0.0.1](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.0.1) (2019-07-17)
+**Merged pull requests:**
+
+- chore: add changelog file [\#10](https://github.com/mongodb/go-client-mongodb-atlas/pull/10) ([marinsalinas](https://github.com/marinsalinas))
 - ProjectAPIKeys.Create test [\#9](https://github.com/mongodb/go-client-mongodb-atlas/pull/9) ([thetonymaster](https://github.com/thetonymaster))
 - Project api keys [\#8](https://github.com/mongodb/go-client-mongodb-atlas/pull/8) ([thetonymaster](https://github.com/thetonymaster))
 - Update Readme.md [\#7](https://github.com/mongodb/go-client-mongodb-atlas/pull/7) ([marinsalinas](https://github.com/marinsalinas))
