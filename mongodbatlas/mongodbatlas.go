@@ -133,18 +133,17 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 
-	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
-	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
-	c.Projects = &ProjectsServiceOp{client: c}
-	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
-	c.Clusters = &ClustersServiceOp{client: c}
-	c.CloudProviderSnapshots = &CloudProviderSnapshotsServiceOp{client: c}
 	c.APIKeys = &APIKeysServiceOp{client: c}
-	c.ProjectAPIKeys = &ProjectAPIKeysOp{client: c}
+	c.CloudProviderSnapshots = &CloudProviderSnapshotsServiceOp{client: c}
 	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
-	c.Peers = &PeersServiceOp{client: c}
+	c.Clusters = &ClustersServiceOp{client: c}
 	c.Containers = &ContainersServiceOp{client: c}
+	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
 	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
+	c.Projects = &ProjectsServiceOp{client: c}
+	c.ProjectAPIKeys = &ProjectAPIKeysOp{client: c}
+	c.Peers = &PeersServiceOp{client: c}
+	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
 	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
 
 	return c
