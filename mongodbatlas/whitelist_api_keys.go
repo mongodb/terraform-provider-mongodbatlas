@@ -14,7 +14,7 @@ const whitelistAPIKeysPath = "orgs/%s/apiKeys/%s/whitelist"
 type WhitelistAPIKeysService interface {
 	List(context.Context, string, string) (*WhitelistAPIKeys, *Response, error)
 	Get(context.Context, string, string, string) (*WhitelistAPIKey, *Response, error)
-	Create(context.Context, string, string, *[]WhitelistAPIKeysReq) (*WhitelistAPIKeys, *Response, error)
+	Create(context.Context, string, string, []*WhitelistAPIKeysReq) (*WhitelistAPIKeys, *Response, error)
 	Delete(context.Context, string, string, string) (*Response, error)
 }
 
@@ -111,7 +111,7 @@ func (s *WhitelistAPIKeysServiceOp) Get(ctx context.Context, orgID string, apiKe
 
 // Create a submit a POST request containing ipAddress or cidrBlock values which are not already present in the whitelist, Atlas adds those entries to the list of existing entries in the whitelist.
 // See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-org-whitelist-create/
-func (s *WhitelistAPIKeysServiceOp) Create(ctx context.Context, orgID string, apiKeyID string, createRequest *[]WhitelistAPIKeysReq) (*WhitelistAPIKeys, *Response, error) {
+func (s *WhitelistAPIKeysServiceOp) Create(ctx context.Context, orgID string, apiKeyID string, createRequest []*WhitelistAPIKeysReq) (*WhitelistAPIKeys, *Response, error) {
 	if orgID == "" {
 		return nil, nil, NewArgError("orgID", "must be set")
 	}

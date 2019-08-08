@@ -170,7 +170,7 @@ func TestWhitelistAPIKeys_Create(t *testing.T) {
 	orgID := "ORG-ID"
 	apiKeyID := "API-KEY-ID"
 
-	createRequest := &[]WhitelistAPIKeysReq{
+	createRequest := []*WhitelistAPIKeysReq{
 		{
 			IPAddress: "77.54.32.11",
 			CidrBlock: "77.54.32.11/32",
