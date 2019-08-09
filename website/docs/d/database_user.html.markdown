@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: database_user"
-sidebar_current: "docs-mongodbatlas-datasource-database_user"
+sidebar_current: "docs-mongodbatlas-datasource-database-user"
 description: |-
     Describes a Database User.
 ---
@@ -58,9 +58,9 @@ In addition to all arguments above, the following attributes are exported:
 
 Block mapping a user's role to a database / collection. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well.
 
-**NOTE:** The available privilege actions for custom MongoDB roles support a subset of MongoDB commands. See Unsupported Commands in M10+ Clusters for more information.
+-> **NOTE:** The available privilege actions for custom MongoDB roles support a subset of MongoDB commands. See Unsupported Commands in M10+ Clusters for more information.
 
-**IMPORTANT** If a user is assigned a custom MongoDB role, they cannot be assigned any other roles.
+~> **IMPORTANT:** If a user is assigned a custom MongoDB role, they cannot be assigned any other roles.
 
 * `name` - Name of the role to grant.
 * `database_name` -  Database on which the user has the specified role. A role on the `admin` database can include privileges that apply to the other databases.

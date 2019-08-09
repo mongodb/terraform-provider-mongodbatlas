@@ -35,7 +35,8 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Unique identifier of the snapshot.
+* `id` - Terraform Unique ID for this resource, no confundir con el snapshot_id.
+* `snaphost_id` -  Unique identifier of the snapshot.
 * `created_at` - UTC ISO 8601 formatted point in time when Atlas took the snapshot.
 * `description` - Description of the snapshot. Only present for on-demand snapshots.
 * `expires_at` - UTC ISO 8601 formatted point in time when Atlas will delete the snapshot.
