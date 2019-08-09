@@ -79,14 +79,14 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
+		if rs.Primary.Attributes["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] cloudProviderSnapshot ID: %s", rs.Primary.ID)
+		log.Printf("[DEBUG] cloudProviderSnapshot ID: %s", rs.Primary.Attributes["snapshot_id"])
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
-			SnapshotID:  rs.Primary.ID,
+			SnapshotID:  rs.Primary.Attributes["snapshot_id"],
 			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
@@ -96,8 +96,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 			*cloudProviderSnapshot = *res
 			return nil
 		}
-
-		return fmt.Errorf("cloudProviderSnapshot (%s) does not exist", rs.Primary.ID)
+		return fmt.Errorf("cloudProviderSnapshot (%s) does not exist", rs.Primary.Attributes["snapshot_id"])
 	}
 }
 
@@ -119,7 +118,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy(s *terraform.State) er
 		}
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
-			SnapshotID:  rs.Primary.ID,
+			SnapshotID:  rs.Primary.Attributes["snapshot_id"],
 			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
@@ -127,7 +126,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy(s *terraform.State) er
 		res, _, _ := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 
 		if res != nil {
-			return fmt.Errorf("cloudProviderSnapshot (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("cloudProviderSnapshot (%s) still exists", rs.Primary.Attributes["snapshot_id"])
 		}
 	}
 	return nil
@@ -139,7 +138,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_id"]), nil
 	}
 }
 

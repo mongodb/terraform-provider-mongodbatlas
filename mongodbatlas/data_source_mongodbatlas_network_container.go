@@ -74,7 +74,6 @@ func dataSourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta int
 	container, resp, err := conn.Containers.Get(context.Background(), projectID, containerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf(errorContainerRead, containerID, err)

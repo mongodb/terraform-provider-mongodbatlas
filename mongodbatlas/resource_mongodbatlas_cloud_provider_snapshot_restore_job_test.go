@@ -89,14 +89,14 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName 
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
+		if rs.Primary.Attributes["snapshot_restore_job_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] cloudProviderSnapshotRestoreJob ID: %s", rs.Primary.ID)
+		log.Printf("[DEBUG] cloudProviderSnapshotRestoreJob ID: %s", rs.Primary.Attributes["snapshot_restore_job_id"])
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
-			JobID:       rs.Primary.ID,
+			JobID:       rs.Primary.Attributes["snapshot_restore_job_id"],
 			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
 		}
@@ -105,7 +105,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName 
 			*cloudProviderSnapshotRestoreJob = *snapshotRes
 			return nil
 		}
-		return fmt.Errorf("cloudProviderSnapshotRestoreJob (%s) does not exist", rs.Primary.ID)
+		return fmt.Errorf("cloudProviderSnapshotRestoreJob (%s) does not exist", rs.Primary.Attributes["snapshot_restore_job_id"])
 	}
 }
 
@@ -129,13 +129,13 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy(s *terraform
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			GroupID:     rs.Primary.Attributes["project_id"],
 			ClusterName: rs.Primary.Attributes["cluster_name"],
-			JobID:       rs.Primary.ID,
+			JobID:       rs.Primary.Attributes["snapshot_restore_job_id"],
 		}
 
 		res, _, _ := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
 
 		if res != nil {
-			return fmt.Errorf("cloudProviderSnapshotRestoreJob (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("cloudProviderSnapshotRestoreJob (%s) still exists", rs.Primary.Attributes["snapshot_restore_job_id"])
 		}
 	}
 	return nil
@@ -147,8 +147,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobImportStateIDFunc(re
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		return encodeStateID(rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_restore_job_id"]), nil
 	}
 }
 
@@ -178,7 +177,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
 			delivery_type   = {
 				automated           = true
 				target_cluster_name = "%s"
@@ -215,7 +214,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
 			delivery_type   = {
 				download = true
 			}

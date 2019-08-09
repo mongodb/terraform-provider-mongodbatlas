@@ -78,33 +78,6 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
-	conn := meta.(*matlas.Client)
-
-	projectID := d.Get("project_id").(string)
-	whitelistEntry := d.Id()
-
-	resp, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, whitelistEntry)
-	if err != nil {
-		return fmt.Errorf(errorGetInfo, err)
-	}
-
-	if err := d.Set("cidr_block", resp.CIDRBlock); err != nil {
-		return fmt.Errorf(errorGetInfo, err)
-	}
-
-	if err := d.Set("ip_address", resp.IPAddress); err != nil {
-		return fmt.Errorf(errorGetInfo, err)
-	}
-
-	if err := d.Set("comment", resp.Comment); err != nil {
-		return fmt.Errorf(errorGetInfo, err)
-	}
-
-	return nil
-}
-
 func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
 	//Get the client connection.
 	conn := meta.(*matlas.Client)
@@ -134,18 +107,46 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	for _, entry := range resp {
 		if (req.CIDRBlock != "" && entry.CIDRBlock == req.CIDRBlock) ||
 			(req.IPAddress != "" && entry.IPAddress == req.IPAddress) {
-			d.SetId(entry.CIDRBlock)
+			d.SetId(encodeStateID(map[string]string{
+				"project_id": projectID,
+				"cidr_block": entry.CIDRBlock,
+			}))
 			return resourceMongoDBAtlasProjectIPWhitelistRead(d, meta)
 		}
 	}
 	return fmt.Errorf("MongoDB Project IP Whitelist with CIDR block: %s and IP Address: %s could not be found in the response from MongoDB Atlas", req.CIDRBlock, req.IPAddress)
 }
 
+func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta interface{}) error {
+	//Get the client connection.
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	whitelistEntry := ids["cidr_block"]
+
+	resp, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, whitelistEntry)
+	if err != nil {
+		return fmt.Errorf(errorGetInfo, err)
+	}
+
+	if err := d.Set("cidr_block", resp.CIDRBlock); err != nil {
+		return fmt.Errorf(errorGetInfo, err)
+	}
+	if err := d.Set("ip_address", resp.IPAddress); err != nil {
+		return fmt.Errorf(errorGetInfo, err)
+	}
+	if err := d.Set("comment", resp.Comment); err != nil {
+		return fmt.Errorf(errorGetInfo, err)
+	}
+	return nil
+}
+
 func resourceMongoDBAtlasProjectIPWhitelistUpdate(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	whitelistEntry := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	whitelistEntry := ids["cidr_block"]
 
 	projectIPWhitelist, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, whitelistEntry)
 
@@ -170,16 +171,14 @@ func resourceMongoDBAtlasProjectIPWhitelistUpdate(d *schema.ResourceData, meta i
 func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get the client connection.
 	conn := meta.(*matlas.Client)
-
-	projectID := d.Get("project_id").(string)
-	whitelistEntry := d.Id()
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	whitelistEntry := ids["cidr_block"]
 
 	_, err := conn.ProjectIPWhitelist.Delete(context.Background(), projectID, whitelistEntry)
 	if err != nil {
 		return fmt.Errorf("error deleting project IP whitelist: %s", err)
 	}
-
-	d.SetId("")
 	return nil
 }
 
@@ -200,11 +199,14 @@ func resourceMongoDBAtlasProjectIPWhitelistImportState(d *schema.ResourceData, m
 		return nil, fmt.Errorf("Couldn't import ip whitelist %s in project_id %s, error: %s", whitelistEntry, projectID, err.Error())
 	}
 
-	d.SetId(ipEntry.CIDRBlock)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": ipEntry.GroupID,
+		"cidr_block": ipEntry.CIDRBlock,
+	}))
+
 	if err := d.Set("project_id", ipEntry.GroupID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting project_id for (%s): %s", ipEntry.CIDRBlock, err)
 		return []*schema.ResourceData{d}, err
 	}
-
 	return []*schema.ResourceData{d}, nil
 }

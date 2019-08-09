@@ -68,6 +68,7 @@ func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -87,13 +88,12 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["id"])
+		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
 
 		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
 			*project = *projectResp
 			return nil
 		}
-
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
 	}
 }
@@ -121,6 +121,16 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return rs.Primary.ID, nil
+	}
 }
 
 func testAccMongoDBAtlasPropjectConfig(projectName, orgID string) string {
