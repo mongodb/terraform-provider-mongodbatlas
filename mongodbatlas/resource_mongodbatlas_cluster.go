@@ -599,6 +599,7 @@ func flattenBiConnector(biConnector matlas.BiConnector) map[string]interface{} {
 func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 	diskIOPS := cast.ToInt64(d.Get("provider_disk_iops"))
 	encryptEBSVolume := cast.ToBool(d.Get("provider_encrypt_ebs_volume"))
+	region, _ := valRegion(d.Get("provider_region_name"))
 
 	providerSettings := matlas.ProviderSettings{
 		DiskIOPS:            &diskIOPS,
@@ -607,7 +608,7 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 		DiskTypeName:        cast.ToString(d.Get("provider_disk_type_name")),
 		InstanceSizeName:    cast.ToString(d.Get("provider_instance_size_name")),
 		ProviderName:        cast.ToString(d.Get("provider_name")),
-		RegionName:          cast.ToString(d.Get("provider_region_name")),
+		RegionName:          region,
 		VolumeType:          cast.ToString(d.Get("provider_volume_type")),
 	}
 
@@ -693,7 +694,8 @@ func expandRegionsConfig(regions []interface{}) (map[string]matlas.RegionsConfig
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 	for _, r := range regions {
 		region := r.(map[string]interface{})
-		r, err := cast.ToStringE(region["region_name"])
+
+		r, err := valRegion(region["region_name"])
 		if err != nil {
 			return regionsConfig, err
 		}

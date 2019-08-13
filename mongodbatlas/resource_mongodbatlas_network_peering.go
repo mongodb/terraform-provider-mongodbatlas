@@ -156,8 +156,8 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 	}
 
 	if providerName == "AWS" {
-		accepter, ok := d.GetOk("accepter_region_name")
-		if !ok {
+		region, err := valRegion(d.Get("accepter_region_name"), "network_peering")
+		if err != nil {
 			return errors.New("`accepter_region_name` must be set when `provider_name` is `AWS`")
 		}
 
@@ -176,7 +176,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 			return errors.New("`vpc_id` must be set when `provider_name` is `AWS`")
 		}
 
-		peerRequest.AccepterRegionName = accepter.(string)
+		peerRequest.AccepterRegionName = region
 		peerRequest.AWSAccountId = awsAccountID.(string)
 		peerRequest.RouteTableCIDRBlock = rtCIDR.(string)
 		peerRequest.VpcID = vpcID.(string)
@@ -351,7 +351,8 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	peer := new(matlas.Peer)
 
 	if d.HasChange("accepter_region_name") {
-		peer.AccepterRegionName = d.Get("accepter_region_name").(string)
+		region, _ := valRegion(d.Get("accepter_region_name"), "network_peering")
+		peer.AccepterRegionName = region
 	}
 
 	if d.HasChange("aws_account_id") {
