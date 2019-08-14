@@ -142,6 +142,8 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 
 func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
+	awsRegion, _ := valRegion(d.Get("aws_kms.region"))
+
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
 		GroupID: d.Get("project_id").(string),
 		AwsKms: matlas.AwsKms{
@@ -149,7 +151,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 			AccessKeyID:         d.Get("aws_kms.access_key_id").(string),
 			SecretAccessKey:     d.Get("aws_kms.secret_access_key").(string),
 			CustomerMasterKeyID: d.Get("aws_kms.customer_master_key_id").(string),
-			Region:              d.Get("aws_kms.region").(string),
+			Region:              awsRegion,
 		},
 		AzureKeyVault: matlas.AzureKeyVault{
 			Enabled:           pointy.Bool(cast.ToBool(d.Get("azure_key_vault.enabled"))),

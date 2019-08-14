@@ -25,7 +25,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 		AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
 		SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
-		Region:              "US_EAST_1",
+		Region:              os.Getenv("AWS_REGION"),
 	}
 
 	resource.ParallelTest(t, resource.TestCase{

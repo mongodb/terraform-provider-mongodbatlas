@@ -100,14 +100,19 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 	}
 
 	if providerName == "AWS" {
-		if _, ok := d.GetOk("region_name"); !ok {
+		region, err := valRegion(d.Get("region_name"))
+		if err != nil {
 			return fmt.Errorf("`region_name` must be set when `provider_name` is AWS")
 		}
-		containerRequest.RegionName = d.Get("region_name").(string)
+		containerRequest.RegionName = region
 	}
 
 	if providerName == "Azure" {
-		containerRequest.Region = d.Get("region").(string)
+		region, err := valRegion(d.Get("region"))
+		if err != nil {
+			return fmt.Errorf("`region` must be set when `provider_name` is AWS")
+		}
+		containerRequest.Region = region
 	}
 
 	container, _, err := conn.Containers.Create(context.Background(), projectID, containerRequest)
@@ -193,11 +198,13 @@ func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta int
 	}
 
 	if d.HasChange("region_name") {
-		container.RegionName = d.Get("region_name").(string)
+		region, _ := valRegion(d.Get("region_name"))
+		container.RegionName = region
 	}
 
 	if d.HasChange("region") {
-		container.Region = d.Get("region").(string)
+		region, _ := valRegion(d.Get("region"))
+		container.Region = region
 	}
 
 	// Has changes
