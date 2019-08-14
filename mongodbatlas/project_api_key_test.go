@@ -108,10 +108,10 @@ func TestProjectAPIKeys_Assign(t *testing.T) {
 	keyID := "5d1d12c087d9d63e6d682438"
 
 	mux.HandleFunc(fmt.Sprintf("/groups/%s/apiKeys/%s", groupID, keyID), func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, http.MethodPost)
+		testMethod(t, r, http.MethodPatch)
 	})
 
-	_, err := client.ProjectAPIKeys.Assign(ctx, groupID, keyID)
+	_, err := client.ProjectAPIKeys.Assign(ctx, groupID, keyID, &AssignAPIKey{})
 	if err != nil {
 		t.Errorf("ProjectAPIKeys.Assign returned error: %v", err)
 	}
