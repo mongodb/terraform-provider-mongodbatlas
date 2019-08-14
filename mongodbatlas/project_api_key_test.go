@@ -111,7 +111,7 @@ func TestProjectAPIKeys_Assign(t *testing.T) {
 		testMethod(t, r, http.MethodPost)
 	})
 
-	_, err := client.ProjectAPIKeys.Assign(ctx, groupID, keyID)
+	_, err := client.ProjectAPIKeys.Assign(ctx, groupID, keyID, &AssignAPIKey{})
 	if err != nil {
 		t.Errorf("ProjectAPIKeys.Assign returned error: %v", err)
 	}
