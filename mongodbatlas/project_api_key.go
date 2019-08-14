@@ -28,7 +28,7 @@ var _ ProjectAPIKeysService = &ProjectAPIKeysOp{}
 
 // AssignAPIKey contains the roles to be assigned to an Organization API key into a Project
 type AssignAPIKey struct {
-	Roles []string `json:"roles,omitempty"`
+	Roles []string `json:"roles"`
 }
 
 //List all API-KEY in the organization associated to {GROUP-ID}.
@@ -87,7 +87,7 @@ func (s *ProjectAPIKeysOp) Create(ctx context.Context, groupID string, createReq
 //See more: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/assign-one-org-apiKey-to-one-project/
 func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID string, assignAPIKeyRequest *AssignAPIKey) (*Response, error) {
 	if groupID == "" {
-		return nil, NewArgError("apiKeyID", "must be set")
+		return nil, NewArgError("groupID", "must be set")
 	}
 
 	if keyID == "" {
@@ -98,7 +98,7 @@ func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID str
 
 	path := fmt.Sprintf("%s/%s", basePath, keyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, assignAPIKeyRequest)
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, assignAPIKeyRequest)
 	if err != nil {
 		return nil, err
 	}
