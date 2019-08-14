@@ -1,3 +1,11 @@
+## [v0.0.3](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.0.3) (2019-08-14)
+[Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.0.2...v0.0.3)
+
+**Merged pull requests:**
+
+- Add AssignAPIKey struct to Assign request [\#16](https://github.com/mongodb/go-client-mongodb-atlas/pull/16) ([thetonymaster](https://github.com/thetonymaster))
+- chore: add changelog for new release [\#15](https://github.com/mongodb/go-client-mongodb-atlas/pull/15) ([marinsalinas](https://github.com/marinsalinas))
+
 ## [v0.0.2](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.0.2) (2019-08-08)
 [Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.0.1...v0.0.2)
 
