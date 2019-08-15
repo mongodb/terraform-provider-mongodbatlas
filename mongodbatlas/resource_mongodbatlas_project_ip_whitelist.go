@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
+
+	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -18,7 +22,6 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasProjectIPWhitelistCreate,
 		Read:   resourceMongoDBAtlasProjectIPWhitelistRead,
-		Update: resourceMongoDBAtlasProjectIPWhitelistUpdate,
 		Delete: resourceMongoDBAtlasProjectIPWhitelistDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -29,9 +32,11 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"entry": {
+			"whitelist": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
+				Set:      filterParamsHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cidr_block": {
@@ -39,7 +44,6 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
-							// ConflictsWith: []string{"ip_address"},
 							ValidateFunc: func(i interface{}, k string) (s []string, es []error) {
 								v, ok := i.(string)
 								if !ok {
@@ -79,32 +83,17 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 					},
 				},
 			},
-			"whitelist": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cidr_block": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"comment": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"project_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
+}
+
+func filterParamsHash(v interface{}) int {
+	entry := v.(map[string]interface{})
+	if cast.ToString(entry["ip_address"]) != "" {
+		return hashcode.String(cast.ToString(entry["ip_address"]))
+	}
+	ip, _, _ := net.ParseCIDR(cast.ToString(entry["cidr_block"]))
+	return hashcode.String(ip.String())
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
@@ -114,104 +103,100 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	projectID := d.Get("project_id").(string)
 
 	req := expandProjectIPWhitelist(d)
-	_, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, req)
-
+	resp, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, req)
 	if err != nil {
 		return fmt.Errorf("error creating project IP whitelist: %s", err)
 	}
 
-	d.SetId(projectID)
+	var withelist []string
+	whiteListMap(resp, func(entry string) {
+		withelist = append(withelist, entry)
+	})
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"entries":    strings.Join(withelist, ","),
+	}))
+
 	return resourceMongoDBAtlasProjectIPWhitelistRead(d, meta)
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta interface{}) error {
 	//Get the client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Id()
+	ids := decodeStateID(d.Id())
 
-	var options *matlas.ListOptions
-	resp, _, err := conn.ProjectIPWhitelist.List(context.Background(), projectID, options)
+	whitelist, err := getProjectIPWhitelist(ids, conn)
 	if err != nil {
-		return fmt.Errorf(errorGetInfo, err)
+		return err
 	}
-
-	if err := d.Set("whitelist", flattenProjectIPWhitelist(resp)); err != nil {
+	if err := d.Set("whitelist", flattenProjectIPWhitelist(whitelist)); err != nil {
 		return fmt.Errorf(errorGetInfo, err)
 	}
 	return nil
-}
-
-func resourceMongoDBAtlasProjectIPWhitelistUpdate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
-	conn := meta.(*matlas.Client)
-
-	if d.HasChange("whitelist") {
-		whitelist := expandProjectIPWhitelist(d)
-
-		_, _, err := conn.ProjectIPWhitelist.Update(context.Background(), d.Id(), "", whitelist)
-		if err != nil {
-			return fmt.Errorf("error updating project ip whitelist (%s): %s", d.Id(), err)
-		}
-	}
-
-	return resourceMongoDBAtlasProjectIPWhitelistRead(d, meta)
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get the client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Id()
+	ids := decodeStateID(d.Id())
 
-	var options *matlas.ListOptions
-	whitelist, _, err := conn.ProjectIPWhitelist.List(context.Background(), projectID, options)
+	whitelist, err := getProjectIPWhitelist(ids, conn)
 	if err != nil {
-		return fmt.Errorf(errorGetInfo, err)
+		return err
 	}
 
-	deleteEntryWhiteList := func(f func(string)) {
-		for _, entry := range whitelist {
-			if entry.CIDRBlock != "" {
-				f(entry.CIDRBlock)
-			} else if entry.IPAddress != "" {
-				f(entry.IPAddress)
-			}
-		}
-	}
-
-	var er error
-	deleteEntryWhiteList(func(entry string) {
-		_, err := conn.ProjectIPWhitelist.Delete(context.Background(), projectID, entry)
-		if err != nil {
-			er = fmt.Errorf("error deleting project IP whitelist: %s", err)
-		}
+	whiteListMap(whitelist, func(entry string) {
+		_, err = conn.ProjectIPWhitelist.Delete(context.Background(), ids["project_id"], entry)
 	})
-	if er != nil {
-		return er
+	if err != nil {
+		return fmt.Errorf("error deleting project IP whitelist: %s", err)
 	}
 	return nil
 }
 
-func flattenProjectIPWhitelist(whitelists []matlas.ProjectIPWhitelist) []map[string]interface{} {
-	var results []map[string]interface{}
+func getProjectIPWhitelist(ids map[string]string, conn *matlas.Client) ([]matlas.ProjectIPWhitelist, error) {
+	projectID := ids["project_id"]
+	entries := strings.Split(ids["entries"], ",")
 
-	if len(whitelists) > 0 {
-		results = make([]map[string]interface{}, len(whitelists))
-
-		for k, whitelist := range whitelists {
-			results[k] = map[string]interface{}{
-				"project_id": whitelist.GroupID,
-				"cidr_block": whitelist.CIDRBlock,
-				"ip_address": whitelist.IPAddress,
-				"comment":    whitelist.Comment,
-			}
+	var whitelist []matlas.ProjectIPWhitelist
+	for _, entry := range entries {
+		res, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry)
+		if err != nil {
+			return nil, fmt.Errorf(errorGetInfo, err)
 		}
+		whitelist = append(whitelist, *res)
+	}
+	return whitelist, nil
+}
+
+func whiteListMap(whitelist []matlas.ProjectIPWhitelist, f func(string)) {
+	for _, entry := range whitelist {
+		if entry.CIDRBlock != "" {
+			f(entry.CIDRBlock)
+		} else if entry.IPAddress != "" {
+			f(entry.IPAddress)
+		}
+	}
+}
+
+func flattenProjectIPWhitelist(whitelists []matlas.ProjectIPWhitelist) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0)
+
+	for _, whitelist := range whitelists {
+		entry := map[string]interface{}{
+			"cidr_block": whitelist.CIDRBlock,
+			"ip_address": whitelist.IPAddress,
+			"comment":    whitelist.Comment,
+		}
+		results = append(results, entry)
 	}
 	return results
 }
 
 func expandProjectIPWhitelist(d *schema.ResourceData) []*matlas.ProjectIPWhitelist {
 	var whitelist []*matlas.ProjectIPWhitelist
-	if v, ok := d.GetOk("entry"); ok {
+	if v, ok := d.GetOk("whitelist"); ok {
 		if rs := v.(*schema.Set).List(); len(rs) > 0 {
 			whitelist = make([]*matlas.ProjectIPWhitelist, len(rs))
 			for k, r := range rs {
