@@ -13,7 +13,7 @@ import (
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_basic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var whitelist = []matlas.ProjectIPWhitelist{
+	var whitelist = []*matlas.ProjectIPWhitelist{
 		{
 			IPAddress: fmt.Sprintf("179.154.224.%d", acctest.RandIntRange(0, 255)),
 		},
@@ -38,7 +38,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectIPWhitelistConfig(projectID, whitelist),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName, &whitelist),
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName, whitelist),
 					testAccCheckMongoDBAtlasProjectIPWhitelistAttributes(whitelist[0].IPAddress, whitelist[0].IPAddress),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
@@ -50,7 +50,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var whitelist = []matlas.ProjectIPWhitelist{
+	var whitelist = []*matlas.ProjectIPWhitelist{
 		{
 			IPAddress: fmt.Sprintf("179.154.224.%d", acctest.RandIntRange(0, 255)),
 		},
@@ -86,7 +86,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string, whitelist *[]matlas.ProjectIPWhitelist) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string, whitelist []*matlas.ProjectIPWhitelist) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
 
@@ -100,7 +100,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string, white
 
 		entries, _ := getProjectIPWhitelist(decodeStateID(rs.Primary.ID), conn)
 		if len(entries) > 0 {
-			*whitelist = entries
+			whitelist = entries
 			return nil
 		}
 		return fmt.Errorf("project ip whitelist entry (%s) does not exist", rs.Primary.Attributes["project_id"])
@@ -142,7 +142,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName st
 	}
 }
 
-func testAccMongoDBAtlasProjectIPWhitelistConfig(projectID string, entry []matlas.ProjectIPWhitelist) string {
+func testAccMongoDBAtlasProjectIPWhitelistConfig(projectID string, entry []*matlas.ProjectIPWhitelist) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_ip_whitelist" "test" {
 			project_id    = "%s"
