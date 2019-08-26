@@ -243,8 +243,8 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 	}))
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER"},
+		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE", "WAITING_FOR_USER"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(peer.ID, projectID, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
@@ -408,8 +408,8 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
+		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER"},
+		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE", "WAITING_FOR_USER"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
