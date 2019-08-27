@@ -33,12 +33,27 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
-func checkPeeringEnv(t *testing.T) {
+func checkPeeringEnvAWS(t *testing.T) {
 	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
 		os.Getenv("AWS_VPC_ID") == "" ||
 		os.Getenv("AWS_VPC_CIDR_BLOCK") == "" ||
 		os.Getenv("AWS_REGION") == "" {
 		t.Fatal("`AWS_ACCOUNT_ID`, `AWS_VPC_ID`, `AWS_VPC_CIDR_BLOCK` and `AWS_VPC_ID` must be set for  network peering acceptance testing")
+	}
+}
+
+func checkPeeringEnvAzure(t *testing.T) {
+	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
+		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_VNET_NAME") == "" ||
+		os.Getenv("AZURE_RESOURSE_GROUP_NAME") == "" {
+		t.Fatal("`AZURE_DIRECTORY_ID`, `AZURE_SUBCRIPTION_ID`, `AZURE_VNET_NAME` and `AZURE_RESOURSE_GROUP_NAME` must be set for  network peering acceptance testing")
+	}
+}
+
+func checkPeeringEnvGCP(t *testing.T) {
+	if os.Getenv("GCP_PROJECT_ID") == "" {
+		t.Fatal("`GCP_PROJECT_ID` must be set for network peering acceptance testing")
 	}
 }
 
