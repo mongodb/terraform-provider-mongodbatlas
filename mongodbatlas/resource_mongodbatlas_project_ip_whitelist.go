@@ -103,13 +103,13 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	projectID := d.Get("project_id").(string)
 
 	req := expandProjectIPWhitelist(d)
-	resp, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, req)
+	_, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, req)
 	if err != nil {
 		return fmt.Errorf("error creating project IP whitelist: %s", err)
 	}
 
 	var withelist []string
-	whiteListMap(resp, func(entry string) {
+	whiteListMap(req, func(entry string) {
 		withelist = append(withelist, entry)
 	})
 
@@ -155,22 +155,22 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func getProjectIPWhitelist(ids map[string]string, conn *matlas.Client) ([]matlas.ProjectIPWhitelist, error) {
+func getProjectIPWhitelist(ids map[string]string, conn *matlas.Client) ([]*matlas.ProjectIPWhitelist, error) {
 	projectID := ids["project_id"]
 	entries := strings.Split(ids["entries"], ",")
 
-	var whitelist []matlas.ProjectIPWhitelist
+	var whitelist []*matlas.ProjectIPWhitelist
 	for _, entry := range entries {
 		res, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry)
 		if err != nil {
 			return nil, fmt.Errorf(errorGetInfo, err)
 		}
-		whitelist = append(whitelist, *res)
+		whitelist = append(whitelist, res)
 	}
 	return whitelist, nil
 }
 
-func whiteListMap(whitelist []matlas.ProjectIPWhitelist, f func(string)) {
+func whiteListMap(whitelist []*matlas.ProjectIPWhitelist, f func(string)) {
 	for _, entry := range whitelist {
 		if entry.CIDRBlock != "" {
 			f(entry.CIDRBlock)
@@ -180,7 +180,7 @@ func whiteListMap(whitelist []matlas.ProjectIPWhitelist, f func(string)) {
 	}
 }
 
-func flattenProjectIPWhitelist(whitelists []matlas.ProjectIPWhitelist) []map[string]interface{} {
+func flattenProjectIPWhitelist(whitelists []*matlas.ProjectIPWhitelist) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	for _, whitelist := range whitelists {
