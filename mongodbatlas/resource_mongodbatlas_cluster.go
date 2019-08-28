@@ -258,6 +258,30 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if d.Get("provider_name") != "AWS" {
+		if _, ok := d.GetOk("provider_disk_iops"); ok {
+			return fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
+		}
+		if _, ok := d.GetOk("provider_encrypt_ebs_volume"); ok {
+			return fmt.Errorf("`provider_encrypt_ebs_volume` shouldn't be set when provider name is `GCP` or `AZURE`")
+		}
+		if _, ok := d.GetOk("provider_volume_type"); ok {
+			return fmt.Errorf("`provider_volume_type` shouldn't be set when provider name is `GCP` or `AZURE`")
+		}
+	}
+
+	if d.Get("provider_name") != "AZURE" {
+		if _, ok := d.GetOk("provider_disk_type_name"); ok {
+			return fmt.Errorf("`provider_disk_type_name` shouldn't be set when provider name is `GCP` or `AWS`")
+		}
+	}
+
+	if d.Get("provider_name") == "AZURE" {
+		if _, ok := d.GetOk("disk_size_gb"); ok {
+			return fmt.Errorf("`disk_size_gb` cannot be used with Azure clusters")
+		}
+	}
+
 	biConnector, err := expandBiConnector(d)
 	if err != nil {
 		return fmt.Errorf(errorCreate, err)
@@ -306,7 +330,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(d.Get("name").(string), projectID, conn),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
@@ -488,7 +512,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(clusterName, projectID, conn),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
@@ -521,7 +545,7 @@ func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{})
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceClusterRefreshFunc(clusterName, projectID, conn),
-		Timeout:    1 * time.Hour,
+		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
 	}
@@ -597,20 +621,21 @@ func flattenBiConnector(biConnector matlas.BiConnector) map[string]interface{} {
 }
 
 func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
-	diskIOPS := cast.ToInt64(d.Get("provider_disk_iops"))
-	encryptEBSVolume := cast.ToBool(d.Get("provider_encrypt_ebs_volume"))
+	providerSettings := matlas.ProviderSettings{}
+
+	if d.Get("provider_name") == "AWS" {
+		providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(d.Get("provider_disk_iops")))
+		providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(d.Get("provider_encrypt_ebs_volume")))
+	}
+
 	region, _ := valRegion(d.Get("provider_region_name"))
 
-	providerSettings := matlas.ProviderSettings{
-		DiskIOPS:            &diskIOPS,
-		EncryptEBSVolume:    &encryptEBSVolume,
-		BackingProviderName: cast.ToString(d.Get("backing_provider_name")),
-		DiskTypeName:        cast.ToString(d.Get("provider_disk_type_name")),
-		InstanceSizeName:    cast.ToString(d.Get("provider_instance_size_name")),
-		ProviderName:        cast.ToString(d.Get("provider_name")),
-		RegionName:          region,
-		VolumeType:          cast.ToString(d.Get("provider_volume_type")),
-	}
+	providerSettings.BackingProviderName = cast.ToString(d.Get("backing_provider_name"))
+	providerSettings.InstanceSizeName = cast.ToString(d.Get("provider_instance_size_name"))
+	providerSettings.ProviderName = cast.ToString(d.Get("provider_name"))
+	providerSettings.RegionName = region
+	providerSettings.VolumeType = cast.ToString(d.Get("provider_volume_type"))
+	providerSettings.DiskTypeName = cast.ToString(d.Get("provider_disk_type_name"))
 
 	return providerSettings
 }
