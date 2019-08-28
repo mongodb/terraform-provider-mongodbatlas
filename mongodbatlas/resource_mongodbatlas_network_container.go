@@ -110,7 +110,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 	if providerName == "AZURE" {
 		region, err := valRegion(d.Get("region"))
 		if err != nil {
-			return fmt.Errorf("`region` must be set when `provider_name` is AWS")
+			return fmt.Errorf("`region` must be set when `provider_name` is AZURE")
 		}
 		containerRequest.Region = region
 	}
