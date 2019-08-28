@@ -4,56 +4,55 @@
             <a href="#" class="subnav-toggle">(Expand/collapse all)</a>
 
             <ul class="nav docs-sidenav">
-                <li>
+                <li<%= sidebar_current("docs-home") %>>
                     <a href="/docs/providers/index.html">All Providers</a>
                 </li>
-
-                <li>
+                <li<%= sidebar_current("docs-mongodbatlas-index") %>>
                     <a href="/docs/providers/mongodbatlas/index.html">MongoDB Atlas Provider</a>
                 </li>
-
-                <a href="#">Data Sources</a>
-                    <ul class="nav">
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-database-user") %>>
-                         <a href="/docs/providers/mongodbatlas/d/database_user.html">mongodbatlas_database_user</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-database-users") %>>
-                         <a href="/docs/providers/mongodbatlas/d/database_users.html">mongodbatlas_database_users</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-cluster") %>>
-                         <a href="/docs/providers/mongodbatlas/d/cluster.html">mongodbatlas_cluster</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-clusters") %>>
-                         <a href="/docs/providers/mongodbatlas/d/clusters.html">mongodbatlas_clusters</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshot") %>>
-                         <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshot.html">mongodbatlas_cloud_provider_snapshot</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshots") %>>
-                         <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshots.html">mongodbatlas_cloud_provider_snapshots</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_job") %>>
-                         <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshot_restore_job.html">mongodbatlas_cloud_provider_snapshot_restore_job</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_jobs") %>>
-                         <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshot_restore_jobs.html">mongodbatlas_cloud_provider_snapshot_restore_jobs</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-network-container") %>>
-                        <a href="/docs/providers/mongodbatlas/d/network_container.html">mongodbatlas_network_container</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-network-containers") %>>
-                        <a href="/docs/providers/mongodbatlas/d/network_containers.html">mongodbatlas_network_containers</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-network-peering") %>>
-                        <a href="/docs/providers/mongodbatlas/d/network_peering.html">mongodbatlas_network_peering</a>
-                      </li>
-                      <li<%= sidebar_current("docs-mongodbatlas-datasource-network-peerings") %>>
-                      <a href="/docs/providers/mongodbatlas/d/network_peerings.html">mongodbatlas_network_peerings</a>
+                <li<%= sidebar_current("docs-mongodbatlas-datasource") %>>
+                    <a href="#">Data Sources</a>
+                    <ul class="nav nav-visible">
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-database-user") %>>
+                       <a href="/docs/providers/mongodbatlas/d/database_user.html">mongodbatlas_database_user</a>
                     </li>
-                    </ul>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-database-users") %>>
+                       <a href="/docs/providers/mongodbatlas/d/database_users.html">mongodbatlas_database_users</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-cluster") %>>
+                       <a href="/docs/providers/mongodbatlas/d/cluster.html">mongodbatlas_cluster</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-clusters") %>>
+                       <a href="/docs/providers/mongodbatlas/d/clusters.html">mongodbatlas_clusters</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshot") %>>
+                       <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshot.html">mongodbatlas_cloud_provider_snapshot</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshots") %>>
+                       <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshots.html">mongodbatlas_cloud_provider_snapshots</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_job") %>>
+                       <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshot_restore_job.html">mongodbatlas_cloud_provider_snapshot_restore_job</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_jobs") %>>
+                       <a href="/docs/providers/mongodbatlas/d/cloud_provider_snapshot_restore_jobs.html">mongodbatlas_cloud_provider_snapshot_restore_jobs</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-network-container") %>>
+                      <a href="/docs/providers/mongodbatlas/d/network_container.html">mongodbatlas_network_container</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-network-containers") %>>
+                      <a href="/docs/providers/mongodbatlas/d/network_containers.html">mongodbatlas_network_containers</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-network-peering") %>>
+                      <a href="/docs/providers/mongodbatlas/d/network_peering.html">mongodbatlas_network_peering</a>
+                    </li>
+                    <li<%= sidebar_current("docs-mongodbatlas-datasource-network-peerings") %>>
+                        <a href="/docs/providers/mongodbatlas/d/network_peerings.html">mongodbatlas_network_peerings</a>
+                    </li>
+                  </ul>
                 </li>
 
-                <li>
+                <li<%= sidebar_current("docs-mongodbatlas-resource") %>>
                   <a href="#">Resources</a>
                   <ul class="nav">
                     <li<%= sidebar_current("docs-mongodbatlas-resource-database-user") %>>
