@@ -13,7 +13,7 @@ import (
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCluster_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 	var cluster matlas.Cluster
 
 	resourceName := "mongodbatlas_cluster.test"
@@ -26,7 +26,7 @@ func TestAccResourceMongoDBAtlasCluster_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfig(projectID, name, "true"),
+				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, name, "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -39,13 +39,96 @@ func TestAccResourceMongoDBAtlasCluster_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfig(projectID, name, "false"),
+				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, name, "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+		},
+	})
+
+}
+
+func TestAccResourceMongoDBAtlasCluster_basicAzure(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAzure(projectID, name, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAzure(projectID, name, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+		},
+	})
+
+}
+func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigGCP(projectID, name, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigGCP(projectID, name, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "40"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
@@ -155,7 +238,7 @@ func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfig(projectID, clusterName, "true"),
+				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, clusterName, "true"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -219,25 +302,67 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasClusterConfig(projectID, name, backupEnabled string) string {
+func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 100
+			disk_size_gb = 40
 			num_shards   = 1
 			
 			replication_factor           = 3
 			backup_enabled               = %s
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version = "4.0"
+			mongo_db_major_version       = "4.0"
 			
 			//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops 			= 300
+			provider_disk_iops 			    = 300
 			provider_encrypt_ebs_volume = false
-			provider_instance_size_name = "M40"
+			provider_instance_size_name = "M30"
 			provider_region_name        = "EU_CENTRAL_1"
+		}
+	`, projectID, name, backupEnabled)
+}
+
+func testAccMongoDBAtlasClusterConfigAzure(projectID, name, backupEnabled string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%s"
+			name         = "%s"
+			num_shards   = 1
+			
+			replication_factor           = 3
+			backup_enabled               = %s
+			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version       = "4.0"
+			
+			//Provider Settings "block"
+			provider_name               = "AZURE"
+			provider_disk_type_name     = "P6"
+			provider_instance_size_name = "M30"
+			provider_region_name        = "US_EAST_2"
+		}
+	`, projectID, name, backupEnabled)
+}
+
+func testAccMongoDBAtlasClusterConfigGCP(projectID, name, backupEnabled string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 40
+			num_shards   = 1
+			
+			replication_factor           = 3
+			backup_enabled               = %s
+			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version       = "4.0"
+			
+			//Provider Settings "block"
+			provider_name               = "GCP"
+			provider_instance_size_name = "M30"
+			provider_region_name        = "US_EAST_4"
 		}
 	`, projectID, name, backupEnabled)
 }
