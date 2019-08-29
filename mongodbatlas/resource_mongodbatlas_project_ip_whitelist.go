@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -24,7 +25,7 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 		Read:   resourceMongoDBAtlasProjectIPWhitelistRead,
 		Delete: resourceMongoDBAtlasProjectIPWhitelistDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceMongoDBAtlasProjectIPWhitelistImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -153,6 +154,38 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 		return fmt.Errorf("error deleting project IP whitelist: %s", err)
 	}
 	return nil
+}
+
+func resourceMongoDBAtlasProjectIPWhitelistImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	var options *matlas.ListOptions
+	resp, _, err := conn.ProjectIPWhitelist.List(context.Background(), d.Id(), options)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't import ip whitelist %s in project_id %s, error: %s", resp, d.Id(), err.Error())
+	}
+
+	var whitelist []*matlas.ProjectIPWhitelist
+	for i := 0; i < len(resp); i++ {
+		whitelist = append(whitelist, &resp[i])
+	}
+
+	var entries []string
+	whiteListMap(whitelist, func(entry string) {
+		entries = append(entries, entry)
+	})
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": d.Id(),
+		"entries":    strings.Join(entries, ","),
+	}))
+
+	if err := d.Set("whitelist", flattenProjectIPWhitelist(whitelist)); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		return []*schema.ResourceData{d}, err
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func getProjectIPWhitelist(ids map[string]string, conn *matlas.Client) ([]*matlas.ProjectIPWhitelist, error) {

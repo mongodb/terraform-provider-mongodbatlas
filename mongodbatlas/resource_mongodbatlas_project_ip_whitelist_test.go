@@ -138,7 +138,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName st
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return rs.Primary.ID, nil
+		return rs.Primary.Attributes["project_id"], nil
 	}
 }
 
