@@ -13,7 +13,7 @@ import (
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasNetworkContainer_basicAWS(t *testing.T) {
 	var container matlas.Container
 
 	randInt := acctest.RandIntRange(0, 255)
@@ -32,7 +32,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfig(projectID, cidrBlock),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectID, cidrBlock, providerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
 					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
@@ -42,7 +42,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfig(projectID, cidrBlockUpdated),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectID, cidrBlockUpdated, providerName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
 					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
@@ -53,18 +53,21 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
-func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
+func TestAccResourceMongoDBAtlasNetworkContainer_basicAzure(t *testing.T) {
+	t.Skip()
+	var container matlas.Container
 
 	randInt := acctest.RandIntRange(0, 255)
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	randIntUpdated := acctest.RandIntRange(0, 255)
 
 	resourceName := "mongodbatlas_network_container.test"
-
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("10.8.%d.0/24", randInt)
+	cidrBlockUpdated := fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
+
+	providerName := "AZURE"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -72,7 +75,87 @@ func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfig(projectID, cidrBlock),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAzure(projectID, cidrBlock, providerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
+					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasNetworkContainerConfigAzure(projectID, cidrBlockUpdated, providerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
+					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
+	t.Skip()
+	var container matlas.Container
+
+	randInt := acctest.RandIntRange(0, 255)
+	randIntUpdated := acctest.RandIntRange(0, 255)
+
+	resourceName := "mongodbatlas_network_container.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	cidrBlock := fmt.Sprintf("10.8.%d.0/24", randInt)
+	cidrBlockUpdated := fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
+
+	providerName := "GCP"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasNetworkContainerConfigGCP(projectID, cidrBlock, providerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
+					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasNetworkContainerConfigGCP(projectID, cidrBlockUpdated, providerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
+					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
+
+	randInt := acctest.RandIntRange(0, 255)
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	resourceName := "mongodbatlas_network_container.test"
+	cidrBlock := fmt.Sprintf("10.8.%d.0/24", randInt)
+	providerName := "AWS"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectID, cidrBlock, providerName),
 			},
 			{
 				ResourceName:            resourceName,
@@ -144,13 +227,34 @@ func testAccCheckMongoDBAtlasNetworkContainerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasNetworkContainerConfig(projectID, cidrBlock string) string {
+func testAccMongoDBAtlasNetworkContainerConfigAWS(projectID, cidrBlock, providerName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		= "%s"
-			atlas_cidr_block    = "%s"
-			provider_name		= "AWS"
-			region_name			= "US_EAST_1"
+			project_id   		 = "%s"
+			atlas_cidr_block = "%s"
+			provider_name		 = "%s"
+			region_name			 = "US_EAST_1"
 		}
-	`, projectID, cidrBlock)
+	`, projectID, cidrBlock, providerName)
+}
+
+func testAccMongoDBAtlasNetworkContainerConfigAzure(projectID, cidrBlock, providerName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		 = "%s"
+			atlas_cidr_block = "%s"
+			provider_name		 = "%s"
+			region_name			 = "US_EAST_2"
+		}
+	`, projectID, cidrBlock, providerName)
+}
+
+func testAccMongoDBAtlasNetworkContainerConfigGCP(projectID, cidrBlock, providerName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		 = "%s"
+			atlas_cidr_block = "%s"
+			provider_name		 = "%s"
+		}
+	`, projectID, cidrBlock, providerName)
 }

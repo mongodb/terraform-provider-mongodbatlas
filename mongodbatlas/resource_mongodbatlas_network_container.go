@@ -44,7 +44,7 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "AWS",
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "GCP", "Azure"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "GCP", "AZURE"}, false),
 			},
 			"region_name": {
 				Type:     schema.TypeString,
@@ -107,10 +107,10 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 		containerRequest.RegionName = region
 	}
 
-	if providerName == "Azure" {
+	if providerName == "AZURE" {
 		region, err := valRegion(d.Get("region"))
 		if err != nil {
-			return fmt.Errorf("`region` must be set when `provider_name` is AWS")
+			return fmt.Errorf("`region` must be set when `provider_name` is AZURE")
 		}
 		containerRequest.Region = region
 	}
