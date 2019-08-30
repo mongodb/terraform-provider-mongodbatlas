@@ -64,7 +64,7 @@ arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
 `alias` and `version`), the following arguments are supported in the MongoDB
 Atlas `provider` block:
 
-* `public_key` - (Optional) This is the MongoDB Atlas API publick_key. It must be
+* `public_key` - (Optional) This is the MongoDB Atlas API public_key. It must be
   provided, but it can also be sourced from the `MONGODB_ATLAS_PUBLIC_KEY`
   environment variable.
 
