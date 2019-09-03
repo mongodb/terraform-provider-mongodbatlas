@@ -18,21 +18,22 @@ description: |-
 
 ## Example Usage
 
-### Example single region cluster.
+### Example AWS cluster
 
 ```hcl
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
-  disk_size_gb = 100
   num_shards   = 1
 
   replication_factor           = 3
   backup_enabled               = true
   auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.0"
 
   //Provider Settings "block"
   provider_name               = "AWS"
+  disk_size_gb                = 100
   provider_disk_iops          = 300
   provider_encrypt_ebs_volume = false
   provider_instance_size_name = "M40"
@@ -40,7 +41,49 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 
-### Example Multi Region cluster.
+### Example Azure cluster.
+
+```hcl
+resource "mongodbatlas_cluster" "test" {
+  project_id   = "<YOUR-PROJECT-ID>"
+  name         = "test"
+  num_shards   = 1
+  
+  replication_factor           = 3
+  backup_enabled               = true
+  auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.0"
+  
+  //Provider Settings "block"
+  provider_name               = "AZURE"  
+  provider_disk_type_name     = "P6"
+  provider_instance_size_name = "M30"
+  provider_region_name        = "US_EAST_2"
+}
+```
+
+### Example GCP cluster
+
+```hcl
+resource "mongodbatlas_cluster" "test" {
+  project_id   = "<YOUR-PROJECT-ID>"
+  name         = "test"
+  num_shards   = 1
+  
+  replication_factor           = 3
+  backup_enabled               = true
+  auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.0"
+  
+  //Provider Settings "block"
+  provider_name               = "GCP"
+  disk_size_gb                = 40
+  provider_instance_size_name = "M30"
+  provider_region_name        = "US_EAST_4"
+}
+```
+
+### Example Multi Region cluster
 
 ```hcl
 resource "mongodbatlas_cluster" "cluster-test" {
