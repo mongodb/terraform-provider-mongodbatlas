@@ -1,4 +1,4 @@
-## 0.1.1 (Unreleased)
+## 0.1.1 (September 05, 2019)
 
 **Fixed bugs:**
 
