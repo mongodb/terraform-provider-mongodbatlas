@@ -217,11 +217,11 @@ func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, direc
 			project_id   		  = "%[1]s"
 			atlas_cidr_block  = "192.168.208.0/21"
 			provider_name		  = "%[2]s"
-			region_name			  = "US_EAST_2"
+			region    			  = "US_EAST_2"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			project_id   		      = "US_EAST_2"
+			project_id   		      = "%[1]s"
 			atlas_cidr_block      = "192.168.0.0/21"
 			container_id          = mongodbatlas_network_container.test.container_id
 			provider_name         = "%[2]s"
@@ -239,7 +239,6 @@ func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProj
 			project_id   		  = "%[1]s"
 			atlas_cidr_block  = "192.168.208.0/21"
 			provider_name		  = "%[2]s"
-			region_name			  = "US_EAST_2"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {	
