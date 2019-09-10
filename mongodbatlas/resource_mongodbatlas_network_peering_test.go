@@ -13,7 +13,6 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
-
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.test"
@@ -33,7 +32,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 				Config: testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
-					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, vpcCIDRBlock),
+					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
@@ -54,7 +53,6 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
-	t.Skip()
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.test"
@@ -71,7 +69,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, vNetName, resourceGroupName),
+				Config: testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
 					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
@@ -87,7 +85,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"region_name"},
+				ImportStateVerifyIgnore: []string{"region_name", "atlas_cidr_block"},
 			},
 		},
 	})
@@ -156,6 +154,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 
 		if peerResp, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"]); err == nil {
 			*peer = *peerResp
+			peer.ProviderName = rs.Primary.Attributes["provider_name"]
 			return nil
 		}
 
@@ -211,7 +210,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, 
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }
 
-func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, vNetName, resourceGroupName string) string {
+func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = "%[1]s"
@@ -230,7 +229,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, direc
 			resource_group_name   = "%[5]s"
 			vnet_name	            = "%[6]s"
 		}
-	`, projectID, providerName, directoryID, subcrptionID, vNetName, resourceGroupName)
+	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName)
 }
 
 func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID string) string {
