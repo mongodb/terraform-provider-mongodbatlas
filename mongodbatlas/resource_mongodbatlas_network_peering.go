@@ -95,6 +95,7 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 			"atlas_cidr_block": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 			},
 			"azure_directory_id": {
@@ -305,9 +306,6 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	if err := d.Set("status_name", peer.StatusName); err != nil {
 		return fmt.Errorf("error setting `status_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
-	if err := d.Set("atlas_cidr_block", peer.AtlasCIDRBlock); err != nil {
-		return fmt.Errorf("error setting `atlas_cidr_block` for Network Peering Connection (%s): %s", peerID, err)
-	}
 	if err := d.Set("azure_directory_id", peer.AzureDirectoryID); err != nil {
 		return fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
@@ -369,10 +367,6 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 
 	if d.HasChange("vpc_id") {
 		peer.VpcID = d.Get("vpc_id").(string)
-	}
-
-	if d.HasChange("atlas_cidr_block") {
-		peer.AtlasCIDRBlock = d.Get("atlas_cidr_block").(string)
 	}
 
 	if d.HasChange("azure_directory_id") {
