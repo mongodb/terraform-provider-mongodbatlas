@@ -175,15 +175,19 @@ func resourceMongoDBAtlasProjectIPWhitelistImportState(d *schema.ResourceData, m
 		entries = append(entries, entry)
 	})
 
+	if err := d.Set("project_id", d.Id()); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		return []*schema.ResourceData{d}, err
+	}
+	if err := d.Set("whitelist", flattenProjectIPWhitelist(whitelist)); err != nil {
+		log.Printf("[WARN] Error setting whitelist for (%s): %s", d.Id(), err)
+		return []*schema.ResourceData{d}, err
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": d.Id(),
 		"entries":    strings.Join(entries, ","),
 	}))
-
-	if err := d.Set("whitelist", flattenProjectIPWhitelist(whitelist)); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
-		return []*schema.ResourceData{d}, err
-	}
 
 	return []*schema.ResourceData{d}, nil
 }
