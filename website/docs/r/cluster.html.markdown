@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-~> **IMPORTANT:** 
+~> **IMPORTANT:**
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
@@ -48,12 +48,12 @@ resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
   num_shards   = 1
-  
+
   replication_factor           = 3
   backup_enabled               = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.0"
-  
+
   //Provider Settings "block"
   provider_name               = "AZURE"  
   provider_disk_type_name     = "P6"
@@ -69,12 +69,12 @@ resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
   num_shards   = 1
-  
+
   replication_factor           = 3
   backup_enabled               = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.0"
-  
+
   //Provider Settings "block"
   provider_name               = "GCP"
   disk_size_gb                = 40
@@ -151,7 +151,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
     }
   }
 
-  replication_specs { 
+  replication_specs {
     zone_name  = "Zone 2"
     num_shards = 2
     regions_config {
@@ -220,12 +220,12 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
     - AWS - Amazon AWS
     - GCP - Google Cloud Platform
-    - AZURE - Microsoft Azure 
+    - AZURE - Microsoft Azure
 
 * `provider_disk_iops` - (Optional) The maximum input/output operations per second (IOPS) the system can perform. The possible values depend on the selected providerSettings.instanceSizeName and diskSizeGB.
 * `provider_disk_type_name` - (Optional) Azure disk type of the server’s root volume. If omitted, Atlas uses the default disk type for the selected providerSettings.instanceSizeName.
 * `provider_encrypt_ebs_volume` - (Optional) If enabled, the Amazon EBS encryption feature encrypts the server’s root volume for both data at rest within the volume and for data moving between the volume and the instance.
-* `provider_region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.
+* `provider_region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the Atlas Region name, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/). 
 
     Do not specify this field when creating a multi-region cluster using the replicationSpec document or a Global Cluster with the replicationSpecs array.
 * `provider_volume_type` - (Optional) The type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.
@@ -253,7 +253,7 @@ Specifies BI Connector for Atlas configuration.
 
 ### Replication Spec
 
-Configuration for cluster regions. 
+Configuration for cluster regions.
 
 * `num_shards` - (Required) Number of shards to deploy in the specified zone.
 * `id` - (Optional) Unique identifer of the replication document for a zone in a Global Cluster.
@@ -263,7 +263,7 @@ Configuration for cluster regions.
 
 ### Region Config
 
-Physical location of the region. 
+Physical location of the region.
 
 * `region_name` - (Optional) Name for the region specified.
 * `electable_nodes` - (Optional) Number of electable nodes for Atlas to deploy to the region. Electable nodes can become the primary and can facilitate local reads.

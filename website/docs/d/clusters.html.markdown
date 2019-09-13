@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-~> **IMPORTANT:** 
+~> **IMPORTANT:**
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
@@ -79,7 +79,7 @@ In addition to all arguments above, the following attributes are exported:
 * `cluster_type` - Indicates the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume.
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
-* `mongo_db_major_version` - Indicates the version of the cluster to deploy. 
+* `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
 * `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Provider Snapshots for backups.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
@@ -88,7 +88,7 @@ In addition to all arguments above, the following attributes are exported:
 * `provider_disk_iops` - Indicates the maximum input/output operations per second (IOPS) the system can perform. The possible values depend on the selected providerSettings.instanceSizeName and diskSizeGB.
 * `provider_disk_type_name` - Describes Azure disk type of the server’s root volume.
 * `provider_encrypt_ebs_volume` - Indicates whether the Amazon EBS encryption is enabled. This feature encrypts the server’s root volume for both data at rest within the volume and data moving between the volume and the instance.
-* `provider_region_name` - Indicates Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.
+* `provider_region_name` - Indicates Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases. Requires the Atlas Region name, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/). 
 * `provider_volume_type` - Indicates the type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.
 * `replication_factor` - Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
 
@@ -105,7 +105,7 @@ Indicates BI Connector for Atlas configuration.
 
 ### Replication Spec
 
-Configuration for cluster regions. 
+Configuration for cluster regions.
 
 * `id` - Unique identifer of the replication document for a zone in a Global Cluster.
 * `num_shards` - Number of shards to deploy in the specified zone.
@@ -115,10 +115,10 @@ Configuration for cluster regions.
 
 ### Region Config
 
-Physical location of the region. 
+Physical location of the region.
 
 * `region_name` - Name for the region specified.
-* `electable_nodes` - Number of electable nodes for Atlas to deploy to the region. 
+* `electable_nodes` - Number of electable nodes for Atlas to deploy to the region.
 * `priority` -  Election priority of the region. For regions with only read-only nodes, set this value to 0.
 * `read_only_nodes` - Number of read-only nodes for Atlas to deploy to the region. Read-only nodes can never become the primary, but can facilitate local-reads. Specify 0 if you do not want any read-only nodes in the region.
 * `analytics_nodes` - Indicates the number of analytics nodes for Atlas to deploy to the region. Analytics nodes are useful for handling analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only, and can never become the primary.
