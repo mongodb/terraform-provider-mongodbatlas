@@ -16,6 +16,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 		Create:   resourceMongoDBAtlasEncryptionAtRestCreate,
 		Read:     resourceMongoDBAtlasEncryptionAtRestRead,
 		Delete:   resourceMongoDBAtlasEncryptionAtRestDelete,
+		Update:   resourceMongoDBAtlasEncryptionAtRestUpdate,
 		Importer: &schema.ResourceImporter{},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -25,34 +26,28 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 			},
 			"aws_kms": {
 				Type:     schema.TypeMap,
-				ForceNew: true,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							ForceNew: true,
 							Required: true,
 						},
 						"access_key_id": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Required: true,
 						},
 						"secret_access_key": {
 							Type:      schema.TypeString,
-							ForceNew:  true,
 							Required:  true,
 							Sensitive: true,
 						},
 						"customer_master_key_id": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Required: true,
 						},
 						"region": {
 							Type:     schema.TypeString,
-							ForceNew: true,
 							Required: true,
 						},
 					},
@@ -140,19 +135,23 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 	}
 }
 
+func expandAwsKms(awsKms map[string]interface{}) matlas.AwsKms {
+	awsRegion, _ := valRegion(awsKms["region"])
+	return matlas.AwsKms{
+		Enabled:             pointy.Bool(cast.ToBool(awsKms["enabled"])),
+		AccessKeyID:         awsKms["access_key_id"].(string),
+		SecretAccessKey:     awsKms["secret_access_key"].(string),
+		CustomerMasterKeyID: awsKms["customer_master_key_id"].(string),
+		Region:              awsRegion,
+	}
+}
+
 func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
-	awsRegion, _ := valRegion(d.Get("aws_kms.region"))
 
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
 		GroupID: d.Get("project_id").(string),
-		AwsKms: matlas.AwsKms{
-			Enabled:             pointy.Bool(cast.ToBool(d.Get("aws_kms.enabled"))),
-			AccessKeyID:         d.Get("aws_kms.access_key_id").(string),
-			SecretAccessKey:     d.Get("aws_kms.secret_access_key").(string),
-			CustomerMasterKeyID: d.Get("aws_kms.customer_master_key_id").(string),
-			Region:              awsRegion,
-		},
+		AwsKms:  expandAwsKms(d.Get("aws_kms").(map[string]interface{})),
 		AzureKeyVault: matlas.AzureKeyVault{
 			Enabled:           pointy.Bool(cast.ToBool(d.Get("azure_key_vault.enabled"))),
 			ClientID:          d.Get("azure_key_vault.client_id").(string),
@@ -199,4 +198,29 @@ func resourceMongoDBAtlasEncryptionAtRestDelete(d *schema.ResourceData, meta int
 		return fmt.Errorf("error deleting a encryptionAtRest (%s): %s", d.Id(), err)
 	}
 	return nil
+}
+
+func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	projectID := d.Id()
+
+	encrypt, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
+
+	if err != nil {
+		return fmt.Errorf("error getting encryption at rest information: %s", err)
+	}
+
+	if d.HasChange("aws_kms") {
+		encrypt.AwsKms = expandAwsKms(d.Get("aws_kms").(map[string]interface{}))
+	}
+
+	encrypt.GroupID = projectID
+
+	_, _, err = conn.EncryptionsAtRest.Create(context.Background(), encrypt)
+
+	if err != nil {
+		return fmt.Errorf("error updating encryption at rest (%s): %s", projectID, err)
+	}
+
+	return resourceMongoDBAtlasEncryptionAtRestRead(d, meta)
 }
