@@ -176,9 +176,9 @@ func valRegion(reg interface{}, opt ...string) (string, error) {
 	for _, r := range regions {
 		if strings.EqualFold(string(r), strings.ReplaceAll(region, "-", "_")) {
 			/*
-				We need to check if the option will be similar to network_pering word
+				We need to check if the option will be similar to network_peering word
 				 (this comes in from the same resource) because network_pering resource
-				 has not the standard region name patron "US_EAST_1",
+				 has not the standard region name pattern "US_EAST_1",
 				 instead it needs the following one: "us-east-1".
 			*/
 			if len(opt) > 0 && strings.EqualFold("network_peering", opt[0]) {
