@@ -28,6 +28,14 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 		Region:              os.Getenv("AWS_REGION"),
 	}
 
+	awsKmsUpdated := matlas.AwsKms{
+		Enabled:             pointy.Bool(true),
+		AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID_UPDATED"),
+		SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
+		CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED"),
+		Region:              os.Getenv("AWS_REGION_UPDATED"),
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
 		Providers:    testAccProviders,
@@ -44,6 +52,19 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "aws_kms.secret_access_key", awsKms.SecretAccessKey),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms.customer_master_key_id", awsKms.CustomerMasterKeyID),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms.region", awsKms.Region),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(&awsKmsUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName, &encryptionAtRest),
+					testAccCheckMongoDBAtlasEncryptionAtRestAttributes(&encryptionAtRest, pointy.Bool(true)),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.enabled", cast.ToString(awsKmsUpdated.Enabled)),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.access_key_id", awsKmsUpdated.AccessKeyID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.secret_access_key", awsKmsUpdated.SecretAccessKey),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.customer_master_key_id", awsKmsUpdated.CustomerMasterKeyID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.region", awsKmsUpdated.Region),
 				),
 			},
 		},
