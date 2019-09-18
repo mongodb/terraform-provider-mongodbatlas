@@ -6,9 +6,9 @@ description: |-
     Describes all Network Peering Connections.
 ---
 
-# mongodb_atlas_network_peering
+# mongodbatlas_network_peering
 
-`mongodb_atlas_network_peerings` describes all Network Peering Connections.
+`mongodbatlas_network_peerings` describes all Network Peering Connections.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 

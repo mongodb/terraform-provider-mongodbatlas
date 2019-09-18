@@ -6,7 +6,7 @@ description: |-
     Provides a Project resource.
 ---
 
-# mongodb_atlas_project
+# mongodbatlas_project
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
 

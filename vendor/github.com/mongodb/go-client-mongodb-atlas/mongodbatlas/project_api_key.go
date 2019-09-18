@@ -14,7 +14,7 @@ const projectAPIKeysPath = "groups/%s/apiKeys"
 type ProjectAPIKeysService interface {
 	List(context.Context, string, *ListOptions) ([]APIKey, *Response, error)
 	Create(context.Context, string, *APIKeyInput) (*APIKey, *Response, error)
-	Assign(context.Context, string, string) (*Response, error)
+	Assign(context.Context, string, string, *AssignAPIKey) (*Response, error)
 	Unassign(context.Context, string, string) (*Response, error)
 }
 
@@ -25,6 +25,11 @@ type ProjectAPIKeysOp struct {
 }
 
 var _ ProjectAPIKeysService = &ProjectAPIKeysOp{}
+
+// AssignAPIKey contains the roles to be assigned to an Organization API key into a Project
+type AssignAPIKey struct {
+	Roles []string `json:"roles"`
+}
 
 //List all API-KEY in the organization associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/
@@ -56,7 +61,7 @@ func (s *ProjectAPIKeysOp) List(ctx context.Context, groupID string, listOptions
 }
 
 //Create an API Key by the {GROUP-ID}.
-//See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-orgs-create-one/
+//See more: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/create-one-apiKey-in-one-project/
 func (s *ProjectAPIKeysOp) Create(ctx context.Context, groupID string, createRequest *APIKeyInput) (*APIKey, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
@@ -78,11 +83,11 @@ func (s *ProjectAPIKeysOp) Create(ctx context.Context, groupID string, createReq
 	return root, resp, err
 }
 
-//Assign an API-KEY related to {GROUP-ID} to a the project with {PROJECT-ID}.
-//See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-orgs-get-all/
-func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID string) (*Response, error) {
+//Assign an API-KEY related to {GROUP-ID} to a the project with {API-KEY-ID}.
+//See more: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/assign-one-org-apiKey-to-one-project/
+func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID string, assignAPIKeyRequest *AssignAPIKey) (*Response, error) {
 	if groupID == "" {
-		return nil, NewArgError("apiKeyID", "must be set")
+		return nil, NewArgError("groupID", "must be set")
 	}
 
 	if keyID == "" {
@@ -93,7 +98,7 @@ func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID str
 
 	path := fmt.Sprintf("%s/%s", basePath, keyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, nil)
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, assignAPIKeyRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +108,8 @@ func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID str
 	return resp, err
 }
 
-//Unassign an API-KEY related to {GROUP-ID} to a the project with {PROJECT-ID}.
-//See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-orgs-get-all/
+//Unassign an API-KEY related to {GROUP-ID} to a the project with {API-KEY-ID}.
+//See more: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/delete-one-apiKey-in-one-project/
 func (s *ProjectAPIKeysOp) Unassign(ctx context.Context, groupID string, keyID string) (*Response, error) {
 	if groupID == "" {
 		return nil, NewArgError("apiKeyID", "must be set")

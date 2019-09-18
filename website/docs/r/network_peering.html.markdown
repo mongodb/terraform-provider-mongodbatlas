@@ -6,9 +6,9 @@ description: |-
     Provides a Network Peering resource.
 ---
 
-# mongodb_atlas_network_peering
+# mongodbatlas_network_peering
 
-`mongodb_atlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.
+`mongodbatlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.
 
 
 ~> **GCP AND AZURE ONLY:** You must enable Connect via Peering Only mode to use network peering.
@@ -21,42 +21,42 @@ description: |-
 ### Example with AWS.
 
 ```hcl
-	resource "mongodbatlas_network_peering" "test" {
-		accepter_region_name	  = "us-east-1"	
-		project_id    		     	= "<YOUR-PROJEC-ID>"
-		container_id            = "507f1f77bcf86cd799439011"
-		provider_name           = "AWS"
-		route_table_cidr_block  = "192.168.0.0/24"
-		vpc_id					        = "vpc-abc123abc123"
-		aws_account_id		    	= "abc123abc123"
-	}
+resource "mongodbatlas_network_peering" "test" {
+  accepter_region_name   = "us-east-1"
+  project_id             = "<YOUR-PROJEC-ID>"
+  container_id           = "507f1f77bcf86cd799439011"
+  provider_name          = "AWS"
+  route_table_cidr_block = "192.168.0.0/24"
+  vpc_id                 = "vpc-abc123abc123"
+  aws_account_id         = "abc123abc123"
+}
 ```
 
 ### Example with GCP
 
 ```hcl
-	resource "mongodbatlas_network_peering" "test" {	
-		project_id    	  = "<YOUR-PROJEC-ID>"
-		container_id      = "507f1f77bcf86cd799439011"
-		provider_name     = "GCP"
-			gcp_project_id  = "my-sample-project-191923"
-			network_name    = "test1"	
-	}
+resource "mongodbatlas_network_peering" "test" {
+  project_id     = "<YOUR-PROJEC-ID>"
+  container_id   = "507f1f77bcf86cd799439011"
+  provider_name  = "GCP"
+  gcp_project_id = "my-sample-project-191923"
+  network_name   = "test1"
+}
 ```
 
 ### Example with Azure
 
 ```hcl
-	resource "mongodbatlas_network_peering" "test" {	
-		project_id    			  = "<YOUR-PROJEC-ID>"
-		atlas_cidr_block      = "192.168.0.0/21"
-		container_id          = "507f1f77bcf86cd799439011"
-		provider_name         = "AZURE"
-		azure_directory_id    = "35039750-6ebd-4ad5-bcfe-cb4e5fc2d915"
-		azure_subscription_id = "g893dec2-d92e-478d-bc50-cf99d31bgeg9"
-		resource_group_name   = "atlas-azure-peering"
-		vnet_name	            = "azure-peer"
-	}
+resource "mongodbatlas_network_peering" "test" {
+  project_id            = "<YOUR-PROJEC-ID>"
+  atlas_cidr_block      = "192.168.0.0/21"
+  container_id          = "507f1f77bcf86cd799439011"
+  provider_name         = "AZURE"
+  azure_directory_id    = "35039750-6ebd-4ad5-bcfe-cb4e5fc2d915"
+  azure_subscription_id = "g893dec2-d92e-478d-bc50-cf99d31bgeg9"
+  resource_group_name   = "atlas-azure-peering"
+  vnet_name             = "azure-peer"
+}
 ```
 
 ## Argument Reference

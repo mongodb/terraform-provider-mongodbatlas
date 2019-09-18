@@ -9,9 +9,9 @@ import (
 
 const apiKeysPath = "orgs/%s/apiKeys"
 
-//APIKeysService is an interface for interfacing with the APIKeys
+// APIKeysService is an interface for interfacing with the APIKeys
 // endpoints of the MongoDB Atlas API.
-//See more: https://docs.atlas.mongodb.com/reference/api/clusters/
+//See more: https://docs.atlas.mongodb.com/reference/api/apiKeys/
 type APIKeysService interface {
 	List(context.Context, string, *ListOptions) ([]APIKey, *Response, error)
 	Get(context.Context, string, string) (*APIKey, *Response, error)
@@ -20,7 +20,7 @@ type APIKeysService interface {
 	Delete(context.Context, string, string) (*Response, error)
 }
 
-//APIKeysServiceOp handles communication with the APIKey related methods
+// APIKeysServiceOp handles communication with the APIKey related methods
 // of the MongoDB Atlas API
 type APIKeysServiceOp struct {
 	client *Client
@@ -28,13 +28,13 @@ type APIKeysServiceOp struct {
 
 var _ APIKeysService = &APIKeysServiceOp{}
 
-// APIKeyInput represents MongoDB cluster input reuest for Create and Update.
+// APIKeyInput represents MongoDB API key input request for Create.
 type APIKeyInput struct {
 	Desc  string   `json:"desc,omitempty"`
 	Roles []string `json:"roles,omitempty"`
 }
 
-// APIKey represents MongoDB cluster.
+// APIKey represents MongoDB API Key.
 type APIKey struct {
 	ID         string       `json:"id,omitempty"`
 	Desc       string       `json:"desc,omitempty"`
@@ -43,6 +43,7 @@ type APIKey struct {
 	PublicKey  string       `json:"publicKey,omitempty"`
 }
 
+// APIKeyRole represents a role name of API key
 type APIKeyRole struct {
 	GroupID  string `json:"groupId,omitempty"`
 	OrgID    string `json:"orgId,omitempty"`
@@ -158,7 +159,7 @@ func (s *APIKeysServiceOp) Update(ctx context.Context, orgID string, apiKeyID st
 }
 
 //Delete the API Key specified to {API-KEY-ID} from the organization associated to {ORG-ID}.
-// See more: https://docs.atlas.mongodb.com/reference/api/clusters-delete-one/
+// See more: https://docs.atlas.mongodb.com/reference/api/apiKey-delete-one-apiKey/
 func (s *APIKeysServiceOp) Delete(ctx context.Context, orgID string, apiKeyID string) (*Response, error) {
 	if apiKeyID == "" {
 		return nil, NewArgError("apiKeyID", "must be set")
