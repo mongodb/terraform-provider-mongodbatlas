@@ -6,9 +6,9 @@ description: |-
     Provides a Network Peering resource.
 ---
 
-# mongodb_atlas_network_container
+# mongodbatlas_network_container
 
-`mongodb_atlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. The resource requires your Project ID.
+`mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. The resource requires your Project ID.
 
 ~> **IMPORTANT:** This resource creates one Network Peering container into which Atlas can deploy Network Peering connections. An Atlas project can have a maximum of one container for each cloud provider. You must have either the Project Owner or Organization Owner role to successfully call this endpoint.
 
@@ -28,12 +28,12 @@ description: |-
   }
 
   resource "mongodbatlas_network_peering" "test" {
-    accepter_region_name	  = "us-east-1"	
-    project_id    			    = mongodbatlas_network_container.test.project_id
+    accepter_region_name    = "us-east-1"	
+    project_id              = mongodbatlas_network_container.test.project_id
     container_id            = mongodbatlas_network_container.test.container_id
     provider_name           = "AWS"
     route_table_cidr_block  = <AWS_VPC_CIDR_BLOCK>
-    vpc_id					        = <AWS_VPC_ID>
+    vpc_id                  = <AWS_VPC_ID>
     aws_account_id	        = <AWS_ACCOUNT_ID>
   }
 ```

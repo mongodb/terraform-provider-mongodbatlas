@@ -6,9 +6,9 @@ description: |-
     Provides a Cluster resource.
 ---
 
-# mongodb_atlas_cluster
+# mongodbatlas_cluster
 
-`mongodb_atlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
+`mongodbatlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 

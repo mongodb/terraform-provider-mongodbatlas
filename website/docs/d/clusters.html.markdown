@@ -6,9 +6,9 @@ description: |-
     Describe all Clusters in Project.
 ---
 
-# mongodb_atlas_clusters
+# mongodbatlas_clusters
 
-`mongodb_atlas_cluster` describes all Clusters by the provided project_id. The data source requires your Project ID.
+`mongodbatlas_cluster` describes all Clusters by the provided project_id. The data source requires your Project ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
