@@ -1,4 +1,25 @@
-## 0.1.2 (Unreleased)
+## 0.2.0 (Unreleased)
+
+**Closed issues:**
+
+- Unable to create project with peering only connections [\#24](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/24)
+- importing a mongodbatlas\_project\_ip\_whitelist resource does not save project\_id to state [\#21](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/21)
+- Support the vscode terraform extension [\#19](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/19)
+- Bug: VPC Peering Atlas-GCP [\#17](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/17)
+- PATCH network peering failed with no peer found [\#14](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/14)
+
+**Merged pull requests:**
+
+- Add Private IP Mode Resource. [\#32](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/32) ([marinsalinas](https://github.com/marinsalinas))
+- Moved provider\_name values to the correct section [\#31](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/31) ([kgriffiths](https://github.com/kgriffiths))
+- website: add links to Atlas Region name reference. [\#28](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/28) ([themantissa](https://github.com/themantissa))
+- Encryption at rest fix [\#27](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/27) ([marinsalinas](https://github.com/marinsalinas))
+- website: make resources side nav expanded as default [\#25](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/25) ([marinsalinas](https://github.com/marinsalinas))
+- fix: importing a mongodbatlas\_project\_ip\_whitelist resource does not save project\_id to state [\#23](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/23) ([PacoDw](https://github.com/PacoDw))
+- Fix \#14: PATCH network peering failed with no peer found [\#22](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/22) ([PacoDw](https://github.com/PacoDw))
+- fix: change the test configuration for AWS and GCP [\#20](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/20) ([PacoDw](https://github.com/PacoDw))
+
+
 ## 0.1.1 (September 05, 2019)
 
 **Fixed bugs:**
