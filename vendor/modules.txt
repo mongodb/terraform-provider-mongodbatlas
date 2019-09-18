@@ -128,6 +128,7 @@ github.com/hashicorp/hil/scanner
 github.com/hashicorp/logutils
 # github.com/hashicorp/terraform v0.12.1
 github.com/hashicorp/terraform/plugin
+github.com/hashicorp/terraform/helper/hashcode
 github.com/hashicorp/terraform/helper/logging
 github.com/hashicorp/terraform/helper/resource
 github.com/hashicorp/terraform/helper/schema
@@ -152,7 +153,6 @@ github.com/hashicorp/terraform/internal/initwd
 github.com/hashicorp/terraform/plans
 github.com/hashicorp/terraform/states
 github.com/hashicorp/terraform/tfdiags
-github.com/hashicorp/terraform/helper/hashcode
 github.com/hashicorp/terraform/helper/structure
 github.com/hashicorp/terraform/config/module
 github.com/hashicorp/terraform/dag
@@ -203,7 +203,7 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.0
 github.com/mitchellh/reflectwalk
-# github.com/mongodb/go-client-mongodb-atlas v0.0.1
+# github.com/mongodb/go-client-mongodb-atlas v0.1.0
 github.com/mongodb/go-client-mongodb-atlas/mongodbatlas
 # github.com/mwielbut/pointy v1.1.0
 github.com/mwielbut/pointy
