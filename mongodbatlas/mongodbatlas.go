@@ -43,6 +43,7 @@ type Client struct {
 	Containers                       ContainersService
 	EncryptionsAtRest                EncryptionsAtRestService
 	WhitelistAPIKeys                 WhitelistAPIKeysService
+	PrivateIPMode                    PrivateIpModeService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -145,6 +146,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Peers = &PeersServiceOp{client: c}
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
 	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
+	c.PrivateIPMode = &PrivateIpModeServiceOp{client: c}
 
 	return c
 }
