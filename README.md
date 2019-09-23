@@ -1,10 +1,15 @@
 # MongoDB Atlas Provider
 
-This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas. 
+This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas.
 Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
 
 For general information about Terraform, visit the [official website](https://www.terraform.io) and the [GitHub project page](https://github.com/hashicorp/terraform).
 
+# Support
+
+Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas support plans.   Please submit support questions within the Atlas UI.  Support questions submitted under the Issues section of this repo will be handled on a "best effort" basis.  
+
+Bugs and feature requests should be filed under the Issues section. 
 
 # Requirements
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
@@ -66,15 +71,15 @@ In order to test the provider, you can run `make test`. You can use [meta-argume
 It's necessary to generate and configure an API key for your organization for the acceptance test to succeed. To grant programmatic access to an organization or project using only the [API](https://docs.atlas.mongodb.com/api/) you need to know:
 
   1. The programmatic API key has two parts: a Public Key and a Private Key. To see more details on how to create a programmatic API key visit https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys.
-  
+
   1. The programmatic API key must be granted roles sufficient for the acceptance test to succeed. The Organization Owner and Project Owner roles should be sufficient. You can see the available roles at https://docs.atlas.mongodb.com/reference/user-roles.
 
-  1. You must [configure Atlas API Access](https://docs.atlas.mongodb.com/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs. 
+  1. You must [configure Atlas API Access](https://docs.atlas.mongodb.com/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs.
 
 #### Configuring environment variables
 
 You must also configure the following environment variables before running the test:
- 
+
 ##### MongoDB Atlas env variables
 ```sh
 $ export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
@@ -113,14 +118,12 @@ Contributing
 
 Terraform is the work of thousands of contributors. We appreciate your help!
 
-We welcome issues of all kinds including feature requests, bug reports, and general questions within this repo.
-
 To contribute, please read the Terraform contribution guidelines:
 https://www.terraform.io/docs/extend/community/contributing.html
 
 Note: Additional guidelines for this Provider may be added in a future CONTRIBUTING file.
 
-If you have issues on GitHub, they are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
+If you submit issues on GitHub, they are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
 
 Thanks
 ---------------------------
