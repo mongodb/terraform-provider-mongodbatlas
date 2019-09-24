@@ -5,11 +5,13 @@ Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mon
 
 For general information about Terraform, visit the [official website](https://www.terraform.io) and the [GitHub project page](https://github.com/hashicorp/terraform).
 
-# Support
+# Support, Bugs, Feature Requests
 
 Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas support plans.   Please submit support questions within the Atlas UI.  Support questions submitted under the Issues section of this repo will be handled on a "best effort" basis.  
 
-Bugs and feature requests should be filed under the Issues section. 
+Bugs should be filed under the Issues section of this repo.
+
+Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
 
 # Requirements
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
@@ -123,7 +125,7 @@ https://www.terraform.io/docs/extend/community/contributing.html
 
 Note: Additional guidelines for this Provider may be added in a future CONTRIBUTING file.
 
-If you submit issues on GitHub, they are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
+If you submit issues on GitHub, they are intended to be related to bugs with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
 
 Thanks
 ---------------------------
