@@ -307,7 +307,7 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) 
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 40
+			disk_size_gb = 100
 			num_shards   = 1
 			
 			replication_factor           = 3
