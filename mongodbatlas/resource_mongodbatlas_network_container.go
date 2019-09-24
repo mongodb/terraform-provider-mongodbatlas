@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -221,14 +223,22 @@ func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta int
 func resourceMongoDBAtlasNetworkContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	ids := decodeStateID(d.Id())
-	projectID := ids["project_id"]
-	containerID := ids["container_id"]
 
-	_, err := conn.Containers.Delete(context.Background(), projectID, containerID)
-	if err != nil {
-		return fmt.Errorf(errorContainerDelete, containerID, err)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"provisioned_container"},
+		Target:     []string{"deleted"},
+		Refresh:    resourceNetworkContainerRefreshFunc(d, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 60 * time.Second,
+		Delay:      5 * time.Minute,
 	}
+
+	// Wait, catching any errors
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("error %s", err)
+	}
+
 	return nil
 }
 
@@ -266,4 +276,27 @@ func resourceMongoDBAtlasNetworkContainerImportState(d *schema.ResourceData, met
 		log.Printf("[WARN] Error setting container_id (%s): %s", containerID, err)
 	}
 	return []*schema.ResourceData{d}, nil
+}
+
+func resourceNetworkContainerRefreshFunc(d *schema.ResourceData, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		ids := decodeStateID(d.Id())
+		projectID := ids["project_id"]
+		containerID := ids["container_id"]
+
+		var err error
+		container, _, err := client.Containers.Get(context.Background(), projectID, containerID)
+		if *container.Provisioned && err == nil {
+			return nil, "provisioned_container", nil
+		} else if err != nil {
+			return nil, "", err
+		}
+
+		_, err = client.Containers.Delete(context.Background(), projectID, containerID)
+		if err != nil {
+			return nil, "provisioned_container", nil
+		}
+
+		return 42, "deleted", nil
+	}
 }
