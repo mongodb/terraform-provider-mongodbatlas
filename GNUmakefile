@@ -29,7 +29,7 @@ websitefmtcheck:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	@GOGC=30 golangci-lint run ./$(PKG_NAME)
+	@GOGC=30 golangci-lint run ./$(PKG_NAME)  --deadline=30m
 
 tools:
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
