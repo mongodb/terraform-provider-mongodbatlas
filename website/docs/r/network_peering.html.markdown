@@ -18,12 +18,20 @@ description: |-
 
 ## Example Usage
 
+### Global configuration for the following examples
+```hcl
+locals {
+  project_id        = <your-project-id>
+  google_project_id = <your-google-project-id>
+}
+```
+
 ### Example with AWS.
 
 ```hcl
 resource "mongodbatlas_network_peering" "test" {
   accepter_region_name   = "us-east-1"
-  project_id             = "<YOUR-PROJEC-ID>"
+  project_id             = local.project_id
   container_id           = "507f1f77bcf86cd799439011"
   provider_name          = "AWS"
   route_table_cidr_block = "192.168.0.0/24"
@@ -35,12 +43,36 @@ resource "mongodbatlas_network_peering" "test" {
 ### Example with GCP
 
 ```hcl
+
+resource "mongodbatlas_network_container" "test" {
+  project_id       = local.project_id
+  atlas_cidr_block = "192.168.192.0/18"
+  provider_name    = "GCP"
+}
+
+resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
+  project_id = local.project_id
+  enabled    = true
+}
+
 resource "mongodbatlas_network_peering" "test" {
-  project_id     = "<YOUR-PROJEC-ID>"
-  container_id   = "507f1f77bcf86cd799439011"
+  project_id     = local.project_id
+  container_id   = mongodbatlas_network_container.test.container_id
   provider_name  = "GCP"
-  gcp_project_id = "my-sample-project-191923"
-  network_name   = "test1"
+  network_name   = "myNetWorkPeering"
+  gcp_project_id = local.google_project_id
+
+  depends_on = [mongodbatlas_private_ip_mode.my_private_ip_mode]
+}
+
+resource "google_compute_network" "vpc_network" {
+  name = "vpcnetwork"
+}
+
+resource "google_compute_network_peering" "gcp_main_atlas_peering" {
+  name         = "atlas-gcp-main"
+  network      = google_compute_network.vpc_network.self_link
+  peer_network = "projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 }
 ```
 
@@ -48,7 +80,7 @@ resource "mongodbatlas_network_peering" "test" {
 
 ```hcl
 resource "mongodbatlas_network_peering" "test" {
-  project_id            = "<YOUR-PROJEC-ID>"
+  project_id            = local.project_id
   atlas_cidr_block      = "192.168.0.0/21"
   container_id          = "507f1f77bcf86cd799439011"
   provider_name         = "AZURE"
@@ -98,16 +130,18 @@ In addition to all arguments above, the following attributes are exported:
 * `error_state` - Description of the Atlas error when `status` is `Failed`, Otherwise, Atlas returns `null`.
 * `status` - Status of the Atlas network peering connection: `ADDING_PEER`, `AVAILABLE`, `FAILED`, `DELETING`, `WAITING_FOR_USER`.
 * `gcp_project_id` - GCP project ID of the owner of the network peer. 
+* `atlas_gcp_project_id` - The Atlas GCP Project ID for the GCP VPC used by your atlas cluster that it is need to set up the reciprocal connection.
+* `atlas_vpc_name` - The Atlas VPC Name is used by your atlas clister that it is need to set up the reciprocal connection.
 * `network_name` - Name of the network peer to which Atlas connects.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 
 
 ## Import
 
-Clusters can be imported using project ID and network peering peering id, in the format `PROJECTID-PEER-ID`, e.g.
+Clusters can be imported using project ID and network peering peering id, in the format `PROJECTID-PEERID-PROVIDERNAME`, e.g.
 
 ```
-$ terraform import mongodbatlas_network_peering.my_peering 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a
+$ terraform import mongodbatlas_network_peering.my_peering 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a-AWS
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/)

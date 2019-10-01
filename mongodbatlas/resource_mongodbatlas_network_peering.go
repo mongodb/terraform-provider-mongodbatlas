@@ -136,6 +136,16 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"atlas_gcp_project_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+				Optional: true,
+			},
+			"atlas_vpc_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+				Optional: true,
+			},
 			"error_message": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -238,15 +248,10 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf(errorPeersCreate, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
-		"project_id": projectID,
-		"peer_id":    peer.ID,
-	}))
-
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(peer.ID, projectID, conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(peer.ID, projectID, peerRequest.ContainerID, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      30 * time.Second,
@@ -258,6 +263,13 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf(errorPeersCreate, err)
 	}
 
+	// container := cont.(matlas.Container)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":    projectID,
+		"peer_id":       peer.ID,
+		"provider_name": providerName,
+	}))
+
 	return resourceMongoDBAtlasNetworkPeeringRead(d, meta)
 }
 
@@ -267,11 +279,11 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
+	providerName := ids["provider_name"]
 
 	peer, resp, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-
 			return nil
 		}
 		return fmt.Errorf(errorPeersRead, peerID, err)
@@ -336,6 +348,23 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	if err := d.Set("peer_id", peer.ID); err != nil {
 		return fmt.Errorf("error setting `peer_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
+
+	// If provider name is GCP we need to get the parameters to configure the the reciprocal connection
+	//  between Mongo and Google
+	container := &matlas.Container{}
+	if strings.ToUpper(providerName) == "GCP" {
+		container, _, err = conn.Containers.Get(context.Background(), projectID, peer.ContainerID)
+		if err != nil {
+			return err
+		}
+	}
+	if err := d.Set("atlas_gcp_project_id", container.GCPProjectID); err != nil {
+		return fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err)
+	}
+	if err := d.Set("atlas_vpc_name", container.NetworkName); err != nil {
+		return fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err)
+	}
+
 	return nil
 }
 
@@ -404,7 +433,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, "", conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -437,10 +466,10 @@ func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta inter
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, "", conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute, // Wait 30 secs before starting
+		Delay:      10 * time.Second, // Wait 10 secs before starting
 	}
 
 	// Wait, catching any errors
@@ -454,30 +483,18 @@ func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta inter
 func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a peer, use the format {project_id}-{peer_id}")
+	parts := strings.SplitN(d.Id(), "-", 3)
+	if len(parts) != 3 {
+		return nil, errors.New("import format error: to import a peer, use the format {project_id}-{peer_id}-{provider_name}")
 	}
 
 	projectID := parts[0]
 	peerID := parts[1]
+	providerName := parts[2]
 
 	peer, _, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
-	}
-
-	d.SetId(encodeStateID(map[string]string{
-		"project_id": projectID,
-		"peer_id":    peer.ID,
-	}))
-
-	if err := d.Set("project_id", projectID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", peerID, err)
-	}
-
-	if err := d.Set("container_id", peer.ContainerID); err != nil {
-		log.Printf("[WARN] Error setting container_id for (%s): %s", peerID, err)
 	}
 
 	//Check wich provider is using.
@@ -487,19 +504,34 @@ func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta 
 	} else if peer.NetworkName != "" {
 		provider = "GCP"
 	}
+	if providerName != provider {
+		providerName = provider
+	}
 
-	if err := d.Set("provider_name", provider); err != nil {
+	if err := d.Set("project_id", projectID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", peerID, err)
+	}
+	if err := d.Set("container_id", peer.ContainerID); err != nil {
+		log.Printf("[WARN] Error setting container_id for (%s): %s", peerID, err)
+	}
+	if err := d.Set("provider_name", providerName); err != nil {
 		log.Printf("[WARN] Error setting provider_name for (%s): %s", peerID, err)
 	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":    projectID,
+		"peer_id":       peer.ID,
+		"provider_name": providerName,
+	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkPeeringRefreshFunc(peerID, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceNetworkPeeringRefreshFunc(peerID, projectID, containerID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.Peers.Get(context.Background(), projectID, peerID)
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return 42, "DELETED", nil
 			}
 			log.Printf("error reading MongoDB Network Peering Connection %s: %s", peerID, err)
@@ -511,8 +543,23 @@ func resourceNetworkPeeringRefreshFunc(peerID, projectID string, client *matlas.
 		if len(c.StatusName) > 0 {
 			status = c.StatusName
 		}
-
 		log.Printf("[DEBUG] status for MongoDB Network Peering Connection: %s: %s", peerID, status)
+
+		/* We need to get the provisioned status from Mongo container that contains the peering connection
+		 * to validate if it has changed to true. This means that the reciprocal connection in Mongo side
+		 * is right, and the Mongo parameters used on the Google side to configure the reciprocal connection
+		 * are now available. */
+		if status == "WAITING_FOR_USER" {
+			container, _, err := client.Containers.Get(context.Background(), projectID, containerID)
+
+			if err != nil {
+				return nil, "", fmt.Errorf(errorContainerRead, containerID, err)
+			}
+
+			if *container.Provisioned {
+				return container, "PENDING_ACCEPTANCE", nil
+			}
+		}
 
 		return c, status, nil
 	}
