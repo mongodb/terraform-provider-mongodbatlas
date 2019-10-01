@@ -18,12 +18,20 @@ description: |-
 
 ## Example Usage
 
+### Global configuration for the following examples
+```hcl
+locals {
+  project_id        = <your-project-id>
+  google_project_id = <your-google-project-id>
+}
+```
+
 ### Example with AWS.
 
 ```hcl
 resource "mongodbatlas_network_peering" "test" {
   accepter_region_name   = "us-east-1"
-  project_id             = "<YOUR-PROJEC-ID>"
+  project_id             = local.project_id
   container_id           = "507f1f77bcf86cd799439011"
   provider_name          = "AWS"
   route_table_cidr_block = "192.168.0.0/24"
@@ -35,12 +43,36 @@ resource "mongodbatlas_network_peering" "test" {
 ### Example with GCP
 
 ```hcl
+
+resource "mongodbatlas_network_container" "test" {
+  project_id       = local.project_id
+  atlas_cidr_block = "192.168.192.0/18"
+  provider_name    = "GCP"
+}
+
+resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
+  project_id = local.project_id
+  enabled    = true
+}
+
 resource "mongodbatlas_network_peering" "test" {
-  project_id     = "<YOUR-PROJEC-ID>"
-  container_id   = "507f1f77bcf86cd799439011"
+  project_id     = local.project_id
+  container_id   = mongodbatlas_network_container.test.container_id
   provider_name  = "GCP"
-  gcp_project_id = "my-sample-project-191923"
-  network_name   = "test1"
+  network_name   = "myNetWorkPeering"
+  gcp_project_id = local.google_project_id
+
+  depends_on = [mongodbatlas_private_ip_mode.my_private_ip_mode]
+}
+
+resource "google_compute_network" "vpc_network" {
+  name = "vpcnetwork"
+}
+
+resource "google_compute_network_peering" "gcp_main_atlas_peering" {
+  name         = "atlas-gcp-main"
+  network      = google_compute_network.vpc_network.self_link
+  peer_network = "projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 }
 ```
 
@@ -48,7 +80,7 @@ resource "mongodbatlas_network_peering" "test" {
 
 ```hcl
 resource "mongodbatlas_network_peering" "test" {
-  project_id            = "<YOUR-PROJEC-ID>"
+  project_id            = local.project_id
   atlas_cidr_block      = "192.168.0.0/21"
   container_id          = "507f1f77bcf86cd799439011"
   provider_name         = "AZURE"
