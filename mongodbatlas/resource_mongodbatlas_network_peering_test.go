@@ -53,6 +53,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
+	t.Skip()
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.test"
@@ -85,7 +86,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"region_name", "atlas_cidr_block"},
+				ImportStateVerifyIgnore: []string{"atlas_cidr_block"},
 			},
 		},
 	})
@@ -113,15 +114,14 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "azure_directory_id", gcpProjectID),
+					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"region_name"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -133,7 +133,7 @@ func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"]), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"], rs.Primary.Attributes["provider_name"]), nil
 	}
 }
 
@@ -236,7 +236,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProj
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = "%[1]s"
-			atlas_cidr_block  = "192.168.208.0/21"
+			atlas_cidr_block  = "192.168.192.0/18"
 			provider_name		  = "%[2]s"
 		}
 
@@ -245,7 +245,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProj
 			container_id    = mongodbatlas_network_container.test.container_id
 			provider_name   = "%[2]s"
 			gcp_project_id  = "%[3]s"
-			network_name    = "mongodbatlas_network_container.test.network_name"
+			network_name    = "myNetworkName"
 		}
 	`, projectID, providerName, gcpProjectID)
 }
