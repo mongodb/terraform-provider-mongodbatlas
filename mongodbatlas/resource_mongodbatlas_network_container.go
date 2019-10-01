@@ -228,15 +228,15 @@ func resourceMongoDBAtlasNetworkContainerDelete(d *schema.ResourceData, meta int
 		Pending:    []string{"provisioned_container"},
 		Target:     []string{"deleted"},
 		Refresh:    resourceNetworkContainerRefreshFunc(d, conn),
-		Timeout:    3 * time.Hour,
-		MinTimeout: 60 * time.Second,
-		Delay:      5 * time.Minute,
+		Timeout:    1 * time.Hour,
+		MinTimeout: 10 * time.Second,
+		Delay:      2 * time.Minute,
 	}
 
 	// Wait, catching any errors
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("error %s", err)
+		return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
 	}
 
 	return nil
@@ -285,11 +285,15 @@ func resourceNetworkContainerRefreshFunc(d *schema.ResourceData, client *matlas.
 		containerID := ids["container_id"]
 
 		var err error
-		container, _, err := client.Containers.Get(context.Background(), projectID, containerID)
+		container, res, err := client.Containers.Get(context.Background(), projectID, containerID)
+		if err != nil {
+			if res.StatusCode == 404 {
+				return 42, "deleted", nil
+			}
+			return nil, "", err
+		}
 		if *container.Provisioned && err == nil {
 			return nil, "provisioned_container", nil
-		} else if err != nil {
-			return nil, "", err
 		}
 
 		_, err = client.Containers.Delete(context.Background(), projectID, containerID)
