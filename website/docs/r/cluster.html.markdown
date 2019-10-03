@@ -35,7 +35,8 @@ resource "mongodbatlas_cluster" "cluster-test" {
   provider_name               = "AWS"
   disk_size_gb                = 100
   provider_disk_iops          = 300
-  provider_encrypt_ebs_volume = false
+  provider_volume_type        = "STANDARD"
+  provider_encrypt_ebs_volume = true
   provider_instance_size_name = "M40"
   provider_region_name        = "US_EAST_1"
 }
@@ -97,6 +98,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   //Provider Settings "block"
   provider_name               = "AWS"
   provider_disk_iops          = 300
+  provider_volume_type        = "STANDARD"
   provider_instance_size_name = "M10"
 
   replication_specs {
@@ -138,6 +140,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   //Provider Settings "block"
   provider_name               = "AWS"
   provider_disk_iops          = 240
+  provider_volume_type        = "STANDARD"
   provider_instance_size_name = "M30"
 
   replication_specs {
@@ -212,7 +215,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
     If true, the cluster uses Cloud Provider Snapshots for backups. If providerBackupEnabled and backupEnabled are false, the cluster does not use Atlas backups.
 
     You cannot enable cloud provider snapshots if you have an existing cluster in the project with Continuous Backups enabled.
-* `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.
+* `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.  (Note: When upgrading from a multi-tenant cluster to a dedicated cluster remove this argument.)
 
     This setting is only valid when providerSetting.providerName is TENANT and providerSetting.instanceSizeName is M2 or M5.
 
@@ -226,9 +229,8 @@ resource "mongodbatlas_cluster" "cluster-test" {
 * `provider_disk_type_name` - (Optional) Azure disk type of the server’s root volume. If omitted, Atlas uses the default disk type for the selected providerSettings.instanceSizeName.
 * `provider_encrypt_ebs_volume` - (Optional) If enabled, the Amazon EBS encryption feature encrypts the server’s root volume for both data at rest within the volume and for data moving between the volume and the instance.
 * `provider_region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the Atlas Region name, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
-
     Do not specify this field when creating a multi-region cluster using the replicationSpec document or a Global Cluster with the replicationSpecs array.
-* `provider_volume_type` - (Optional) The type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.
+* `provider_volume_type` - (AWS - Optional) The type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.  `PROVISIONED` required if setting IOPS higher than the default instance IOPS.
 * `replication_factor` - (Optional) Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
 
 * `replication_specs` - (Optional) Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
