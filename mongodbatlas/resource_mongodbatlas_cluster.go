@@ -116,6 +116,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"provider_name": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"backing_provider_name": {

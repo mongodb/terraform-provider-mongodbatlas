@@ -251,6 +251,45 @@ func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.tenant"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigTenantUpdated(projectID, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+		},
+	})
+
+}
+
 func testAccCheckMongoDBAtlasClusterExists(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
@@ -446,4 +485,38 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 			}
 		}
 	`, projectID, name, backupEnabled)
+}
+
+func testAccMongoDBAtlasClusterConfigTenant(projectID, name string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_cluster" "tenant" {
+		project_id = "%s"
+		name       = "%s"
+	  
+		provider_name         = "TENANT"
+		backing_provider_name = "AWS"
+		provider_region_name  = "EU_CENTRAL_1"
+	  
+		provider_instance_size_name  = "M2"
+		disk_size_gb                 = 2
+		auto_scaling_disk_gb_enabled = false
+	  }
+	`, projectID, name)
+}
+
+func testAccMongoDBAtlasClusterConfigTenantUpdated(projectID, name string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_cluster" "tenant" {
+		project_id = "%s"
+		name       = "%s"
+	  
+		provider_name        = "AWS"
+		provider_region_name = "EU_CENTRAL_1"
+	  
+		provider_instance_size_name  = "M10"
+		disk_size_gb                 = 10
+		provider_disk_iops           = 100
+		auto_scaling_disk_gb_enabled = true
+	  }
+	`, projectID, name)
 }
