@@ -1,4 +1,4 @@
-## 0.3.0 (Unreleased)
+## 0.3.0 (October 08, 2019)
 
 **Closed issues:**
 
