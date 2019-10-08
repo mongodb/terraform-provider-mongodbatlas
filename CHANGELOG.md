@@ -1,4 +1,25 @@
 ## 0.3.0 (Unreleased)
+
+**Closed issues:**
+
+- Upgrade from M2 to M10 fails [\#42](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/42)
+- GCP Peering endless terraform apply [\#41](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/41)
+- AWS clusters default provider\_encrypt\_ebs\_volume to false [\#40](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/40)
+- mongodbatlas\_network\_peering Internal Servier Error [\#35](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/35)
+- Problem encryption\_at\_rest [\#33](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/33)
+- Problem destroying network peering container [\#30](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/30)
+- Bug VPC Peering between GCP and Atlas [\#29](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/29)
+
+**Merged pull requests:**
+
+- Clarify Doc Examples and Text [\#46](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/46) ([themantissa](https://github.com/themantissa))
+- fix-\#40: added true value by defualt on provider\_encrypt\_ebs\_volume attr [\#45](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/45) ([PacoDw](https://github.com/PacoDw))
+- make provider\_name forced new to avoid patch problems [\#44](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/44) ([marinsalinas](https://github.com/marinsalinas))
+- Network peering [\#43](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/43) ([PacoDw](https://github.com/PacoDw))
+- Update readme with more info [\#39](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/39) ([themantissa](https://github.com/themantissa))
+- Fix: Network container [\#38](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/38) ([PacoDw](https://github.com/PacoDw))
+- Doc updates [\#37](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/37) ([themantissa](https://github.com/themantissa))
+
 ## 0.2.0 (September 19, 2019)
 
 **Closed issues:**
