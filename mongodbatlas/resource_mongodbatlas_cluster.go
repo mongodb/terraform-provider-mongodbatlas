@@ -626,7 +626,10 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 
 	if d.Get("provider_name") == "AWS" {
 		providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(d.Get("provider_disk_iops")))
-		providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(d.Get("provider_encrypt_ebs_volume")))
+		providerSettings.EncryptEBSVolume = pointy.Bool(true)
+		if encryptEBSVolume, ok := d.GetOkExists("provider_encrypt_ebs_volume"); ok {
+			providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(encryptEBSVolume))
+		}
 	}
 
 	region, _ := valRegion(d.Get("provider_region_name"))
