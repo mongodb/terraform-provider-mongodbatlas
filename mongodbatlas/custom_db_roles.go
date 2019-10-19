@@ -12,6 +12,7 @@ type CustomDBRolesService interface {
 	List(context.Context, string, *ListOptions) (*[]CustomDbRole, *Response, error)
 	Get(context.Context, string, string) (*CustomDbRole, *Response, error)
 	Create(context.Context, string, *CustomDbRole) (*CustomDbRole, *Response, error)
+	Update(context.Context, string, string, *CustomDbRole) (*CustomDbRole, *Response, error)
 }
 
 //CustomDBRolesServiceOp handles communication with the CustomDBRoles related methods of the
@@ -98,6 +99,28 @@ func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, cre
 	path := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(CustomDbRole)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
+}
+
+func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, roleName string, updateRequest *CustomDbRole) (*CustomDbRole, *Response, error) {
+	if updateRequest == nil {
+		return nil, nil, NewArgError("updateRequest", "cannot be nil")
+	}
+
+	basePath := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
+	path := fmt.Sprintf("%s/%s", basePath, roleName)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
