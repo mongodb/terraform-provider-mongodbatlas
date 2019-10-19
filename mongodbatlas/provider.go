@@ -52,6 +52,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"mongodbatlas_custom_db_role":                      resourceMongoDBAtlasCustomDBRole(),
 			"mongodbatlas_database_user":                       resourceMongoDBAtlasDatabaseUser(),
 			"mongodbatlas_project_ip_whitelist":                resourceMongoDBAtlasProjectIPWhitelist(),
 			"mongodbatlas_project":                             resourceMongoDBAtlasProject(),
