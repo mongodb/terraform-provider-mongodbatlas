@@ -13,6 +13,7 @@ type CustomDBRolesService interface {
 	Get(context.Context, string, string) (*CustomDbRole, *Response, error)
 	Create(context.Context, string, *CustomDbRole) (*CustomDbRole, *Response, error)
 	Update(context.Context, string, string, *CustomDbRole) (*CustomDbRole, *Response, error)
+	Delete(context.Context, string, string) (*Response, error)
 }
 
 //CustomDBRolesServiceOp handles communication with the CustomDBRoles related methods of the
@@ -132,4 +133,22 @@ func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, rol
 	}
 
 	return root, resp, err
+}
+
+func (s *CustomDBRolesServiceOp) Delete(ctx context.Context, groupID string, roleName string) (*Response, error) {
+	if roleName == "" {
+		return nil, NewArgError("roleName", "must be set")
+	}
+
+	basePath := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
+	path := fmt.Sprintf("%s/%s", basePath, roleName)
+
+	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(ctx, req, nil)
+
+	return resp, err
 }

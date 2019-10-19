@@ -239,3 +239,20 @@ func TestCustomDBRoles_UpdateCustomDBRole(t *testing.T) {
 		t.Errorf("expected roleName '%s', received '%s'", "test-role-name", roleName)
 	}
 }
+
+func TestDatabaseUsers_DeleteCustomDBRole(t *testing.T) {
+	setup()
+	defer teardown()
+
+	groupID := "1"
+	roleName := "test-role-name"
+
+	mux.HandleFunc(fmt.Sprintf("/groups/%s/customDBRoles/roles/%s", groupID, roleName), func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodDelete)
+	})
+
+	_, err := client.CustomDBRoles.Delete(ctx, groupID, roleName)
+	if err != nil {
+		t.Errorf("CustomDBRole.Delete returned error: %v", err)
+	}
+}
