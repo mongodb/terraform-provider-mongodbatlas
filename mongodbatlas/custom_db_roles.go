@@ -10,6 +10,7 @@ const dbCustomDBRolesBasePath = "groups/%s/customDBRoles/roles"
 
 type CustomDBRolesService interface {
 	List(context.Context, string, *ListOptions) (*[]CustomDbRole, *Response, error)
+	Get(context.Context, string, string) (*CustomDbRole, *Response, error)
 }
 
 //CustomDBRolesServiceOp handles communication with the CustomDBRoles related methods of the
@@ -64,4 +65,26 @@ func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listO
 	}
 
 	return root, resp, nil
+}
+
+func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleName string) (*CustomDbRole, *Response, error) {
+	if roleName == "" {
+		return nil, nil, NewArgError("roleName", "must be set")
+	}
+
+	basePath := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
+	path := fmt.Sprintf("%s/%s", basePath, roleName)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(CustomDbRole)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
 }
