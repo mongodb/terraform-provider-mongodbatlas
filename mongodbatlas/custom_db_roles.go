@@ -12,10 +12,10 @@ const dbCustomDBRolesBasePath = "groups/%s/customDBRoles/roles"
 // endpoints of the MongoDB Atlas API.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles/
 type CustomDBRolesService interface {
-	List(context.Context, string, *ListOptions) (*[]CustomDbRole, *Response, error)
-	Get(context.Context, string, string) (*CustomDbRole, *Response, error)
-	Create(context.Context, string, *CustomDbRole) (*CustomDbRole, *Response, error)
-	Update(context.Context, string, string, *CustomDbRole) (*CustomDbRole, *Response, error)
+	List(context.Context, string, *ListOptions) (*[]CustomDBRole, *Response, error)
+	Get(context.Context, string, string) (*CustomDBRole, *Response, error)
+	Create(context.Context, string, *CustomDBRole) (*CustomDBRole, *Response, error)
+	Update(context.Context, string, string, *CustomDBRole) (*CustomDBRole, *Response, error)
 	Delete(context.Context, string, string) (*Response, error)
 }
 
@@ -47,7 +47,7 @@ type InheritedRole struct {
 }
 
 // CustomDBRole represents a Custom MongoDB Role in your cluster.
-type CustomDbRole struct {
+type CustomDBRole struct {
 	Actions        []Action        `json:"actions,omitempty"`
 	InheritedRoles []InheritedRole `json:"inheritedRoles,omitempty"`
 	RoleName       string          `json:"roleName,omitempty"`
@@ -55,7 +55,7 @@ type CustomDbRole struct {
 
 //List gets all custom db roles in the project.
 //See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-get-all-roles/
-func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) (*[]CustomDbRole, *Response, error) {
+func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) (*[]CustomDBRole, *Response, error) {
 	path := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 
 	path, err := setListOptions(path, listOptions)
@@ -68,7 +68,7 @@ func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listO
 		return nil, nil, err
 	}
 
-	root := new([]CustomDbRole)
+	root := new([]CustomDBRole)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
@@ -79,7 +79,7 @@ func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listO
 
 // Gets a single Custom MongoDB Role in the project.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-get-single-role/
-func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleName string) (*CustomDbRole, *Response, error) {
+func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleName string) (*CustomDBRole, *Response, error) {
 	if roleName == "" {
 		return nil, nil, NewArgError("roleName", "must be set")
 	}
@@ -92,7 +92,7 @@ func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleNa
 		return nil, nil, err
 	}
 
-	root := new(CustomDbRole)
+	root := new(CustomDBRole)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
@@ -103,7 +103,7 @@ func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleNa
 
 // Creates a new Custom MongoDB Role in the project.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-create-a-role/
-func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, createRequest *CustomDbRole) (*CustomDbRole, *Response, error) {
+func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, createRequest *CustomDBRole) (*CustomDBRole, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}
@@ -115,7 +115,7 @@ func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, cre
 		return nil, nil, err
 	}
 
-	root := new(CustomDbRole)
+	root := new(CustomDBRole)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
@@ -126,7 +126,7 @@ func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, cre
 
 // Updates a single Custom MongoDB Role.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-update-a-role/
-func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, roleName string, updateRequest *CustomDbRole) (*CustomDbRole, *Response, error) {
+func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, roleName string, updateRequest *CustomDBRole) (*CustomDBRole, *Response, error) {
 	if updateRequest == nil {
 		return nil, nil, NewArgError("updateRequest", "cannot be nil")
 	}
@@ -139,7 +139,7 @@ func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, rol
 		return nil, nil, err
 	}
 
-	root := new(CustomDbRole)
+	root := new(CustomDBRole)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err

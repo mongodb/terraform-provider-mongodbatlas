@@ -22,7 +22,7 @@ func TestCustomDBRoles_ListCustomDBRoles(t *testing.T) {
 		t.Errorf("CustomDBRoles.List returned error: %v", err)
 	}
 
-	expected := &[]CustomDbRole{{
+	expected := &[]CustomDBRole{{
 		Actions: []Action{{
 			Action: "CREATE_INDEX",
 			Resources: []Resource{{
@@ -56,7 +56,7 @@ func TestCustomDBRoles_GetCustomDBRole(t *testing.T) {
 		t.Errorf("CustomDBRoles.Get returned error: %v", err)
 	}
 
-	expected := &CustomDbRole{
+	expected := &CustomDBRole{
 		Actions: []Action{{
 			Action: "CREATE_INDEX",
 			Resources: []Resource{{
@@ -80,7 +80,7 @@ func TestCustomDBRoles_CreateCustomDBRole(t *testing.T) {
 	setup()
 	defer teardown()
 
-	createRequest := &CustomDbRole{
+	createRequest := &CustomDBRole{
 		Actions: []Action{{
 			Action: "CREATE_INDEX",
 			Resources: []Resource{{
@@ -162,7 +162,7 @@ func TestCustomDBRoles_UpdateCustomDBRole(t *testing.T) {
 	setup()
 	defer teardown()
 
-	updateRequest := &CustomDbRole{
+	updateRequest := &CustomDBRole{
 		Actions: []Action{{
 			Action: "CREATE_INDEX",
 			Resources: []Resource{{
