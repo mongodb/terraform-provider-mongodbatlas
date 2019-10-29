@@ -18,6 +18,8 @@ type ClustersService interface {
 	Create(context.Context, string, *Cluster) (*Cluster, *Response, error)
 	Update(context.Context, string, string, *Cluster) (*Cluster, *Response, error)
 	Delete(context.Context, string, string) (*Response, error)
+	UpdateProcessArgs(context.Context, string, string, *ProcessArgs) (*ProcessArgs, *Response, error)
+	GetProcessArgs(context.Context, string, string) (*ProcessArgs, *Response, error)
 }
 
 //ClustersServiceOp handles communication with the Cluster related methods
@@ -87,6 +89,16 @@ type Cluster struct {
 	ReplicationSpecs         []ReplicationSpec        `json:"replicationSpecs,omitempty"`
 	SrvAddress               string                   `json:"srvAddress,omitempty"`
 	StateName                string                   `json:"stateName,omitempty"`
+}
+
+type ProcessArgs struct {
+	FailIndexKeyTooLong              *bool  `json:"failIndexKeyTooLong"`
+	JavascriptEnabled                *bool  `json:"javascriptEnabled"`
+	MinimumEnabledTLSProtocol        string `json:"minimumEnabledTlsProtocol"`
+	NoTableScan                      *bool  `json:"noTableScan"`
+	OplogSizeMB                      *int64 `json:"oplogSizeMB"`
+	SampleSizeBIConnector            *int64 `json:"sampleSizeBIConnector"`
+	SampleRefreshIntervalBIConnector *int64 `json:"sampleRefreshIntervalBIConnector"`
 }
 
 // clustersResponse is the response from the ClustersService.List.
@@ -216,4 +228,53 @@ func (s *ClustersServiceOp) Delete(ctx context.Context, groupID string, clusterN
 	resp, err := s.client.Do(ctx, req, nil)
 
 	return resp, err
+}
+
+//UpdateProcessArgs Modifies Advanced Configuration Options for One Cluster
+//See more: https://docs.atlas.mongodb.com/reference/api/clusters-modify-advanced-configuration-options/
+func (s *ClustersServiceOp) UpdateProcessArgs(ctx context.Context, groupID string, clusterName string, updateRequest *ProcessArgs) (*ProcessArgs, *Response, error) {
+	if updateRequest == nil {
+		return nil, nil, NewArgError("updateRequest", "cannot be nil")
+	}
+
+	basePath := fmt.Sprintf(clustersPath, groupID)
+	path := fmt.Sprintf("%s/%s/processArgs", basePath, clusterName)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(ProcessArgs)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
+}
+
+//GetProcessArgs gets the Advanced Configuration Options for One Cluster
+//See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-advanced-configuration-options/#get-advanced-configuration-options-for-one-cluster
+func (s *ClustersServiceOp) GetProcessArgs(ctx context.Context, groupID string, clusterName string) (*ProcessArgs, *Response, error) {
+	if clusterName == "" {
+		return nil, nil, NewArgError("name", "must be set")
+	}
+
+	basePath := fmt.Sprintf(clustersPath, groupID)
+	escapedEntry := url.PathEscape(clusterName)
+	path := fmt.Sprintf("%s/%s/processArgs", basePath, escapedEntry)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(ProcessArgs)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
 }

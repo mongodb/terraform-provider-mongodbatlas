@@ -554,3 +554,118 @@ func TestClusters_Delete(t *testing.T) {
 		t.Errorf("Cluster.Delete returned error: %v", err)
 	}
 }
+
+func TestClusters_UpdateProcessArgs(t *testing.T) {
+	setup()
+	defer teardown()
+
+	groupID := "1"
+	clusterName := "AppData"
+	tlsProtocol := "TLS1_2"
+
+	updateRequest := &ProcessArgs{
+		FailIndexKeyTooLong:              pointy.Bool(false),
+		JavascriptEnabled:                pointy.Bool(false),
+		MinimumEnabledTLSProtocol:        tlsProtocol,
+		NoTableScan:                      pointy.Bool(true),
+		OplogSizeMB:                      pointy.Int64(2000),
+		SampleSizeBIConnector:            pointy.Int64(5000),
+		SampleRefreshIntervalBIConnector: pointy.Int64(300),
+	}
+
+	mux.HandleFunc(fmt.Sprintf("/groups/%s/clusters/%s/processArgs", groupID, clusterName), func(w http.ResponseWriter, r *http.Request) {
+		expected := map[string]interface{}{
+			"failIndexKeyTooLong":              false,
+			"javascriptEnabled":                false,
+			"minimumEnabledTlsProtocol":        tlsProtocol,
+			"noTableScan":                      true,
+			"oplogSizeMB":                      float64(2000),
+			"sampleSizeBIConnector":            float64(5000),
+			"sampleRefreshIntervalBIConnector": float64(300),
+		}
+
+		jsonBlob := `
+		{
+			"failIndexKeyTooLong": false,
+			"javascriptEnabled": false,
+			"minimumEnabledTlsProtocol": "TLS1_2",
+			"noTableScan": true,
+			"oplogSizeMB": 2000,
+			"sampleSizeBIConnector": 5000,
+			"sampleRefreshIntervalBIConnector": 300
+		}
+		`
+
+		var v map[string]interface{}
+		d := json.NewDecoder(r.Body)
+
+		err := d.Decode(&v)
+		if err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+
+		if diff := deep.Equal(v, expected); diff != nil {
+			t.Errorf("Clusters.UpdateProcessArgs Request Body = %v", diff)
+		}
+
+		if !reflect.DeepEqual(v, expected) {
+			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
+		}
+
+		fmt.Fprint(w, jsonBlob)
+	})
+
+	processArgs, _, err := client.Clusters.UpdateProcessArgs(ctx, groupID, clusterName, updateRequest)
+	if err != nil {
+		t.Errorf("Clusters.UpdateProcessArgs returned error: %v", err)
+	}
+
+	if tls := processArgs.MinimumEnabledTLSProtocol; tls != tlsProtocol {
+		t.Errorf("expected tlsProtocol '%s', received '%s'", tlsProtocol, tls)
+	}
+
+	if jsEnabled := processArgs.JavascriptEnabled; pointy.BoolValue(jsEnabled, false) != false {
+		t.Errorf("expected javascriptEnabled '%t', received '%t'", pointy.BoolValue(jsEnabled, false), false)
+	}
+
+}
+
+func TestDatabaseUsers_GetProcessArgs(t *testing.T) {
+	setup()
+	defer teardown()
+
+	groupID := "1"
+	clusterName := "test-cluster"
+
+	mux.HandleFunc(fmt.Sprintf("/groups/%s/clusters/%s/processArgs", groupID, clusterName), func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, `{
+			"failIndexKeyTooLong": false,
+			"javascriptEnabled": false,
+			"minimumEnabledTlsProtocol": "TLS1_2",
+			"noTableScan": true,
+			"oplogSizeMB": 2000,
+			"sampleSizeBIConnector": 5000,
+			"sampleRefreshIntervalBIConnector": 300
+		}`)
+	})
+
+	processArgs, _, err := client.Clusters.GetProcessArgs(ctx, groupID, clusterName)
+	if err != nil {
+		t.Errorf("Clusters.GetProcessArgs returned error: %v", err)
+	}
+
+	expected := &ProcessArgs{
+		FailIndexKeyTooLong:              pointy.Bool(false),
+		JavascriptEnabled:                pointy.Bool(false),
+		MinimumEnabledTLSProtocol:        "TLS1_2",
+		NoTableScan:                      pointy.Bool(true),
+		OplogSizeMB:                      pointy.Int64(2000),
+		SampleSizeBIConnector:            pointy.Int64(5000),
+		SampleRefreshIntervalBIConnector: pointy.Int64(300),
+	}
+
+	if !reflect.DeepEqual(processArgs, expected) {
+		t.Errorf("Clusters.GetProcessArgs\n got=%#v\nwant=%#v", processArgs, expected)
+	}
+}
