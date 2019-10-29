@@ -175,7 +175,7 @@ func TestDatabaseUsers_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	dbUser, _, err := client.DatabaseUsers.Create(ctx, groupID, createRequest)
@@ -270,7 +270,7 @@ func TestDatabaseUsers_Update(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	dbUser, _, err := client.DatabaseUsers.Update(ctx, groupID, "test-username", createRequest)

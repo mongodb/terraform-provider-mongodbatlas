@@ -362,7 +362,7 @@ func TestClusters_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	cluster, _, err := client.Clusters.Create(ctx, groupID, createRequest)
@@ -520,7 +520,7 @@ func TestClusters_Update(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	dbUser, _, err := client.Clusters.Update(ctx, groupID, clusterName, updateRequest)

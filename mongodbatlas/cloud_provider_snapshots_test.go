@@ -203,7 +203,7 @@ func TestCloudProviderSnapshots_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		fmt.Fprint(w, `{
 			"createdAt": "2018-12-31T20:54:03Z",
 			"description": "SomeDescription ",
 			"expiresAt": "2019-01-05T20:54:03Z",

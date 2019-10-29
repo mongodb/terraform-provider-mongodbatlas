@@ -196,7 +196,7 @@ func TestProject_Create(t *testing.T) {
 	}
 
 	mux.HandleFunc("/groups", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{
+		fmt.Fprint(w, `{
 			"clusterCount": 2,
 			"created": "2016-07-14T14:19:33Z",
 			"id": "5a0a1e7e0f2912c554080ae6",
@@ -336,7 +336,7 @@ func TestProject_AddTeamsToProject(t *testing.T) {
 	}
 
 	mux.HandleFunc(fmt.Sprintf("/groups/%s/teams", projectID), func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{
+		fmt.Fprint(w, `{
 			"links": [{
 				"href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/teams",
 				"rel": "self"
