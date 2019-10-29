@@ -304,7 +304,7 @@ func TestCloudProviderSnapshotRestoreJobs_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		fmt.Fprint(w, `{
 			"cancelled": false,
 			"deliveryType": "automated",
 			"expired": false,

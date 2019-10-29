@@ -268,7 +268,7 @@ func TestAPIKeys_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	apiKey, _, err := client.APIKeys.Create(ctx, orgID, createRequest)
@@ -357,7 +357,7 @@ func TestAPIKeys_Update(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	apiKey, _, err := client.APIKeys.Update(ctx, orgID, "5c47503320eef5699e1cce8d", updateRequest)

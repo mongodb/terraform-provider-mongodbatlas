@@ -194,7 +194,7 @@ func TestPeers_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	peer, _, err := client.Peers.Create(ctx, groupID, createRequest)
@@ -262,7 +262,7 @@ func TestPeers_Update(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	perr, _, err := client.Peers.Update(ctx, groupID, peerID, updateRequest)

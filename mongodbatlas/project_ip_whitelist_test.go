@@ -151,7 +151,7 @@ func TestProjectIPWhitelist_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	projectIPWhitelist, _, err := client.ProjectIPWhitelist.Create(ctx, groupID, createRequest)
@@ -257,7 +257,7 @@ func TestProjectIPWhitelist_Update(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	projectIPWhitelist, _, err := client.ProjectIPWhitelist.Update(ctx, groupID, ipAddress, createRequest)

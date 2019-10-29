@@ -198,7 +198,7 @@ func TestWhitelistAPIKeys_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		fmt.Fprint(w, `{
 			"links": [
 				{
 					"href": "https://cloud.mongodb.com/api/atlas/v1.0/orgs/599c510c80eef518f3b63fe1/apiKeys/5c49e72980eef544a218f8f8/whitelist/?pretty=true&pageNum=1&itemsPerPage=100",

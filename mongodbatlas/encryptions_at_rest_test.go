@@ -82,7 +82,7 @@ func TestEncryptionsAtRest_Create(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, `{
+		fmt.Fprint(w, `{
 			"awsKms": {
 				"enabled": true,
 				"accessKeyID": "AKIAIOSFODNN7EXAMPLE",

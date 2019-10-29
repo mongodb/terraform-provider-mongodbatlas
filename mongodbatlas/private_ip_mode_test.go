@@ -76,7 +76,7 @@ func TestPrivateIPMode_Update(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	privateIpMode, _, err := client.PrivateIPMode.Update(ctx, groupID, updateRequest)
