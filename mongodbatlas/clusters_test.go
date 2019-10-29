@@ -669,3 +669,105 @@ func TestDatabaseUsers_GetProcessArgs(t *testing.T) {
 		t.Errorf("Clusters.GetProcessArgs\n got=%#v\nwant=%#v", processArgs, expected)
 	}
 }
+
+func TestClusters_checkClusterNameParam(t *testing.T) {
+	if err := checkClusterNameParam(""); err == nil {
+		t.Errorf("checkClusterNameParam didn't return error")
+	}
+}
+
+func TestDatabaseUsers_Get(t *testing.T) {
+	setup()
+	defer teardown()
+
+	groupID := "1"
+	clusterName := "appData"
+
+	mux.HandleFunc(fmt.Sprintf("/groups/%s/clusters/%s", groupID, clusterName), func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, http.MethodGet)
+		fmt.Fprint(w, `{	
+			"id":"1",
+			"autoScaling": {
+                "diskGBEnabled": true
+            },
+            "backupEnabled": true,
+            "biConnector": {
+                "enabled": false,
+                "readPreference": "secondary"
+            },
+            "clusterType": "REPLICASET",
+            "diskSizeGB": 160,
+            "encryptionAtRestProvider": "AWS",
+            "groupId": "1",
+            "mongoDBVersion": "3.4.9",
+            "mongoURI": "mongodb://mongo-shard-00-00.mongodb.net:27017,mongo-shard-00-01.mongodb.net:27017,mongo-shard-00-02.mongodb.net:27017",
+            "mongoURIUpdated": "2017-10-23T21:26:17Z",
+            "mongoURIWithOptions": "mongodb://mongo-shard-00-00.mongodb.net:27017,mongo-shard-00-01.mongodb.net:27017,mongo-shard-00-02.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=mongo-shard-0",
+            "name": "AppData",
+            "numShards": 1,
+            "paused": false,
+            "providerSettings": {
+                "providerName": "AWS",
+                "diskIOPS": 1320,
+                "encryptEBSVolume": false,
+                "instanceSizeName": "M40",
+                "regionName": "US_WEST_2"
+            },
+            "replicationFactor": 3,
+            "replicationSpec": {
+                "US_EAST_1": {
+                    "electableNodes": 3,
+                    "priority": 7,
+                    "readOnlyNodes": 0
+                }
+            },
+            "srvAddress": "mongodb+srv://mongo-shard-00-00.mongodb.net:27017,mongo-shard-00-01.mongodb.net:27017,mongo-shard-00-02.mongodb.net:27017",
+            "stateName": "IDLE"
+		}`)
+	})
+
+	cluster, _, err := client.Clusters.Get(ctx, groupID, clusterName)
+	if err != nil {
+		t.Errorf("Clusters.Get returned error: %v", err)
+	}
+
+	expected := &Cluster{
+		ID:                       "1",
+		AutoScaling:              AutoScaling{DiskGBEnabled: pointy.Bool(true)},
+		BackupEnabled:            pointy.Bool(true),
+		BiConnector:              BiConnector{Enabled: pointy.Bool(false), ReadPreference: "secondary"},
+		ClusterType:              "REPLICASET",
+		DiskSizeGB:               pointy.Float64(160),
+		EncryptionAtRestProvider: "AWS",
+		GroupID:                  groupID,
+		MongoDBVersion:           "3.4.9",
+		MongoURI:                 "mongodb://mongo-shard-00-00.mongodb.net:27017,mongo-shard-00-01.mongodb.net:27017,mongo-shard-00-02.mongodb.net:27017",
+		MongoURIUpdated:          "2017-10-23T21:26:17Z",
+		MongoURIWithOptions:      "mongodb://mongo-shard-00-00.mongodb.net:27017,mongo-shard-00-01.mongodb.net:27017,mongo-shard-00-02.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=mongo-shard-0",
+		Name:                     "AppData",
+		NumShards:                pointy.Int64(1),
+		Paused:                   pointy.Bool(false),
+		ProviderSettings: &ProviderSettings{
+			ProviderName:     "AWS",
+			DiskIOPS:         pointy.Int64(1320),
+			EncryptEBSVolume: pointy.Bool(false),
+			InstanceSizeName: "M40",
+			RegionName:       "US_WEST_2",
+		},
+		ReplicationFactor: pointy.Int64(3),
+
+		ReplicationSpec: map[string]RegionsConfig{
+			"US_EAST_1": {
+				ElectableNodes: pointy.Int64(3),
+				Priority:       pointy.Int64(7),
+				ReadOnlyNodes:  pointy.Int64(0),
+			},
+		},
+		SrvAddress: "mongodb+srv://mongo-shard-00-00.mongodb.net:27017,mongo-shard-00-01.mongodb.net:27017,mongo-shard-00-02.mongodb.net:27017",
+		StateName:  "IDLE",
+	}
+
+	if !reflect.DeepEqual(cluster, expected) {
+		t.Errorf("Clusters.Get\n got=%#v\nwant=%#v", cluster, expected)
+	}
+}

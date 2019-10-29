@@ -140,8 +140,8 @@ func (s *ClustersServiceOp) List(ctx context.Context, groupID string, listOption
 //Get gets the cluster specified to {ClUSTER-NAME} from the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-one/
 func (s *ClustersServiceOp) Get(ctx context.Context, groupID string, clusterName string) (*Cluster, *Response, error) {
-	if clusterName == "" {
-		return nil, nil, NewArgError("name", "must be set")
+	if err := checkClusterNameParam(clusterName); err != nil {
+		return nil, nil, err
 	}
 
 	basePath := fmt.Sprintf(clustersPath, groupID)
@@ -257,8 +257,8 @@ func (s *ClustersServiceOp) UpdateProcessArgs(ctx context.Context, groupID strin
 //GetProcessArgs gets the Advanced Configuration Options for One Cluster
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-advanced-configuration-options/#get-advanced-configuration-options-for-one-cluster
 func (s *ClustersServiceOp) GetProcessArgs(ctx context.Context, groupID string, clusterName string) (*ProcessArgs, *Response, error) {
-	if clusterName == "" {
-		return nil, nil, NewArgError("name", "must be set")
+	if err := checkClusterNameParam(clusterName); err != nil {
+		return nil, nil, err
 	}
 
 	basePath := fmt.Sprintf(clustersPath, groupID)
@@ -277,4 +277,11 @@ func (s *ClustersServiceOp) GetProcessArgs(ctx context.Context, groupID string, 
 	}
 
 	return root, resp, err
+}
+
+func checkClusterNameParam(clusterName string) error {
+	if clusterName == "" {
+		return NewArgError("name", "must be set")
+	}
+	return nil
 }
