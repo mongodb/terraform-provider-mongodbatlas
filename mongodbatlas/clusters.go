@@ -30,7 +30,7 @@ type ClustersServiceOp struct {
 
 var _ ClustersService = &ClustersServiceOp{}
 
-// AutoScaling configures your cluster to automatically scale its storage and cluster tier
+// AutoScaling configures your cluster to automatically scale its storage
 type AutoScaling struct {
 	DiskGBEnabled *bool `json:"diskGBEnabled,omitempty"`
 }
