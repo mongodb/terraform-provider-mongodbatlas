@@ -30,15 +30,18 @@ type ClustersServiceOp struct {
 
 var _ ClustersService = &ClustersServiceOp{}
 
+// AutoScaling configures your cluster to automatically scale its storage
 type AutoScaling struct {
 	DiskGBEnabled *bool `json:"diskGBEnabled,omitempty"`
 }
 
+// BiConnector specifies BI Connector for Atlas configuration on this cluster
 type BiConnector struct {
 	Enabled        *bool  `json:"enabled,omitempty"`
 	ReadPreference string `json:"readPreference,omitempty"`
 }
 
+// ProviderSettings configuration for the provisioned servers on which MongoDB runs. The available options are specific to the cloud service provider.
 type ProviderSettings struct {
 	BackingProviderName string `json:"backingProviderName,omitempty"`
 	DiskIOPS            *int64 `json:"diskIOPS,omitempty"`
@@ -50,6 +53,7 @@ type ProviderSettings struct {
 	VolumeType          string `json:"volumeType,omitempty"`
 }
 
+// RegionsConfig describes the region’s priority in elections and the number and type of MongoDB nodes Atlas deploys to the region.
 type RegionsConfig struct {
 	AnalyticsNodes *int64 `json:"analyticsNodes,omitempty"`
 	ElectableNodes *int64 `json:"electableNodes,omitempty"`
@@ -57,6 +61,7 @@ type RegionsConfig struct {
 	ReadOnlyNodes  *int64 `json:"readOnlyNodes,omitempty"`
 }
 
+// ReplicationSpec represents a configuration for cluster regions
 type ReplicationSpec struct {
 	ID            string                   `json:"id,omitempty"`
 	NumShards     *int64                   `json:"numShards,omitempty"`
@@ -91,14 +96,15 @@ type Cluster struct {
 	StateName                string                   `json:"stateName,omitempty"`
 }
 
+// ProcessArgs represents the advanced configuration options for the cluster
 type ProcessArgs struct {
-	FailIndexKeyTooLong              *bool  `json:"failIndexKeyTooLong"`
-	JavascriptEnabled                *bool  `json:"javascriptEnabled"`
-	MinimumEnabledTLSProtocol        string `json:"minimumEnabledTlsProtocol"`
-	NoTableScan                      *bool  `json:"noTableScan"`
-	OplogSizeMB                      *int64 `json:"oplogSizeMB"`
-	SampleSizeBIConnector            *int64 `json:"sampleSizeBIConnector"`
-	SampleRefreshIntervalBIConnector *int64 `json:"sampleRefreshIntervalBIConnector"`
+	FailIndexKeyTooLong              *bool  `json:"failIndexKeyTooLong,omitempty"`
+	JavascriptEnabled                *bool  `json:"javascriptEnabled,omitempty"`
+	MinimumEnabledTLSProtocol        string `json:"minimumEnabledTlsProtocol,omitempty"`
+	NoTableScan                      *bool  `json:"noTableScan,omitempty"`
+	OplogSizeMB                      *int64 `json:"oplogSizeMB,omitempty"`
+	SampleSizeBIConnector            *int64 `json:"sampleSizeBIConnector,omitempty"`
+	SampleRefreshIntervalBIConnector *int64 `json:"sampleRefreshIntervalBIConnector,omitempty"`
 }
 
 // clustersResponse is the response from the ClustersService.List.
@@ -162,7 +168,7 @@ func (s *ClustersServiceOp) Get(ctx context.Context, groupID string, clusterName
 	return root, resp, err
 }
 
-//Add a cluster to the project associated to {GROUP-ID}.
+// Create adds a cluster to the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-create-one/
 func (s *ClustersServiceOp) Create(ctx context.Context, groupID string, createRequest *Cluster) (*Cluster, *Response, error) {
 	if createRequest == nil {
