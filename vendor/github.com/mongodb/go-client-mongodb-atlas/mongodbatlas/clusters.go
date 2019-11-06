@@ -18,6 +18,8 @@ type ClustersService interface {
 	Create(context.Context, string, *Cluster) (*Cluster, *Response, error)
 	Update(context.Context, string, string, *Cluster) (*Cluster, *Response, error)
 	Delete(context.Context, string, string) (*Response, error)
+	UpdateProcessArgs(context.Context, string, string, *ProcessArgs) (*ProcessArgs, *Response, error)
+	GetProcessArgs(context.Context, string, string) (*ProcessArgs, *Response, error)
 }
 
 //ClustersServiceOp handles communication with the Cluster related methods
@@ -28,15 +30,18 @@ type ClustersServiceOp struct {
 
 var _ ClustersService = &ClustersServiceOp{}
 
+// AutoScaling configures your cluster to automatically scale its storage
 type AutoScaling struct {
 	DiskGBEnabled *bool `json:"diskGBEnabled,omitempty"`
 }
 
+// BiConnector specifies BI Connector for Atlas configuration on this cluster
 type BiConnector struct {
 	Enabled        *bool  `json:"enabled,omitempty"`
 	ReadPreference string `json:"readPreference,omitempty"`
 }
 
+// ProviderSettings configuration for the provisioned servers on which MongoDB runs. The available options are specific to the cloud service provider.
 type ProviderSettings struct {
 	BackingProviderName string `json:"backingProviderName,omitempty"`
 	DiskIOPS            *int64 `json:"diskIOPS,omitempty"`
@@ -48,6 +53,7 @@ type ProviderSettings struct {
 	VolumeType          string `json:"volumeType,omitempty"`
 }
 
+// RegionsConfig describes the region’s priority in elections and the number and type of MongoDB nodes Atlas deploys to the region.
 type RegionsConfig struct {
 	AnalyticsNodes *int64 `json:"analyticsNodes,omitempty"`
 	ElectableNodes *int64 `json:"electableNodes,omitempty"`
@@ -55,6 +61,7 @@ type RegionsConfig struct {
 	ReadOnlyNodes  *int64 `json:"readOnlyNodes,omitempty"`
 }
 
+// ReplicationSpec represents a configuration for cluster regions
 type ReplicationSpec struct {
 	ID            string                   `json:"id,omitempty"`
 	NumShards     *int64                   `json:"numShards,omitempty"`
@@ -87,6 +94,17 @@ type Cluster struct {
 	ReplicationSpecs         []ReplicationSpec        `json:"replicationSpecs,omitempty"`
 	SrvAddress               string                   `json:"srvAddress,omitempty"`
 	StateName                string                   `json:"stateName,omitempty"`
+}
+
+// ProcessArgs represents the advanced configuration options for the cluster
+type ProcessArgs struct {
+	FailIndexKeyTooLong              *bool  `json:"failIndexKeyTooLong,omitempty"`
+	JavascriptEnabled                *bool  `json:"javascriptEnabled,omitempty"`
+	MinimumEnabledTLSProtocol        string `json:"minimumEnabledTlsProtocol,omitempty"`
+	NoTableScan                      *bool  `json:"noTableScan,omitempty"`
+	OplogSizeMB                      *int64 `json:"oplogSizeMB,omitempty"`
+	SampleSizeBIConnector            *int64 `json:"sampleSizeBIConnector,omitempty"`
+	SampleRefreshIntervalBIConnector *int64 `json:"sampleRefreshIntervalBIConnector,omitempty"`
 }
 
 // clustersResponse is the response from the ClustersService.List.
@@ -128,8 +146,8 @@ func (s *ClustersServiceOp) List(ctx context.Context, groupID string, listOption
 //Get gets the cluster specified to {ClUSTER-NAME} from the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-one/
 func (s *ClustersServiceOp) Get(ctx context.Context, groupID string, clusterName string) (*Cluster, *Response, error) {
-	if clusterName == "" {
-		return nil, nil, NewArgError("name", "must be set")
+	if err := checkClusterNameParam(clusterName); err != nil {
+		return nil, nil, err
 	}
 
 	basePath := fmt.Sprintf(clustersPath, groupID)
@@ -150,7 +168,7 @@ func (s *ClustersServiceOp) Get(ctx context.Context, groupID string, clusterName
 	return root, resp, err
 }
 
-//Add a cluster to the project associated to {GROUP-ID}.
+// Create adds a cluster to the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-create-one/
 func (s *ClustersServiceOp) Create(ctx context.Context, groupID string, createRequest *Cluster) (*Cluster, *Response, error) {
 	if createRequest == nil {
@@ -216,4 +234,60 @@ func (s *ClustersServiceOp) Delete(ctx context.Context, groupID string, clusterN
 	resp, err := s.client.Do(ctx, req, nil)
 
 	return resp, err
+}
+
+//UpdateProcessArgs Modifies Advanced Configuration Options for One Cluster
+//See more: https://docs.atlas.mongodb.com/reference/api/clusters-modify-advanced-configuration-options/
+func (s *ClustersServiceOp) UpdateProcessArgs(ctx context.Context, groupID string, clusterName string, updateRequest *ProcessArgs) (*ProcessArgs, *Response, error) {
+	if updateRequest == nil {
+		return nil, nil, NewArgError("updateRequest", "cannot be nil")
+	}
+
+	basePath := fmt.Sprintf(clustersPath, groupID)
+	path := fmt.Sprintf("%s/%s/processArgs", basePath, clusterName)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(ProcessArgs)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
+}
+
+//GetProcessArgs gets the Advanced Configuration Options for One Cluster
+//See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-advanced-configuration-options/#get-advanced-configuration-options-for-one-cluster
+func (s *ClustersServiceOp) GetProcessArgs(ctx context.Context, groupID string, clusterName string) (*ProcessArgs, *Response, error) {
+	if err := checkClusterNameParam(clusterName); err != nil {
+		return nil, nil, err
+	}
+
+	basePath := fmt.Sprintf(clustersPath, groupID)
+	escapedEntry := url.PathEscape(clusterName)
+	path := fmt.Sprintf("%s/%s/processArgs", basePath, escapedEntry)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(ProcessArgs)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
+}
+
+func checkClusterNameParam(clusterName string) error {
+	if clusterName == "" {
+		return NewArgError("name", "must be set")
+	}
+	return nil
 }
