@@ -852,7 +852,7 @@ func expandProcessArgs(p map[string]interface{}) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{
 		FailIndexKeyTooLong:              pointy.Bool(cast.ToBool(p["fail_index_key_too_long"])),
 		JavascriptEnabled:                pointy.Bool(cast.ToBool(p["javascript_enabled"])),
-		MinimumEnabledTLSProtocol:        p["minimum_enabled_tls_protocol"].(string),
+		MinimumEnabledTLSProtocol:        cast.ToString(p["minimum_enabled_tls_protocol"]),
 		NoTableScan:                      pointy.Bool(cast.ToBool(p["no_table_scan"])),
 		SampleSizeBIConnector:            pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"])),
 		SampleRefreshIntervalBIConnector: pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"])),
