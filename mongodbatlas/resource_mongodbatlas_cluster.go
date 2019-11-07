@@ -98,9 +98,10 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Required: true,
 			},
 			"mongo_db_major_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Computed:  true,
+				StateFunc: formatMongoDBMajorVersion,
 			},
 			"num_shards": {
 				Type:     schema.TypeInt,
@@ -357,7 +358,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	clusterRequest := &matlas.Cluster{
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
-		MongoDBMajorVersion:      d.Get("mongo_db_major_version").(string),
+		MongoDBMajorVersion:      formatMongoDBMajorVersion(d.Get("mongo_db_major_version")),
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
 		DiskSizeGB:               pointy.Float64(d.Get("disk_size_gb").(float64)),
@@ -559,7 +560,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.EncryptionAtRestProvider = d.Get("encryption_at_rest_provider").(string)
 	}
 	if d.HasChange("mongo_db_major_version") {
-		cluster.MongoDBMajorVersion = d.Get("mongo_db_major_version").(string)
+		cluster.MongoDBMajorVersion = formatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
 	}
 	if d.HasChange("cluster_type") {
 		cluster.ClusterType = d.Get("cluster_type").(string)
@@ -903,4 +904,11 @@ func resourceClusterRefreshFunc(name, projectID string, client *matlas.Client) r
 
 		return c, c.StateName, nil
 	}
+}
+
+func formatMongoDBMajorVersion(val interface{}) string {
+	if strings.Contains(val.(string), ".") {
+		return val.(string)
+	}
+	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
