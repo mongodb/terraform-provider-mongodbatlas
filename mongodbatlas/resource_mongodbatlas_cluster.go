@@ -22,10 +22,12 @@ import (
 )
 
 const (
-	errorCreate = "error creating MongoDB Cluster: %s"
-	errorRead   = "error reading MongoDB Cluster (%s): %s"
-	errorDelete = "error deleting MongoDB Cluster (%s): %s"
-	errorUpdate = "error updating MongoDB Cluster (%s): %s"
+	errorCreate             = "error creating MongoDB Cluster: %s"
+	errorRead               = "error reading MongoDB Cluster (%s): %s"
+	errorDelete             = "error deleting MongoDB Cluster (%s): %s"
+	errorUpdate             = "error updating MongoDB Cluster (%s): %s"
+	errorAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 )
 
 func resourceMongoDBAtlasCluster() *schema.Resource {
@@ -239,6 +241,50 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"advanced_configuration": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"fail_index_key_too_long": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"javascript_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"minimum_enabled_tls_protocol": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"no_table_scan": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"oplog_size_mb": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"sample_size_bi_connector": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"sample_refresh_interval_bi_connector": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -280,6 +326,14 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	if d.Get("provider_name") == "AZURE" {
 		if _, ok := d.GetOk("disk_size_gb"); ok {
 			return fmt.Errorf("`disk_size_gb` cannot be used with Azure clusters")
+		}
+	}
+
+	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
+	// before that the cluster is created
+	if oplogSizeMB, ok := d.GetOk("advanced_configuration.oplog_size_mb"); ok {
+		if cast.ToInt64(oplogSizeMB) <= 0 {
+			return fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0")
 		}
 	}
 
@@ -340,6 +394,19 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf(errorCreate, err)
+	}
+
+	/*
+		So far, the cluster has created correctly, so we need to set up
+		the advanced configuration option to attach it
+	*/
+	ac, ok := d.GetOk("advanced_configuration")
+	advancedConfReq := expandProcessArgs(ac.(map[string]interface{}))
+	if ok {
+		_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, cluster.Name, advancedConfReq)
+		if err != nil {
+			return fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err)
+		}
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -433,6 +500,18 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorRead, clusterName, err)
 	}
 
+	/*
+		Get the advaced configuration options and set up to the terraform state
+	*/
+	processArgs, _, err := conn.Clusters.GetProcessArgs(context.Background(), projectID, clusterName)
+	if err != nil {
+		return fmt.Errorf(errorAdvancedConfRead, clusterName, err)
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+		return fmt.Errorf(errorAdvancedConfRead, clusterName, err)
+	}
+
 	return nil
 }
 
@@ -522,6 +601,20 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	_, err := stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf(errorCreate, err)
+	}
+
+	/*
+		Check if advaced configuration option has a changes to update it
+	*/
+	if d.HasChange("advanced_configuration") {
+		advancedConfReq := expandProcessArgs(d.Get("advanced_configuration").(map[string]interface{}))
+
+		if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+			_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, clusterName, advancedConfReq)
+			if err != nil {
+				return fmt.Errorf(errorAdvancedConfUpdate, clusterName, err)
+			}
+		}
 	}
 
 	return resourceMongoDBAtlasClusterRead(d, meta)
@@ -753,6 +846,36 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 		regions = append(regions, region)
 	}
 	return regions
+}
+
+func expandProcessArgs(p map[string]interface{}) *matlas.ProcessArgs {
+	res := &matlas.ProcessArgs{
+		FailIndexKeyTooLong:              pointy.Bool(cast.ToBool(p["fail_index_key_too_long"])),
+		JavascriptEnabled:                pointy.Bool(cast.ToBool(p["javascript_enabled"])),
+		MinimumEnabledTLSProtocol:        p["minimum_enabled_tls_protocol"].(string),
+		NoTableScan:                      pointy.Bool(cast.ToBool(p["no_table_scan"])),
+		SampleSizeBIConnector:            pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"])),
+		SampleRefreshIntervalBIConnector: pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"])),
+	}
+	if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
+		res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
+	} else {
+		log.Printf("[WARN] error setting cluster `oplog_size_mb`: %d", sizeMB)
+	}
+
+	return res
+}
+
+func flattenProcessArgs(p *matlas.ProcessArgs) map[string]interface{} {
+	return map[string]interface{}{
+		"fail_index_key_too_long":              cast.ToString(*p.FailIndexKeyTooLong),
+		"javascript_enabled":                   cast.ToString(*p.JavascriptEnabled),
+		"minimum_enabled_tls_protocol":         cast.ToString(p.MinimumEnabledTLSProtocol),
+		"no_table_scan":                        cast.ToString(*p.NoTableScan),
+		"oplog_size_mb":                        cast.ToString(p.OplogSizeMB),
+		"sample_size_bi_connector":             cast.ToString(p.SampleSizeBIConnector),
+		"sample_refresh_interval_bi_connector": cast.ToString(p.SampleRefreshIntervalBIConnector),
+	}
 }
 
 func resourceClusterRefreshFunc(name, projectID string, client *matlas.Client) resource.StateRefreshFunc {
