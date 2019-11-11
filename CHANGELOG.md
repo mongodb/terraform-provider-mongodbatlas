@@ -1,3 +1,4 @@
+## 0.3.2 (Unreleased)
 ## 0.3.1 (November 11, 2019)
 
 **Fixed bugs:**
