@@ -76,7 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 * `backup_enabled` - Indicates whether Atlas continuous backups are enabled for the cluster.
 * `bi_connector` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
 * `cluster_type` - Indicates the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
-* `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume.
+* `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
 * `name` - Name of the cluster as it appears in Atlas.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
@@ -86,7 +86,7 @@ In addition to all arguments above, the following attributes are exported:
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.
 * `backing_provider_name` - Indicates Cloud service provider on which the server for a multi-tenant cluster is provisioned.
 * `provider_disk_iops` - Indicates the maximum input/output operations per second (IOPS) the system can perform. The possible values depend on the selected providerSettings.instanceSizeName and diskSizeGB.
-* `provider_disk_type_name` - Describes Azure disk type of the server’s root volume.
+* `provider_disk_type_name` - Describes Azure disk type of the server’s root volume (Azure Only).
 * `provider_encrypt_ebs_volume` - Indicates whether the Amazon EBS encryption is enabled. This feature encrypts the server’s root volume for both data at rest within the volume and data moving between the volume and the instance.
 * `provider_region_name` - Indicates Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the Atlas Region name, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 * `provider_volume_type` - Indicates the type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.
