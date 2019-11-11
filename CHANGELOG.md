@@ -1,4 +1,31 @@
 ## 0.3.1 (Unreleased)
+
+**Fixed bugs:**
+
+- Confirmation on timelimit for a terraform apply [\#57](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/57)
+
+**Closed issues:**
+
+- Not able to create M0 clusters [\#64](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/64)
+- No way to modify advanced configuration options for a cluster [\#61](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/61)
+- mongodbatlas\_network\_peering outputting invalid json [\#59](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/59)
+- Syntax are not mandatory and creates confusion [\#58](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/58)
+- data source mongodbatlas\_network\_peering retrieves the same for id and connection\_id [\#56](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/56)
+- Add resource for maintenance window [\#55](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/55)
+- Error encryption\_at\_rest  rpc unavailable desc [\#54](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/54)
+- specify oplog size? [\#52](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/52)
+- Modifying project ip whitelist destroy and re-create all resources [\#51](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/51)
+- Add resource for custom database roles [\#50](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/50)
+- An invalid enumeration value US\_EAST\_1 was specified. [\#49](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/49)
+- Version 0.3.0 [\#47](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/47)
+- plugin.terraform-provider-mongodbatlas\_v0.2.0\_x4: panic: runtime error: index out of range [\#36](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/36)
+
+**Merged pull requests:**
+
+- Added format function to handle the mongo\_db\_major\_version attr [\#63](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/63) ([PacoDw](https://github.com/PacoDw))
+- Added cast func to avoid panic by nil value [\#62](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/62) ([PacoDw](https://github.com/PacoDw))
+- Cluster advanced configuration Options [\#60](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/60) ([PacoDw](https://github.com/PacoDw))
+
 ## 0.3.0 (October 08, 2019)
 
 **Closed issues:**
