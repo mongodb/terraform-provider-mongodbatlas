@@ -12,6 +12,12 @@ description: |-
 
 ~> **IMPORTANT:** This resource creates one Network Peering container into which Atlas can deploy Network Peering connections. An Atlas project can have a maximum of one container for each cloud provider. You must have either the Project Owner or Organization Owner role to successfully call this endpoint.
 
+The following table outlines the maximum number of Network Peering containers per cloud provider:
+| Cloud Provider | Container Limit                          |
+| -------------- | ---------------------------------------- |
+| GCP 	         | One container per project.               |
+| AWS and Azure  | One container per cloud provider region. |
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 
 
@@ -27,15 +33,6 @@ description: |-
     region_name      = "US_EAST_1"
   }
 
-  resource "mongodbatlas_network_peering" "test" {
-    accepter_region_name    = "us-east-1"	
-    project_id              = mongodbatlas_network_container.test.project_id
-    container_id            = mongodbatlas_network_container.test.container_id
-    provider_name           = "AWS"
-    route_table_cidr_block  = <AWS_VPC_CIDR_BLOCK>
-    vpc_id                  = <AWS_VPC_ID>
-    aws_account_id	        = <AWS_ACCOUNT_ID>
-  }
 ```
 
 ### Example with GCP
