@@ -45,6 +45,7 @@ type Client struct {
 	WhitelistAPIKeys                 WhitelistAPIKeysService
 	PrivateIPMode                    PrivateIpModeService
 	MaintenanceWindows               MaintenanceWindowsService
+	Teams                            TeamsService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -149,6 +150,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
 	c.PrivateIPMode = &PrivateIpModeServiceOp{client: c}
 	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{client: c}
+	c.Teams = &TeamsServiceOp{client: c}
 
 	return c
 }
