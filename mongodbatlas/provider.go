@@ -57,6 +57,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_network_peering":                     resourceMongoDBAtlasNetworkPeering(),
 			"mongodbatlas_encryption_at_rest":                  resourceMongoDBAtlasEncryptionAtRest(),
 			"mongodbatlas_private_ip_mode":                     resourceMongoDBAtlasPrivateIPMode(),
+			"mongodbatlas_maintenance_window":                  resourceMongoDBAtlasMaintenanceWindow(),
 		},
 
 		ConfigureFunc: providerConfigure,
