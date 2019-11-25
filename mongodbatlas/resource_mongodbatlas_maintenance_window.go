@@ -166,7 +166,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta in
 
 	_, err := conn.MaintenanceWindows.Update(context.Background(), d.Id(), maintenanceWindowReq)
 	if err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		return fmt.Errorf(errorMaintenanceUpdate, d.Id(), err)
 	}
 
 	return nil
