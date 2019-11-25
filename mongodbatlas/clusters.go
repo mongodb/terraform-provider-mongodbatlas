@@ -142,7 +142,9 @@ var DefaultDiskSizeGB map[string]map[string]float64 = map[string]map[string]floa
 		"R200":      1500,
 		"M200_NVME": 3100,
 		"M300":      2000,
-		"M400":      3000,
+		"R300":      2000,
+		"R400":      3000,
+		"M400_NVME": 4000,
 	},
 	"GCP": map[string]float64{
 		"M10":  10,
