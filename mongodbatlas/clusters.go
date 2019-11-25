@@ -114,6 +114,59 @@ type clustersResponse struct {
 	TotalCount int       `json:"totalCount,omitempty"`
 }
 
+// DefaultDiskSizeGB represents the Tier and the default disk size for each one
+// it can be use like: DefaultDiskSizeGB["AWS"]["M10"]
+var DefaultDiskSizeGB map[string]map[string]float64 = map[string]map[string]float64{
+	"TENANT": map[string]float64{
+		"M2": 2,
+		"M5": 5,
+	},
+	"AWS": map[string]float64{
+		"M10":       10,
+		"M20":       20,
+		"M30":       40,
+		"M40":       80,
+		"R40":       80,
+		"M40_NVME":  380,
+		"M50":       160,
+		"R50":       160,
+		"M50_NVME":  760,
+		"M60":       320,
+		"R60":       320,
+		"M60_NVME":  1600,
+		"M80":       750,
+		"R80":       750,
+		"M80_NVME":  1600,
+		"M140":      1000,
+		"M200":      1500,
+		"R200":      1500,
+		"M200_NVME": 3100,
+		"M300":      2000,
+		"M400":      3000,
+	},
+	"GCP": map[string]float64{
+		"M10":  10,
+		"M20":  20,
+		"M30":  40,
+		"M40":  80,
+		"M50":  160,
+		"M60":  320,
+		"M80":  750,
+		"M200": 1500,
+		"M300": 2200,
+	},
+	"AZURE": map[string]float64{
+		"M10":  32,
+		"M20":  32,
+		"M30":  32,
+		"M40":  128,
+		"M50":  128,
+		"M60":  128,
+		"M80":  256,
+		"M200": 256,
+	},
+}
+
 //List all clusters in the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-all/
 func (s *ClustersServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Cluster, *Response, error) {
