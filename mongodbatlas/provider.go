@@ -52,6 +52,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_snapshot_restore_jobs": dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs(),
 			"mongodbatlas_maintenance_window":                   dataSourceMongoDBAtlasMaintenanceWindow(),
 			"mongodbatlas_auditing":                             dataSourceMongoDBAtlasAuditing(),
+			"mongodbatlas_team":                                 dataSourceMongoDBAtlasTeam(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
