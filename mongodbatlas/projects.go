@@ -25,7 +25,7 @@ type ProjectsService interface {
 	Create(context.Context, *Project) (*Project, *Response, error)
 	Delete(context.Context, string) (*Response, error)
 	GetProjectTeamsAssigned(context.Context, string) (*TeamsAssigned, *Response, error)
-	AddTeamsToProject(context.Context, string, *Team) (*TeamsAssigned, *Response, error)
+	AddTeamsToProject(context.Context, string, *ProjectTeam) (*TeamsAssigned, *Response, error)
 }
 
 //ProjectsServiceOp handles communication with the Projects related methos of the
@@ -65,8 +65,8 @@ type RoleName struct {
 	RoleName string `json:"rolesNames"`
 }
 
-// Team reperesents the kind of role that has the team
-type Team struct {
+// ProjectTeam reperesents the kind of role that has the team
+type ProjectTeam struct {
 	TeamID string      `json:"teamId"`
 	Roles  []*RoleName `json:"roles"`
 }
@@ -211,7 +211,7 @@ func (s *ProjectsServiceOp) GetProjectTeamsAssigned(ctx context.Context, project
 
 //AddTeamsToProject adds teams to a project
 //See more: https://docs.atlas.mongodb.com/reference/api/project-add-team/
-func (s *ProjectsServiceOp) AddTeamsToProject(ctx context.Context, projectID string, createRequest *Team) (*TeamsAssigned, *Response, error) {
+func (s *ProjectsServiceOp) AddTeamsToProject(ctx context.Context, projectID string, createRequest *ProjectTeam) (*TeamsAssigned, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}

@@ -327,7 +327,7 @@ func TestProject_AddTeamsToProject(t *testing.T) {
 
 	projectID := "5a0a1e7e0f2912c554080adc"
 
-	createRequest := &Team{
+	createRequest := &ProjectTeam{
 		TeamID: "{TEAM-ID}",
 		Roles: []*RoleName{
 			{RoleName: GROUP_OWNER},

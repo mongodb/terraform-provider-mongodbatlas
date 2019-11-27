@@ -67,7 +67,7 @@ func TestAPIKeys_ListAPIKeys(t *testing.T) {
 			Desc:       "test-apikey",
 			PrivateKey: "********-****-****-db2c132ca78d",
 			PublicKey:  "ewmaqvdo",
-			Roles: []APIKeyRole{
+			Roles: []AtlasRole{
 				{
 					GroupID:  "1",
 					RoleName: "GROUP_OWNER",
@@ -83,7 +83,7 @@ func TestAPIKeys_ListAPIKeys(t *testing.T) {
 			Desc:       "test-apikey-2",
 			PrivateKey: "********-****-****-db2c132ca78f",
 			PublicKey:  "ewmaqvde",
-			Roles: []APIKeyRole{
+			Roles: []AtlasRole{
 				{
 					GroupID:  "1",
 					RoleName: "GROUP_OWNER",
@@ -114,7 +114,7 @@ func TestAPIKeys_ListAPIKeysMultiplePages(t *testing.T) {
 					Desc:       "test-apikey",
 					PrivateKey: "********-****-****-db2c132ca78d",
 					PublicKey:  "ewmaqvdo",
-					Roles: []APIKeyRole{
+					Roles: []AtlasRole{
 						{
 							GroupID:  "1",
 							RoleName: "GROUP_OWNER",
@@ -130,7 +130,7 @@ func TestAPIKeys_ListAPIKeysMultiplePages(t *testing.T) {
 					Desc:       "test-apikey-2",
 					PrivateKey: "********-****-****-db2c132ca78f",
 					PublicKey:  "ewmaqvde",
-					Roles: []APIKeyRole{
+					Roles: []AtlasRole{
 						{
 							GroupID:  "1",
 							RoleName: "GROUP_OWNER",
