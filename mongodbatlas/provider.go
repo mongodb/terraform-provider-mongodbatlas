@@ -49,6 +49,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_snapshot_restore_job":  dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
 			"mongodbatlas_cloud_provider_snapshot_restore_jobs": dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs(),
 			"mongodbatlas_maintenance_window":                   dataSourceMongoDBAtlasMaintenanceWindow(),
+			"mongodbatlas_auditing":                             dataSourceMongoDBAtlasAuditing(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -63,6 +64,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_encryption_at_rest":                  resourceMongoDBAtlasEncryptionAtRest(),
 			"mongodbatlas_private_ip_mode":                     resourceMongoDBAtlasPrivateIPMode(),
 			"mongodbatlas_maintenance_window":                  resourceMongoDBAtlasMaintenanceWindow(),
+			"mongodbatlas_auditing":                            resourceMongoDBAtlasAuditing(),
 		},
 
 		ConfigureFunc: providerConfigure,
