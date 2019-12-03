@@ -48,7 +48,7 @@ type AtlasUser struct {
 	Country      string      `json:"country"`
 }
 
-//GetAllAtlasUsers gets all users.
+//List gets all users.
 //See more: https://docs.atlas.mongodb.com/reference/api/user-get-all/
 func (s *AtlasUsersServiceOp) List(ctx context.Context, orgID string, listOptions *ListOptions) ([]AtlasUser, *Response, error) {
 	path := fmt.Sprintf(usersBasePath, orgID)
@@ -100,7 +100,7 @@ func (s *AtlasUsersServiceOp) Get(ctx context.Context, userID string) (*AtlasUse
 	return root, resp, err
 }
 
-//Get gets a single atlas user by name.
+//GetByName gets a single atlas user by name.
 //See more: https://docs.atlas.mongodb.com/reference/api/user-get-one-by-name/
 func (s *AtlasUsersServiceOp) GetByName(ctx context.Context, username string) (*AtlasUser, *Response, error) {
 	if username == "" {
