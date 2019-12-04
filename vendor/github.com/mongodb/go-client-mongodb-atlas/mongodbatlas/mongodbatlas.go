@@ -44,6 +44,9 @@ type Client struct {
 	EncryptionsAtRest                EncryptionsAtRestService
 	WhitelistAPIKeys                 WhitelistAPIKeysService
 	PrivateIPMode                    PrivateIpModeService
+	MaintenanceWindows               MaintenanceWindowsService
+	Teams                            TeamsService
+	AtlasUsers                       AtlasUsersService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -147,6 +150,9 @@ func NewClient(httpClient *http.Client) *Client {
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
 	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
 	c.PrivateIPMode = &PrivateIpModeServiceOp{client: c}
+	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{client: c}
+	c.Teams = &TeamsServiceOp{client: c}
+	c.AtlasUsers = &AtlasUsersServiceOp{client: c}
 
 	return c
 }
