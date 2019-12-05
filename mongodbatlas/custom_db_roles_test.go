@@ -145,7 +145,7 @@ func TestCustomDBRoles_CreateCustomDBRole(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	customDBRole, _, err := client.CustomDBRoles.Create(ctx, "1", createRequest)
@@ -227,7 +227,7 @@ func TestCustomDBRoles_UpdateCustomDBRole(t *testing.T) {
 			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
 		}
 
-		fmt.Fprintf(w, jsonBlob)
+		fmt.Fprint(w, jsonBlob)
 	})
 
 	customDBRole, _, err := client.CustomDBRoles.Update(ctx, "1", "test-role-name", updateRequest)
