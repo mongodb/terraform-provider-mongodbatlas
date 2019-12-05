@@ -31,6 +31,7 @@ type Client struct {
 	UserAgent string
 
 	//Services used for communicating with the API
+	CustomDBRoles                    CustomDBRolesService
 	DatabaseUsers                    DatabaseUsersService
 	ProjectIPWhitelist               ProjectIPWhitelistService
 	Projects                         ProjectsService
@@ -141,6 +142,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
 	c.Clusters = &ClustersServiceOp{client: c}
 	c.Containers = &ContainersServiceOp{client: c}
+	c.CustomDBRoles = &CustomDBRolesServiceOp{client: c}
 	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
 	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
 	c.Projects = &ProjectsServiceOp{client: c}
