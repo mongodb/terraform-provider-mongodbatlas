@@ -72,6 +72,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_auditing":                            resourceMongoDBAtlasAuditing(),
 			"mongodbatlas_team":                                resourceMongoDBAtlasTeam(),
 			"mongodbatlas_teams":                               resourceMongoDBAtlasTeam(),
+			"mongodbatlas_global_cluster_config":               resourceMongoDBAtlasGlobalCluster(),
 		},
 
 		ConfigureFunc: providerConfigure,
