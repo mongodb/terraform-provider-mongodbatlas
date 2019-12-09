@@ -358,7 +358,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	clusterRequest := &matlas.Cluster{
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
-		MongoDBMajorVersion:      formatMongoDBMajorVersion(d.Get("mongo_db_major_version")),
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
 		DiskSizeGB:               pointy.Float64(d.Get("disk_size_gb").(float64)),
@@ -367,6 +366,10 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+	}
+
+	if v, ok := d.GetOk("mongo_db_major_version"); ok {
+		clusterRequest.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
 	}
 
 	if r, ok := d.GetOk("replication_factor"); ok {
