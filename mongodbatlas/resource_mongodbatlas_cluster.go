@@ -52,7 +52,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
 			},
 			"backup_enabled": {
 				Type:     schema.TypeBool,
@@ -296,6 +295,16 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
+	autoScaling := matlas.AutoScaling{
+		DiskGBEnabled: pointy.Bool(true),
+	}
+
+	if diskGBEnabled, ok := d.GetOkExists("auto_scaling_disk_gb_enabled"); ok {
+		autoScaling = matlas.AutoScaling{
+			DiskGBEnabled: pointy.Bool(diskGBEnabled.(bool)),
+		}
+	}
+
 	//validate cluster_type conditional
 	if _, ok := d.GetOk("replication_specs"); ok {
 		if _, ok1 := d.GetOk("cluster_type"); !ok1 {
@@ -331,6 +340,15 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if providerName == "TENANT" {
+		if diskGBEnabled := d.Get("auto_scaling_disk_gb_enabled"); diskGBEnabled.(bool) {
+			return fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT")
+		}
+		autoScaling = matlas.AutoScaling{
+			DiskGBEnabled: pointy.Bool(false),
+		}
+	}
+
 	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
 	// before that the cluster is created
 	if oplogSizeMB, ok := d.GetOk("advanced_configuration.oplog_size_mb"); ok {
@@ -347,13 +365,8 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	providerSettings := expandProviderSetting(d)
 
 	replicationSpecs, err := expandReplicationSpecs(d)
-
 	if err != nil {
 		return fmt.Errorf(errorCreate, err)
-	}
-
-	autoScaling := matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
 	}
 
 	// set the default disk size gb for the provider and tier

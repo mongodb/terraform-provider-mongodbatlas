@@ -218,7 +218,7 @@ func TestAccResourceMongoDBAtlasCluster_tenantWithoutDiskSizeGb(t *testing.T) {
 				CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, "false", tier, region),
+						Config: testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, tier, region),
 						Check: resource.ComposeTestCheckFunc(
 							testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 							testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -521,7 +521,7 @@ func testAccMongoDBAtlasClusterConfigAzure(projectID, name, backupEnabled, tier,
 			
 			replication_factor           = 3
 			backup_enabled               = %s
-			auto_scaling_disk_gb_enabled = true
+			auto_scaling_disk_gb_enabled = false
 			mongo_db_major_version       = "4.0"
 			
 			//Provider Settings "block"
@@ -571,7 +571,7 @@ func testAccMongoDBAtlasClusterConfigTenant(projectID, name, autoScaling, size, 
 	`, projectID, name, autoScaling, size, tier, region)
 }
 
-func testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, autoScaling, tier, region string) string {
+func testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, tier, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "tenant" {
 			project_id             = "%s"
@@ -579,13 +579,12 @@ func testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, au
 			mongo_db_major_version = "4.0"
 		
 			backing_provider_name        = "AWS"
-			auto_scaling_disk_gb_enabled = "%s"
 		
 			provider_name               = "TENANT"
 			provider_instance_size_name = "%s"
 			provider_region_name        = "%s"
 		}
-	`, projectID, name, autoScaling, tier, region)
+	`, projectID, name, tier, region)
 }
 
 func testAccMongoDBAtlasClusterConfigMultiRegion(projectID, name, backupEnabled string) string {
