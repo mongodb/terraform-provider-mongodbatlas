@@ -44,6 +44,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_network_peerings":                     dataSourceMongoDBAtlasNetworkPeerings(),
 			"mongodbatlas_cloud_provider_snapshot_restore_job":  dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
 			"mongodbatlas_cloud_provider_snapshot_restore_jobs": dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs(),
+			"mongodbatlas_organization":                         dataSourceMongoDBAtlasOrganization(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -57,6 +58,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_network_peering":                     resourceMongoDBAtlasNetworkPeering(),
 			"mongodbatlas_encryption_at_rest":                  resourceMongoDBAtlasEncryptionAtRest(),
 			"mongodbatlas_private_ip_mode":                     resourceMongoDBAtlasPrivateIPMode(),
+			"mongodbatlas_organization":                        resourceMongoDBAtlasOrganization(),
 		},
 
 		ConfigureFunc: providerConfigure,
