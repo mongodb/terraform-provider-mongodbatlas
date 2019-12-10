@@ -31,6 +31,7 @@ type Client struct {
 	UserAgent string
 
 	//Services used for communicating with the API
+	CustomDBRoles                    CustomDBRolesService
 	DatabaseUsers                    DatabaseUsersService
 	ProjectIPWhitelist               ProjectIPWhitelistService
 	Projects                         ProjectsService
@@ -44,6 +45,9 @@ type Client struct {
 	EncryptionsAtRest                EncryptionsAtRestService
 	WhitelistAPIKeys                 WhitelistAPIKeysService
 	PrivateIPMode                    PrivateIpModeService
+	MaintenanceWindows               MaintenanceWindowsService
+	Teams                            TeamsService
+	Organizations                    OrganizationsService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -139,6 +143,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
 	c.Clusters = &ClustersServiceOp{client: c}
 	c.Containers = &ContainersServiceOp{client: c}
+	c.CustomDBRoles = &CustomDBRolesServiceOp{client: c}
 	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
 	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
 	c.Projects = &ProjectsServiceOp{client: c}
@@ -147,7 +152,10 @@ func NewClient(httpClient *http.Client) *Client {
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
 	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
 	c.PrivateIPMode = &PrivateIpModeServiceOp{client: c}
+	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{client: c}
+	c.Teams = &TeamsServiceOp{client: c}
 
+	c.Organizations = &OrganizationsServiceOp{client: c}
 	return c
 }
 

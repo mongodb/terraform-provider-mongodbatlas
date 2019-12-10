@@ -36,15 +36,15 @@ type APIKeyInput struct {
 
 // APIKey represents MongoDB API Key.
 type APIKey struct {
-	ID         string       `json:"id,omitempty"`
-	Desc       string       `json:"desc,omitempty"`
-	Roles      []APIKeyRole `json:"roles,omitempty"`
-	PrivateKey string       `json:"privateKey,omitempty"`
-	PublicKey  string       `json:"publicKey,omitempty"`
+	ID         string      `json:"id,omitempty"`
+	Desc       string      `json:"desc,omitempty"`
+	Roles      []AtlasRole `json:"roles,omitempty"`
+	PrivateKey string      `json:"privateKey,omitempty"`
+	PublicKey  string      `json:"publicKey,omitempty"`
 }
 
-// APIKeyRole represents a role name of API key
-type APIKeyRole struct {
+// AtlasRole represents a role name of API key
+type AtlasRole struct {
 	GroupID  string `json:"groupId,omitempty"`
 	OrgID    string `json:"orgId,omitempty"`
 	RoleName string `json:"roleName,omitempty"`
