@@ -54,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_auditing":                             dataSourceMongoDBAtlasAuditing(),
 			"mongodbatlas_team":                                 dataSourceMongoDBAtlasTeam(),
 			"mongodbatlas_teams":                                dataSourceMongoDBAtlasTeam(),
+			"mongodbatlas_global_cluster_config":                dataSourceMongoDBAtlasGlobalCluster(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
