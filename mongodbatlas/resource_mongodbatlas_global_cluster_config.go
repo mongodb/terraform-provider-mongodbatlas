@@ -115,6 +115,33 @@ func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
+	if v, ok := d.GetOk("custom_zone_mappings"); ok {
+		var customZoneMappings []matlas.CustomZoneMapping
+		for _, czms := range v.(*schema.Set).List() {
+			cz := czms.(map[string]interface{})
+
+			log.Printf("[DEBUG] custom zone mappings %+v", cz)
+
+			customZoneMapping := matlas.CustomZoneMapping{
+				Location: cz["location"].(string),
+				Zone:     cz["zone"].(string),
+			}
+
+			customZoneMappings = append(customZoneMappings, customZoneMapping)
+		}
+
+		if len(customZoneMappings) > 0 {
+			_, _, err := conn.GlobalClusters.AddCustomZoneMappings(context.Background(), projectID, clusterName, &matlas.CustomZoneMappingsRequest{
+				CustomZoneMappings: customZoneMappings,
+			})
+
+			if err != nil {
+				return fmt.Errorf(errorGlobalClusterCreate, err)
+			}
+		}
+
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
