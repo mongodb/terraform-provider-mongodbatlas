@@ -117,11 +117,11 @@ type clustersResponse struct {
 // DefaultDiskSizeGB represents the Tier and the default disk size for each one
 // it can be use like: DefaultDiskSizeGB["AWS"]["M10"]
 var DefaultDiskSizeGB map[string]map[string]float64 = map[string]map[string]float64{
-	"TENANT": map[string]float64{
+	"TENANT": {
 		"M2": 2,
 		"M5": 5,
 	},
-	"AWS": map[string]float64{
+	"AWS": {
 		"M10":       10,
 		"M20":       20,
 		"M30":       40,
@@ -146,7 +146,7 @@ var DefaultDiskSizeGB map[string]map[string]float64 = map[string]map[string]floa
 		"R400":      3000,
 		"M400_NVME": 4000,
 	},
-	"GCP": map[string]float64{
+	"GCP": {
 		"M10":  10,
 		"M20":  20,
 		"M30":  40,
@@ -157,7 +157,7 @@ var DefaultDiskSizeGB map[string]map[string]float64 = map[string]map[string]floa
 		"M200": 1500,
 		"M300": 2200,
 	},
-	"AZURE": map[string]float64{
+	"AZURE": {
 		"M10":  32,
 		"M20":  32,
 		"M30":  32,

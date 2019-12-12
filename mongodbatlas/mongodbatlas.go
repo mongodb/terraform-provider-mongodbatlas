@@ -47,6 +47,7 @@ type Client struct {
 	PrivateIPMode                    PrivateIpModeService
 	MaintenanceWindows               MaintenanceWindowsService
 	Teams                            TeamsService
+	AtlasUsers                       AtlasUsersService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -153,6 +154,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.PrivateIPMode = &PrivateIpModeServiceOp{client: c}
 	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{client: c}
 	c.Teams = &TeamsServiceOp{client: c}
+	c.AtlasUsers = &AtlasUsersServiceOp{client: c}
 
 	return c
 }
