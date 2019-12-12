@@ -55,16 +55,6 @@ type AtlasUserAssigned struct {
 	TotalCount int         `json:"totalCount"`
 }
 
-type AtlasUser struct {
-	EmailAddress string      `json:"emailAddress"`
-	FirstName    string      `json:"firstName"`
-	ID           string      `json:"id"`
-	LastName     string      `json:"lastName"`
-	Roles        []AtlasRole `json:"roles"`
-	TeamIds      []string    `json:"teamIds"`
-	Username     string      `json:"username"`
-}
-
 type TeamUpdateRoles struct {
 	RoleNames []string `json:"roleNames"`
 }
