@@ -32,14 +32,19 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
-					// resource.TestCheckResourceAttr(resourceName, "cluster_type", "GEOSHARDED"),
-					// resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
-					// resource.TestCheckResourceAttr(resourceName, "replication_specs.0.regions_config.#", "1"),
-					// resource.TestCheckResourceAttr(resourceName, "replication_specs.1.regions_config.#", "1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName),
+				ImportStateVerifyIgnore: []string{"custom_zone_mappings"},
 			},
 		},
 	})
@@ -66,6 +71,16 @@ func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConf
 		}
 
 		return fmt.Errorf("global config for cluster(%s) does not exist", rs.Primary.Attributes["cluster_name"])
+	}
+}
+
+func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]), nil
 	}
 }
 

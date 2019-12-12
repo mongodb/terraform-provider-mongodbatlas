@@ -265,6 +265,14 @@ func resourceMongoDBAtlasGlobalClusterImportState(d *schema.ResourceData, meta i
 		"cluster_name": name,
 	}))
 
+	if err := d.Set("project_id", projectID); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
+
+	if err := d.Set("cluster_name", name); err != nil {
+		return []*schema.ResourceData{d}, err
+	}
+
 	return []*schema.ResourceData{d}, nil
 }
 
