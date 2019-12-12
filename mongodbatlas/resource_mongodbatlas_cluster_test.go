@@ -20,7 +20,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 
 	resourceName := "mongodbatlas_cluster.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	tiers := []string{"M10", "M20", "M30", "M40"}
+	tiers := []string{"M10", "M30"}
 	region := "EU_CENTRAL_1"
 
 	for _, tier := range tiers {
@@ -109,6 +109,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAzure(t *testing.T) {
 	}
 
 }
+
 func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 	var cluster matlas.Cluster
 
@@ -164,10 +165,10 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 	}
 }
 
-func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
+func TestAccResourceMongoDBAtlasCluster_shared(t *testing.T) {
 	var cluster matlas.Cluster
 
-	resourceName := "mongodbatlas_cluster.tenant"
+	resourceName := "mongodbatlas_cluster.shared"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	var region string
 
@@ -183,7 +184,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 				CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "false", cast.ToString(size), tier, region),
+						Config: testAccMongoDBAtlasClusterConfigShared(projectID, name, "false", cast.ToString(size), tier, region),
 						Check: resource.ComposeTestCheckFunc(
 							testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 							testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -199,10 +200,10 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 	}
 }
 
-func TestAccResourceMongoDBAtlasCluster_tenantWithoutDiskSizeGb(t *testing.T) {
+func TestAccResourceMongoDBAtlasCluster_sharedWithoutDiskSizeGb(t *testing.T) {
 	var cluster matlas.Cluster
 
-	resourceName := "mongodbatlas_cluster.tenant"
+	resourceName := "mongodbatlas_cluster.shared"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	var region string
 
@@ -218,7 +219,7 @@ func TestAccResourceMongoDBAtlasCluster_tenantWithoutDiskSizeGb(t *testing.T) {
 				CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, tier, region),
+						Config: testAccMongoDBAtlasClusterConfigSharedWithoutDiskSizeGb(projectID, name, tier, region),
 						Check: resource.ComposeTestCheckFunc(
 							testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 							testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -232,6 +233,7 @@ func TestAccResourceMongoDBAtlasCluster_tenantWithoutDiskSizeGb(t *testing.T) {
 		})
 	}
 }
+
 func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
 	var cluster matlas.Cluster
 
@@ -553,9 +555,9 @@ func testAccMongoDBAtlasClusterConfigGCP(projectID, name, backupEnabled, tier, r
 	`, projectID, name, backupEnabled, tier, region)
 }
 
-func testAccMongoDBAtlasClusterConfigTenant(projectID, name, autoScaling, size, tier, region string) string {
+func testAccMongoDBAtlasClusterConfigShared(projectID, name, autoScaling, size, tier, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "tenant" {
+		resource "mongodbatlas_cluster" "shared" {
 			project_id             = "%s"
 			name                   = "%s"
 			mongo_db_major_version = "4.0"
@@ -571,9 +573,9 @@ func testAccMongoDBAtlasClusterConfigTenant(projectID, name, autoScaling, size, 
 	`, projectID, name, autoScaling, size, tier, region)
 }
 
-func testAccMongoDBAtlasClusterConfigTenantWithoutDiskSizeGb(projectID, name, tier, region string) string {
+func testAccMongoDBAtlasClusterConfigSharedWithoutDiskSizeGb(projectID, name, tier, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "tenant" {
+		resource "mongodbatlas_cluster" "shared" {
 			project_id             = "%s"
 			name                   = "%s"
 			mongo_db_major_version = "4.0"
