@@ -743,10 +743,13 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 	providerSettings := matlas.ProviderSettings{}
 
 	if d.Get("provider_name") == "AWS" {
-		// Asks if the Provider Disk IOS was set if it didn't the server will set it up automatically
+
+		// Check if the Provider Disk IOS sets in the Terraform configuration.
+		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
 		if v, ok := d.GetOk("provider_disk_iops"); ok {
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
+
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 		if encryptEBSVolume, ok := d.GetOkExists("provider_encrypt_ebs_volume"); ok {
 			providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(encryptEBSVolume))
