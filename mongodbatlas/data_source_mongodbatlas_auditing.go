@@ -42,7 +42,7 @@ func dataSourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}
 
 	projectID := d.Get("project_id").(string)
 
-	auditing, _, err := conn.Auditings.Get(context.Background(), projectID)
+	auditing, _, err := conn.Auditing.Get(context.Background(), projectID)
 	if err != nil {
 		return fmt.Errorf(errorAuditingRead, projectID, err)
 	}

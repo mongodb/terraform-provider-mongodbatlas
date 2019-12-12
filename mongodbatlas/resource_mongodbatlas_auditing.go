@@ -70,7 +70,7 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 		auditingReq.Enabled = pointy.Bool(enabled.(bool))
 	}
 
-	_, _, err := conn.Auditings.Configure(context.Background(), projectID, auditingReq)
+	_, _, err := conn.Auditing.Configure(context.Background(), projectID, auditingReq)
 	if err != nil {
 		return fmt.Errorf(errorAuditingCreate, projectID, err)
 	}
@@ -82,7 +82,7 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 func resourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
-	auditing, _, err := conn.Auditings.Get(context.Background(), d.Id())
+	auditing, _, err := conn.Auditing.Get(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf(errorAuditingRead, d.Id(), err)
 	}
@@ -118,7 +118,7 @@ func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}
 		auditingReq.Enabled = pointy.Bool(d.Get("enabled").(bool))
 	}
 
-	_, _, err := conn.Auditings.Configure(context.Background(), d.Id(), auditingReq)
+	_, _, err := conn.Auditing.Configure(context.Background(), d.Id(), auditingReq)
 	if err != nil {
 		return fmt.Errorf(errorAuditingUpdate, d.Id(), err)
 	}

@@ -118,7 +118,7 @@ func testAccCheckMongoDBAtlasAuditingExists(resourceName string, auditing *matla
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
 
-		auditingRes, _, err := conn.Auditings.Get(context.Background(), rs.Primary.ID)
+		auditingRes, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Auditing (%s) does not exist", rs.Primary.ID)
 		}
@@ -135,7 +135,7 @@ func testAccCheckMongoDBAtlasAuditingDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := conn.Auditings.Get(context.Background(), rs.Primary.ID)
+		_, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Auditing (%s) does not exist", rs.Primary.ID)
 		}
