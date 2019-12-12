@@ -47,9 +47,9 @@ func TestConfigureAuditing(t *testing.T) {
 		Enabled:                   pointy.Bool(true),
 	}
 
-	auditingResponse, _, err := client.Auditings.Configure(ctx, groupID, auditingRequest)
+	auditingResponse, _, err := client.Auditing.Configure(ctx, groupID, auditingRequest)
 	if err != nil {
-		t.Errorf("Auditings.Configure returned error: %v", err)
+		t.Errorf("Auditing.Configure returned error: %v", err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func TestConfigureAuditing(t *testing.T) {
 	}
 }
 
-func TestAuditings_Get(t *testing.T) {
+func TestAuditing_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -81,9 +81,9 @@ func TestAuditings_Get(t *testing.T) {
 		}`))
 	})
 
-	auditing, _, err := client.Auditings.Get(ctx, groupID)
+	auditing, _, err := client.Auditing.Get(ctx, groupID)
 	if err != nil {
-		t.Errorf("Auditings.Get returned error: %v", err)
+		t.Errorf("Auditing.Get returned error: %v", err)
 	}
 
 	expected := &Auditing{
