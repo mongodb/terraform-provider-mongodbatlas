@@ -10,6 +10,8 @@ description: |-
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
 
+~> **IMPORTANT WARNING:**  Changing the name of an existing Project in your Terraform configuration will result the destruction of that Project and related resources (including Clusters) and the re-creation of those resources.  Terraform will inform you of the destroyed/created resources before applying so be sure to verify any change to your environment before applying.  
+
 ## Example Usage
 
 ```hcl
@@ -21,7 +23,7 @@ resource "mongodbatlas_project" "my_project" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the project you want to create.
+* `name` - (Required) The name of the project you want to create. (Cannot be changed via this Provider after creation.)
 * `org_id` - (Required) The ID of the organization you want to create the project within.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
