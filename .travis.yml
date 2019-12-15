@@ -21,6 +21,3 @@ matrix:
   - go: "1.12.x"
     name: "Code UnitTest"
     script: make test
-
-env:
-  - GO111MODULE=on

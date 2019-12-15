@@ -1,28 +1,27 @@
 TEST?=./...
 PKG_NAME=mongodbatlas
+export GO111MODULE := on
+export PATH := ./bin:$(PATH)
 
 default: build
 
-build: fmtcheck
-	go install
+build:
+	go install ./$(PKG_NAME)
 
-
-test: fmtcheck
+test:
 	go test $(TEST) -timeout=30s -parallel=4 -cover
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	gofmt -s -w ./$(PKG_NAME)
 
-fmtcheck:
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
-
 lint:
 	@echo "==> Checking source code against linters..."
-	@GOGC=30 golangci-lint run ./$(PKG_NAME)
+	golangci-lint run $(TEST) -E gofmt
+
+check: test lint
 
 tools:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.21.0
 
-
-.PHONY: build test fmt fmtcheck lint tools
+.PHONY: build test fmt lint check tools
