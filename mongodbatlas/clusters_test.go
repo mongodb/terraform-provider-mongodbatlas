@@ -630,7 +630,7 @@ func TestClusters_UpdateProcessArgs(t *testing.T) {
 
 }
 
-func TestDatabaseUsers_GetProcessArgs(t *testing.T) {
+func TestClusters_GetProcessArgs(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -676,7 +676,7 @@ func TestClusters_checkClusterNameParam(t *testing.T) {
 	}
 }
 
-func TestDatabaseUsers_Get(t *testing.T) {
+func TestClusters_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
