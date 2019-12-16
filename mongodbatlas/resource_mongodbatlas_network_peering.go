@@ -61,9 +61,8 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 
 			"provider_name": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE", "GCP"}, false),
-				Default:      "AWS",
 			},
 			"route_table_cidr_block": {
 				Type:     schema.TypeString,
@@ -495,17 +494,6 @@ func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta 
 	peer, _, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
-	}
-
-	//Check wich provider is using.
-	provider := "AWS"
-	if peer.VNetName != "" {
-		provider = "AZURE"
-	} else if peer.NetworkName != "" {
-		provider = "GCP"
-	}
-	if providerName != provider {
-		providerName = provider
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {

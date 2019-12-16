@@ -134,9 +134,9 @@ resource "mongodbatlas_network_peering" "test" {
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
 * `container_id` - (Required) Unique identifier of the Atlas VPC container for the region. You can create an Atlas VPC container using the Create Container endpoint. You cannot create more than one container per region. To retrieve a list of container IDs, use the Get list of VPC containers endpoint.
+* `provider_name` - (Required) Cloud provider for this VPC peering connection. (Possible Values `AWS`, `AZURE`, `GCP`).
 * `accepter_region_name` - (Optional | **AWS Required**) Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `aws_account_id` - (Optional | **AWS Required**) Account ID of the owner of the peer VPC.
-* `provider_name` - (Optional) Cloud provider for this VPC peering connection. If omitted, Atlas sets this parameter to AWS. (Possible Values `AWS`, `AZURE`, `GCP`).
 * `route_table_cidr_block` - (Optional | **AWS Required**) Peer VPC CIDR block or subnet.
 * `vpc_id` - (Optional | **AWS Required**) Unique identifier of the peer VPC.
 * `atlas_cidr_block` - (Optional | **AZURE Required**) Unique identifier for an Azure AD directory.
