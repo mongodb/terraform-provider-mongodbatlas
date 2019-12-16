@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	errorMaintenanceCreate = "error create MongoDB Mainteanace Window (%s): %s"
-	errorMaintenanceUpdate = "error update MongoDB Mainteanace Window (%s): %s"
-	errorMaintenanceRead   = "error reading MongoDB Mainteanace Window (%s): %s"
-	errorMaintenanceDelete = "error delete MongoDB Mainteanace Window (%s): %s"
-	errorMaintenanceDefer  = "error defer MongoDB Mainteanace Window (%s): %s"
+	errorMaintenanceCreate = "error creating the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceUpdate = "error updating the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceRead   = "error reading the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceDelete = "error deleting the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceDefer  = "error deferring the MongoDB Atlas Maintenance Window (%s): %s"
 )
 
 func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
