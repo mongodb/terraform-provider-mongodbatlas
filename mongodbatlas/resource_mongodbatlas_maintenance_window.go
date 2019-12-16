@@ -64,7 +64,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"day_of_week", "hour_of_day", "number_of_deferrals", "number_of_deferrals"},
+				ConflictsWith: []string{"day_of_week", "hour_of_day", "number_of_deferrals"},
 			},
 			"number_of_deferrals": {
 				Type:          schema.TypeInt,
