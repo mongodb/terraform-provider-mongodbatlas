@@ -34,11 +34,9 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Required: true,
 			},
 			"day_of_week": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"start_asap"},
-
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 1 || v > 7 {
@@ -61,22 +59,18 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				},
 			},
 			"start_asap": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"day_of_week", "hour_of_day", "number_of_deferrals"},
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 			"number_of_deferrals": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"start_asap"},
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
 			},
 			"defer": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"start_asap"},
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 		},
 	}
@@ -101,9 +95,6 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta in
 	}
 	if hourOfDay, ok := d.GetOkExists("hour_of_day"); ok {
 		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
-	}
-	if startASAP, ok := d.GetOkExists("start_asap"); ok {
-		maintenanceWindowReq.StartASAP = pointy.Bool(cast.ToBool(startASAP))
 	}
 	if numberOfDeferrals, ok := d.GetOk("number_of_deferrals"); ok {
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(numberOfDeferrals)
@@ -135,6 +126,12 @@ func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
 	if err := d.Set("number_of_deferrals", maintenanceWindow.NumberOfDeferrals); err != nil {
+		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+	}
+	// start_asap is just display the state of the maintenance,
+	// and it doesn't able to set it because breacks the Terraform flow
+	// it can be used via API
+	if err := d.Set("start_asap", maintenanceWindow.StartASAP); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
 

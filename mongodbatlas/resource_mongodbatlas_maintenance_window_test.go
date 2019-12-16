@@ -64,44 +64,6 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasMaintenanceWindow_WithStartASAP(t *testing.T) {
-	var maintenance matlas.MaintenanceWindow
-	resourceName := "mongodbatlas_maintenance_window.test"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	dayOfWeek := 7
-	hourOfDay := 3
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
-					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
-
-					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
-					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
-					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasMaintenanceWindowConfigWithStartASAP(projectID, true),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "start_asap", "true"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
 	var maintenance matlas.MaintenanceWindow
 	resourceName := "mongodbatlas_maintenance_window.test"
@@ -207,12 +169,4 @@ func testAccMongoDBAtlasMaintenanceWindowConfig(projectID string, dayOfWeek, hou
 			day_of_week = %d
 			hour_of_day = %d
 		}`, projectID, dayOfWeek, hourOfDay)
-}
-
-func testAccMongoDBAtlasMaintenanceWindowConfigWithStartASAP(projectID string, startAsap bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_maintenance_window" "test" {
-			project_id  = "%s"
-			start_asap  = %t
-		}`, projectID, startAsap)
 }

@@ -23,14 +23,6 @@ Deferred maintenance events occur during your preferred maintenance window exact
   }
 
 ```
-## Example Usage
-
-```hcl
-  resource "mongodbatlas_maintenance_window" "test" {
-    project_id  = "<your-project-id>"
-    start_asap  = true 
-  }
-```
 
 ## Argument Reference
 
@@ -40,6 +32,8 @@ Deferred maintenance events occur during your preferred maintenance window exact
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If you request that maintenance begin immediately, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred.
 * `defer` - Defer maintenance for the given project for one week.
+
+-> **NOTE:** The `start_asap` attribute can't be used because of breaks the Terraform flow, but you can enable via API.
 
 ## Import
 
