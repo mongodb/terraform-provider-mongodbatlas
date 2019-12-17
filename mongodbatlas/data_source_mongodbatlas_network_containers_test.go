@@ -69,6 +69,7 @@ func testAccMongoDBAtlasNetworkContainersDataSourceConfigWithDS(projectID, cidrB
 
 		data "mongodbatlas_network_containers" "test" {
 			project_id = "%s"
+			provider_name = "AWS"
 		}
 	`, testAccMongoDBAtlasNetworkContainersDSConfig(projectID, cidrBlock), projectID)
 }
