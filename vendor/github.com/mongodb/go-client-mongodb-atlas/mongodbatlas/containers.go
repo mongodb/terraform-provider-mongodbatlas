@@ -13,7 +13,7 @@ const containersPath = "groups/%s/containers"
 // endpoints of the MongoDB Atlas API.
 //See more: https://docs.atlas.mongodb.com/reference/api/vpc/
 type ContainersService interface {
-	List(context.Context, string, *ListOptions) ([]Container, *Response, error)
+	List(context.Context, string, *ContainersListOptions) ([]Container, *Response, error)
 	Get(context.Context, string, string) (*Container, *Response, error)
 	Create(context.Context, string, *Container) (*Container, *Response, error)
 	Update(context.Context, string, string, *Container) (*Container, *Response, error)
@@ -27,6 +27,11 @@ type ContainersServiceOp struct {
 }
 
 var _ ContainersService = &ContainersServiceOp{}
+
+type ContainersListOptions struct {
+	ProviderName string `url:"providerName,omitempty"`
+	ListOptions
+}
 
 // Container represents MongoDB network peering containter.
 type Container struct {
@@ -52,7 +57,7 @@ type containersResponse struct {
 
 //List all containers in the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/vpc-get-containers-list/
-func (s *ContainersServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Container, *Response, error) {
+func (s *ContainersServiceOp) List(ctx context.Context, groupID string, listOptions *ContainersListOptions) ([]Container, *Response, error) {
 	path := fmt.Sprintf(containersPath, groupID)
 
 	//Add query params from listOptions
