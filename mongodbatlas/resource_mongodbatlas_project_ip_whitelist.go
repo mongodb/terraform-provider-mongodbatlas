@@ -35,10 +35,11 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				ForceNew: true,
 			},
 			"cidr_block": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"aws_security_group", "ip_address"},
 				ValidateFunc: func(i interface{}, k string) (s []string, es []error) {
 					v, ok := i.(string)
 					if !ok {
@@ -60,11 +61,19 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				},
 			},
 			"ip_address": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.SingleIP(),
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"aws_security_group", "cidr_block"},
+				ValidateFunc:  validation.SingleIP(),
+			},
+			"aws_security_group": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"ip_address", "cidr_block"},
 			},
 			"comment": {
 				Type:         schema.TypeString,
@@ -79,25 +88,34 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
+	cirdBlock := d.Get("cidr_block").(string)
+	ipAddress := d.Get("ip_address").(string)
+	awsSGroup := d.Get("aws_security_group").(string)
 
-	if d.Get("cidr_block") == "" && d.Get("ip_address") == "" {
-		return errors.New("cidr_block or ip_address needs to be setted")
+	if cirdBlock == "" && ipAddress == "" && awsSGroup == "" {
+		return errors.New("cidr_block, ip_address or aws_security_group needs to be setted")
 	}
 
 	_, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, []*matlas.ProjectIPWhitelist{
 		{
-			CIDRBlock: d.Get("cidr_block").(string),
-			IPAddress: d.Get("ip_address").(string),
-			Comment:   d.Get("comment").(string),
+			AwsSecurityGroup: awsSGroup,
+			CIDRBlock:        cirdBlock,
+			IPAddress:        ipAddress,
+			Comment:          d.Get("comment").(string),
 		},
 	})
 	if err != nil {
 		return fmt.Errorf(errorWhitelistCreate, err)
 	}
 
-	entry := d.Get("ip_address").(string)
-	if entry == "" {
-		entry = d.Get("cidr_block").(string)
+	var entry string
+	switch {
+	case cirdBlock != "":
+		entry = cirdBlock
+	case ipAddress != "":
+		entry = ipAddress
+	default:
+		entry = awsSGroup
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -117,11 +135,14 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 		return fmt.Errorf(errorWhitelistRead, err)
 	}
 
-	if err := d.Set("ip_address", whitelist.IPAddress); err != nil {
-		return fmt.Errorf(errorWhitelistSetting, "ip_address", ids["project_id"], err)
+	if err := d.Set("aws_security_group", whitelist.AwsSecurityGroup); err != nil {
+		return fmt.Errorf(errorWhitelistSetting, "aws_security_group", ids["project_id"], err)
 	}
 	if err := d.Set("cidr_block", whitelist.CIDRBlock); err != nil {
 		return fmt.Errorf(errorWhitelistSetting, "cidr_block", ids["project_id"], err)
+	}
+	if err := d.Set("ip_address", whitelist.IPAddress); err != nil {
+		return fmt.Errorf(errorWhitelistSetting, "ip_address", ids["project_id"], err)
 	}
 	if err := d.Set("comment", whitelist.Comment); err != nil {
 		return fmt.Errorf(errorWhitelistSetting, "comment", ids["project_id"], err)
