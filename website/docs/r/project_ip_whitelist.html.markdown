@@ -18,6 +18,7 @@ When you remove an entry from the whitelist, existing connections from the remov
 
 ## Example Usage
 
+### Using Cidr Block
 ```hcl
 resource "mongodbatlas_project_ip_whitelist" "test" {
   project_id = "<PROJECT-ID>"
@@ -26,6 +27,7 @@ resource "mongodbatlas_project_ip_whitelist" "test" {
 }
 ```
 
+### Using IP Address
 ```hcl
 resource "mongodbatlas_project_ip_whitelist" "test" {
   project_id = "<PROJECT-ID>"
@@ -34,11 +36,40 @@ resource "mongodbatlas_project_ip_whitelist" "test" {
 }
 ```
 
+### Using AWS Security Group
+```hcl
+resource "mongodbatlas_network_container" "test" {
+  project_id       = "<PROJECT-ID>"
+  atlas_cidr_block = "192.168.208.0/21"
+  provider_name    = "AWS"
+  region_name      = "US_EAST_1"
+}
+
+resource "mongodbatlas_network_peering" "test" {
+  project_id             = "<PROJECT-ID>"
+  container_id           = mongodbatlas_network_container.test.container_id
+  accepter_region_name   = "us-east-1"
+  provider_name          = "AWS"
+  route_table_cidr_block = "172.31.0.0/16"
+  vpc_id                 = "vpc-0d93d6f69f1578bd8"
+  aws_account_id         = "232589400519"
+}
+
+resource "mongodbatlas_project_ip_whitelist" "test" {
+  project_id         = "<PROJECT-ID>"
+  aws_security_group = "sg-0026348ec11780bd1"
+  comment            = "TestAcc for awsSecurityGroup"
+
+  depends_on = ["mongodbatlas_network_peering.test"]
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project in which to add the whitelist entry.
-* `cidr_block` - (Optional) The whitelist entry in Classless Inter-Domain Routing (CIDR) notation. Mutually exclusive with `ip_address`.
-* `ip_address` - (Optional) The whitelisted IP address. Mutually exclusive with `cidr_block`.
+* `aws_security_group` - (Optional) ID of the whitelisted AWS security group. Mutually exclusive with `cidr_block` and `ip_address`.
+* `cidr_block` - (Optional) Whitelist entry in Classless Inter-Domain Routing (CIDR) notation. Mutually exclusive with `aws_security_group` and `ip_address`.
+* `ip_address` - (Optional) Whitelisted IP address. Mutually exclusive with `aws_security_group` and `cidr_block`.
 * `comment` - (Optional) Comment to add to the whitelist entry.
 
 ## Attributes Reference
