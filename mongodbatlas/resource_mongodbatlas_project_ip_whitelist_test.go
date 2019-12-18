@@ -20,7 +20,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
 	updatedIPAddress := fmt.Sprintf("179.154.228.%d", acctest.RandIntRange(0, 255))
-	updatedComment := fmt.Sprintf("TestAcc for ipAddress (%s)", updatedIPAddress)
+	updatedComment := fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -65,7 +65,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
 	updatedCIDRBlock := fmt.Sprintf("179.154.228.%d/32", acctest.RandIntRange(0, 255))
-	updatedComment := fmt.Sprintf("TestAcc for cidrBlock (%s)", updatedCIDRBlock)
+	updatedComment := fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -100,7 +100,57 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 			},
 		},
 	})
+}
 
+func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testing.T) {
+
+	resourceName := "mongodbatlas_project_ip_whitelist.test"
+	vpcID := os.Getenv("AWS_VPC_ID")
+	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
+	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
+	awsRegion := os.Getenv("AWS_REGION")
+	providerName := "AWS"
+
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	awsSGroup := "sg-0026348ec11780bd1"
+	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
+
+	updatedAWSSgroup := "sg-0026348ec11780bd2"
+	updatedComment := fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
+					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
+					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_security_group", updatedAWSSgroup),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
+				),
+			},
+		},
+	})
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
@@ -196,4 +246,33 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, cidr
 			comment    = "%s"
 		}
 	`, projectID, cidrBlock, comment)
+}
+
+func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		  = "%[1]s"
+			atlas_cidr_block  = "192.168.208.0/21"
+			provider_name		  = "%[2]s"
+			region_name			  = "%[6]s"
+		}
+
+		resource "mongodbatlas_network_peering" "test" {
+			accepter_region_name	  = "us-east-1"	
+			project_id    			    = "%[1]s"
+			container_id            = mongodbatlas_network_container.test.container_id
+			provider_name           = "%[2]s"
+			route_table_cidr_block  = "%[5]s"
+			vpc_id					        = "%[3]s"
+			aws_account_id	        = "%[4]s"
+		}
+
+		resource "mongodbatlas_project_ip_whitelist" "test" {
+			project_id         = "%[1]s"
+			aws_security_group = "%[7]s"
+			comment            = "%[8]s"
+
+			depends_on = ["mongodbatlas_network_peering.test"]
+		}
+	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
