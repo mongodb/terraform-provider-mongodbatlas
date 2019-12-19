@@ -151,10 +151,11 @@ func TestContainers_RetrievePageByNumber(t *testing.T) {
 
 	mux.HandleFunc("/groups/1/containers", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
+
 		fmt.Fprint(w, jBlob)
 	})
 
-	opt := &ListOptions{PageNum: 2}
+	opt := &ContainersListOptions{ListOptions: ListOptions{PageNum: 2}, ProviderName: "GCP"}
 	_, resp, err := client.Containers.List(ctx, "1", opt)
 
 	if err != nil {
