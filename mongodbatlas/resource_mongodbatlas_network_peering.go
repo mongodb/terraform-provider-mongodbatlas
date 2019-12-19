@@ -375,6 +375,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	peerID := ids["peer_id"]
 
 	peer := new(matlas.Peer)
+	peer.ProviderName = ids["provider_name"]
 
 	if d.HasChange("accepter_region_name") {
 		region, _ := valRegion(d.Get("accepter_region_name"), "network_peering")
