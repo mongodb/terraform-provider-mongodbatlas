@@ -17,6 +17,10 @@ func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"provider_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -78,7 +82,10 @@ func dataSourceMongoDBAtlasNetworkContainersRead(d *schema.ResourceData, meta in
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
-	containers, _, err := conn.Containers.List(context.Background(), projectID, nil)
+	containers, _, err := conn.Containers.List(context.Background(), projectID, &matlas.ContainersListOptions{
+		ProviderName: d.Get("provider_name").(string),
+	})
+
 	if err != nil {
 		return fmt.Errorf("error getting network peering containers information: %s", err)
 	}
