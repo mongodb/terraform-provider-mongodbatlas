@@ -153,6 +153,40 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *te
 	})
 }
 
+func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T) {
+
+	resourceName := "mongodbatlas_project_ip_whitelist.test_%d"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+	var entry, comment, entryName string
+
+	// Creating 100 whitelist entriies at the same time
+	for i := 0; i < 100; i++ {
+		entry = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+		comment = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
+		if i%2 == 0 {
+			entry = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+			comment = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
+		}
+
+		t.Run(comment, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:     func() { testAccPreCheck(t) },
+				Providers:    testAccProviders,
+				CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+				Steps: []resource.TestStep{
+					{
+						Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment, i),
+						Check: resource.ComposeTestCheckFunc(
+							testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, i)),
+						),
+					},
+				},
+			})
+		})
+	}
+}
+
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -275,4 +309,24 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectI
 			depends_on = ["mongodbatlas_network_peering.test"]
 		}
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+}
+
+func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment string, i int) string {
+	if i%2 == 0 {
+		return fmt.Sprintf(`
+			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+				project_id = "%s"
+				cidr_block = "%s"
+				comment    = "%s"
+			}
+		`, i, projectID, entry, comment)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+			project_id = "%s"
+			ip_address = "%s"
+			comment    = "%s"
+		}
+	`, i, projectID, entry, comment)
 }
