@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	errorWhitelistCreate  = "error creating Project IP Whitelist information: %s"
-	errorWhitelistRead    = "error getting Project IP Whitelist information: %s"
-	errorWhitelistUpdate  = "error updating Project IP Whitelist information: %s"
+	errorWhitelistCreate = "error creating Project IP Whitelist information: %s"
+	errorWhitelistRead   = "error getting Project IP Whitelist information: %s"
+	// errorWhitelistUpdate  = "error updating Project IP Whitelist information: %s"
 	errorWhitelistDelete  = "error deleting Project IP Whitelist information: %s"
 	errorWhitelistSetting = "error setting `%s` for Project IP Whitelist (%s): %s"
 )
@@ -25,7 +25,6 @@ const (
 func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasProjectIPWhitelistCreate,
-		Update: resourceMongoDBAtlasProjectIPWhitelistUpdate,
 		Read:   resourceMongoDBAtlasProjectIPWhitelistRead,
 		Delete: resourceMongoDBAtlasProjectIPWhitelistDelete,
 		Importer: &schema.ResourceImporter{
@@ -82,6 +81,7 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 		},
@@ -196,28 +196,6 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 	})
 }
 
-func resourceMongoDBAtlasProjectIPWhitelistUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
-	ids := decodeStateID(d.Id())
-
-	req := &matlas.ProjectIPWhitelist{}
-
-	if d.HasChange("comment") {
-		req.Comment = d.Get("comment").(string)
-	}
-	return resource.Retry(10*time.Minute, func() *resource.RetryError {
-		_, _, err := conn.ProjectIPWhitelist.Update(context.Background(), ids["project_id"], []*matlas.ProjectIPWhitelist{req})
-		if err != nil {
-			if strings.Contains(fmt.Sprint(err), "500") || strings.Contains(fmt.Sprint(err), "404") {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(fmt.Errorf(errorWhitelistUpdate, err))
-		}
-
-		return resource.NonRetryableError(resourceMongoDBAtlasProjectIPWhitelistRead(d, meta))
-	})
-}
-
 func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
 	//Get the client connection.
 	conn := meta.(*matlas.Client)
@@ -253,7 +231,6 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistDelete, err))
 			}
 		}
-
 		return nil
 	})
 }
