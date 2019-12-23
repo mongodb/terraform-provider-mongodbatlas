@@ -1,3 +1,41 @@
+## [v0.1.2](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.1.2) (2019-12-23)
+[Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.1.1...v0.1.2)
+
+**Merged pull requests:**
+
+- add providerName option in listoptions for containers service [\#36](https://github.com/mongodb/go-client-mongodb-atlas/pull/36) ([marinsalinas](https://github.com/marinsalinas))
+- Improve Makefile [\#34](https://github.com/mongodb/go-client-mongodb-atlas/pull/34) ([gssbzn](https://github.com/gssbzn))
+- Global Clusters Service [\#32](https://github.com/mongodb/go-client-mongodb-atlas/pull/32) ([marinsalinas](https://github.com/marinsalinas))
+- fix: linting issue custom db roles [\#31](https://github.com/mongodb/go-client-mongodb-atlas/pull/31) ([marinsalinas](https://github.com/marinsalinas))
+- Auditing [\#30](https://github.com/mongodb/go-client-mongodb-atlas/pull/30) ([PacoDw](https://github.com/PacoDw))
+- Atlas Users Service [\#29](https://github.com/mongodb/go-client-mongodb-atlas/pull/29) ([marinsalinas](https://github.com/marinsalinas))
+- chore: added default disk size for each provider tier [\#27](https://github.com/mongodb/go-client-mongodb-atlas/pull/27) ([PacoDw](https://github.com/PacoDw))
+- Teams Service [\#26](https://github.com/mongodb/go-client-mongodb-atlas/pull/26) ([marinsalinas](https://github.com/marinsalinas))
+- Maintance windows [\#25](https://github.com/mongodb/go-client-mongodb-atlas/pull/25) ([PacoDw](https://github.com/PacoDw))
+- Service for manipulating Custom MongoDB Roles [\#20](https://github.com/mongodb/go-client-mongodb-atlas/pull/20) ([mpaluchowski](https://github.com/mpaluchowski))
+
+## [v0.1.1](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.1.1) (2019-11-05)
+[Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.1.0...v0.1.1)
+
+**Closed issues:**
+
+- Provide Cluster Advanced configuration API [\#22](https://github.com/mongodb/go-client-mongodb-atlas/issues/22)
+- Provide Alert Configurations API [\#18](https://github.com/mongodb/go-client-mongodb-atlas/issues/18)
+
+**Merged pull requests:**
+
+- Added missing comments and omitempty tags for the ProcessArgs struct [\#24](https://github.com/mongodb/go-client-mongodb-atlas/pull/24) ([PacoDw](https://github.com/PacoDw))
+- Add cluster advaced configuration support [\#23](https://github.com/mongodb/go-client-mongodb-atlas/pull/23) ([marinsalinas](https://github.com/marinsalinas))
+- Fix Linting issues. [\#21](https://github.com/mongodb/go-client-mongodb-atlas/pull/21) ([marinsalinas](https://github.com/marinsalinas))
+
+## [v0.1.0](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.1.0) (2019-09-18)
+[Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.0.3...v0.1.0)
+
+**Merged pull requests:**
+
+- feat: add private ip mode service [\#19](https://github.com/mongodb/go-client-mongodb-atlas/pull/19) ([marinsalinas](https://github.com/marinsalinas))
+- chore: update changelog [\#17](https://github.com/mongodb/go-client-mongodb-atlas/pull/17) ([marinsalinas](https://github.com/marinsalinas))
+
 ## [v0.0.3](https://github.com/mongodb/go-client-mongodb-atlas/tree/v0.0.3) (2019-08-14)
 [Full Changelog](https://github.com/mongodb/go-client-mongodb-atlas/compare/v0.0.2...v0.0.3)
 
@@ -28,16 +66,6 @@
 - Peers Service [\#3](https://github.com/mongodb/go-client-mongodb-atlas/pull/3) ([marinsalinas](https://github.com/marinsalinas))
 - Chore: TravisCI integration [\#2](https://github.com/mongodb/go-client-mongodb-atlas/pull/2) ([marinsalinas](https://github.com/marinsalinas))
 - Cloud Provider Snapshot Restore Job Support [\#1](https://github.com/mongodb/go-client-mongodb-atlas/pull/1) ([PacoDw](https://github.com/PacoDw))
-
-- feat: JobID was added to SnapshotReqPathParameters struct [\#10](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/10) ([PacoDw](https://github.com/PacoDw))
-- Programmatic API Keys Service. [\#9](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/9) ([marinsalinas](https://github.com/marinsalinas))
-- Cloud Provider Snapshots Support [\#7](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/7) ([PacoDw](https://github.com/PacoDw))
-- Clusters Support [\#6](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/6) ([marinsalinas](https://github.com/marinsalinas))
-- :feature add projects service to handle API calls [\#5](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/5) ([PacoDw](https://github.com/PacoDw))
-- Project IP Whitelist Support [\#4](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/4) ([marinsalinas](https://github.com/marinsalinas))
-- chore: change module name [\#3](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/3) ([marinsalinas](https://github.com/marinsalinas))
--  Database Users Service [\#2](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/2) ([marinsalinas](https://github.com/marinsalinas))
-- Project skeleton [\#1](https://github.com/mongodb-partners/go-client-mongodb-atlas/pull/1) ([marinsalinas](https://github.com/marinsalinas))
 
 
 
