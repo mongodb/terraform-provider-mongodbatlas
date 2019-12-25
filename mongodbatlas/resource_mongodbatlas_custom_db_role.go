@@ -12,7 +12,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 		Create:   resourceMongoDBAtlasCustomDBRoleCreate,
 		Read:     resourceMongoDBAtlasCustomDBRoleRead,
 		Update:   nil,
-		Delete:   nil,
+		Delete:   resourceMongoDBAtlasCustomDBRoleDelete,
 		Importer: nil,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -122,6 +122,20 @@ func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err)
 	}
 
+	return nil
+}
+
+func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	roleName := ids["role_name"]
+
+	_, err := conn.CustomDBRoles.Delete(context.Background(), projectID, roleName)
+
+	if err != nil {
+		return fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
+	}
 	return nil
 }
 
