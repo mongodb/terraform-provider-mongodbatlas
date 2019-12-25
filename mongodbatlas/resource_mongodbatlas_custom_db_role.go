@@ -54,7 +54,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 			},
 			"inherited_roles": {
 				Type:     schema.TypeList,
-				Required: false,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"database_name": {
