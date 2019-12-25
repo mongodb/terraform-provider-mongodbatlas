@@ -35,19 +35,16 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"collection_name": {
-										Type:          schema.TypeString,
-										Optional:      true,
-										ConflictsWith: []string{"cluster"},
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"database_name": {
-										Type:          schema.TypeString,
-										Optional:      true,
-										ConflictsWith: []string{"cluster"},
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"cluster": {
-										Type:          schema.TypeBool,
-										Optional:      true,
-										ConflictsWith: []string{"database_name", "collection_name"},
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 								},
 							},
