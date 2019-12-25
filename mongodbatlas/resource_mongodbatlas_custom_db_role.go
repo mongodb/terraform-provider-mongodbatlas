@@ -2,18 +2,23 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	"log"
+	"strings"
 )
 
 func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
-		Create:   resourceMongoDBAtlasCustomDBRoleCreate,
-		Read:     resourceMongoDBAtlasCustomDBRoleRead,
-		Update:   resourceMongoDBAtlasCustomDBRoleUpdate,
-		Delete:   resourceMongoDBAtlasCustomDBRoleDelete,
-		Importer: nil,
+		Create: resourceMongoDBAtlasCustomDBRoleCreate,
+		Read:   resourceMongoDBAtlasCustomDBRoleRead,
+		Update: resourceMongoDBAtlasCustomDBRoleUpdate,
+		Delete: resourceMongoDBAtlasCustomDBRoleDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasCustomDBRoleImportState,
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -166,6 +171,34 @@ func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
 	}
 	return nil
+}
+
+func resourceMongoDBAtlasCustomDBRoleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a custom db role use the format {project_id}-{role_name}")
+	}
+
+	projectID := parts[0]
+	roleName := parts[1]
+
+	r, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import custom db role %s in project %s, error: %s", roleName, projectID, err)
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"role_name":  r.RoleName,
+	}))
+
+	if err := d.Set("project_id", projectID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func expandActions(d *schema.ResourceData) []matlas.Action {
