@@ -11,7 +11,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
 		Create:   resourceMongoDBAtlasCustomDBRoleCreate,
 		Read:     resourceMongoDBAtlasCustomDBRoleRead,
-		Update:   nil,
+		Update:   resourceMongoDBAtlasCustomDBRoleUpdate,
 		Delete:   resourceMongoDBAtlasCustomDBRoleDelete,
 		Importer: nil,
 		Schema: map[string]*schema.Schema{
@@ -123,6 +123,35 @@ func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	roleName := ids["role_name"]
+
+	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+
+	if err != nil {
+		return fmt.Errorf("error getting custom db role information: %s", err)
+	}
+
+	if d.HasChange("actions") {
+		customDBRole.Actions = expandActions(d)
+	}
+
+	if d.HasChange("inherited_roles") {
+		customDBRole.InheritedRoles = expandInheritedRoles(d)
+	}
+
+	_, _, err = conn.CustomDBRoles.Update(context.Background(), projectID, roleName, customDBRole)
+
+	if err != nil {
+		return fmt.Errorf("error updating custom db role (%s): %s", roleName, err)
+	}
+
+	return resourceMongoDBAtlasCustomDBRoleRead(d, meta)
 }
 
 func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interface{}) error {
