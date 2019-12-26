@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_auditing
 
-`mongodbatlas_auditing` provides a Auditing resource. This allows auditing to be created.
+`mongodbatlas_auditing` provides an Auditing resource. This allows auditing to be created.
 
 ## Example Usage
 
@@ -23,10 +23,10 @@ resource "mongodbatlas_auditing" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to configure auditing.
 * `audit_filter` - Indicates whether the auditing system captures successful authentication attempts for audit filters using the "atype" : "authCheck" auditing event. For more information, see auditAuthorizationSuccess
 * `audit_authorization_success` - JSON-formatted audit filter used by the project
-* `enabled` - Denotes whether or not the project associated with the {GROUP-ID} has database auditing enabled.
+* `enabled` - Denotes whether or not the project associated with the {project_id} has database auditing enabled.
 
 ~> **NOTE:** Auditing created by API Keys must belong to an existing organization.
 
@@ -34,7 +34,10 @@ resource "mongodbatlas_auditing" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `configuration_type` - Denotes the configuration method for the audit filter. Possible values are: NONE - auditing not configured for the project.m FILTER_BUILDER - auditing configured via Atlas UI filter builderm FILTER_JSON - auditing configured via Atlas custom filter or API.
+* `configuration_type` - Denotes the configuration method for the audit filter. Possible values are: 
+	* NONE - auditing not configured for the project.
+	* FILTER_BUILDER - auditing configured via Atlas UI filter builder.
+	* FILTER_JSON - auditing configured via Atlas custom filter or API.
 
 ## Import
 
