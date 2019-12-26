@@ -14,7 +14,6 @@ const (
 	errorAuditingCreate = "error creating MongoDB Auditing (%s): %s"
 	errorAuditingUpdate = "error updating MongoDB Auditing (%s): %s"
 	errorAuditingRead   = "error reading MongoDB Auditing (%s): %s"
-	// errorAuditingDelete = "error deleting MongoDB Auditing (%s): %s"
 )
 
 func resourceMongoDBAtlasAuditing() *schema.Resource {
