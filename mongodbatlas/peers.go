@@ -31,7 +31,7 @@ var _ PeersService = &PeersServiceOp{}
 // Peer represents MongoDB peer connection.
 type Peer struct {
 	AccepterRegionName  string `json:"accepterRegionName,omitempty"`
-	AWSAccountId        string `json:"awsAccountId,omitempty"`
+	AWSAccountID        string `json:"awsAccountId,omitempty"`
 	ConnectionID        string `json:"connectionId,omitempty"`
 	ContainerID         string `json:"containerId,omitempty"`
 	ErrorStateName      string `json:"errorStateName,omitempty"`
@@ -42,7 +42,7 @@ type Peer struct {
 	VpcID               string `json:"vpcId,omitempty"`
 	AtlasCIDRBlock      string `json:"atlasCidrBlock,omitempty"`
 	AzureDirectoryID    string `json:"azureDirectoryId,omitempty"`
-	AzureSubscriptionId string `json:"azureSubscriptionId,omitempty"`
+	AzureSubscriptionID string `json:"azureSubscriptionId,omitempty"`
 	ResourceGroupName   string `json:"resourceGroupName,omitempty"`
 	VNetName            string `json:"vnetName,omitempty"`
 	ErrorState          string `json:"errorState,omitempty"`

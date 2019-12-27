@@ -17,7 +17,7 @@ fmt:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run $(TEST) -E gofmt
+	golangci-lint run $(TEST) -E gofmt -E golint -E misspell
 
 check: test lint
 
