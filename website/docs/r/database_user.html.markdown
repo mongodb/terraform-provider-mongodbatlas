@@ -24,14 +24,14 @@ resource "mongodbatlas_database_user" "test" {
 	password      = "test-acc-password"
 	project_id    = "<PROJECT-ID>"
 	database_name = "admin"
-	
+
 	roles {
 		role_name     = "readWrite"
-		database_name = "admin"
+		database_name = "dbforApp"
 	}
 
     roles {
-		role_name     = "%s"
+		role_name     = "readAnyDatabase"
 		database_name = "admin"
 	}
 }
@@ -43,7 +43,7 @@ resource "mongodbatlas_database_user" "test" {
 * `project_id` - (Required) The unique ID for the project to create the database user.
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB.
-* `password` - (Optional) User's initial password. This is required to create the user but may be removed after. Password may show up in logs, and it will be stored in the state file as plain-text. Password can be changed in the web interface to increase security.
+* `password` - (Required) User's initial password. A value is required to create the database user, however the argument but may be removed from your Terraform configuration after user creation without impacting the user, password or Terraform management. IMPORTANT --- Passwords may show up in Terraform related logs and it will be stored in the Terraform state file as plain-text. Password can be changed after creation using your preferred method, e.g. via the MongoDB Atlas UI, to ensure security.  If you do change management of the password to outside of Terraform be sure to remove the argument from the Terraform configuration so it is not inadvertently updated to the original password.
 
 ### Roles
 
