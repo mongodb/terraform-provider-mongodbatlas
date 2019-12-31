@@ -55,6 +55,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_team":                                 dataSourceMongoDBAtlasTeam(),
 			"mongodbatlas_teams":                                dataSourceMongoDBAtlasTeam(),
 			"mongodbatlas_global_cluster_config":                dataSourceMongoDBAtlasGlobalCluster(),
+			"mongodbatlas_alert_configuration":                  dataSourceMongoDBAtlasAlertConfiguration(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -74,6 +75,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_team":                                resourceMongoDBAtlasTeam(),
 			"mongodbatlas_teams":                               resourceMongoDBAtlasTeam(),
 			"mongodbatlas_global_cluster_config":               resourceMongoDBAtlasGlobalCluster(),
+			"mongodbatlas_alert_configuration":                 resourceMongoDBAtlasAlertConfiguration(),
 		},
 
 		ConfigureFunc: providerConfigure,
