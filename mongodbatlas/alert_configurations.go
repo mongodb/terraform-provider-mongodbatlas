@@ -8,14 +8,14 @@ import (
 
 const alertConfigurationPath = "groups/%s/alertConfigs"
 
-// AlertConfigurationsService is an interface for interfacing with the Project IP Whitelist
+// AlertConfigurationsService is an interface of the Alert Configuration
 // endpoints of the MongoDB Atlas API.
 // See more: hhttps://docs.atlas.mongodb.com/reference/api/alert-configurations
 type AlertConfigurationsService interface {
 	Create(context.Context, string, *AlertConfiguration) (*AlertConfiguration, *Response, error)
-	EnableAnAlert(context.Context, string, string, *bool) (*AlertConfiguration, *Response, error)
-	GetAnAlert(context.Context, string, string) (*AlertConfiguration, *Response, error)
-	GetOpenAlerts(context.Context, string, string) ([]AlertConfiguration, *Response, error)
+	EnableAnAlertConfig(context.Context, string, string, *bool) (*AlertConfiguration, *Response, error)
+	GetAnAlertConfig(context.Context, string, string) (*AlertConfiguration, *Response, error)
+	GetOpenAlertsConfig(context.Context, string, string) ([]AlertConfiguration, *Response, error)
 	List(context.Context, string, *ListOptions) ([]AlertConfiguration, *Response, error)
 	Update(context.Context, string, string, *AlertConfiguration) (*AlertConfiguration, *Response, error)
 	Delete(context.Context, string, string) (*Response, error)
@@ -42,15 +42,15 @@ type AlertConfiguration struct {
 	AcknowledgingUsername  string           `json:"acknowledgingUsername,omitempty"`  // The username of the user who acknowledged the alert. Will not be present if the alert has never been acknowledged.
 	Updated                string           `json:"updated,omitempty"`                // Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.
 	Resolved               string           `json:"resolved,omitempty"`               // When the alert was closed. Only present if the status is CLOSED.
-	LastNotified           string           `json:"lastNotified,omitempty"`           //	When the last notification was sent for this alert. Only present if notifications have been sent.
-	HostnameAndPort        string           `json:"hostnameAndPort,omitempty"`        //	The hostname and port of each host to which the alert applies. Only present for alerts of type HOST, HOST_METRIC, and REPLICA_SET.
-	HostID                 string           `json:"hostId,omitempty"`                 //	ID of the host to which the metric pertains. Only present for alerts of type HOST, HOST_METRIC, and REPLICA_SET.
-	ReplicaSetName         string           `json:"replicaSetName,omitempty"`         //	Name of the replica set. Only present for alerts of type HOST, HOST_METRIC, BACKUP, and REPLICA_SET.
+	LastNotified           string           `json:"lastNotified,omitempty"`           // When the last notification was sent for this alert. Only present if notifications have been sent.
+	HostnameAndPort        string           `json:"hostnameAndPort,omitempty"`        // The hostname and port of each host to which the alert applies. Only present for alerts of type HOST, HOST_METRIC, and REPLICA_SET.
+	HostID                 string           `json:"hostId,omitempty"`                 // ID of the host to which the metric pertains. Only present for alerts of type HOST, HOST_METRIC, and REPLICA_SET.
+	ReplicaSetName         string           `json:"replicaSetName,omitempty"`         // Name of the replica set. Only present for alerts of type HOST, HOST_METRIC, BACKUP, and REPLICA_SET.
 	MetricName             string           `json:"metricName,omitempty"`             // The name of the measurement whose value went outside the threshold. Only present if eventTypeName is set to OUTSIDE_METRIC_THRESHOLD.
 	Enabled                *bool            `json:"enabled,omitempty"`                // If omitted, the configuration is disabled.
-	ClusterID              string           `json:"clusterId,omitempty"`              //	The ID of the cluster to which this alert applies. Only present for alerts of type BACKUP, REPLICA_SET, and CLUSTER.
-	ClusterName            string           `json:"clusterName,omitempty"`            //	The name the cluster to which this alert applies. Only present for alerts of type BACKUP, REPLICA_SET, and CLUSTER.
-	SourceTypeName         string           `json:"sourceTypeName,omitempty"`         //	For alerts of the type BACKUP, the type of server being backed up.
+	ClusterID              string           `json:"clusterId,omitempty"`              // The ID of the cluster to which this alert applies. Only present for alerts of type BACKUP, REPLICA_SET, and CLUSTER.
+	ClusterName            string           `json:"clusterName,omitempty"`            // The name the cluster to which this alert applies. Only present for alerts of type BACKUP, REPLICA_SET, and CLUSTER.
+	SourceTypeName         string           `json:"sourceTypeName,omitempty"`         // For alerts of the type BACKUP, the type of server being backed up.
 	CurrentValue           *CurrentValue    `json:"currentValue,omitempty"`           // CurrentValue represents current value of the metric that triggered the alert. Only present for alerts of type HOST_METRIC.
 	Matchers               []Matcher        `json:"matchers,omitempty"`               // You can filter using the matchers array only when the EventTypeName specifies an event for a host, replica set, or sharded cluster.
 	MetricThreshold        *MetricThreshold `json:"metricThreshold,omitempty"`        // MetricThreshold  causes an alert to be triggered.
@@ -138,9 +138,9 @@ func (s *AlertConfigurationsServiceOp) Create(ctx context.Context, groupID strin
 	return root, resp, err
 }
 
-// EnableAnAlert Enables/disables the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
+// EnableAnAlertConfig Enables/disables the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/alert-configurations-enable-disable-config/
-func (s *AlertConfigurationsServiceOp) EnableAnAlert(ctx context.Context, groupID, alertConfigID string, enabled *bool) (*AlertConfiguration, *Response, error) {
+func (s *AlertConfigurationsServiceOp) EnableAnAlertConfig(ctx context.Context, groupID, alertConfigID string, enabled *bool) (*AlertConfiguration, *Response, error) {
 	if groupID == "" {
 		return nil, nil, NewArgError("groupID", "must be set")
 	}
@@ -165,9 +165,9 @@ func (s *AlertConfigurationsServiceOp) EnableAnAlert(ctx context.Context, groupI
 	return root, resp, err
 }
 
-// GetAnAlert gets the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
+// GetAnAlertConfig gets the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/alert-configurations-get-config/
-func (s *AlertConfigurationsServiceOp) GetAnAlert(ctx context.Context, groupID, alertConfigID string) (*AlertConfiguration, *Response, error) {
+func (s *AlertConfigurationsServiceOp) GetAnAlertConfig(ctx context.Context, groupID, alertConfigID string) (*AlertConfiguration, *Response, error) {
 	if groupID == "" {
 		return nil, nil, NewArgError("groupID", "must be set")
 	}
@@ -192,9 +192,9 @@ func (s *AlertConfigurationsServiceOp) GetAnAlert(ctx context.Context, groupID, 
 	return root, resp, err
 }
 
-// GetOpenAlerts gets all open alerts for the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
+// GetOpenAlertsConfig gets all open alerts for the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/alert-configurations-get-open-alerts/
-func (s *AlertConfigurationsServiceOp) GetOpenAlerts(ctx context.Context, groupID, alertConfigID string) ([]AlertConfiguration, *Response, error) {
+func (s *AlertConfigurationsServiceOp) GetOpenAlertsConfig(ctx context.Context, groupID, alertConfigID string) ([]AlertConfiguration, *Response, error) {
 	if groupID == "" {
 		return nil, nil, NewArgError("groupID", "must be set")
 	}
@@ -255,8 +255,8 @@ func (s *AlertConfigurationsServiceOp) List(ctx context.Context, groupID string,
 	return root.Results, resp, nil
 }
 
-// Update one or more whitelist entries in the project associated to {GROUP-ID}
-// See more: https://docs.atlas.mongodb.com/reference/api/whitelist-update-one/
+// Update the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
+// See more: https://docs.atlas.mongodb.com/reference/api/alert-configurations-update-config/
 func (s *AlertConfigurationsServiceOp) Update(ctx context.Context, groupID, alertConfigID string, updateReq *AlertConfiguration) (*AlertConfiguration, *Response, error) {
 	if updateReq == nil {
 		return nil, nil, NewArgError("updateRequest", "cannot be nil")
@@ -285,8 +285,8 @@ func (s *AlertConfigurationsServiceOp) Update(ctx context.Context, groupID, aler
 	return root, resp, err
 }
 
-//Delete the whitelist entry specified to {WHITELIST-ENTRY} from the project associated to {GROUP-ID}.
-// See more: https://docs.atlas.mongodb.com/reference/api/whitelist-delete-one/
+// Delete the alert configuration specified to {ALERT-CONFIG-ID} for the project associated to {GROUP-ID}.
+// See more: https://docs.atlas.mongodb.com/reference/api/alert-configurations-delete-config/
 func (s *AlertConfigurationsServiceOp) Delete(ctx context.Context, groupID, alertConfigID string) (*Response, error) {
 	if groupID == "" {
 		return nil, NewArgError("groupID", "must be set")
