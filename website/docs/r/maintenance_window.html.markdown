@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_maintenance_window
 
-`mongodbatlas_maintenance_window` provides a resource to schedule maintenance window for your MongoDB Atlas Project, defer a scheduled maintenance up to two times, and to start an available maintenance ASAP.
+`mongodbatlas_maintenance_window` provides a resource to schedule a maintenance window for your MongoDB Atlas Project and/or set to defer a scheduled maintenance up to two times.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
