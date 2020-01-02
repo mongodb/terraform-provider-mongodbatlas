@@ -70,6 +70,7 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				ConflictsWith: []string{"aws_security_group", "cidr_block"},
 				ValidateFunc:  validation.SingleIP(),
 			},
+			// You must configure VPC peering for your project before you can whitelist an AWS security group.
 			"aws_security_group": {
 				Type:          schema.TypeString,
 				Optional:      true,
