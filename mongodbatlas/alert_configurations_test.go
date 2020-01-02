@@ -108,7 +108,7 @@ func TestAlertConfiguration_Create(t *testing.T) {
 	}
 }
 
-func TestAlertConfiguration_EnableAnAlert(t *testing.T) {
+func TestAlertConfiguration_EnableAnAlertConfig(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -151,9 +151,9 @@ func TestAlertConfiguration_EnableAnAlert(t *testing.T) {
 		}`)
 	})
 
-	alertConfiguration, _, err := client.AlertConfigurations.EnableAnAlert(ctx, groupID, alertConfigID, pointy.Bool(true))
+	alertConfiguration, _, err := client.AlertConfigurations.EnableAnAlertConfig(ctx, groupID, alertConfigID, pointy.Bool(true))
 	if err != nil {
-		t.Errorf("AlertConfiguration.EnableAnAlert returned error: %v", err)
+		t.Errorf("AlertConfiguration.EnableAnAlertConfig returned error: %v", err)
 	}
 
 	expected := &AlertConfiguration{
@@ -180,7 +180,7 @@ func TestAlertConfiguration_EnableAnAlert(t *testing.T) {
 	}
 }
 
-func TestAlertConfiguration_GetAnAlert(t *testing.T) {
+func TestAlertConfiguration_GetAnAlertConfig(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -221,9 +221,9 @@ func TestAlertConfiguration_GetAnAlert(t *testing.T) {
 		}`)
 	})
 
-	alertConfiguration, _, err := client.AlertConfigurations.GetAnAlert(ctx, groupID, alertConfigID)
+	alertConfiguration, _, err := client.AlertConfigurations.GetAnAlertConfig(ctx, groupID, alertConfigID)
 	if err != nil {
-		t.Errorf("AlertConfigurations.GetAnAlert returned error: %v", err)
+		t.Errorf("AlertConfigurations.GetAnAlertConfig returned error: %v", err)
 	}
 
 	expected := &AlertConfiguration{
@@ -262,7 +262,7 @@ func TestAlertConfiguration_GetAnAlert(t *testing.T) {
 	}
 }
 
-func TestAlertConfiguration_GetOpenAlerts(t *testing.T) {
+func TestAlertConfiguration_GetOpenAlertsConfig(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -307,9 +307,9 @@ func TestAlertConfiguration_GetOpenAlerts(t *testing.T) {
 		}`)
 	})
 
-	alertConfigurations, _, err := client.AlertConfigurations.GetOpenAlerts(ctx, groupID, alertConfigID)
+	alertConfigurations, _, err := client.AlertConfigurations.GetOpenAlertsConfig(ctx, groupID, alertConfigID)
 	if err != nil {
-		t.Errorf("AlertConfigurations.GetOpenAlerts returned error: %v", err)
+		t.Errorf("AlertConfigurations.GetOpenAlertsConfig returned error: %v", err)
 	}
 
 	expected := []AlertConfiguration{
