@@ -98,10 +98,10 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	projectID := d.Get("project_id").(string)
 	cirdBlock := d.Get("cidr_block").(string)
 	ipAddress := d.Get("ip_address").(string)
-	awsSGroup := d.Get("aws_security_group").(string)
+	awsSecurityGroup := d.Get("aws_security_group").(string)
 
-	if cirdBlock == "" && ipAddress == "" && awsSGroup == "" {
-		return errors.New("cidr_block, ip_address or aws_security_group needs to be setted")
+	if cirdBlock == "" && ipAddress == "" && awsSecurityGroup == "" {
+		return errors.New("cidr_block, ip_address or aws_security_group needs to contain a value")
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -110,7 +110,7 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 		Refresh: func() (interface{}, string, error) {
 			whitelist, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, []*matlas.ProjectIPWhitelist{
 				{
-					AwsSecurityGroup: awsSGroup,
+					AwsSecurityGroup: awsSecurityGroup,
 					CIDRBlock:        cirdBlock,
 					IPAddress:        ipAddress,
 					Comment:          d.Get("comment").(string),
@@ -154,7 +154,7 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	case ipAddress != "":
 		entry = ipAddress
 	default:
-		entry = awsSGroup
+		entry = awsSecurityGroup
 	}
 
 	d.SetId(encodeStateID(map[string]string{
