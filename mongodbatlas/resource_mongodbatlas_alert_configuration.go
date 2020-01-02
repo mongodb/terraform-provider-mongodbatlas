@@ -286,7 +286,7 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlert(context.Background(), ids["project_id"], ids["id"])
+	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 	if err != nil {
 		return fmt.Errorf(errorReadAlertConf, err)
 	}
@@ -316,7 +316,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 
 	// TO update is nesessary to send the original create alert configuration request if not the server returns
 	// error 500
-	req, _, err := conn.AlertConfigurations.GetAnAlert(context.Background(), ids["project_id"], ids["id"])
+	req, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 	if err != nil {
 		return fmt.Errorf(errorReadAlertConf, err)
 	}
@@ -349,7 +349,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 	// so we need to use the enabled/disabled entry point to set it
 	if reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(true)}) ||
 		reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(false)}) {
-		_, _, err = conn.AlertConfigurations.EnableAnAlert(context.Background(), ids["project_id"], ids["id"], req.Enabled)
+		_, _, err = conn.AlertConfigurations.EnableAnAlertConfig(context.Background(), ids["project_id"], ids["id"], req.Enabled)
 	} else {
 		_, _, err = conn.AlertConfigurations.Update(context.Background(), ids["project_id"], ids["id"], req)
 	}
@@ -381,7 +381,7 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	projectID := parts[0]
 	id := parts[1]
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlert(context.Background(), projectID, id)
+	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), projectID, id)
 	if err != nil {
 		return nil, fmt.Errorf(errorImportAlertConf, id, projectID, err)
 	}

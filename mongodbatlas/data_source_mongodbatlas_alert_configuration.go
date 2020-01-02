@@ -193,7 +193,7 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta i
 	projectID := d.Get("project_id").(string)
 	alertID := d.Get("alert_configuration_id").(string)
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlert(context.Background(), projectID, alertID)
+	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), projectID, alertID)
 	if err != nil {
 		return fmt.Errorf(errorReadAlertConf, err)
 	}

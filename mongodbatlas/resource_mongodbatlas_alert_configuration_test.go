@@ -184,7 +184,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		alertResp, _, err := conn.AlertConfigurations.GetAnAlert(context.Background(), ids["project_id"], ids["id"])
+		alertResp, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 		if err != nil {
 			return fmt.Errorf("Alert Configuration(%s) does not exist", ids["id"])
 		}
@@ -202,7 +202,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error
 		}
 		ids := decodeStateID(rs.Primary.ID)
 
-		alert, _, err := conn.AlertConfigurations.GetAnAlert(context.Background(), ids["project_id"], ids["id"])
+		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 		if alert != nil {
 			return fmt.Errorf("project Alert Configuration(%s) still exists %s", ids["id"], err)
 		}
