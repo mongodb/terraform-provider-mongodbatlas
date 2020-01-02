@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_project_ip_whitelist
 
-`mongodbatlas_project_ip_whitelist` provides an IP Whitelist entry resource. The whitelist grants access from IPs or CIDRs to clusters within the Project.
+`mongodbatlas_project_ip_whitelist` provides an IP Whitelist entry resource. The whitelist grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -18,7 +18,7 @@ When you remove an entry from the whitelist, existing connections from the remov
 
 ## Example Usage
 
-### Using Cidr Block
+### Using CIDR Block
 ```hcl
 resource "mongodbatlas_project_ip_whitelist" "test" {
   project_id = "<PROJECT-ID>"
@@ -36,7 +36,7 @@ resource "mongodbatlas_project_ip_whitelist" "test" {
 }
 ```
 
-### Using AWS Security Group
+### Using an AWS Security Group
 ```hcl
 resource "mongodbatlas_network_container" "test" {
   project_id       = "<PROJECT-ID>"
@@ -64,6 +64,8 @@ resource "mongodbatlas_project_ip_whitelist" "test" {
 }
 ```
 
+~> **IMPORTANT:** In order to use AWS Security Group(s) VPC Peering must be enabled like above example.
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project in which to add the whitelist entry.
@@ -71,6 +73,8 @@ resource "mongodbatlas_project_ip_whitelist" "test" {
 * `cidr_block` - (Optional) Whitelist entry in Classless Inter-Domain Routing (CIDR) notation. Mutually exclusive with `aws_security_group` and `ip_address`.
 * `ip_address` - (Optional) Whitelisted IP address. Mutually exclusive with `aws_security_group` and `cidr_block`.
 * `comment` - (Optional) Comment to add to the whitelist entry.
+
+-> **NOTE:** One of the following attributes must set:  `aws_security_group`, `cidr_block`  or `ip_address`.
 
 ## Attributes Reference
 
