@@ -94,7 +94,6 @@ func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) er
 	id := d.Get("team_id").(string)
 
 	team, _, err := conn.Teams.Get(context.Background(), orgID, id)
-
 	if err != nil {
 		return fmt.Errorf("error getting team information: %s", err)
 	}
@@ -105,7 +104,6 @@ func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) er
 
 	//Set Usernames
 	users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, id)
-
 	if err != nil {
 		return fmt.Errorf("error getting team user assigned information: %s", err)
 	}
@@ -114,7 +112,10 @@ func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error setting `users` for team (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(team.ID)
+	d.SetId(encodeStateID(map[string]string{
+		"org_id": orgID,
+		"id":     team.ID,
+	}))
 
 	return nil
 }
