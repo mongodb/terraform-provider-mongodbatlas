@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -20,6 +21,10 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	username := "mongodbatlas.testing@gmail.com"
+	username1 := "francisco.preciado@digitalonus.com"
+	username2 := "antonio.cabrera@digitalonus.com"
+
+	updatedName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,25 +32,23 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, username),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, name, username, username1, username2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
 					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "usernames.0", username),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "3"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, "marin.salinas@digitalonus.com"),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName, "marin.salinas@digitalonus.com", "antonio.cabrera@digitalonus.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
+					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "usernames.0", "marin.salinas@digitalonus.com"),
+					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "2"),
 				),
 			},
 		},
@@ -55,11 +58,8 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-
 	resourceName := "mongodbatlas_teams.test"
-
 	username := "mongodbatlas.testing@gmail.com"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,11 +71,10 @@ func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasTeamConfig(orgID, name, username),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -89,17 +88,23 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.Attributes["org_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] orgID: %s", rs.Primary.Attributes["org_id"])
+		ids := decodeStateID(rs.Primary.ID)
+		orgID := ids["org_id"]
+		id := ids["id"]
 
-		if teamResp, _, err := conn.Teams.Get(context.Background(), rs.Primary.Attributes["org_id"], rs.Primary.Attributes["team_id"]); err == nil {
+		log.Printf("[DEBUG] orgID: %s", orgID)
+
+		teamResp, _, err := conn.Teams.Get(context.Background(), orgID, id)
+		if err == nil {
 			*team = *teamResp
 			return nil
 		}
-		return fmt.Errorf("team(%s) does not exist", rs.Primary.Attributes["team_id"])
+		return fmt.Errorf("team(%s) does not exist", id)
 	}
 }
 
@@ -130,14 +135,14 @@ func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasTeamConfig(orgID, name, username string) string {
+func testAccMongoDBAtlasTeamConfig(orgID, name string, usernames ...string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_teams" "test" {
 			org_id    = "%s"
 			name      = "%s"
-			usernames = ["%s"]
+			usernames = %s
 		}
-	`, orgID, name, username)
+	`, orgID, name, strings.ReplaceAll(fmt.Sprintf("%+q", usernames), " ", ","))
 }
 
 func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -146,6 +151,10 @@ func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.Impor
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["team_id"]), nil
+		ids := decodeStateID(rs.Primary.ID)
+		orgID := ids["org_id"]
+		id := ids["id"]
+
+		return fmt.Sprintf("%s-%s", orgID, id), nil
 	}
 }
