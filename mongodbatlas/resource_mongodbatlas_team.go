@@ -12,6 +12,15 @@ import (
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
+const (
+	errorTeamCreate   = "error creating Team information: %s"
+	errorTeamAddUsers = "error adding users to the Team information: %s"
+	errorTeamRead     = "error getting Team information: %s"
+	errorTeamUpdate   = "error updating Team information: %s"
+	errorTeamDelete   = "error deleting Team (%s): %s"
+	errorTeamSetting  = "error setting `%s` for Team (%s): %s"
+)
+
 func resourceMongoDBAtlasTeam() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasTeamCreate,
@@ -36,9 +45,8 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 				Required: true,
 			},
 			"usernames": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Type:     schema.TypeSet,
+				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -48,26 +56,17 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 }
 
 func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
 	conn := meta.(*matlas.Client)
 	orgID := d.Get("org_id").(string)
 
 	teamReq := &matlas.Team{
-		Name: d.Get("name").(string),
-	}
-
-	if v, ok := d.GetOk("usernames"); ok {
-		teamReq.Usernames = expandStringList(v.([]interface{}))
+		Name:      d.Get("name").(string),
+		Usernames: expandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
 	}
 
 	teamsResp, _, err := conn.Teams.Create(context.Background(), orgID, teamReq)
-
 	if err != nil {
-		return fmt.Errorf("error creating team: %s", err)
-	}
-
-	if err := d.Set("team_id", teamsResp.ID); err != nil {
-		return fmt.Errorf("error setting `id` for team (%s): %s", d.Id(), err)
+		return fmt.Errorf(errorTeamCreate, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -79,53 +78,86 @@ func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
 	conn := meta.(*matlas.Client)
+
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
 	team, _, err := conn.Teams.Get(context.Background(), orgID, id)
-
 	if err != nil {
-		return fmt.Errorf("error getting team information: %s", err)
+		return fmt.Errorf(errorTeamRead, err)
 	}
 
 	if err := d.Set("name", team.Name); err != nil {
-		return fmt.Errorf("error setting `name` for team (%s): %s", d.Id(), err)
+		return fmt.Errorf(errorTeamSetting, "name", d.Id(), err)
+	}
+	if err := d.Set("team_id", team.ID); err != nil {
+		return fmt.Errorf(errorTeamSetting, "team_id", d.Id(), err)
 	}
 
 	//Set Usernames
 	users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, id)
-
 	if err != nil {
-		return fmt.Errorf("error getting team user assigned information: %s", err)
+		return fmt.Errorf(errorTeamRead, err)
 	}
 
 	var usernames []string
-	for _, v := range users {
-		usernames = append(usernames, v.Username)
+	for _, u := range users {
+		usernames = append(usernames, u.Username)
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {
-		return fmt.Errorf("error setting `usernames` for team (%s): %s", d.Id(), err)
+		return fmt.Errorf(errorTeamSetting, "usernames", d.Id(), err)
 	}
 
 	return nil
 }
 
 func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
 	conn := meta.(*matlas.Client)
+
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
 	if d.HasChange("name") {
 		_, _, err := conn.Teams.Rename(context.Background(), orgID, id, d.Get("name").(string))
-
 		if err != nil {
-			return fmt.Errorf("error updating team(%s): %s", id, err)
+			return fmt.Errorf(errorTeamUpdate, err)
+		}
+	}
+
+	if d.HasChange("usernames") {
+		// First, we need to remove the current users of the team and later add the new users
+		// Get the current team's users
+		users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, id)
+		if err != nil {
+			return fmt.Errorf(errorTeamRead, err)
+		}
+		// Removing each user
+		for _, u := range users {
+			_, err := conn.Teams.RemoveUserToTeam(context.Background(), orgID, id, u.ID)
+			if err != nil {
+				return fmt.Errorf("error deleting Atlas User (%s) information: %s", id, err)
+			}
+		}
+
+		// Verify if the gave users exists
+		var newUsers []string
+		for _, username := range d.Get("usernames").(*schema.Set).List() {
+			user, _, err := conn.AtlasUsers.GetByName(context.Background(), username.(string))
+			if err != nil {
+				return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
+			}
+			// if the user exists, we will storage its id
+			newUsers = append(newUsers, user.ID)
+		}
+
+		// Adding the new existing users by id
+		_, _, err = conn.Teams.AddUsersToTeam(context.Background(), orgID, id, newUsers)
+		if err != nil {
+			return fmt.Errorf(errorTeamAddUsers, err)
 		}
 	}
 
@@ -133,17 +165,16 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceMongoDBAtlasTeamDelete(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
 	_, err := conn.Teams.RemoveTeamFromOrganization(context.Background(), orgID, id)
-
 	if err != nil {
-		return fmt.Errorf("error deleting team (%s): %s", id, err)
+		return fmt.Errorf(errorTeamDelete, id, err)
 	}
+
 	return nil
 }
 
@@ -156,11 +187,15 @@ func resourceMongoDBAtlasTeamImportState(d *schema.ResourceData, meta interface{
 	}
 
 	orgID := parts[0]
-	team_id := parts[1]
+	teamID := parts[1]
 
-	u, _, err := conn.Teams.Get(context.Background(), orgID, team_id)
+	u, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import user %s in project %s, error: %s", team_id, orgID, err)
+		return nil, fmt.Errorf("couldn't import user (%s) in project (%s), error: %s", teamID, orgID, err)
+	}
+
+	if err := d.Set("org_id", orgID); err != nil {
+		log.Printf("[WARN] Error setting org_id for (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -168,23 +203,13 @@ func resourceMongoDBAtlasTeamImportState(d *schema.ResourceData, meta interface{
 		"id":     u.ID,
 	}))
 
-	if err := d.Set("team_id", u.ID); err != nil {
-		log.Printf("[WARN] Error setting team_id for (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("org_id", orgID); err != nil {
-		log.Printf("[WARN] Error setting org_id for (%s): %s", d.Id(), err)
-	}
-
 	return []*schema.ResourceData{d}, nil
 }
 
-func expandStringList(list []interface{}) []string {
-	var sList []string
-
-	for _, v := range list {
-		sList = append(sList, v.(string))
+func expandStringListFromSetSchema(list *schema.Set) []string {
+	res := make([]string, list.Len())
+	for i, v := range list.List() {
+		res[i] = v.(string)
 	}
-
-	return sList
+	return res
 }
