@@ -1,29 +1,29 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: team"
-sidebar_current: "docs-mongodbatlas-datasource-team"
+page_title: "MongoDB Atlas: teams"
+sidebar_current: "docs-mongodbatlas-datasource-teams"
 description: |-
     Describes a Team.
 ---
 
-# mongodbatlas_team
+# mongodbatlas_teams
 
-`mongodbatlas_team` describes a Team. The resource requires your Organization ID and Team ID.
+`mongodbatlas_teams` describes a Team. The resource requires your Organization ID and Team ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_team" "test" {
+resource "mongodbatlas_teams" "test" {
     org_id    = "<Your Organization ID>"
     name      = "myNewTeam"
     usernames = ["user1", "user2", "user3"]
 }
 
-data "mongodbatlas_team" "test" {
-    org_id    = mongodbatlas_team.test.org_id
-    team_id   = mongodbatlas_team.test.team_id
+data "mongodbatlas_teams" "test" {
+    org_id    = mongodbatlas_teams.test.org_id
+    team_id   = mongodbatlas_teams.test.team_id
 }
 ```
 
