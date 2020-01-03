@@ -13,7 +13,7 @@ import (
 func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 	var team matlas.Team
 
-	resourceName := "data.mongodbatlas_team.test"
+	resourceName := "data.mongodbatlas_teams.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	username := "mongodbatlas.testing@gmail.com"
@@ -41,15 +41,15 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 func testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_team" "test" {
+		resource "mongodbatlas_teams" "test" {
 			org_id    = "%s"
 			name      = "%s"
 			usernames = ["%s"]
 		}
 
-		data "mongodbatlas_team" "test" {
-			org_id    = mongodbatlas_team.test.org_id
-			team_id   = mongodbatlas_team.test.team_id
+		data "mongodbatlas_teams" "test" {
+			org_id    = mongodbatlas_teams.test.org_id
+			team_id   = mongodbatlas_teams.test.team_id
 		}
 	`, orgID, name, username)
 }
