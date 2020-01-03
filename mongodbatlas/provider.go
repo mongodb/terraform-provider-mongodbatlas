@@ -53,6 +53,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_maintenance_window":                   dataSourceMongoDBAtlasMaintenanceWindow(),
 			"mongodbatlas_auditing":                             dataSourceMongoDBAtlasAuditing(),
 			"mongodbatlas_team":                                 dataSourceMongoDBAtlasTeam(),
+			"mongodbatlas_teams":                                dataSourceMongoDBAtlasTeam(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -70,6 +71,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_maintenance_window":                  resourceMongoDBAtlasMaintenanceWindow(),
 			"mongodbatlas_auditing":                            resourceMongoDBAtlasAuditing(),
 			"mongodbatlas_team":                                resourceMongoDBAtlasTeam(),
+			"mongodbatlas_teams":                               resourceMongoDBAtlasTeam(),
 		},
 
 		ConfigureFunc: providerConfigure,

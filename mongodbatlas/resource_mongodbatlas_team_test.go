@@ -16,7 +16,7 @@ import (
 func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 	var team matlas.Team
 
-	resourceName := "mongodbatlas_team.test"
+	resourceName := "mongodbatlas_teams.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	username := "mongodbatlas.testing@gmail.com"
@@ -58,7 +58,7 @@ func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
 
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
-	resourceName := "mongodbatlas_team.test"
+	resourceName := "mongodbatlas_teams.test"
 
 	username := "mongodbatlas.testing@gmail.com"
 
@@ -116,7 +116,7 @@ func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_team" {
+		if rs.Type != "mongodbatlas_teams" {
 			continue
 		}
 
@@ -132,7 +132,7 @@ func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
 
 func testAccMongoDBAtlasTeamConfig(orgID, name, username string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_team" "test" {
+		resource "mongodbatlas_teams" "test" {
 			org_id    = "%s"
 			name      = "%s"
 			usernames = ["%s"]
