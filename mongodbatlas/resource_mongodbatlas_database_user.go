@@ -66,6 +66,25 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 					},
 				},
 			},
+			"labels": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -78,10 +97,10 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	username := ids["username"]
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
-
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
+
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
@@ -90,6 +109,9 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	}
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
+		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
 
 	return nil
@@ -105,6 +127,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		GroupID:      projectID,
 		Username:     d.Get("username").(string),
 		DatabaseName: d.Get("database_name").(string),
+		Labels:       expandLabelSliceFromSetSchema(d),
 	}
 
 	if v, ok := d.GetOk("password"); ok {
@@ -145,6 +168,11 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	if d.HasChange("roles") {
 		dbUser.Roles = expandRoles(d)
 	}
+
+	if d.HasChange("labels") {
+		dbUser.Labels = expandLabelSliceFromSetSchema(d)
+	}
+
 	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
 
 	if err != nil {
@@ -225,4 +253,29 @@ func flattenRoles(roles []matlas.Role) []map[string]interface{} {
 		})
 	}
 	return roleList
+}
+
+func flattenLabels(l []matlas.Label) []map[string]interface{} {
+	labels := make([]map[string]interface{}, len(l))
+	for i, v := range l {
+		labels[i] = map[string]interface{}{
+			"key":   v.Key,
+			"value": v.Value,
+		}
+	}
+	return labels
+}
+
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
+	list := d.Get("labels").(*schema.Set)
+	res := make([]matlas.Label, list.Len())
+
+	for i, val := range list.List() {
+		v := val.(map[string]interface{})
+		res[i] = matlas.Label{
+			Key:   v["key"].(string),
+			Value: v["value"].(string),
+		}
+	}
+	return res
 }
