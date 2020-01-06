@@ -254,28 +254,3 @@ func flattenRoles(roles []matlas.Role) []map[string]interface{} {
 	}
 	return roleList
 }
-
-func flattenLabels(l []matlas.Label) []map[string]interface{} {
-	labels := make([]map[string]interface{}, len(l))
-	for i, v := range l {
-		labels[i] = map[string]interface{}{
-			"key":   v.Key,
-			"value": v.Value,
-		}
-	}
-	return labels
-}
-
-func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
-	list := d.Get("labels").(*schema.Set)
-	res := make([]matlas.Label, list.Len())
-
-	for i, val := range list.List() {
-		v := val.(map[string]interface{})
-		res[i] = matlas.Label{
-			Key:   v["key"].(string),
-			Value: v["value"].(string),
-		}
-	}
-	return res
-}
