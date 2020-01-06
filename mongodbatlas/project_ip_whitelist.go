@@ -102,7 +102,7 @@ func (s *ProjectIPWhitelistServiceOp) Get(ctx context.Context, groupID string, w
 func (s *ProjectIPWhitelistServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]ProjectIPWhitelist, *Response, error) {
 	path := fmt.Sprintf(projectIPWhitelistPath, groupID)
 
-	//Add query params from listOptions
+	// Add query params from listOptions
 	path, err := setListOptions(path, listOptions)
 	if err != nil {
 		return nil, nil, err
