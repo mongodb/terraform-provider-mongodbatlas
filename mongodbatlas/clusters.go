@@ -168,6 +168,7 @@ var DefaultDiskSizeGB map[string]map[string]float64 = map[string]map[string]floa
 		"M200": 256,
 	},
 }
+
 //List all clusters in the project associated to {GROUP-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/clusters-get-all/
 func (s *ClustersServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Cluster, *Response, error) {
