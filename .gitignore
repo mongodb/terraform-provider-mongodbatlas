@@ -23,7 +23,7 @@ website/node_modules
 *.iml
 *.test
 *.iml
-log.txt
+log.*
 
 website/vendor
 
