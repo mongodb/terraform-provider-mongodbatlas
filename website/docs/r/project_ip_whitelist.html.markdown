@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_project_ip_whitelist
 
-`mongodbatlas_project_ip_whitelist` provides an IP Whitelist entry resource. The whitelist grants access from IPs or CIDRs to clusters within the Project.
+`mongodbatlas_project_ip_whitelist` provides an IP Whitelist entry resource. The whitelist grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -18,35 +18,63 @@ When you remove an entry from the whitelist, existing connections from the remov
 
 ## Example Usage
 
+### Using CIDR Block
 ```hcl
 resource "mongodbatlas_project_ip_whitelist" "test" {
-    project_id = <PROJECT-ID>
-
-    whitelist {
-      cidr_block = "1.2.3.4/32"
-      comment    = "cidr block for tf acc testing"
-    }
-    whitelist {
-      ip_address = "2.3.4.5"
-      comment    = "ip address for tf acc testing"
-    }
-    whitelist {
-      cidr_block = "3.4.5.6/32"
-      comment    = "cidr block for tf acc testing"
-    }
-    whitelist {
-      ip_address = "4.5.6.7"
-      comment    = "ip address for tf acc testing"
-    }
- }
+  project_id = "<PROJECT-ID>"
+  cidr_block = "1.2.3.4/32"
+  comment    = "cidr block for tf acc testing"
+}
 ```
+
+### Using IP Address
+```hcl
+resource "mongodbatlas_project_ip_whitelist" "test" {
+  project_id = "<PROJECT-ID>"
+  ip_address = "2.3.4.5"
+  comment    = "ip address for tf acc testing"
+}
+```
+
+### Using an AWS Security Group
+```hcl
+resource "mongodbatlas_network_container" "test" {
+  project_id       = "<PROJECT-ID>"
+  atlas_cidr_block = "192.168.208.0/21"
+  provider_name    = "AWS"
+  region_name      = "US_EAST_1"
+}
+
+resource "mongodbatlas_network_peering" "test" {
+  project_id             = "<PROJECT-ID>"
+  container_id           = mongodbatlas_network_container.test.container_id
+  accepter_region_name   = "us-east-1"
+  provider_name          = "AWS"
+  route_table_cidr_block = "172.31.0.0/16"
+  vpc_id                 = "vpc-0d93d6f69f1578bd8"
+  aws_account_id         = "232589400519"
+}
+
+resource "mongodbatlas_project_ip_whitelist" "test" {
+  project_id         = "<PROJECT-ID>"
+  aws_security_group = "sg-0026348ec11780bd1"
+  comment            = "TestAcc for awsSecurityGroup"
+
+  depends_on = ["mongodbatlas_network_peering.test"]
+}
+```
+
+~> **IMPORTANT:** In order to use AWS Security Group(s) VPC Peering must be enabled like above example.
 
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project in which to add the whitelist entry.
-* `cidr_block` - (Optional) The whitelist entry in Classless Inter-Domain Routing (CIDR) notation. Mutually exclusive with `ip_address`.
-* `ip_address` - (Optional) The whitelisted IP address. Mutually exclusive with `cidr_block`.
+* `aws_security_group` - (Optional) ID of the whitelisted AWS security group. Mutually exclusive with `cidr_block` and `ip_address`.
+* `cidr_block` - (Optional) Whitelist entry in Classless Inter-Domain Routing (CIDR) notation. Mutually exclusive with `aws_security_group` and `ip_address`.
+* `ip_address` - (Optional) Whitelisted IP address. Mutually exclusive with `aws_security_group` and `cidr_block`.
 * `comment` - (Optional) Comment to add to the whitelist entry.
+
+-> **NOTE:** One of the following attributes must set:  `aws_security_group`, `cidr_block`  or `ip_address`.
 
 ## Attributes Reference
 

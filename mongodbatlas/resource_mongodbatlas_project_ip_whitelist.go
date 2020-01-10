@@ -2,21 +2,24 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 	"net"
 	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/spf13/cast"
-
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 const (
-	errorGetInfo = "error getting project IP whitelist information: %s"
+	errorWhitelistCreate = "error creating Project IP Whitelist information: %s"
+	errorWhitelistRead   = "error getting Project IP Whitelist information: %s"
+	// errorWhitelistUpdate  = "error updating Project IP Whitelist information: %s"
+	errorWhitelistDelete  = "error deleting Project IP Whitelist information: %s"
+	errorWhitelistSetting = "error setting `%s` for Project IP Whitelist (%s): %s"
 )
 
 func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
@@ -25,7 +28,7 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 		Read:   resourceMongoDBAtlasProjectIPWhitelistRead,
 		Delete: resourceMongoDBAtlasProjectIPWhitelistDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasProjectIPWhitelistImportState,
+			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -33,108 +36,165 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"whitelist": {
-				Type:     schema.TypeSet,
-				Required: true,
-				ForceNew: true,
-				Set:      filterParamsHash,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cidr_block": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
-							ValidateFunc: func(i interface{}, k string) (s []string, es []error) {
-								v, ok := i.(string)
-								if !ok {
-									es = append(es, fmt.Errorf("expected type of %s to be string", k))
-									return
-								}
+			"cidr_block": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"aws_security_group", "ip_address"},
+				ValidateFunc: func(i interface{}, k string) (s []string, es []error) {
+					v, ok := i.(string)
+					if !ok {
+						es = append(es, fmt.Errorf("expected type of %s to be string", k))
+						return
+					}
 
-								_, ipnet, err := net.ParseCIDR(v)
-								if err != nil {
-									es = append(es, fmt.Errorf(
-										"expected %s to contain a valid CIDR, got: %s with err: %s", k, v, err))
-									return
-								}
+					_, ipnet, err := net.ParseCIDR(v)
+					if err != nil {
+						es = append(es, fmt.Errorf("expected %s to contain a valid CIDR, got: %s with err: %s", k, v, err))
+						return
+					}
 
-								if ipnet == nil || v != ipnet.String() {
-									es = append(es, fmt.Errorf(
-										"expected %s to contain a valid network CIDR, expected %s, got %s",
-										k, ipnet, v))
-									return
-								}
-								return
-							},
-						},
-						"ip_address": {
-							Type:         schema.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.SingleIP(),
-						},
-						"comment": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-					},
+					if ipnet == nil || v != ipnet.String() {
+						es = append(es, fmt.Errorf("expected %s to contain a valid network CIDR, expected %s, got %s", k, ipnet, v))
+						return
+					}
+					return
 				},
 			},
+			"ip_address": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"aws_security_group", "cidr_block"},
+				ValidateFunc:  validation.SingleIP(),
+			},
+			// You must configure VPC peering for your project before you can whitelist an AWS security group.
+			"aws_security_group": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"ip_address", "cidr_block"},
+			},
+			"comment": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Read:   schema.DefaultTimeout(45 * time.Minute),
+			Delete: schema.DefaultTimeout(45 * time.Minute),
 		},
 	}
 }
 
-func filterParamsHash(v interface{}) int {
-	entry := v.(map[string]interface{})
-	if cast.ToString(entry["ip_address"]) != "" {
-		return hashcode.String(cast.ToString(entry["ip_address"]))
-	}
-	ip, _, _ := net.ParseCIDR(cast.ToString(entry["cidr_block"]))
-	return hashcode.String(ip.String())
-}
-
 func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
 	conn := meta.(*matlas.Client)
-
 	projectID := d.Get("project_id").(string)
+	cirdBlock := d.Get("cidr_block").(string)
+	ipAddress := d.Get("ip_address").(string)
+	awsSecurityGroup := d.Get("aws_security_group").(string)
 
-	req := expandProjectIPWhitelist(d)
-	_, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, req)
-	if err != nil {
-		return fmt.Errorf("error creating project IP whitelist: %s", err)
+	if cirdBlock == "" && ipAddress == "" && awsSecurityGroup == "" {
+		return errors.New("cidr_block, ip_address or aws_security_group needs to contain a value")
 	}
 
-	var withelist []string
-	whiteListMap(req, func(entry string) {
-		withelist = append(withelist, entry)
-	})
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"pending"},
+		Target:  []string{"created", "failed"},
+		Refresh: func() (interface{}, string, error) {
+			whitelist, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, []*matlas.ProjectIPWhitelist{
+				{
+					AwsSecurityGroup: awsSecurityGroup,
+					CIDRBlock:        cirdBlock,
+					IPAddress:        ipAddress,
+					Comment:          d.Get("comment").(string),
+				},
+			})
+			if err != nil {
+				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
+					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
+					strings.Contains(fmt.Sprint(err), "500") {
+					return nil, "pending", nil
+				}
+				return nil, "failed", fmt.Errorf(errorWhitelistCreate, err)
+			}
+
+			if len(whitelist) > 0 {
+				for _, entry := range whitelist {
+					if entry.IPAddress == ipAddress || entry.CIDRBlock == cirdBlock {
+						return whitelist, "created", nil
+					}
+				}
+				return nil, "pending", nil
+			}
+
+			return whitelist, "created", nil
+		},
+		Timeout:    45 * time.Minute,
+		Delay:      30 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}
+
+	// Wait, catching any errors
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(errorPeersCreate, err)
+	}
+
+	var entry string
+	switch {
+	case cirdBlock != "":
+		entry = cirdBlock
+	case ipAddress != "":
+		entry = ipAddress
+	default:
+		entry = awsSecurityGroup
+	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
-		"entries":    strings.Join(withelist, ","),
+		"entry":      entry,
 	}))
 
 	return resourceMongoDBAtlasProjectIPWhitelistRead(d, meta)
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 
-	whitelist, err := getProjectIPWhitelist(ids, conn)
-	if err != nil {
-		return err
-	}
-	if err := d.Set("whitelist", flattenProjectIPWhitelist(whitelist)); err != nil {
-		return fmt.Errorf(errorGetInfo, err)
-	}
-	return nil
+	return resource.Retry(2*time.Minute, func() *resource.RetryError {
+
+		whitelist, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"])
+		if err != nil {
+			if strings.Contains(fmt.Sprint(err), "500") || strings.Contains(fmt.Sprint(err), "404") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(fmt.Errorf(errorWhitelistRead, err))
+		}
+
+		if whitelist != nil {
+			if err := d.Set("aws_security_group", whitelist.AwsSecurityGroup); err != nil {
+				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "aws_security_group", ids["project_id"], err))
+			}
+			if err := d.Set("cidr_block", whitelist.CIDRBlock); err != nil {
+				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "cidr_block", ids["project_id"], err))
+			}
+			if err := d.Set("ip_address", whitelist.IPAddress); err != nil {
+				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "ip_address", ids["project_id"], err))
+			}
+			if err := d.Set("comment", whitelist.Comment); err != nil {
+				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "comment", ids["project_id"], err))
+			}
+		}
+		return nil
+	})
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
@@ -142,109 +202,36 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 
-	whitelist, err := getProjectIPWhitelist(ids, conn)
-	if err != nil {
-		return err
-	}
-
-	whiteListMap(whitelist, func(entry string) {
-		_, err = conn.ProjectIPWhitelist.Delete(context.Background(), ids["project_id"], entry)
-	})
-	if err != nil {
-		return fmt.Errorf("error deleting project IP whitelist: %s", err)
-	}
-	return nil
-}
-
-func resourceMongoDBAtlasProjectIPWhitelistImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
-
-	var options *matlas.ListOptions
-	resp, _, err := conn.ProjectIPWhitelist.List(context.Background(), d.Id(), options)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't import ip whitelist %s in project_id %s, error: %s", resp, d.Id(), err.Error())
-	}
-
-	var whitelist []*matlas.ProjectIPWhitelist
-	for i := 0; i < len(resp); i++ {
-		whitelist = append(whitelist, &resp[i])
-	}
-
-	var entries []string
-	whiteListMap(whitelist, func(entry string) {
-		entries = append(entries, entry)
-	})
-
-	if err := d.Set("project_id", d.Id()); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
-		return []*schema.ResourceData{d}, err
-	}
-	if err := d.Set("whitelist", flattenProjectIPWhitelist(whitelist)); err != nil {
-		log.Printf("[WARN] Error setting whitelist for (%s): %s", d.Id(), err)
-		return []*schema.ResourceData{d}, err
-	}
-
-	d.SetId(encodeStateID(map[string]string{
-		"project_id": d.Id(),
-		"entries":    strings.Join(entries, ","),
-	}))
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func getProjectIPWhitelist(ids map[string]string, conn *matlas.Client) ([]*matlas.ProjectIPWhitelist, error) {
-	projectID := ids["project_id"]
-	entries := strings.Split(ids["entries"], ",")
-
-	var whitelist []*matlas.ProjectIPWhitelist
-	for _, entry := range entries {
-		res, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry)
+	return resource.Retry(5*time.Minute, func() *resource.RetryError {
+		_, err := conn.ProjectIPWhitelist.Delete(context.Background(), ids["project_id"], ids["entry"])
 		if err != nil {
-			return nil, fmt.Errorf(errorGetInfo, err)
+			if strings.Contains(fmt.Sprint(err), "500") ||
+				strings.Contains(fmt.Sprint(err), "Unexpected error") ||
+				strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(fmt.Errorf(errorWhitelistDelete, err))
 		}
-		whitelist = append(whitelist, res)
-	}
-	return whitelist, nil
-}
 
-func whiteListMap(whitelist []*matlas.ProjectIPWhitelist, f func(string)) {
-	for _, entry := range whitelist {
-		if entry.CIDRBlock != "" {
-			f(entry.CIDRBlock)
-		} else if entry.IPAddress != "" {
-			f(entry.IPAddress)
+		entry, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"])
+		if err != nil {
+			if strings.Contains(fmt.Sprint(err), "404") ||
+				strings.Contains(fmt.Sprint(err), "ATLAS_WHITELIST_NOT_FOUND") {
+				return nil
+			}
+			return resource.RetryableError(err)
 		}
-	}
-}
-
-func flattenProjectIPWhitelist(whitelists []*matlas.ProjectIPWhitelist) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
-
-	for _, whitelist := range whitelists {
-		entry := map[string]interface{}{
-			"cidr_block": whitelist.CIDRBlock,
-			"ip_address": whitelist.IPAddress,
-			"comment":    whitelist.Comment,
-		}
-		results = append(results, entry)
-	}
-	return results
-}
-
-func expandProjectIPWhitelist(d *schema.ResourceData) []*matlas.ProjectIPWhitelist {
-	var whitelist []*matlas.ProjectIPWhitelist
-	if v, ok := d.GetOk("whitelist"); ok {
-		if rs := v.(*schema.Set).List(); len(rs) > 0 {
-			whitelist = make([]*matlas.ProjectIPWhitelist, len(rs))
-			for k, r := range rs {
-				roleMap := r.(map[string]interface{})
-				whitelist[k] = &matlas.ProjectIPWhitelist{
-					CIDRBlock: roleMap["cidr_block"].(string),
-					IPAddress: roleMap["ip_address"].(string),
-					Comment:   roleMap["comment"].(string),
+		if entry != nil {
+			_, err := conn.ProjectIPWhitelist.Delete(context.Background(), ids["project_id"], ids["entry"])
+			if err != nil {
+				if strings.Contains(fmt.Sprint(err), "500") ||
+					strings.Contains(fmt.Sprint(err), "Unexpected error") ||
+					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") {
+					return resource.RetryableError(err)
 				}
+				return resource.NonRetryableError(fmt.Errorf(errorWhitelistDelete, err))
 			}
 		}
-	}
-	return whitelist
+		return nil
+	})
 }
