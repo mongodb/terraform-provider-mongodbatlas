@@ -37,13 +37,20 @@ type Role struct {
 
 // DatabaseUser represents MongoDB users in your cluster.
 type DatabaseUser struct {
-	Roles           []Role `json:"roles,omitempty"`
-	GroupID         string `json:"groupId,omitempty"`
-	Username        string `json:"username,omitempty"`
-	Password        string `json:"password,omitempty"`
-	DatabaseName    string `json:"databaseName,omitempty"`
-	LDAPAuthType    string `json:"ldapAuthType,omitempty"`
-	DeleteAfterDate string `json:"deleteAfterDate,omitempty"`
+	Roles           []Role  `json:"roles,omitempty"`
+	GroupID         string  `json:"groupId,omitempty"`
+	Username        string  `json:"username,omitempty"`
+	Password        string  `json:"password,omitempty"`
+	DatabaseName    string  `json:"databaseName,omitempty"`
+	Labels          []Label `json:"labels,omitempty"`
+	LDAPAuthType    string  `json:"ldapAuthType,omitempty"`
+	DeleteAfterDate string  `json:"deleteAfterDate,omitempty"`
+}
+
+// Label containing key-value pairs that tag and categorize the database user
+type Label struct {
+	Key   string `json:"key,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 // databaseUserListResponse is the response from the DatabaseUserService.List.
