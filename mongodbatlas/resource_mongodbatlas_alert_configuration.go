@@ -314,21 +314,20 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 	ids := decodeStateID(d.Id())
 	var err error
 
-	// TO update is nesessary to send the original create alert configuration request if not the server returns
-	// error 500
+	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
+	// server returns an error 500
 	req, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 	if err != nil {
 		return fmt.Errorf(errorReadAlertConf, err)
 	}
-	// Removing the computed attributest to create the original create request
+	// Removing the computed attributes to recreate the original request
 	req.GroupID = ""
 	req.Created = ""
 	req.Updated = ""
 
-	// If something change, always the matches need to be sent like
-	// the Terraform state to due that the req variable got above doesn't have
-	// the "field_name" in each matcher item attribute so if the request is sent like
-	// above we will get an error
+	// If matchers changes ensure we are sending the information like the Terraform state
+	// because the req variable above doesn't have the "field_name" in each matcher item attribute
+	// if sent as is, the server sends an error
 	req.Matchers = expandAlertConfigurationMatchers(d)
 
 	// Only changes the updated fields
@@ -345,8 +344,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 		req.Notifications = expandAlertConfigurationNotification(d)
 	}
 
-	// it's necessary if just enabled attr is seated, due if only the enabled attr is sent the server returns error 500,
-	// so we need to use the enabled/disabled entry point to set it
+	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
 	if reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(true)}) ||
 		reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(false)}) {
 		_, _, err = conn.AlertConfigurations.EnableAnAlertConfig(context.Background(), ids["project_id"], ids["id"], req.Enabled)
