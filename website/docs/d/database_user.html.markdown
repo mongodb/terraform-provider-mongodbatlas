@@ -32,6 +32,15 @@ resource "mongodbatlas_database_user" "test" {
 		role_name     = "atlasAdmin"
 		database_name = "admin"
 	}
+
+	labels {
+		key   = "key 1"
+		value = "value 1"
+	}
+	labels {
+		key   = "key 2"
+		value = "value 2"
+	}
 }
 
 data "mongodbatlas_database_user" "test" {
@@ -65,5 +74,11 @@ Block mapping a user's role to a database / collection. A role allows the user t
 * `name` - Name of the role to grant.
 * `database_name` -  Database on which the user has the specified role. A role on the `admin` database can include privileges that apply to the other databases.
 * `collection_name` - Collection for which the role applies. You can specify a collection for the `read` and `readWrite` roles. If you do not specify a collection for `read` and `readWrite`, the role applies to all collections in the database (excluding some collections in the `system`. database).
+
+### Labels
+Containing key-value pairs that tag and categorize the database user. Each key and value has a maximum length of 255 characters.
+
+* `key` - The key that you want to write.
+* `value` - The value that you want to write.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/database-users-get-single-user/) Documentation for more information.

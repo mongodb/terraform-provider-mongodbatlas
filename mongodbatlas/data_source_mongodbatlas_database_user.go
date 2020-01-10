@@ -46,6 +46,22 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 					},
 				},
 			},
+			"labels": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -61,17 +77,17 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
-
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
-
 	if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
 		return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
 	}
-
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
+		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(dbUser.Username)
