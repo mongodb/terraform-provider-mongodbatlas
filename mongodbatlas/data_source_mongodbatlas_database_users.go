@@ -60,6 +60,22 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 								},
 							},
 						},
+						"labels": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -74,7 +90,6 @@ func dataSourceMongoDBAtlasDatabaseUsersRead(d *schema.ResourceData, meta interf
 	projectID := d.Get("project_id").(string)
 
 	dbUsers, _, err := conn.DatabaseUsers.List(context.Background(), projectID, nil)
-
 	if err != nil {
 		return fmt.Errorf("error getting database users information: %s", err)
 	}
@@ -100,6 +115,7 @@ func flattenDBUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
 				"username":      dbUser.Username,
 				"project_id":    dbUser.GroupID,
 				"database_name": dbUser.DatabaseName,
+				"labels":        flattenLabels(dbUser.Labels),
 			}
 		}
 	}
