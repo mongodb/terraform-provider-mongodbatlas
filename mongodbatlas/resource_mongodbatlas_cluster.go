@@ -1,6 +1,7 @@
 package mongodbatlas
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -285,6 +287,48 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"labels": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Set: func(v interface{}) int {
+					var buf bytes.Buffer
+					m := v.(map[string]interface{})
+					buf.WriteString(m["key"].(string))
+					buf.WriteString(m["value"].(string))
+					return hashcode.String(buf.String())
+				},
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"plugin": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -379,6 +423,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+		Labels:                   expandLabelSliceFromSetSchema(d),
 	}
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
@@ -520,6 +565,16 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
 		return fmt.Errorf(errorRead, clusterName, err)
 	}
+	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
+		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("plugin", map[string]interface{}{
+		"name":    "Terraform MongoDB Atlas Provider",
+		"version": getPluginVersion(),
+	}); err != nil {
+		return fmt.Errorf("error setting `plugin` for database user (%s): %s", d.Id(), err)
+	}
 
 	/*
 		Get the advaced configuration options and set up to the terraform state
@@ -599,6 +654,9 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	}
 	if d.HasChange("num_shards") {
 		cluster.NumShards = pointy.Int64(cast.ToInt64(d.Get("num_shards")))
+	}
+	if d.HasChange("labels") {
+		cluster.Labels = expandLabelSliceFromSetSchema(d)
 	}
 
 	// Has changes
