@@ -182,6 +182,38 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"labels": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"plugin": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -277,6 +309,17 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
 		return fmt.Errorf(errorRead, name, err)
+	}
+
+	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
+		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("plugin", map[string]interface{}{
+		"name":    "Terraform MongoDB Atlas Provider",
+		"version": getPluginVersion(),
+	}); err != nil {
+		return fmt.Errorf("error setting `plugin` for database user (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(cluster.ID)

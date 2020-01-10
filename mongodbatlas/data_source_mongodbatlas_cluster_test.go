@@ -40,11 +40,11 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled string) string {
@@ -65,6 +65,15 @@ func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled s
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M40"
 			provider_region_name        = "US_EAST_2"
+
+			labels {
+				key   = "key 1"
+				value = "value 1"
+			}
+			labels {
+				key   = "key 2"
+				value = "value 2"
+			}
 		}
 
 

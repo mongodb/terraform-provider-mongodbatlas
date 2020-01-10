@@ -123,6 +123,20 @@ Physical location of the region.
 * `read_only_nodes` - Number of read-only nodes for Atlas to deploy to the region. Read-only nodes can never become the primary, but can facilitate local-reads. Specify 0 if you do not want any read-only nodes in the region.
 * `analytics_nodes` - Indicates the number of analytics nodes for Atlas to deploy to the region. Analytics nodes are useful for handling analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only, and can never become the primary.
 
+### Labels
+Containing key-value pairs that tag and categorize the database user. Each key and value has a maximum length of 255 characters.
+
+* `key` - The key that you want to write.
+* `value` - The value that you want to write.
+
+
+### Plugin
+Containing key-value pairs that tag and categorize the database user. Each key and value has a maximum length of 255 characters.
+
+* `name` - The name of the current plugin
+* `version` - The current version of the plugin.
+
+
 
 
 See detailed information for arguments and attributes: [MongoDB API Clusters](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/)
