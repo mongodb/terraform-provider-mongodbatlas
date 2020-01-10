@@ -409,84 +409,104 @@ func TestTeams_UpdateTeamRoles(t *testing.T) {
 
 }
 
-func TestTeams_AddUserToTeam(t *testing.T) {
+func TestTeams_AddUsersToTeam(t *testing.T) {
 	setup()
 	defer teardown()
 
 	orgID := "1"
 
-	userID := "1"
+	usersID := []string{"1", "2"}
 	teamID := "6b720e1087d9d66b272f1c86"
 
 	mux.HandleFunc(fmt.Sprintf("/orgs/%s/teams/%s/users", orgID, teamID), func(w http.ResponseWriter, r *http.Request) {
-		expected := map[string]interface{}{
-			"id": userID,
+		expected := []map[string]interface{}{
+			{
+				"id": usersID[0],
+			},
+			{
+				"id": usersID[1],
+			},
 		}
 
-		jsonBlob := `
-		{
-			"links": [
-			  {
-				"href": "https://cloud.mongodb.com/api/atlas/v1.0/orgs/{ORG-ID}/teams/{TEAM-ID}/users?pretty=true",
-				"rel": "self"
-			  }
-			],
-			"results": [
-			  {
-				"country": "US",
-				"emailAddress": "atlasUser@example.com",
-				"firstName": "Atlas",
-				"id": "1",
-				"lastName": "user",
-				"links": [
-				  {
-					"href": "https://cloud.mongodb.com/api/atlas/v1.0/users/1",
-					"rel": "self"
-				  }
-				],
-				"mobileNumber": "5555550100",
-				"roles": [
-				  {
-					"orgId": "{ORG-ID}",
-					"roleName": "ORG_MEMBER"
-				  }
-				],
-				"teamIds": [
-				  "{TEAM-ID}"
-				],
-				"username": "atlasUser@example.com"
-			  }
-			],
-			"totalCount": 1
-		}
-		`
-
-		var v map[string]interface{}
+		var v []map[string]interface{}
 		err := json.NewDecoder(r.Body).Decode(&v)
 		if err != nil {
 			t.Fatalf("decode json: %v", err)
 		}
 
-		if !reflect.DeepEqual(v, expected) {
-			t.Errorf("Request body\n got=%#v\nwant=%#v", v, expected)
+		if diff := deep.Equal(v, expected); diff != nil {
+			t.Errorf("Diff\n got=%#v\nwant=%#v \n\ndiff=%#v", v, expected, diff)
 		}
 
-		fmt.Fprint(w, jsonBlob)
+		fmt.Fprint(w, `{
+			"links": [
+				{
+					"href": "https://cloud.mongodb.com/api/atlas/v1.0/orgs/{ORG-ID}/teams/{TEAM-ID}/users?pretty=true",
+					"rel": "self"
+				}
+			],
+			"results": [
+				{
+					"country": "US",
+					"emailAddress": "atlasUser@example.com",
+					"firstName": "Atlas",
+					"id": "1",
+					"lastName": "user",
+					"links": [
+						{
+							"href": "https://cloud.mongodb.com/api/atlas/v1.0/users/1",
+							"rel": "self"
+						}
+					],
+					"mobileNumber": "5555550100",
+					"roles": [
+						{
+							"orgId": "{ORG-ID}",
+							"roleName": "ORG_MEMBER"
+						}
+					],
+					"teamIds": [
+						"{TEAM-ID}"
+					],
+					"username": "atlasUser@example.com"
+				},
+				{
+					"country": "US",
+					"emailAddress": "atlasUser@example.com",
+					"firstName": "Atlas",
+					"id": "2",
+					"lastName": "user",
+					"links": [
+						{
+							"href": "https://cloud.mongodb.com/api/atlas/v1.0/users/1",
+							"rel": "self"
+						}
+					],
+					"mobileNumber": "5555550100",
+					"roles": [
+						{
+							"orgId": "{ORG-ID}",
+							"roleName": "ORG_MEMBER"
+						}
+					],
+					"teamIds": [
+						"{TEAM-ID}"
+					],
+					"username": "atlasUser@example.com"
+				}
+			],
+			"totalCount": 2
+		}`)
 	})
 
-	atlasUsers, _, err := client.Teams.AddUserToTeam(ctx, orgID, teamID, userID)
+	atlasUsers, _, err := client.Teams.AddUsersToTeam(ctx, orgID, teamID, usersID)
 	if err != nil {
-		t.Errorf("Teams.AddUsetToTeam returned error: %v", err)
+		t.Errorf("Teams.AddUsersToTeam returned error: %v", err)
 	}
 
-	if userCount := len(atlasUsers); userCount != 1 {
-		t.Errorf("expected userCount '%d', received '%d'", 1, userCount)
+	if userCount := len(atlasUsers); userCount != 2 {
+		t.Errorf("expected userCount '%d', received '%d'", 2, userCount)
 	}
-
-	if id := atlasUsers[0].ID; id != userID {
-		t.Errorf("expected id '%s', received '%s'", userID, id)
-	}
-
 }
 
 func TestTeams_RemoveUserToTeam(t *testing.T) {
