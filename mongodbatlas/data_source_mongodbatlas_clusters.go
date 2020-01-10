@@ -188,6 +188,38 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"labels": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"plugin": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -210,6 +242,13 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 
 	if err := d.Set("results", flattenClusters(clusters)); err != nil {
 		return fmt.Errorf("error setting cluster list %s", err)
+	}
+
+	if err := d.Set("plugin", map[string]interface{}{
+		"name":    "Terraform MongoDB Atlas Provider",
+		"version": getPluginVersion(),
+	}); err != nil {
+		return fmt.Errorf("error setting `plugin` for database user (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(resource.UniqueId())
@@ -248,6 +287,7 @@ func flattenClusters(clusters []matlas.Cluster) []map[string]interface{} {
 			"provider_region_name":         cluster.ProviderSettings.RegionName,
 			"bi_connector":                 flattenBiConnector(cluster.BiConnector),
 			"replication_specs":            flattenReplicationSpecs(cluster.ReplicationSpecs),
+			"labels":                       flattenLabels(cluster.Labels),
 		}
 		results = append(results, result)
 	}
