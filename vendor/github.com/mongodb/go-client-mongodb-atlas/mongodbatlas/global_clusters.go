@@ -8,9 +8,9 @@ import (
 
 const globalClustersBasePath = "groups/%s/clusters/%s/globalWrites/%s"
 
-// GlobalClustersService is an interface for interfacing with the Global Clusters
+//GlobalClustersService is an interface for interfacing with the Global Clusters
 // endpoints of the MongoDB Atlas API.
-// See more: https://docs.atlas.mongodb.com/reference/api/global-clusters/
+//See more: https://docs.atlas.mongodb.com/reference/api/global-clusters/
 type GlobalClustersService interface {
 	Get(context.Context, string, string) (*GlobalCluster, *Response, error)
 	AddManagedNamespace(context.Context, string, string, *ManagedNamespace) (*GlobalCluster, *Response, error)
@@ -19,8 +19,8 @@ type GlobalClustersService interface {
 	DeleteCustomZoneMappings(context.Context, string, string) (*GlobalCluster, *Response, error)
 }
 
-// GlobalClustersServiceOp handles communication with the GlobalClusters related methos of the
-// MongoDB Atlas API
+//GlobalClustersServiceOp handles communication with the GlobalClusters related methos of the
+//MongoDB Atlas API
 type GlobalClustersServiceOp struct {
 	client *Client
 }
@@ -33,26 +33,26 @@ type GlobalCluster struct {
 	ManagedNamespaces []ManagedNamespace `json:"managedNamespaces"`
 }
 
-// ManagedNamespace represents the information about managed namespace configuration.
+//ManagedNamespace represents the information about managed namespace configuration.
 type ManagedNamespace struct {
 	Db             string `json:"db"`
 	Collection     string `json:"collection"`
 	CustomShardKey string `json:"customShardKey,omitempty"`
 }
 
-// CustomZoneMappingsRequest represents the request related to add custom zone mappings to a global cluster.
+//CustomZoneMappingsRequest represents the request related to add custom zone mappings to a global cluster.
 type CustomZoneMappingsRequest struct {
 	CustomZoneMappings []CustomZoneMapping `json:"customZoneMappings"`
 }
 
-// CustomZoneMapping represents the custom zone mapping.
+//CustomZoneMapping represents the custom zone mapping.
 type CustomZoneMapping struct {
 	Location string `json:"location"`
 	Zone     string `json:"zone"`
 }
 
-// Get retrieves all managed namespaces and custom zone mappings associated with the specified Global Cluster.
-// See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-retrieve-namespaces/
+//Get retrieves all managed namespaces and custom zone mappings associated with the specified Global Cluster.
+//See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-retrieve-namespaces/
 func (s *GlobalClustersServiceOp) Get(ctx context.Context, groupID string, clusterName string) (*GlobalCluster, *Response, error) {
 	if clusterName == "" {
 		return nil, nil, NewArgError("username", "must be set")
@@ -97,8 +97,8 @@ func (s *GlobalClustersServiceOp) AddManagedNamespace(ctx context.Context, group
 	return root, resp, err
 }
 
-// DeleteManagedNamespace deletes the managed namespace configuration of the global cluster given.
-// See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-delete-namespace/
+//DeleteManagedNamespace deletes the managed namespace configuration of the global cluster given.
+//See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-delete-namespace/
 func (s *GlobalClustersServiceOp) DeleteManagedNamespace(ctx context.Context, groupID string, clusterName string, deleteRequest *ManagedNamespace) (*GlobalCluster, *Response, error) {
 	if deleteRequest == nil {
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
@@ -125,8 +125,8 @@ func (s *GlobalClustersServiceOp) DeleteManagedNamespace(ctx context.Context, gr
 	return root, resp, err
 }
 
-// AddCustomZoneMappings adds an entry to the list of custom zone mappings for the specified Global Cluster.
-// See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-add-customzonemapping/
+//AddCustomZoneMappings adds an entry to the list of custom zone mappings for the specified Global Cluster.
+//See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-add-customzonemapping/
 func (s *GlobalClustersServiceOp) AddCustomZoneMappings(ctx context.Context, groupID string, clusterName string, createRequest *CustomZoneMappingsRequest) (*GlobalCluster, *Response, error) {
 	if createRequest == nil {
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
@@ -148,8 +148,8 @@ func (s *GlobalClustersServiceOp) AddCustomZoneMappings(ctx context.Context, gro
 	return root, resp, err
 }
 
-// DeleteCustomZoneMappings removes all custom zone mappings from the specified Global Cluster.
-// See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-delete-namespace/
+//DeleteCustomZoneMappings removes all custom zone mappings from the specified Global Cluster.
+//See more: https://docs.atlas.mongodb.com/reference/api/global-clusters-delete-namespace/
 func (s *GlobalClustersServiceOp) DeleteCustomZoneMappings(ctx context.Context, groupID string, clusterName string) (*GlobalCluster, *Response, error) {
 	path := fmt.Sprintf(globalClustersBasePath, groupID, clusterName, "customZoneMapping")
 
