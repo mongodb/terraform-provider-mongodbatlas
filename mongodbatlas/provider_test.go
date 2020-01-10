@@ -24,6 +24,14 @@ func TestProvider(t *testing.T) {
 	}
 }
 
+func TestGetPluginVersion(t *testing.T) {
+	version := getPluginVersion()
+	if version == "" {
+		t.Fatal("version must not be empty")
+	}
+	t.Logf("\nVersion: %s", version)
+}
+
 func testAccPreCheck(t *testing.T) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
