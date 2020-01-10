@@ -301,6 +301,13 @@ Include **desired options** within advanced_configuration:
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 
+### Labels
+Containing key-value pairs that tag and categorize the database user. Each key and value has a maximum length of 255 characters.
+
+* `key` - The key that you want to write.
+* `value` - The value that you want to write.
+
+
 
 ## Attributes Reference
 
@@ -325,6 +332,12 @@ In addition to all arguments above, the following attributes are exported:
     - DELETING
     - DELETED
     - REPAIRING
+
+### Plugin
+Containing key-value pairs that tag and categorize the database user. Each key and value has a maximum length of 255 characters.
+
+* `name` - The name of the current plugin
+* `version` - The current version of the plugin.
 
 
 ## Import
