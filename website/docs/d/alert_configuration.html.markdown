@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_alert_configuration
 
-`mongodbatlas_alert_configuration` describes a Alert Configuration.
+`mongodbatlas_alert_configuration` describes an Alert Configuration.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 
@@ -63,8 +63,8 @@ In addition to all arguments above, the following attributes are exported:
 * `group_id` - Unique identifier of the project that owns this alert configuration.
 * `created` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
 * `updated` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.
-* `enabled` - If omitted, the configuration is disabled.
-* `event_type` - (Required) The type of event that will trigger an alert.
+* `enabled` - If set to true, the alert configuration is enabled.If enabled is not specified in a POST command, it defaults to false.
+* `event_type` - The type of event that will trigger an alert.
   Alert type. Possible values:
 	 - Host 	
 		- `OUTSIDE_METRIC_THRESHOLD`
