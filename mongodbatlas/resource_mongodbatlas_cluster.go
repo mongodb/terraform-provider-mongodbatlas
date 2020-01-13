@@ -369,24 +369,20 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorCreate, err)
 	}
 
-	// set the default disk size gb for the provider and tier
-	diskSizeGB := matlas.DefaultDiskSizeGB[providerName][d.Get("provider_instance_size_name").(string)]
-	// But if it's specify the disk size will set up
-	if v, ok := d.GetOk("disk_size_gb"); ok {
-		diskSizeGB = v.(float64)
-	}
-
 	clusterRequest := &matlas.Cluster{
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
-		DiskSizeGB:               &diskSizeGB,
 		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+	}
+
+	if v, ok := d.GetOk("disk_size_gb"); ok {
+		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
 	}
 
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
