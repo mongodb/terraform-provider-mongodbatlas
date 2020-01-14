@@ -230,7 +230,7 @@ func TestProjectIPWhitelist_Update(t *testing.T) {
 		IPAddress: ipAddress,
 	}}
 
-	mux.HandleFunc(fmt.Sprintf("/groups/%s/whitelist/%s", groupID, ipAddress), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(fmt.Sprintf("/groups/%s/whitelist", groupID), func(w http.ResponseWriter, r *http.Request) {
 		expected := []map[string]interface{}{{
 			"ipAddress": ipAddress,
 			"groupId":   groupID,
@@ -260,7 +260,7 @@ func TestProjectIPWhitelist_Update(t *testing.T) {
 		fmt.Fprint(w, jsonBlob)
 	})
 
-	projectIPWhitelist, _, err := client.ProjectIPWhitelist.Update(ctx, groupID, ipAddress, createRequest)
+	projectIPWhitelist, _, err := client.ProjectIPWhitelist.Update(ctx, groupID, createRequest)
 	if err != nil {
 		t.Errorf("ProjectIPWhitelist.Update returned error: %v", err)
 		return
