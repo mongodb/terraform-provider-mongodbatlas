@@ -15,6 +15,8 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 	resourceName := "data.mongodbatlas_teams.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	username := "mongodbatlas.testing@gmail.com"
 
@@ -24,14 +26,16 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username),
+				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, projectID, name, username, "GROUP_READ_ONLY"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
 					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "team_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "users.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "users.0.username", username),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "team_roles.#", "1"),
 				),
 			},
 		},
@@ -39,17 +43,20 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 }
 
-func testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username string) string {
+func testAccDataSourceMongoDBAtlasTeamConfig(orgID, projectID, name, username, teamRoles string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_teams" "test" {
-			org_id    = "%s"
-			name      = "%s"
-			usernames = ["%s"]
+			org_id     = "%s"
+			project_id = "%s"
+			name       = "%s"
+			usernames  = ["%s"]
+			team_roles = ["%s"]
 		}
-
+		
 		data "mongodbatlas_teams" "test" {
-			org_id    = mongodbatlas_teams.test.org_id
-			team_id   = mongodbatlas_teams.test.team_id
-		}
-	`, orgID, name, username)
+			org_id     = mongodbatlas_teams.test.org_id
+			team_id    = mongodbatlas_teams.test.team_id
+			project_id = mongodbatlas_teams.test.project_id
+		}	
+	`, orgID, projectID, name, username, teamRoles)
 }

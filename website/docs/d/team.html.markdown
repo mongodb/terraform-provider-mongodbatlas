@@ -8,28 +8,32 @@ description: |-
 
 # mongodbatlas_teams
 
-`mongodbatlas_teams` describes a Team. The resource requires your Organization ID and Team ID.
+`mongodbatlas_teams` describes a Team. The resource requires your Organization ID, Project ID and Team ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_teams" "test" {
-    org_id    = "<Your Organization ID>"
-    name      = "myNewTeam"
-    usernames = ["user1", "user2", "user3"]
+resource "mongodbatalas_teams" "test" {
+  org_id     = "<ORGANIZATION-ID>"
+  project_id = "<PROJECT-ID>"
+  name       = "myNewTeam"
+  usernames  = ["user1", "user2", "user3"]
+  team_roles = ["GROUP_OWNER"]
 }
 
 data "mongodbatlas_teams" "test" {
-    org_id    = mongodbatlas_teams.test.org_id
-    team_id   = mongodbatlas_teams.test.team_id
+	org_id     = mongodbatlas_teams.test.org_id
+	team_id    = mongodbatlas_teams.test.team_id
+	project_id = mongodbatlas_teams.test.project_id
 }
 ```
 
 ## Argument Reference
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
+* `project_id` - (Required) The unique identifier for the project.
 * `team_id` - (Required) The unique identifier for the team.
 
 
@@ -37,28 +41,8 @@ data "mongodbatlas_teams" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 * `id` -	The Terraform's unique identifier used internally for state management.
-* `name` - (Required) 	The name of the team you want to create.
-* `users` - (Optional) Usernames to add to the new team. See [User](#user).
-
-
-### User
-
-Indicates a user assigned to a Team
-
-* `email_address` - The email address associated to the user.
-* `first_name` - The first name of the user.
-* `id` -  The unique identifier for the team.
-* `last_name` -  The last name of the user.
-* `roles` -  Each object in the roles array represents the Atlas organization role the user has for the associated orgId or groupId. See [Role](#role).
-* `teams_id` -  Array of string IDs for each team the user is a member of.
-* `username` - Username associated to the user.
-
-### Role
-
-Represents the Atlas organization role the user has for the associated orgId or groupId.
-
-* `org_id` - ID of the organization where the user has the assigned roles.roleName organization role.
-* `group_id` - ID of the project where the user has the assigned roles.roleName project role.
-* `role_name` - The organization role assigned to the user for the specified roles.orgId or roles.groupId.
+* `name` -  The name of the team you want to create.
+* `usernames` - The users who are part of the organization.
+* `team_roles` - The project team roles.
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)
