@@ -13,12 +13,13 @@ import (
 )
 
 const (
-	errorTeamCreate   = "error creating Team information: %s"
-	errorTeamAddUsers = "error adding users to the Team information: %s"
-	errorTeamRead     = "error getting Team information: %s"
-	errorTeamUpdate   = "error updating Team information: %s"
-	errorTeamDelete   = "error deleting Team (%s): %s"
-	errorTeamSetting  = "error setting `%s` for Team (%s): %s"
+	errorTeamCreate        = "error creating Team information: %s"
+	errorTeamAddUsers      = "error adding users to the Team information: %s"
+	errorTeamRead          = "error getting Team information: %s"
+	errorTeamUpdate        = "error updating Team information: %s"
+	errorTeamUpdatingRoles = "error updating Team Roles information: %s"
+	errorTeamDelete        = "error deleting Team (%s): %s"
+	errorTeamSetting       = "error setting `%s` for Team (%s): %s"
 )
 
 func resourceMongoDBAtlasTeam() *schema.Resource {
@@ -32,6 +33,11 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -51,6 +57,13 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"team_roles": {
+				Type:     schema.TypeSet,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -58,20 +71,33 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	orgID := d.Get("org_id").(string)
+	projectID := d.Get("project_id").(string)
 
-	teamReq := &matlas.Team{
-		Name:      d.Get("name").(string),
-		Usernames: expandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
-	}
-
-	teamsResp, _, err := conn.Teams.Create(context.Background(), orgID, teamReq)
+	// Creating the team
+	teamsResp, _, err := conn.Teams.Create(context.Background(), orgID,
+		&matlas.Team{
+			Name:      d.Get("name").(string),
+			Usernames: expandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
+		})
 	if err != nil {
 		return fmt.Errorf(errorTeamCreate, err)
 	}
 
+	// Linking the team inside of one Project and adding roles if roles isn't empty
+	_, _, err = conn.Projects.AddTeamsToProject(context.Background(), projectID,
+		[]*matlas.ProjectTeam{{
+			TeamID:    teamsResp.ID,
+			RoleNames: expandStringListFromSetSchema(d.Get("team_roles").(*schema.Set)),
+		}},
+	)
+	if err != nil {
+		return fmt.Errorf("error linking the team(%s) to the Project(%s) information: %s", teamsResp.ID, projectID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
-		"org_id": orgID,
-		"id":     teamsResp.ID,
+		"org_id":     orgID,
+		"id":         teamsResp.ID,
+		"project_id": projectID,
 	}))
 
 	return resourceMongoDBAtlasTeamRead(d, meta)
@@ -82,22 +108,23 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
-	id := ids["id"]
+	teamID := ids["id"]
+	projectID := ids["project_id"]
 
-	team, _, err := conn.Teams.Get(context.Background(), orgID, id)
+	team, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
 	if err != nil {
 		return fmt.Errorf(errorTeamRead, err)
 	}
 
 	if err := d.Set("name", team.Name); err != nil {
-		return fmt.Errorf(errorTeamSetting, "name", d.Id(), err)
+		return fmt.Errorf(errorTeamSetting, "name", teamID, err)
 	}
 	if err := d.Set("team_id", team.ID); err != nil {
-		return fmt.Errorf(errorTeamSetting, "team_id", d.Id(), err)
+		return fmt.Errorf(errorTeamSetting, "team_id", teamID, err)
 	}
 
 	//Set Usernames
-	users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, id)
+	users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, teamID)
 	if err != nil {
 		return fmt.Errorf(errorTeamRead, err)
 	}
@@ -108,7 +135,27 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {
-		return fmt.Errorf(errorTeamSetting, "usernames", d.Id(), err)
+		return fmt.Errorf(errorTeamSetting, "usernames", teamID, err)
+	}
+
+	// Get all the teams assiged to a Project
+	teams, _, err := conn.Projects.GetProjectTeamsAssigned(context.Background(), projectID)
+	if err != nil {
+		return fmt.Errorf("error getting Teams from a Project(%s) information: %s", orgID, err)
+	}
+
+	var teamRoles []string
+	for _, team := range teams.Results { // looking for our current team
+		// If the team exists then save the roles
+		if team.TeamID == teamID {
+			teamRoles = team.RoleNames
+			break
+		}
+	}
+
+	// Set the roles
+	if err := d.Set("team_roles", teamRoles); err != nil {
+		return fmt.Errorf(errorTeamSetting, "team_roles", teamID, err)
 	}
 
 	return nil
@@ -119,10 +166,11 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
-	id := ids["id"]
+	teamID := ids["id"]
+	projectID := ids["project_id"]
 
 	if d.HasChange("name") {
-		_, _, err := conn.Teams.Rename(context.Background(), orgID, id, d.Get("name").(string))
+		_, _, err := conn.Teams.Rename(context.Background(), orgID, teamID, d.Get("name").(string))
 		if err != nil {
 			return fmt.Errorf(errorTeamUpdate, err)
 		}
@@ -131,15 +179,15 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("usernames") {
 		// First, we need to remove the current users of the team and later add the new users
 		// Get the current team's users
-		users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, id)
+		users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, teamID)
 		if err != nil {
 			return fmt.Errorf(errorTeamRead, err)
 		}
 		// Removing each user
 		for _, u := range users {
-			_, err := conn.Teams.RemoveUserToTeam(context.Background(), orgID, id, u.ID)
+			_, err := conn.Teams.RemoveUserToTeam(context.Background(), orgID, teamID, u.ID)
 			if err != nil {
-				return fmt.Errorf("error deleting Atlas User (%s) information: %s", id, err)
+				return fmt.Errorf("error deleting Atlas User (%s) information: %s", teamID, err)
 			}
 		}
 
@@ -150,14 +198,24 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 			if err != nil {
 				return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
 			}
-			// if the user exists, we will storage its id
+			// if the user exists, we will storage its teamID
 			newUsers = append(newUsers, user.ID)
 		}
 
-		// Adding the new existing users by id
-		_, _, err = conn.Teams.AddUsersToTeam(context.Background(), orgID, id, newUsers)
+		// Adding the new existing users by teamID
+		_, _, err = conn.Teams.AddUsersToTeam(context.Background(), orgID, teamID, newUsers)
 		if err != nil {
 			return fmt.Errorf(errorTeamAddUsers, err)
+		}
+	}
+
+	if d.HasChange("team_roles") {
+		_, _, err := conn.Teams.UpdateTeamRoles(context.Background(), projectID, teamID,
+			&matlas.TeamUpdateRoles{
+				RoleNames: expandStringListFromSetSchema(d.Get("team_roles").(*schema.Set)),
+			})
+		if err != nil {
+			return fmt.Errorf(errorTeamUpdatingRoles, err)
 		}
 	}
 
@@ -169,8 +227,14 @@ func resourceMongoDBAtlasTeamDelete(d *schema.ResourceData, meta interface{}) er
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
+	projectID := ids["project_id"]
 
-	_, err := conn.Teams.RemoveTeamFromOrganization(context.Background(), orgID, id)
+	_, err := conn.Teams.RemoveTeamFromProject(context.Background(), projectID, id)
+	if err != nil {
+		return fmt.Errorf(errorTeamDelete, id, err)
+	}
+
+	_, err = conn.Teams.RemoveTeamFromOrganization(context.Background(), orgID, id)
 	if err != nil {
 		return fmt.Errorf(errorTeamDelete, id, err)
 	}
@@ -181,26 +245,34 @@ func resourceMongoDBAtlasTeamDelete(d *schema.ResourceData, meta interface{}) er
 func resourceMongoDBAtlasTeamImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a team, use the format {group_id}-{team_id}")
+	parts := strings.SplitN(d.Id(), "-", 3)
+	if len(parts) != 3 {
+		return nil, errors.New("import format error: to import a team, use the format {group_id}-{team_id}-{project_id}")
 	}
 
 	orgID := parts[0]
 	teamID := parts[1]
+	projectID := parts[2]
 
 	u, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import user (%s) in project (%s), error: %s", teamID, orgID, err)
+		return nil, fmt.Errorf("couldn't import team (%s) in project (%s), error: %s", teamID, orgID, err)
 	}
 
 	if err := d.Set("org_id", orgID); err != nil {
-		log.Printf("[WARN] Error setting org_id for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting org_id for (%s): %s", teamID, err)
+	}
+	if err := d.Set("team_id", teamID); err != nil {
+		log.Printf("[WARN] Error setting team_id for (%s): %s", teamID, err)
+	}
+	if err := d.Set("project_id", projectID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", teamID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"org_id": orgID,
-		"id":     u.ID,
+		"org_id":     orgID,
+		"id":         u.ID,
+		"project_id": projectID,
 	}))
 
 	return []*schema.ResourceData{d}, nil

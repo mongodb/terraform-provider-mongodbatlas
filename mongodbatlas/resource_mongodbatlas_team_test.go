@@ -19,10 +19,8 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 	resourceName := "mongodbatlas_teams.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	username := "mongodbatlas.testing@gmail.com"
-	username1 := "francisco.preciado@digitalonus.com"
-	username2 := "antonio.cabrera@digitalonus.com"
 
 	updatedName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
@@ -32,23 +30,61 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, username, username1, username2),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, projectID, name,
+					[]string{
+						"mongodbatlas.testing@gmail.com",
+						"francisco.preciado@digitalonus.com",
+						"antonio.cabrera@digitalonus.com",
+					},
+					[]string{"GROUP_READ_ONLY"}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
 					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "team_roles.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName, "marin.salinas@digitalonus.com", "antonio.cabrera@digitalonus.com"),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, projectID, updatedName,
+					[]string{
+						"marin.salinas@digitalonus.com",
+						"antonio.cabrera@digitalonus.com",
+					},
+					[]string{
+						"GROUP_DATA_ACCESS_ADMIN",
+						"GROUP_READ_ONLY",
+					}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
 					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
 					resource.TestCheckResourceAttr(resourceName, "usernames.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "team_roles.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasTeamConfig(orgID, projectID, updatedName,
+					[]string{
+						"marin.salinas@digitalonus.com",
+						"mongodbatlas.testing@gmail.com",
+						"francisco.preciado@digitalonus.com",
+					},
+					[]string{
+						"GROUP_OWNER",
+					}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
+					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "team_roles.#", "1"),
 				),
 			},
 		},
@@ -58,9 +94,9 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	resourceName := "mongodbatlas_teams.test"
-	username := "mongodbatlas.testing@gmail.com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -68,7 +104,9 @@ func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, username),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, projectID, name,
+					[]string{"mongodbatlas.testing@gmail.com"},
+					[]string{"GROUP_READ_ONLY"}),
 			},
 			{
 				ResourceName:      resourceName,
@@ -89,15 +127,15 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.Attributes["org_id"] == "" {
+		orgID := rs.Primary.Attributes["org_id"]
+		id := rs.Primary.Attributes["team_id"]
+
+		if orgID == "" && id == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-		orgID := ids["org_id"]
-		id := ids["id"]
-
 		log.Printf("[DEBUG] orgID: %s", orgID)
+		log.Printf("[DEBUG] teamID: %s", id)
 
 		teamResp, _, err := conn.Teams.Get(context.Background(), orgID, id)
 		if err == nil {
@@ -125,24 +163,16 @@ func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the team
-		_, _, err := conn.Teams.Get(context.Background(), rs.Primary.Attributes["org_id"], rs.Primary.Attributes["team_id"])
+		orgID := rs.Primary.Attributes["org_id"]
+		id := rs.Primary.Attributes["team_id"]
 
+		// Try to find the team
+		_, _, err := conn.Teams.Get(context.Background(), orgID, id)
 		if err == nil {
-			return fmt.Errorf("team (%s) still exists", rs.Primary.Attributes["team_id"])
+			return fmt.Errorf("team (%s) still exists", id)
 		}
 	}
 	return nil
-}
-
-func testAccMongoDBAtlasTeamConfig(orgID, name string, usernames ...string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
-			org_id    = "%s"
-			name      = "%s"
-			usernames = %s
-		}
-	`, orgID, name, strings.ReplaceAll(fmt.Sprintf("%+q", usernames), " ", ","))
 }
 
 func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -151,10 +181,30 @@ func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.Impor
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		ids := decodeStateID(rs.Primary.ID)
-		orgID := ids["org_id"]
-		id := ids["id"]
+		orgID := rs.Primary.Attributes["org_id"]
+		id := rs.Primary.Attributes["team_id"]
+		projectID := rs.Primary.Attributes["project_id"]
 
-		return fmt.Sprintf("%s-%s", orgID, id), nil
+		return fmt.Sprintf("%s-%s-%s", orgID, id, projectID), nil
 	}
+}
+
+func testAccMongoDBAtlasTeamConfig(orgID, projectID, name string, usernames, roles []string) string {
+	var teamRoles string
+	if len(roles) > 0 {
+		teamRoles = fmt.Sprintf(`
+			team_roles = %s
+		`, strings.ReplaceAll(fmt.Sprintf("%+q", roles), " ", ","))
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_teams" "test" {
+			org_id     = "%s"
+			project_id = "%s"
+			name       = "%s"
+			usernames  = %s
+			%s
+		}`, orgID, projectID, name,
+		strings.ReplaceAll(fmt.Sprintf("%+q", usernames), " ", ","),
+		teamRoles,
+	)
 }

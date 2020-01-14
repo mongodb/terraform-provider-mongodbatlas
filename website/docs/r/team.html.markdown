@@ -20,17 +20,22 @@ MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams pe
 
 ```hcl
 resource "mongodbatalas_teams" "test" {
-    org_id    = "<Your Organization ID>"
-    name      = "myNewTeam"
-    usernames = ["user1", "user2", "user3"]
+  org_id     = "<ORGANIZATION-ID>"
+  project_id = "<PROJECT-ID>"
+  name       = "myNewTeam"
+  usernames  = ["user1", "user2", "user3"]
+  team_roles = ["GROUP_OWNER"]
 }
 ```
 
 ## Argument Reference
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
-* `name` - (Required) 	The name of the team you want to create.
-* `usernames` - (Optional) Usernames to add to the new team.
+* `project_id` - (Required) The unique identifier for the project.
+* `name` - (Required) The name of the team you want to create.
+* `usernames` - (Required) You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team.
+* `team_roles` - (Required) Project roles you want to assign the given team.
+
 
 ## Attributes Reference
 
@@ -40,10 +45,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Clusters can be imported using the organization ID and team id, in the format `ORGID-TEAMID`, e.g.
+Clusters can be imported using the organization ID and team id, in the format `ORGID-TEAMID-PROJECTID`, e.g.
 
 ```
-$ terraform import mongodbatalas_teams.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935
+$ terraform import mongodbatalas_teams.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935-1112222b3bf99403840e8936
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)
