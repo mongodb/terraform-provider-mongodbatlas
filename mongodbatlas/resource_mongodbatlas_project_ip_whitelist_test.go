@@ -208,11 +208,10 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -264,7 +263,10 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName st
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return rs.Primary.Attributes["project_id"], nil
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
 	}
 }
 

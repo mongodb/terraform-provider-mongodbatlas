@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"strings"
 	"time"
@@ -28,7 +29,7 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 		Read:   resourceMongoDBAtlasProjectIPWhitelistRead,
 		Delete: resourceMongoDBAtlasProjectIPWhitelistDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceMongoDBAtlasIPWhitelistImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -239,4 +240,32 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 		}
 		return nil
 	})
+}
+
+func resourceMongoDBAtlasIPWhitelistImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a peer, use the format {project_id}-{whitelist_entry}")
+	}
+
+	projectID := parts[0]
+	entry := parts[1]
+
+	_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import entry whitelist %s in project %s, error: %s", entry, projectID, err)
+	}
+
+	if err := d.Set("project_id", projectID); err != nil {
+		log.Printf("[WARN] Error setting project_id for (%s): %s", projectID, err)
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"entry":      entry,
+	}))
+
+	return []*schema.ResourceData{d}, nil
 }
