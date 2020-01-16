@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"log"
+	"regexp"
 	"strings"
 )
 
@@ -29,6 +31,11 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringMatch(regexp.MustCompile("[\\w\\d-]+"), "`role_name` can contain only letters, digits, underscores, and dashes"),
+					validation.StringMatch(regexp.MustCompile("^atlasAdmin$"), "`role_name` cannot be 'atlasAdmin'"),
+					validation.StringMatch(regexp.MustCompile("^(?!xgen-).*"), "`role_name` cannot start with 'xgen-'"),
+				),
 			},
 			"actions": {
 				Type:     schema.TypeList,
