@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
 )
 
 func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
@@ -107,7 +109,6 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 	}
 
 	customDBRoleRes, _, err := conn.CustomDBRoles.Create(context.Background(), projectID, customDBRoleReq)
-
 	if err != nil {
 		return fmt.Errorf("error creating custom db role: %s", err)
 	}
@@ -127,10 +128,10 @@ func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface
 	roleName := ids["role_name"]
 
 	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
-
 	if err != nil {
 		return fmt.Errorf("error getting custom db role information: %s", err)
 	}
+
 	if err := d.Set("role_name", customDBRole.RoleName); err != nil {
 		return fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err)
 	}
@@ -151,10 +152,12 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 	roleName := ids["role_name"]
 
 	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
-
 	if err != nil {
 		return fmt.Errorf("error getting custom db role information: %s", err)
 	}
+
+	// Clean the roleName because it can be sent into the update request to avoid an unexpected error 500
+	customDBRole.RoleName = ""
 
 	if d.HasChange("actions") {
 		customDBRole.Actions = expandActions(d)
@@ -216,35 +219,26 @@ func resourceMongoDBAtlasCustomDBRoleImportState(d *schema.ResourceData, meta in
 }
 
 func expandActions(d *schema.ResourceData) []matlas.Action {
-	var actions []matlas.Action
-	if v, ok := d.GetOk("actions"); ok {
-		if rs := v.([]interface{}); len(rs) > 0 {
-			actions = make([]matlas.Action, len(rs))
-			for k, a := range rs {
-				actionMap := a.(map[string]interface{})
-				actions[k] = matlas.Action{
-					Action:    actionMap["action"].(string),
-					Resources: expandActionResources(actionMap["resources"].([]interface{})),
-				}
-			}
+	actions := make([]matlas.Action, len(d.Get("actions").([]interface{})))
+
+	for k, v := range d.Get("actions").([]interface{}) {
+		a := v.(map[string]interface{})
+		actions[k] = matlas.Action{
+			Action:    a["action"].(string),
+			Resources: expandActionResources(a["resources"].(*schema.Set)),
 		}
 	}
 	return actions
 }
 
-func expandActionResources(resources []interface{}) []matlas.Resource {
-	actionResources := make([]matlas.Resource, len(resources))
-	for k, v := range resources {
+func expandActionResources(resources *schema.Set) []matlas.Resource {
+	actionResources := make([]matlas.Resource, resources.Len())
+	for k, v := range resources.List() {
 		resourceMap := v.(map[string]interface{})
-		if cluster := resourceMap["cluster"]; cluster.(bool) {
-			actionResources[k] = matlas.Resource{
-				Cluster: resourceMap["cluster"].(bool),
-			}
-		} else {
-			actionResources[k] = matlas.Resource{
-				Db:         resourceMap["database_name"].(string),
-				Collection: resourceMap["collection_name"].(string),
-			}
+		actionResources[k] = matlas.Resource{
+			Db:         resourceMap["database_name"].(string),
+			Collection: resourceMap["collection_name"].(string),
+			Cluster:    pointy.Bool(cast.ToBool(resourceMap["cluster"])),
 		}
 	}
 	return actionResources
@@ -264,7 +258,7 @@ func flattenActions(actions []matlas.Action) []map[string]interface{} {
 func flattenActionResources(resources []matlas.Resource) []map[string]interface{} {
 	actionResourceList := make([]map[string]interface{}, 0)
 	for _, v := range resources {
-		if cluster := v.Cluster; cluster {
+		if cluster := v.Cluster; cluster != nil {
 			actionResourceList = append(actionResourceList, map[string]interface{}{
 				"cluster": v.Cluster,
 			})
