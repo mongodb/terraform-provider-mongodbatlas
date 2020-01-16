@@ -267,7 +267,7 @@ func TestGlobalClusters_DeleteManagedNamespace(t *testing.T) {
 	}
 
 	if diff := deep.Equal(globalCluster, expected); diff != nil {
-		t.Errorf("GlobalClusters.DeleteCustomZoneMappings Reponse Body = %v", diff)
+		t.Errorf("GlobalClusters.DeleteCustomZoneMappings Response Body = %v", diff)
 	}
 }
 
@@ -380,6 +380,6 @@ func TestGlobalClusters_DeleteCustomZoneMappings(t *testing.T) {
 	}
 
 	if diff := deep.Equal(globalCluster, expected); diff != nil {
-		t.Errorf("GlobalClusters.AddCustomZoneMappings Reponse Body = %v", diff)
+		t.Errorf("GlobalClusters.AddCustomZoneMappings Response Body = %v", diff)
 	}
 }

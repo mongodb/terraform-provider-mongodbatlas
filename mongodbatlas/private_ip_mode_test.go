@@ -17,14 +17,14 @@ func TestPrivateIPMode_Get(t *testing.T) {
 
 	groupID := "6d2065c687d9d64ae7acdg41"
 
-	mux.HandleFunc(fmt.Sprintf("/"+privateIpModePath, groupID), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(fmt.Sprintf("/"+privateIPModePath, groupID), func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, http.MethodGet)
 		fmt.Fprint(w, `{
 			"enabled": true
 		}`)
 	})
 
-	privateIpMode, _, err := client.PrivateIPMode.Get(ctx, groupID)
+	privateIPMode, _, err := client.PrivateIPMode.Get(ctx, groupID)
 	if err != nil {
 		t.Errorf("PrivateIPMode.Get returned error: %v", err)
 	}
@@ -33,12 +33,12 @@ func TestPrivateIPMode_Get(t *testing.T) {
 		Enabled: pointy.Bool(true),
 	}
 
-	if diff := deep.Equal(privateIpMode, expected); diff != nil {
+	if diff := deep.Equal(privateIPMode, expected); diff != nil {
 		t.Error(diff)
 	}
 
-	if !reflect.DeepEqual(privateIpMode, expected) {
-		t.Errorf("PrivateIPMode.Get\n got=%#v\nwant=%#v", privateIpMode, expected)
+	if !reflect.DeepEqual(privateIPMode, expected) {
+		t.Errorf("PrivateIPMode.Get\n got=%#v\nwant=%#v", privateIPMode, expected)
 	}
 }
 
@@ -52,7 +52,7 @@ func TestPrivateIPMode_Update(t *testing.T) {
 		Enabled: pointy.Bool(true),
 	}
 
-	mux.HandleFunc(fmt.Sprintf("/"+privateIpModePath, groupID), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(fmt.Sprintf("/"+privateIPModePath, groupID), func(w http.ResponseWriter, r *http.Request) {
 		expected := map[string]interface{}{
 			"enabled": true,
 		}
@@ -79,12 +79,12 @@ func TestPrivateIPMode_Update(t *testing.T) {
 		fmt.Fprint(w, jsonBlob)
 	})
 
-	privateIpMode, _, err := client.PrivateIPMode.Update(ctx, groupID, updateRequest)
+	privateIPMode, _, err := client.PrivateIPMode.Update(ctx, groupID, updateRequest)
 	if err != nil {
 		t.Errorf("PrivateIPMode.Update returned error: %v", err)
 	}
 
-	if enabled := pointy.BoolValue(privateIpMode.Enabled, false); !enabled {
+	if enabled := pointy.BoolValue(privateIPMode.Enabled, false); !enabled {
 		t.Errorf("expected privateIPMode '%t', received '%t'", true, enabled)
 	}
 }

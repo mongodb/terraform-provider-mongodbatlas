@@ -42,11 +42,11 @@ const (
 	// EuWest3 represents the EU_WEST_3 Europe region for AWS Configuration
 	EuWest3 = "EU_WEST_3"
 
-	// Azure represents `AZURE` where the Azure account credencials reside
+	// Azure represents `AZURE` where the Azure account credentials reside
 	Azure = "AZURE"
-	// AzureChina represents `AZURE_CHINA` AZURE where the Azure account credencials reside
+	// AzureChina represents `AZURE_CHINA` AZURE where the Azure account credentials reside
 	AzureChina = "AZURE_CHINA"
-	// AzureGermany represents `AZURE_GERMANY` AZURE where the Azure account credencials reside
+	// AzureGermany represents `AZURE_GERMANY` AZURE where the Azure account credentials reside
 	AzureGermany = "AZURE_GERMANY"
 
 	encryptionsAtRestBasePath = "groups/%s/encryptionAtRest"
@@ -61,7 +61,7 @@ type EncryptionsAtRestService interface {
 	Delete(context.Context, string) (*Response, error)
 }
 
-//EncryptionsAtRestServiceOp handles communication with the DatabaseUsers related methos of the
+//EncryptionsAtRestServiceOp handles communication with the DatabaseUsers related methods of the
 //MongoDB Atlas API
 type EncryptionsAtRestServiceOp struct {
 	client *Client
