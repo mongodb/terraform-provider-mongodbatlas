@@ -101,18 +101,9 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 		InheritedRoles: expandInheritedRoles(d),
 	}
 
-	for _, action := range customDBRoleReq.Actions {
-		for _, resource := range action.Resources {
-			if resource.Cluster {
-				if resource.Collection != "" || resource.Db != "" {
-					return fmt.Errorf("setting `actions.resources.cluster` is exclusive with `actions.resources.collection_name` and `actions.resources.database_name`")
-				}
-			} else {
-				if resource.Collection == "" || resource.Db == "" {
-					return fmt.Errorf("either `actions.resources.cluster` or both `actions.resources.collection_name` and `actions.resources.database_name` must be set")
-				}
-			}
-		}
+	err := validateActions(customDBRoleReq)
+	if err != nil {
+		return err
 	}
 
 	customDBRoleRes, _, err := conn.CustomDBRoles.Create(context.Background(), projectID, customDBRoleReq)
@@ -169,6 +160,11 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 		customDBRole.Actions = expandActions(d)
 	}
 
+	err = validateActions(customDBRole)
+	if err != nil {
+		return err
+	}
+
 	if d.HasChange("inherited_roles") {
 		customDBRole.InheritedRoles = expandInheritedRoles(d)
 	}
@@ -222,6 +218,23 @@ func resourceMongoDBAtlasCustomDBRoleImportState(d *schema.ResourceData, meta in
 	}
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func validateActions(customDBRoleReq *matlas.CustomDBRole) error {
+	for _, action := range customDBRoleReq.Actions {
+		for _, resource := range action.Resources {
+			if resource.Cluster {
+				if resource.Collection != "" || resource.Db != "" {
+					return fmt.Errorf("setting `actions.resources.cluster` is exclusive with `actions.resources.collection_name` and `actions.resources.database_name`")
+				}
+			} else {
+				if resource.Collection == "" || resource.Db == "" {
+					return fmt.Errorf("either `actions.resources.cluster` or both `actions.resources.collection_name` and `actions.resources.database_name` must be set")
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func expandActions(d *schema.ResourceData) []matlas.Action {
