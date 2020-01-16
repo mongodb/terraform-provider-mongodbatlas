@@ -21,7 +21,7 @@ type TeamsService interface {
 	Create(context.Context, string, *Team) (*Team, *Response, error)
 	Rename(context.Context, string, string, string) (*Team, *Response, error)
 	UpdateTeamRoles(context.Context, string, string, *TeamUpdateRoles) ([]TeamRoles, *Response, error)
-	AddUserToTeam(context.Context, string, string, string) ([]AtlasUser, *Response, error)
+	AddUsersToTeam(context.Context, string, string, []string) ([]AtlasUser, *Response, error)
 	RemoveUserToTeam(context.Context, string, string, string) (*Response, error)
 	RemoveTeamFromOrganization(context.Context, string, string) (*Response, error)
 	RemoveTeamFromProject(context.Context, string, string) (*Response, error)
@@ -251,19 +251,22 @@ func (s *TeamsServiceOp) UpdateTeamRoles(ctx context.Context, orgID string, team
 	return root.Results, resp, nil
 }
 
-//AddUserToTeam adds a user from the organization associated with {ORG-ID} to the team with ID {TEAM-ID}.
+//AddUsersToTeam adds a users from the organization associated with {ORG-ID} to the team with ID {TEAM-ID}.
 //See more: https://docs.atlas.mongodb.com/reference/api/teams-add-user/
-func (s *TeamsServiceOp) AddUserToTeam(ctx context.Context, orgID, teamID, userID string) ([]AtlasUser, *Response, error) {
-	if userID == "" {
-		return nil, nil, NewArgError("userID", "cannot be nil")
+func (s *TeamsServiceOp) AddUsersToTeam(ctx context.Context, orgID, teamID string, usersID []string) ([]AtlasUser, *Response, error) {
+	if len(usersID) < 1 {
+		return nil, nil, NewArgError("usersID", "cannot empty at leas one userID must be set")
 	}
 
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/%s/users", basePath, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, map[string]interface{}{
-		"id": userID,
-	})
+	users := make([]map[string]interface{}, len(usersID))
+	for i, id := range usersID {
+		users[i] = map[string]interface{}{"id": id}
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, users)
 
 	if err != nil {
 		return nil, nil, err
