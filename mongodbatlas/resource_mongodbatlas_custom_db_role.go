@@ -33,6 +33,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 			"actions": {
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
@@ -65,6 +66,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 			"inherited_roles": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"database_name": {
@@ -90,6 +92,20 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 		RoleName:       d.Get("role_name").(string),
 		Actions:        expandActions(d),
 		InheritedRoles: expandInheritedRoles(d),
+	}
+
+	for _, action := range customDBRoleReq.Actions {
+		for _, resource := range action.Resources {
+			if resource.Cluster {
+				if resource.Collection != "" || resource.Db != "" {
+					return fmt.Errorf("setting `actions.resources.cluster` is exclusive with `actions.resources.collection_name` and `actions.resources.database_name`")
+				}
+			} else {
+				if resource.Collection == "" || resource.Db == "" {
+					return fmt.Errorf("either `actions.resources.cluster` or both `actions.resources.collection_name` and `actions.resources.database_name` must be set")
+				}
+			}
+		}
 	}
 
 	customDBRoleRes, _, err := conn.CustomDBRoles.Create(context.Background(), projectID, customDBRoleReq)
