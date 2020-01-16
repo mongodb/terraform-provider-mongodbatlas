@@ -35,6 +35,7 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"mongodbatlas_custom_db_role":                       dataSourceMongoDBAtlasCustomDBRole(),
+			"mongodbatlas_custom_db_roles":                      dataSourceMongoDBAtlasCustomDBRoles(),
 			"mongodbatlas_database_user":                        dataSourceMongoDBAtlasDatabaseUser(),
 			"mongodbatlas_database_users":                       dataSourceMongoDBAtlasDatabaseUsers(),
 			"mongodbatlas_project":                              dataSourceMongoDBAtlasProject(),
