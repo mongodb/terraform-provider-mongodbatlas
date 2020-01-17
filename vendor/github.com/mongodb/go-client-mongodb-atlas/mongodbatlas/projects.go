@@ -7,12 +7,17 @@ import (
 )
 
 const (
-	GROUP_OWNER                  = "GROUP_OWNER"                  //GROUP_OWNER - Project Owner
-	GROUP_READ_ONLY              = "GROUP_READ_ONLY"              //GROUP_READ_ONLY - Project Read Only
-	GROUP_DATA_ACCESS_ADMIN      = "GROUP_DATA_ACCESS_ADMIN"      //GROUP_DATA_ACCESS_ADMIN - Project Data Access Admin
-	GROUP_DATA_ACCESS_READ_WRITE = "GROUP_DATA_ACCESS_READ_WRITE" //GROUP_DATA_ACCESS_READ_WRITE - Project Data Access Read/Write
-	GROUP_DATA_ACCESS_READ_ONLY  = "GROUP_DATA_ACCESS_READ_ONLY"  //GROUP_DATA_ACCESS_READ_ONLY - Project Data Access Read Only
-	projectBasePath              = "groups"
+	// GroupOwner - Project Owner
+	GroupOwner = "GROUP_OWNER"
+	// GroupReadOnly - Project Read Only
+	GroupReadOnly = "GROUP_READ_ONLY"
+	// GroupDataAccessAdmin - Project Data Access Admin
+	GroupDataAccessAdmin = "GROUP_DATA_ACCESS_ADMIN"
+	// GroupDataAccessReadWrite - Project Data Access Read/Write
+	GroupDataAccessReadWrite = "GROUP_DATA_ACCESS_READ_WRITE"
+	// GroupDataAccessReadOnly - Project Data Access Read Only
+	GroupDataAccessReadOnly = "GROUP_DATA_ACCESS_READ_ONLY"
+	projectBasePath         = "groups"
 )
 
 // ProjectsService is an interface for interfacing with the Projects
