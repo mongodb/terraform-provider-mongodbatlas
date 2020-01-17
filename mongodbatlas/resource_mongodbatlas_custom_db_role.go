@@ -36,7 +36,6 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.All(
 					validation.StringMatch(regexp.MustCompile(`[\w\d-]+`), "`role_name` can contain only letters, digits, underscores, and dashes"),
-					validation.StringMatch(regexp.MustCompile(`^atlasAdmin$`), "`role_name` cannot be 'atlasAdmin'"),
 					func(v interface{}, k string) (ws []string, es []error) {
 						value := v.(string)
 						if strings.HasPrefix(value, "x-gen") {
