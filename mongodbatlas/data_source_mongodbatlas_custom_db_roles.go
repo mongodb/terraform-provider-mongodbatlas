@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -85,7 +86,6 @@ func dataSourceMongoDBAtlasCustomDBRolesRead(d *schema.ResourceData, meta interf
 	projectID := d.Get("project_id").(string)
 
 	customDBRoles, _, err := conn.CustomDBRoles.List(context.Background(), projectID, nil)
-
 	if err != nil {
 		return fmt.Errorf("error getting custom db roles information: %s", err)
 	}
