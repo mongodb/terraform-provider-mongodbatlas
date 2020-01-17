@@ -188,7 +188,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		}
 
 		peerRequest.AccepterRegionName = region
-		peerRequest.AWSAccountId = awsAccountID.(string)
+		peerRequest.AWSAccountID = awsAccountID.(string)
 		peerRequest.RouteTableCIDRBlock = rtCIDR.(string)
 		peerRequest.VpcID = vpcID.(string)
 
@@ -237,7 +237,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 
 		peerRequest.AtlasCIDRBlock = atlasCidrBlock.(string)
 		peerRequest.AzureDirectoryID = azureDirectoryID.(string)
-		peerRequest.AzureSubscriptionId = azureSubscriptionID.(string)
+		peerRequest.AzureSubscriptionID = azureSubscriptionID.(string)
 		peerRequest.ResourceGroupName = resourceGroupName.(string)
 		peerRequest.VNetName = vnetName.(string)
 
@@ -296,7 +296,7 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	if err := d.Set("aws_account_id", peer.AWSAccountId); err != nil {
+	if err := d.Set("aws_account_id", peer.AWSAccountID); err != nil {
 		return fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
@@ -321,7 +321,7 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	if err := d.Set("azure_directory_id", peer.AzureDirectoryID); err != nil {
 		return fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
-	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionId); err != nil {
+	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionID); err != nil {
 		return fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 	if err := d.Set("resource_group_name", peer.ResourceGroupName); err != nil {
@@ -383,7 +383,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if d.HasChange("aws_account_id") {
-		peer.AWSAccountId = d.Get("aws_account_id").(string)
+		peer.AWSAccountID = d.Get("aws_account_id").(string)
 	}
 
 	if d.HasChange("provider_name") {
@@ -403,7 +403,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if d.HasChange("azure_subscription_id") {
-		peer.AzureSubscriptionId = d.Get("azure_subscription_id").(string)
+		peer.AzureSubscriptionID = d.Get("azure_subscription_id").(string)
 	}
 
 	if d.HasChange("resource_group_name") {

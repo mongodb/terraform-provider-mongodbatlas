@@ -129,7 +129,7 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if err := d.Set("aws_account_id", peer.AWSAccountId); err != nil {
+	if err := d.Set("aws_account_id", peer.AWSAccountID); err != nil {
 		return fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
@@ -169,7 +169,7 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
-	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionId); err != nil {
+	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionID); err != nil {
 		return fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
