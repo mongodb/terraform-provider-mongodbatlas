@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
@@ -77,10 +78,10 @@ func dataSourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interfa
 	roleName := d.Get("role_name").(string)
 
 	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
-
 	if err != nil {
 		return fmt.Errorf("error getting custom db role information: %s", err)
 	}
+
 	if err := d.Set("role_name", customDBRole.RoleName); err != nil {
 		return fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err)
 	}
@@ -91,6 +92,10 @@ func dataSourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(customDBRole.RoleName)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"role_name":  customDBRole.RoleName,
+	}))
+
 	return nil
 }
