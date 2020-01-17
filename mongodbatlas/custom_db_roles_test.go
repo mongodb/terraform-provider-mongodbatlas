@@ -28,7 +28,6 @@ func TestCustomDBRoles_ListCustomDBRoles(t *testing.T) {
 			Resources: []Resource{{
 				Collection: "test-collection",
 				Db:         "test-db",
-				Cluster:    false,
 			}},
 		}},
 		InheritedRoles: []InheritedRole{{
@@ -62,7 +61,6 @@ func TestCustomDBRoles_GetCustomDBRole(t *testing.T) {
 			Resources: []Resource{{
 				Collection: "test-collection",
 				Db:         "test-db",
-				Cluster:    false,
 			}},
 		}},
 		InheritedRoles: []InheritedRole{{
@@ -86,7 +84,6 @@ func TestCustomDBRoles_CreateCustomDBRole(t *testing.T) {
 			Resources: []Resource{{
 				Collection: "test-collection",
 				Db:         "test-db",
-				Cluster:    false,
 			}},
 		}},
 		InheritedRoles: []InheritedRole{{
@@ -168,7 +165,6 @@ func TestCustomDBRoles_UpdateCustomDBRole(t *testing.T) {
 			Resources: []Resource{{
 				Collection: "test-collection",
 				Db:         "test-db",
-				Cluster:    false,
 			}},
 		}},
 		InheritedRoles: []InheritedRole{{
