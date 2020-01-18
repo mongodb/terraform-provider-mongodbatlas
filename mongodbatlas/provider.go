@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/spf13/cast"
 )
 
@@ -191,4 +192,29 @@ func valRegion(reg interface{}, opt ...string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("unable to cast %#v of type %T to string", reg, reg)
+}
+
+func flattenLabels(l []matlas.Label) []map[string]interface{} {
+	labels := make([]map[string]interface{}, len(l))
+	for i, v := range l {
+		labels[i] = map[string]interface{}{
+			"key":   v.Key,
+			"value": v.Value,
+		}
+	}
+	return labels
+}
+
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
+	list := d.Get("labels").(*schema.Set)
+	res := make([]matlas.Label, list.Len())
+
+	for i, val := range list.List() {
+		v := val.(map[string]interface{})
+		res[i] = matlas.Label{
+			Key:   v["key"].(string),
+			Value: v["value"].(string),
+		}
+	}
+	return res
 }

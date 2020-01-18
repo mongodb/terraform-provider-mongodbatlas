@@ -34,6 +34,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 				),
 			},
 		},
@@ -52,6 +53,15 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, userna
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
+			}
+
+			labels {
+				key   = "key 1"
+				value = "value 1"
+			}
+			labels {
+				key   = "key 2"
+				value = "value 2"
 			}
 		}
 

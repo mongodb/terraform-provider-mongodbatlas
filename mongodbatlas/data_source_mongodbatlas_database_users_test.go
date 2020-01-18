@@ -25,6 +25,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user", "id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user_1", "id"),
+					resource.TestCheckResourceAttr("mongodbatlas_database_user.db_user_1", "labels.#", "2"),
 				),
 			},
 			{
@@ -63,6 +64,15 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, usern
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
+			}
+
+			labels {
+				key   = "key 1"
+				value = "value 1"
+			}
+			labels {
+				key   = "key 2"
+				value = "value 2"
 			}
 		}
 	`, projectID, roleName, username)
