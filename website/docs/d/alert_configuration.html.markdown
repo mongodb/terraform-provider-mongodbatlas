@@ -63,7 +63,7 @@ In addition to all arguments above, the following attributes are exported:
 * `group_id` - Unique identifier of the project that owns this alert configuration.
 * `created` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
 * `updated` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.
-* `enabled` - If set to true, the alert configuration is enabled.If enabled is not specified in a POST command, it defaults to false.
+* `enabled` - If set to true, the alert configuration is enabled. If enabled is not exported it is set to false.
 * `event_type` - The type of event that will trigger an alert.
   Alert type. Possible values:
 	 - Host 	
