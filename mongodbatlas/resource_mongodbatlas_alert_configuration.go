@@ -43,10 +43,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"group_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"event_type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -294,9 +290,6 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 	if err := d.Set("alert_configuration_id", alert.ID); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err)
 	}
-	if err := d.Set("group_id", alert.GroupID); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "group_id", ids["id"], err)
-	}
 	if err := d.Set("created", alert.Created); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err)
 	}
@@ -393,6 +386,12 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	if err := d.Set("enabled", alert.Enabled); err != nil {
 		log.Printf(errorAlertConfSetting, "enabled", id, err)
 	}
+	if err := d.Set("matcher", flattenAlertConfigurationMatchers(alert.Matchers)); err != nil {
+		log.Printf(errorAlertConfSetting, "matcher", id, err)
+	}
+	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
+		log.Printf(errorAlertConfSetting, "metric_threshold", id, err)
+	}
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
 		log.Printf(errorAlertConfSetting, "notification", id, err)
 	}
@@ -445,7 +444,7 @@ func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.Met
 			Mode:       cast.ToString(v["mode"]),
 		}
 	}
-	return &matlas.MetricThreshold{}
+	return nil
 }
 
 func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[string]interface{} {
