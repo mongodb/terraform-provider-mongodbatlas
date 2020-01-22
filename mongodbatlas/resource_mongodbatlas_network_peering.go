@@ -390,7 +390,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 			peer.AzureDirectoryID = d.Get("azure_directory_id").(string)
 		}
 		if d.HasChange("azure_subscription_id") {
-			peer.AzureSubscriptionId = d.Get("azure_subscription_id").(string)
+			peer.AzureSubscriptionID = d.Get("azure_subscription_id").(string)
 		}
 		if d.HasChange("resource_group_name") {
 			peer.ResourceGroupName = d.Get("resource_group_name").(string)
@@ -401,7 +401,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	default: // AWS by default
 		region, _ := valRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.AccepterRegionName = region
-		peer.AWSAccountId = d.Get("aws_account_id").(string)
+		peer.AWSAccountID = d.Get("aws_account_id").(string)
 		peer.RouteTableCIDRBlock = d.Get("route_table_cidr_block").(string)
 		peer.VpcID = d.Get("vpc_id").(string)
 	}
