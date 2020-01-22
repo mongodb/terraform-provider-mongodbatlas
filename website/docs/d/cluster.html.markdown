@@ -124,10 +124,10 @@ Physical location of the region.
 * `analytics_nodes` - Indicates the number of analytics nodes for Atlas to deploy to the region. Analytics nodes are useful for handling analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only, and can never become the primary.
 
 ### Labels
-Containing key-value pairs that tag and categorize the database user. Each key and value has a maximum length of 255 characters.
+Contains key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.
 
-* `key` - The key that you want to write.
-* `value` - The value that you want to write.
+* `key` - The key that was set.
+* `value` - The value that represents the key.
 
 
 ### Plugin
