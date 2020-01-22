@@ -231,6 +231,7 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
+	d.SetId(resource.UniqueId())
 
 	clusters, resp, err := conn.Clusters.List(context.Background(), projectID, nil)
 	if err != nil {
@@ -241,17 +242,15 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if err := d.Set("results", flattenClusters(clusters)); err != nil {
-		return fmt.Errorf("error setting cluster list %s", err)
+		return fmt.Errorf(errorClusterSetting, "results", d.Id(), err)
 	}
 
 	if err := d.Set("plugin", map[string]interface{}{
 		"name":    "Terraform MongoDB Atlas Provider",
 		"version": getPluginVersion(),
 	}); err != nil {
-		return fmt.Errorf("error setting `plugin` for database user (%s): %s", d.Id(), err)
+		return fmt.Errorf(errorClusterSetting, "plugin", d.Id(), err)
 	}
-
-	d.SetId(resource.UniqueId())
 
 	return nil
 }
