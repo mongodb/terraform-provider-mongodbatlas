@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -100,6 +101,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	providerName := "GCP"
 	gcpProjectID := os.Getenv("GCP_PROJECT_ID")
+	networkName := fmt.Sprintf("test-acc-name-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
@@ -107,14 +109,17 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID),
+				Config: testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID, networkName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
 					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
+
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "gcp_project_id", gcpProjectID),
+					resource.TestCheckResourceAttr(resourceName, "network_name", networkName),
 				),
 			},
 			{
@@ -133,7 +138,9 @@ func testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName string
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"], rs.Primary.Attributes["provider_name"]), nil
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["peer_id"], ids["provider_name"]), nil
 	}
 }
 
@@ -146,15 +153,15 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.Attributes["peer_id"] == "" {
+		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
+		ids := decodeStateID(rs.Primary.ID)
+		log.Printf("[DEBUG] projectID: %s", ids["project_id"])
 
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
-
-		if peerResp, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"]); err == nil {
+		if peerResp, _, err := conn.Peers.Get(context.Background(), ids["project_id"], ids["peer_id"]); err == nil {
 			*peer = *peerResp
-			peer.ProviderName = rs.Primary.Attributes["provider_name"]
+			peer.ProviderName = ids["provider_name"]
 			return nil
 		}
 
@@ -179,11 +186,11 @@ func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the peer
-		_, _, err := conn.Peers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["peer_id"])
+		ids := decodeStateID(rs.Primary.ID)
+		_, _, err := conn.Peers.Get(context.Background(), ids["project_id"], ids["peer_id"])
 
 		if err == nil {
-			return fmt.Errorf("peer (%s) still exists", rs.Primary.Attributes["peer_id"])
+			return fmt.Errorf("peer (%s) still exists", ids["peer_id"])
 		}
 	}
 	return nil
@@ -232,20 +239,27 @@ func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, direc
 	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName)
 }
 
-func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID string) string {
+func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID, networkName string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_private_ip_mode" "test" {
+			project_id = "%[1]s"
+			enabled    = true
+		}
+		
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		  = "%[1]s"
-			atlas_cidr_block  = "192.168.192.0/18"
-			provider_name		  = "%[2]s"
-		}
+			project_id       = "%[1]s"
+			atlas_cidr_block = "192.168.192.0/18"
+			provider_name    = "%[2]s"
 
-		resource "mongodbatlas_network_peering" "test" {	
-			project_id    	= "%[1]s"
-			container_id    = mongodbatlas_network_container.test.container_id
-			provider_name   = "%[2]s"
-			gcp_project_id  = "%[3]s"
-			network_name    = "myNetworkName"
+			depends_on = [mongodbatlas_private_ip_mode.test]
 		}
-	`, projectID, providerName, gcpProjectID)
+		
+		resource "mongodbatlas_network_peering" "test" {
+			project_id     = "%[1]s"
+			container_id   = mongodbatlas_network_container.test.container_id
+			provider_name  = "%[2]s"
+			gcp_project_id = "%[3]s"
+			network_name   = "%[4]s"
+		}
+	`, projectID, providerName, gcpProjectID, networkName)
 }
