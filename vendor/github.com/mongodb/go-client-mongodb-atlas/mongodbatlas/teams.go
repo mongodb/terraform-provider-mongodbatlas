@@ -230,8 +230,7 @@ func (s *TeamsServiceOp) UpdateTeamRoles(ctx context.Context, orgID string, team
 		return nil, nil, NewArgError("updateTeamRolesRequest", "cannot be nil")
 	}
 
-	basePath := fmt.Sprintf(teamsBasePath, orgID)
-	path := fmt.Sprintf("%s/%s", basePath, teamID)
+	path := fmt.Sprintf("groups/%s/teams/%s", orgID, teamID)
 
 	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateTeamRolesRequest)
 	if err != nil {

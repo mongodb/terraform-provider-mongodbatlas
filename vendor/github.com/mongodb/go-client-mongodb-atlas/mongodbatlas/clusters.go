@@ -77,6 +77,7 @@ type Cluster struct {
 	ClusterType              string                   `json:"clusterType,omitempty"`
 	DiskSizeGB               *float64                 `json:"diskSizeGB,omitempty"`
 	EncryptionAtRestProvider string                   `json:"encryptionAtRestProvider,omitempty"`
+	Labels                   []Label                  `json:"labels,omitempty"`
 	ID                       string                   `json:"id,omitempty"`
 	GroupID                  string                   `json:"groupId,omitempty"`
 	MongoDBVersion           string                   `json:"mongoDBVersion,omitempty"`

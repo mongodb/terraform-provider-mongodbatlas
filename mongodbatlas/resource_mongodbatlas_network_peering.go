@@ -61,9 +61,8 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 
 			"provider_name": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE", "GCP"}, false),
-				Default:      "AWS",
 			},
 			"route_table_cidr_block": {
 				Type:     schema.TypeString,
@@ -375,51 +374,36 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
-	peer := new(matlas.Peer)
+	// All the request to update the peer require the ProviderName and ContainerID attribute.
+	peer := &matlas.Peer{
+		ProviderName: ids["provider_name"],
+		ContainerID:  d.Get("container_id").(string),
+	}
 
-	if d.HasChange("accepter_region_name") {
+	// Depending of the Provider name the request will be set
+	switch peer.ProviderName {
+	case "GCP":
+		peer.GCPProjectID = d.Get("gcp_project_id").(string)
+		peer.NetworkName = d.Get("network_name").(string)
+	case "AZURE":
+		if d.HasChange("azure_directory_id") {
+			peer.AzureDirectoryID = d.Get("azure_directory_id").(string)
+		}
+		if d.HasChange("azure_subscription_id") {
+			peer.AzureSubscriptionID = d.Get("azure_subscription_id").(string)
+		}
+		if d.HasChange("resource_group_name") {
+			peer.ResourceGroupName = d.Get("resource_group_name").(string)
+		}
+		if d.HasChange("vnet_name") {
+			peer.VNetName = d.Get("vnet_name").(string)
+		}
+	default: // AWS by default
 		region, _ := valRegion(d.Get("accepter_region_name"), "network_peering")
 		peer.AccepterRegionName = region
-	}
-
-	if d.HasChange("aws_account_id") {
 		peer.AWSAccountID = d.Get("aws_account_id").(string)
-	}
-
-	if d.HasChange("provider_name") {
-		peer.ProviderName = d.Get("provider_name").(string)
-	}
-
-	if d.HasChange("route_table_cidr_block") {
 		peer.RouteTableCIDRBlock = d.Get("route_table_cidr_block").(string)
-	}
-
-	if d.HasChange("vpc_id") {
 		peer.VpcID = d.Get("vpc_id").(string)
-	}
-
-	if d.HasChange("azure_directory_id") {
-		peer.AzureDirectoryID = d.Get("azure_directory_id").(string)
-	}
-
-	if d.HasChange("azure_subscription_id") {
-		peer.AzureSubscriptionID = d.Get("azure_subscription_id").(string)
-	}
-
-	if d.HasChange("resource_group_name") {
-		peer.ResourceGroupName = d.Get("resource_group_name").(string)
-	}
-
-	if d.HasChange("vnet_name") {
-		peer.VNetName = d.Get("vnet_name").(string)
-	}
-
-	if d.HasChange("gcp_project_id") {
-		peer.GCPProjectID = d.Get("gcp_project_id").(string)
-	}
-
-	if d.HasChange("network_name") {
-		peer.NetworkName = d.Get("network_name").(string)
 	}
 
 	// Has changes
@@ -495,17 +479,6 @@ func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta 
 	peer, _, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
-	}
-
-	//Check wich provider is using.
-	provider := "AWS"
-	if peer.VNetName != "" {
-		provider = "AZURE"
-	} else if peer.NetworkName != "" {
-		provider = "GCP"
-	}
-	if providerName != provider {
-		providerName = provider
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
