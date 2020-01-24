@@ -39,6 +39,25 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"teams": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"team_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"role_names": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -58,7 +77,7 @@ func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("error getting projects information: %s", err)
 	}
-	if err := d.Set("results", flattenProjects(projects.Results)); err != nil {
+	if err := d.Set("results", flattenProjects(conn, projects.Results)); err != nil {
 		return fmt.Errorf("error setting `results`: %s", err)
 	}
 	if err := d.Set("total_count", projects.TotalCount); err != nil {
@@ -69,19 +88,26 @@ func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenProjects(projects []*matlas.Project) []map[string]interface{} {
+func flattenProjects(conn *matlas.Client, projects []*matlas.Project) []map[string]interface{} {
 	var results []map[string]interface{}
 
 	if len(projects) > 0 {
 		results = make([]map[string]interface{}, len(projects))
 
 		for k, project := range projects {
+
+			teams, _, err := conn.Projects.GetProjectTeamsAssigned(context.Background(), project.ID)
+			if err != nil {
+				fmt.Printf("[WARN] error getting project's teams assigned (%s): %s", project.ID, err)
+			}
+
 			results[k] = map[string]interface{}{
 				"id":            project.ID,
 				"org_id":        project.OrgID,
 				"name":          project.Name,
 				"cluster_count": project.ClusterCount,
 				"created":       project.Created,
+				"teams":         flattenTeams(teams),
 			}
 		}
 	}
