@@ -278,7 +278,7 @@ Physical location of the region.
 
 -> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
 
-Include ** desired options** within advanced_configuration:
+Include **desired options** within advanced_configuration:
 
 ```hcl
 // Nest options within advanced_configuration
