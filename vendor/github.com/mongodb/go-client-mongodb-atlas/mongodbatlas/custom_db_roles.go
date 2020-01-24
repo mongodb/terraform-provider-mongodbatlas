@@ -31,7 +31,7 @@ var _ CustomDBRolesService = &CustomDBRolesServiceOp{}
 type Resource struct {
 	Collection string `json:"collection,omitempty"`
 	Db         string `json:"db,omitempty"`
-	Cluster    bool   `json:"cluster,omitempty"`
+	Cluster    *bool  `json:"cluster,omitempty"`
 }
 
 // An Action describes the operation the role will include, for a specific set of Resources.
@@ -53,8 +53,8 @@ type CustomDBRole struct {
 	RoleName       string          `json:"roleName,omitempty"`
 }
 
-//List gets all custom db roles in the project.
-//See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-get-all-roles/
+// List gets all custom db roles in the project.
+// See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-get-all-roles/
 func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) (*[]CustomDBRole, *Response, error) {
 	path := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 
@@ -77,7 +77,7 @@ func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listO
 	return root, resp, nil
 }
 
-// Gets a single Custom MongoDB Role in the project.
+// Get gets a single Custom MongoDB Role in the project.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-get-single-role/
 func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleName string) (*CustomDBRole, *Response, error) {
 	if roleName == "" {
@@ -101,7 +101,7 @@ func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleNa
 	return root, resp, err
 }
 
-// Creates a new Custom MongoDB Role in the project.
+// Create create a new Custom MongoDB Role in the project.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-create-a-role/
 func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, createRequest *CustomDBRole) (*CustomDBRole, *Response, error) {
 	if createRequest == nil {
@@ -124,7 +124,7 @@ func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, cre
 	return root, resp, err
 }
 
-// Updates a single Custom MongoDB Role.
+// Update updates a single Custom MongoDB Role.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-update-a-role/
 func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, roleName string, updateRequest *CustomDBRole) (*CustomDBRole, *Response, error) {
 	if updateRequest == nil {
@@ -148,7 +148,7 @@ func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, rol
 	return root, resp, err
 }
 
-// Deletes a single Custom MongoDB Role.
+// Delete deletes a single Custom MongoDB Role.
 // See more: https://docs.atlas.mongodb.com/reference/api/custom-roles-delete-a-role/
 func (s *CustomDBRolesServiceOp) Delete(ctx context.Context, groupID string, roleName string) (*Response, error) {
 	if roleName == "" {
