@@ -52,7 +52,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
 			},
 			"backup_enabled": {
 				Type:     schema.TypeBool,
@@ -294,6 +293,17 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
+	providerName := d.Get("provider_name").(string)
+
+	autoScaling := matlas.AutoScaling{
+		DiskGBEnabled: pointy.Bool(true),
+	}
+
+	if diskGBEnabled, ok := d.GetOkExists("auto_scaling_disk_gb_enabled"); ok {
+		autoScaling = matlas.AutoScaling{
+			DiskGBEnabled: pointy.Bool(diskGBEnabled.(bool)),
+		}
+	}
 
 	//validate cluster_type conditional
 	if _, ok := d.GetOk("replication_specs"); ok {
@@ -306,7 +316,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.Get("provider_name") != "AWS" {
+	if providerName != "AWS" {
 		if _, ok := d.GetOk("provider_disk_iops"); ok {
 			return fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
@@ -318,15 +328,24 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if d.Get("provider_name") != "AZURE" {
+	if providerName != "AZURE" {
 		if _, ok := d.GetOk("provider_disk_type_name"); ok {
 			return fmt.Errorf("`provider_disk_type_name` shouldn't be set when provider name is `GCP` or `AWS`")
 		}
 	}
 
-	if d.Get("provider_name") == "AZURE" {
+	if providerName == "AZURE" {
 		if _, ok := d.GetOk("disk_size_gb"); ok {
 			return fmt.Errorf("`disk_size_gb` cannot be used with Azure clusters")
+		}
+	}
+
+	if providerName == "TENANT" {
+		if diskGBEnabled := d.Get("auto_scaling_disk_gb_enabled"); diskGBEnabled.(bool) {
+			return fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT")
+		}
+		autoScaling = matlas.AutoScaling{
+			DiskGBEnabled: pointy.Bool(false),
 		}
 	}
 
@@ -346,13 +365,8 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	providerSettings := expandProviderSetting(d)
 
 	replicationSpecs, err := expandReplicationSpecs(d)
-
 	if err != nil {
 		return fmt.Errorf(errorCreate, err)
-	}
-
-	autoScaling := matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
 	}
 
 	clusterRequest := &matlas.Cluster{
@@ -360,12 +374,15 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
-		DiskSizeGB:               pointy.Float64(d.Get("disk_size_gb").(float64)),
 		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+	}
+
+	if v, ok := d.GetOk("disk_size_gb"); ok {
+		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
 	}
 
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
@@ -722,7 +739,13 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 	providerSettings := matlas.ProviderSettings{}
 
 	if d.Get("provider_name") == "AWS" {
-		providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(d.Get("provider_disk_iops")))
+
+		// Check if the Provider Disk IOS sets in the Terraform configuration.
+		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
+		if v, ok := d.GetOk("provider_disk_iops"); ok {
+			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
+		}
+
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 		if encryptEBSVolume, ok := d.GetOkExists("provider_encrypt_ebs_volume"); ok {
 			providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(encryptEBSVolume))
