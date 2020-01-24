@@ -278,6 +278,16 @@ Physical location of the region.
 
 -> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
 
+Include **desired options** within advanced_configuration:
+
+```hcl
+// Nest options within advanced_configuration
+ advanced_configuration = {
+   javascript_enabled                   = false
+   minimum_enabled_tls_protocol         = "TLS1_2"
+ }
+```
+
 * `fail_index_key_too_long` - (Optional) When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.
 * `javascript_enabled` - (Optional) When true, the cluster allows execution of operations that perform server-side executions of JavaScript. When false, the cluster disables execution of those operations.
 * `minimum_enabled_tls_protocol` - (Optional) Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections.Valid values are:
