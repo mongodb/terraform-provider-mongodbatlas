@@ -11,9 +11,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasProject_basic(t *testing.T) {
-	var project matlas.Project
 
-	resourceName := "data.mongodbatlas_project.test"
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
@@ -22,39 +20,33 @@ func TestAccDataSourceMongoDBAtlasProject_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceProjectConfig(projectName, orgID),
+				Config: testAccMongoDBAtlasProjectConfigWithDS(projectName, orgID,
+					[]*matlas.ProjectTeam{
+						{
+							TeamID:    "5e0fa8c99ccf641c722fe683",
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+						},
+						{
+							TeamID:    "5e1dd7b4f2a30ba80a70cd3a",
+							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+						},
+					},
+				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists("mongodbatlas_project.test", &project),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasProjectConfigWithDS(projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDataSourceProjectConfig(projectName, orgID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
-		}
-`, projectName, orgID)
-}
-
-func testAccMongoDBAtlasProjectConfigWithDS(projectName, orgID string) string {
+func testAccMongoDBAtlasProjectConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_project" "test" {
-			name = "${mongodbatlas_project.test.name}"
+			project_id = "${mongodbatlas_project.test.id}"
 		}
-	`, testAccMongoDBAtlasDataSourceProjectConfig(projectName, orgID))
+	`, testAccMongoDBAtlasPropjectConfig(projectName, orgID, teams))
 }
