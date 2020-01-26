@@ -17,23 +17,19 @@ description: |-
 ```hcl
 resource "mongodbatalas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
-  project_id = "<PROJECT-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
-  team_roles = ["GROUP_OWNER"]
 }
 
 data "mongodbatlas_teams" "test" {
 	org_id     = mongodbatlas_teams.test.org_id
 	team_id    = mongodbatlas_teams.test.team_id
-	project_id = mongodbatlas_teams.test.project_id
 }
 ```
 
 ## Argument Reference
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
-* `project_id` - (Required) The unique identifier for the project.
 * `team_id` - (Required) The unique identifier for the team.
 
 
@@ -43,6 +39,5 @@ In addition to all arguments above, the following attributes are exported:
 * `id` -	The Terraform's unique identifier used internally for state management.
 * `name` -  The name of the team you want to create.
 * `usernames` - The users who are part of the organization.
-* `team_roles` - The project team roles.
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)
