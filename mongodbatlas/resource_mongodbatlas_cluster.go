@@ -1,6 +1,7 @@
 package mongodbatlas
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -22,10 +24,11 @@ import (
 )
 
 const (
-	errorCreate             = "error creating MongoDB Cluster: %s"
-	errorRead               = "error reading MongoDB Cluster (%s): %s"
-	errorDelete             = "error deleting MongoDB Cluster (%s): %s"
-	errorUpdate             = "error updating MongoDB Cluster (%s): %s"
+	errorClusterCreate      = "error creating MongoDB Cluster: %s"
+	errorClusterRead        = "error reading MongoDB Cluster (%s): %s"
+	errorClusterDelete      = "error deleting MongoDB Cluster (%s): %s"
+	errorClusterUpdate      = "error updating MongoDB Cluster (%s): %s"
+	errorClusterSetting     = "error setting `%s` for MongoDB Cluster (%s): %s"
 	errorAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	errorAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 )
@@ -285,6 +288,50 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"labels": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Set: func(v interface{}) int {
+					var buf bytes.Buffer
+					m := v.(map[string]interface{})
+					buf.WriteString(m["key"].(string))
+					buf.WriteString(m["value"].(string))
+					return hashcode.String(buf.String())
+				},
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			// Special key/value pair to contain cluster created/updated via Terraform Provider and version.
+			// Only used as information for customer requested support and to count number of clusters created/updated using the Provider.
+			"plugin": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -359,14 +406,14 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 	biConnector, err := expandBiConnector(d)
 	if err != nil {
-		return fmt.Errorf(errorCreate, err)
+		return fmt.Errorf(errorClusterCreate, err)
 	}
 
 	providerSettings := expandProviderSetting(d)
 
 	replicationSpecs, err := expandReplicationSpecs(d)
 	if err != nil {
-		return fmt.Errorf(errorCreate, err)
+		return fmt.Errorf(errorClusterCreate, err)
 	}
 
 	clusterRequest := &matlas.Cluster{
@@ -379,6 +426,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+		Labels:                   expandLabelSliceFromSetSchema(d),
 	}
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
@@ -399,7 +447,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 	cluster, _, err := conn.Clusters.Create(context.Background(), projectID, clusterRequest)
 	if err != nil {
-		return fmt.Errorf(errorCreate, err)
+		return fmt.Errorf(errorClusterCreate, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -414,7 +462,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	// Wait, catching any errors
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorCreate, err)
+		return fmt.Errorf(errorClusterCreate, err)
 	}
 
 	/*
@@ -449,76 +497,85 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-
 			return nil
 		}
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterRead, clusterName, err)
 	}
 
 	if err := d.Set("cluster_id", cluster.ID); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "cluster_id", clusterName, err)
 	}
 	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err)
 	}
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err)
 	}
 	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err)
 	}
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "cluster_type", clusterName, err)
 	}
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "disk_size_gb", clusterName, err)
 	}
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "encryption_at_rest_provider", clusterName, err)
 	}
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_db_major_version", clusterName, err)
 	}
 
 	//Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
 	if cluster.NumShards != nil {
 		if err := d.Set("num_shards", cluster.NumShards); err != nil {
-			return fmt.Errorf(errorRead, clusterName, err)
+			return fmt.Errorf(errorClusterSetting, "num_shards", clusterName, err)
 		}
 	}
 
 	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_db_version", clusterName, err)
 	}
 	if err := d.Set("mongo_uri", cluster.MongoURI); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_uri", clusterName, err)
 	}
 	if err := d.Set("mongo_uri_updated", cluster.MongoURIUpdated); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_uri_updated", clusterName, err)
 	}
 	if err := d.Set("mongo_uri_with_options", cluster.MongoURIWithOptions); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_uri_with_options", clusterName, err)
 	}
 	if err := d.Set("paused", cluster.Paused); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "paused", clusterName, err)
 	}
 	if err := d.Set("srv_address", cluster.SrvAddress); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "srv_address", clusterName, err)
 	}
 	if err := d.Set("state_name", cluster.StateName); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "state_name", clusterName, err)
 	}
 	if err := d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
 	}
 	if cluster.ProviderSettings != nil {
-		flattenProviderSettings(d, *cluster.ProviderSettings)
+		flattenProviderSettings(d, cluster.ProviderSettings, clusterName)
 	}
 	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "replication_specs", clusterName, err)
 	}
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
-		return fmt.Errorf(errorRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "replication_factor", clusterName, err)
+	}
+	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
+	}
+
+	if err := d.Set("plugin", map[string]interface{}{
+		"name":    "Terraform MongoDB Atlas Provider",
+		"version": getPluginVersion(),
+	}); err != nil {
+		return fmt.Errorf(errorClusterSetting, "plugin", clusterName, err)
 	}
 
 	/*
@@ -530,7 +587,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
-		return fmt.Errorf(errorAdvancedConfRead, clusterName, err)
+		return fmt.Errorf(errorClusterSetting, "advanced_configuration", clusterName, err)
 	}
 
 	return nil
@@ -568,7 +625,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("replication_specs") {
 		replicationSpecs, err := expandReplicationSpecs(d)
 		if err != nil {
-			return fmt.Errorf(errorUpdate, clusterName, err)
+			return fmt.Errorf(errorClusterUpdate, clusterName, err)
 		}
 		cluster.ReplicationSpecs = replicationSpecs
 	}
@@ -600,12 +657,15 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("num_shards") {
 		cluster.NumShards = pointy.Int64(cast.ToInt64(d.Get("num_shards")))
 	}
+	if d.HasChange("labels") {
+		cluster.Labels = expandLabelSliceFromSetSchema(d)
+	}
 
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		_, _, err := conn.Clusters.Update(context.Background(), projectID, clusterName, cluster)
 		if err != nil {
-			return fmt.Errorf(errorUpdate, clusterName, err)
+			return fmt.Errorf(errorClusterUpdate, clusterName, err)
 		}
 	}
 
@@ -621,7 +681,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	// Wait, catching any errors
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorCreate, err)
+		return fmt.Errorf(errorClusterCreate, err)
 	}
 
 	/*
@@ -651,7 +711,7 @@ func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{})
 	_, err := conn.Clusters.Delete(context.Background(), projectID, clusterName)
 
 	if err != nil {
-		return fmt.Errorf(errorDelete, clusterName, err)
+		return fmt.Errorf(errorClusterDelete, clusterName, err)
 	}
 
 	log.Println("[INFO] Waiting for MongoDB Cluster to be destroyed")
@@ -668,7 +728,7 @@ func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{})
 	// Wait, catching any errors
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorDelete, clusterName, err)
+		return fmt.Errorf(errorClusterDelete, clusterName, err)
 	}
 	return nil
 }
@@ -696,10 +756,10 @@ func resourceMongoDBAtlasClusterImportState(d *schema.ResourceData, meta interfa
 	}))
 
 	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		log.Printf(errorClusterSetting, "project_id", u.ID, err)
 	}
 	if err := d.Set("name", u.Name); err != nil {
-		log.Printf("[WARN] Error setting name for (%s): %s", d.Id(), err)
+		log.Printf(errorClusterSetting, "name", u.ID, err)
 	}
 
 	return []*schema.ResourceData{d}, nil
@@ -764,39 +824,40 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 	return providerSettings
 }
 
-func flattenProviderSettings(d *schema.ResourceData, settings matlas.ProviderSettings) {
+func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
+
 	if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
-		log.Printf("[WARN] error setting cluster `backing_provider_name`: %s", err)
+		log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
 	}
 
 	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
 		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
-			log.Printf("[WARN] error setting cluster `disk_iops`: %s", err)
+			log.Printf(errorClusterSetting, "provider_disk_iops", clusterName, err)
 		}
 	}
 
 	if err := d.Set("provider_disk_type_name", settings.DiskTypeName); err != nil {
-		log.Printf("[WARN] error setting cluster `disk_type_name`: %s", err)
+		log.Printf(errorClusterSetting, "provider_disk_type_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_encrypt_ebs_volume", settings.EncryptEBSVolume); err != nil {
-		log.Printf("[WARN] error setting cluster `encrypt_ebs_volume`: %s", err)
+		log.Printf(errorClusterSetting, "provider_encrypt_ebs_volume", clusterName, err)
 	}
 
 	if err := d.Set("provider_instance_size_name", settings.InstanceSizeName); err != nil {
-		log.Printf("[WARN] error setting cluster `instance_size_name`: %s", err)
+		log.Printf(errorClusterSetting, "provider_instance_size_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_name", settings.ProviderName); err != nil {
-		log.Printf("[WARN] error setting cluster `provider_name`: %s", err)
+		log.Printf(errorClusterSetting, "provider_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_region_name", settings.RegionName); err != nil {
-		log.Printf("[WARN] error setting cluster `region_name`: %s", err)
+		log.Printf(errorClusterSetting, "provider_region_name", clusterName, err)
 	}
 
 	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
-		log.Printf("[WARN] error setting cluster `volume_type`: %s", err)
+		log.Printf(errorClusterSetting, "provider_volume_type", clusterName, err)
 	}
 }
 
@@ -887,9 +948,8 @@ func expandProcessArgs(p map[string]interface{}) *matlas.ProcessArgs {
 	if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
 		res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
 	} else {
-		log.Printf("[WARN] error setting cluster `oplog_size_mb`: %d", sizeMB)
+		log.Printf(errorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 	}
-
 	return res
 }
 
@@ -914,13 +974,13 @@ func resourceClusterRefreshFunc(name, projectID string, client *matlas.Client) r
 		}
 
 		if err != nil && c == nil && resp == nil {
-			log.Printf("Error reading MongoDB cluster: %s: %s", name, err)
+			log.Printf(errorClusterRead, name, err)
 			return nil, "", err
 		} else if err != nil {
 			if resp.StatusCode == 404 {
 				return 42, "DELETED", nil
 			}
-			log.Printf("Error reading MongoDB Cluster %s: %s", name, err)
+			log.Printf(errorClusterRead, name, err)
 			return nil, "", err
 		}
 

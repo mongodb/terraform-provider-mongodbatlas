@@ -182,6 +182,38 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"labels": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"plugin": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -190,93 +222,85 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	name := d.Get("name").(string)
+	clusterName := d.Get("name").(string)
 
-	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, name)
+	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterRead, clusterName, err)
 	}
 
 	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err)
 	}
-
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err)
 	}
-
 	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err)
 	}
-
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "cluster_type", clusterName, err)
 	}
-
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "disk_size_gb", clusterName, err)
 	}
-
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "encryption_at_rest_provider", clusterName, err)
 	}
-
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_db_major_version", clusterName, err)
 	}
-
 	//Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
 	if cluster.NumShards != nil {
 		if err := d.Set("num_shards", cluster.NumShards); err != nil {
-			return fmt.Errorf(errorRead, name, err)
+			return fmt.Errorf(errorClusterSetting, "num_shards", clusterName, err)
 		}
 	}
-
 	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_db_version", clusterName, err)
 	}
-
 	if err := d.Set("mongo_uri", cluster.MongoURI); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_uri", clusterName, err)
 	}
-
 	if err := d.Set("mongo_uri_updated", cluster.MongoURIUpdated); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_uri_updated", clusterName, err)
 	}
-
 	if err := d.Set("mongo_uri_with_options", cluster.MongoURIWithOptions); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "mongo_uri_with_options", clusterName, err)
 	}
-
 	if err := d.Set("paused", cluster.Paused); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "paused", clusterName, err)
 	}
-
 	if err := d.Set("srv_address", cluster.SrvAddress); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "srv_address", clusterName, err)
 	}
-
 	if err := d.Set("state_name", cluster.StateName); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "state_name", clusterName, err)
 	}
-
 	if err := d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
 	}
-
 	if cluster.ProviderSettings != nil {
-		flattenProviderSettings(d, *cluster.ProviderSettings)
+		flattenProviderSettings(d, cluster.ProviderSettings, clusterName)
 	}
-
 	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+		return fmt.Errorf(errorClusterSetting, "replication_specs", clusterName, err)
+	}
+	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
+		return fmt.Errorf(errorClusterSetting, "replication_factor", clusterName, err)
+	}
+	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
-	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
-		return fmt.Errorf(errorRead, name, err)
+	if err := d.Set("plugin", map[string]interface{}{
+		"name":    "Terraform MongoDB Atlas Provider",
+		"version": getPluginVersion(),
+	}); err != nil {
+		return fmt.Errorf(errorClusterSetting, "plugin", clusterName, err)
 	}
 
 	d.SetId(cluster.ID)

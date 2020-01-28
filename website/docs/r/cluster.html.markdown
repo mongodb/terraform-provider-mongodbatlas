@@ -56,7 +56,7 @@ resource "mongodbatlas_cluster" "test" {
   mongo_db_major_version       = "4.0"
 
   //Provider Settings "block"
-  provider_name               = "AZURE"  
+  provider_name               = "AZURE"
   provider_disk_type_name     = "P6"
   provider_instance_size_name = "M30"
   provider_region_name        = "US_EAST_2"
@@ -300,6 +300,13 @@ Include **desired options** within advanced_configuration:
 * `oplog_size_mb` - (Optional) The custom oplog size of the cluster. Without a value that indicates that the cluster uses the default oplog size calculated by Atlas.
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
+
+### Labels
+Contains key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.
+
+* `key` - The key that you want to write.
+* `value` - The value that you want to write.
+
 
 
 ## Attributes Reference
