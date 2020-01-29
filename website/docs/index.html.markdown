@@ -73,3 +73,13 @@ Atlas `provider` block:
   environment variable.
 
 For more information about how to get this programmatic API Keys see the following [link](https://docs.atlas.mongodb.com/configure-api-access/#manage-programmatic-access-to-an-organization).
+
+## Helpful Links/Information
+
+[MongoDB Atlas and Terraform Landing Page](https://www.mongodb.com/atlas/terraform)
+
+[Report bugs](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues)
+
+[Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
+
+[Support](https://docs.atlas.mongodb.com/support/) covered by MongoDB Atlas support plans, Developer and above.

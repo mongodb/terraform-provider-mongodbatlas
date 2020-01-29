@@ -27,7 +27,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   num_shards   = 1
 
   replication_factor           = 3
-  backup_enabled               = true
+  provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.0"
 
@@ -88,12 +88,12 @@ resource "mongodbatlas_cluster" "test" {
 
 ```hcl
 resource "mongodbatlas_cluster" "cluster-test" {
-  project_id     = "<YOUR-PROJECT-ID>"
-  name           = "cluster-test-multi-region"
-  disk_size_gb   = 100
-  num_shards     = 1
-  backup_enabled = true
-  cluster_type   = "REPLICASET"
+  project_id               = "<YOUR-PROJECT-ID>"
+  name                     = "cluster-test-multi-region"
+  disk_size_gb             = 100
+  num_shards               = 1
+  provider_backup_enabled  = true
+  cluster_type             = "REPLICASET"
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -133,7 +133,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
   name                    = "cluster-test-global"
   disk_size_gb            = 80
   num_shards              = 1
-  backup_enabled          = false
   provider_backup_enabled = true
   cluster_type            = "GEOSHARDED"
 
@@ -190,7 +189,10 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
     You cannot enable continuous backups if you have an existing cluster in the project with Cloud Provider Snapshots enabled.
 
-    The default value is false.
+    You cannot enable continuous backups for new AWS clusters.   If backup is required for a new cluster use `provider_backup_enabled` to enable Cloud Provider Snapshots.
+
+    The default value is false.  M10 and above only.
+
 * `bi_connector` - (Optional) Specifies BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
 * `cluster_type` - (Optional) Specifies the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
 
