@@ -57,6 +57,8 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_global_cluster_config":                dataSourceMongoDBAtlasGlobalCluster(),
 			"mongodbatlas_alert_configuration":                  dataSourceMongoDBAtlasAlertConfiguration(),
 			"mongodbatlas_x509_authentication_database_user":    dataSourceMongoDBAtlasX509AuthDBUser(),
+			"mongodbatlas_private_endpoint":                     dataSourceMongoDBAtlasPrivateEndpoint(),
+			"mongodbatlas_private_endpoint_link":                dataSourceMongoDBAtlasPrivateEndpointLink(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -79,6 +81,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_alert_configuration":                 resourceMongoDBAtlasAlertConfiguration(),
 			"mongodbatlas_x509_authentication_database_user":   resourceMongoDBAtlasX509AuthDBUser(),
 			"mongodbatlas_private_endpoint":                    resourceMongoDBAtlasPrivateEndpoint(),
+			"mongodbatlas_private_endpoint_link":               resourceMongoDBAtlasPrivateEndpointLink(),
 		},
 
 		ConfigureFunc: providerConfigure,
