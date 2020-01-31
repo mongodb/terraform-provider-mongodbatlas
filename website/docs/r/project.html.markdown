@@ -44,14 +44,14 @@ Teams attribute is optional
 * `team_id` - (Required) The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
 
 * `role_names` - (Required) Each string in the array represents a project role you want to assign to the team. Every user associated with the team inherits these roles. You must specify an array even if you are only associating a single role with the team.
+ The following are valid roles:
+  * `GROUP_OWNER`
+  * `GROUP_READ_ONLY`
+  * `GROUP_DATA_ACCESS_ADMIN`
+  * `GROUP_DATA_ACCESS_READ_WRITE`
+  * `GROUP_DATA_ACCESS_READ_ONLY`
+  * `GROUP_CLUSTER_MANAGER`
 
-The following are the valid roles and their associated mappings:
-
-* `GROUP_OWNER`
-* `GROUP_READ_ONLY`
-* `GROUP_DATA_ACCESS_ADMIN`
-* `GROUP_DATA_ACCESS_READ_WRITE`
-* `GROUP_DATA_ACCESS_READ_ONLY`
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
@@ -70,4 +70,4 @@ Project must be imported using project ID, e.g.
 ```
 $ terraform import mongodbatlas_project.my_project 5d09d6a59ccf6445652a444a
 ```
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/projects/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/projects/) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/teams/) Documentation for more information.

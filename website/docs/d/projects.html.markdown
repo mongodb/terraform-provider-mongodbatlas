@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_projects
 
-`mongodbatlas_projects` describe all Projects. This represents a projects which will be applied to all clusters within the project.
+`mongodbatlas_projects` describe all Projects. This represents projects that have been created.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -48,18 +48,18 @@ There is not arguments
 
 * `name` - The name of the project you want to create. (Cannot be changed via this Provider after creation.)
 * `org_id` - The ID of the organization you want to create the project within.
-
+*`cluster_count` - The number of Atlas clusters deployed in the project.
+*`created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `teams.#.team_id` - The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
-
 * `teams.#.role_names` - Each string in the array represents a project role assigned to the team. Every user associated with the team inherits these roles.
-The following are the valid roles and their associated mappings:
+The following are valid roles:
+  * `GROUP_OWNER`
+  * `GROUP_READ_ONLY`
+  * `GROUP_DATA_ACCESS_ADMIN`
+  * `GROUP_DATA_ACCESS_READ_WRITE`
+  * `GROUP_DATA_ACCESS_READ_ONLY`
+  * `GROUP_CLUSTER_MANAGER`
 
-* `GROUP_OWNER`
-* `GROUP_READ_ONLY`
-* `GROUP_DATA_ACCESS_ADMIN`
-* `GROUP_DATA_ACCESS_READ_WRITE`
-* `GROUP_DATA_ACCESS_READ_ONLY`
 
 
-
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/project-get-all/) Documentation for more information.
+See [MongoDB Atlas API - Projects](https://docs.atlas.mongodb.com/reference/api/project-get-all/) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
