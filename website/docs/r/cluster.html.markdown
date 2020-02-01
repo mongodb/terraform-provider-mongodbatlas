@@ -13,6 +13,8 @@ description: |-
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ~> **IMPORTANT:**
+<br> &#8226; Free tier cluster creation (M0) is not supported via API or by this Provider.
+<br> &#8226; Shared tier clusters (M2, M5) cannot be upgraded to higher tiers via API or by this Provider. 
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
@@ -165,6 +167,25 @@ resource "mongodbatlas_cluster" "cluster-test" {
   }
 }
 ```
+### Example AWS Shared Tier cluster
+````hcl
+resource "mongodbatlas_cluster" "cluster-test" {
+  project_id              = "<YOUR-PROJECT-ID>"
+  name                    = "cluster-test-global"
+  //M2 must be 2, M5 must be 5
+  disk_size_gb            = "2"
+
+  //Provider Settings "block"
+  provider_name = "TENANT"
+  backing_provider_name = "AWS"
+  provider_region_name = "US_EAST_1"
+  provider_instance_size_name = "M2"
+
+  //These must be the following values
+  mongo_db_major_version = "4.2"
+  auto_scaling_disk_gb_enabled = "false"
+}
+```
 
 ## Argument Reference
 
@@ -219,7 +240,7 @@ Note free tier (M0) creation is not supported by the Atlas API and hence not sup
     If true, the cluster uses Cloud Provider Snapshots for backups. If providerBackupEnabled and backupEnabled are false, the cluster does not use Atlas backups.
 
     You cannot enable cloud provider snapshots if you have an existing cluster in the project with Continuous Backups enabled.
-* `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.  (Note: When upgrading from a multi-tenant cluster to a dedicated cluster remove this argument.)
+* `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.
 
     This setting is only valid when providerSetting.providerName is TENANT and providerSetting.instanceSizeName is M2 or M5.
 
