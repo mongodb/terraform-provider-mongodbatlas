@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -169,17 +168,17 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.Resou
 
 	_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 	if err != nil {
-		log.Printf(errorInterfaceEndpointRead, interfaceEndpointID, err)
+		return nil, fmt.Errorf(errorInterfaceEndpointRead, interfaceEndpointID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		log.Printf(errorPrivateEndpointsSetting, "project_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "project_id", privateLinkID, err)
 	}
 	if err := d.Set("private_link_id", privateLinkID); err != nil {
-		log.Printf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
 	}
 	if err := d.Set("interface_endpoint_id", interfaceEndpointID); err != nil {
-		log.Printf(errorPrivateEndpointsSetting, "interface_endpoint_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoint_id", privateLinkID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
