@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -115,8 +114,6 @@ func testAccCheckMongoDBAtlasAuditingExists(resourceName string, auditing *matla
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
 
 		auditingRes, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
