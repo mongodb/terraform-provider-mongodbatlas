@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_private_endpoint
 
-`mongodbatlas_private_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection that wants to retrieve details by ID in an Atlas project.
+`mongodbatlas_private_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
