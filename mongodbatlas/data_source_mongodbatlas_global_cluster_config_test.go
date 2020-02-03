@@ -7,13 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccDataSourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
-	var globalConfig matlas.GlobalCluster
-
-	resourceName := "mongodbatlas_global_cluster_config.config"
 	dataSourceName := "data.mongodbatlas_global_cluster_config.config"
 
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -25,16 +21,10 @@ func TestAccDataSourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name, "false"),
+				Config: testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
-					resource.TestCheckResourceAttrSet(dataSourceName, "managed_namespaces.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "custom_zone_mapping.%"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 				),
 			},
 		},
@@ -42,22 +32,20 @@ func TestAccDataSourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 
 }
 
-func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled string) string {
+func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_cluster" "test" {
 		project_id              = "%s"
 		name                    = "%s"
 		disk_size_gb            = 80
-		num_shards              = 1
-		backup_enabled          = %s
-		provider_backup_enabled = true
+		provider_backup_enabled = false
 		cluster_type            = "GEOSHARDED"
-		
+
 		//Provider Settings "block"
 		provider_name               = "AWS"
 		provider_disk_iops          = 240
 		provider_instance_size_name = "M30"
-		
+
 		replication_specs {
 			zone_name  = "Zone 1"
 			num_shards = 2
@@ -68,8 +56,8 @@ func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled str
 			read_only_nodes = 0
 			}
 		}
-		
-		replication_specs { 
+
+		replication_specs {
 			zone_name  = "Zone 2"
 			num_shards = 2
 			regions_config {
@@ -80,17 +68,17 @@ func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled str
 			}
 		}
 	}
-	
+
 	resource "mongodbatlas_global_cluster_config" "config" {
 		project_id = mongodbatlas_cluster.test.project_id
 		cluster_name = mongodbatlas_cluster.test.name
-	
+
 		managed_namespaces {
 			db 				 = "mydata"
 			collection 		 = "publishers"
 			custom_shard_key = "city"
 		}
-	
+
 		custom_zone_mappings {
 			location ="CA"
 			zone =  "Zone 1"
@@ -101,5 +89,5 @@ func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled str
 		project_id = mongodbatlas_global_cluster_config.config.project_id
 		cluster_name = mongodbatlas_global_cluster_config.config.cluster_name
 	}
-	`, projectID, name, backupEnabled)
+	`, projectID, name)
 }
