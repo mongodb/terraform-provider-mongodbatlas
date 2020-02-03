@@ -243,3 +243,10 @@ func getPluginVersion() string {
 	}
 	return strings.ReplaceAll(string(line), "## ", "")
 }
+
+func expandStringList(list []interface{}) (res []string) {
+	for _, v := range list {
+		res = append(res, v.(string))
+	}
+	return
+}

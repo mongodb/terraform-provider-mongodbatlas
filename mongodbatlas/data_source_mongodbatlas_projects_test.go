@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
@@ -18,33 +19,31 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID),
+				Config: testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID,
+					[]*matlas.ProjectTeam{
+						{
+							TeamID:    "5e0fa8c99ccf641c722fe683",
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+						},
+						{
+							TeamID:    "5e1dd7b4f2a30ba80a70cd3a",
+							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+						},
+					},
+				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
 			},
-			{
-				Config: testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID),
-				Check:  resource.ComposeTestCheckFunc(),
-			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
-		}
-	`, projectName, orgID)
-}
-
-func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string) string {
+func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_projects" "test" {}
-	`, testAccMongoDBAtlasDataSourceProjectsConfig(projectName, orgID))
+	`, testAccMongoDBAtlasPropjectConfig(projectName, orgID, teams))
 }
