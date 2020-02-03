@@ -26,12 +26,12 @@ description: |-
 		backup_enabled          = false
 		provider_backup_enabled = true
 		cluster_type            = "GEOSHARDED"
-		
+
 		//Provider Settings "block"
 		provider_name               = "AWS"
 		provider_disk_iops          = 240
 		provider_instance_size_name = "M30"
-		
+
 		replication_specs {
 			zone_name  = "Zone 1"
 			num_shards = 1
@@ -42,8 +42,8 @@ description: |-
 			read_only_nodes = 0
 			}
 		}
-		
-		replication_specs { 
+
+		replication_specs {
 			zone_name  = "Zone 2"
 			num_shards = 1
 			regions_config {
@@ -54,17 +54,17 @@ description: |-
 			}
 		}
 	}
-	
+
 	resource "mongodbatlas_global_cluster_config" "config" {
 		project_id = mongodbatlas_cluster.test.project_id
 		cluster_name = mongodbatlas_cluster.test.name
-	
+
 		managed_namespaces {
 			db 				 = "mydata"
 			collection 		 = "publishers"
 			custom_shard_key = "city"
 		}
-	
+
 		custom_zone_mappings {
 			location ="CA"
 			zone =  "Zone 1"
@@ -72,7 +72,7 @@ description: |-
 	}
 ```
 
-### Example AWS cluster
+### Example Global cluster config
 
 ```hcl
 resource "mongodbatlas_cluster" "cluster-test" {
