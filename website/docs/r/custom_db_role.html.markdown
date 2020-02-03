@@ -10,12 +10,12 @@ description: |-
 
 `mongodbatlas_custom_db_role` provides a Custom DB Role resource. The customDBRoles resource lets you retrieve, create and modify the custom MongoDB roles in your cluster. Use custom MongoDB roles to specify custom sets of actions which cannot be described by the built-in Atlas database user privileges.
 
--> **IMPORTATN** Custom roles cannot use actions unavailable to any cluster version in your project. Custom roles are defined at the project level, and must be compatible with each MongoDB version used by your project’s clusters. If you have a cluster in your project with MongoDB 3.4, you cannot create a custom role that uses actions introduced in MongoDB 3.6, such as useUUID.
+-> **IMPORTANT** Custom roles cannot use actions unavailable to any cluster version in your project. Custom roles are defined at the project level, and must be compatible with each MongoDB version used by your project’s clusters. If you have a cluster in your project with MongoDB 3.4, you cannot create a custom role that uses actions introduced in MongoDB 3.6, such as useUUID.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-## Example Usage 
+## Example Usage
 
 ```hcl
 resource "mongodbatlas_custom_db_role" "test_role" {
@@ -109,9 +109,9 @@ resource "mongodbatlas_custom_db_role" "test_role" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
-* `role_name` - (Required) Name of the custom role. 
+* `role_name` - (Required) Name of the custom role.
 
-	-> **IMPORTATN** The specified role name can only contain letters, digits, underscores, and dashes. Additionally, you cannot specify a role name which meets any of the following criteria:
+	-> **IMPORTANT** The specified role name can only contain letters, digits, underscores, and dashes. Additionally, you cannot specify a role name which meets any of the following criteria:
 
 	* Is a name already used by an existing custom role in the project
 	* Is a name of any of the built-in roles
@@ -122,7 +122,8 @@ resource "mongodbatlas_custom_db_role" "test_role" {
 ### Actions
 Each object in the actions array represents an individual privilege action granted by the role. It is an required field.
 
-* `action` - (Required) Name of the privilege action. For a complete list of actions available in the Atlas API, see Custom Role Actions.
+* `action` - (Required) Name of the privilege action. For a complete list of actions available in the Atlas API, see [Custom Role Actions](https://docs.atlas.mongodb.com/reference/api/custom-role-actions)
+-> **Note**: The privilege actions available to the Custom Roles API resource represent a subset of the privilege actions available in the Atlas Custom Roles UI.
 
 * `resources` - (Required) Contains information on where the action is granted. Each object in the array either indicates a database and collection on which the action is granted, or indicates that the action is granted on the cluster resource.
 
