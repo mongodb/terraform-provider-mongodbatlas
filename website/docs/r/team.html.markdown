@@ -41,7 +41,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Clusters can be imported using the organization ID and team id, in the format `ORGID-TEAMID`, e.g.
+Teams can be imported using the organization ID and team id, in the format ORGID-TEAMID, e.g.
 
 ```
 $ terraform import mongodbatalas_teams.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935
