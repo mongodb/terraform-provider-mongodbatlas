@@ -23,10 +23,6 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				ForceNew: true,
 				Required: true,
 			},
-			"group_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"event_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -198,9 +194,6 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta i
 		return fmt.Errorf(errorReadAlertConf, err)
 	}
 
-	if err := d.Set("group_id", alert.GroupID); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "group_id", projectID, err)
-	}
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "event_type", projectID, err)
 	}
