@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint_link.test"
+	resourceName := "mongodbatlas_private_endpoint_interface_link.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	privateLinkID := os.Getenv("MONGODB_PRIVATE_LINK_ID")
@@ -45,7 +45,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint_link.test"
+	resourceName := "mongodbatlas_private_endpoint_interface_link.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -79,7 +79,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_import(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint_link.test"
+	resourceName := "mongodbatlas_private_endpoint_interface_link.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -191,7 +191,7 @@ func testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(awsAccessKey, awsSecre
 			security_group_ids = ["%s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_link" "test" {
+		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
 			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
 			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
@@ -201,7 +201,7 @@ func testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(awsAccessKey, awsSecre
 
 func testAccMongoDBAtlasPrivateEndpointLinkConfigBasic(projectID, privateLinkID, interfaceEndpointID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_private_endpoint_link" "test" {
+		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "%s"
 			private_link_id       = "%s"
 			interface_endpoint_id = "%s"

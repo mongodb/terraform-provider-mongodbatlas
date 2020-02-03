@@ -22,13 +22,13 @@ const (
 	errorInterfaceEndpointSetting = "error setting `%s` for MongoDB Interface Endpoints Connection(%s): %s"
 )
 
-func resourceMongoDBAtlasPrivateEndpointLink() *schema.Resource {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasPrivateEndpointLinkCreate,
-		Read:   resourceMongoDBAtlasPrivateEndpointLinkRead,
-		Delete: resourceMongoDBAtlasPrivateEndpointLinkDelete,
+		Create: resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate,
+		Read:   resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead,
+		Delete: resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasPrivateEndpointLinkImportState,
+			State: resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -62,7 +62,7 @@ func resourceMongoDBAtlasPrivateEndpointLink() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointLinkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	privateLinkID := d.Get("private_link_id").(string)
@@ -93,10 +93,10 @@ func resourceMongoDBAtlasPrivateEndpointLinkCreate(d *schema.ResourceData, meta 
 		"interface_endpoint_id": interfaceEndpointConn.ID,
 	}))
 
-	return resourceMongoDBAtlasPrivateEndpointLinkRead(d, meta)
+	return resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointLinkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
@@ -122,7 +122,7 @@ func resourceMongoDBAtlasPrivateEndpointLinkRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointLinkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
@@ -155,7 +155,7 @@ func resourceMongoDBAtlasPrivateEndpointLinkDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
 	parts := strings.SplitN(d.Id(), "-", 4)

@@ -10,9 +10,9 @@ import (
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasPrivateEndpointLink() *schema.Resource {
+func dataSourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasPrivateEndpointLinkRead,
+		Read: dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -45,7 +45,7 @@ func dataSourceMongoDBAtlasPrivateEndpointLink() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointLinkRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 

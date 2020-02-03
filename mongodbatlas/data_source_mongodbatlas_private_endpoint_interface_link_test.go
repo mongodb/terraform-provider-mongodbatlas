@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
-	resourceName := "data.mongodbatlas_private_endpoint_link.test"
+	resourceName := "data.mongodbatlas_private_endpoint_interface_link.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -64,16 +64,16 @@ func testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(awsAccessKey, awsSec
 			security_group_ids = ["%s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_link" "test" {
+		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
 			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
 			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
 		}
 
-		data "mongodbatlas_private_endpoint_link" "test" {
-			project_id            = "${mongodbatlas_private_endpoint_link.test.project_id}"
-			private_link_id       = "${mongodbatlas_private_endpoint_link.test.private_link_id}"
-			interface_endpoint_id = "${mongodbatlas_private_endpoint_link.test.interface_endpoint_id}"
+		data "mongodbatlas_private_endpoint_interface_link" "test" {
+			project_id            = "${mongodbatlas_private_endpoint_interface_link.test.project_id}"
+			private_link_id       = "${mongodbatlas_private_endpoint_interface_link.test.private_link_id}"
+			interface_endpoint_id = "${mongodbatlas_private_endpoint_interface_link.test.interface_endpoint_id}"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
 }
