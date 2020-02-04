@@ -13,10 +13,10 @@ const dbUsersBasePath = "groups/%s/databaseUsers"
 //See more: https://docs.atlas.mongodb.com/reference/api/database-users/index.html
 type DatabaseUsersService interface {
 	List(context.Context, string, *ListOptions) ([]DatabaseUser, *Response, error)
-	Get(context.Context, string, string) (*DatabaseUser, *Response, error)
+	Get(context.Context, string, string, string) (*DatabaseUser, *Response, error)
 	Create(context.Context, string, *DatabaseUser) (*DatabaseUser, *Response, error)
 	Update(context.Context, string, string, *DatabaseUser) (*DatabaseUser, *Response, error)
-	Delete(context.Context, string, string) (*Response, error)
+	Delete(context.Context, string, string, string) (*Response, error)
 }
 
 //DatabaseUsersServiceOp handles communication with the DatabaseUsers related methos of the
@@ -37,14 +37,15 @@ type Role struct {
 
 // DatabaseUser represents MongoDB users in your cluster.
 type DatabaseUser struct {
-	Roles           []Role  `json:"roles,omitempty"`
-	GroupID         string  `json:"groupId,omitempty"`
-	Username        string  `json:"username,omitempty"`
-	Password        string  `json:"password,omitempty"`
 	DatabaseName    string  `json:"databaseName,omitempty"`
+	DeleteAfterDate string  `json:"deleteAfterDate,omitempty"`
 	Labels          []Label `json:"labels,omitempty"`
 	LDAPAuthType    string  `json:"ldapAuthType,omitempty"`
-	DeleteAfterDate string  `json:"deleteAfterDate,omitempty"`
+	X509Type        string  `json:"x509Type,omitempty"`
+	GroupID         string  `json:"groupId,omitempty"`
+	Roles           []Role  `json:"roles,omitempty"`
+	Password        string  `json:"password,omitempty"`
+	Username        string  `json:"username,omitempty"`
 }
 
 // Label containing key-value pairs that tag and categorize the database user
@@ -91,13 +92,19 @@ func (s *DatabaseUsersServiceOp) List(ctx context.Context, groupID string, listO
 
 //Get gets a single user in the project.
 //See more: https://docs.atlas.mongodb.com/reference/api/database-users-get-single-user/
-func (s *DatabaseUsersServiceOp) Get(ctx context.Context, groupID string, username string) (*DatabaseUser, *Response, error) {
+func (s *DatabaseUsersServiceOp) Get(ctx context.Context, databaseName, groupID, username string) (*DatabaseUser, *Response, error) {
+	if databaseName == "" {
+		return nil, nil, NewArgError("databaseName", "must be set")
+	}
+	if groupID == "" {
+		return nil, nil, NewArgError("groupID", "must be set")
+	}
 	if username == "" {
 		return nil, nil, NewArgError("username", "must be set")
 	}
 
 	basePath := fmt.Sprintf(dbUsersBasePath, groupID)
-	path := fmt.Sprintf("%s/admin/%s", basePath, username)
+	path := fmt.Sprintf("%s/%s/%s", basePath, databaseName, username)
 
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
@@ -162,13 +169,19 @@ func (s *DatabaseUsersServiceOp) Update(ctx context.Context, groupID string, use
 
 //Delete deletes a user for the project.
 // See more: https://docs.atlas.mongodb.com/reference/api/database-users-delete-a-user/
-func (s *DatabaseUsersServiceOp) Delete(ctx context.Context, groupID string, username string) (*Response, error) {
+func (s *DatabaseUsersServiceOp) Delete(ctx context.Context, databaseName, groupID, username string) (*Response, error) {
+	if databaseName == "" {
+		return nil, NewArgError("databaseName", "must be set")
+	}
+	if groupID == "" {
+		return nil, NewArgError("groupID", "must be set")
+	}
 	if username == "" {
 		return nil, NewArgError("username", "must be set")
 	}
 
 	basePath := fmt.Sprintf(dbUsersBasePath, groupID)
-	path := fmt.Sprintf("%s/admin/%s", basePath, username)
+	path := fmt.Sprintf("%s/%s/%s", basePath, databaseName, username)
 
 	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
