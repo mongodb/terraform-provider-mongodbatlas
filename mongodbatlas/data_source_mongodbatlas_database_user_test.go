@@ -49,7 +49,7 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, userna
 			password      = "test-acc-password"
 			project_id    = "%[1]s"
 			database_name = "admin"
-			
+
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
@@ -66,8 +66,9 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, userna
 		}
 
 		data "mongodbatlas_database_user" "test" {
-			username   = mongodbatlas_database_user.test.username
-			project_id = mongodbatlas_database_user.test.project_id
+			username   		= mongodbatlas_database_user.test.username
+			project_id 		= mongodbatlas_database_user.test.project_id
+			database_name = "admin"
 		}
 	`, projectID, roleName, username)
 }

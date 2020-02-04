@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -24,7 +25,7 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 
 			"database_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"roles": {
 				Type:     schema.TypeList,
@@ -47,7 +48,7 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				},
 			},
 			"labels": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -71,9 +72,9 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
+	databaseName := d.Get("database_name").(string)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
-
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), databaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
@@ -86,10 +87,16 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
 	}
+	log.Printf("LOG___ dbUser.Labels): %#+v\n", flattenLabels(dbUser.Labels))
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(dbUser.Username)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":    projectID,
+		"username":      username,
+		"database_name": databaseName,
+	}))
+
 	return nil
 }
