@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
@@ -48,6 +47,35 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasDatabaseUser_withX509Type(t *testing.T) {
+	var dbUser matlas.DatabaseUser
+
+	resourceName := "mongodbatlas_database_user.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, "atlasAdmin", username, "First Key", "First value"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "x509_type", "MANAGED"),
+					resource.TestCheckResourceAttr(resourceName, "database_name", "$external"),
+					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
 			},
@@ -176,13 +204,13 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
+		ids := decodeStateID(rs.Primary.ID)
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"]); err == nil {
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["database_name"], ids["project_id"], ids["username"]); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
-		return fmt.Errorf("database user(%s) does not exist", rs.Primary.Attributes["project_id"])
+		return fmt.Errorf("database user(%s) does not exist", ids["project_id"])
 	}
 }
 
@@ -203,11 +231,11 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 			continue
 		}
 
+		ids := decodeStateID(rs.Primary.ID)
 		// Try to find the database user
-		_, _, err := conn.DatabaseUsers.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"])
-
+		_, _, err := conn.DatabaseUsers.Get(context.Background(), ids["database_name"], ids["project_id"], ids["username"])
 		if err == nil {
-			return fmt.Errorf("database user (%s) still exists", rs.Primary.Attributes["project_id"])
+			return fmt.Errorf("database user (%s) still exists", ids["project_id"])
 		}
 	}
 	return nil
@@ -220,7 +248,28 @@ func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName, username, keyLab
 			password      = "test-acc-password"
 			project_id    = "%[1]s"
 			database_name = "admin"
-			
+
+			roles {
+				role_name     = "%[2]s"
+				database_name = "admin"
+			}
+
+			labels {
+				key   = "%s"
+				value = "%s"
+			}
+		}
+	`, projectID, roleName, username, keyLabel, valueLabel)
+}
+
+func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, roleName, username, keyLabel, valueLabel string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			username      = "%[3]s"
+			x509_type      = "MANAGED"
+			project_id    = "%[1]s"
+			database_name = "$external"
+
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
@@ -252,7 +301,7 @@ func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, userna
 			password      = "test-acc-password"
 			project_id    = "%[1]s"
 			database_name = "admin"
-			
+
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
