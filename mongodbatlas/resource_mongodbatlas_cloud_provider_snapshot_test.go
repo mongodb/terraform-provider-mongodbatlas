@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -138,6 +139,9 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
+
+		log.Printf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_id"])
+
 		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_id"]), nil
 	}
 }
@@ -165,4 +169,26 @@ func testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, desc
 			retention_in_days = %s
 		}
 	`, projectID, clusterName, description, retentionInDays)
+}
+
+func TestResourceMongoDBAtlasCloudProviderSnapshot_snapshotID(t *testing.T) {
+	got, err := splitSnapshotImportID("5cf5a45a9ccf6400e60981b6-projectname-environment-mongo-global-cluster-5cf5a45a9ccf6400e60981b7")
+	if err != nil {
+		t.Errorf("splitSnapshotImportID returned error(%s), expected error=nil", err)
+	}
+
+	expected := &matlas.SnapshotReqPathParameters{
+		GroupID:     "5cf5a45a9ccf6400e60981b6",
+		ClusterName: "projectname-environment-mongo-global-cluster",
+		SnapshotID:  "5cf5a45a9ccf6400e60981b7",
+	}
+
+	if diff := deep.Equal(expected, got); diff != nil {
+		t.Errorf("Bad splitSnapshotImportID return \n got = %#v\nwant = %#v \ndiff = %#v", expected, *got, diff)
+	}
+
+	if _, err := splitSnapshotImportID("5cf5a45a9ccf6400e60981b6projectname-environment-mongo-global-cluster5cf5a45a9ccf6400e60981b7"); err == nil {
+		t.Error("splitSnapshotImportID expected to have error")
+	}
+
 }

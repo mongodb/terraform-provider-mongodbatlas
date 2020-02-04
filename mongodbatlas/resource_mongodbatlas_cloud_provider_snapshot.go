@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -166,10 +166,11 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(d *schema.ResourceData, met
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"snapshot_id":  snapshot.ID,
 		"project_id":   d.Get("project_id").(string),
 		"cluster_name": d.Get("cluster_name").(string),
+		"snapshot_id":  snapshot.ID,
 	}))
+
 	return resourceMongoDBAtlasCloudProviderSnapshotRead(d, meta)
 }
 
@@ -217,15 +218,9 @@ func resourceCloudProviderSnapshotRefreshFunc(requestParameters *matlas.Snapshot
 func resourceMongoDBAtlasCloudProviderSnapshotImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
-	}
-
-	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     parts[0],
-		ClusterName: parts[1],
-		SnapshotID:  parts[2],
+	requestParameters, err := splitSnapshotImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
 
 	u, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
@@ -234,20 +229,36 @@ func resourceMongoDBAtlasCloudProviderSnapshotImportState(d *schema.ResourceData
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"snapshot_id":  requestParameters.SnapshotID,
 		"project_id":   requestParameters.GroupID,
 		"cluster_name": requestParameters.ClusterName,
+		"snapshot_id":  requestParameters.SnapshotID,
 	}))
 
 	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting project_id for (%s): %s", requestParameters.SnapshotID, err)
 	}
 	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
-		log.Printf("[WARN] Error setting cluster_name for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting cluster_name for (%s): %s", requestParameters.SnapshotID, err)
 	}
 	if err := d.Set("description", u.Description); err != nil {
-		log.Printf("[WARN] Error setting description for (%s): %s", d.Id(), err)
+		log.Printf("[WARN] Error setting description for (%s): %s", requestParameters.SnapshotID, err)
 	}
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitSnapshotImportID(ID string) (*matlas.SnapshotReqPathParameters, error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
+
+	parts := re.FindStringSubmatch(ID)
+
+	if len(parts) != 4 {
+		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
+	}
+
+	return &matlas.SnapshotReqPathParameters{
+		GroupID:     parts[1],
+		ClusterName: parts[2],
+		SnapshotID:  parts[3],
+	}, nil
 }
