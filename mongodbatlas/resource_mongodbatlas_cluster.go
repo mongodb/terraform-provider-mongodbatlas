@@ -124,6 +124,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				ForceNew: true,
 				Required: true,
 			},
+			"pit_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"backing_provider_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -422,6 +427,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
 		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
+		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
@@ -546,6 +552,11 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("mongo_uri_with_options", cluster.MongoURIWithOptions); err != nil {
 		return fmt.Errorf(errorClusterSetting, "mongo_uri_with_options", clusterName, err)
 	}
+
+	if err := d.Set("pit_enabled", cluster.PitEnabled); err != nil {
+		return fmt.Errorf(errorClusterSetting, "pit_enabled", clusterName, err)
+	}
+
 	if err := d.Set("paused", cluster.Paused); err != nil {
 		return fmt.Errorf(errorClusterSetting, "paused", clusterName, err)
 	}
@@ -650,6 +661,9 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	}
 	if d.HasChange("provider_backup_enabled") {
 		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
+	}
+	if d.HasChange("pit_enabled") {
+		cluster.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
 	}
 	if d.HasChange("replication_factor") {
 		cluster.ReplicationFactor = pointy.Int64(cast.ToInt64(d.Get("replication_factor")))
