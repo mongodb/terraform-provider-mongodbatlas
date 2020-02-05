@@ -66,6 +66,10 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"pit_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"provider_backup_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -237,6 +241,9 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 	}
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
 		return fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err)
+	}
+	if err := d.Set("pit_enabled", cluster.PitEnabled); err != nil {
+		return fmt.Errorf(errorClusterSetting, "pit_enabled", clusterName, err)
 	}
 	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
 		return fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err)
