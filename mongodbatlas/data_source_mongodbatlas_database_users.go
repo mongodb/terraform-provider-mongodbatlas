@@ -35,8 +35,11 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-
-						"database_name": {
+						"auth_database_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"x509_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -111,11 +114,12 @@ func flattenDBUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
 
 		for k, dbUser := range dbUsers {
 			dbUsersMap[k] = map[string]interface{}{
-				"roles":         flattenRoles(dbUser.Roles),
-				"username":      dbUser.Username,
-				"project_id":    dbUser.GroupID,
-				"database_name": dbUser.DatabaseName,
-				"labels":        flattenLabels(dbUser.Labels),
+				"roles":              flattenRoles(dbUser.Roles),
+				"username":           dbUser.Username,
+				"project_id":         dbUser.GroupID,
+				"auth_database_name": dbUser.DatabaseName,
+				"x509_type":          dbUser.X509Type,
+				"labels":             flattenLabels(dbUser.Labels),
 			}
 		}
 	}
