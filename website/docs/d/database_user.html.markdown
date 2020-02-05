@@ -18,43 +18,42 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ```hcl
 resource "mongodbatlas_database_user" "test" {
-	username      = "test-acc-username"
-	password      = "test-acc-password"
-	project_id      = "<PROJECT-ID>"
-	database_name = "admin"
+  username           = "test-acc-username"
+  password           = "test-acc-password"
+  project_id         = "<PROJECT-ID>"
+  auth_database_name = "admin"
 
-	roles {
-		role_name     = "readWrite"
-		database_name = "admin"
-	}
+  roles {
+    role_name     = "readWrite"
+    database_name = "admin"
+  }
 
-    roles {
-		role_name     = "atlasAdmin"
-		database_name = "admin"
-	}
+  roles {
+    role_name     = "atlasAdmin"
+    database_name = "admin"
+  }
 
-	labels {
-		key   = "key 1"
-		value = "value 1"
-	}
-	labels {
-		key   = "key 2"
-		value = "value 2"
-	}
+  labels {
+    key   = "key 1"
+    value = "value 1"
+  }
+  labels {
+    key   = "key 2"
+    value = "value 2"
+  }
 }
 
 data "mongodbatlas_database_user" "test" {
-	project_id = mongodbatlas_database_user.test.project_id
-	username = mongodbatlas_database_user.test.username
+  project_id = mongodbatlas_database_user.test.project_id
+  username   = mongodbatlas_database_user.test.username
 }
-
 ```
 
 ## Argument Reference
 
 * `username` - (Required) Username for authenticating to MongoDB.
 * `project_id` - (Required) The unique ID for the project to create the database user.
-* `database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
+* `auth_database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is almost always the admin database, for X509 it is $external.
 
 ## Attributes Reference
 
@@ -62,6 +61,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The database user's name.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
+* `x509_type` - X.509 method by which the provided username is authenticated.
 
 ### Roles
 
