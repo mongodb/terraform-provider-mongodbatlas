@@ -214,7 +214,7 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.0
 github.com/mitchellh/reflectwalk
-# github.com/mongodb/go-client-mongodb-atlas v0.1.3-0.20200124011041-e364211a87d6 => ../go-client-mongodb-atlas
+# github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200206183950-6d73c8e570f5
 github.com/mongodb/go-client-mongodb-atlas/mongodbatlas
 # github.com/mwielbut/pointy v1.1.0
 github.com/mwielbut/pointy

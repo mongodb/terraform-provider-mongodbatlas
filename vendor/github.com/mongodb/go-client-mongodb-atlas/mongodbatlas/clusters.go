@@ -88,6 +88,7 @@ type Cluster struct {
 	Name                     string                   `json:"name,omitempty"`
 	NumShards                *int64                   `json:"numShards,omitempty"`
 	Paused                   *bool                    `json:"paused,omitempty"`
+	PitEnabled               *bool                    `json:"pitEnabled,omitempty"`
 	ProviderBackupEnabled    *bool                    `json:"providerBackupEnabled,omitempty"`
 	ProviderSettings         *ProviderSettings        `json:"providerSettings,omitempty"`
 	ReplicationFactor        *int64                   `json:"replicationFactor,omitempty"`
