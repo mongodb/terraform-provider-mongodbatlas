@@ -63,6 +63,7 @@ In addition to all arguments above, the following attributes are exported:
 
     Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `paused` - Flag that indicates whether the cluster is paused or not.
+* `pit_enabled` - Flag that indicates if the cluster uses Point-in-Time backups.
 * `srv_address` - Connection string for connecting to the Atlas cluster. The +srv modifier forces the connection to use TLS/SSL. See the mongoURI for additional options.
 * `state_name` - Indicates the current state of the cluster. The possible states are:
     - IDLE

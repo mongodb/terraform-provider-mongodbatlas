@@ -176,6 +176,10 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"pit_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"paused": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -273,6 +277,7 @@ func flattenClusters(clusters []matlas.Cluster) []map[string]interface{} {
 			"mongo_uri":                    cluster.MongoURI,
 			"mongo_uri_updated":            cluster.MongoURIUpdated,
 			"mongo_uri_with_options":       cluster.MongoURIWithOptions,
+			"pit_enabled":                  cluster.PitEnabled,
 			"paused":                       cluster.Paused,
 			"srv_address":                  cluster.SrvAddress,
 			"state_name":                   cluster.StateName,

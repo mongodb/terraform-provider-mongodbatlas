@@ -34,6 +34,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
@@ -47,6 +48,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
@@ -484,12 +486,13 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
-			project_id   = "%s"
-			name         = "%s"
+			project_id   = "%[1]s"
+			name         = "%[2]s"
 			disk_size_gb = 100
 			num_shards   = 1
 			replication_factor           = 3
-			backup_enabled               = %s
+			provider_backup_enabled      = %[3]s
+			pit_enabled 				 = %[3]s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
