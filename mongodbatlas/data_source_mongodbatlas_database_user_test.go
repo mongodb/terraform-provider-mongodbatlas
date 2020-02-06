@@ -15,9 +15,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 	resourceName := "data.mongodbatlas_database_user.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-
 	roleName := "atlasAdmin"
-
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +29,8 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "x509_type", "NONE"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
@@ -45,11 +44,11 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user" "test" {
-			username      = "%[3]s"
-			password      = "test-acc-password"
-			project_id    = "%[1]s"
-			database_name = "admin"
-			
+			username           = "%[3]s"
+			password           = "test-acc-password"
+			project_id         = "%[1]s"
+			auth_database_name = "admin"
+
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
@@ -66,8 +65,9 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, userna
 		}
 
 		data "mongodbatlas_database_user" "test" {
-			username   = mongodbatlas_database_user.test.username
-			project_id = mongodbatlas_database_user.test.project_id
+			username           = mongodbatlas_database_user.test.username
+			project_id         = mongodbatlas_database_user.test.project_id
+			auth_database_name = "admin"
 		}
 	`, projectID, roleName, username)
 }

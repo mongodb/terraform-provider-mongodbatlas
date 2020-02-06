@@ -18,10 +18,10 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ```hcl
 resource "mongodbatlas_database_user" "test" {
-  username      = "test-acc-username"
-  password      = "test-acc-password"
-  project_id    = "<PROJECT-ID>"
-  database_name = "admin"
+  username           = "test-acc-username"
+  password           = "test-acc-password"
+  project_id         = "<PROJECT-ID>"
+  auth_database_name = "admin"
 
   roles {
     role_name     = "readWrite"
@@ -44,9 +44,8 @@ resource "mongodbatlas_database_user" "test" {
 }
 
 data "mongodbatlas_database_users" "test" {
-	project_id = mongodbatlas_database_user.test.project_id
+  project_id = mongodbatlas_database_user.test.project_id
 }
-
 ```
 
 ## Argument Reference
@@ -66,7 +65,9 @@ In addition to all arguments above, the following attributes are exported:
 * `project_id` - ID of the Atlas project the user belongs to.
 * `username` - Username for authenticating to MongoDB.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
-* `database_name` - The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
+* `auth_database_name` - The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
+
+* `x509_type` - X.509 method by which the provided username is authenticated.
 
 ### Roles
 

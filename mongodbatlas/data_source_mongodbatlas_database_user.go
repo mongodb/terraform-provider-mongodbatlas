@@ -21,8 +21,11 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
-			"database_name": {
+			"auth_database_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"x509_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -47,7 +50,7 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				},
 			},
 			"labels": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -71,17 +74,20 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
+	databaseName := d.Get("auth_database_name").(string)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
-
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), databaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
-		return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
+	if err := d.Set("auth_database_name", dbUser.DatabaseName); err != nil {
+		return fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
+		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
 	}
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
@@ -90,6 +96,11 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(dbUser.Username)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":         projectID,
+		"username":           username,
+		"auth_database_name": databaseName,
+	}))
+
 	return nil
 }

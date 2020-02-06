@@ -28,7 +28,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"database_name": {
+			"auth_database_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -38,9 +38,15 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				ForceNew: true,
 			},
 			"password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"x509_type"},
+			},
+			"x509_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "NONE",
 			},
 			"roles": {
 				Type:     schema.TypeList,
@@ -95,8 +101,9 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
+	authDatabaseName := ids["auth_database_name"]
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
@@ -104,8 +111,11 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
-		return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
+	if err := d.Set("auth_database_name", dbUser.DatabaseName); err != nil {
+		return fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
+		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
 	}
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
@@ -121,28 +131,27 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
+	authDatabaseName := d.Get("auth_database_name").(string)
 
 	dbUserReq := &matlas.DatabaseUser{
 		Roles:        expandRoles(d),
 		GroupID:      projectID,
 		Username:     d.Get("username").(string),
-		DatabaseName: d.Get("database_name").(string),
+		Password:     d.Get("password").(string),
+		X509Type:     d.Get("x509_type").(string),
+		DatabaseName: authDatabaseName,
 		Labels:       expandLabelSliceFromSetSchema(d),
 	}
 
-	if v, ok := d.GetOk("password"); ok {
-		dbUserReq.Password = v.(string)
-	}
-
 	dbUserRes, _, err := conn.DatabaseUsers.Create(context.Background(), projectID, dbUserReq)
-
 	if err != nil {
 		return fmt.Errorf("error creating database user: %s", err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"project_id": projectID,
-		"username":   dbUserRes.Username,
+		"project_id":         projectID,
+		"username":           dbUserRes.Username,
+		"auth_database_name": authDatabaseName,
 	}))
 
 	return resourceMongoDBAtlasDatabaseUserRead(d, meta)
@@ -154,9 +163,9 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
+	authDatabaseName := ids["auth_database_name"]
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
-
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
@@ -174,7 +183,6 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
-
 	if err != nil {
 		return fmt.Errorf("error updating database user(%s): %s", username, err)
 	}
@@ -188,9 +196,9 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
+	authDatabaseName := ids["auth_database_name"]
 
-	_, err := conn.DatabaseUsers.Delete(context.Background(), projectID, username)
-
+	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
 	}
@@ -200,27 +208,29 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a database user, use the format {project_id}-{username}")
+	parts := strings.SplitN(d.Id(), "-", 3)
+	if len(parts) != 3 {
+		return nil, errors.New("import format error: to import a database user, use the format {project_id}-{username}-{auth_database_name}")
 	}
 
 	projectID := parts[0]
 	username := parts[1]
+	authDatabaseName := parts[2]
 
-	u, _, err := conn.DatabaseUsers.Get(context.Background(), projectID, username)
+	u, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import user %s in project %s, error: %s", username, projectID, err)
+		return nil, fmt.Errorf("couldn't import user(%s) in project(%s), error: %s", username, projectID, err)
 	}
-
-	d.SetId(encodeStateID(map[string]string{
-		"project_id": projectID,
-		"username":   u.Username,
-	}))
 
 	if err := d.Set("project_id", u.GroupID); err != nil {
 		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":         projectID,
+		"username":           username,
+		"auth_database_name": authDatabaseName,
+	}))
 
 	return []*schema.ResourceData{d}, nil
 }

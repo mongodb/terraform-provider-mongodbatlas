@@ -7,7 +7,7 @@ require (
 	github.com/go-test/deep v1.0.1
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hashicorp/terraform v0.12.1
-	github.com/mongodb/go-client-mongodb-atlas v0.1.3-0.20200124011041-e364211a87d6
+	github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200205164654-a46da013820e
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.0

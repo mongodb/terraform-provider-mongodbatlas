@@ -31,7 +31,10 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(projectID, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.0.x509_type"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.roles.#"),
 				),
@@ -44,11 +47,11 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user" "db_user" {
-			username      = "%[3]s"
-			password      = "test-acc-password"
-			project_id    = "%[1]s"
-			database_name = "admin"
-			
+			username           = "%[3]s"
+			password           = "test-acc-password"
+			project_id         = "%[1]s"
+			auth_database_name = "admin"
+
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"
@@ -56,11 +59,11 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, usern
 		}
 
 		resource "mongodbatlas_database_user" "db_user_1" {
-			username      = "%[3]s-1"
-			password      = "test-acc-password-1"
-			project_id    = "%[1]s"
-			database_name = "admin"
-			
+			username           = "%[3]s-1"
+			password           = "test-acc-password-1"
+			project_id         = "%[1]s"
+			auth_database_name = "admin"
+
 			roles {
 				role_name     = "%[2]s"
 				database_name = "admin"

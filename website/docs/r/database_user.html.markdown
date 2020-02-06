@@ -16,14 +16,14 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
-## Example Usage
+## Example Usages
 
 ```hcl
 resource "mongodbatlas_database_user" "test" {
-  username      = "test-acc-username"
-  password      = "test-acc-password"
-  project_id    = "<PROJECT-ID>"
-  database_name = "admin"
+  username           = "test-acc-username"
+  password           = "test-acc-password"
+  project_id         = "<PROJECT-ID>"
+  auth_database_name = "admin"
 
   roles {
     role_name     = "readWrite"
@@ -42,13 +42,38 @@ resource "mongodbatlas_database_user" "test" {
 }
 ```
 
+
+```hcl
+resource "mongodbatlas_database_user" "test" {
+  username           = "test-acc-username"
+  x509_type          = "MANAGED"
+  project_id         = "<PROJECT-ID>"
+  auth_database_name = "$external"
+
+  roles {
+    role_name     = "readAnyDatabase"
+    database_name = "admin"
+  }
+
+  labels {
+    key   = "%s"
+    value = "%s"
+  }
+}
+```
+
 ## Argument Reference
 
-* `database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
+* `auth_database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
 * `project_id` - (Required) The unique ID for the project to create the database user.
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB.
 * `password` - (Required) User's initial password. A value is required to create the database user, however the argument but may be removed from your Terraform configuration after user creation without impacting the user, password or Terraform management. IMPORTANT --- Passwords may show up in Terraform related logs and it will be stored in the Terraform state file as plain-text. Password can be changed after creation using your preferred method, e.g. via the MongoDB Atlas UI, to ensure security.  If you do change management of the password to outside of Terraform be sure to remove the argument from the Terraform configuration so it is not inadvertently updated to the original password.
+
+* `x509_type` - (Optional) X.509 method by which the provided username is authenticated. If no value is given, Atlas uses the default value of NONE. The accepted types are:
+  * `NONE` -	The user does not use X.509 authentication.
+  * `MANAGED` - The user is being created for use with Atlas-managed X.509.Externally authenticated users can only be created on the `$external` database.
+  * `CUSTOMER` -  The user is being created for use with Self-Managed X.509. Users created with this x509Type require a Common Name (CN) in the username field. Externally authenticated users can only be created on the `$external` database.
 
 ### Roles
 
@@ -76,10 +101,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Database users can be imported using project ID and username, in the format `PROJECTID-USERNAME`, e.g.
+Database users can be imported using project ID and username, in the format `project_id`-`username`-`auth_database_name`, e.g.
 
 ```
-$ terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user
+$ terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user-admin
 ```
 
 ~> **NOTE:** Terraform will want to change the password after importing the user if a `password` argument is specified.
