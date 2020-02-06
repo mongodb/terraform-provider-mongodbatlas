@@ -6,9 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	"github.com/spf13/cast"
 )
 
 func TestAccResourceMongoDBAtlasX509AuthDBUser_basic(t *testing.T) {
@@ -89,8 +91,33 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasX509AuthDBUserImportStateIDFuncBasic(resourceName),
 				ImportState:       true,
-				// ImportStateVerify: true,
-				// ImportStateVerifyIgnore: []string{""},
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasX509AuthDBUser_WithDatabaseUser(t *testing.T) {
+	resourceName := "mongodbatlas_x509_authentication_database_user.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	months := acctest.RandIntRange(1, 24)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username, months),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "username"),
+					resource.TestCheckResourceAttrSet(resourceName, "months_until_expiration"),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "months_until_expiration", cast.ToString(months)),
+				),
 			},
 		},
 	})
@@ -203,13 +230,13 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithCustomerX509(projectID, cas stri
 	`, projectID, cas)
 }
 
-func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username string) string {
+func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username string, months int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user" "user" {
-			project_id    = "%s"
-			username      = "%s"
-			x509_type     = "CUSTOMER"
-			database_name = "$external"
+			project_id         = "%s"
+			username           = "%s"
+			x509_type          = "MANAGED"
+			auth_database_name = "$external"
 
 			roles {
 				role_name     = "atlasAdmin"
@@ -225,7 +252,7 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
 			project_id              = "${mongodbatlas_database_user.user.project_id}"
 			username                = "${mongodbatlas_database_user.user.username}"
-			months_until_expiration = 2
+			months_until_expiration = %d
 		}
-	`, projectID, username)
+	`, projectID, username, months)
 }
