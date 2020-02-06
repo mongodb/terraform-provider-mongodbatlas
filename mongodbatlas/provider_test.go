@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-aws/aws"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -15,6 +17,7 @@ func init() {
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"mongodbatlas": testAccProvider,
+		"aws":          aws.Provider(),
 	}
 }
 
@@ -68,10 +71,7 @@ func checkPeeringEnvGCP(t *testing.T) {
 func checkAwsEnv(t *testing.T) {
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
-		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" ||
-		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED") == "" ||
-		os.Getenv("AWS_ACCESS_KEY_ID_UPDATED") == "" ||
-		os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED") == "" {
+		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
 		t.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_CUSTOMER_MASTER_KEY_ID` must be set for acceptance testing")
 	}
 }
