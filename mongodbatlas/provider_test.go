@@ -62,6 +62,25 @@ func checkPeeringEnvAzure(t *testing.T) {
 	}
 }
 
+func checkEncriptionAtRestEnvAzure(t *testing.T) {
+	if os.Getenv("AZURE_CLIENT_ID") == "" ||
+		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
+		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_RESOURSE_GROUP_NAME") == "" ||
+		os.Getenv("AZURE_RESOURSE_GROUP_NAME_UPDATED") == "" ||
+		os.Getenv("AZURE_SECRET") == "" ||
+		os.Getenv("AZURE_KEY_VAULT_NAME") == "" ||
+		os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED") == "" ||
+		os.Getenv("AZURE_KEY_IDENTIFIER") == "" ||
+		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" ||
+		os.Getenv("AZURE_TENANT_ID") == "" {
+		t.Fatal(`'AZURE_CLIENT_ID','AZURE_CLIENT_ID_UPDATED', 'AZURE_SUBCRIPTION_ID',
+		'AZURE_RESOURSE_GROUP_NAME','AZURE_RESOURSE_GROUP_NAME_UPDATED', 'AZURE_SECRET',
+		'AZURE_SECRET_UPDATED', 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
+		'AZURE_KEY_IDENTIFIER_UPDATED', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
+	}
+}
+
 func checkPeeringEnvGCP(t *testing.T) {
 	if os.Getenv("GCP_PROJECT_ID") == "" {
 		t.Fatal("`GCP_PROJECT_ID` must be set for network peering acceptance testing")
