@@ -28,9 +28,16 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"database_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"auth_database_name"},
+				Deprecated:    "use auth_database_name instead",
+			},
 			"auth_database_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"database_name"},
 			},
 			"username": {
 				Type:     schema.TypeString,
@@ -111,9 +118,17 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("auth_database_name", dbUser.DatabaseName); err != nil {
-		return fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
+
+	if _, ok := d.GetOk("auth_database_name"); ok {
+		if err := d.Set("auth_database_name", dbUser.DatabaseName); err != nil {
+			return fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
+		}
+	} else {
+		if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
+			return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
+		}
 	}
+
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
 		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
 	}
@@ -131,7 +146,19 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 	//Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	authDatabaseName := d.Get("auth_database_name").(string)
+
+	dbName, dbNameOk := d.GetOk("database_name")
+	authDBName, authDBNameOk := d.GetOk("auth_database_name")
+	if !dbNameOk && !authDBNameOk {
+		return errors.New("one of database_name or auth_database_name must be configured")
+	}
+
+	var authDatabaseName string
+	if dbNameOk {
+		authDatabaseName = dbName.(string)
+	} else {
+		authDatabaseName = authDBName.(string)
+	}
 
 	dbUserReq := &matlas.DatabaseUser{
 		Roles:        expandRoles(d),
