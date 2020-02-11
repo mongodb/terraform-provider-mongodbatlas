@@ -29,7 +29,7 @@ The MongoDB Atlas provider offers a flexible means of providing credentials for 
 
 ### Static credentials
 
-Static credentials can be provided by adding the fowlloing attributes in-line in the MongoDB Atlas provider block:
+Static credentials can be provided by adding the following attributes in-line in the MongoDB Atlas provider block:
 
 Usage:
 
@@ -72,7 +72,7 @@ Atlas `provider` block:
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
-For more information about how to get this programmatic API Keys see the following [link](https://docs.atlas.mongodb.com/configure-api-access/#manage-programmatic-access-to-an-organization).
+For more information about how to get these programmatic API Keys see the following [link](https://docs.atlas.mongodb.com/configure-api-access/#manage-programmatic-access-to-an-organization).
 
 ## Helpful Links/Information
 
