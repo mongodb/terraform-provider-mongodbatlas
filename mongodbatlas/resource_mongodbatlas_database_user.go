@@ -110,6 +110,14 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
+	if authDatabaseName == "" {
+		if dbName, ok := d.GetOk("database_name"); ok {
+			authDatabaseName = dbName.(string)
+		} else {
+			authDatabaseName = d.Get("auth_database_name").(string)
+		}
+	}
+
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
@@ -138,6 +146,12 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":         projectID,
+		"username":           username,
+		"auth_database_name": authDatabaseName,
+	}))
 
 	return nil
 }
@@ -194,7 +208,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
-		return fmt.Errorf("error getting database user information: %s", err)
+		return fmt.Errorf("error getting database user information to update it: %s", err)
 	}
 
 	if d.HasChange("password") {
