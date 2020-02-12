@@ -198,7 +198,7 @@ func resourceMongoDBAtlasEncryptionAtRestDelete(d *schema.ResourceData, meta int
 
 	_, err := conn.EncryptionsAtRest.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("error deleting a encryptionAtRest (%s): %s", d.Id(), err)
+		return fmt.Errorf("error removing encryption at rest (%s): %s", d.Id(), err)
 	}
 	return nil
 }
