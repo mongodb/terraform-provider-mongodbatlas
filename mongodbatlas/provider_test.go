@@ -62,7 +62,7 @@ func checkPeeringEnvAzure(t *testing.T) {
 	}
 }
 
-func checkEncriptionAtRestEnvAzure(t *testing.T) {
+func checkEncryptionAtRestEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
 		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
 		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||

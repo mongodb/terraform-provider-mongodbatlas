@@ -95,7 +95,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkEncriptionAtRestEnvAzure(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkEncryptionAtRestEnvAzure(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
