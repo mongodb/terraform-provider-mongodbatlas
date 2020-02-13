@@ -58,9 +58,17 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"backup_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"provider_backup_enabled"},
+				Deprecated:    "use provider_backup_enabled instead",
+			},
+			"provider_backup_enabled": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"backup_enabled"},
 			},
 			"bi_connector": {
 				Type:     schema.TypeMap,
@@ -110,11 +118,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  1,
-			},
-			"provider_backup_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 			"provider_instance_size_name": {
 				Type:     schema.TypeString,
@@ -381,12 +384,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if providerName != "AZURE" {
-		if _, ok := d.GetOk("provider_disk_type_name"); ok {
-			return fmt.Errorf("`provider_disk_type_name` shouldn't be set when provider name is `GCP` or `AWS`")
-		}
-	}
-
 	if providerName == "AZURE" {
 		if _, ok := d.GetOk("disk_size_gb"); ok {
 			return fmt.Errorf("`disk_size_gb` cannot be used with Azure clusters")
@@ -399,6 +396,12 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 		autoScaling = matlas.AutoScaling{
 			DiskGBEnabled: pointy.Bool(false),
+		}
+	}
+
+	if providerName != "AZURE" {
+		if _, ok := d.GetOk("provider_disk_type_name"); ok {
+			return fmt.Errorf("`provider_disk_type_name` shouldn't be set when provider name is `GCP` or `AWS`")
 		}
 	}
 
@@ -426,8 +429,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		Name:                     d.Get("name").(string),
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
-		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
-		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		BiConnector:              biConnector,
@@ -450,6 +451,26 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 	if n, ok := d.GetOk("num_shards"); ok {
 		clusterRequest.NumShards = pointy.Int64(cast.ToInt64(n))
+	}
+
+	if providerName == "AWS" {
+		backup, backupOk := d.GetOk("backup_enabled")
+		providerbackup, providerbackupOk := d.GetOk("provider_backup_enabled")
+		if !backupOk && !providerbackupOk {
+			return errors.New("For AWS cluster one of backup_enabled or provider_backup_enabled must be configured")
+		}
+
+		var providerBackupEnabled bool
+		if providerbackupOk {
+			providerBackupEnabled = providerbackup.(bool)
+		} else {
+			providerBackupEnabled = backup.(bool)
+		}
+
+		clusterRequest.ProviderBackupEnabled = pointy.Bool(providerBackupEnabled)
+	} else {
+		clusterRequest.BackupEnabled = pointy.Bool(cast.ToBool(d.Get("backup_enabled")))
+		clusterRequest.ProviderBackupEnabled = pointy.Bool(cast.ToBool(d.Get("provider_backup_enabled")))
 	}
 
 	cluster, _, err := conn.Clusters.Create(context.Background(), projectID, clusterRequest)
@@ -517,12 +538,17 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
 		return fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err)
 	}
-	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
-		return fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err)
+
+	if v, ok := d.GetOk("backup_enabled"); ok {
+		if err := d.Set("backup_enabled", v.(bool)); err != nil {
+			return fmt.Errorf(errorClusterSetting, `backup_enabled`, clusterName, err)
+		}
+	} else {
+		if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
+			return fmt.Errorf(errorClusterSetting, `provider_backup_enabled`, clusterName, err)
+		}
 	}
-	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-		return fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err)
-	}
+
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
 		return fmt.Errorf(errorClusterSetting, "cluster_type", clusterName, err)
 	}
@@ -656,14 +682,23 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("cluster_type") {
 		cluster.ClusterType = d.Get("cluster_type").(string)
 	}
-	if d.HasChange("backup_enabled") {
-		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
+
+	if d.Get("provider_name").(string) == "AWS" {
+		var providerBackupEnabled bool
+
+		if providerbackup, ok := d.GetOk("provider_backup_enabled"); ok {
+			providerBackupEnabled = providerbackup.(bool)
+		} else {
+			providerBackupEnabled = d.Get("backup_enabled").(bool)
+		}
+		cluster.ProviderBackupEnabled = pointy.Bool(providerBackupEnabled)
+	} else {
+		cluster.BackupEnabled = pointy.Bool(cast.ToBool(d.Get("backup_enabled")))
+		cluster.ProviderBackupEnabled = pointy.Bool(cast.ToBool(d.Get("provider_backup_enabled")))
 	}
+
 	if d.HasChange("disk_size_gb") {
 		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
-	}
-	if d.HasChange("provider_backup_enabled") {
-		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
 	}
 	if d.HasChange("pit_enabled") {
 		cluster.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
