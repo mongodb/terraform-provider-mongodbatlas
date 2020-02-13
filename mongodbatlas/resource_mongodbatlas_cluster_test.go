@@ -33,8 +33,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
-					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
@@ -47,8 +46,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
-					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
@@ -187,7 +185,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigGCP(projectID, name, "false"),
+				Config: testAccMongoDBAtlasClusterConfigGCP(projectID, name, "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -486,21 +484,20 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
-			project_id   = "%[1]s"
-			name         = "%[2]s"
-			disk_size_gb = 100
-			num_shards   = 1
+			project_id                   = "%[1]s"
+			name                         = "%[2]s"
+			disk_size_gb                 = 10
+			num_shards                   = 1
 			replication_factor           = 3
 			provider_backup_enabled      = %[3]s
-			pit_enabled 				 = %[3]s
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
+			mongo_db_major_version       = "4.2"
 
 			//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops 			    = 300
+			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
-			provider_instance_size_name = "M30"
+			provider_instance_size_name = "M10"
 			provider_region_name        = "EU_CENTRAL_1"
 		}
 	`, projectID, name, backupEnabled)
