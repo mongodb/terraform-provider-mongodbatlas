@@ -55,6 +55,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 			"backup_enabled": {
 				Type:     schema.TypeBool,
@@ -507,6 +508,8 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		}
 		return fmt.Errorf(errorClusterRead, clusterName, err)
 	}
+
+	log.Printf("[DEBUG] GET Cluster %+v", cluster)
 
 	if err := d.Set("cluster_id", cluster.ID); err != nil {
 		return fmt.Errorf(errorClusterSetting, "cluster_id", clusterName, err)

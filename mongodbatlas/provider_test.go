@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -73,5 +74,31 @@ func checkAwsEnv(t *testing.T) {
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
 		t.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_CUSTOMER_MASTER_KEY_ID` must be set for acceptance testing")
+	}
+}
+
+func TestEncodeDecodeID(t *testing.T) {
+	expected := map[string]string{
+		"project_id":   "5cf5a45a9ccf6400e60981b6",
+		"cluster_name": "test-acc-q4y272zo9y",
+		"snapshot_id":  "5e42e646553855a5aee40138",
+	}
+
+	got := decodeStateID(encodeStateID(expected))
+
+	if diff := deep.Equal(expected, got); diff != nil {
+		t.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", expected, got, diff)
+	}
+}
+
+func TestDecodeID(t *testing.T) {
+	expected := "Y2x1c3Rlcl9uYW1l:dGVzdC1hY2MtcTR5Mjcyem85eQ==-c25hcHNob3RfaWQ=:NWU0MmU2NDY1NTM4NTVhNWFlZTQwMTM4-cHJvamVjdF9pZA==:NWNmNWE0NWE5Y2NmNjQwMGU2MDk4MWI2"
+	expected2 := "c25hcHNob3RfaWQ=:NWU0MmU2NDY1NTM4NTVhNWFlZTQwMTM4-cHJvamVjdF9pZA==:NWNmNWE0NWE5Y2NmNjQwMGU2MDk4MWI2-Y2x1c3Rlcl9uYW1l:dGVzdC1hY2MtcTR5Mjcyem85eQ=="
+
+	got := decodeStateID(expected)
+	got2 := decodeStateID(expected2)
+
+	if diff := deep.Equal(got, got2); diff != nil {
+		t.Fatalf("Bad TestDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, got2, diff)
 	}
 }
