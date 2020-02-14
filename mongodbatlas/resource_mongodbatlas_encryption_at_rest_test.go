@@ -128,14 +128,14 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 	resourceName := "mongodbatlas_encryption_at_rest.test"
 	projectID := "5d0f1f73cf09a29120e173cf"
 
-	if os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GOOGLE_KEY_VERSION_RESOURCE_ID") == "" {
-		t.Fatal("`GOOGLE_SERVICE_ACCOUNT_KEY` and `GOOGLE_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
+	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
+		t.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
 	}
 
 	googleCloudKms := matlas.GoogleCloudKms{
 		Enabled:              pointy.Bool(true),
-		ServiceAccountKey:    os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY"),
-		KeyVersionResourceID: os.Getenv("GOOGLE_KEY_VERSION_RESOURCE_ID"),
+		ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY"),
+		KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID"),
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
