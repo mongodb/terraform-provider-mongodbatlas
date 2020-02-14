@@ -127,7 +127,7 @@ $ export AWS_VPC_ID=<YOUR_VPC_ID>
 $ export AWS_SUBNET_ID=<YOUR_SUBNET_ID>
 $ export AWS_SECURITY_GROUP_ID=<YOUR_SECURITY_GROUP_ID>
 ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/https://docs.atlas.mongodb.com/reference/api/private-endpoint/
 
 
 ##### AZURE env variables
@@ -166,7 +166,7 @@ export AZURE_KEY_IDENTIFIER_UPDATED=<YOUR_KEY_IDENTIFIER_UPDATED>
 ```sh
 $export GCP_PROJECT_ID=<YOUR_PROJECT_ID>
 ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
 
 
 - For Encryption at Rest resource configuration:
