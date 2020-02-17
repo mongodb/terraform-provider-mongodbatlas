@@ -7,7 +7,7 @@ For general information about Terraform, visit the [official website](https://ww
 
 # Support, Bugs, Feature Requests
 
-Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas support plans.   Please submit support questions within the Atlas UI.  Support questions submitted under the Issues section of this repo will be handled on a "best effort" basis.  
+Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas support plans.   Please submit support questions within the Atlas UI.  Support questions submitted under the Issues section of this repo will be handled on a "best effort" basis.
 
 Bugs should be filed under the Issues section of this repo.
 
@@ -84,9 +84,12 @@ You must also configure the following environment variables before running the t
 
 ##### MongoDB Atlas env variables
 ```sh
-$ export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
-$ export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
+export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
+export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
+export MONGODB_ATLAS_PUBLIC_KEY=<YOUR_PUBLIC_KEY>
+export MONGODB_ATLAS_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
 ```
+
 ##### AWS env variables
 
 - For `Network Peering` resource configuration:
@@ -95,6 +98,8 @@ $ export AWS_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
 $ export AWS_VPC_ID=<YOUR_VPC_ID>
 $ export AWS_VPC_CIDR_BLOCK=<YOUR_VPC_CIDR_BLOCK>
 $ export AWS_REGION=<YOUR_REGION>
+$ export AWS_SUBNET_ID=<YOUR_SUBNET_ID>
+$ export AWS_SECURITY_GROUP_ID=<YOUR_SECURITY_GROUP_ID>
 ```
 ~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
 
@@ -103,6 +108,71 @@ $ export AWS_REGION=<YOUR_REGION>
 $ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
 $ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
 $ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
+$ export AWS_REGION=<YOUR_REGION>
+
+$ export AWS_ACCESS_KEY_ID_UPDATED=<YOUR_ACCESS_KEY_ID_UPDATED>
+$ export AWS_SECRET_ACCESS_KEY_UPDATED=<YOUR_SECRET_ACCESS_KEY_UPDATED>
+$ export AWS_CUSTOMER_MASTER_KEY_ID_UPDATED=<YOUR_CUSTOMER_MASTER_KEY_ID_UPDATED>
+$ export AWS_REGION_UPDATED=<YOUR_REGION_UPDATED>
+```
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+
+- For `Private Endpoint Link` resource configuration:
+```sh
+$ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
+$ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
+$ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
+$ export AWS_REGION=<YOUR_REGION>
+$ export AWS_VPC_ID=<YOUR_VPC_ID>
+$ export AWS_SUBNET_ID=<YOUR_SUBNET_ID>
+$ export AWS_SECURITY_GROUP_ID=<YOUR_SECURITY_GROUP_ID>
+```
+~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/https://docs.atlas.mongodb.com/reference/api/private-endpoint/
+
+
+##### AZURE env variables
+
+- For `Network Peering` resource configuration:
+```sh
+$ export AZURE_DIRECTORY_ID=<YOUR_DIRECTORY_ID>
+$ export AZURE_SUBCRIPTION_ID=<YOUR_SUBCRIPTION_ID>
+$ export AZURE_RESOURSE_GROUP_NAME=<YOUR_RESOURSE_GROUP_NAME>
+$ export AZURE_VNET_NAME=<YOUR_VNET_NAME>
+```
+~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+
+
+- For Encryption at Rest resource configuration:
+```sh
+export AZURE_CLIENT_ID=<YOUR_CLIENT_ID>
+export AZURE_SUBCRIPTION_ID=<YOUR_SUBCRIPTION_ID>
+export AZURE_RESOURSE_GROUP_NAME=<YOUR_RESOURSE_GROUP_NAME>
+export AZURE_SECRET=<YOUR_SECRET>
+export AZURE_KEY_VAULT_NAME=<YOUR_KEY_VAULT_NAME>
+export AZURE_KEY_IDENTIFIER=<YOUR_KEY_IDENTIFIER>
+export AZURE_TENANT_ID=<YOUR_TENANT_ID>
+export AZURE_DIRECTORY_ID=<YOUR_DIRECTORY_ID>
+
+export AZURE_CLIENT_ID_UPDATED=<YOUR_CLIENT_ID_UPDATED>
+export AZURE_RESOURSE_GROUP_NAME_UPDATED=<YOUR_RESOURSE_GROUP_NAME_UPDATED>
+export AZURE_SECRET_UPDATED=<YOUR_SECRET_UPDATED>
+export AZURE_KEY_VAULT_NAME_UPDATED=<YOUR_KEY_VAULT_NAME_UPDATED>
+export AZURE_KEY_IDENTIFIER_UPDATED=<YOUR_KEY_IDENTIFIER_UPDATED>
+```
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+
+##### GCP env variables
+- For `Network Peering` resource configuration:
+```sh
+$export GCP_PROJECT_ID=<YOUR_PROJECT_ID>
+```
+~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+
+
+- For Encryption at Rest resource configuration:
+```sh
+$ export GCP_SERVICE_ACCOUNT_KEY=<YOUR_GCP_SERVICE_ACCOUNT_KEY>
+$ export GCP_KEY_VERSION_RESOURCE_ID=<YOUR_GCP_KEY_VERSION_RESOURCE_ID>
 ```
 ~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
 
