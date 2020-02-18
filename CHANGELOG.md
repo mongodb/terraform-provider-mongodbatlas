@@ -1,4 +1,4 @@
-## 0.4.0 (Unreleased)
+## 0.4.0 (February 18, 2020)
 
 **Implemented enhancements to existing resources:**
 
