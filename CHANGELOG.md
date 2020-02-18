@@ -1,4 +1,69 @@
-## 0.3.2 (Unreleased)
+## 0.4.0 (Unreleased)
+
+**Implemented enhancements to existing resources:**
+
+- add mongodbatlas\_project datasource [\#137](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/137)
+- Database Users: updated Read Function to avoid plugin error when it upgrades [\#133](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/133) ([PacoDw](https://github.com/PacoDw))
+- Fix snapshot import with hyphened cluster\_name [\#131](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/131) ([marinsalinas](https://github.com/marinsalinas))
+- chore: added database\_name as deprecated attribute [\#129](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/129) ([PacoDw](https://github.com/PacoDw))
+- Encryption At Rest: fixed issues and added an enhancement [\#128](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/128) ([PacoDw](https://github.com/PacoDw))
+- Add PIT enabled argumento to Cluster Resource and Data Source [\#126](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/126) ([marinsalinas](https://github.com/marinsalinas))
+- Issue with import  mongodbatlas\_cloud\_provider\_snapshot\_restore\_job [\#109](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/109)
+- Fix \#68: Added the ability to re-create the whitelist entry when it's remove manually [\#106](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/106) ([PacoDw](https://github.com/PacoDw))
+- Add pitEnabled feature of mongodbatlas\_cluster resource [\#104](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/104)
+- Updating `git clone` command to reference current repository [\#103](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/103) ([macintacos](https://github.com/macintacos))
+- Cluster label and plugin attribute [\#102](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/102) ([PacoDw](https://github.com/PacoDw))
+- Added functions to handle labels attribute in some resources [\#101](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/101) ([PacoDw](https://github.com/PacoDw))
+- Added labels attr for Database User resource [\#100](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/100) ([PacoDw](https://github.com/PacoDw))
+- Add provider\_name to containers data source [\#95](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/95) ([marinsalinas](https://github.com/marinsalinas))
+- Whitelist [\#94](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/94) ([PacoDw](https://github.com/PacoDw))
+- Network Peering RS: remove provider\_name=AWS as default, use Required=true instead i… [\#92](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/92) ([marinsalinas](https://github.com/marinsalinas))
+- Added default Disk Size when it doesn't set up on cluster resource [\#77](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/77) ([PacoDw](https://github.com/PacoDw))
+- mongodbatlas\_network\_containers datasource doesn't work with Azure [\#71](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/71)
+- Support for AWS security groups in mongodbatlas\_project\_ip\_whitelist [\#67](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/67)
+
+**Documentation improvements and fixes:**
+
+- Breaking Change - [Upgrade Guide] (https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040) ([themantissa](https://github.com/themantissa))
+- Readme: Updated env variables [\#135](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/135) ([PacoDw](https://github.com/PacoDw))
+- Spelling and grammer [\#130](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/130) ([CMaylone](https://github.com/CMaylone))
+- Shared tier doc edits [\#119](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/119) ([themantissa](https://github.com/themantissa))
+- Update cluster doc [\#117](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/117) ([themantissa](https://github.com/themantissa))
+- Update backup, add links [\#116](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/116) ([themantissa](https://github.com/themantissa))
+- Update cluster.html.markdown [\#112](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/112) ([themantissa](https://github.com/themantissa))
+Update database\_user.html.markdown [\#98](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/98) ([themantissa](https://github.com/themantissa))
+- update containers and ip whitelist doc [\#96](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/96) ([themantissa](https://github.com/themantissa))
+- Update project.html.markdown [\#91](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/91) ([themantissa](https://github.com/themantissa))
+- website: collapse data sources sidebar by default [\#75](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/75) ([marinsalinas](https://github.com/marinsalinas))
+- Improvements to Peering Resources [\#73](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/73) ([themantissa](https://github.com/themantissa))
+- Remove dupe argument in docs [\#69](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/69) ([ktmorgan](https://github.com/ktmorgan))
+- Clarify Azure Option in Doc [\#66](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/66) ([themantissa](https://github.com/themantissa))
+
+
+**Fixed bugs:**
+
+- Fix DiskSizeGB missing [\#111](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/111) ([marinsalinas](https://github.com/marinsalinas))
+- Fix peering resource [\#107](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/107) ([PacoDw](https://github.com/PacoDw))
+- fix: validate if mongo\_db\_major\_version is set in cluster resource [\#85](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/85) ([marinsalinas](https://github.com/marinsalinas))
+- Cannot update GCP network peer [\#86](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/86)
+- Cluster fails to build on 0.3.1 when mongo\_db\_major\_version is not specified [\#81](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/81)
+- Crash \(panic, interface conversion error\) when creating mongodbatlas\_encryption\_at\_rest in Azure [\#74](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/74)
+- Creating M2 cluster without specifying disk\_size\_gb results in 400 Bad Request [\#72](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/72)
+
+**New features:**
+
+- X509 Authentication Database User [\#125](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/125) ([PacoDw](https://github.com/PacoDw))
+- Database users: added x509\_type attribute [\#122](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/122) ([PacoDw](https://github.com/PacoDw))
+- Private endpoints [\#118](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/118) ([PacoDw](https://github.com/PacoDw))
+- Projects: adding teams attribute [\#113](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/113) ([PacoDw](https://github.com/PacoDw))
+- Terraform resource for MongoDB Custom Roles [\#108](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/108) ([PacoDw](https://github.com/PacoDw))
+- Alert configuration resource and data source [\#99](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/99) ([PacoDw](https://github.com/PacoDw))
+- Feat: Global Cluster Configuration Resource and Data Source. [\#90](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/90) ([marinsalinas](https://github.com/marinsalinas))
+- Auditing Resource and Data Source [\#82](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/82) ([PacoDw](https://github.com/PacoDw))
+- Feat: Team Resource and Data Source [\#79](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/79) ([marinsalinas](https://github.com/marinsalinas))
+- Maintenance window ds [\#78](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/78) ([PacoDw](https://github.com/PacoDw))
+- Maintenance window rs [\#76](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/76) ([PacoDw](https://github.com/PacoDw))
+
 ## 0.3.1 (November 11, 2019)
 
 **Fixed bugs:**
@@ -15,7 +80,6 @@
 - Add resource for maintenance window [\#55](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/55)
 - Error encryption\_at\_rest  rpc unavailable desc [\#54](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/54)
 - specify oplog size? [\#52](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/52)
-- Modifying project ip whitelist destroy and re-create all resources [\#51](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/51)
 - Add resource for custom database roles [\#50](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/50)
 - An invalid enumeration value US\_EAST\_1 was specified. [\#49](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/49)
 - Version 0.3.0 [\#47](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/47)
