@@ -6,9 +6,9 @@ description: |-
     Provides a Team resource.
 ---
 
-# mongodbatalas_teams
+# mongodbatlas_teams
 
-`mongodbatalas_teams` provides a Team resource. The resource lets you create, edit and delete Teams. Also, Teams can be assigned to multiple projects, and team members’ access to the project is determined by the team’s project role.
+`mongodbatlas_teams` provides a Team resource. The resource lets you create, edit and delete Teams. Also, Teams can be assigned to multiple projects, and team members’ access to the project is determined by the team’s project role.
 
 > **IMPORTANT:** MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams per project.
 
@@ -19,7 +19,7 @@ MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams pe
 ## Example Usage
 
 ```hcl
-resource "mongodbatalas_teams" "test" {
+resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
@@ -44,7 +44,7 @@ In addition to all arguments above, the following attributes are exported:
 Teams can be imported using the organization ID and team id, in the format ORGID-TEAMID, e.g.
 
 ```
-$ terraform import mongodbatalas_teams.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935
+$ terraform import mongodbatlas_teams.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)
