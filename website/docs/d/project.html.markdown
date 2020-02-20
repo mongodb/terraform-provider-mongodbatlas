@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-## Examples Usage
+## Example Usage
 
 ### Using project_id attribute to query
 ```hcl
@@ -63,7 +63,7 @@ data "mongodbatlas_project" "test" {
 * `project_id` - (Optional) The unique ID for the project.
 * `name` - (Optional) The unique ID for the project.
 
-~> **IMPORTANT:** One of the `project_id` or `name` must be configurated.
+~> **IMPORTANT:** Either `project_id` or `name` must be configurated.
 
 ## Attributes Reference
 
