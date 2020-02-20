@@ -66,7 +66,7 @@ func dataSourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{})
 	projectID, projectIDOk := d.GetOk("project_id")
 	name, nameOk := d.GetOk("name")
 	if !projectIDOk && !nameOk {
-		return errors.New("one of project_id or name must be configured")
+		return errors.New("either project_id or name must be configured")
 	}
 
 	var err error
