@@ -14,6 +14,7 @@ description: |-
 
 ## Example Usage
 
+### Using project_id attribute to query
 ```hcl
 resource "mongodbatlas_project" "test" {
   name   = "project-name"
@@ -35,9 +36,34 @@ data "mongodbatlas_project" "test" {
 }
 ```
 
+### Using name attribute to query
+```hcl
+resource "mongodbatlas_project" "test" {
+  name   = "project-name"
+  org_id = "<ORG_ID>"
+
+  teams {
+    team_id    = "5e0fa8c99ccf641c722fe645"
+    role_names = ["GROUP_OWNER"]
+
+  }
+  teams {
+    team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
+    role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
+  }
+}
+
+data "mongodbatlas_project" "test" {
+  name = "${mongodbatlas_project.test.name}"
+}
+```
+
 ## Argument Reference
 
-* `project_id` - The unique ID for the project.
+* `project_id` - (Optional) The unique ID for the project.
+* `name` - (Optional) The unique ID for the project.
+
+~> **IMPORTANT:** Either `project_id` or `name` must be configurated.
 
 ## Attributes Reference
 
