@@ -76,6 +76,8 @@ For more information about how to get these programmatic API Keys see the follow
 
 ## Helpful Links/Information
 
+[Upgrade Guide for Terraform MongoDB Atlas 0.4.0](https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040)
+
 [MongoDB Atlas and Terraform Landing Page](https://www.mongodb.com/atlas/terraform)
 
 [Report bugs](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues)
