@@ -15,7 +15,7 @@ description: |-
 ## Example Usage
 
 ```hcl
-resource "mongodbatalas_teams" "test" {
+resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
