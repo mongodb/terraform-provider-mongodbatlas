@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatalas_teams
 
-`mongodbatalas_teams` provides a Team resource. The resource lets you create, edit and delete Teams. Also, Teams can be assigned to multiple projects, and team members’ access to the project is determined by the team’s project role.
+`mongodbatlas_teams` provides a Team resource. The resource lets you create, edit and delete Teams. Also, Teams can be assigned to multiple projects, and team members’ access to the project is determined by the team’s project role.
 
 > **IMPORTANT:** MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams per project.
 
@@ -19,7 +19,7 @@ MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams pe
 ## Example Usage
 
 ```hcl
-resource "mongodbatalas_teams" "test" {
+resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
