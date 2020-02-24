@@ -21,7 +21,6 @@ import (
 type EvalReadData struct {
 	Addr           addrs.ResourceInstance
 	Config         *configs.Resource
-	Dependencies   []addrs.Referenceable
 	Provider       *providers.Interface
 	ProviderAddr   addrs.AbsProviderConfig
 	ProviderSchema **ProviderSchema
@@ -95,7 +94,8 @@ func (n *EvalReadData) Eval(ctx EvalContext) (interface{}, error) {
 	objTy := schema.ImpliedType()
 	priorVal := cty.NullVal(objTy) // for data resources, prior is always null because we start fresh every time
 
-	keyData := EvalDataForInstanceKey(n.Addr.Key)
+	forEach, _ := evaluateResourceForEachExpression(n.Config.ForEach, ctx)
+	keyData := EvalDataForInstanceKey(n.Addr.Key, forEach)
 
 	var configDiags tfdiags.Diagnostics
 	configVal, _, configDiags = ctx.EvaluateBlock(config.Config, schema, nil, keyData)
@@ -160,9 +160,8 @@ func (n *EvalReadData) Eval(ctx EvalContext) (interface{}, error) {
 		}
 		if n.OutputState != nil {
 			state := &states.ResourceInstanceObject{
-				Value:        change.After,
-				Status:       states.ObjectPlanned, // because the partial value in the plan must be used for now
-				Dependencies: n.Dependencies,
+				Value:  change.After,
+				Status: states.ObjectPlanned, // because the partial value in the plan must be used for now
 			}
 			*n.OutputState = state
 		}
@@ -177,6 +176,17 @@ func (n *EvalReadData) Eval(ctx EvalContext) (interface{}, error) {
 			"invalid action %s for %s: only Read is supported (this is a bug in Terraform; please report it!)",
 			(*n.Planned).Action, absAddr,
 		)
+	}
+
+	log.Printf("[TRACE] Re-validating config for %s", absAddr)
+	validateResp := provider.ValidateDataSourceConfig(
+		providers.ValidateDataSourceConfigRequest{
+			TypeName: n.Addr.Resource.Type,
+			Config:   configVal,
+		},
+	)
+	if validateResp.Diagnostics.HasErrors() {
+		return nil, validateResp.Diagnostics.InConfigBody(n.Config.Config).Err()
 	}
 
 	// If we get down here then our configuration is complete and we're read
@@ -263,9 +273,8 @@ func (n *EvalReadData) Eval(ctx EvalContext) (interface{}, error) {
 		},
 	}
 	state := &states.ResourceInstanceObject{
-		Value:        change.After,
-		Status:       states.ObjectReady, // because we completed the read from the provider
-		Dependencies: n.Dependencies,
+		Value:  change.After,
+		Status: states.ObjectReady, // because we completed the read from the provider
 	}
 
 	err = ctx.Hook(func(h Hook) (HookAction, error) {
@@ -294,14 +303,13 @@ func (n *EvalReadData) Eval(ctx EvalContext) (interface{}, error) {
 // EvalReadDataApply is an EvalNode implementation that executes a data
 // resource's ReadDataApply method to read data from the data source.
 type EvalReadDataApply struct {
-	Addr            addrs.ResourceInstance
-	Provider        *providers.Interface
-	ProviderAddr    addrs.AbsProviderConfig
-	ProviderSchema  **ProviderSchema
-	Output          **states.ResourceInstanceObject
-	Config          *configs.Resource
-	Change          **plans.ResourceInstanceChange
-	StateReferences []addrs.Referenceable
+	Addr           addrs.ResourceInstance
+	Provider       *providers.Interface
+	ProviderAddr   addrs.AbsProviderConfig
+	ProviderSchema **ProviderSchema
+	Output         **states.ResourceInstanceObject
+	Config         *configs.Resource
+	Change         **plans.ResourceInstanceChange
 }
 
 func (n *EvalReadDataApply) Eval(ctx EvalContext) (interface{}, error) {
@@ -373,9 +381,8 @@ func (n *EvalReadDataApply) Eval(ctx EvalContext) (interface{}, error) {
 
 	if n.Output != nil {
 		*n.Output = &states.ResourceInstanceObject{
-			Value:        newVal,
-			Status:       states.ObjectReady,
-			Dependencies: n.StateReferences,
+			Value:  newVal,
+			Status: states.ObjectReady,
 		}
 	}
 
