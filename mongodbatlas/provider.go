@@ -9,8 +9,8 @@ import (
 
 	"github.com/gobuffalo/packr"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/spf13/cast"
 )
