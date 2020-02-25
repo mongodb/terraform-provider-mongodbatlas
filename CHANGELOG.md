@@ -1,4 +1,23 @@
-## 0.5.0 (Unreleased)
+## 0.4.1 (Unreleased)
+
+**Fixed bugs:**
+
+- Add name argument in mongodbatlas\_project datasource [\#140](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/140)
+
+**Closed issues:**
+
+- Delete timeout for mongodbatlas\_private\_endpoint resource too short [\#151](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/151)
+- mongodbatlas\_project name [\#150](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/150)
+- mongodbatlas\_custom\_db\_role not waiting for resource creation [\#148](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/148)
+
+**Merged pull requests:**
+
+- Custom DB Roles: added refresh function to allow to create/remove multiple custom roles at the same time [\#155](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/155) ([PacoDw](https://github.com/PacoDw))
+- chore: increase timeout when delete in private\_endpoint resource [\#154](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/154) ([marinsalinas](https://github.com/marinsalinas))
+- add upgrade guide [\#149](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/149) ([themantissa](https://github.com/themantissa))
+- Correct `mongodbatlas\_teams` resource name in docs [\#143](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/143) ([mattt416](https://github.com/mattt416))
+- Project data source [\#142](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/142) ([PacoDw](https://github.com/PacoDw))
+
 ## 0.4.0 (February 18, 2020)
 
 **Implemented enhancements to existing resources:**
