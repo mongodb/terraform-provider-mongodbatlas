@@ -7,7 +7,9 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -107,14 +109,37 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 		InheritedRoles: expandInheritedRoles(d),
 	}
 
-	customDBRoleRes, _, err := conn.CustomDBRoles.Create(context.Background(), projectID, customDBRoleReq)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"pending"},
+		Target:  []string{"created", "failed"},
+		Refresh: func() (interface{}, string, error) {
+			customDBRoleRes, _, err := conn.CustomDBRoles.Create(context.Background(), projectID, customDBRoleReq)
+			if err != nil {
+				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
+					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
+					strings.Contains(fmt.Sprint(err), "500") ||
+					strings.Contains(fmt.Sprint(err), "404") ||
+					strings.Contains(fmt.Sprint(err), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
+					return nil, "pending", nil
+				}
+				return nil, "failed", err
+			}
+			return customDBRoleRes, "created", nil
+		},
+		Timeout:    10 * time.Minute,
+		Delay:      3 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	// Wait, catching any errors
+	_, err := stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("error creating custom db role: %s", err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
-		"role_name":  customDBRoleRes.RoleName,
+		"role_name":  customDBRoleReq.RoleName,
 	}))
 
 	return resourceMongoDBAtlasCustomDBRoleRead(d, meta)
@@ -167,7 +192,6 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	_, _, err = conn.CustomDBRoles.Update(context.Background(), projectID, roleName, customDBRole)
-
 	if err != nil {
 		return fmt.Errorf("error updating custom db role (%s): %s", roleName, err)
 	}
@@ -181,11 +205,37 @@ func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interfa
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
-	_, err := conn.CustomDBRoles.Delete(context.Background(), projectID, roleName)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"deleting"},
+		Target:  []string{"deleted", "failed"},
+		Refresh: func() (interface{}, string, error) {
+			_, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+			if err != nil {
+				if strings.Contains(fmt.Sprint(err), "404") ||
+					strings.Contains(fmt.Sprint(err), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
+					return "", "deleted", nil
+				}
+				return nil, "failed", err
+			}
 
-	if err != nil {
-		return fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
+			_, err = conn.CustomDBRoles.Delete(context.Background(), projectID, roleName)
+			if err != nil {
+				return nil, "failed", fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
+			}
+
+			return nil, "deleting", nil
+		},
+		Timeout:    10 * time.Minute,
+		Delay:      3 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	// Wait, catching any errors
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
