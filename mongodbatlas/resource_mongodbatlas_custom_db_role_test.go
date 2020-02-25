@@ -421,6 +421,43 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_Multiple(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
+
+	resourceName := "mongodbatlas_custom_db_role.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	var roleName string
+
+	for i := 0; i < 100; i++ {
+		roleName = fmt.Sprintf("test-acc-custom_role-%d", i)
+
+		t.Run(roleName, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:     func() { testAccPreCheck(t) },
+				Providers:    testAccProviders,
+				CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+				Steps: []resource.TestStep{
+					{
+						Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(projectID, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+						Check: resource.ComposeTestCheckFunc(
+							testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
+							resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+							resource.TestCheckResourceAttrSet(resourceName, "role_name"),
+							resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
+
+							resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+							resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
+							resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
+							resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
+							resource.TestCheckResourceAttr(resourceName, "actions.0.resources.#", "1"),
+						),
+					},
+				},
+			})
+		})
+	}
+
+}
+
 func TestAccResourceMongoDBAtlasCustomDBRoles_importBasic(t *testing.T) {
 	resourceName := "mongodbatlas_custom_db_role.test"
 
@@ -504,7 +541,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigBasic(projectID, roleName, action, da
 		resource "mongodbatlas_custom_db_role" "test" {
 			project_id = "%s"
 			role_name  = "%s"
-		
+
 			actions {
 				action = "%s"
 				resources {
@@ -522,7 +559,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, 
 		resource "mongodbatlas_custom_db_role" "inherited_role_one" {
 		 	project_id = "%s"
 		 	role_name  = "%s"
-		
+
 			actions {
 				action = "%s"
 				resources {
@@ -535,7 +572,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, 
 		resource "mongodbatlas_custom_db_role" "inherited_role_two" {
 			project_id = "${mongodbatlas_custom_db_role.inherited_role_one.project_id}"
 		 	role_name  = "%s"
-		
+
 			actions {
 				action = "%s"
 				resources {
@@ -547,7 +584,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, 
 		resource "mongodbatlas_custom_db_role" "test_role" {
 			project_id = "${mongodbatlas_custom_db_role.inherited_role_one.project_id}"
 			role_name  = "%s"
-		
+
 			actions {
 				action = "%s"
 				resources {
@@ -555,7 +592,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, 
 					database_name   = "%s"
 				}
 			}
-		
+
 			inherited_roles {
 				role_name     = "${mongodbatlas_custom_db_role.inherited_role_one.role_name}"
 				database_name = "admin"
@@ -620,16 +657,16 @@ func testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID string, inheritedR
 		resource "mongodbatlas_custom_db_role" "inherited_role" {
 		 	project_id = "%s"
 		 	role_name  = "%s"
-		
+
 			%s
 		}
 
 		resource "mongodbatlas_custom_db_role" "test_role" {
 			project_id = "${mongodbatlas_custom_db_role.inherited_role.project_id}"
 			role_name  = "%s"
-		
+
 			%s
-		
+
 			%s
 		}
 	`, projectID,
