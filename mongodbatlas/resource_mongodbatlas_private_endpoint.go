@@ -163,7 +163,7 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
 		Refresh:    resourcePrivateEndpointRefreshFunc(conn, projectID, privateLinkID),
-		Timeout:    2 * time.Minute,
+		Timeout:    10 * time.Minute,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
