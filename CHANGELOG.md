@@ -1,4 +1,4 @@
-## 0.4.1 (Unreleased)
+## 0.4.1 (February 26, 2020)
 
 **Fixed bugs:**
 
