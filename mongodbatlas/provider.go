@@ -125,95 +125,25 @@ func decodeStateID(stateID string) map[string]string {
 }
 
 func valRegion(reg interface{}, opt ...string) (string, error) {
-
-	regions := []string{
-		"US_EAST_1",
-		"US_EAST_2",
-		"US_WEST_1",
-		"US_WEST_2",
-		"CA_CENTRAL_1",
-		"SA_EAST_1",
-		"AP_NORTHEAST_1",
-		"AP_NORTHEAST_2",
-		"AP_SOUTH_1",
-		"AP_SOUTHEAST_1",
-		"AP_SOUTHEAST_2",
-		"EU_CENTRAL_1",
-		"EU_NORTH_1",
-		"EU_WEST_1",
-		"EU_WEST_2",
-		"EU_WEST_3",
-		"AZURE",
-		"AZURE_CHINA",
-		"AZURE_GERMANY",
-		"US_CENTRAL",
-		"US_EAST",
-		"US_NORTH_CENTRAL",
-		"US_WEST",
-		"US_SOUTH_CENTRAL",
-		"BRAZIL_SOUTH",
-		"CANADA_EAST",
-		"CANADA_CENTRAL",
-		"EUROPE_NORTH",
-		"EUROPE_WEST",
-		"UK_SOUTH",
-		"UK_WEST",
-		"FRANCE_CENTRAL",
-		"ASIA_EAST",
-		"ASIA_SOUTH_EAST",
-		"AUSTRALIA_EAST",
-		"AUSTRALIA_SOUTH_EAST",
-		"INDIA_CENTRAL",
-		"INDIA_SOUTH",
-		"INDIA_WEST",
-		"JAPAN_EAST",
-		"JAPAN_WEST",
-		"KOREA_CENTRAL",
-		"KOREA_SOUTH",
-		"SOUTH_AFRICA_NORTH",
-		"UAE_NORTH",
-		"CENTRAL_US",
-		"EASTERN_US",
-		"US_EAST_4",
-		"NORTH_AMERICA_NORTHEAST_1",
-		"SOUTH_AMERICA_EAST_1",
-		"WESTERN_US",
-		"US_WEST_2",
-		"EASTERN_ASIA_PACIFIC",
-		"ASIA_EAST_2",
-		"NORTHEASTERN_ASIA_PACIFIC",
-		"ASIA_NORTHEAST_2",
-		"SOUTHEASTERN_ASIA_PACIFIC",
-		"ASIA_SOUTH_1",
-		"AUSTRALIA_SOUTHEAST_1",
-		"WESTERN_EUROPE",
-		"EUROPE_NORTH_1",
-		"EUROPE_WEST_2",
-		"EUROPE_WEST_3",
-		"EUROPE_WEST_4",
-		"EUROPE_WEST_6",
-	}
-
 	region, err := cast.ToStringE(reg)
 	if err != nil {
 		return "", err
 	}
-
-	for _, r := range regions {
-		if strings.EqualFold(string(r), strings.ReplaceAll(region, "-", "_")) {
-			/*
-				We need to check if the option will be similar to network_peering word
-				 (this comes in from the same resource) because network_pering resource
-				 has not the standard region name pattern "US_EAST_1",
-				 instead it needs the following one: "us-east-1".
-			*/
-			if len(opt) > 0 && strings.EqualFold("network_peering", opt[0]) {
-				return strings.ToLower(strings.ReplaceAll(region, "_", "-")), nil
-			}
-			return string(r), nil
-		}
+	if region == "" {
+		return "", fmt.Errorf("region must be set")
 	}
-	return "", fmt.Errorf("unable to cast %#v of type %T to string", reg, reg)
+
+	/*
+		We need to check if the option will be similar to network_peering word
+		 (this comes in from the same resource) because network_pering resource
+		 has not the standard region name pattern "US_EAST_1",
+		 instead it needs the following one: "us-east-1".
+	*/
+	if len(opt) > 0 && strings.EqualFold("network_peering", opt[0]) {
+		return strings.ToLower(strings.ReplaceAll(region, "_", "-")), nil
+	}
+
+	return strings.ReplaceAll(region, "-", "_"), nil
 }
 
 func flattenLabels(l []matlas.Label) []map[string]interface{} {
