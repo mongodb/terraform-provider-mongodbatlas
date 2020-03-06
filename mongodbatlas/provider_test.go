@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -106,7 +107,7 @@ func TestEncodeDecodeID(t *testing.T) {
 	got := decodeStateID(encodeStateID(expected))
 
 	if diff := deep.Equal(expected, got); diff != nil {
-		t.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", expected, got, diff)
+		t.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
 	}
 }
 
@@ -119,5 +120,28 @@ func TestDecodeID(t *testing.T) {
 
 	if diff := deep.Equal(got, got2); diff != nil {
 		t.Fatalf("Bad TestDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, got2, diff)
+	}
+}
+
+func TestRemoveLabel(t *testing.T) {
+	toRemove := matlas.Label{Key: "To Remove", Value: "To remove value"}
+
+	expected := []matlas.Label{
+		{Key: "Name", Value: "Test"},
+		{Key: "Version", Value: "1.0"},
+		{Key: "Type", Value: "testing"},
+	}
+
+	labels := []matlas.Label{
+		{Key: "Name", Value: "Test"},
+		{Key: "Version", Value: "1.0"},
+		{Key: "To Remove", Value: "To remove value"},
+		{Key: "Type", Value: "testing"},
+	}
+
+	got := removeLabel(labels, toRemove)
+
+	if diff := deep.Equal(expected, got); diff != nil {
+		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
 	}
 }
