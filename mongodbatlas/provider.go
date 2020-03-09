@@ -1,13 +1,11 @@
 package mongodbatlas
 
 import (
-	"bufio"
 	"encoding/base64"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
-
-	"github.com/gobuffalo/packr"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -171,17 +169,29 @@ func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
 	return res
 }
 
-func getPluginVersion() string {
-	bts, err := packr.NewBox("../").Find("CHANGELOG.md")
-	if err != nil {
-		log.Printf("err: %#+v\n", err)
+func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
+	for _, v := range list {
+		if reflect.DeepEqual(v, item) || v.Key == item.Key {
+			return true
+		}
 	}
+	return false
+}
 
-	_, line, err := bufio.ScanLines(bts, true)
-	if err != nil {
-		log.Printf("err: %#+v\n", err)
+func removeLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
+	var pos int
+	for _, v := range list {
+		if reflect.DeepEqual(v, item) {
+			list = append(list[:pos], list[pos+1:]...)
+			if pos > 0 {
+				pos = pos - 1
+			}
+			continue
+		}
+		pos++
+
 	}
-	return strings.ReplaceAll(string(line), "## ", "")
+	return list
 }
 
 func expandStringList(list []interface{}) (res []string) {

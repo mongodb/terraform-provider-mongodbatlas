@@ -33,6 +33,8 @@ const (
 	errorAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 )
 
+var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
+
 func resourceMongoDBAtlasCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasClusterCreate,
@@ -433,8 +435,13 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		BiConnector:              biConnector,
 		ProviderSettings:         &providerSettings,
 		ReplicationSpecs:         replicationSpecs,
-		Labels:                   expandLabelSliceFromSetSchema(d),
 	}
+
+	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
+		return fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes.")
+	}
+
+	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
@@ -581,15 +588,9 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
 		return fmt.Errorf(errorClusterSetting, "replication_factor", clusterName, err)
 	}
-	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
-		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
-	}
 
-	if err := d.Set("plugin", map[string]interface{}{
-		"name":    "Terraform MongoDB Atlas Provider",
-		"version": getPluginVersion(),
-	}); err != nil {
-		return fmt.Errorf(errorClusterSetting, "plugin", clusterName, err)
+	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
+		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
 	/*
@@ -675,7 +676,11 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.NumShards = pointy.Int64(cast.ToInt64(d.Get("num_shards")))
 	}
 	if d.HasChange("labels") {
-		cluster.Labels = expandLabelSliceFromSetSchema(d)
+		if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
+			return fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes.")
+		}
+
+		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 	}
 
 	// Has changes
