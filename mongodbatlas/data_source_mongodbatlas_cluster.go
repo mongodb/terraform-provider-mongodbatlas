@@ -303,13 +303,6 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
-	if err := d.Set("plugin", map[string]interface{}{
-		"name":    "Terraform MongoDB Atlas Provider",
-		"version": getPluginVersion(),
-	}); err != nil {
-		return fmt.Errorf(errorClusterSetting, "plugin", clusterName, err)
-	}
-
 	d.SetId(cluster.ID)
 
 	return nil
