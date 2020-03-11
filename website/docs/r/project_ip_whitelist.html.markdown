@@ -84,10 +84,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-IP Whitelist entries can be imported using the `project_id`, e.g.
+IP Whitelist entries can be imported using the `project_id` and `cidr_block` or `ip_address`, e.g.
 
 ```
-$ terraform import mongodbatlas_project_ip_whitelist.test 5d0f1f74cf09a29120e123cd
+$ terraform import mongodbatlas_project_ip_whitelist.test 5d0f1f74cf09a29120e123cd-10.242.88.0/21
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/whitelist/)
