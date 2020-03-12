@@ -1,4 +1,23 @@
-## 0.5.0 (Unreleased)
+## 0.4.2 (Unreleased)
+
+**Fixed bugs:**
+
+- mongodbatlas\_cluster fails to redeploy manually deleted cluster [\#159](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/159)
+
+**Closed issues:**
+
+- mongodbatlas\_alert\_configuration - not able to generate any alerts with event\_type = "OUTSIDE\_METRIC\_THRESHOLD" and matcher.fieldName != "TYPE\_NAME" [\#164](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/164)
+- Can't create cluster ME\_SOUTH\_1 region [\#157](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/157)
+
+**Merged pull requests:**
+
+- chore: fix linting issues [\#169](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/169) ([marinsalinas](https://github.com/marinsalinas))
+- Doc: Fix import for mongodbatlas\_project\_ip\_whitelist [\#166](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/166) ([haidaraM](https://github.com/haidaraM))
+- chore: removed wrong validation for matchers.value [\#165](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/165) ([PacoDw](https://github.com/PacoDw))
+- add default label to clusters [\#163](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/163) ([marinsalinas](https://github.com/marinsalinas))
+- Cleaned Cluster state when it isn't found to allow create it again [\#162](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/162) ([PacoDw](https://github.com/PacoDw))
+- cluster: removed array of regions due to they could be changed [\#158](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/158) ([PacoDw](https://github.com/PacoDw))
+
 ## 0.4.1 (February 26, 2020)
 
 **Fixed bugs:**
