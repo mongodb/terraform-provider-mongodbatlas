@@ -56,7 +56,6 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkContainer_basicAzure(t *testing.T) {
-	t.Skip()
 	var container matlas.Container
 
 	randInt := acctest.RandIntRange(0, 255)
@@ -99,7 +98,6 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
-	t.Skip()
 	var container matlas.Container
 
 	randInt := acctest.RandIntRange(0, 255)
@@ -142,7 +140,6 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
-
 	randInt := acctest.RandIntRange(0, 255)
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	resourceName := "mongodbatlas_network_container.test"

@@ -322,24 +322,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
-			// Special key/value pair to contain cluster created/updated via Terraform Provider and version.
-			// Only used as information for customer requested support and to count number of clusters created/updated using the Provider.
-			"plugin": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
