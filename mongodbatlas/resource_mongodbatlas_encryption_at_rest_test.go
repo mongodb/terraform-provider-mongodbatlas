@@ -136,14 +136,8 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
-	t.Skip()
-
 	resourceName := "mongodbatlas_encryption_at_rest.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-
-	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
-		t.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
-	}
 
 	googleCloudKms := matlas.GoogleCloudKms{
 		Enabled:              pointy.Bool(true),
@@ -152,7 +146,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{

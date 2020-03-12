@@ -38,6 +38,12 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
+func testAccPreCheckGPCEnv(t *testing.T) {
+	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
+		t.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
+	}
+}
+
 func checkPeeringEnvAWS(t *testing.T) {
 	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
 		os.Getenv("AWS_VPC_ID") == "" ||
