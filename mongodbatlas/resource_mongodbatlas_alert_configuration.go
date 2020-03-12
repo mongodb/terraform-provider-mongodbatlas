@@ -76,9 +76,8 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{"EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS", "STARTS_WITH", "ENDS_WITH", "REGEX"}, false),
 						},
 						"value": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"PRIMARY", "SECONDARY", "STANDALONE", "CONFIG", "MONGOS"}, false),
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
