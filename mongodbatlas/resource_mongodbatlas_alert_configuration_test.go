@@ -146,6 +146,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.
 		},
 	})
 }
+
 func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
@@ -158,6 +159,30 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAlertConfigurationConfig(projectID, true),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id"},
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasAlertConfiguration_importConfigNotifications(t *testing.T) {
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+	resourceName := "mongodbatlas_alert_configuration.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigNotifications(projectID, true, true, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -228,7 +253,7 @@ func testAccMongoDBAtlasAlertConfigurationConfig(projectID string, enabled bool)
 			project_id = "%s"
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 			enabled    = "%t"
-		
+
 			notification {
 				type_name     = "GROUP"
 				interval_min  = 5
@@ -236,13 +261,13 @@ func testAccMongoDBAtlasAlertConfigurationConfig(projectID string, enabled bool)
 				sms_enabled   = false
 				email_enabled = true
 			}
-		
+
 			matcher {
 				field_name = "HOSTNAME_AND_PORT"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}
-		
+
 			metric_threshold = {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
@@ -260,7 +285,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigNotifications(projectID string, 
 			project_id = "%[1]s"
 			event_type = "NO_PRIMARY"
 			enabled    = "%[2]t"
-		
+
 			notification {
 				type_name     = "GROUP"
 				interval_min  = 5
@@ -286,7 +311,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(projectID string, e
 			project_id = "%s"
 			event_type = "NO_PRIMARY"
 			enabled    = "%t"
-		
+
 			notification {
 				type_name     = "GROUP"
 				interval_min  = 5
@@ -294,7 +319,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(projectID string, e
 				sms_enabled   = %t
 				email_enabled = %t
 			}
-		
+
 			matcher {
 				field_name = "%s"
 				operator   = "%s"
@@ -305,7 +330,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(projectID string, e
 				operator   = "%s"
 				value      = "%s"
 			}
-		}	
+		}
 	`, projectID, enabled, smsEnabled, emailEnabled,
 		m1.FieldName, m1.Operator, m1.Value,
 		m2.FieldName, m2.Operator, m2.Value)
@@ -317,7 +342,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(projectID str
 			project_id = "%s"
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 			enabled    = "%t"
-		
+
 			notification {
 				type_name     = "GROUP"
 				interval_min  = 5
@@ -325,13 +350,13 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(projectID str
 				sms_enabled   = false
 				email_enabled = true
 			}
-		
+
 			matcher {
 				field_name = "HOSTNAME_AND_PORT"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}
-		
+
 			metric_threshold = {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
