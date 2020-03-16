@@ -26,6 +26,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     delay_min     = 0
     sms_enabled   = false
     email_enabled = true
+    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
   }
 
   matcher {
@@ -196,7 +197,15 @@ Notifications to send when an alert condition is detected.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
-
+* `Roles` - Roles. Required. The following roles grant privileges within a project.
+  Accepted values are:
+    - `GROUP_CHARTS_ADMIN`
+    - `GROUP_CLUSTER_MANAGER`
+    - `GROUP_DATA_ACCESS_ADMIN`
+    - `GROUP_DATA_ACCESS_READ_ONLY`
+    - `GROUP_DATA_ACCESS_READ_WRITE`
+    - `GROUP_OWNER`
+    - `GROUP_READ_ONLY`
 
 ## Attributes Reference
 
