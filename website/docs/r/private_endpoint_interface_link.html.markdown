@@ -1,14 +1,14 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: private_endpoint_link"
-sidebar_current: "docs-mongodbatlas-resource-private_endpoint_link"
+sidebar_current: "docs-mongodbatlas-resource-private_endpoint_interface_link"
 description: |-
     Provides a Private Endpoint Link resource.
 ---
 
-# mongodbatlas_private_endpoint_link
+# mongodbatlas_private_endpoint_interface_link
 
-`mongodbatlas_private_endpoint_link` provides a Private Endpoint Link resource. This represents a Private Endpoint Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
+`mongodbatlas_private_endpoint_interface_link` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
@@ -34,7 +34,7 @@ resource "aws_vpc_endpoint" "ptfe_service" {
   security_group_ids = ["sg-3f238186"]
 }
 
-resource "mongodbatlas_private_endpoint_link" "test" {
+resource "mongodbatlas_private_endpoint_interface_link" "test" {
   project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
   private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
   interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
@@ -67,7 +67,7 @@ In addition to all arguments above, the following attributes are exported:
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}-{private_link_id}-{interface_endpoint_id}`, e.g.
 
 ```
-$ terraform import mongodbatlas_private_endpoint_link.test 1112222b3bf99403840e8934-3242342343112-vpce-4242342343
+$ terraform import mongodbatlas_private_endpoint_interface_link.test 1112222b3bf99403840e8934-3242342343112-vpce-4242342343
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Private Endpoint Link Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoint-create-one-interface-endpoint/)
