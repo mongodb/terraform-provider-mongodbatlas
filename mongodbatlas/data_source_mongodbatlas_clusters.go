@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -208,6 +209,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 								},
 							},
 						},
+						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 					},
 				},
 			},
@@ -229,17 +231,24 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error reading cluster list for project(%s): %s", projectID, err)
 	}
 
-	if err := d.Set("results", flattenClusters(clusters)); err != nil {
+	if err := d.Set("results", flattenClusters(d, conn, clusters)); err != nil {
 		return fmt.Errorf(errorClusterSetting, "results", d.Id(), err)
 	}
 
 	return nil
 }
 
-func flattenClusters(clusters []matlas.Cluster) []map[string]interface{} {
+func flattenClusters(d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	for _, cluster := range clusters {
+
+		// Get the snapshot policy and set the data
+		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(d, conn, cluster.GroupID, cluster.Name)
+		if err != nil {
+			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", cluster.ID, err)
+		}
+
 		result := map[string]interface{}{
 			"auto_scaling_disk_gb_enabled": cluster.BackupEnabled,
 			"backup_enabled":               cluster.BackupEnabled,
@@ -269,6 +278,7 @@ func flattenClusters(clusters []matlas.Cluster) []map[string]interface{} {
 			"bi_connector":                 flattenBiConnector(cluster.BiConnector),
 			"replication_specs":            flattenReplicationSpecs(cluster.ReplicationSpecs),
 			"labels":                       flattenLabels(cluster.Labels),
+			"snapshot_backup_policy":       snapshotBackupPolicy,
 		}
 		results = append(results, result)
 	}

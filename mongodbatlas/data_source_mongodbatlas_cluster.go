@@ -202,6 +202,7 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 		},
 	}
 }
@@ -285,6 +286,16 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 	}
 	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
+	}
+
+	// Get the snapshot policy and set the data
+	snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(d, conn, projectID, clusterName)
+	if err != nil {
+		return err
+	}
+
+	if err := d.Set("snapshot_backup_policy", snapshotBackupPolicy); err != nil {
+		return err
 	}
 
 	d.SetId(cluster.ID)
