@@ -37,7 +37,7 @@ type MaintenanceWindowsService interface {
 // MaintenanceWindowsServiceOp handles communication with the MaintenanceWindows related methods
 // of the MongoDB Atlas API
 type MaintenanceWindowsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ MaintenanceWindowsService = &MaintenanceWindowsServiceOp{}
@@ -58,13 +58,13 @@ func (s *MaintenanceWindowsServiceOp) Get(ctx context.Context, groupID string) (
 	}
 
 	path := fmt.Sprintf(maintenanceWindowsPath, groupID)
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(MaintenanceWindow)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -84,12 +84,12 @@ func (s *MaintenanceWindowsServiceOp) Update(ctx context.Context, groupID string
 
 	path := fmt.Sprintf(maintenanceWindowsPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 	if err != nil {
 		return resp, err
 	}
@@ -106,12 +106,12 @@ func (s *MaintenanceWindowsServiceOp) Defer(ctx context.Context, groupID string)
 
 	path := fmt.Sprintf(maintenanceWindowsPath+"/defer", groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }
@@ -125,12 +125,12 @@ func (s *MaintenanceWindowsServiceOp) Reset(ctx context.Context, groupID string)
 
 	path := fmt.Sprintf(maintenanceWindowsPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

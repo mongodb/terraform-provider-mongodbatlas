@@ -23,7 +23,7 @@ type ContainersService interface {
 //ContainersServiceOp handles communication with the Network Peering Container related methods
 // of the MongoDB Atlas API
 type ContainersServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ ContainersService = &ContainersServiceOp{}
@@ -66,13 +66,13 @@ func (s *ContainersServiceOp) List(ctx context.Context, groupID string, listOpti
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(containersResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -95,13 +95,13 @@ func (s *ContainersServiceOp) Get(ctx context.Context, groupID string, container
 	escapedEntry := url.PathEscape(containerID)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Container)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -118,13 +118,13 @@ func (s *ContainersServiceOp) Create(ctx context.Context, groupID string, create
 
 	path := fmt.Sprintf(containersPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Container)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -142,13 +142,13 @@ func (s *ContainersServiceOp) Update(ctx context.Context, groupID string, contai
 	basePath := fmt.Sprintf(containersPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, containerID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Container)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -167,7 +167,7 @@ func (s *ContainersServiceOp) Delete(ctx context.Context, groupID string, contai
 	escapedEntry := url.PathEscape(containerID)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (s *ContainersServiceOp) Delete(ctx context.Context, groupID string, contai
 	//To avoid API Issues
 	req.Header.Del("Content-Type")
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

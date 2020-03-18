@@ -22,7 +22,7 @@ type GlobalClustersService interface {
 //GlobalClustersServiceOp handles communication with the GlobalClusters related methos of the
 //MongoDB Atlas API
 type GlobalClustersServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ GlobalClustersService = &GlobalClustersServiceOp{}
@@ -60,13 +60,13 @@ func (s *GlobalClustersServiceOp) Get(ctx context.Context, groupID string, clust
 
 	path := fmt.Sprintf("groups/%s/clusters/%s/globalWrites", groupID, clusterName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(GlobalCluster)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -83,13 +83,13 @@ func (s *GlobalClustersServiceOp) AddManagedNamespace(ctx context.Context, group
 
 	path := fmt.Sprintf(globalClustersBasePath, groupID, clusterName, "managedNamespaces")
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(GlobalCluster)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -106,7 +106,7 @@ func (s *GlobalClustersServiceOp) DeleteManagedNamespace(ctx context.Context, gr
 
 	path := fmt.Sprintf(globalClustersBasePath, groupID, clusterName, "managedNamespaces")
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -117,7 +117,7 @@ func (s *GlobalClustersServiceOp) DeleteManagedNamespace(ctx context.Context, gr
 	req.URL.RawQuery = q.Encode()
 
 	root := new(GlobalCluster)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -134,13 +134,13 @@ func (s *GlobalClustersServiceOp) AddCustomZoneMappings(ctx context.Context, gro
 
 	path := fmt.Sprintf(globalClustersBasePath, groupID, clusterName, "customZoneMapping")
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(GlobalCluster)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -153,13 +153,13 @@ func (s *GlobalClustersServiceOp) AddCustomZoneMappings(ctx context.Context, gro
 func (s *GlobalClustersServiceOp) DeleteCustomZoneMappings(ctx context.Context, groupID string, clusterName string) (*GlobalCluster, *Response, error) {
 	path := fmt.Sprintf(globalClustersBasePath, groupID, clusterName, "customZoneMapping")
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(GlobalCluster)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}

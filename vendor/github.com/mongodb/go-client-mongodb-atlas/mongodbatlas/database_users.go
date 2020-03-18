@@ -22,7 +22,7 @@ type DatabaseUsersService interface {
 //DatabaseUsersServiceOp handles communication with the DatabaseUsers related methos of the
 //MongoDB Atlas API
 type DatabaseUsersServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ DatabaseUsersService = &DatabaseUsersServiceOp{}
@@ -72,13 +72,13 @@ func (s *DatabaseUsersServiceOp) List(ctx context.Context, groupID string, listO
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(databaseUsers)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -106,13 +106,13 @@ func (s *DatabaseUsersServiceOp) Get(ctx context.Context, databaseName, groupID,
 	basePath := fmt.Sprintf(dbUsersBasePath, groupID)
 	path := fmt.Sprintf("%s/%s/%s", basePath, databaseName, username)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(DatabaseUser)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -129,13 +129,13 @@ func (s *DatabaseUsersServiceOp) Create(ctx context.Context, groupID string, cre
 
 	path := fmt.Sprintf(dbUsersBasePath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(DatabaseUser)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -153,13 +153,13 @@ func (s *DatabaseUsersServiceOp) Update(ctx context.Context, groupID string, use
 	basePath := fmt.Sprintf(dbUsersBasePath, groupID)
 	path := fmt.Sprintf("%s/admin/%s", basePath, username)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(DatabaseUser)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -183,12 +183,12 @@ func (s *DatabaseUsersServiceOp) Delete(ctx context.Context, databaseName, group
 	basePath := fmt.Sprintf(dbUsersBasePath, groupID)
 	path := fmt.Sprintf("%s/%s/%s", basePath, databaseName, username)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

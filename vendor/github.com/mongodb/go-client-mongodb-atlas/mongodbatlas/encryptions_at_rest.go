@@ -64,7 +64,7 @@ type EncryptionsAtRestService interface {
 //EncryptionsAtRestServiceOp handles communication with the DatabaseUsers related methods of the
 //MongoDB Atlas API
 type EncryptionsAtRestServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ EncryptionsAtRestService = &EncryptionsAtRestServiceOp{}
@@ -89,7 +89,7 @@ type AwsKms struct {
 // AzureKeyVault specifies Azure Key Vault configuration details and whether Encryption at Rest is enabled for an Atlas project.
 type AzureKeyVault struct {
 	Enabled           *bool  `json:"enabled,omitempty"`           // Specifies whether Encryption at Rest is enabled for an Atlas project. To disable Encryption at Rest, pass only this parameter with a value of false. When you disable Encryption at Rest, Atlas also removes the configuration details.
-	ClientID          string `json:"clientID,omitempty"`          // The client ID, also known as the application ID, for an Azure application associated with the Azure AD tenant.
+	ClientID          string `json:"clientID,omitempty"`          // The Client ID, also known as the application ID, for an Azure application associated with the Azure AD tenant.
 	AzureEnvironment  string `json:"azureEnvironment,omitempty"`  // The Azure environment where the Azure account credentials reside. Valid values are the following: AZURE, AZURE_CHINA, AZURE_GERMANY
 	SubscriptionID    string `json:"subscriptionID,omitempty"`    // The unique identifier associated with an Azure subscription.
 	ResourceGroupName string `json:"resourceGroupName,omitempty"` // The name of the Azure Resource group that contains an Azure Key Vault.
@@ -119,12 +119,12 @@ func (s *EncryptionsAtRestServiceOp) Create(ctx context.Context, createRequest *
 	path := fmt.Sprintf(encryptionsAtRestBasePath, createRequest.GroupID)
 	createRequest.GroupID = ""
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 	root := new(EncryptionAtRest)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -140,13 +140,13 @@ func (s *EncryptionsAtRestServiceOp) Get(ctx context.Context, groupID string) (*
 
 	path := fmt.Sprintf(encryptionsAtRestBasePath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(EncryptionAtRest)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -169,12 +169,12 @@ func (s *EncryptionsAtRestServiceOp) Delete(ctx context.Context, groupID string)
 
 	path := fmt.Sprintf(encryptionsAtRestBasePath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, createRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

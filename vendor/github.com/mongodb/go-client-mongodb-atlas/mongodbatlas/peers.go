@@ -23,7 +23,7 @@ type PeersService interface {
 //PeersServiceOp handles communication with the Network Peering Connection related methods
 // of the MongoDB Atlas API
 type PeersServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ PeersService = &PeersServiceOp{}
@@ -70,13 +70,13 @@ func (s *PeersServiceOp) List(ctx context.Context, groupID string, listOptions *
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(peersResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -99,13 +99,13 @@ func (s *PeersServiceOp) Get(ctx context.Context, groupID string, peerID string)
 	escapedEntry := url.PathEscape(peerID)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Peer)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -122,13 +122,13 @@ func (s *PeersServiceOp) Create(ctx context.Context, groupID string, createReque
 
 	path := fmt.Sprintf(peersPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Peer)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -146,13 +146,13 @@ func (s *PeersServiceOp) Update(ctx context.Context, groupID string, peerID stri
 	basePath := fmt.Sprintf(peersPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, peerID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Peer)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -171,12 +171,12 @@ func (s *PeersServiceOp) Delete(ctx context.Context, groupID string, peerID stri
 	escapedEntry := url.PathEscape(peerID)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

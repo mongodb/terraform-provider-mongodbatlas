@@ -23,7 +23,7 @@ type X509AuthDBUsersService interface {
 // X509AuthDBUsersServiceOp handles communication with the  X509AuthDBUsers related methods
 // of the MongoDB Atlas API
 type X509AuthDBUsersServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ X509AuthDBUsersService = &X509AuthDBUsersServiceOp{}
@@ -77,13 +77,13 @@ func (s *X509AuthDBUsersServiceOp) CreateUserCertificate(ctx context.Context, gr
 
 	path := fmt.Sprintf(x509AuthDBUsersPath, groupID, username)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, userCertificate)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, userCertificate)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var cer bytes.Buffer
-	resp, err := s.client.Do(ctx, req, &cer)
+	resp, err := s.Client.Do(ctx, req, &cer)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -106,13 +106,13 @@ func (s *X509AuthDBUsersServiceOp) GetUserCertificates(ctx context.Context, grou
 
 	path := fmt.Sprintf(x509AuthDBUsersPath, groupID, username)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(UserCertificates)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -136,13 +136,13 @@ func (s *X509AuthDBUsersServiceOp) SaveConfiguration(ctx context.Context, groupI
 
 	path := fmt.Sprintf(x509CustomerAuthDBUserPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, &UserSecurity{CustomerX509: *customerX509})
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, &UserSecurity{CustomerX509: *customerX509})
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(UserSecurity)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -159,13 +159,13 @@ func (s *X509AuthDBUsersServiceOp) GetCurrentX509Conf(ctx context.Context, group
 
 	path := fmt.Sprintf(x509CustomerAuthDBUserPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(UserSecurity)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -182,10 +182,10 @@ func (s *X509AuthDBUsersServiceOp) DisableCustomerX509(ctx context.Context, grou
 
 	path := fmt.Sprintf(x509CustomerAuthDBUserPath+"/customerX509", groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }

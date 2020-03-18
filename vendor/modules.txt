@@ -139,13 +139,6 @@ github.com/davecgh/go-spew/spew
 github.com/fatih/color
 # github.com/go-test/deep v1.0.1
 github.com/go-test/deep
-# github.com/gobuffalo/envy v1.7.0
-github.com/gobuffalo/envy
-# github.com/gobuffalo/packd v0.3.0
-github.com/gobuffalo/packd
-github.com/gobuffalo/packd/internal/takeon/github.com/markbates/errx
-# github.com/gobuffalo/packr v1.30.1
-github.com/gobuffalo/packr
 # github.com/golang/protobuf v1.3.0
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/protoc-gen-go/descriptor
@@ -276,8 +269,6 @@ github.com/hashicorp/yamux
 github.com/jen20/awspolicyequivalence
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
-# github.com/joho/godotenv v1.3.0
-github.com/joho/godotenv
 # github.com/keybase/go-crypto v0.0.0-20161004153544-93f5b35093ba
 github.com/keybase/go-crypto/brainpool
 github.com/keybase/go-crypto/cast5
@@ -310,7 +301,7 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.0
 github.com/mitchellh/reflectwalk
-# github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200206183950-6d73c8e570f5
+# github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200206183950-6d73c8e570f5 => ../go-client-mongodb-atlas
 github.com/mongodb/go-client-mongodb-atlas/mongodbatlas
 # github.com/mwielbut/pointy v1.1.0
 github.com/mwielbut/pointy
@@ -321,10 +312,6 @@ github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
 github.com/posener/complete/match
-# github.com/rogpeppe/go-internal v1.3.0
-github.com/rogpeppe/go-internal/modfile
-github.com/rogpeppe/go-internal/module
-github.com/rogpeppe/go-internal/semver
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem

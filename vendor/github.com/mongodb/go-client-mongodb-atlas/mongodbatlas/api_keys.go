@@ -23,7 +23,7 @@ type APIKeysService interface {
 // APIKeysServiceOp handles communication with the APIKey related methods
 // of the MongoDB Atlas API
 type APIKeysServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ APIKeysService = &APIKeysServiceOp{}
@@ -68,13 +68,13 @@ func (s *APIKeysServiceOp) List(ctx context.Context, orgID string, listOptions *
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(apiKeysResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -97,13 +97,13 @@ func (s *APIKeysServiceOp) Get(ctx context.Context, orgID string, apiKeyID strin
 	escapedEntry := url.PathEscape(apiKeyID)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(APIKey)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -120,13 +120,13 @@ func (s *APIKeysServiceOp) Create(ctx context.Context, orgID string, createReque
 
 	path := fmt.Sprintf(apiKeysPath, orgID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(APIKey)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -144,13 +144,13 @@ func (s *APIKeysServiceOp) Update(ctx context.Context, orgID string, apiKeyID st
 	basePath := fmt.Sprintf(apiKeysPath, orgID)
 	path := fmt.Sprintf("%s/%s", basePath, apiKeyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(APIKey)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -169,12 +169,12 @@ func (s *APIKeysServiceOp) Delete(ctx context.Context, orgID string, apiKeyID st
 	escapedEntry := url.PathEscape(apiKeyID)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

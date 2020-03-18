@@ -21,7 +21,7 @@ type ProjectAPIKeysService interface {
 //ProjectAPIKeysOp handles communication with the APIKey related methods
 // of the MongoDB Atlas API
 type ProjectAPIKeysOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ ProjectAPIKeysService = &ProjectAPIKeysOp{}
@@ -42,13 +42,13 @@ func (s *ProjectAPIKeysOp) List(ctx context.Context, groupID string, listOptions
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(apiKeysResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -69,13 +69,13 @@ func (s *ProjectAPIKeysOp) Create(ctx context.Context, groupID string, createReq
 
 	path := fmt.Sprintf(projectAPIKeysPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(APIKey)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -98,12 +98,12 @@ func (s *ProjectAPIKeysOp) Assign(ctx context.Context, groupID string, keyID str
 
 	path := fmt.Sprintf("%s/%s", basePath, keyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, assignAPIKeyRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, assignAPIKeyRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }
@@ -123,12 +123,12 @@ func (s *ProjectAPIKeysOp) Unassign(ctx context.Context, groupID string, keyID s
 
 	path := fmt.Sprintf("%s/%s", basePath, keyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

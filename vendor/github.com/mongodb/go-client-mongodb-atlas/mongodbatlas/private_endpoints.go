@@ -24,7 +24,7 @@ type PrivateEndpointsService interface {
 // PrivateEndpointsServiceOp handles communication with the PrivateEndpoints related methods
 // of the MongoDB Atlas API
 type PrivateEndpointsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ PrivateEndpointsService = &PrivateEndpointsServiceOp{}
@@ -60,13 +60,13 @@ func (s *PrivateEndpointsServiceOp) Create(ctx context.Context, groupID string, 
 
 	path := fmt.Sprintf(privateEndpointsPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(PrivateEndpointConnection)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -87,13 +87,13 @@ func (s *PrivateEndpointsServiceOp) Get(ctx context.Context, groupID, privateLin
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, privateLinkID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(PrivateEndpointConnection)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -116,13 +116,13 @@ func (s *PrivateEndpointsServiceOp) List(ctx context.Context, groupID string, li
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new([]PrivateEndpointConnection)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -143,12 +143,12 @@ func (s *PrivateEndpointsServiceOp) Delete(ctx context.Context, groupID, private
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, privateLinkID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }
 
 // AddOneInterfaceEndpoint adds one interface endpoint to a private endpoint connection in an Atlas project.
@@ -167,13 +167,13 @@ func (s *PrivateEndpointsServiceOp) AddOneInterfaceEndpoint(ctx context.Context,
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
 	path := fmt.Sprintf("%s/%s/interfaceEndpoints", basePath, privateLinkID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, &InterfaceEndpointConnection{ID: interfaceEndpointID})
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, &InterfaceEndpointConnection{ID: interfaceEndpointID})
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(InterfaceEndpointConnection)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -197,13 +197,13 @@ func (s *PrivateEndpointsServiceOp) GetOneInterfaceEndpoint(ctx context.Context,
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
 	path := fmt.Sprintf("%s/%s/interfaceEndpoints/%s", basePath, privateLinkID, interfaceEndpointID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(InterfaceEndpointConnection)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -227,10 +227,10 @@ func (s *PrivateEndpointsServiceOp) DeleteOneInterfaceEndpoint(ctx context.Conte
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
 	path := fmt.Sprintf("%s/%s/interfaceEndpoints/%s", basePath, privateLinkID, interfaceEndpointID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	return s.Client.Do(ctx, req, nil)
 }

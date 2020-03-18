@@ -23,7 +23,7 @@ type ProjectIPWhitelistService interface {
 //ProjectIPWhitelistServiceOp handles communication with the ProjectIPWhitelist related methods
 // of the MongoDB Atlas API
 type ProjectIPWhitelistServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ ProjectIPWhitelistService = &ProjectIPWhitelistServiceOp{}
@@ -54,13 +54,13 @@ func (s *ProjectIPWhitelistServiceOp) Create(ctx context.Context, groupID string
 
 	path := fmt.Sprintf(projectIPWhitelistPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(projectIPWhitelistsResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -83,13 +83,13 @@ func (s *ProjectIPWhitelistServiceOp) Get(ctx context.Context, groupID string, w
 	escapedEntry := url.PathEscape(whiteListEntry)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(ProjectIPWhitelist)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -108,13 +108,13 @@ func (s *ProjectIPWhitelistServiceOp) List(ctx context.Context, groupID string, 
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(projectIPWhitelistsResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -135,13 +135,13 @@ func (s *ProjectIPWhitelistServiceOp) Update(ctx context.Context, groupID string
 
 	path := fmt.Sprintf(projectIPWhitelistPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(projectIPWhitelistsResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -164,12 +164,12 @@ func (s *ProjectIPWhitelistServiceOp) Delete(ctx context.Context, groupID string
 	escapedEntry := url.PathEscape(whitelistEntry)
 	path := fmt.Sprintf("%s/%s", basePath, escapedEntry)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

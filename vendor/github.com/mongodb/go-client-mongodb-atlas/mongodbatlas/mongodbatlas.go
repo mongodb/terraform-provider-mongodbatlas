@@ -24,6 +24,12 @@ const (
 	mediaType      = "application/json"
 )
 
+type RequestDoer interface {
+	NewRequest(context.Context, string, string, interface{}) (*http.Request, error)
+	Do(context.Context, *http.Request, interface{}) (*Response, error)
+	OnRequestCompleted(RequestCompletionCallback)
+}
+
 // Client manages communication with MongoDBAtlas v1.0 API
 type Client struct {
 	client    *http.Client
@@ -31,28 +37,33 @@ type Client struct {
 	UserAgent string
 
 	//Services used for communicating with the API
-	CustomDBRoles                    CustomDBRolesService
-	DatabaseUsers                    DatabaseUsersService
-	ProjectIPWhitelist               ProjectIPWhitelistService
-	Projects                         ProjectsService
-	Clusters                         ClustersService
-	CloudProviderSnapshots           CloudProviderSnapshotsService
-	APIKeys                          APIKeysService
-	ProjectAPIKeys                   ProjectAPIKeysService
-	CloudProviderSnapshotRestoreJobs CloudProviderSnapshotRestoreJobsService
-	Peers                            PeersService
-	Containers                       ContainersService
-	EncryptionsAtRest                EncryptionsAtRestService
-	WhitelistAPIKeys                 WhitelistAPIKeysService
-	PrivateIPMode                    PrivateIPModeService
-	MaintenanceWindows               MaintenanceWindowsService
-	Teams                            TeamsService
-	AtlasUsers                       AtlasUsersService
-	GlobalClusters                   GlobalClustersService
-	Auditing                         AuditingsService
-	AlertConfigurations              AlertConfigurationsService
-	PrivateEndpoints                 PrivateEndpointsService
-	X509AuthDBUsers                  X509AuthDBUsersService
+	CustomDBRoles                       CustomDBRolesService
+	DatabaseUsers                       DatabaseUsersService
+	ProjectIPWhitelist                  ProjectIPWhitelistService
+	Projects                            ProjectsService
+	Clusters                            ClustersService
+	CloudProviderSnapshots              CloudProviderSnapshotsService
+	APIKeys                             APIKeysService
+	ProjectAPIKeys                      ProjectAPIKeysService
+	CloudProviderSnapshotRestoreJobs    CloudProviderSnapshotRestoreJobsService
+	Peers                               PeersService
+	Containers                          ContainersService
+	EncryptionsAtRest                   EncryptionsAtRestService
+	WhitelistAPIKeys                    WhitelistAPIKeysService
+	PrivateIPMode                       PrivateIPModeService
+	MaintenanceWindows                  MaintenanceWindowsService
+	Teams                               TeamsService
+	AtlasUsers                          AtlasUsersService
+	GlobalClusters                      GlobalClustersService
+	Auditing                            AuditingsService
+	AlertConfigurations                 AlertConfigurationsService
+	PrivateEndpoints                    PrivateEndpointsService
+	X509AuthDBUsers                     X509AuthDBUsersService
+	ContinuousSnapshots                 ContinuousSnapshotsService
+	ContinuousRestoreJobs               ContinuousRestoreJobsService
+	Checkpoints                         CheckpointsService
+	Alerts                              AlertsService
+	CloudProviderSnapshotBackupPolicies CloudProviderSnapshotBackupPoliciesService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -143,28 +154,33 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
 
-	c.APIKeys = &APIKeysServiceOp{client: c}
-	c.CloudProviderSnapshots = &CloudProviderSnapshotsServiceOp{client: c}
-	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{client: c}
-	c.Clusters = &ClustersServiceOp{client: c}
-	c.Containers = &ContainersServiceOp{client: c}
-	c.CustomDBRoles = &CustomDBRolesServiceOp{client: c}
-	c.DatabaseUsers = &DatabaseUsersServiceOp{client: c}
-	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{client: c}
-	c.Projects = &ProjectsServiceOp{client: c}
-	c.ProjectAPIKeys = &ProjectAPIKeysOp{client: c}
-	c.Peers = &PeersServiceOp{client: c}
-	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{client: c}
-	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{client: c}
-	c.PrivateIPMode = &PrivateIPModeServiceOp{client: c}
-	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{client: c}
-	c.Teams = &TeamsServiceOp{client: c}
-	c.AtlasUsers = &AtlasUsersServiceOp{client: c}
-	c.GlobalClusters = &GlobalClustersServiceOp{client: c}
-	c.Auditing = &AuditingsServiceOp{client: c}
-	c.AlertConfigurations = &AlertConfigurationsServiceOp{client: c}
-	c.PrivateEndpoints = &PrivateEndpointsServiceOp{client: c}
-	c.X509AuthDBUsers = &X509AuthDBUsersServiceOp{client: c}
+	c.APIKeys = &APIKeysServiceOp{Client: c}
+	c.CloudProviderSnapshots = &CloudProviderSnapshotsServiceOp{Client: c}
+	c.ContinuousSnapshots = &ContinuousSnapshotsServiceOp{Client: c}
+	c.CloudProviderSnapshotRestoreJobs = &CloudProviderSnapshotRestoreJobsServiceOp{Client: c}
+	c.Clusters = &ClustersServiceOp{Client: c}
+	c.Containers = &ContainersServiceOp{Client: c}
+	c.CustomDBRoles = &CustomDBRolesServiceOp{Client: c}
+	c.DatabaseUsers = &DatabaseUsersServiceOp{Client: c}
+	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{Client: c}
+	c.Projects = &ProjectsServiceOp{Client: c}
+	c.ProjectAPIKeys = &ProjectAPIKeysOp{Client: c}
+	c.Peers = &PeersServiceOp{Client: c}
+	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{Client: c}
+	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{Client: c}
+	c.PrivateIPMode = &PrivateIPModeServiceOp{Client: c}
+	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{Client: c}
+	c.Teams = &TeamsServiceOp{Client: c}
+	c.AtlasUsers = &AtlasUsersServiceOp{Client: c}
+	c.GlobalClusters = &GlobalClustersServiceOp{Client: c}
+	c.Auditing = &AuditingsServiceOp{Client: c}
+	c.AlertConfigurations = &AlertConfigurationsServiceOp{Client: c}
+	c.PrivateEndpoints = &PrivateEndpointsServiceOp{Client: c}
+	c.X509AuthDBUsers = &X509AuthDBUsersServiceOp{Client: c}
+	c.ContinuousRestoreJobs = &ContinuousRestoreJobsServiceOp{Client: c}
+	c.Checkpoints = &CheckpointsServiceOp{Client: c}
+	c.Alerts = &AlertsServiceOp{Client: c}
+	c.CloudProviderSnapshotBackupPolicies = &CloudProviderSnapshotBackupPoliciesServiceOp{Client: c}
 
 	return c
 }

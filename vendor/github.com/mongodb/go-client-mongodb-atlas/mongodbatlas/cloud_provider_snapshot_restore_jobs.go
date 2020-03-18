@@ -20,10 +20,10 @@ type CloudProviderSnapshotRestoreJobsService interface {
 	Delete(context.Context, *SnapshotReqPathParameters) (*Response, error)
 }
 
-//CloudProviderSnapshotRestoreJobsServiceOp handles communication with the CloudProviderSnapshotRestoreJobs related methos of the
+//CloudProviderSnapshotRestoreJobsServiceOp handles communication with the CloudProviderSnapshotRestoreJobs related methods of the
 //MongoDB Atlas API
 type CloudProviderSnapshotRestoreJobsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ CloudProviderSnapshotRestoreJobsService = &CloudProviderSnapshotRestoreJobsServiceOp{}
@@ -64,13 +64,13 @@ func (s *CloudProviderSnapshotRestoreJobsServiceOp) List(ctx context.Context, re
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/restoreJobs", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(CloudProviderSnapshotRestoreJobs)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -97,13 +97,13 @@ func (s *CloudProviderSnapshotRestoreJobsServiceOp) Get(ctx context.Context, req
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/restoreJobs/%s", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName, requestParameters.JobID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(CloudProviderSnapshotRestoreJob)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -132,13 +132,13 @@ func (s *CloudProviderSnapshotRestoreJobsServiceOp) Create(ctx context.Context, 
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/restoreJobs", cloudProviderSnapshotRestoreJobBasePath, requestParameters.GroupID, requestParameters.ClusterName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(CloudProviderSnapshotRestoreJob)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -165,12 +165,12 @@ func (s *CloudProviderSnapshotRestoreJobsServiceOp) Delete(ctx context.Context, 
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/restoreJobs/%s", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName, requestParameters.JobID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

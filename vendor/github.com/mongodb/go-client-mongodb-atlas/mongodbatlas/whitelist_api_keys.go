@@ -21,7 +21,7 @@ type WhitelistAPIKeysService interface {
 // WhitelistAPIKeysServiceOp handles communication with the Whitelist API keys related methods of the
 // MongoDB Atlas API
 type WhitelistAPIKeysServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ WhitelistAPIKeysService = &WhitelistAPIKeysServiceOp{}
@@ -62,13 +62,13 @@ func (s *WhitelistAPIKeysServiceOp) List(ctx context.Context, orgID string, apiK
 
 	path := fmt.Sprintf(whitelistAPIKeysPath, orgID, apiKeyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(WhitelistAPIKeys)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -95,13 +95,13 @@ func (s *WhitelistAPIKeysServiceOp) Get(ctx context.Context, orgID string, apiKe
 
 	path := fmt.Sprintf(whitelistAPIKeysPath+"/%s", orgID, apiKeyID, ipAddress)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(WhitelistAPIKey)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -124,13 +124,13 @@ func (s *WhitelistAPIKeysServiceOp) Create(ctx context.Context, orgID string, ap
 
 	path := fmt.Sprintf(whitelistAPIKeysPath, orgID, apiKeyID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(WhitelistAPIKeys)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -153,11 +153,11 @@ func (s *WhitelistAPIKeysServiceOp) Delete(ctx context.Context, orgID string, ap
 
 	path := fmt.Sprintf(whitelistAPIKeysPath+"/%s", orgID, apiKeyID, ipAddress)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

@@ -22,7 +22,7 @@ type CustomDBRolesService interface {
 //CustomDBRolesServiceOp handles communication with the CustomDBRoles related methods of the
 //MongoDB Atlas API
 type CustomDBRolesServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ CustomDBRolesService = &CustomDBRolesServiceOp{}
@@ -63,13 +63,13 @@ func (s *CustomDBRolesServiceOp) List(ctx context.Context, groupID string, listO
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new([]CustomDBRole)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -87,13 +87,13 @@ func (s *CustomDBRolesServiceOp) Get(ctx context.Context, groupID string, roleNa
 	basePath := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, roleName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(CustomDBRole)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -110,13 +110,13 @@ func (s *CustomDBRolesServiceOp) Create(ctx context.Context, groupID string, cre
 
 	path := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(CustomDBRole)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -134,13 +134,13 @@ func (s *CustomDBRolesServiceOp) Update(ctx context.Context, groupID string, rol
 	basePath := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, roleName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(CustomDBRole)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -158,12 +158,12 @@ func (s *CustomDBRolesServiceOp) Delete(ctx context.Context, groupID string, rol
 	basePath := fmt.Sprintf(dbCustomDBRolesBasePath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, roleName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }
