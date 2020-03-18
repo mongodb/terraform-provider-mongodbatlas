@@ -33,7 +33,7 @@ type ProjectsService interface {
 	AddTeamsToProject(context.Context, string, []*ProjectTeam) (*TeamsAssigned, *Response, error)
 }
 
-//ProjectsServiceOp handles communication with the Projects related methos of the
+//ProjectsServiceOp handles communication with the Projects related methods of the
 //MongoDB Atlas API
 type ProjectsServiceOp struct {
 	Client RequestDoer

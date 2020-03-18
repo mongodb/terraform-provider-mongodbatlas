@@ -19,7 +19,7 @@ type DatabaseUsersService interface {
 	Delete(context.Context, string, string, string) (*Response, error)
 }
 
-//DatabaseUsersServiceOp handles communication with the DatabaseUsers related methos of the
+//DatabaseUsersServiceOp handles communication with the DatabaseUsers related methods of the
 //MongoDB Atlas API
 type DatabaseUsersServiceOp struct {
 	Client RequestDoer

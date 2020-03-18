@@ -27,7 +27,7 @@ type TeamsService interface {
 	RemoveTeamFromProject(context.Context, string, string) (*Response, error)
 }
 
-//TeamsServiceOp handles communication with the Teams related methos of the
+//TeamsServiceOp handles communication with the Teams related methods of the
 //MongoDB Atlas API
 type TeamsServiceOp struct {
 	Client RequestDoer
