@@ -51,18 +51,18 @@ func testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, backupEnabled 
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 100
+			disk_size_gb = 10
 			num_shards   = 1
-			
+
 			replication_factor           = 3
-			backup_enabled               = %s
+			provider_backup_enabled      = %s
 			auto_scaling_disk_gb_enabled = true
-			
+
 			//Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 300
+			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
-			provider_instance_size_name = "M40"
+			provider_instance_size_name = "M10"
 			provider_region_name        = "US_EAST_2"
 
 			labels {
