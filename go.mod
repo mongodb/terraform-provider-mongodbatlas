@@ -22,3 +22,5 @@ require (
 	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
 	google.golang.org/grpc v1.23.0 // indirect
 )
+
+replace github.com/mongodb/go-client-mongodb-atlas => ../go-client-mongodb-atlas
