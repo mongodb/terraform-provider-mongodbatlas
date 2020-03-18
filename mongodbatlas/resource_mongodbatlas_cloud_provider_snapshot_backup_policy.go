@@ -197,7 +197,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate(d *schema.Resou
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	// there is no way to det the default configuration
+	// There is no resource to delete a backup policy, it can only be updated.
 	return nil
 }
 

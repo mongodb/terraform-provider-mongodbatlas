@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_backup_policy"
 sidebar_current: "docs-mongodbatlas-datasource-cloud-provider-snapshot-backup-policy"
 description: |-
-    Provides an Cloud Provider Snapshot Backup Policy Datasource.
+    Provides a Cloud Provider Snapshot Backup Policy Datasource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_backup_policy
 
-`mongodbatlas_cloud_provider_snapshot_backup_policy` provides an Cloud Provider Snapshot Backup Policy entry datasource. Atlas Cloud Provider Snapshots Backup Policy provides the current snapshot schedule and retention settings for the cluster .
+`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a Cloud Provider Snapshot Backup Policy entry datasource. An Atlas Cloud Provider Snapshot Backup Policy provides the current snapshot schedule and retention settings for the cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 

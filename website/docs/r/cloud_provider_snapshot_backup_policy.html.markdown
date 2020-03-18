@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_backup_policy"
 sidebar_current: "docs-mongodbatlas-resource-cloud-provider-snapshot-backup-policy"
 description: |-
-    Provides an Cloud Provider Snapshot Backup Policy resource.
+    Provides a Cloud Provider Snapshot Backup Policy resource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_backup_policy
 
-`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a resource that enables you to view and modify the snapshot scheduling and retention settings for an Atlas cluster with Cloud Provider Snapshots enabled
+`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a resource that enables you to view and modify the snapshot schedule and retention settings for an Atlas cluster with Cloud Provider Snapshots enabled.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -24,7 +24,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // enable cloud provider snapshots
+  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
   provider_disk_iops          = 100
   provider_encrypt_ebs_volume = false
 }
@@ -71,17 +71,12 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
     }
   }
 }
-
-data "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
-  project_id   = mongodbatlas_cloud_provider_snapshot_backup_policy.test.project_id
-  cluster_name = mongodbatlas_cloud_provider_snapshot_backup_policy.test.cluster_name
-}
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
-* `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots backup policy you want to retrieve.
+* `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot backup policy you want to retrieve.
 * `reference_hour_of_day` - (Optional) UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
 * `reference_minute_of_hour` - (Optional) UTC Minutes after referenceHourOfDay that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
@@ -93,7 +88,7 @@ data "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 #### Policy Item
 * `policies.#.policy_item` - (Required) Array of backup policy items.
-* `policies.#.policy_item.#.id` - (Required) Unique identifier of the backup policy item.
+* `policies.#.policy_item.#.id` - (Required) Unique identifier of the backup policy item. `policies.#.policy_item.#.id` is a value obtained via the mongodbatlas_cluster resource. provider_backup_enabled of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource forpolicies.#.policy_item.#.id
 * `policies.#.policy_item.#.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
 * `policies.#.policy_item.#.frequency_type` - (Required) Frequency associated with the backup policy item. One of the following values: hourly, daily, weekly or monthly.
 * `policies.#.policy_item.#.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
