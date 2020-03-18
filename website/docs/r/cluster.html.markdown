@@ -168,7 +168,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example AWS Shared Tier cluster
-````hcl
+```hcl
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
@@ -199,7 +199,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
     - `AZURE` - Microsoft Azure
     - `TENANT` - A multi-tenant deployment on one of the supported cloud service providers. Only valid when providerSettings.instanceSizeName is either M2 or M5.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
-* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.  
+* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.
 
 Note free tier (M0) creation is not supported by the Atlas API and hence not supported by this provider.
 
@@ -362,6 +362,28 @@ In addition to all arguments above, the following attributes are exported:
     - DELETED
     - REPAIRING
 
+### Cloud Provider Snapshot Backup Policy
+* `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
+
+* `snapshot_backup_policy.#.cluster_id` - Unique identifier of the Atlas cluster.
+* `snapshot_backup_policy.#.cluster_name` - Name of the Atlas cluster that contains the snapshot backup policy.
+* `snapshot_backup_policy.#.next_snapshot` - UTC ISO 8601 formatted point in time when Atlas will take the next snapshot.
+* `snapshot_backup_policy.#.reference_hour_of_day` - UTC Hour of day between 0 and 23 representing which hour of the day that Atlas takes a snapshot.
+* `snapshot_backup_policy.#.reference_minute_of_hour` - UTC Minute of day between 0 and 59 representing which minute of the referenceHourOfDay that Atlas takes the snapshot.
+* `snapshot_backup_policy.#.restore_window_days` - Specifies a restore window in days for the cloud provider backup to maintain.
+* `snapshot_backup_policy.#.update_snapshots` - Specifies it's true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
+
+### Policies
+* `snapshot_backup_policy.#.policies` - A list of policy definitions for the cluster.
+* `snapshot_backup_policy.#.policies.#.id` - Unique identifier of the backup policy.
+
+#### Policy Item
+* `snapshot_backup_policy.#.policies.#.policy_item` - A list of specifications for a policy.
+* `snapshot_backup_policy.#.policies.#.policy_item.#.id` - Unique identifier for this policy item.
+* `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
+* `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
+* `snapshot_backup_policy.#.policies.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
+* `snapshot_backup_policy.#.policies.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
 
 ## Import
 
