@@ -447,13 +447,16 @@ func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.Met
 }
 
 func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[string]interface{} {
-	return map[string]interface{}{
-		"metric_name": m.MetricName,
-		"operator":    m.Operator,
-		"threshold":   cast.ToString(m.Threshold),
-		"units":       m.Units,
-		"mode":        m.Mode,
+	if m != nil {
+		return map[string]interface{}{
+			"metric_name": m.MetricName,
+			"operator":    m.Operator,
+			"threshold":   cast.ToString(m.Threshold),
+			"units":       m.Units,
+			"mode":        m.Mode,
+		}
 	}
+	return map[string]interface{}{}
 }
 
 func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notification {
