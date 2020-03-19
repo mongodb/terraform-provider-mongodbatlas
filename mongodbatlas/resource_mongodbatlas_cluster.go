@@ -905,9 +905,9 @@ func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]inter
 	specs := make([]map[string]interface{}, 0)
 	for _, rSpec := range rSpecs {
 		spec := map[string]interface{}{
-			"id":         rSpec.ID,
-			"num_shards": rSpec.NumShards,
-			// "zone_name":      rSpec.ZoneName,
+			"id":             rSpec.ID,
+			"num_shards":     rSpec.NumShards,
+			"zone_name":      cast.ToString(rSpec.ZoneName),
 			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
 		}
 		specs = append(specs, spec)
