@@ -57,6 +57,32 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"connection_strings": {
+							Type:     schema.TypeList,
+							MinItems: 1,
+							MaxItems: 1,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"standard": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"standard_srv": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"aws_private_link": {
+										Type:     schema.TypeMap,
+										Computed: true,
+									},
+									"aws_private_link_srv": {
+										Type:     schema.TypeMap,
+										Computed: true,
+									},
+								},
+							},
+						},
 						"disk_size_gb": {
 							Type:     schema.TypeFloat,
 							Computed: true,
@@ -254,6 +280,7 @@ func flattenClusters(d *schema.ResourceData, conn *matlas.Client, clusters []mat
 			"backup_enabled":               cluster.BackupEnabled,
 			"provider_backup_enabled":      cluster.ProviderBackupEnabled,
 			"cluster_type":                 cluster.ClusterType,
+			"connection_strings":           flattenConnectionStrings(cluster.ConnectionStrings),
 			"disk_size_gb":                 cluster.DiskSizeGB,
 			"encryption_at_rest_provider":  cluster.EncryptionAtRestProvider,
 			"mongo_db_major_version":       cluster.MongoDBMajorVersion,

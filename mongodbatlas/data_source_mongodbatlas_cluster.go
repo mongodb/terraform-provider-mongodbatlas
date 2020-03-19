@@ -50,6 +50,32 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"connection_strings": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"standard": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"standard_srv": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"aws_private_link": {
+							Type:     schema.TypeMap,
+							Computed: true,
+						},
+						"aws_private_link_srv": {
+							Type:     schema.TypeMap,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"disk_size_gb": {
 				Type:     schema.TypeFloat,
 				Computed: true,
@@ -235,6 +261,9 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 	}
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
 		return fmt.Errorf(errorClusterSetting, "cluster_type", clusterName, err)
+	}
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "connection_strings", clusterName, err)
 	}
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
 		return fmt.Errorf(errorClusterSetting, "disk_size_gb", clusterName, err)
