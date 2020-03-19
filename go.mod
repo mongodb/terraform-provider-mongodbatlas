@@ -10,18 +10,14 @@ require (
 	github.com/hashicorp/terraform v0.12.1
 	github.com/jen20/awspolicyequivalence v1.1.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200318163834-8b6a5ea6eb67
+	github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200413163719-5574d7cba634
 	github.com/mwielbut/pointy v1.1.0
 	github.com/satori/uuid v1.2.0 // indirect
-	github.com/spf13/afero v1.2.2 // indirect
-	github.com/spf13/cast v1.3.0
+	github.com/spf13/cast v1.3.1
 	github.com/terraform-providers/terraform-provider-aws v1.9.0
 	github.com/terraform-providers/terraform-provider-template v1.0.0 // indirect
 	github.com/terraform-providers/terraform-provider-tls v1.2.0 // indirect
-	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586 // indirect
-	golang.org/x/net v0.0.0-20191009170851-d66e71096ffb // indirect
-	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
+	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
+	golang.org/x/sys v0.0.0-20190515120540-06a5c4944438 // indirect
 	google.golang.org/grpc v1.23.0 // indirect
 )
-
-replace github.com/mongodb/go-client-mongodb-atlas => ../go-client-mongodb-atlas
