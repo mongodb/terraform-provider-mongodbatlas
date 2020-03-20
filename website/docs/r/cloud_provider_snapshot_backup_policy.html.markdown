@@ -84,7 +84,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 ### Policies
 * `policies` - (Required) Contains a document for each backup policy item in the desired updated backup policy.
-* `policies.#.id` - (Required) Unique identifier of the backup policy that you want to update.
+* `policies.#.id` - (Required) Unique identifier of the backup policy that you want to update. policies.#.id is a value obtained via the mongodbatlas_cluster resource. provider_backup_enabled of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.id
 
 #### Policy Item
 * `policies.#.policy_item` - (Required) Array of backup policy items.
