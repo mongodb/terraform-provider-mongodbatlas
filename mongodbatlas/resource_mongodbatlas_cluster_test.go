@@ -365,7 +365,7 @@ func TestAccResourceMongoDBAtlasCluster_AWSWithLabels(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasClusterPrivateEndpointLink_(t *testing.T) {
+func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
 	var cluster matlas.Cluster
 
 	resourceName := "mongodbatlas_cluster.test"
@@ -387,7 +387,7 @@ func TestAccResourceMongoDBAtlasClusterPrivateEndpointLink_(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterPrivateEndpointLinkConfig(
+				Config: testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -761,18 +761,20 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 	`, projectID, name, backupEnabled, tier, region, labelsConf)
 }
 
-func testAccMongoDBAtlasClusterPrivateEndpointLinkConfig(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "us-east-1"
 			access_key = "%[1]s"
 			secret_key = "%[2]s"
 		}
+
 		resource "mongodbatlas_private_endpoint" "test" {
 			project_id    = "%[3]s"
 			provider_name = "%[4]s"
 			region        = "%[5]s"
 		}
+
 		resource "aws_vpc_endpoint" "ptfe_service" {
 			vpc_id             = "%[6]s"
 			service_name       = "${mongodbatlas_private_endpoint.test.endpoint_service_name}"
@@ -780,23 +782,26 @@ func testAccMongoDBAtlasClusterPrivateEndpointLinkConfig(awsAccessKey, awsSecret
 			subnet_ids         = ["%[7]s"]
 			security_group_ids = ["%[8]s"]
 		}
+
 		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
 			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
 			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
 		}
-		resource "mongodbatlas_cluster" "my_cluster" {
+
+		resource "mongodbatlas_cluster" "test" {
 		  project_id             = "%[3]s"
-		  name                   = "my-cluster-test"
+		  name                   = "test-acc-%[9]s"
 		  disk_size_gb           = 5
+
 		  //Provider Settings "block"
 		  provider_name               = "AWS"
-		  provider_region_name        = "${upper(replace(%[5]s, "-", "_"))}"
+		  provider_region_name        = "${upper(replace("%[5]s", "-", "_"))}"
 		  provider_instance_size_name = "M10"
 		  provider_backup_enabled     = true // enable cloud provider snapshots
 		  provider_disk_iops          = 100
 		  provider_encrypt_ebs_volume = false
 		  depends_on = ["mongodbatlas_private_endpoint_interface_link.test"]
 		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
+	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, acctest.RandString(10))
 }
