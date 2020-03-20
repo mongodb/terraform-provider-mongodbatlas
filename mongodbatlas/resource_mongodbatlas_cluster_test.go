@@ -380,6 +380,7 @@ func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
 	vpcID := os.Getenv("AWS_VPC_ID")
 	subnetID := os.Getenv("AWS_SUBNET_ID")
 	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
@@ -388,8 +389,7 @@ func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(
-					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
-				),
+					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -761,7 +761,7 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 	`, projectID, name, backupEnabled, tier, region, labelsConf)
 }
 
-func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "us-east-1"
@@ -791,7 +791,7 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 
 		resource "mongodbatlas_cluster" "test" {
 		  project_id             = "%[3]s"
-		  name                   = "test-acc-%[9]s"
+		  name                   = "%[9]s"
 		  disk_size_gb           = 5
 
 		  //Provider Settings "block"
@@ -803,5 +803,5 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 		  provider_encrypt_ebs_volume = false
 		  depends_on = ["mongodbatlas_private_endpoint_interface_link.test"]
 		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, acctest.RandString(10))
+	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName)
 }
