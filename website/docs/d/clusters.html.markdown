@@ -79,6 +79,7 @@ In addition to all arguments above, the following attributes are exported:
 * `backup_enabled` - Legacy Option, Indicates whether Atlas continuous backups are enabled for the cluster.
 * `bi_connector` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
 * `cluster_type` - Indicates the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
+* `connection_strings` - Set of connection strings that your applications use to connect to this cluster.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
