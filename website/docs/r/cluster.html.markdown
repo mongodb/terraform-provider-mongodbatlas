@@ -241,7 +241,7 @@ Note free tier (M0) creation is not supported by the Atlas API and hence not sup
 
     You cannot enable cloud provider snapshots if you have an existing cluster in the project with Continuous Backups enabled.
 
-    You must set this value to true for NVMe clusters.
+    ~> **IMPORTANT:** If setting to true for an existing cluster or imported cluster be sure to run terraform refresh after applying to enable modification of the Cloud Provider Snapshot Backup Policy going forward.
 
 * `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.
 
@@ -363,7 +363,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 
 ### Cloud Provider Snapshot Backup Policy
-Cloud Provider Snapshot Backup Policy (`snapshot_backup_policy`) will add if provider_backup_enabled is enabled, instead, it will keep empty.
+Cloud Provider Snapshot Backup Policy will be added if provider_backup_enabled is enabled, if not, returned values will be empty.
 
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
 
