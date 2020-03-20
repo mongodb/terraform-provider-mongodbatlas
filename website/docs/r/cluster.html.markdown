@@ -363,6 +363,8 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 
 ### Cloud Provider Snapshot Backup Policy
+Cloud Provider Snapshot Backup Policy (`snapshot_backup_policy`) will add if provider_backup_enabled is enabled, instead, it will keep empty.
+
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
 
 * `snapshot_backup_policy.#.cluster_id` - Unique identifier of the Atlas cluster.

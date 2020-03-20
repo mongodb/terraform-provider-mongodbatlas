@@ -73,6 +73,8 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 }
 ```
 
+~> **IMPORTANT:** If setting to true for an existing cluster or imported cluster be sure to run terraform refresh after applying to enable modification of the Cloud Provider Snapshot Backup Policy going forward.
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
