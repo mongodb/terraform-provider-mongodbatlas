@@ -764,7 +764,7 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
-			region     = "us-east-1"
+			region     = "%[5]s"
 			access_key = "%[1]s"
 			secret_key = "%[2]s"
 		}
