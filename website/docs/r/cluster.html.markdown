@@ -349,6 +349,10 @@ In addition to all arguments above, the following attributes are exported:
 * `mongo_uri_updated` - Lists when the connection string was last updated. The connection string changes, for example, if you change a replica set to a sharded cluster.
 * `mongo_uri_with_options` - connection string for connecting to the Atlas cluster. Includes the replicaSet, ssl, and authSource query parameters in the connection string with values appropriate for the cluster.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster.
+    - `connection_strings.standard` -  `mongodb://` A required prefix to identify that this is a string in the standard connection format.
+    - `connection_strings.standard_srv` - The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
+    - `connection_strings.aws_private_link` - Connection strings for each interface VPC endpoint you configured to connect to this cluster.
+    - `connection_strings.aws_private_link_srv` - The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
 
     To review the connection string format, see the connection string format documentation. To add MongoDB users to a Atlas project, see Configure MongoDB Users.
 
