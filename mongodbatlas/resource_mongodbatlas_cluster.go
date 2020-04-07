@@ -111,6 +111,14 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 							Type:     schema.TypeMap,
 							Computed: true,
 						},
+						"private": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_srv": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -1051,6 +1059,8 @@ func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 		"standard_srv":         connectionStrings.StandardSrv,
 		"aws_private_link":     connectionStrings.AwsPrivateLink,
 		"aws_private_link_srv": connectionStrings.AwsPrivateLinkSrv,
+		"private":              connectionStrings.Private,
+		"private_srv":          connectionStrings.PrivateSrv,
 	})
 	return connections
 }

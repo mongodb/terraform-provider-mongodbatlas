@@ -73,6 +73,14 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 							Type:     schema.TypeMap,
 							Computed: true,
 						},
+						"private": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_srv": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
