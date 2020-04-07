@@ -410,6 +410,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 	resourceGroupName := os.Getenv("AZURE_RESOURSE_GROUP_NAME")
 	vNetName := os.Getenv("AZURE_VNET_NAME")
 	providerName := "AZURE"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
@@ -417,7 +418,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName),
+				Config: testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
 					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
@@ -846,7 +847,7 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName)
 }
 
-func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName string) string {
+func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = "%[1]s"
@@ -866,8 +867,8 @@ func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, provider
 			vnet_name	            = "%[6]s"
 		}
 		resource "mongodbatlas_cluster" "test" {
-		  project_id             = "%[3]s"
-		  name                   = "%[9]s"
+		  project_id             = "%[1]s"
+		  name                   = "%[7]s"
 		  disk_size_gb           = 5
 
 		  //Provider Settings "block"
@@ -878,5 +879,5 @@ func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, provider
 		  provider_disk_iops          = 100
 		  provider_encrypt_ebs_volume = false
 		  depends_on = ["mongodbatlas_network_peering.test"]
-	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName)
+	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName)
 }
