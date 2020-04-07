@@ -84,6 +84,8 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.standard_srv` - The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
     - `connection_strings.aws_private_link` - Connection strings for each interface VPC endpoint you configured to connect to this cluster.
     - `connection_strings.aws_private_link_srv` - The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
+    - `connection_strings.private` -  `Network-peering-endpoint-aware` `mongodb://`connection strings for each interface VPC endpoint you configured to connect to this cluster.
+    - `connection_strings.private_srv` - `Network-peering-endpoint-aware` `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.

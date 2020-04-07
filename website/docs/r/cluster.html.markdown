@@ -353,6 +353,8 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.standard_srv` - The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
     - `connection_strings.aws_private_link` - Connection strings for each interface VPC endpoint you configured to connect to this cluster.
     - `connection_strings.aws_private_link_srv` - The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
+    - `connection_strings.private` -  `Network-peering-endpoint-aware` `mongodb://`connection strings for each interface VPC endpoint you configured to connect to this cluster.
+    - `connection_strings.private_srv` - `Network-peering-endpoint-aware` `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS.
 
     To review the connection string format, see the connection string format documentation. To add MongoDB users to a Atlas project, see Configure MongoDB Users.
 
