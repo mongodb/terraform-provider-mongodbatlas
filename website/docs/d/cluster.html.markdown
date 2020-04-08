@@ -26,7 +26,7 @@ resource "mongodbatlas_cluster" "test" {
   num_shards   = 1
 
   replication_factor           = 3
-  backup_enabled               = true
+  provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
 
   //Provider Settings "block"
@@ -74,7 +74,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 * `auto_scaling_disk_gb_enabled` - Indicates whether disk auto-scaling is enabled.
 
-* `backup_enabled` - Indicates whether Atlas continuous backups are enabled for the cluster.
+* `backup_enabled` - Legacy Option, Indicates whether Atlas continuous backups are enabled for the cluster.
 * `bi_connector` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
 * `cluster_type` - Indicates the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
