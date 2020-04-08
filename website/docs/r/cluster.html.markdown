@@ -14,7 +14,7 @@ description: |-
 
 ~> **IMPORTANT:**
 <br> &#8226; Free tier cluster creation (M0) is not supported via API or by this Provider.
-<br> &#8226; Shared tier clusters (M2, M5) cannot be upgraded to higher tiers via API or by this Provider. 
+<br> &#8226; Shared tier clusters (M2, M5) cannot be upgraded to higher tiers via API or by this Provider.
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
@@ -53,7 +53,7 @@ resource "mongodbatlas_cluster" "test" {
   num_shards   = 1
 
   replication_factor           = 3
-  backup_enabled               = true
+  provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.0"
 
@@ -74,7 +74,7 @@ resource "mongodbatlas_cluster" "test" {
   num_shards   = 1
 
   replication_factor           = 3
-  backup_enabled               = true
+  provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.0"
 
@@ -207,13 +207,11 @@ Note free tier (M0) creation is not supported by the Atlas API and hence not sup
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
 
-* `backup_enabled` - (Optional) Set to true to enable Atlas continuous backups for the cluster.
+* `backup_enabled` - (Optional) Legacy Option - Set to true to enable Atlas continuous backups for the cluster.
 
-    Set to false to disable continuous backups for the cluster. Atlas deletes any stored snapshots. See the continuous backup Snapshot Schedule for more information.
+    Important - Clusters running MongoDB 4.2 and any net new Atlas clusters of any type do not support this parameter. These clusters must use `provider_backup_enabled` to enable Cloud Provider Snapshots.  If you create a new Atlas cluster and set `backup_enabled` to true, the Provider will respond with an error.  This change doesn’t affect existing clusters that use continuous backups.
 
-    You cannot enable continuous backups if you have an existing cluster in the project with Cloud Provider Snapshots enabled.
-
-    You cannot enable continuous backups for new AWS clusters.   If backup is required for a new cluster use `provider_backup_enabled` to enable Cloud Provider Snapshots.
+    Set to false to disable continuous backups for the cluster. Atlas deletes any stored snapshots.
 
     The default value is false.  M10 and above only.
 
@@ -239,9 +237,12 @@ Note free tier (M0) creation is not supported by the Atlas API and hence not sup
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Point-in-Time backups. If set to true, provider_backup_enabled must also be set to true.
 * `provider_backup_enabled` - (Optional) Flag indicating if the cluster uses Cloud Provider Snapshots for backups.
 
-    If true, the cluster uses Cloud Provider Snapshots for backups. If providerBackupEnabled and backupEnabled are false, the cluster does not use Atlas backups.
+    If true, the cluster uses Cloud Provider Snapshots for backups. If provider_backup_enabled and backup_enabled are false, the cluster does not use Atlas backups.
 
     You cannot enable cloud provider snapshots if you have an existing cluster in the project with Continuous Backups enabled.
+
+    You must set this value to true for NVMe clusters.
+
 * `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.
 
     This setting is only valid when providerSetting.providerName is TENANT and providerSetting.instanceSizeName is M2 or M5.
