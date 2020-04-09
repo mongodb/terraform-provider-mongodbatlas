@@ -33,7 +33,6 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 				Config: testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
-					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
@@ -73,7 +72,6 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 				Config: testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
-					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
@@ -110,7 +108,6 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
 				Config: testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID, networkName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
-					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, providerName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "network_name"),
@@ -167,15 +164,6 @@ func testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName string, peer *mat
 	}
 }
 
-func testAccCheckMongoDBAtlasNetworkPeeringAttributes(peer *matlas.Peer, providerName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if peer.ProviderName != providerName {
-			return fmt.Errorf("bad providerName: %s", peer.RouteTableCIDRBlock)
-		}
-		return nil
-	}
-}
-
 func testAccCheckMongoDBAtlasNetworkPeeringDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 
@@ -204,7 +192,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, 
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			accepter_region_name	  = "us-east-1"	
+			accepter_region_name	  = "us-east-1"
 			project_id    			    = "%[1]s"
 			container_id            = mongodbatlas_network_container.test.container_id
 			provider_name           = "%[2]s"
@@ -243,7 +231,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProj
 			project_id = "%[1]s"
 			enabled    = true
 		}
-		
+
 		resource "mongodbatlas_network_container" "test" {
 			project_id       = "%[1]s"
 			atlas_cidr_block = "192.168.192.0/18"
@@ -251,7 +239,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProj
 
 			depends_on = [mongodbatlas_private_ip_mode.test]
 		}
-		
+
 		resource "mongodbatlas_network_peering" "test" {
 			project_id     = "%[1]s"
 			container_id   = mongodbatlas_network_container.test.container_id

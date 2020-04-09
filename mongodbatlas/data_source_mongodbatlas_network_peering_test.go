@@ -30,7 +30,6 @@ func TestAccDataSourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
 				Config: testAccDSMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
-					testAccCheckMongoDBAtlasNetworkPeeringAttributes(&peer, vpcCIDRBlock),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
@@ -58,7 +57,7 @@ resource "mongodbatlas_network_container" "test" {
 }
 
 resource "mongodbatlas_network_peering" "test" {
-	accepter_region_name	= "us-east-1"	
+	accepter_region_name	= "us-east-1"
 	project_id    			= "%[1]s"
 	container_id            = mongodbatlas_network_container.test.id
 	provider_name           = "AWS"
