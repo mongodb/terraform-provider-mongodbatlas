@@ -408,10 +408,11 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	directoryID := os.Getenv("AZURE_DIRECTORY_ID")
 	subcrptionID := os.Getenv("AZURE_SUBCRIPTION_ID")
-	resourceGroupName := os.Getenv("AZURE_RESOURCE_GROUP_NAME")
+	resourceGroupName := os.Getenv("AZURE_RESOURSE_GROUP_NAME")
 	vNetName := os.Getenv("AZURE_VNET_NAME")
 	providerName := "AZURE"
 	region := os.Getenv("AZURE_REGION")
+
 	atlasCidrBlock := "192.168.208.0/21"
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
@@ -425,6 +426,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
 				),
 			},
 		},
@@ -841,34 +843,38 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
-			project_id   		  = "%[1]s"
-			atlas_cidr_block 	  = "%[8]s"
-			provider_name		  = "%[2]s"
-			region    			  = "%[9]s"
+			project_id       = "%[1]s"
+			atlas_cidr_block = "%[8]s"
+			provider_name    = "%[2]s"
+			region           = "%[9]s"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			project_id   		      = "%[1]s"
-			atlas_cidr_block      = "%[8]s"
+			project_id            = "%[1]s"
+			atlas_cidr_block      = "192.168.0.0/21"
 			container_id          = mongodbatlas_network_container.test.container_id
 			provider_name         = "%[2]s"
 			azure_directory_id    = "%[3]s"
 			azure_subscription_id = "%[4]s"
 			resource_group_name   = "%[5]s"
-			vnet_name	            = "%[6]s"
+			vnet_name             = "%[6]s"
 		}
-		resource "mongodbatlas_cluster" "test" {
-		  project_id             = "%[1]s"
-		  name                   = "%[7]s"
-		  disk_size_gb           = 5
 
-		  //Provider Settings "block"
-		  provider_name               = "%[2]s"
-		  provider_region_name        = "%[9]s"
-		  provider_instance_size_name = "M10"
-		  provider_backup_enabled     = true // enable cloud provider snapshots
-		  provider_disk_iops          = 100
-		  provider_encrypt_ebs_volume = false
-		  depends_on = ["mongodbatlas_network_peering.test"]
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[1]s"
+			name         = "%[7]s"
+
+			replication_factor           = 3
+			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "%[2]s"
+			provider_disk_type_name     = "P6"
+			provider_instance_size_name = "M10"
+			provider_region_name        = "%[9]s"
+
+			depends_on                  = ["mongodbatlas_network_peering.test"]
+		}
 	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region)
 }
