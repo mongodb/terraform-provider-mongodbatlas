@@ -7,6 +7,7 @@ import (
 	"github.com/go-test/deep"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
+	google "github.com/terraform-providers/terraform-provider-google/google"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -20,6 +21,7 @@ func init() {
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"mongodbatlas": testAccProvider,
 		"aws":          aws.Provider(),
+		"google":       google.Provider(),
 	}
 }
 
@@ -82,8 +84,9 @@ func checkEncryptionAtRestEnvAzure(t *testing.T) {
 }
 
 func checkPeeringEnvGCP(t *testing.T) {
-	if os.Getenv("GCP_PROJECT_ID") == "" {
-		t.Fatal("`GCP_PROJECT_ID` must be set for network peering acceptance testing")
+	if os.Getenv("GCP_PROJECT_ID") == "" ||
+		os.Getenv("GOOGLE_CLOUD_KEYFILE_JSON") == "" {
+		t.Fatal("`GCP_PROJECT_ID`, and `GOOGLE_CLOUD_KEYFILE_JSON` must be set for network peering acceptance testing")
 	}
 }
 
