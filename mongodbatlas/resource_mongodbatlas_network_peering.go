@@ -440,7 +440,6 @@ func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta inter
 	peerID := ids["peer_id"]
 
 	_, err := conn.Peers.Delete(context.Background(), projectID, peerID)
-
 	if err != nil {
 		return fmt.Errorf(errorPeersDelete, peerID, err)
 	}
@@ -505,7 +504,7 @@ func resourceNetworkPeeringRefreshFunc(peerID, projectID, containerID string, cl
 		c, resp, err := client.Peers.Get(context.Background(), projectID, peerID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				return 42, "DELETED", nil
+				return "", "DELETED", nil
 			}
 			log.Printf("error reading MongoDB Network Peering Connection %s: %s", peerID, err)
 			return nil, "", err

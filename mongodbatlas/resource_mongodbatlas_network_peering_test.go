@@ -227,17 +227,10 @@ func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, direc
 
 func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID, networkName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_private_ip_mode" "test" {
-			project_id = "%[1]s"
-			enabled    = true
-		}
-
 		resource "mongodbatlas_network_container" "test" {
 			project_id       = "%[1]s"
 			atlas_cidr_block = "192.168.192.0/18"
 			provider_name    = "%[2]s"
-
-			depends_on = [mongodbatlas_private_ip_mode.test]
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
