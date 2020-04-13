@@ -170,7 +170,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -427,6 +427,38 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	providerName := "GCP"
+	gcpProjectID := os.Getenv("GCP_PROJECT_ID")
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(3))
+	gcpPeeringName := fmt.Sprintf("test-acc-%s", acctest.RandString(3))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(projectID, providerName, gcpProjectID, gcpPeeringName, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, clusterName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 				),
 			},
 		},
@@ -874,7 +906,58 @@ func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, provider
 			provider_instance_size_name = "M10"
 			provider_region_name        = "%[9]s"
 
-			depends_on                  = ["mongodbatlas_network_peering.test"]
+			depends_on = ["mongodbatlas_network_peering.test"]
 		}
 	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region)
+}
+
+func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(projectID, providerName, gcpProjectID, gcpPeeringName, clusterName string) string {
+	return fmt.Sprintf(`
+		provider "google" {
+			project     = "%[3]s"
+			region      = "us-east4"
+		}
+
+		resource "mongodbatlas_network_container" "test" {
+			project_id       = "%[1]s"
+			atlas_cidr_block = "192.168.192.0/18"
+			provider_name    = "%[2]s"
+		}
+
+		resource "mongodbatlas_network_peering" "test" {
+			project_id     = "%[1]s"
+			container_id   = "${mongodbatlas_network_container.test.container_id}"
+			provider_name  = "%[2]s"
+			gcp_project_id = "%[3]s"
+			network_name   = "default"
+		}
+
+		data "google_compute_network" "default" {
+			name = "default"
+		}
+
+		resource "google_compute_network_peering" "gcp_peering" {
+			name         = "%[4]s"
+			network      = "${data.google_compute_network.default.self_link}"
+			peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
+		}
+
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[1]s"
+			name         = "%[5]s"
+			disk_size_gb = 5
+			num_shards   = 1
+
+			replication_factor           = 3
+			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "%[2]s"
+			provider_instance_size_name = "M10"
+			provider_region_name        = "US_EAST_4"
+
+			depends_on = ["google_compute_network_peering.gcp_peering"]
+		}
+	`, projectID, providerName, gcpProjectID, gcpPeeringName, clusterName)
 }
