@@ -59,8 +59,8 @@ resource "mongodbatlas_network_container" "test" {
 * `project_id` - (Required) The unique ID for the project to create the database user.
 * `atlas_cidr_block` - (Required) CIDR block that Atlas uses for your clusters. Atlas uses the specified CIDR block for all other Network Peering connections created in the project. The Atlas CIDR block must be at least a /24 and at most a /21 in one of the following [private networks](https://tools.ietf.org/html/rfc1918.html#section-3).
 * `provider_name`  - (Optional) Cloud provider for this Network Peering connection. If omitted, Atlas sets this parameter to AWS.
-* `region_name` - (Optional | AWS provider only) AWS region.
-* `region` - (Optional | AZURE provider only) Azure region where the container resides.
+* `region_name` - (Optional | AWS provider only) The Atlas AWS region name for where this container will exist.
+* `region` - (Optional | AZURE provider only) The Atlas Azure region name for where this container will exist.
 
 
 ## Attributes Reference
@@ -69,8 +69,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `container_id` - The Network Peering Container ID.
 * `id` -	The Terraform's unique identifier used internally for state management.
-* `region_name` - AWS region.
-* `region` - Azure region where the container resides.
+* `region_name` - The Atlas AWS region name for where this container exists.
+* `region` - The Atlas Azure region name for where this container exists.
 * `azure_subscription_id` - Unique identifer of the Azure subscription in which the VNet resides.
 * `provisioned` - Indicates whether the project has Network Peering connections deployed in the container.
 * `gcp_project_id` - Unique identifier of the GCP project in which the Network Peering connection resides.
