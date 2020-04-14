@@ -59,7 +59,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	directoryID := os.Getenv("AZURE_DIRECTORY_ID")
 	subcrptionID := os.Getenv("AZURE_SUBCRIPTION_ID")
-	resourceGroupName := os.Getenv("AZURE_RESOURSE_GROUP_NAME")
+	resourceGroupName := os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 	vNetName := os.Getenv("AZURE_VNET_NAME")
 	providerName := "AZURE"
 
