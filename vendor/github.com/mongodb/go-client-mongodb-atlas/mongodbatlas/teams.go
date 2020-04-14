@@ -30,7 +30,7 @@ type TeamsService interface {
 //TeamsServiceOp handles communication with the Teams related methos of the
 //MongoDB Atlas API
 type TeamsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ TeamsService = &TeamsServiceOp{}
@@ -82,13 +82,13 @@ func (s *TeamsServiceOp) List(ctx context.Context, orgID string, listOptions *Li
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(TeamsResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -110,13 +110,13 @@ func (s *TeamsServiceOp) Get(ctx context.Context, orgID string, teamID string) (
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/%s", basePath, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Team)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -134,13 +134,13 @@ func (s *TeamsServiceOp) GetOneTeamByName(ctx context.Context, orgID, teamName s
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/byName/%s", basePath, teamName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Team)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -158,13 +158,13 @@ func (s *TeamsServiceOp) GetTeamUsersAssigned(ctx context.Context, orgID, teamID
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/%s/users", basePath, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AtlasUserAssigned)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -183,13 +183,13 @@ func (s *TeamsServiceOp) Create(ctx context.Context, orgID string, createRequest
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, fmt.Sprintf(teamsBasePath, orgID), createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, fmt.Sprintf(teamsBasePath, orgID), createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Team)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -207,7 +207,7 @@ func (s *TeamsServiceOp) Rename(ctx context.Context, orgID, teamID, teamName str
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/%s", basePath, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, map[string]interface{}{
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, map[string]interface{}{
 		"name": teamName,
 	})
 	if err != nil {
@@ -215,7 +215,7 @@ func (s *TeamsServiceOp) Rename(ctx context.Context, orgID, teamID, teamName str
 	}
 
 	root := new(Team)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -232,13 +232,13 @@ func (s *TeamsServiceOp) UpdateTeamRoles(ctx context.Context, orgID string, team
 
 	path := fmt.Sprintf("groups/%s/teams/%s", orgID, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateTeamRolesRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateTeamRolesRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(TeamUpdateRolesResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -265,14 +265,14 @@ func (s *TeamsServiceOp) AddUsersToTeam(ctx context.Context, orgID, teamID strin
 		users[i] = map[string]interface{}{"id": id}
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, users)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, users)
 
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AtlasUserAssigned)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -294,12 +294,12 @@ func (s *TeamsServiceOp) RemoveUserToTeam(ctx context.Context, orgID, teamID, us
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/%s/users/%s", basePath, teamID, userID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 	if err != nil {
 		return resp, err
 	}
@@ -317,12 +317,12 @@ func (s *TeamsServiceOp) RemoveTeamFromOrganization(ctx context.Context, orgID, 
 	basePath := fmt.Sprintf(teamsBasePath, orgID)
 	path := fmt.Sprintf("%s/%s", basePath, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 	if err != nil {
 		return resp, err
 	}
@@ -339,12 +339,12 @@ func (s *TeamsServiceOp) RemoveTeamFromProject(ctx context.Context, groupID, tea
 
 	path := fmt.Sprintf("groups/%s/teams/%s", groupID, teamID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 	if err != nil {
 		return resp, err
 	}

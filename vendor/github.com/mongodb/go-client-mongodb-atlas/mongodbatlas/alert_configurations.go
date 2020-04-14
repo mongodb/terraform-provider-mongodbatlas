@@ -24,7 +24,7 @@ type AlertConfigurationsService interface {
 // AlertConfigurationsServiceOp handles communication with the AlertConfiguration related methods
 // of the MongoDB Atlas API
 type AlertConfigurationsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ AlertConfigurationsService = &AlertConfigurationsServiceOp{}
@@ -32,7 +32,7 @@ var _ AlertConfigurationsService = &AlertConfigurationsServiceOp{}
 // AlertConfiguration represents MongoDB Alert Configuration.
 type AlertConfiguration struct {
 	ID                     string           `json:"id,omitempty"`                     // Unique identifier.
-	GroupID                string           `json:"groupID,omitempty"`                // Unique identifier of the project that owns this alert configuration.
+	GroupID                string           `json:"groupId,omitempty"`                // Unique identifier of the project that owns this alert configuration.
 	AlertConfigID          string           `json:"alertConfigId,omitempty"`          // ID of the alert configuration that triggered this alert.
 	EventTypeName          string           `json:"eventTypeName,omitempty"`          // The type of event that will trigger an alert.
 	Created                string           `json:"created,omitempty"`                // Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
@@ -124,13 +124,13 @@ func (s *AlertConfigurationsServiceOp) Create(ctx context.Context, groupID strin
 
 	path := fmt.Sprintf(alertConfigurationPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createReq)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createReq)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AlertConfiguration)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -151,13 +151,13 @@ func (s *AlertConfigurationsServiceOp) EnableAnAlertConfig(ctx context.Context, 
 	basePath := fmt.Sprintf(alertConfigurationPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, alertConfigID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, AlertConfiguration{Enabled: enabled})
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, AlertConfiguration{Enabled: enabled})
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AlertConfiguration)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -178,13 +178,13 @@ func (s *AlertConfigurationsServiceOp) GetAnAlertConfig(ctx context.Context, gro
 	basePath := fmt.Sprintf(alertConfigurationPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, alertConfigID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AlertConfiguration)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -205,13 +205,13 @@ func (s *AlertConfigurationsServiceOp) GetOpenAlertsConfig(ctx context.Context, 
 	basePath := fmt.Sprintf(alertConfigurationPath, groupID)
 	path := fmt.Sprintf("%s/%s/alerts", basePath, alertConfigID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AlertConfigurationsResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -237,13 +237,13 @@ func (s *AlertConfigurationsServiceOp) List(ctx context.Context, groupID string,
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AlertConfigurationsResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -271,13 +271,13 @@ func (s *AlertConfigurationsServiceOp) Update(ctx context.Context, groupID, aler
 	basePath := fmt.Sprintf(alertConfigurationPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, alertConfigID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPut, path, updateReq)
+	req, err := s.Client.NewRequest(ctx, http.MethodPut, path, updateReq)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AlertConfiguration)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -298,12 +298,12 @@ func (s *AlertConfigurationsServiceOp) Delete(ctx context.Context, groupID, aler
 	basePath := fmt.Sprintf(alertConfigurationPath, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, alertConfigID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }

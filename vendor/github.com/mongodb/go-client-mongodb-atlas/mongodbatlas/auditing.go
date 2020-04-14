@@ -21,7 +21,7 @@ type AuditingsService interface {
 // AuditingsServiceOp handles communication with the Auditings related methods
 // of the MongoDB Atlas API
 type AuditingsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ AuditingsService = &AuditingsServiceOp{}
@@ -42,13 +42,13 @@ func (s *AuditingsServiceOp) Get(ctx context.Context, groupID string) (*Auditing
 	}
 
 	path := fmt.Sprintf(auditingsPath, groupID)
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Auditing)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -68,13 +68,13 @@ func (s *AuditingsServiceOp) Configure(ctx context.Context, groupID string, conf
 
 	path := fmt.Sprintf(auditingsPath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, configRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, configRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Auditing)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}

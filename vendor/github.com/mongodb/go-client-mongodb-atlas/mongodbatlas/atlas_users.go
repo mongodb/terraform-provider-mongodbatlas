@@ -23,7 +23,7 @@ type AtlasUsersService interface {
 //AtlasUsersServiceOp handles communication with the AtlasUsers related methos of the
 //MongoDB Atlas API
 type AtlasUsersServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ AtlasUsersService = &AtlasUsersServiceOp{}
@@ -59,13 +59,13 @@ func (s *AtlasUsersServiceOp) List(ctx context.Context, orgID string, listOption
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AtlasUsersResponse)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -86,13 +86,13 @@ func (s *AtlasUsersServiceOp) Get(ctx context.Context, userID string) (*AtlasUse
 
 	path := fmt.Sprintf("users/%s", userID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AtlasUser)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -109,13 +109,13 @@ func (s *AtlasUsersServiceOp) GetByName(ctx context.Context, username string) (*
 
 	path := fmt.Sprintf("users/byName/%s", username)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AtlasUser)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -130,13 +130,13 @@ func (s *AtlasUsersServiceOp) Create(ctx context.Context, createRequest *AtlasUs
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, fmt.Sprintf("users"), createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, fmt.Sprintf("users"), createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(AtlasUser)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}

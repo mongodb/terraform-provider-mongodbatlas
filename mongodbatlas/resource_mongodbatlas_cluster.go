@@ -322,6 +322,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 		},
 	}
 }
@@ -586,6 +587,15 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
 		return fmt.Errorf(errorClusterSetting, "advanced_configuration", clusterName, err)
+	}
+
+	// Get the snapshot policy and set the data
+	snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(d, conn, projectID, clusterName)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("snapshot_backup_policy", snapshotBackupPolicy); err != nil {
+		return err
 	}
 
 	return nil
@@ -897,7 +907,7 @@ func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]inter
 		spec := map[string]interface{}{
 			"id":             rSpec.ID,
 			"num_shards":     rSpec.NumShards,
-			"zone_name":      rSpec.ZoneName,
+			"zone_name":      cast.ToString(rSpec.ZoneName),
 			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
 		}
 		specs = append(specs, spec)

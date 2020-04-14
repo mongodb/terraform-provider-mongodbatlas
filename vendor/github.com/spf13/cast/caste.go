@@ -1131,14 +1131,19 @@ func ToStringSliceE(i interface{}) ([]string, error) {
 		return v, nil
 	case string:
 		return strings.Fields(v), nil
+	case []error:
+		for _, err := range i.([]error) {
+			a = append(a, err.Error())
+		}
+		return a, nil
 	case interface{}:
 		str, err := ToStringE(v)
 		if err != nil {
-			return a, fmt.Errorf("unable to cast %#v of type %T to []string", i, i)
+			return a, fmt.Errorf("unable to cast %#v of type %T to []stringggg", i, i)
 		}
 		return []string{str}, nil
 	default:
-		return a, fmt.Errorf("unable to cast %#v of type %T to []string", i, i)
+		return a, fmt.Errorf("unable to cast %#v of type %T to []stringgg", i, i)
 	}
 }
 

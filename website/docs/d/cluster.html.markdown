@@ -130,13 +130,34 @@ Contains key-value pairs that tag and categorize the cluster. Each key and value
 * `key` - The key that was set.
 * `value` - The value that represents the key.
 
-
 ### Plugin
 Contains a key-value pair that tags that the cluster was created by a Terraform Provider and notes the version.
 
 * `name` - The name of the current plugin
 * `version` - The current version of the plugin.
 
+### Cloud Provider Snapshot Backup Policy
+* `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
+
+* `snapshot_backup_policy.#.cluster_id` - Unique identifier of the Atlas cluster.
+* `snapshot_backup_policy.#.cluster_name` - Name of the Atlas cluster that contains the snapshot backup policy.
+* `snapshot_backup_policy.#.next_snapshot` - UTC ISO 8601 formatted point in time when Atlas will take the next snapshot.
+* `snapshot_backup_policy.#.reference_hour_of_day` - UTC Hour of day between 0 and 23 representing which hour of the day that Atlas takes a snapshot.
+* `snapshot_backup_policy.#.reference_minute_of_hour` - UTC Minute of day between 0 and 59 representing which minute of the referenceHourOfDay that Atlas takes the snapshot.
+* `snapshot_backup_policy.#.restore_window_days` - Specifies a restore window in days for the cloud provider backup to maintain.
+* `snapshot_backup_policy.#.update_snapshots` - Specifies it's true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
+
+### Policies
+* `snapshot_backup_policy.#.policies` - A list of policy definitions for the cluster.
+* `snapshot_backup_policy.#.policies.#.id` - Unique identifier of the backup policy.
+
+#### Policy Item
+* `snapshot_backup_policy.#.policies.#.policy_item` - A list of specifications for a policy.
+* `snapshot_backup_policy.#.policies.#.policy_item.#.id` - Unique identifier for this policy item.
+* `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
+* `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
+* `snapshot_backup_policy.#.policies.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
+* `snapshot_backup_policy.#.policies.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
 
 
 

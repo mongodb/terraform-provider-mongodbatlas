@@ -36,7 +36,7 @@ type ProjectsService interface {
 //ProjectsServiceOp handles communication with the Projects related methos of the
 //MongoDB Atlas API
 type ProjectsServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ ProjectsService = &ProjectsServiceOp{}
@@ -82,13 +82,13 @@ type TeamsAssigned struct {
 //See more: https://docs.atlas.mongodb.com/reference/api/project-get-all/
 func (s *ProjectsServiceOp) GetAllProjects(ctx context.Context) (*Projects, *Response, error) {
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, projectBasePath, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, projectBasePath, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Projects)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -109,13 +109,13 @@ func (s *ProjectsServiceOp) GetOneProject(ctx context.Context, projectID string)
 
 	path := fmt.Sprintf("%s/%s", projectBasePath, projectID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Project)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -132,13 +132,13 @@ func (s *ProjectsServiceOp) GetOneProjectByName(ctx context.Context, projectName
 
 	path := fmt.Sprintf("%s/byName/%s", projectBasePath, projectName)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Project)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -153,13 +153,13 @@ func (s *ProjectsServiceOp) Create(ctx context.Context, createRequest *Project) 
 		return nil, nil, NewArgError("createRequest", "cannot be nil")
 	}
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, projectBasePath, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, projectBasePath, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(Project)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -176,12 +176,12 @@ func (s *ProjectsServiceOp) Delete(ctx context.Context, projectID string) (*Resp
 
 	basePath := fmt.Sprintf("%s/%s", projectBasePath, projectID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, basePath, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodDelete, basePath, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := s.client.Do(ctx, req, nil)
+	resp, err := s.Client.Do(ctx, req, nil)
 
 	return resp, err
 }
@@ -195,13 +195,13 @@ func (s *ProjectsServiceOp) GetProjectTeamsAssigned(ctx context.Context, project
 
 	path := fmt.Sprintf("%s/%s/teams", projectBasePath, projectID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(TeamsAssigned)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -218,13 +218,13 @@ func (s *ProjectsServiceOp) AddTeamsToProject(ctx context.Context, projectID str
 
 	path := fmt.Sprintf("%s/%s/teams", projectBasePath, projectID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPost, path, createRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(TeamsAssigned)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}

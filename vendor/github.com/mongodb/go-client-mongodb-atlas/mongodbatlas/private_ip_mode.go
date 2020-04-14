@@ -19,7 +19,7 @@ type PrivateIPModeService interface {
 //PrivateIPModeServiceOp handles communication with the Private IP Mode related methods
 // of the MongoDB Atlas API
 type PrivateIPModeServiceOp struct {
-	client *Client
+	Client RequestDoer
 }
 
 var _ PrivateIPModeService = &PrivateIPModeServiceOp{}
@@ -34,13 +34,13 @@ type PrivateIPMode struct {
 func (s *PrivateIPModeServiceOp) Get(ctx context.Context, groupID string) (*PrivateIPMode, *Response, error) {
 	path := fmt.Sprintf(privateIPModePath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(PrivateIPMode)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -57,13 +57,13 @@ func (s *PrivateIPModeServiceOp) Update(ctx context.Context, groupID string, upd
 
 	path := fmt.Sprintf(privateIPModePath, groupID)
 
-	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	root := new(PrivateIPMode)
-	resp, err := s.client.Do(ctx, req, root)
+	resp, err := s.Client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
 	}
