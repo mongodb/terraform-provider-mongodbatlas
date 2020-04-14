@@ -8,8 +8,11 @@ import (
 
 const alertPath = "groups/%s/alerts"
 
+// AlertsService is an interface for interfacing with the Alerts
+// endpoints of the MongoDB Atlas API.
+// See more: https://docs.atlas.mongodb.com/reference/api/alerts/
 type AlertsService interface {
-	List(context.Context, string, *ListOptions) ([]Alert, *Response, error)
+	List(context.Context, string, *AlertsListOptions) (*AlertsResponse, *Response, error)
 	Get(context.Context, string, string) (*Alert, *Response, error)
 	Acknowledge(context.Context, string, string, *AcknowledgeRequest) (*Alert, *Response, error)
 }
@@ -53,6 +56,12 @@ type AcknowledgeRequest struct {
 	AcknowledgementComment string `json:"acknowledgementComment,omitempty"` // The comment left by the user who acknowledged the alert. Will not be present if the alert has never been acknowledged.
 }
 
+// AlertsListOptions contains the list of options for Alerts
+type AlertsListOptions struct {
+	Status string `url:"status,omitempty"`
+	ListOptions
+}
+
 // AlertResponse is the response from the AlertService.List.
 type AlertsResponse struct {
 	Links      []*Link `json:"links"`
@@ -89,7 +98,7 @@ func (s *AlertsServiceOp) Get(ctx context.Context, groupID string, alertID strin
 
 // List gets all alert for the project associated to {GROUP-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/alerts-get-all-alerts/
-func (s *AlertsServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Alert, *Response, error) {
+func (s *AlertsServiceOp) List(ctx context.Context, groupID string, listOptions *AlertsListOptions) (*AlertsResponse, *Response, error) {
 	if groupID == "" {
 		return nil, nil, NewArgError("groupID", "must be set")
 	}
@@ -117,7 +126,7 @@ func (s *AlertsServiceOp) List(ctx context.Context, groupID string, listOptions 
 		resp.Links = l
 	}
 
-	return root.Results, resp, nil
+	return root, resp, nil
 }
 
 // AckAnAlert allows to acknowledge an alert

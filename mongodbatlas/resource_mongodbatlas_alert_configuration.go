@@ -244,6 +244,13 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"roles": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -485,6 +492,7 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notif
 			Username:            cast.ToString(v["username"]),
 			VictorOpsAPIKey:     cast.ToString(v["victor_ops_api_key"]),
 			VictorOpsRoutingKey: cast.ToString(v["victor_ops_routing_key"]),
+			Roles:               cast.ToStringSlice(v["roles"]),
 		}
 	}
 	return notifications
@@ -516,6 +524,7 @@ func flattenAlertConfigurationNotifications(notifications []matlas.Notification)
 			"username":               n.Username,
 			"victor_ops_api_key":     n.VictorOpsAPIKey,
 			"victor_ops_routing_key": n.VictorOpsRoutingKey,
+			"roles":                  n.Roles,
 		}
 	}
 	return nts

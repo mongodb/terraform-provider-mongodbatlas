@@ -19,7 +19,7 @@ type GlobalClustersService interface {
 	DeleteCustomZoneMappings(context.Context, string, string) (*GlobalCluster, *Response, error)
 }
 
-//GlobalClustersServiceOp handles communication with the GlobalClusters related methos of the
+//GlobalClustersServiceOp handles communication with the GlobalClusters related methods of the
 //MongoDB Atlas API
 type GlobalClustersServiceOp struct {
 	Client RequestDoer

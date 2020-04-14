@@ -62,9 +62,13 @@ func (s CheckpointsServiceOp) List(ctx context.Context, groupID, clusterName str
 		return nil, nil, NewArgError("clusterName", "must be set")
 	}
 
-	path := fmt.Sprintf(backupCheckpoints, groupID, clusterName)
+	basePath := fmt.Sprintf(backupCheckpoints, groupID, clusterName)
+	path, err := setListOptions(basePath, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, listOptions)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}

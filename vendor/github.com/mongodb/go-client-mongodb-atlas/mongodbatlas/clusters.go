@@ -69,6 +69,16 @@ type ReplicationSpec struct {
 	RegionsConfig map[string]RegionsConfig `json:"regionsConfig,omitempty"`
 }
 
+// ConnectionStrings configuration for applications use to connect to this cluster
+type ConnectionStrings struct {
+	Standard          string            `json:"standard,omitempty"`
+	StandardSrv       string            `json:"standardSrv,omitempty"`
+	AwsPrivateLink    map[string]string `json:"awsPrivateLink,omitempty"`
+	AwsPrivateLinkSrv map[string]string `json:"awsPrivateLinkSrv,omitempty"`
+	Private           string            `json:"private,omitempty"`
+	PrivateSrv        string            `json:"privateSrv,omitempty"`
+}
+
 // Cluster represents MongoDB cluster.
 type Cluster struct {
 	AutoScaling              AutoScaling              `json:"autoScaling,omitempty"`
@@ -96,6 +106,7 @@ type Cluster struct {
 	ReplicationSpecs         []ReplicationSpec        `json:"replicationSpecs,omitempty"`
 	SrvAddress               string                   `json:"srvAddress,omitempty"`
 	StateName                string                   `json:"stateName,omitempty"`
+	ConnectionStrings        *ConnectionStrings       `json:"connectionStrings,omitempty"`
 }
 
 // ProcessArgs represents the advanced configuration options for the cluster

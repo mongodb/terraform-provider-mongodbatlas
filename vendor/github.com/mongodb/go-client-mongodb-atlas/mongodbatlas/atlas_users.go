@@ -20,7 +20,7 @@ type AtlasUsersService interface {
 	Create(context.Context, *AtlasUser) (*AtlasUser, *Response, error)
 }
 
-//AtlasUsersServiceOp handles communication with the AtlasUsers related methos of the
+//AtlasUsersServiceOp handles communication with the AtlasUsers related methods of the
 //MongoDB Atlas API
 type AtlasUsersServiceOp struct {
 	Client RequestDoer
