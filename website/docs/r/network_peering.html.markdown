@@ -37,7 +37,7 @@ locals {
   # needed for Azure Only
   AZURE_DIRECTORY_ID = <your-azure-directory-id>
   AZURE_SUBCRIPTION_ID = <Unique identifer of the Azure subscription in which the VNet resides>
-  AZURE_RESOURSE_GROUP_NAME = <Name of your Azure resource group>
+  AZURE_RESOURCES_GROUP_NAME = <Name of your Azure resource group>
   AZURE_VNET_NAME = <Name of your Azure VNet>
 }
 ```
@@ -146,7 +146,7 @@ resource "mongodbatlas_network_peering" "test" {
   provider_name         = "AZURE"
   azure_directory_id    = "${local.AZURE_DIRECTORY_ID}"
   azure_subscription_id = "${local.AZURE_SUBCRIPTION_ID}"
-  resource_group_name   = "${local.AZURE_RESOURSE_GROUP_NAME}"
+  resource_group_name   = "${local.AZURE_RESOURCES_GROUP_NAME}"
   vnet_name             = "${local.AZURE_VNET_NAME}"
 }
 
