@@ -8,30 +8,24 @@ description: |-
 
 # mongodbatlas_private_ip_mode
 
-`mongodbatlas_private_ip_mode` provides a Private IP Mode resource. This allows one to enable/disable Connect via Peering Only mode for a MongoDB Atlas Project.
+`mongodbatlas_private_ip_mode` provides a Private IP Mode resource. This allows one to disable Connect via Peering Only mode for a MongoDB Atlas Project.
 
+~> **Deprecated Feature**: <br> This feature has been deprecated. Use [Split Horizon connection strings](https://dochub.mongodb.org/core/atlas-horizon-faq) to connect to your cluster. These connection strings allow you to connect using both VPC/VNet Peering and whitelisted public IP addresses. To learn more about support for Split Horizon, see [this FAQ](https://dochub.mongodb.org/core/atlas-horizon-faq). You need this endpoint to [disable Peering Only](https://docs.atlas.mongodb.com/reference/faq/connection-changes/#disable-peering-mode).
 
-~> **IMPORTANT**: <br>**What is Connect via Peering Only Mode?** <br>Connect via Peering Only mode prevents clusters in an Atlas project from connecting to any network destination other than an Atlas Network Peer. Connect via Peering Only mode applies only to **GCP** and **Azure-backed** dedicated clusters. This setting disables the ability to: <br><br>• Deploy non-GCP or Azure-backed dedicated clusters in an Atlas project, and
-<br>• Use MongoDB Stitch with dedicated clusters in an Atlas project.
-
-
--> **NOTE:** You should create one private_ip_mode per project.
 
 ## Example Usage
 
 ```hcl
 resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
     project_id = "<YOUR PROJECT ID>"
-	enabled    = true
+	enabled    = false
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to enable Only Private IP Mode.
-* `enabled` - (Required) Indicates whether Connect via Peering Only mode is enabled or disabled for an Atlas project.
-
-
+* `enabled` - (Required) Indicates whether Connect via Peering Only mode is enabled or disabled for an Atlas project
 
 
 ## Attributes Reference

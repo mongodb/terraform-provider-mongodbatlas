@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.  Ensure you have first created a Network Container.  See the network_container resource and examples below.
 
-~> **GCP AND AZURE ONLY:** You must enable Connect via Peering Only mode to use network peering.
+~> **GCP AND AZURE ONLY:** Connect via Peering Only mode is deprecated, so no longer needed.  See [disable Peering Only mode](https://docs.atlas.mongodb.com/reference/faq/connection-changes/#disable-peering-mode) for details and [private_ip_mode](https://www.terraform.io/docs/providers/mongodbatlas/r/private_ip_mode.html) to disable.
 
 ~> **AZURE ONLY:** To create the peering request with an Azure VNET, you must grant Atlas the following permissions on the virtual network.
     Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read
@@ -74,19 +74,12 @@ resource "mongodbatlas_network_container" "test" {
   provider_name    = "GCP"
 }
 
-resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
-  project_id = local.project_id
-  enabled    = true
-}
-
 resource "mongodbatlas_network_peering" "test" {
   project_id     = local.project_id
   container_id   = mongodbatlas_network_container.test.container_id
   provider_name  = "GCP"
   network_name   = "myNetWorkPeering"
   gcp_project_id = local.google_project_id
-
-  depends_on = [mongodbatlas_private_ip_mode.my_private_ip_mode]
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -111,11 +104,6 @@ resource "mongodbatlas_network_container" "test" {
   region           = "US_WEST"
 }
 
-resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
-  project_id = "${mongodbatlas_project.my_project.id}"
-  enabled    = true
-}
-
 resource "mongodbatlas_network_peering" "test" {
   project_id            = local.project_id
   atlas_cidr_block      = "10.8.0.0/21"
@@ -125,8 +113,6 @@ resource "mongodbatlas_network_peering" "test" {
   azure_subscription_id = "g893dec2-d92e-478d-bc50-cf99d31bgeg9"
   resource_group_name   = "atlas-azure-peering"
   vnet_name             = "azure-peer"
-
-  depends_on = [mongodbatlas_private_ip_mode.my_private_ip_mode]
 }
 ```
 
