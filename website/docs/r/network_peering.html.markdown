@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.  Ensure you have first created a Network Container.  See the network_container resource and examples below.
 
-~> **GCP AND AZURE ONLY:** You must enable Connect via Peering Only mode to use network peering.
+~> **GCP AND AZURE ONLY:** Connect via Peering Only mode is deprecated, so no longer needed.  See [disable Peering Only mode](https://docs.atlas.mongodb.com/reference/faq/connection-changes/#disable-peering-mode) for details and [private_ip_mode](https://www.terraform.io/docs/providers/mongodbatlas/r/private_ip_mode.html) to disable.
 
 ~> **AZURE ONLY:** To create the peering request with an Azure VNET, you must grant Atlas the following permissions on the virtual network.
     Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read
@@ -32,7 +32,13 @@ locals {
   project_id        = <your-project-id>
 
   # needed for GCP only
-  google_project_id = <your-google-project-id>
+  GCP_PROJECT_ID = <your-google-project-id>
+
+  # needed for Azure Only
+  AZURE_DIRECTORY_ID = <your-azure-directory-id>
+  AZURE_SUBCRIPTION_ID = <Unique identifer of the Azure subscription in which the VNet resides>
+  AZURE_RESOURCES_GROUP_NAME = <Name of your Azure resource group>
+  AZURE_VNET_NAME = <Name of your Azure VNet>
 }
 ```
 
@@ -69,35 +75,57 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
 ```hcl
 
 resource "mongodbatlas_network_container" "test" {
-  project_id       = local.project_id
+  project_id       = "${local.project_id}"
   atlas_cidr_block = "192.168.192.0/18"
   provider_name    = "GCP"
 }
 
-resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
-  project_id = local.project_id
-  enabled    = true
-}
-
 resource "mongodbatlas_network_peering" "test" {
-  project_id     = local.project_id
-  container_id   = mongodbatlas_network_container.test.container_id
+  project_id       = "${local.project_id}"
+  atlas_cidr_block = "192.168.0.0/18"
+
+  container_id   = "${mongodbatlas_network_container.test.container_id}"
   provider_name  = "GCP"
-  network_name   = "myNetWorkPeering"
-  gcp_project_id = local.google_project_id
-
-  depends_on = [mongodbatlas_private_ip_mode.my_private_ip_mode]
+  gcp_project_id = "${local.GCP_PROJECT_ID}"
+  network_name   = "default"
 }
 
-resource "google_compute_network" "vpc_network" {
-  name = "vpcnetwork"
+data "google_compute_network" "default" {
+  name = "default"
 }
 
-resource "google_compute_network_peering" "gcp_main_atlas_peering" {
-  name         = "atlas-gcp-main"
-  network      = google_compute_network.vpc_network.self_link
-  peer_network = "projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
+resource "google_compute_network_peering" "peering" {
+  name         = "peering-gcp-terraform-test"
+  network      = "${data.google_compute_network.default.self_link}"
+  peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 }
+
+resource "mongodbatlas_cluster" "test" {
+  project_id   = "${local.project_id}"
+  name         = "terraform-manually-test"
+  num_shards   = 1
+  disk_size_gb = 5
+
+  replication_factor           = 3
+  auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.2"
+
+  //Provider Settings "block"
+  provider_name               = "GCP"
+  provider_instance_size_name = "M10"
+  provider_region_name        = "US_EAST_4"
+
+  depends_on = ["google_compute_network_peering.peering"]
+}
+
+#  Private connection strings are not available w/ GCP until the reciprocal
+#  connection changes to available (i.e. when the status attribute changes
+#  to AVAILABLE on the 'mongodbatlas_network_peering' resource, which
+#  happens when the google_compute_network_peering and and
+#  mongodbatlas_network_peering make a reciprocal connection).  Hence
+#  since the cluster can be created before this connection completes
+#  you may need to run `terraform refresh` to obtain the private connection strings.  
+
 ```
 
 ### Example with Azure
@@ -105,29 +133,41 @@ resource "google_compute_network_peering" "gcp_main_atlas_peering" {
 ```hcl
 
 resource "mongodbatlas_network_container" "test" {
-  project_id       = local.project_id
-  atlas_cidr_block = "10.8.0.0/21"
+  project_id       = "${local.project_id}"
+  atlas_cidr_block = "192.168.208.0/21"
   provider_name    = "AZURE"
-  region           = "US_WEST"
-}
-
-resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
-  project_id = "${mongodbatlas_project.my_project.id}"
-  enabled    = true
+  region           = "US_EAST_2"
 }
 
 resource "mongodbatlas_network_peering" "test" {
-  project_id            = local.project_id
-  atlas_cidr_block      = "10.8.0.0/21"
-  container_id          = mongodbatlas_network_container.test.container_id
+  project_id            = "${local.project_id}"
+  atlas_cidr_block      = "192.168.0.0/21"
+  container_id          = "${mongodbatlas_network_container.test.container_id}"
   provider_name         = "AZURE"
-  azure_directory_id    = "35039750-6ebd-4ad5-bcfe-cb4e5fc2d915"
-  azure_subscription_id = "g893dec2-d92e-478d-bc50-cf99d31bgeg9"
-  resource_group_name   = "atlas-azure-peering"
-  vnet_name             = "azure-peer"
-
-  depends_on = [mongodbatlas_private_ip_mode.my_private_ip_mode]
+  azure_directory_id    = "${local.AZURE_DIRECTORY_ID}"
+  azure_subscription_id = "${local.AZURE_SUBCRIPTION_ID}"
+  resource_group_name   = "${local.AZURE_RESOURCES_GROUP_NAME}"
+  vnet_name             = "${local.AZURE_VNET_NAME}"
 }
+
+resource "mongodbatlas_cluster" "test" {
+  project_id = "${local.project_id}"
+  name       = "terraform-manually-test"
+  num_shards = 1
+
+  replication_factor           = 3
+  auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.2"
+
+  //Provider Settings "block"
+  provider_name               = "AZURE"
+  provider_disk_type_name     = "P4"
+  provider_instance_size_name = "M10"
+  provider_region_name        = "US_EAST_2"
+
+  depends_on = ["mongodbatlas_network_peering.test"]
+}
+
 ```
 
 ## Argument Reference
@@ -160,14 +200,14 @@ In addition to all arguments above, the following attributes are exported:
 * `route_table_cidr_block` - Peer VPC CIDR block or subnet.
 * `vpc_id` - Unique identifier of the peer VPC.
 * `error_state_name` - Error state, if any. The VPC peering connection error state value can be one of the following: `REJECTED`, `EXPIRED`, `INVALID_ARGUMENT`.
-* `status_name` - The VPC peering connection status value can be one of the following: `INITIATING`, `PENDING_ACCEPTANCE`, `FAILED`, `FINALIZING`, `AVAILABLE`, `TERMINATING`.
+* `status_name` - (AWS Only) The VPC peering connection status value can be one of the following: `INITIATING`, `PENDING_ACCEPTANCE`, `FAILED`, `FINALIZING`, `AVAILABLE`, `TERMINATING`.
 * `atlas_cidr_block` - Unique identifier for an Azure AD directory.
 * `azure_directory_id` - Unique identifier for an Azure AD directory.
 * `azure_subscription_id` - Unique identifer of the Azure subscription in which the VNet resides.
 * `resource_group_name` - Name of your Azure resource group.
 * `vnet_name` - Name of your Azure VNet.
 * `error_state` - Description of the Atlas error when `status` is `Failed`, Otherwise, Atlas returns `null`.
-* `status` - Status of the Atlas network peering connection: `ADDING_PEER`, `AVAILABLE`, `FAILED`, `DELETING`, `WAITING_FOR_USER`.
+* `status` - (Azure/GCP Only) Status of the Atlas network peering connection.  Azure/GCP: `ADDING_PEER`, `AVAILABLE`, `FAILED`, `DELETING` GCP Only:  `WAITING_FOR_USER`.
 * `gcp_project_id` - GCP project ID of the owner of the network peer.
 * `atlas_gcp_project_id` - The Atlas GCP Project ID for the GCP VPC used by your atlas cluster that it is need to set up the reciprocal connection.
 * `atlas_vpc_name` - The Atlas VPC Name is used by your atlas clister that it is need to set up the reciprocal connection.
