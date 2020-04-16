@@ -88,6 +88,40 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"connection_strings": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"standard": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"standard_srv": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"aws_private_link": {
+							Type:     schema.TypeMap,
+							Computed: true,
+						},
+						"aws_private_link_srv": {
+							Type:     schema.TypeMap,
+							Computed: true,
+						},
+						"private": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_srv": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"disk_size_gb": {
 				Type:     schema.TypeFloat,
 				Optional: true,
@@ -516,6 +550,9 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
 		return fmt.Errorf(errorClusterSetting, "cluster_type", clusterName, err)
+	}
+	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "connection_strings", clusterName, err)
 	}
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
 		return fmt.Errorf(errorClusterSetting, "disk_size_gb", clusterName, err)
@@ -1012,4 +1049,18 @@ func formatMongoDBMajorVersion(val interface{}) string {
 		return val.(string)
 	}
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
+}
+
+func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]interface{} {
+	connections := make([]map[string]interface{}, 0)
+
+	connections = append(connections, map[string]interface{}{
+		"standard":             connectionStrings.Standard,
+		"standard_srv":         connectionStrings.StandardSrv,
+		"aws_private_link":     connectionStrings.AwsPrivateLink,
+		"aws_private_link_srv": connectionStrings.AwsPrivateLinkSrv,
+		"private":              connectionStrings.Private,
+		"private_srv":          connectionStrings.PrivateSrv,
+	})
+	return connections
 }

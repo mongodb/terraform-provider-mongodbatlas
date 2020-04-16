@@ -819,15 +819,15 @@ func ToStringE(i interface{}) (string, error) {
 	case int8:
 		return strconv.FormatInt(int64(s), 10), nil
 	case uint:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10), nil
 	case uint64:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10), nil
 	case uint32:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10), nil
 	case uint16:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10), nil
 	case uint8:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10), nil
 	case []byte:
 		return string(s), nil
 	case template.HTML:
@@ -1131,19 +1131,14 @@ func ToStringSliceE(i interface{}) ([]string, error) {
 		return v, nil
 	case string:
 		return strings.Fields(v), nil
-	case []error:
-		for _, err := range i.([]error) {
-			a = append(a, err.Error())
-		}
-		return a, nil
 	case interface{}:
 		str, err := ToStringE(v)
 		if err != nil {
-			return a, fmt.Errorf("unable to cast %#v of type %T to []stringggg", i, i)
+			return a, fmt.Errorf("unable to cast %#v of type %T to []string", i, i)
 		}
 		return []string{str}, nil
 	default:
-		return a, fmt.Errorf("unable to cast %#v of type %T to []stringgg", i, i)
+		return a, fmt.Errorf("unable to cast %#v of type %T to []string", i, i)
 	}
 }
 

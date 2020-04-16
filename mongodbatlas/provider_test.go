@@ -7,6 +7,7 @@ import (
 	"github.com/go-test/deep"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
+	google "github.com/terraform-providers/terraform-provider-google/google"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -20,6 +21,7 @@ func init() {
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"mongodbatlas": testAccProvider,
 		"aws":          aws.Provider(),
+		"google":       google.Provider(),
 	}
 }
 
@@ -57,8 +59,8 @@ func checkPeeringEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
 		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||
 		os.Getenv("AZURE_VNET_NAME") == "" ||
-		os.Getenv("AZURE_RESOURSE_GROUP_NAME") == "" {
-		t.Fatal("`AZURE_DIRECTORY_ID`, `AZURE_SUBCRIPTION_ID`, `AZURE_VNET_NAME` and `AZURE_RESOURSE_GROUP_NAME` must be set for  network peering acceptance testing")
+		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" {
+		t.Fatal("`AZURE_DIRECTORY_ID`, `AZURE_SUBCRIPTION_ID`, `AZURE_VNET_NAME` and `AZURE_RESOURCE_GROUP_NAME` must be set for  network peering acceptance testing")
 	}
 }
 
@@ -66,8 +68,8 @@ func checkEncryptionAtRestEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
 		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
 		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||
-		os.Getenv("AZURE_RESOURSE_GROUP_NAME") == "" ||
-		os.Getenv("AZURE_RESOURSE_GROUP_NAME_UPDATED") == "" ||
+		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
+		os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED") == "" ||
 		os.Getenv("AZURE_SECRET") == "" ||
 		os.Getenv("AZURE_KEY_VAULT_NAME") == "" ||
 		os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED") == "" ||
@@ -75,15 +77,18 @@ func checkEncryptionAtRestEnvAzure(t *testing.T) {
 		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" ||
 		os.Getenv("AZURE_TENANT_ID") == "" {
 		t.Fatal(`'AZURE_CLIENT_ID','AZURE_CLIENT_ID_UPDATED', 'AZURE_SUBCRIPTION_ID',
-		'AZURE_RESOURSE_GROUP_NAME','AZURE_RESOURSE_GROUP_NAME_UPDATED', 'AZURE_SECRET',
+		'AZURE_RESOURCE_GROUP_NAME','AZURE_RESOURCE_GROUP_NAME_UPDATED', 'AZURE_SECRET',
 		'AZURE_SECRET_UPDATED', 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
 		'AZURE_KEY_IDENTIFIER_UPDATED', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
 	}
 }
 
 func checkPeeringEnvGCP(t *testing.T) {
-	if os.Getenv("GCP_PROJECT_ID") == "" {
-		t.Fatal("`GCP_PROJECT_ID` must be set for network peering acceptance testing")
+	if os.Getenv("GCP_PROJECT_ID") == "" ||
+		os.Getenv("GCP_CLUSTER_REGION_NAME") == "" ||
+		os.Getenv("GCP_REGION_NAME") == "" ||
+		os.Getenv("GOOGLE_CLOUD_KEYFILE_JSON") == "" {
+		t.Fatal("`GCP_PROJECT_ID`,`GOOGLE_CLOUD_KEYFILE_JSON`, `GCP_CLUSTER_REGION_NAME`, `and GCP_REGION_NAME` must be set for network peering acceptance testing")
 	}
 }
 
