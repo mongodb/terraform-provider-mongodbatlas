@@ -108,7 +108,7 @@ resource "mongodbatlas_cluster" "test" {
 
   replication_factor           = 3
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.0"
+  mongo_db_major_version       = "4.2"
 
   //Provider Settings "block"
   provider_name               = "GCP"
@@ -157,11 +157,11 @@ resource "mongodbatlas_cluster" "test" {
 
   replication_factor           = 3
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.0"
+  mongo_db_major_version       = "4.2"
 
   //Provider Settings "block"
   provider_name               = "AZURE"
-  provider_disk_type_name     = "P6"
+  provider_disk_type_name     = "P4"
   provider_instance_size_name = "M10"
   provider_region_name        = "US_EAST_2"
 
