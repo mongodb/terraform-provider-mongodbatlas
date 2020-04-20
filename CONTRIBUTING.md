@@ -1,0 +1,21 @@
+Contributing
+---------------------------
+
+# Contributing
+
+## Workflow
+
+MongoDB welcomes community contributions! If you’re interested in making a contribution to  Terraform MongoDB Atlas provider, please follow the steps below before you start writing any code:
+
+1. Sign the [contributor's agreement](http://www.mongodb.com/contributor). This will allow us to review and accept contributions.
+1. Read the Terraform contribution guidelines
+https://www.terraform.io/docs/extend/community/contributing.html
+1. Reach out by filing an [issue](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues) to discuss your proposed contribution, be it a bug fix or feature/other improvements.  
+
+After the above 3 steps are completed and we've agreed on a path forward:
+1. Fork the repository on GitHub
+1. Create a branch with a name that briefly describes your feature
+1. Implement your feature, improvement or bug fix, ensuring it adheres to the [Terraform Plugin Best Practices](https://www.terraform.io/docs/extend/best-practices/index.html)
+1. Ensure you follow the [Terraform Plugin Testing requirements](https://www.terraform.io/docs/extend/testing/index.html).
+1. Add comments around your new code that explain what's happening
+1. Commit and push your changes to your branch then submit a pull request.
