@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/terraform v0.12.1
 	github.com/jen20/awspolicyequivalence v1.1.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mongodb/go-client-mongodb-atlas v0.1.4-0.20200413163719-5574d7cba634
+	github.com/mongodb/go-client-mongodb-atlas v0.2.0
 	github.com/mwielbut/pointy v1.1.0
 	github.com/satori/uuid v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1
