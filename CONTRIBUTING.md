@@ -19,3 +19,4 @@ After the above 3 steps are completed and we've agreed on a path forward:
 1. Ensure you follow the [Terraform Plugin Testing requirements](https://www.terraform.io/docs/extend/testing/index.html).
 1. Add comments around your new code that explain what's happening
 1. Commit and push your changes to your branch then submit a pull request.
+1. A repo maintainer will review the your pull request, and may either request additional changes or merge the pull request.
