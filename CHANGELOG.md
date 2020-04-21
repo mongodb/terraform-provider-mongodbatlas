@@ -3,6 +3,7 @@
 **Implemented enhancements:**
 
 - Cloud Provider Snapshot Backup Policy [\#180](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/180) ([PacoDw](https://github.com/PacoDw))
+- Support New Connection Strings [\#181](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/181) ([coderGo93](https://github.com/coderGo93))
 
 **Fixed bugs:**
 
@@ -11,12 +12,7 @@
 **Closed issues:**
 
 - Problem using Cross Region Replica Set in GCP [\#188](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/188)
-- Delete this please. [\#187](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/187)
-- Confusing output when modifying a cluster [\#186](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/186)
-- Cluster auto-scaling [\#182](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/182)
 - Docs with wrong resource type [\#175](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/175)
-- On upgrade from 0.4.1 to 0.4.2 start getting errors [\#174](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/174)
-- Can't create SYSTEM\_NORMALIZED\_CPU\_IOWAIT alert [\#172](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/172)
 
 **Merged pull requests:**
 
