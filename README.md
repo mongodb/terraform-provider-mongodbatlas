@@ -185,18 +185,6 @@ In order to run the full suite of Acceptance tests, run ``make testacc``.
 $ make testacc
 ```
 
-Contributing
----------------------------
-
-Terraform is the work of thousands of contributors. We appreciate your help!
-
-To contribute, please read the Terraform contribution guidelines:
-https://www.terraform.io/docs/extend/community/contributing.html
-
-Note: Additional guidelines for this Provider may be added in a future CONTRIBUTING file.
-
-If you submit issues on GitHub, they are intended to be related to bugs with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
-
 Thanks
 ---------------------------
 We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
