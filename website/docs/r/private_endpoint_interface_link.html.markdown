@@ -1,6 +1,6 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: private_endpoint_link"
+page_title: "MongoDB Atlas: private_endpoint_interface_link"
 sidebar_current: "docs-mongodbatlas-resource-private_endpoint_interface_link"
 description: |-
     Provides a Private Endpoint Link resource.
