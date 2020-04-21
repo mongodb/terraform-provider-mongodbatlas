@@ -1,4 +1,34 @@
 ## 0.5.0 (Unreleased)
+
+**Implemented enhancements:**
+
+- Cloud Provider Snapshot Backup Policy [\#180](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/180) ([PacoDw](https://github.com/PacoDw))
+- Support New Connection Strings [\#181](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/181) ([coderGo93](https://github.com/coderGo93))
+
+**Fixed bugs:**
+
+- TERRAFORM CRASH on importing mongodbatlas\_alert\_configuration [\#171](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/171)
+
+**Closed issues:**
+
+- Problem using Cross Region Replica Set in GCP [\#188](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/188)
+- Docs with wrong resource type [\#175](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/175)
+
+**Merged pull requests:**
+
+- Add CONTRIBUTING file [\#196](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/196) ([themantissa](https://github.com/themantissa))
+- Update MongoSDK to v0.2.0 [\#195](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/195) ([marinsalinas](https://github.com/marinsalinas))
+- Doc update for private\_ip\_mode [\#194](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/194) ([themantissa](https://github.com/themantissa))
+- Peering Container documentation fix [\#193](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/193) ([themantissa](https://github.com/themantissa))
+- Update backup documenation [\#191](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/191) ([themantissa](https://github.com/themantissa))
+- Fix documentation of roles block role\_name [\#184](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/184) ([fbreckle](https://github.com/fbreckle))
+- Connection strings [\#181](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/181) ([coderGo93](https://github.com/coderGo93))
+- Typo in `provider\_disk\_type\_name` description [\#178](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/178) ([caitlin615](https://github.com/caitlin615))
+- added roles in schema of notifications for alert configurations [\#177](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/177) ([coderGo93](https://github.com/coderGo93))
+- fix-\#175 - missing word in resource name [\#176](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/176) ([themantissa](https://github.com/themantissa))
+- Fix \#171: added validation to avoid nil type error [\#173](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/173) ([PacoDw](https://github.com/PacoDw))
+- Fix Attributes Reference bullet points [\#168](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/168) ([brunopadz](https://github.com/brunopadz))
+
 ## 0.4.2 (March 12, 2020)
 
 **Fixed bugs:**
