@@ -147,6 +147,28 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.
 	})
 }
 
+func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
+	var alert = &matlas.AlertConfiguration{}
+
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	resourceName := "mongodbatlas_alert_configuration.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(projectID, true, 99.0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
@@ -353,6 +375,39 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(projectID str
 				sms_enabled   = false
 				email_enabled = true
 				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
+			}
+
+			matcher {
+				field_name = "HOSTNAME_AND_PORT"
+				operator   = "EQUALS"
+				value      = "SECONDARY"
+			}
+
+			metric_threshold = {
+				metric_name = "ASSERT_REGULAR"
+				operator    = "LESS_THAN"
+				threshold   = %f
+				units       = "RAW"
+				mode        = "AVERAGE"
+			}
+		}
+	`, projectID, enabled, threshold)
+}
+
+func testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(projectID string, enabled bool, threshold float64) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = "%s"
+			event_type = "OUTSIDE_METRIC_THRESHOLD"
+			enabled    = "%t"
+
+			notification {
+				type_name     = "EMAIL"
+				email_address = "mongodbatlas.testing@gmail.com"
+				interval_min  = 5
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = false
 			}
 
 			matcher {
