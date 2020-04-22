@@ -1,4 +1,4 @@
-## 0.5.0 (Unreleased)
+## 0.5.0 (April 22, 2020)
 
 **Implemented enhancements:**
 
