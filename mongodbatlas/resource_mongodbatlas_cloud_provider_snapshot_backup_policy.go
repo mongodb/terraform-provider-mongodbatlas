@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -304,9 +305,12 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]interface{} {
 }
 
 func flattenCloudProviderSnapshotBackupPolicy(d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]interface{}, error) {
-	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
 	if err != nil {
-		if strings.Contains(fmt.Sprint(err), "BACKUP_CONFIG_NOT_FOUND") || strings.Contains(fmt.Sprint(err), "400") {
+		if res.StatusCode == http.StatusNotFound ||
+			strings.Contains(fmt.Sprint(err), "BACKUP_CONFIG_NOT_FOUND") ||
+			strings.Contains(fmt.Sprint(err), "Not Found") ||
+			strings.Contains(fmt.Sprint(err), "404") {
 			return []map[string]interface{}{}, nil
 		}
 		return []map[string]interface{}{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
