@@ -51,35 +51,35 @@ resource "mongodbatlas_alert_configuration" "test" {
 * `enabled` - It is not required, but If the attribute is omitted, by default will be false, and the configuration would be disabled. You must set true to enable the configuration.
 * `event_type` - (Required) The type of event that will trigger an alert.
   Alert type 	Possible values:
-    * Host 	
+    * Host
       - `OUTSIDE_METRIC_THRESHOLD`
       - `HOST_RESTARTED`
       - `HOST_UPGRADED`
       - `HOST_NOW_SECONDARY`
       - `HOST_NOW_PRIMARY`
-    * Replica set 	
+    * Replica set
       - `NO_PRIMARY`
       - `TOO_MANY_ELECTIONS`
-    * Sharded cluster 	
+    * Sharded cluster
       - `CLUSTER_MONGOS_IS_MISSING`
-      - `User` 	
+      - `User`
       - `JOINED_GROUP`
       - `REMOVED_FROM_GROUP`
       - `USER_ROLES_CHANGED_AUDIT`
-    * Project 	
+    * Project
       - `USERS_AWAITING_APPROVAL`
       - `USERS_WITHOUT_MULTI_FACTOR_AUTH`
       - `GROUP_CREATED`
-    * Team 	
+    * Team
       - `JOINED_TEAM`
       - `REMOVED_FROM_TEAM`
-    * Organization 	
+    * Organization
       - `INVITED_TO_ORG`
       - `JOINED_ORG`
-    * Data Explorer 	
+    * Data Explorer
       - `DATA_EXPLORER`
       - `DATA_EXPLORER_CRUD`
-    * Billing 	
+    * Billing
       - `CREDIT_CARD_ABOUT_TO_EXPIRE`
       - `CHARGE_SUCCEEDED`
       - `INVOICE_CLOSED`
@@ -110,7 +110,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 * `value` - If omitted, the configuration is disabled.
 
 
-* `operator` - The operator to test the field’s value. 
+* `operator` - The operator to test the field’s value.
   Accepted values are:
     - `EQUALS`
     - `NOT_EQUALS`
@@ -131,7 +131,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 The threshold that causes an alert to be triggered. Required if `event_type_name` : "OUTSIDE_METRIC_THRESHOLD".
 
 * `metric_name` - Name of the metric to check.
-* `operator` - Operator to apply when checking the current metric value against the threshold value. 
+* `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
     - `LESS_THAN`
@@ -178,7 +178,7 @@ Notifications to send when an alert condition is detected.
 * `service_key` - PagerDuty service key. Required for the PAGER_DUTY notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `sms_enabled` - Flag indicating if text message notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
 * `team_id` - Unique identifier of a team.
-* `type_name` - Type of alert notification. 
+* `type_name` - Type of alert notification.
   Accepted values are:
     - `DATADOG`
     - `EMAIL`
@@ -197,7 +197,7 @@ Notifications to send when an alert condition is detected.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
-* `Roles` - Roles. Required. The following roles grant privileges within a project.
+* `Roles` - Roles. Optional. The following roles grant privileges within a project.
   Accepted values are:
     - `GROUP_CHARTS_ADMIN`
     - `GROUP_CLUSTER_MANAGER`
