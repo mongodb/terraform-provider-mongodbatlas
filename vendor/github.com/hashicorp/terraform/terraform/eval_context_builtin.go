@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform/states"
 
-	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/terraform/configs/configschema"
 	"github.com/hashicorp/terraform/lang"
 	"github.com/hashicorp/terraform/tfdiags"
@@ -142,7 +142,7 @@ func (ctx *BuiltinEvalContext) Provider(addr addrs.AbsProviderConfig) providers.
 func (ctx *BuiltinEvalContext) ProviderSchema(addr addrs.AbsProviderConfig) *ProviderSchema {
 	ctx.once.Do(ctx.init)
 
-	return ctx.Schemas.ProviderSchema(addr.ProviderConfig.Type)
+	return ctx.Schemas.ProviderSchema(addr.ProviderConfig.Type.LegacyString())
 }
 
 func (ctx *BuiltinEvalContext) CloseProvider(addr addrs.ProviderConfig) error {
@@ -310,6 +310,16 @@ func (ctx *BuiltinEvalContext) SetModuleCallArguments(n addrs.ModuleCallInstance
 	for k, v := range vals {
 		args[k] = v
 	}
+}
+
+func (ctx *BuiltinEvalContext) GetVariableValue(addr addrs.AbsInputVariableInstance) cty.Value {
+	modKey := addr.Module.String()
+	modVars := ctx.VariableValues[modKey]
+	val, ok := modVars[addr.Variable.Name]
+	if !ok {
+		return cty.DynamicVal
+	}
+	return val
 }
 
 func (ctx *BuiltinEvalContext) Changes() *plans.ChangesSync {

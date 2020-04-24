@@ -136,7 +136,7 @@ func (c *CodeBuild) BatchGetBuildsRequest(input *BatchGetBuildsInput) (req *requ
 
 // BatchGetBuilds API operation for AWS CodeBuild.
 //
-// Gets information about builds.
+// Gets information about one or more builds.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -215,7 +215,7 @@ func (c *CodeBuild) BatchGetProjectsRequest(input *BatchGetProjectsInput) (req *
 
 // BatchGetProjects API operation for AWS CodeBuild.
 //
-// Gets information about build projects.
+// Gets information about one or more build projects.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -481,7 +481,7 @@ func (c *CodeBuild) DeleteProjectRequest(input *DeleteProjectInput) (req *reques
 
 // DeleteProject API operation for AWS CodeBuild.
 //
-// Deletes a build project.
+// Deletes a build project. When you delete a project, its builds are not deleted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -746,6 +746,10 @@ func (c *CodeBuild) ImportSourceCredentialsRequest(input *ImportSourceCredential
 //
 //   * ErrCodeAccountLimitExceededException "AccountLimitExceededException"
 //   An AWS service limit was exceeded for the calling AWS account.
+//
+//   * ErrCodeResourceAlreadyExistsException "ResourceAlreadyExistsException"
+//   The specified AWS resource cannot be created, because an AWS resource with
+//   the same settings already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ImportSourceCredentials
 func (c *CodeBuild) ImportSourceCredentials(input *ImportSourceCredentialsInput) (*ImportSourceCredentialsOutput, error) {
@@ -1810,6 +1814,11 @@ type Build struct {
 	// Whether the build is complete. True if complete; otherwise, false.
 	BuildComplete *bool `locationName:"buildComplete" type:"boolean"`
 
+	// The number of the build. For each project, the buildNumber of its first build
+	// is 1. The buildNumber of each subsequent build is incremented by 1. If a
+	// build is deleted, the buildNumber of other builds does not change.
+	BuildNumber *int64 `locationName:"buildNumber" type:"long"`
+
 	// The current status of the build. Valid values include:
 	//
 	//    * FAILED: The build failed.
@@ -1846,6 +1855,9 @@ type Build struct {
 
 	// Information about the build environment for this build.
 	Environment *ProjectEnvironment `locationName:"environment" type:"structure"`
+
+	// A list of exported environment variables for this build.
+	ExportedEnvironmentVariables []*ExportedEnvironmentVariable `locationName:"exportedEnvironmentVariables" type:"list"`
 
 	// The unique ID for the build.
 	Id *string `locationName:"id" min:"1" type:"string"`
@@ -1971,6 +1983,12 @@ func (s *Build) SetBuildComplete(v bool) *Build {
 	return s
 }
 
+// SetBuildNumber sets the BuildNumber field's value.
+func (s *Build) SetBuildNumber(v int64) *Build {
+	s.BuildNumber = &v
+	return s
+}
+
 // SetBuildStatus sets the BuildStatus field's value.
 func (s *Build) SetBuildStatus(v string) *Build {
 	s.BuildStatus = &v
@@ -2004,6 +2022,12 @@ func (s *Build) SetEndTime(v time.Time) *Build {
 // SetEnvironment sets the Environment field's value.
 func (s *Build) SetEnvironment(v *ProjectEnvironment) *Build {
 	s.Environment = v
+	return s
+}
+
+// SetExportedEnvironmentVariables sets the ExportedEnvironmentVariables field's value.
+func (s *Build) SetExportedEnvironmentVariables(v []*ExportedEnvironmentVariable) *Build {
+	s.ExportedEnvironmentVariables = v
 	return s
 }
 
@@ -3154,6 +3178,8 @@ type EnvironmentVariable struct {
 	//    Manager Parameter Store.
 	//
 	//    * PLAINTEXT: An environment variable in plaintext format.
+	//
+	//    * SECRETS_MANAGER: An environment variable stored in AWS Secrets Manager.
 	Type *string `locationName:"type" type:"string" enum:"EnvironmentVariableType"`
 
 	// The value of the environment variable.
@@ -3214,6 +3240,44 @@ func (s *EnvironmentVariable) SetValue(v string) *EnvironmentVariable {
 	return s
 }
 
+// Information about an exported environment variable.
+type ExportedEnvironmentVariable struct {
+	_ struct{} `type:"structure"`
+
+	// The name of this exported environment variable.
+	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// The value assigned to this exported environment variable.
+	//
+	// During a build, the value of a variable is available starting with the install
+	// phase. It can be updated between the start of the install phase and the end
+	// of the post_build phase. After the post_build phase ends, the value of exported
+	// variables cannot change.
+	Value *string `locationName:"value" type:"string"`
+}
+
+// String returns the string representation
+func (s ExportedEnvironmentVariable) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportedEnvironmentVariable) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *ExportedEnvironmentVariable) SetName(v string) *ExportedEnvironmentVariable {
+	s.Name = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *ExportedEnvironmentVariable) SetValue(v string) *ExportedEnvironmentVariable {
+	s.Value = &v
+	return s
+}
+
 // Information about the Git submodules configuration for an AWS CodeBuild build
 // project.
 type GitSubmodulesConfig struct {
@@ -3268,6 +3332,11 @@ type ImportSourceCredentialsInput struct {
 	//
 	// ServerType is a required field
 	ServerType *string `locationName:"serverType" type:"string" required:"true" enum:"ServerType"`
+
+	// Set to false to prevent overwriting the repository source credentials. Set
+	// to true to overwrite the repository source credentials. The default value
+	// is true.
+	ShouldOverwrite *bool `locationName:"shouldOverwrite" type:"boolean"`
 
 	// For GitHub or GitHub Enterprise, this is the personal access token. For Bitbucket,
 	// this is the app password.
@@ -3324,6 +3393,12 @@ func (s *ImportSourceCredentialsInput) SetAuthType(v string) *ImportSourceCreden
 // SetServerType sets the ServerType field's value.
 func (s *ImportSourceCredentialsInput) SetServerType(v string) *ImportSourceCredentialsInput {
 	s.ServerType = &v
+	return s
+}
+
+// SetShouldOverwrite sets the ShouldOverwrite field's value.
+func (s *ImportSourceCredentialsInput) SetShouldOverwrite(v bool) *ImportSourceCredentialsInput {
+	s.ShouldOverwrite = &v
 	return s
 }
 
@@ -3421,11 +3496,11 @@ type ListBuildsForProjectInput struct {
 	_ struct{} `type:"structure"`
 
 	// During a previous call, if there are more than 100 items in the list, only
-	// the first 100 items are returned, along with a unique string called a next
-	// token. To get the next batch of items in the list, call this operation again,
-	// adding the next token to the call. To get all of the items in the list, keep
-	// calling this operation with each subsequent next token that is returned,
-	// until no more next tokens are returned.
+	// the first 100 items are returned, along with a unique string called a nextToken.
+	// To get the next batch of items in the list, call this operation again, adding
+	// the next token to the call. To get all of the items in the list, keep calling
+	// this operation with each subsequent next token that is returned, until no
+	// more next tokens are returned.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The name of the AWS CodeBuild project.
@@ -3493,7 +3568,7 @@ type ListBuildsForProjectOutput struct {
 	Ids []*string `locationName:"ids" min:"1" type:"list"`
 
 	// If there are more than 100 items in the list, only the first 100 items are
-	// returned, along with a unique string called a next token. To get the next
+	// returned, along with a unique string called a nextToken. To get the next
 	// batch of items in the list, call this operation again, adding the next token
 	// to the call.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -3525,11 +3600,11 @@ type ListBuildsInput struct {
 	_ struct{} `type:"structure"`
 
 	// During a previous call, if there are more than 100 items in the list, only
-	// the first 100 items are returned, along with a unique string called a next
-	// token. To get the next batch of items in the list, call this operation again,
-	// adding the next token to the call. To get all of the items in the list, keep
-	// calling this operation with each subsequent next token that is returned,
-	// until no more next tokens are returned.
+	// the first 100 items are returned, along with a unique string called a nextToken.
+	// To get the next batch of items in the list, call this operation again, adding
+	// the next token to the call. To get all of the items in the list, keep calling
+	// this operation with each subsequent next token that is returned, until no
+	// more next tokens are returned.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The order to list build IDs. Valid values include:
@@ -3569,7 +3644,7 @@ type ListBuildsOutput struct {
 	Ids []*string `locationName:"ids" min:"1" type:"list"`
 
 	// If there are more than 100 items in the list, only the first 100 items are
-	// returned, along with a unique string called a next token. To get the next
+	// returned, along with a unique string called a nextToken. To get the next
 	// batch of items in the list, call this operation again, adding the next token
 	// to the call.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -3639,11 +3714,11 @@ type ListProjectsInput struct {
 	_ struct{} `type:"structure"`
 
 	// During a previous call, if there are more than 100 items in the list, only
-	// the first 100 items are returned, along with a unique string called a next
-	// token. To get the next batch of items in the list, call this operation again,
-	// adding the next token to the call. To get all of the items in the list, keep
-	// calling this operation with each subsequent next token that is returned,
-	// until no more next tokens are returned.
+	// the first 100 items are returned, along with a unique string called a nextToken.
+	// To get the next batch of items in the list, call this operation again, adding
+	// the next token to the call. To get all of the items in the list, keep calling
+	// this operation with each subsequent next token that is returned, until no
+	// more next tokens are returned.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The criterion to be used to list build project names. Valid values include:
@@ -3714,7 +3789,7 @@ type ListProjectsOutput struct {
 	_ struct{} `type:"structure"`
 
 	// If there are more than 100 items in the list, only the first 100 items are
-	// returned, along with a unique string called a next token. To get the next
+	// returned, along with a unique string called a nextToken. To get the next
 	// batch of items in the list, call this operation again, adding the next token
 	// to the call.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -3848,6 +3923,10 @@ type LogsLocation struct {
 	// Information about Amazon CloudWatch Logs for a build project.
 	CloudWatchLogs *CloudWatchLogsConfig `locationName:"cloudWatchLogs" type:"structure"`
 
+	// The ARN of Amazon CloudWatch Logs for a build project. Its format is arn:${Partition}:logs:${Region}:${Account}:log-group:${LogGroupName}:log-stream:${LogStreamName}.
+	// For more information, see Resources Defined by Amazon CloudWatch Logs (https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazoncloudwatchlogs.html#amazoncloudwatchlogs-resources-for-iam-policies).
+	CloudWatchLogsArn *string `locationName:"cloudWatchLogsArn" type:"string"`
+
 	// The URL to an individual build log in Amazon CloudWatch Logs.
 	DeepLink *string `locationName:"deepLink" type:"string"`
 
@@ -3859,6 +3938,10 @@ type LogsLocation struct {
 
 	// Information about S3 logs for a build project.
 	S3Logs *S3LogsConfig `locationName:"s3Logs" type:"structure"`
+
+	// The ARN of S3 logs for a build project. Its format is arn:${Partition}:s3:::${BucketName}/${ObjectName}.
+	// For more information, see Resources Defined by Amazon S3 (https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazons3.html#amazons3-resources-for-iam-policies).
+	S3LogsArn *string `locationName:"s3LogsArn" type:"string"`
 
 	// The name of the Amazon CloudWatch Logs stream for the build logs.
 	StreamName *string `locationName:"streamName" type:"string"`
@@ -3877,6 +3960,12 @@ func (s LogsLocation) GoString() string {
 // SetCloudWatchLogs sets the CloudWatchLogs field's value.
 func (s *LogsLocation) SetCloudWatchLogs(v *CloudWatchLogsConfig) *LogsLocation {
 	s.CloudWatchLogs = v
+	return s
+}
+
+// SetCloudWatchLogsArn sets the CloudWatchLogsArn field's value.
+func (s *LogsLocation) SetCloudWatchLogsArn(v string) *LogsLocation {
+	s.CloudWatchLogsArn = &v
 	return s
 }
 
@@ -3901,6 +3990,12 @@ func (s *LogsLocation) SetS3DeepLink(v string) *LogsLocation {
 // SetS3Logs sets the S3Logs field's value.
 func (s *LogsLocation) SetS3Logs(v *S3LogsConfig) *LogsLocation {
 	s.S3Logs = v
+	return s
+}
+
+// SetS3LogsArn sets the S3LogsArn field's value.
+func (s *LogsLocation) SetS3LogsArn(v string) *LogsLocation {
+	s.S3LogsArn = &v
 	return s
 }
 
@@ -4345,7 +4440,7 @@ type ProjectArtifacts struct {
 	// The type of build output artifact. Valid values include:
 	//
 	//    * CODEPIPELINE: The build project has build output generated through AWS
-	//    CodePipeline.
+	//    CodePipeline. The CODEPIPELINE type is not supported for secondaryArtifacts.
 	//
 	//    * NO_ARTIFACTS: The build project does not produce any build output.
 	//
@@ -4578,7 +4673,26 @@ type ProjectEnvironment struct {
 	//
 	//    * BUILD_GENERAL1_MEDIUM: Use up to 7 GB memory and 4 vCPUs for builds.
 	//
-	//    * BUILD_GENERAL1_LARGE: Use up to 15 GB memory and 8 vCPUs for builds.
+	//    * BUILD_GENERAL1_LARGE: Use up to 16 GB memory and 8 vCPUs for builds,
+	//    depending on your environment type.
+	//
+	//    * BUILD_GENERAL1_2XLARGE: Use up to 145 GB memory, 72 vCPUs, and 824 GB
+	//    of SSD storage for builds. This compute type supports Docker images up
+	//    to 100 GB uncompressed.
+	//
+	// If you use BUILD_GENERAL1_LARGE:
+	//
+	//    * For environment type LINUX_CONTAINER, you can use up to 15 GB memory
+	//    and 8 vCPUs for builds.
+	//
+	//    * For environment type LINUX_GPU_CONTAINER, you can use up to 255 GB memory,
+	//    32 vCPUs, and 4 NVIDIA Tesla V100 GPUs for builds.
+	//
+	//    * For environment type ARM_CONTAINER, you can use up to 16 GB memory and
+	//    8 vCPUs on ARM-based processors for builds.
+	//
+	// For more information, see Build Environment Compute Types (https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html)
+	// in the AWS CodeBuild User Guide.
 	//
 	// ComputeType is a required field
 	ComputeType *string `locationName:"computeType" type:"string" required:"true" enum:"ComputeType"`
@@ -4616,14 +4730,13 @@ type ProjectEnvironment struct {
 	ImagePullCredentialsType *string `locationName:"imagePullCredentialsType" type:"string" enum:"ImagePullCredentialsType"`
 
 	// Enables running the Docker daemon inside a Docker container. Set to true
-	// only if the build project is be used to build Docker images, and the specified
-	// build environment image is not provided by AWS CodeBuild with Docker support.
-	// Otherwise, all associated builds that attempt to interact with the Docker
-	// daemon fail. You must also start the Docker daemon so that builds can interact
-	// with it. One way to do this is to initialize the Docker daemon during the
-	// install phase of your build spec by running the following build commands.
-	// (Do not run these commands if the specified build environment image is provided
-	// by AWS CodeBuild with Docker support.)
+	// only if the build project is used to build Docker images. Otherwise, a build
+	// that attempts to interact with the Docker daemon fails. The default setting
+	// is false.
+	//
+	// You can initialize the Docker daemon during the install phase of your build
+	// by adding one of the following sets of commands to the install phase of your
+	// buildspec file:
 	//
 	// If the operating system's base image is Ubuntu Linux:
 	//
@@ -4645,6 +4758,22 @@ type ProjectEnvironment struct {
 	RegistryCredential *RegistryCredential `locationName:"registryCredential" type:"structure"`
 
 	// The type of build environment to use for related builds.
+	//
+	//    * The environment type ARM_CONTAINER is available only in regions US East
+	//    (N. Virginia), US East (Ohio), US West (Oregon), EU (Ireland), Asia Pacific
+	//    (Mumbai), Asia Pacific (Tokyo), Asia Pacific (Sydney), and EU (Frankfurt).
+	//
+	//    * The environment type LINUX_CONTAINER with compute type build.general1.2xlarge
+	//    is available only in regions US East (N. Virginia), US East (N. Virginia),
+	//    US West (Oregon), Canada (Central), EU (Ireland), EU (London), EU (Frankfurt),
+	//    Asia Pacific (Tokyo), Asia Pacific (Seoul), Asia Pacific (Singapore),
+	//    Asia Pacific (Sydney), China (Beijing), and China (Ningxia).
+	//
+	//    * The environment type LINUX_GPU_CONTAINER is available only in regions
+	//    US East (N. Virginia), US East (N. Virginia), US West (Oregon), Canada
+	//    (Central), EU (Ireland), EU (London), EU (Frankfurt), Asia Pacific (Tokyo),
+	//    Asia Pacific (Seoul), Asia Pacific (Singapore), Asia Pacific (Sydney)
+	//    , China (Beijing), and China (Ningxia).
 	//
 	// Type is a required field
 	Type *string `locationName:"type" type:"string" required:"true" enum:"EnvironmentType"`
@@ -4818,6 +4947,9 @@ type ProjectSource struct {
 	// provider. This option is valid only when your source provider is GitHub,
 	// GitHub Enterprise, or Bitbucket. If this is set and you use a different source
 	// provider, an invalidInputException is thrown.
+	//
+	// The status of a build triggered by a webhook is always reported to your source
+	// provider.
 	ReportBuildStatus *bool `locationName:"reportBuildStatus" type:"boolean"`
 
 	// An identifier for this project source.
@@ -4834,6 +4966,8 @@ type ProjectSource struct {
 	//    of a pipeline in AWS CodePipeline.
 	//
 	//    * GITHUB: The source code is in a GitHub repository.
+	//
+	//    * GITHUB_ENTERPRISE: The source code is in a GitHub Enterprise repository.
 	//
 	//    * NO_SOURCE: The project does not have input source code.
 	//
@@ -5331,6 +5465,9 @@ type StartBuildInput struct {
 	// Set to true to report to your source provider the status of a build's start
 	// and completion. If you use this option with a source provider other than
 	// GitHub, GitHub Enterprise, or Bitbucket, an invalidInputException is thrown.
+	//
+	// The status of a build triggered by a webhook is always reported to your source
+	// provider.
 	ReportBuildStatusOverride *bool `locationName:"reportBuildStatusOverride" type:"boolean"`
 
 	// An array of ProjectArtifacts objects.
@@ -6589,6 +6726,9 @@ const (
 
 	// ComputeTypeBuildGeneral1Large is a ComputeType enum value
 	ComputeTypeBuildGeneral1Large = "BUILD_GENERAL1_LARGE"
+
+	// ComputeTypeBuildGeneral12xlarge is a ComputeType enum value
+	ComputeTypeBuildGeneral12xlarge = "BUILD_GENERAL1_2XLARGE"
 )
 
 const (
@@ -6602,6 +6742,12 @@ const (
 
 	// EnvironmentTypeLinuxContainer is a EnvironmentType enum value
 	EnvironmentTypeLinuxContainer = "LINUX_CONTAINER"
+
+	// EnvironmentTypeLinuxGpuContainer is a EnvironmentType enum value
+	EnvironmentTypeLinuxGpuContainer = "LINUX_GPU_CONTAINER"
+
+	// EnvironmentTypeArmContainer is a EnvironmentType enum value
+	EnvironmentTypeArmContainer = "ARM_CONTAINER"
 )
 
 const (
@@ -6610,6 +6756,9 @@ const (
 
 	// EnvironmentVariableTypeParameterStore is a EnvironmentVariableType enum value
 	EnvironmentVariableTypeParameterStore = "PARAMETER_STORE"
+
+	// EnvironmentVariableTypeSecretsManager is a EnvironmentVariableType enum value
+	EnvironmentVariableTypeSecretsManager = "SECRETS_MANAGER"
 )
 
 const (
