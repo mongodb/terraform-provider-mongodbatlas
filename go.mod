@@ -10,7 +10,7 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-test/deep v1.0.6
 	github.com/golangci/golangci-lint v1.24.0
-	github.com/hashicorp/terraform v0.12.1
+	github.com/hashicorp/terraform v0.12.7
 	github.com/jen20/awspolicyequivalence v1.1.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
