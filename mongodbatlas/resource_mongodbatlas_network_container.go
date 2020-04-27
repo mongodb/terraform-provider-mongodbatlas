@@ -304,3 +304,28 @@ func resourceNetworkContainerRefreshFunc(d *schema.ResourceData, client *matlas.
 		return 42, "deleted", nil
 	}
 }
+
+func resourceListNetworkContainerRefreshFunc(d *schema.ResourceData, client *matlas.Client, originaList []matlas.Container) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		ids := decodeStateID(d.Id())
+		projectID := ids["project_id"]
+		providerName := ids["provider_name"]
+		options := &matlas.ContainersListOptions{
+			ProviderName: providerName,
+		}
+
+		var err error
+		containers, res, err := client.Containers.List(context.Background(), projectID, options)
+		if err != nil {
+			if res.StatusCode == 404 {
+				return 42, "deleted", nil
+			}
+			return nil, "", err
+		}
+		if len(containers) == len(originaList) {
+			return nil, "same", nil
+		}
+
+		return containers, "different", nil
+	}
+}

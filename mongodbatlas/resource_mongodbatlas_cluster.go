@@ -357,6 +357,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				},
 			},
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
+			"container_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -496,6 +501,40 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorClusterCreate, err)
 	}
 
+	var containerId string
+	if providerName == "AZURE"{
+		if v, ok := d.GetOk("container_id"); ok {
+			containerId = v.(string)
+			_, res, err := conn.Containers.Get(context.Background(), projectID, containerId)
+			if err != nil {
+				if res.StatusCode == 404 {//Container doesn't exists
+					options := &matlas.ContainersListOptions{
+						ProviderName: providerName,
+					}
+					containersOriginal, _, _ := conn.Containers.List(context.Background(), projectID, options)
+					stateConf := &resource.StateChangeConf{
+						Pending:    []string{"provisioned_container"},
+						Target:     []string{"different"},
+						Refresh:    resourceListNetworkContainerRefreshFunc(d, conn, containersOriginal),
+						Timeout:    1 * time.Hour,
+						MinTimeout: 10 * time.Second,
+						Delay:      2 * time.Minute,
+					}
+
+					// Wait, catching any errors
+					containersResp, err := stateConf.WaitForState()
+					if err != nil {
+						return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
+					}
+					containers := containersResp.([]matlas.Container)
+					if len(containers) > 0{
+						containerId = containers[0].ID
+					}
+				}
+			}
+		}
+	}
+
 	/*
 		So far, the cluster has created correctly, so we need to set up
 		the advanced configuration option to attach it
@@ -513,6 +552,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		"cluster_id":   cluster.ID,
 		"project_id":   projectID,
 		"cluster_name": cluster.Name,
+		"container_id": containerId,
 	}))
 
 	return resourceMongoDBAtlasClusterRead(d, meta)
@@ -613,6 +653,8 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
+
+	d.Set("container_id", ids["container_id"])
 
 	/*
 		Get the advaced configuration options and set up to the terraform state
