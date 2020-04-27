@@ -1,9 +1,5 @@
 ## 0.5.1 (Unreleased)
 
-**Implemented enhancements:**
-
-- Support new private and privateSrv connection strings [\#183](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/183)
-
 **Closed issues:**
 
 - Terraform plan and apply fails after upgrading this module to 0.5.0 [\#200](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/200)
