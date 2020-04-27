@@ -502,12 +502,12 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	var containerId string
-	if providerName == "AZURE"{
+	if providerName == "AZURE" {
 		if v, ok := d.GetOk("container_id"); ok {
 			containerId = v.(string)
 			_, res, err := conn.Containers.Get(context.Background(), projectID, containerId)
 			if err != nil {
-				if res.StatusCode == 404 {//Container doesn't exists
+				if res.StatusCode == 404 { //Container doesn't exists
 					options := &matlas.ContainersListOptions{
 						ProviderName: providerName,
 					}
@@ -527,7 +527,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 						return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
 					}
 					containers := containersResp.([]matlas.Container)
-					if len(containers) > 0{
+					if len(containers) > 0 {
 						containerId = containers[0].ID
 					}
 				}
@@ -654,7 +654,9 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
-	d.Set("container_id", ids["container_id"])
+	if err := d.Set("container_id", ids["container_id"]); err != nil {
+		return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
+	}
 
 	/*
 		Get the advaced configuration options and set up to the terraform state
