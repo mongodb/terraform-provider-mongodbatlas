@@ -1,5 +1,19 @@
-## 0.6.0 (Unreleased)
-## 0.5.0 (April 22, 2020)
+## 0.5.1 (Unreleased)
+
+**Closed issues:**
+
+- Terraform plan and apply fails after upgrading this module to 0.5.0 [\#200](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/200)
+- Alert configuration roles array should not be required [\#201](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/201)
+- Can't get PrivateLink-aware mongodb+srv address when using privatelink [\#147](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/147)
+
+**Merged pull requests:**
+
+- Fix travis, remove google cookie [\#204](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/204) ([marinsalinas](https://github.com/marinsalinas))
+- Fix: improved validation to avoid error 404 [\#203](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/203) ([PacoDw](https://github.com/PacoDw))
+- Changed roles to computed [\#202](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/202) ([PacoDw](https://github.com/PacoDw))
+- Fixed the documetation menu [\#199](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/199) ([PacoDw](https://github.com/PacoDw))
+
+## v0.5.0 (April 22, 2020)
 
 **Implemented enhancements:**
 
