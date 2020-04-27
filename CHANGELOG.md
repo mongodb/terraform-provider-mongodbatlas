@@ -1,3 +1,4 @@
+## 0.6.0 (Unreleased)
 ## 0.5.1 (April 27, 2020)
 
 **Closed issues:**
