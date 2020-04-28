@@ -103,6 +103,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
 
+* `container_id` - The Network Peering Container ID.
+
 
 
 ### BI Connector
