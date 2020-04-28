@@ -467,6 +467,40 @@ func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasClusterContainerId_withAzureNetworkPeering(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.test"
+
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	directoryID := os.Getenv("AZURE_DIRECTORY_ID")
+	subcrptionID := os.Getenv("AZURE_SUBCRIPTION_ID")
+	resourceGroupName := os.Getenv("AZURE_RESOURCE_GROUP_NAME")
+	vNetName := os.Getenv("AZURE_VNET_NAME")
+	providerName := "AZURE"
+	region := os.Getenv("AZURE_REGION")
+
+	atlasCidrBlock := "192.168.208.0/21"
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
