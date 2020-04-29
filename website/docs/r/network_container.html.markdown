@@ -10,11 +10,12 @@ description: |-
 
 `mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. The resource requires your Project ID.
 
-~> **IMPORTANT:** This resource creates one Network Peering container into which Atlas can deploy Network Peering connections. An Atlas project can have a maximum of one container for each cloud provider. You must have either the Project Owner or Organization Owner role to successfully call this endpoint.
-
-The following table outlines the maximum number of Network Peering containers per cloud provider:
-* Cloud Provider:  GCP - Container Limit: One container per project.
-* Cloud Provider:  AWS and Azure - Container Limit: One container per cloud provider region.
+~> **IMPORTANT:**
+<br> This resource creates one Network Peering container into which Atlas can deploy Network Peering connections. You must have either the Project Owner or Organization Owner role to successfully call this endpoint.
+<br>
+<br> The following list outlines the maximum number of Network Peering containers per cloud provider:
+<br> &#8226; GCP - One container per project.
+<br> &#8226; AWS and Azure - One container per cloud provider region per project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 
