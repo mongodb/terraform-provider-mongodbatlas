@@ -106,24 +106,20 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 			},
 			"google_cloud_kms": {
 				Type:     schema.TypeMap,
-				ForceNew: true,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							ForceNew: true,
 							Required: true,
 						},
 						"service_account_key": {
 							Type:      schema.TypeString,
-							ForceNew:  true,
 							Required:  true,
 							Sensitive: true,
 						},
 						"key_version_resource_id": {
 							Type:      schema.TypeString,
-							ForceNew:  true,
 							Required:  true,
 							Sensitive: true,
 						},
@@ -138,14 +134,10 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 	conn := meta.(*matlas.Client)
 
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
-		GroupID:       d.Get("project_id").(string),
-		AwsKms:        expandAwsKms(d.Get("aws_kms").(map[string]interface{})),
-		AzureKeyVault: expandAzureKeyVault(d.Get("azure_key_vault").(map[string]interface{})),
-		GoogleCloudKms: matlas.GoogleCloudKms{
-			Enabled:              pointy.Bool(cast.ToBool(d.Get("google_cloud_kms.enabled"))),
-			ServiceAccountKey:    cast.ToString(d.Get("google_cloud_kms.service_account_key")),
-			KeyVersionResourceID: cast.ToString(d.Get("google_cloud_kms.key_version_resource_id")),
-		},
+		GroupID:        d.Get("project_id").(string),
+		AwsKms:         expandAwsKms(d.Get("aws_kms").(map[string]interface{})),
+		AzureKeyVault:  expandAzureKeyVault(d.Get("azure_key_vault").(map[string]interface{})),
+		GoogleCloudKms: expandGCPKms(d.Get("google_cloud_kms").(map[string]interface{})),
 	}
 
 	_, _, err := conn.EncryptionsAtRest.Create(context.Background(), encryptionAtRestReq)
@@ -183,6 +175,9 @@ func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta int
 	}
 	if d.HasChange("azure_key_vault") {
 		encrypt.AzureKeyVault = expandAzureKeyVault(d.Get("azure_key_vault").(map[string]interface{}))
+	}
+	if d.HasChange("google_cloud_kms") {
+		encrypt.GoogleCloudKms = expandGCPKms(d.Get("google_cloud_kms").(map[string]interface{}))
 	}
 
 	_, _, err = conn.EncryptionsAtRest.Create(context.Background(), encrypt)
@@ -225,5 +220,13 @@ func expandAzureKeyVault(azure map[string]interface{}) matlas.AzureKeyVault {
 		KeyIdentifier:     cast.ToString(azure["key_identifier"]),
 		Secret:            cast.ToString(azure["secret"]),
 		TenantID:          cast.ToString(azure["tenant_id"]),
+	}
+}
+
+func expandGCPKms(gcpKms map[string]interface{}) matlas.GoogleCloudKms {
+	return matlas.GoogleCloudKms{
+		Enabled:              pointy.Bool(cast.ToBool(gcpKms["enabled"])),
+		ServiceAccountKey:    cast.ToString(gcpKms["service_account_key"]),
+		KeyVersionResourceID: cast.ToString(gcpKms["key_version_resource_id"]),
 	}
 }
