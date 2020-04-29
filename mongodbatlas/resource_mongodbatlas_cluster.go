@@ -502,34 +502,36 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 	var containerId string
 	if providerName == "AZURE" {
-		if v, ok := d.GetOk("container_id"); ok {
-			containerId = v.(string)
-			_, res, err := conn.Containers.Get(context.Background(), projectID, containerId)
+		options := &matlas.ContainersListOptions{
+			ProviderName: providerName,
+		}
+		containersOriginal, _, _ := conn.Containers.List(context.Background(), projectID, options)
+		if len(containersOriginal) == 0 {
+			stateConf := &resource.StateChangeConf{
+				Pending:    []string{"provisioned_container"},
+				Target:     []string{"different"},
+				Refresh:    resourceListNetworkContainerRefreshFunc(d, conn, containersOriginal),
+				Timeout:    1 * time.Hour,
+				MinTimeout: 10 * time.Second,
+				Delay:      2 * time.Minute,
+			}
+			// Wait, catching any errors
+			containersResp, err := stateConf.WaitForState()
 			if err != nil {
-				if res.StatusCode == 404 { //Container doesn't exists
-					options := &matlas.ContainersListOptions{
-						ProviderName: providerName,
-					}
-					containersOriginal, _, _ := conn.Containers.List(context.Background(), projectID, options)
-					stateConf := &resource.StateChangeConf{
-						Pending:    []string{"provisioned_container"},
-						Target:     []string{"different"},
-						Refresh:    resourceListNetworkContainerRefreshFunc(d, conn, containersOriginal),
-						Timeout:    1 * time.Hour,
-						MinTimeout: 10 * time.Second,
-						Delay:      2 * time.Minute,
-					}
-
-					// Wait, catching any errors
-					containersResp, err := stateConf.WaitForState()
-					if err != nil {
-						return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
-					}
-					containers := containersResp.([]matlas.Container)
-					if len(containers) > 0 {
-						containerId = containers[0].ID
+				return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
+			}
+			containers := containersResp.([]matlas.Container)
+			if len(containers) != 0 {
+				for _, container := range containers {
+					if container.ProviderName == "AZURE" && container.Region == cluster.ProviderSettings.RegionName {
+						containerId = container.ID
 					}
 				}
+			}
+		}
+		for _, container := range containersOriginal {
+			if container.ProviderName == "AZURE" && container.Region == cluster.ProviderSettings.RegionName {
+				containerId = container.ID
 			}
 		}
 	}
