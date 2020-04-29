@@ -500,42 +500,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorClusterCreate, err)
 	}
 
-	var containerId string
-	if providerName == "AZURE" {
-		options := &matlas.ContainersListOptions{
-			ProviderName: providerName,
-		}
-		containersOriginal, _, _ := conn.Containers.List(context.Background(), projectID, options)
-		if len(containersOriginal) == 0 {
-			stateConf := &resource.StateChangeConf{
-				Pending:    []string{"provisioned_container"},
-				Target:     []string{"different"},
-				Refresh:    resourceListNetworkContainerRefreshFunc(d, conn, containersOriginal),
-				Timeout:    1 * time.Hour,
-				MinTimeout: 10 * time.Second,
-				Delay:      2 * time.Minute,
-			}
-			// Wait, catching any errors
-			containersResp, err := stateConf.WaitForState()
-			if err != nil {
-				return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
-			}
-			containers := containersResp.([]matlas.Container)
-			if len(containers) != 0 {
-				for _, container := range containers {
-					if container.ProviderName == "AZURE" && container.Region == cluster.ProviderSettings.RegionName {
-						containerId = container.ID
-					}
-				}
-			}
-		}
-		for _, container := range containersOriginal {
-			if container.ProviderName == "AZURE" && container.Region == cluster.ProviderSettings.RegionName {
-				containerId = container.ID
-			}
-		}
-	}
-
 	/*
 		So far, the cluster has created correctly, so we need to set up
 		the advanced configuration option to attach it
@@ -550,10 +514,10 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"cluster_id":   cluster.ID,
-		"project_id":   projectID,
-		"cluster_name": cluster.Name,
-		"container_id": containerId,
+		"cluster_id":    cluster.ID,
+		"project_id":    projectID,
+		"cluster_name":  cluster.Name,
+		"provider_name": providerName,
 	}))
 
 	return resourceMongoDBAtlasClusterRead(d, meta)
@@ -565,6 +529,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
+	providerName := ids["provider_name"]
 
 	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
@@ -655,8 +620,24 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
-	if err := d.Set("container_id", ids["container_id"]); err != nil {
-		return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
+	if providerName == "AZURE" {
+		options := &matlas.ContainersListOptions{
+			ProviderName: providerName,
+		}
+		containers, _, err := conn.Containers.List(context.Background(), projectID, options)
+		if err != nil {
+			return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
+		}
+
+		if len(containers) != 0 {
+			for _, container := range containers {
+				if container.ProviderName == "AZURE" && container.Region == cluster.ProviderSettings.RegionName {
+					if err := d.Set("container_id", container.ID); err != nil {
+						return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
+					}
+				}
+			}
+		}
 	}
 
 	/*
