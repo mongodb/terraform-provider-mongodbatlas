@@ -467,21 +467,17 @@ func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasClusterContainerId_withAzureNetworkPeering(t *testing.T) {
-	var cluster matlas.Cluster
-
+func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
 	resourceName := "mongodbatlas_cluster.test"
 
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	providerName := "AZURE"
+	region := os.Getenv("AZURE_REGION")
 	directoryID := os.Getenv("AZURE_DIRECTORY_ID")
 	subcrptionID := os.Getenv("AZURE_SUBCRIPTION_ID")
 	resourceGroupName := os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 	vNetName := os.Getenv("AZURE_VNET_NAME")
-	providerName := "AZURE"
-	region := os.Getenv("AZURE_REGION")
-
-	atlasCidrBlock := "192.168.208.0/21"
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
@@ -489,9 +485,8 @@ func TestAccResourceMongoDBAtlasClusterContainerId_withAzureNetworkPeering(t *te
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName, clusterName, atlasCidrBlock, region),
+				Config: testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName, providerName, region, directoryID, subcrptionID, resourceGroupName, vNetName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
@@ -996,4 +991,33 @@ func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(gcpProjectID, gcpRegi
 			depends_on = ["google_compute_network_peering.gcp_peering"]
 		}
 	`, gcpProjectID, gcpRegion, projectID, providerName, gcpPeeringName, clusterName, gcpClusterRegion)
+}
+
+func testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName, providerName, region, directoryID, subcrptionID, resourceGroupName, vNetName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[1]s"
+			name         = "%[2]s"
+
+			replication_factor           = 3
+			auto_scaling_disk_gb_enabled = false
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "%[3]s"
+			provider_instance_size_name = "M10"
+			provider_region_name        = "%[4]s"
+		}
+
+		resource "mongodbatlas_network_peering" "test" {
+			project_id            = "%[1]s"
+			atlas_cidr_block      = "192.168.0.0/21"
+			container_id          = "${mongodbatlas_cluster.test.container_id}"
+			provider_name         = "%[3]s"
+			azure_directory_id    = "%[5]s"
+			azure_subscription_id = "%[6]s"
+			resource_group_name   = "%[7]s"
+			vnet_name             = "%[8]s"
+		}
+	`, projectID, clusterName, providerName, region, directoryID, subcrptionID, resourceGroupName, vNetName)
 }
