@@ -167,7 +167,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	username := fmt.Sprintf("test_username_%s", acctest.RandString(5))
+	username := fmt.Sprintf("test-username-%s", acctest.RandString(5))
 	resourceName := "mongodbatlas_database_user.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -177,6 +177,14 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read", username, "First Key", "First value"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
 			},
 			{
 				ResourceName:            resourceName,

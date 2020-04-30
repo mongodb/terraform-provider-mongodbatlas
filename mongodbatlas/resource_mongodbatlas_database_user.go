@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-
-	"strings"
+	"regexp"
 
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -249,31 +247,40 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a database user, use the format {project_id}-{username}-{auth_database_name}")
+	projectID, username, authDatabaseName, err := splitDatabaseUserImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
 
-	projectID := parts[0]
-	username := parts[1]
-	authDatabaseName := parts[2]
-
-	u, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	u, _, err := conn.DatabaseUsers.Get(context.Background(), *authDatabaseName, *projectID, *username)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import user(%s) in project(%s), error: %s", username, projectID, err)
+		return nil, fmt.Errorf("couldn't import user(%s) in project(%s), error: %s", *username, *projectID, err)
 	}
 
 	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
+		return nil, fmt.Errorf("error setting `project_id` for database user (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("auth_database_name", u.DatabaseName); err != nil {
+		return nil, fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"project_id":         projectID,
-		"username":           username,
-		"auth_database_name": authDatabaseName,
+		"project_id":         *projectID,
+		"username":           *username,
+		"auth_database_name": *authDatabaseName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitDatabaseUserImportID(ID string) (*string, *string, *string, error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([a-z]{1,15})$`)
+	parts := re.FindStringSubmatch(ID)
+
+	if len(parts) != 4 {
+		return nil, nil, nil, errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name}")
+	}
+	return &parts[1], &parts[2], &parts[3], nil
 }
 
 func expandRoles(d *schema.ResourceData) []matlas.Role {
