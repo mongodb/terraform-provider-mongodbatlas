@@ -620,7 +620,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
-	if providerName == "AZURE" {
+	if providerName == "AZURE" || providerName == "AWS" {
 		options := &matlas.ContainersListOptions{
 			ProviderName: providerName,
 		}
@@ -631,7 +631,9 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 
 		if len(containers) != 0 {
 			for _, container := range containers {
-				if container.ProviderName == "AZURE" && container.Region == cluster.ProviderSettings.RegionName {
+				if container.ProviderName == providerName &&
+					container.Region == cluster.ProviderSettings.RegionName || // For Azure
+					container.RegionName == cluster.ProviderSettings.RegionName { // For AWS
 					if err := d.Set("container_id", container.ID); err != nil {
 						return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
 					}

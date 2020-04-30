@@ -417,7 +417,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -486,6 +486,36 @@ func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName, providerName, region, directoryID, subcrptionID, resourceGroupName, vNetName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
+	resourceName := "mongodbatlas_cluster.test"
+
+	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
+	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	providerName := "AWS"
+	awsRegion := os.Getenv("AWS_REGION")
+	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
+	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSWithContainerID(awsAccessKey, awsSecretKey, projectID, clusterName, providerName, awsRegion, vpcCIDRBlock, awsAccountID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -1020,4 +1050,54 @@ func testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName
 			vnet_name             = "%[8]s"
 		}
 	`, projectID, clusterName, providerName, region, directoryID, subcrptionID, resourceGroupName, vNetName)
+}
+
+func testAccMongoDBAtlasClusterConfigAWSWithContainerID(awsAccessKey, awsSecretKey, projectID, clusterName, providerName, region, vpcCIDRBlock, awsAccountID string) string {
+	return fmt.Sprintf(`
+		provider "aws" {
+			region     = lower(replace("%[6]s", "_", "-"))
+			access_key = "%[1]s"
+			secret_key = "%[2]s"
+		}
+
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[3]s"
+			name         = "%[4]s"
+			disk_size_gb = 5
+
+			replication_factor           = 3
+			auto_scaling_disk_gb_enabled = false
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "%[5]s"
+			provider_instance_size_name = "M10"
+			provider_region_name        = "%[6]s"
+		}
+
+		resource "aws_default_vpc" "default" {
+			tags = {
+				Name = "Default VPC"
+			}
+		}
+
+		resource "mongodbatlas_network_peering" "mongo_peer" {
+			accepter_region_name   = lower(replace("%[6]s", "_", "-"))
+			project_id             = "%[3]s"
+			container_id           = mongodbatlas_cluster.test.container_id
+			provider_name          = "%[5]s"
+			route_table_cidr_block = "%[7]s"
+			vpc_id                 = aws_default_vpc.default.id
+			aws_account_id         = "%[8]s"
+		}
+
+		resource "aws_vpc_peering_connection_accepter" "aws_peer" {
+			vpc_peering_connection_id = mongodbatlas_network_peering.mongo_peer.connection_id
+			auto_accept               = true
+
+			tags = {
+				Side = "Accepter"
+			}
+		}
+	`, awsAccessKey, awsSecretKey, projectID, clusterName, providerName, region, vpcCIDRBlock, awsAccountID)
 }
