@@ -526,6 +526,36 @@ func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasCluster_withGCPAndContainerID(t *testing.T) {
+	resourceName := "mongodbatlas_cluster.test"
+	gcpProjectID := os.Getenv("GCP_PROJECT_ID")
+	gcpRegion := os.Getenv("GCP_REGION_NAME")
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(3))
+	providerName := "GCP"
+	gcpClusterRegion := os.Getenv("GCP_CLUSTER_REGION_NAME")
+	gcpPeeringName := fmt.Sprintf("test-acc-%s", acctest.RandString(3))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion, projectID, clusterName, providerName, gcpClusterRegion, gcpPeeringName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
@@ -1100,4 +1130,47 @@ func testAccMongoDBAtlasClusterConfigAWSWithContainerID(awsAccessKey, awsSecretK
 			}
 		}
 	`, awsAccessKey, awsSecretKey, projectID, clusterName, providerName, region, vpcCIDRBlock, awsAccountID)
+}
+
+func testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion, projectID, clusterName, providerName, gcpClusterRegion, gcpPeeringName string) string {
+	return fmt.Sprintf(`
+		provider "google" {
+			project     = "%[1]s"
+			region      = "%[2]s"
+		}
+
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[3]s"
+			name         = "%[4]s"
+			disk_size_gb = 5
+			num_shards   = 1
+
+			replication_factor           = 3
+			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "%[5]s"
+			provider_instance_size_name = "M10"
+			provider_region_name        = "%[6]s"
+		}
+
+		resource "mongodbatlas_network_peering" "test" {
+			project_id     = "%[3]s"
+			container_id   = mongodbatlas_cluster.test.container_id
+			provider_name  = "%[5]s"
+			gcp_project_id = "%[1]s"
+			network_name   = "default"
+		}
+
+		data "google_compute_network" "default" {
+			name = "default"
+		}
+
+		resource "google_compute_network_peering" "gcp_peering" {
+			name         = "%[7]s"
+			network      = data.google_compute_network.default.self_link
+			peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
+		}
+	`, gcpProjectID, gcpRegion, projectID, clusterName, providerName, gcpClusterRegion, gcpPeeringName)
 }

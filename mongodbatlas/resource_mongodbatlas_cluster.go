@@ -620,26 +620,14 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
 	}
 
-	if providerName == "AZURE" || providerName == "AWS" {
-		options := &matlas.ContainersListOptions{
-			ProviderName: providerName,
-		}
-		containers, _, err := conn.Containers.List(context.Background(), projectID, options)
-		if err != nil {
-			return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
-		}
+	containers, _, err := conn.Containers.List(context.Background(), projectID,
+		&matlas.ContainersListOptions{ProviderName: providerName})
+	if err != nil {
+		return fmt.Errorf(errorClusterRead, clusterName, err)
+	}
 
-		if len(containers) != 0 {
-			for _, container := range containers {
-				if container.ProviderName == providerName &&
-					container.Region == cluster.ProviderSettings.RegionName || // For Azure
-					container.RegionName == cluster.ProviderSettings.RegionName { // For AWS
-					if err := d.Set("container_id", container.ID); err != nil {
-						return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
-					}
-				}
-			}
-		}
+	if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
 	}
 
 	/*
@@ -1091,4 +1079,20 @@ func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 		"private_srv":          connectionStrings.PrivateSrv,
 	})
 	return connections
+}
+
+func getContainerID(containers []matlas.Container, cluster *matlas.Cluster) string {
+	if len(containers) != 0 {
+		for _, container := range containers {
+			if cluster.ProviderSettings.ProviderName == "GCP" {
+				return container.ID
+			}
+			if container.ProviderName == cluster.ProviderSettings.ProviderName &&
+				container.Region == cluster.ProviderSettings.RegionName || // For Azure
+				container.RegionName == cluster.ProviderSettings.RegionName { // For AWS
+				return container.ID
+			}
+		}
+	}
+	return ""
 }
