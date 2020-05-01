@@ -62,7 +62,7 @@ resource "mongodbatlas_network_peering" "test" {
   aws_account_id         = "abc123abc123"
 }
 
-# the following assumes an AWS provider is configured  
+# the following assumes an AWS provider is configured
 resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = "${mongodbatlas_network_peering.test.connection_id}"
   auto_accept = true
@@ -124,7 +124,7 @@ resource "mongodbatlas_cluster" "test" {
 #  happens when the google_compute_network_peering and and
 #  mongodbatlas_network_peering make a reciprocal connection).  Hence
 #  since the cluster can be created before this connection completes
-#  you may need to run `terraform refresh` to obtain the private connection strings.  
+#  you may need to run `terraform refresh` to obtain the private connection strings.
 
 ```
 
@@ -170,10 +170,129 @@ resource "mongodbatlas_cluster" "test" {
 
 ```
 
+### Examples creating Peering resource without Container Ressource
+You can create a Peering Connection without usage a Container Resource if your Cluster Resource has been created before and obtain the `container_id` from the Cluster Resource itself.
+
+### Example with AWS.
+```hcl
+resource "mongodbatlas_cluster" "test" {
+  project_id   = local.project_id
+  name         = "terraform-test"
+  disk_size_gb = 5
+
+  replication_factor           = 3
+  auto_scaling_disk_gb_enabled = false
+  mongo_db_major_version       = "4.0"
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_instance_size_name = "M10"
+  provider_region_name        = "US_EAST_2"
+}
+
+resource "aws_default_vpc" "default" {
+  tags = {
+    Name = "Default VPC"
+  }
+}
+
+resource "mongodbatlas_network_peering" "mongo_peer" {
+  accepter_region_name   = "us-east-2"
+  project_id             = local.project_id
+  container_id           = mongodbatlas_cluster.test.container_id
+  provider_name          = "AWS"
+  route_table_cidr_block = "172.31.0.0/16"
+  vpc_id                 = aws_default_vpc.default.id
+  aws_account_id         = local.AWS_ACCOUNT_ID
+}
+
+resource "aws_vpc_peering_connection_accepter" "aws_peer" {
+  vpc_peering_connection_id = mongodbatlas_network_peering.mongo_peer.connection_id
+  auto_accept               = true
+
+  tags = {
+    Side = "Accepter"
+  }
+}
+```
+
+### Example with GCP
+```hcl
+resource "mongodbatlas_cluster" "test" {
+  project_id   = local.project_id
+  name         = "terraform-manually-test"
+  num_shards   = 1
+  disk_size_gb = 5
+
+  replication_factor           = 3
+  auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.0"
+
+  //Provider Settings "block"
+  provider_name               = "GCP"
+  provider_instance_size_name = "M10"
+  provider_region_name        = "US_EAST_2"
+}
+
+resource "mongodbatlas_network_peering" "test" {
+  project_id       = "${local.project_id}"
+  atlas_cidr_block = "192.168.0.0/18"
+
+  container_id   = mongodbatlas_cluster.test.container_id
+  provider_name  = "GCP"
+  gcp_project_id = local.GCP_PROJECT_ID
+  network_name   = "default"
+}
+
+data "google_compute_network" "default" {
+  name = "default"
+}
+
+resource "google_compute_network_peering" "peering" {
+  name         = "peering-gcp-terraform-test"
+  network      = data.google_compute_network.default.self_link
+  peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
+}
+```
+
+### Example with Azure
+
+```hcl
+resource "mongodbatlas_cluster" "test" {
+  project_id = local.project_id
+  name       = "cluster-azure"
+
+  replication_factor           = 3
+  auto_scaling_disk_gb_enabled = false
+  mongo_db_major_version       = "4.0"
+
+  //Provider Settings "block"
+  provider_name               = "AZURE"
+  provider_instance_size_name = "M10"
+  provider_region_name        = "US_EAST_2"
+}
+
+
+resource "mongodbatlas_network_peering" "test" {
+  project_id            = local.project_id
+  atlas_cidr_block      = "192.168.0.0/21"
+  container_id          = mongodbatlas_cluster.test.container_id
+  provider_name         = "AZURE"
+  azure_directory_id    = local.AZURE_DIRECTORY_ID
+  azure_subscription_id = local.AZURE_SUBCRIPTION_ID
+  resource_group_name   = local.AZURE_RESOURCE_GROUP_NAME
+  vnet_name             = local.AZURE_VNET_NAME
+}
+```
+
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
-* `container_id` - (Required) Unique identifier of the Atlas VPC container for the region. You can create an Atlas VPC container using the Create Container endpoint. You cannot create more than one container per region. To retrieve a list of container IDs, use the Get list of VPC containers endpoint.
+* `container_id` - (Required) Unique identifier of the Atlas VPC container for the region. You can create an Atlas VPC container using the Create Container endpoint or it can be obtained from the cluster returned values if the cluster has been created before the peering connection.
+
+  -> **NOTE:** You cannot create more than one container per region. To retrieve a list of container IDs, use the Get list of VPC containers endpoint.
 * `provider_name` - (Required) Cloud provider for this VPC peering connection. (Possible Values `AWS`, `AZURE`, `GCP`).
 * `accepter_region_name` - (Optional | **AWS Required**) Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `aws_account_id` - (Optional | **AWS Required**) Account ID of the owner of the peer VPC.
