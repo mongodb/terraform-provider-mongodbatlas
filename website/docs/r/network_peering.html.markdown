@@ -82,8 +82,6 @@ resource "mongodbatlas_network_container" "test" {
 
 resource "mongodbatlas_network_peering" "test" {
   project_id       = "${local.project_id}"
-  atlas_cidr_block = "192.168.0.0/18"
-
   container_id   = "${mongodbatlas_network_container.test.container_id}"
   provider_name  = "GCP"
   gcp_project_id = "${local.GCP_PROJECT_ID}"
