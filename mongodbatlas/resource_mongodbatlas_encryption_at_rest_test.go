@@ -144,6 +144,11 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 		ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY"),
 		KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID"),
 	}
+	googleCloudKmsUpdated := matlas.GoogleCloudKms{
+		Enabled:              pointy.Bool(true),
+		ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED"),
+		KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED"),
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
@@ -158,6 +163,16 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.enabled", cast.ToString(googleCloudKms.Enabled)),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.service_account_key", googleCloudKms.ServiceAccountKey),
 					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.key_version_resource_id", googleCloudKms.KeyVersionResourceID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKmsUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.enabled", cast.ToString(googleCloudKmsUpdated.Enabled)),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.service_account_key", googleCloudKmsUpdated.ServiceAccountKey),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms.key_version_resource_id", googleCloudKmsUpdated.KeyVersionResourceID),
 				),
 			},
 		},
