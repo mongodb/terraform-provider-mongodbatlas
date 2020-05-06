@@ -94,7 +94,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, "true", &matlas.ProcessArgs{
+				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, "false", &matlas.ProcessArgs{
 					FailIndexKeyTooLong:              pointy.Bool(false),
 					JavascriptEnabled:                pointy.Bool(false),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
@@ -608,15 +608,15 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) 
 	`, projectID, name, backupEnabled)
 }
 
-func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, backupEnabled string, p *matlas.ProcessArgs) string {
+func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, AutoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 10
 			replication_factor           = 3
-			backup_enabled               = %s
-			auto_scaling_disk_gb_enabled = true
+			backup_enabled               = false 
+			auto_scaling_disk_gb_enabled =  %s
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
@@ -636,7 +636,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, backupEnabled
 				sample_refresh_interval_bi_connector = %d
 			}
 		}
-	`, projectID, name, backupEnabled,
+	`, projectID, name, AutoscalingEnabled,
 		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
 }
