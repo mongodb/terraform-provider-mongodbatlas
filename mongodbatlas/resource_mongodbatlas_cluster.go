@@ -501,7 +501,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		the advanced configuration option to attach it
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
-	advancedConfReq := expandProcessArgs(ac.(map[string]interface{}))
+	advancedConfReq := expandProcessArgs(d, ac.(map[string]interface{}))
 	if ok {
 		_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, cluster.Name, advancedConfReq)
 		if err != nil {
@@ -740,7 +740,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		Check if advaced configuration option has a changes to update it
 	*/
 	if d.HasChange("advanced_configuration") {
-		advancedConfReq := expandProcessArgs(d.Get("advanced_configuration").(map[string]interface{}))
+		advancedConfReq := expandProcessArgs(d, d.Get("advanced_configuration").(map[string]interface{}))
 
 		if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 			_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, clusterName, advancedConfReq)
@@ -988,19 +988,32 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 	return regions
 }
 
-func expandProcessArgs(p map[string]interface{}) *matlas.ProcessArgs {
-	res := &matlas.ProcessArgs{
-		FailIndexKeyTooLong:              pointy.Bool(cast.ToBool(p["fail_index_key_too_long"])),
-		JavascriptEnabled:                pointy.Bool(cast.ToBool(p["javascript_enabled"])),
-		MinimumEnabledTLSProtocol:        cast.ToString(p["minimum_enabled_tls_protocol"]),
-		NoTableScan:                      pointy.Bool(cast.ToBool(p["no_table_scan"])),
-		SampleSizeBIConnector:            pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"])),
-		SampleRefreshIntervalBIConnector: pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"])),
+func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas.ProcessArgs {
+	res := &matlas.ProcessArgs{}
+	if _, ok := d.GetOk("advanced_configuration.fail_index_key_too_long"); ok {
+		res.FailIndexKeyTooLong = pointy.Bool(cast.ToBool(p["fail_index_key_too_long"]))
 	}
-	if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-		res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
-	} else {
-		log.Printf(errorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
+	if _, ok := d.GetOk("advanced_configuration.javascript_enabled"); ok {
+		res.JavascriptEnabled = pointy.Bool(cast.ToBool(p["javascript_enabled"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.minimum_enabled_tls_protocol"); ok {
+		res.MinimumEnabledTLSProtocol = cast.ToString(p["minimum_enabled_tls_protocol"])
+	}
+	if _, ok := d.GetOk("advanced_configuration.no_table_scan"); ok {
+		res.NoTableScan = pointy.Bool(cast.ToBool(p["no_table_scan"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.sample_size_bi_connector"); ok {
+		res.SampleSizeBIConnector = pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.sample_refresh_interval_bi_connector"); ok {
+		res.SampleRefreshIntervalBIConnector = pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.oplog_size_mb"); ok {
+		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
+			res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
+		} else {
+			log.Printf(errorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
+		}
 	}
 	return res
 }
