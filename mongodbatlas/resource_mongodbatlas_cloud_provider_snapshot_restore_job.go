@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/spf13/cast"
 	"log"
 	"strings"
 
@@ -123,6 +124,16 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"oplog_ts": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"point_in_time_utc_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -146,6 +157,12 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 		DeliveryType:      deliveryType,
 		TargetClusterName: d.Get("delivery_type.target_cluster_name").(string),
 		TargetGroupID:     d.Get("delivery_type.target_project_id").(string),
+	}
+	if v, ok := d.GetOk("oplog_ts"); ok {
+		snapshotReq.OplogTs = v.(string)
+	}
+	if v, ok := d.GetOk("point_in_time_utc_seconds"); ok {
+		snapshotReq.PointInTimeUTCSeconds = cast.ToInt64(v)
 	}
 
 	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(context.Background(), requestParameters, snapshotReq)
@@ -201,6 +218,12 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceD
 	}
 	if err = d.Set("snapshot_restore_job_id", snapshotReq.ID); err != nil {
 		return fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+	}
+	if err = d.Set("oplog_ts", snapshotReq.OplogTs); err != nil {
+		return fmt.Errorf("error setting `oplog_ts` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+	}
+	if err = d.Set("point_in_time_utc_seconds", snapshotReq.PointInTimeUTCSeconds); err != nil {
+		return fmt.Errorf("error setting `point_in_time_utc_seconds` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
 	return nil
 }
