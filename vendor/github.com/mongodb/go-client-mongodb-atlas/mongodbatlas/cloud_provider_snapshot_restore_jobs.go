@@ -30,19 +30,21 @@ var _ CloudProviderSnapshotRestoreJobsService = &CloudProviderSnapshotRestoreJob
 
 // CloudProviderSnapshotRestoreJob represents the structure of a cloudProviderSnapshotRestoreJob.
 type CloudProviderSnapshotRestoreJob struct {
-	ID                string   `json:"id,omitempty"`                // The unique identifier of the restore job.
-	SnapshotID        string   `json:"snapshotId,omitempty"`        // Unique identifier of the snapshot to restore.
-	DeliveryType      string   `json:"deliveryType,omitempty"`      // Type of restore job to create. Possible values are: automated or download
-	DeliveryURL       []string `json:"deliveryUrl,omitempty"`       // One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
-	TargetClusterName string   `json:"targetClusterName,omitempty"` // Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
-	TargetGroupID     string   `json:"targetGroupId,omitempty"`     // Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
-	Cancelled         bool     `json:"cancelled,omitempty"`         // Indicates whether the restore job was canceled.
-	CreatedAt         string   `json:"createdAt,omitempty"`         // UTC ISO 8601 formatted point in time when Atlas created the restore job.
-	Expired           bool     `json:"expired,omitempty"`           // Indicates whether the restore job expired.
-	ExpiresAt         string   `json:"expiresAt,omitempty"`         // UTC ISO 8601 formatted point in time when the restore job expires.
-	FinishedAt        string   `json:"finishedAt,omitempty"`        // UTC ISO 8601 formatted point in time when the restore job completed.
-	Links             []*Link  `json:"links,omitempty"`             // One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
-	Timestamp         string   `json:"timestamp,omitempty"`         // Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
+	ID                    string   `json:"id,omitempty"`                    // The unique identifier of the restore job.
+	SnapshotID            string   `json:"snapshotId,omitempty"`            // Unique identifier of the snapshot to restore.
+	DeliveryType          string   `json:"deliveryType,omitempty"`          // Type of restore job to create. Possible values are: automated or download
+	DeliveryURL           []string `json:"deliveryUrl,omitempty"`           // One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
+	TargetClusterName     string   `json:"targetClusterName,omitempty"`     // Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
+	TargetGroupID         string   `json:"targetGroupId,omitempty"`         // Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
+	Cancelled             bool     `json:"cancelled,omitempty"`             // Indicates whether the restore job was canceled.
+	CreatedAt             string   `json:"createdAt,omitempty"`             // UTC ISO 8601 formatted point in time when Atlas created the restore job.
+	Expired               bool     `json:"expired,omitempty"`               // Indicates whether the restore job expired.
+	ExpiresAt             string   `json:"expiresAt,omitempty"`             // UTC ISO 8601 formatted point in time when the restore job expires.
+	FinishedAt            string   `json:"finishedAt,omitempty"`            // UTC ISO 8601 formatted point in time when the restore job completed.
+	Links                 []*Link  `json:"links,omitempty"`                 // One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
+	Timestamp             string   `json:"timestamp,omitempty"`             // Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
+	OplogTs               string   `json:"oplogTs,omitempty"`               // If your cluster has Point-in-Time restores enabled, you can specify a timestamp from the oplog from which to restore a backup.
+	PointInTimeUTCSeconds int64    `json:"pointInTimeUTCSeconds,omitempty"` // If your cluster has Point-in-Time restores enabled, you can specify a Unix time in seconds since epoch from which to restore a backup.
 }
 
 // CloudProviderSnapshotRestoreJobs represents an array of cloudProviderSnapshotRestoreJob

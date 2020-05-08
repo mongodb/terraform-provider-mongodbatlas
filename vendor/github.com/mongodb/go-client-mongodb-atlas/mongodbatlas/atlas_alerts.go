@@ -52,8 +52,8 @@ type Alert struct {
 
 // AlertsRequest contains the request Body Parameters
 type AcknowledgeRequest struct {
-	AcknowledgedUntil      string `json:"acknowledgedUntil,omitempty"`      // The date through which the alert has been acknowledged. Will not be present if the alert has never been acknowledged.
-	AcknowledgementComment string `json:"acknowledgementComment,omitempty"` // The comment left by the user who acknowledged the alert. Will not be present if the alert has never been acknowledged.
+	AcknowledgedUntil      *string `json:"acknowledgedUntil,omitempty"`      // The date through which the alert has been acknowledged. Will not be present if the alert has never been acknowledged.
+	AcknowledgementComment string  `json:"acknowledgementComment,omitempty"` // The comment left by the user who acknowledged the alert. Will not be present if the alert has never been acknowledged.
 }
 
 // AlertsListOptions contains the list of options for Alerts

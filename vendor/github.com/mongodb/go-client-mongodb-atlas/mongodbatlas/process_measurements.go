@@ -51,14 +51,14 @@ type DataPoints struct {
 // ProcessMeasurementListOptions contains the list of options for Process Measurements.
 type ProcessMeasurementListOptions struct {
 	*ListOptions
-	Granularity string `url:"granularity"`
-	Period      string `url:"period,omitempty"`
-	Start       string `url:"start,omitempty"`
-	End         string `url:"end,omitempty"`
-	M           string `url:"m,omitempty"`
+	Granularity string   `url:"granularity"`
+	Period      string   `url:"period,omitempty"`
+	Start       string   `url:"start,omitempty"`
+	End         string   `url:"end,omitempty"`
+	M           []string `url:"m,omitempty"`
 }
 
-// Get gets measurements for a specific Atlas MongoDB process.
+// List lists measurements for a specific Atlas MongoDB process.
 // See more: https://docs.atlas.mongodb.com/reference/api/process-measurements/
 func (s *ProcessMeasurementsServiceOp) List(ctx context.Context, groupID string, host string, port int, opts *ProcessMeasurementListOptions) (*ProcessMeasurements, *Response, error) {
 
