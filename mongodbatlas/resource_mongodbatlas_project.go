@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -46,11 +45,7 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Computed: true,
 			},
 			"teams": {
-				Type: schema.TypeSet,
-				Set: func(v interface{}) int {
-					team := v.(map[string]interface{})
-					return hashcode.String(team["team_id"].(string))
-				},
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -89,7 +84,7 @@ func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{})
 	// Check if teams were set, if so we need to add the teams into the project
 	if teams, ok := d.GetOk("teams"); ok {
 		// adding the teams into the project
-		_, _, err := conn.Projects.AddTeamsToProject(context.Background(), project.ID, expandTeams(teams.(*schema.Set)))
+		_, _, err := conn.Projects.AddTeamsToProject(context.Background(), project.ID, expandTeamsSet(teams.(*schema.Set)))
 		if err != nil {
 			return fmt.Errorf("error adding teams into the project: %s", err)
 		}
@@ -139,20 +134,18 @@ func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{})
 
 	if d.HasChange("teams") {
 		// get the current teams and the new teams with changes
-		currentTeams, changes := d.GetChange("teams")
-
-		newTeams := changes.(*schema.Set).Difference(currentTeams.(*schema.Set))
-		removedTeams := currentTeams.(*schema.Set).Difference(changes.(*schema.Set))
-		changedTeams := changes.(*schema.Set).Difference(removedTeams.Union(newTeams))
+		newTeams, changedTeams, removedTeams := getStateTeams(d)
 
 		// adding new teans into the project
-		_, _, err := conn.Projects.AddTeamsToProject(context.Background(), projectID, expandTeams(newTeams))
-		if err != nil {
-			return fmt.Errorf("error adding teams into the project(%s): %s", projectID, err)
+		if len(newTeams) > 0 {
+			_, _, err := conn.Projects.AddTeamsToProject(context.Background(), projectID, expandTeamsList(newTeams))
+			if err != nil {
+				return fmt.Errorf("error adding teams into the project(%s): %s", projectID, err)
+			}
 		}
 
 		// Removing teams from the project
-		for _, team := range removedTeams.List() {
+		for _, team := range removedTeams {
 			teamID := team.(map[string]interface{})["team_id"].(string)
 
 			_, err := conn.Teams.RemoveTeamFromProject(context.Background(), projectID, teamID)
@@ -162,7 +155,7 @@ func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Updating the role names for a team
-		for _, t := range changedTeams.List() {
+		for _, t := range changedTeams {
 			team := t.(map[string]interface{})
 
 			_, _, err := conn.Teams.UpdateTeamRoles(context.Background(), projectID, team["team_id"].(string),
@@ -190,10 +183,23 @@ func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandTeams(teams *schema.Set) []*matlas.ProjectTeam {
+func expandTeamsSet(teams *schema.Set) []*matlas.ProjectTeam {
 	res := make([]*matlas.ProjectTeam, teams.Len())
 
 	for i, value := range teams.List() {
+		v := value.(map[string]interface{})
+		res[i] = &matlas.ProjectTeam{
+			TeamID:    v["team_id"].(string),
+			RoleNames: expandStringList(v["role_names"].(*schema.Set).List()),
+		}
+	}
+	return res
+}
+
+func expandTeamsList(teams []interface{}) []*matlas.ProjectTeam {
+	res := make([]*matlas.ProjectTeam, len(teams))
+
+	for i, value := range teams {
 		v := value.(map[string]interface{})
 		res[i] = &matlas.ProjectTeam{
 			TeamID:    v["team_id"].(string),
@@ -214,4 +220,30 @@ func flattenTeams(ta *matlas.TeamsAssigned) []map[string]interface{} {
 		}
 	}
 	return res
+}
+
+func getStateTeams(d *schema.ResourceData) ([]interface{}, []interface{}, []interface{}) {
+	currentTeams, changes := d.GetChange("teams")
+
+	removedTeams := currentTeams.(*schema.Set).Difference(changes.(*schema.Set))
+	newTeams := changes.(*schema.Set).Difference(currentTeams.(*schema.Set))
+	changedTeams := make([]interface{}, 0)
+
+	for _, changed := range newTeams.List() {
+
+		for _, removed := range removedTeams.List() {
+			if changed.(map[string]interface{})["team_id"] == removed.(map[string]interface{})["team_id"] {
+				removedTeams.Remove(removed)
+			}
+		}
+
+		for _, current := range currentTeams.(*schema.Set).List() {
+			if changed.(map[string]interface{})["team_id"] == current.(map[string]interface{})["team_id"] {
+				changedTeams = append(changedTeams, changed.(map[string]interface{}))
+				newTeams.Remove(changed)
+			}
+		}
+	}
+
+	return newTeams.List(), changedTeams, removedTeams.List()
 }
