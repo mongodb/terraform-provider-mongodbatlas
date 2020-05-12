@@ -244,6 +244,10 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							},
 						},
 						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
+						"container_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},

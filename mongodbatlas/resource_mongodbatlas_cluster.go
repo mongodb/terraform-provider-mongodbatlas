@@ -357,6 +357,10 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				},
 			},
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
+			"container_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -510,9 +514,10 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"cluster_id":   cluster.ID,
-		"project_id":   projectID,
-		"cluster_name": cluster.Name,
+		"cluster_id":    cluster.ID,
+		"project_id":    projectID,
+		"cluster_name":  cluster.Name,
+		"provider_name": providerName,
 	}))
 
 	return resourceMongoDBAtlasClusterRead(d, meta)
@@ -524,6 +529,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
+	providerName := ids["provider_name"]
 
 	cluster, resp, err := conn.Clusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
@@ -612,6 +618,16 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
 		return fmt.Errorf(errorClusterSetting, "labels", clusterName, err)
+	}
+
+	containers, _, err := conn.Containers.List(context.Background(), projectID,
+		&matlas.ContainersListOptions{ProviderName: providerName})
+	if err != nil {
+		return fmt.Errorf(errorClusterRead, clusterName, err)
+	}
+
+	if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "container_id", clusterName, err)
 	}
 
 	/*
@@ -1063,4 +1079,20 @@ func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 		"private_srv":          connectionStrings.PrivateSrv,
 	})
 	return connections
+}
+
+func getContainerID(containers []matlas.Container, cluster *matlas.Cluster) string {
+	if len(containers) != 0 {
+		for _, container := range containers {
+			if cluster.ProviderSettings.ProviderName == "GCP" {
+				return container.ID
+			}
+			if container.ProviderName == cluster.ProviderSettings.ProviderName &&
+				container.Region == cluster.ProviderSettings.RegionName || // For Azure
+				container.RegionName == cluster.ProviderSettings.RegionName { // For AWS
+				return container.ID
+			}
+		}
+	}
+	return ""
 }
