@@ -83,6 +83,10 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"oplog_inc": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -139,6 +143,9 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.Resourc
 	}
 	if err = d.Set("point_in_time_utc_seconds", snapshotRes.PointInTimeUTCSeconds); err != nil {
 		return fmt.Errorf("error setting `point_in_time_utc_seconds` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
+	}
+	if err = d.Set("oplog_inc", snapshotRes.OplogInc); err != nil {
+		return fmt.Errorf("error setting `oplog_inc` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(snapshotRes.ID)

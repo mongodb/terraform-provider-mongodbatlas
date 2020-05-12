@@ -79,10 +79,14 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 							Computed: true,
 						},
 						"oplog_ts": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 						"point_in_time_utc_seconds": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"oplog_inc": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
@@ -142,6 +146,7 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 				"timestamp":                 cloudProviderSnapshotRestoreJob.Timestamp,
 				"oplog_ts":                  cloudProviderSnapshotRestoreJob.OplogTs,
 				"point_in_time_utc_seconds": cloudProviderSnapshotRestoreJob.PointInTimeUTCSeconds,
+				"oplog_inc":                 cloudProviderSnapshotRestoreJob.OplogInc,
 			}
 		}
 	}
