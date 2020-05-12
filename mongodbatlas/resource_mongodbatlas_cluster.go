@@ -367,12 +367,12 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
-	autoScaling := matlas.AutoScaling{
+	autoScaling := &matlas.AutoScaling{
 		DiskGBEnabled: pointy.Bool(true),
 	}
 
 	if diskGBEnabled, ok := d.GetOkExists("auto_scaling_disk_gb_enabled"); ok {
-		autoScaling = matlas.AutoScaling{
+		autoScaling = &matlas.AutoScaling{
 			DiskGBEnabled: pointy.Bool(diskGBEnabled.(bool)),
 		}
 	}
@@ -416,7 +416,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		if diskGBEnabled := d.Get("auto_scaling_disk_gb_enabled"); diskGBEnabled.(bool) {
 			return fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT")
 		}
-		autoScaling = matlas.AutoScaling{
+		autoScaling = &matlas.AutoScaling{
 			DiskGBEnabled: pointy.Bool(false),
 		}
 	}
@@ -817,7 +817,7 @@ func resourceMongoDBAtlasClusterImportState(d *schema.ResourceData, meta interfa
 	return []*schema.ResourceData{d}, nil
 }
 
-func expandBiConnector(d *schema.ResourceData) (matlas.BiConnector, error) {
+func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	var biConnector matlas.BiConnector
 
 	if v, ok := d.GetOk("bi_connector"); ok {
@@ -830,10 +830,10 @@ func expandBiConnector(d *schema.ResourceData) (matlas.BiConnector, error) {
 			ReadPreference: cast.ToString(biConnMap["read_preference"]),
 		}
 	}
-	return biConnector, nil
+	return &biConnector, nil
 }
 
-func flattenBiConnector(biConnector matlas.BiConnector) map[string]interface{} {
+func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} {
 	biConnectorMap := make(map[string]interface{})
 
 	if biConnector.Enabled != nil {
