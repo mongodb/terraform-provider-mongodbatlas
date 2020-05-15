@@ -1,7 +1,7 @@
 module github.com/terraform-providers/terraform-provider-mongodbatlas
 
 go 1.13
-replace github.com/mongodb/go-client-mongodb-atlas => ../go-client-mongodb-atlas
+
 require (
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/beevik/etree v1.1.0 // indirect
@@ -15,7 +15,7 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
-	github.com/mongodb/go-client-mongodb-atlas v0.2.0
+	github.com/mongodb/go-client-mongodb-atlas v0.2.1-0.20200515182955-c06f91978bf0
 	github.com/mwielbut/pointy v1.1.0
 	github.com/satori/uuid v1.2.0 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
