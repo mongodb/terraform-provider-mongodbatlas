@@ -85,7 +85,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 					_, pointInTime := v["point_in_time"]
 
 					if (v["automated"] == "true" && v["download"] == "true" && v["point_in_time"] == "true") || (v["automated"] == "false" && v["download"] == "false" && v["point_in_time"] == "false") || (!automated && !download && !pointInTime) {
-						errs = append(errs, fmt.Errorf("%q you need to implement only one: automated or download or point_in_time delivery types", key))
+						errs = append(errs, fmt.Errorf("%q you can only submit one type of restore job: automated, download or point_in_time", key))
 					}
 					if v["automated"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) {
 						if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
