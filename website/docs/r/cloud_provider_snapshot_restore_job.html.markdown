@@ -8,10 +8,14 @@ description: |-
 
 # mongodbatlas_cloud_provider_snapshot_restore_job
 
-`mongodbatlas_cloud_provider_snapshot_restore_job` provides a resource to create a new restore job from a cloud provider snapshot of a specified cluster. The restore job can be one of two types: 
+`mongodbatlas_cloud_provider_snapshot_restore_job` provides a resource to create a new restore job from a cloud provider snapshot of a specified cluster. The restore job can be one of three types: 
 * **automated:** Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId.
 
 * **download:** Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. The contents of the archive contain the data files for your Atlas cluster.
+
+* **pointInTime:**  Atlas performs a Point-in-Time restore.
+
+-> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your request body to create an automated restore job, Atlas removes all existing data on the target cluster prior to the restore.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -123,9 +127,20 @@ In addition to all arguments above, the following attributes are exported:
 * `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
-* `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot. This is the first part of an Oplog timestamp.
+* `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot.
+    Three conditions apply to this parameter:
+    * Enable Point-in-Time restores on your cluster.
+    * Specify oplogInc.
+    * Specify either oplogTs and oplogInc or pointInTimeUTCSeconds, but not both.
 * `oplogInc` - Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp.
+    Three conditions apply to this parameter:
+    * Enable Point-in-Time restores on your cluster.
+    * Specify oplogTs.
+    * Specify either oplogTs and oplogInc or pointInTimeUTCSeconds, but not both.
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot.
+    Two conditions apply to this parameter:
+    * Enable Point-in-Time restores on your cluster.
+    * Specify either pointInTimeUTCSeconds or oplogTs and oplogInc, but not both.
 
 ## Import
 
