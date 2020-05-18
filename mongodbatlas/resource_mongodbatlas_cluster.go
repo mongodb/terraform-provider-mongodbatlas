@@ -44,6 +44,14 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDBAtlasClusterImportState,
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceMongoDBAtlasClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceMongoDBAtlasClusterStateUpgradeV0,
+				Version: 0,
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -287,9 +295,10 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"advanced_configuration": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"fail_index_key_too_long": {
@@ -427,7 +436,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
 	// before that the cluster is created
-	if oplogSizeMB, ok := d.GetOk("advanced_configuration.oplog_size_mb"); ok {
+	if oplogSizeMB, ok := d.GetOk("advanced_configuration.0.oplog_size_mb"); ok {
 		if cast.ToInt64(oplogSizeMB) <= 0 {
 			return fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0")
 		}
@@ -505,12 +514,15 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		the advanced configuration option to attach it
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
-	advancedConfReq := expandProcessArgs(ac.(map[string]interface{}))
-	if ok {
-		_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, cluster.Name, advancedConfReq)
-		if err != nil {
-			return fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err)
+	if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+		if ok {
+			_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, cluster.Name, advancedConfReq)
+			if err != nil {
+				return fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err)
+			}
 		}
+
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -756,12 +768,14 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		Check if advaced configuration option has a changes to update it
 	*/
 	if d.HasChange("advanced_configuration") {
-		advancedConfReq := expandProcessArgs(d.Get("advanced_configuration").(map[string]interface{}))
-
-		if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-			_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, clusterName, advancedConfReq)
-			if err != nil {
-				return fmt.Errorf(errorAdvancedConfUpdate, clusterName, err)
+		ac := d.Get("advanced_configuration")
+		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				_, _, err := conn.Clusters.UpdateProcessArgs(context.Background(), projectID, clusterName, advancedConfReq)
+				if err != nil {
+					return fmt.Errorf(errorAdvancedConfUpdate, clusterName, err)
+				}
 			}
 		}
 	}
@@ -1004,32 +1018,47 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 	return regions
 }
 
-func expandProcessArgs(p map[string]interface{}) *matlas.ProcessArgs {
-	res := &matlas.ProcessArgs{
-		FailIndexKeyTooLong:              pointy.Bool(cast.ToBool(p["fail_index_key_too_long"])),
-		JavascriptEnabled:                pointy.Bool(cast.ToBool(p["javascript_enabled"])),
-		MinimumEnabledTLSProtocol:        cast.ToString(p["minimum_enabled_tls_protocol"]),
-		NoTableScan:                      pointy.Bool(cast.ToBool(p["no_table_scan"])),
-		SampleSizeBIConnector:            pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"])),
-		SampleRefreshIntervalBIConnector: pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"])),
+func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas.ProcessArgs {
+	res := &matlas.ProcessArgs{}
+	if _, ok := d.GetOk("advanced_configuration.0.fail_index_key_too_long"); ok {
+		res.FailIndexKeyTooLong = pointy.Bool(cast.ToBool(p["fail_index_key_too_long"]))
 	}
-	if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-		res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
-	} else {
-		log.Printf(errorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
+	if _, ok := d.GetOk("advanced_configuration.0.javascript_enabled"); ok {
+		res.JavascriptEnabled = pointy.Bool(cast.ToBool(p["javascript_enabled"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
+		res.MinimumEnabledTLSProtocol = cast.ToString(p["minimum_enabled_tls_protocol"])
+	}
+	if _, ok := d.GetOk("advanced_configuration.0.no_table_scan"); ok {
+		res.NoTableScan = pointy.Bool(cast.ToBool(p["no_table_scan"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.0.sample_size_bi_connector"); ok {
+		res.SampleSizeBIConnector = pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
+		res.SampleRefreshIntervalBIConnector = pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
+	}
+	if _, ok := d.GetOk("advanced_configuration.0.oplog_size_mb"); ok {
+		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
+			res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
+		} else {
+			log.Printf(errorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
+		}
 	}
 	return res
 }
 
-func flattenProcessArgs(p *matlas.ProcessArgs) map[string]interface{} {
-	return map[string]interface{}{
-		"fail_index_key_too_long":              cast.ToString(*p.FailIndexKeyTooLong),
-		"javascript_enabled":                   cast.ToString(*p.JavascriptEnabled),
-		"minimum_enabled_tls_protocol":         cast.ToString(p.MinimumEnabledTLSProtocol),
-		"no_table_scan":                        cast.ToString(*p.NoTableScan),
-		"oplog_size_mb":                        cast.ToString(p.OplogSizeMB),
-		"sample_size_bi_connector":             cast.ToString(p.SampleSizeBIConnector),
-		"sample_refresh_interval_bi_connector": cast.ToString(p.SampleRefreshIntervalBIConnector),
+func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"fail_index_key_too_long":              *p.FailIndexKeyTooLong,
+			"javascript_enabled":                   *p.JavascriptEnabled,
+			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
+			"no_table_scan":                        *p.NoTableScan,
+			"oplog_size_mb":                        p.OplogSizeMB,
+			"sample_size_bi_connector":             p.SampleSizeBIConnector,
+			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
+		},
 	}
 }
 
