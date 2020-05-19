@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsDefaultVpc() *schema.Resource {
@@ -61,6 +61,5 @@ func resourceAwsDefaultVpcCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsDefaultVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy Default VPC. Terraform will remove this resource from the state file, however resources may remain.")
-	d.SetId("")
 	return nil
 }

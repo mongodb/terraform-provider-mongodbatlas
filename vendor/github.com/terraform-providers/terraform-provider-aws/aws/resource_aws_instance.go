@@ -12,11 +12,14 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsInstance() *schema.Resource {
@@ -35,7 +38,7 @@ func resourceAwsInstance() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
 			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -43,6 +46,11 @@ func resourceAwsInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"associate_public_ip_address": {
@@ -78,6 +86,17 @@ func resourceAwsInstance() *schema.Resource {
 				Computed: true,
 			},
 
+			"get_password_data": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"password_data": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"subnet_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -108,15 +127,24 @@ func resourceAwsInstance() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"user_data_base64"},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Sometimes the EC2 API responds with the equivalent, empty SHA1 sum
+					// echo -n "" | shasum
+					if (old == "da39a3ee5e6b4b0d3255bfef95601890afd80709" && new == "") ||
+						(old == "" && new == "da39a3ee5e6b4b0d3255bfef95601890afd80709") {
+						return true
+					}
+					return false
+				},
 				StateFunc: func(v interface{}) string {
-					switch v.(type) {
+					switch v := v.(type) {
 					case string:
-						return userDataHashSum(v.(string))
+						return userDataHashSum(v)
 					default:
 						return ""
 					}
 				},
-				ValidateFunc: validateInstanceUserDataSize,
+				ValidateFunc: validation.StringLenBetween(0, 16384),
 			},
 
 			"user_data_base64": {
@@ -157,11 +185,15 @@ func resourceAwsInstance() *schema.Resource {
 				Computed: true,
 			},
 
-			// TODO: Deprecate me v0.10.0
+			"outpost_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"network_interface_id": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Please use `primary_network_interface_id` instead",
+				Type:     schema.TypeString,
+				Computed: true,
+				Removed:  "Use `primary_network_interface_id` attribute instead",
 			},
 
 			"primary_network_interface_id": {
@@ -227,6 +259,12 @@ func resourceAwsInstance() *schema.Resource {
 				Optional: true,
 			},
 
+			"hibernation": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"monitoring": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -260,16 +298,29 @@ func resourceAwsInstance() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"host_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"cpu_core_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"cpu_threads_per_core": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 
 			"tags": tagsSchema(),
 
 			"volume_tags": tagsSchemaComputed(),
-
-			"block_device": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Removed:  "Split out into three sub-types; see Changelog and Docs",
-			},
 
 			"ebs_block_device": {
 				Type:     schema.TypeSet,
@@ -303,6 +354,13 @@ func resourceAwsInstance() *schema.Resource {
 							Computed:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: iopsDiffSuppressFunc,
+						},
+
+						"kms_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
 						},
 
 						"snapshot_id": {
@@ -390,6 +448,24 @@ func resourceAwsInstance() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+
+						"device_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"encrypted": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
+						"kms_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 
@@ -397,7 +473,6 @@ func resourceAwsInstance() *schema.Resource {
 							Type:             schema.TypeInt,
 							Optional:         true,
 							Computed:         true,
-							ForceNew:         true,
 							DiffSuppressFunc: iopsDiffSuppressFunc,
 						},
 
@@ -405,19 +480,81 @@ func resourceAwsInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 						},
 
 						"volume_type": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 						},
 
 						"volume_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"credit_specification": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if old == "1" && new == "0" {
+						return true
+					}
+					return false
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cpu_credits": {
+							Type:     schema.TypeString,
+							Optional: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// Only work with existing instances
+								if d.Id() == "" {
+									return false
+								}
+								// Only work with missing configurations
+								if new != "" {
+									return false
+								}
+								// Only work when already set in Terraform state
+								if old == "" {
+									return false
+								}
+								return true
+							},
+						},
+					},
+				},
+			},
+
+			"metadata_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_endpoint": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice([]string{ec2.InstanceMetadataEndpointStateEnabled, ec2.InstanceMetadataEndpointStateDisabled}, false),
+						},
+						"http_tokens": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice([]string{ec2.HttpTokensStateOptional, ec2.HttpTokensStateRequired}, false),
+						},
+						"http_put_response_hop_limit": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntBetween(1, 64),
 						},
 					},
 				},
@@ -442,14 +579,17 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	tagSpecifications := ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeInstance)
+	tagSpecifications = append(tagSpecifications, ec2TagSpecificationsFromMap(d.Get("volume_tags").(map[string]interface{}), ec2.ResourceTypeVolume)...)
+
 	// Build the creation struct
 	runOpts := &ec2.RunInstancesInput{
-		BlockDeviceMappings:   instanceOpts.BlockDeviceMappings,
-		DisableApiTermination: instanceOpts.DisableAPITermination,
-		EbsOptimized:          instanceOpts.EBSOptimized,
-		Monitoring:            instanceOpts.Monitoring,
-		IamInstanceProfile:    instanceOpts.IAMInstanceProfile,
-		ImageId:               instanceOpts.ImageID,
+		BlockDeviceMappings:               instanceOpts.BlockDeviceMappings,
+		DisableApiTermination:             instanceOpts.DisableAPITermination,
+		EbsOptimized:                      instanceOpts.EBSOptimized,
+		Monitoring:                        instanceOpts.Monitoring,
+		IamInstanceProfile:                instanceOpts.IAMInstanceProfile,
+		ImageId:                           instanceOpts.ImageID,
 		InstanceInitiatedShutdownBehavior: instanceOpts.InstanceInitiatedShutdownBehavior,
 		InstanceType:                      instanceOpts.InstanceType,
 		Ipv6AddressCount:                  instanceOpts.Ipv6AddressCount,
@@ -464,6 +604,11 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		SecurityGroups:                    instanceOpts.SecurityGroups,
 		SubnetId:                          instanceOpts.SubnetID,
 		UserData:                          instanceOpts.UserData64,
+		CreditSpecification:               instanceOpts.CreditSpecification,
+		CpuOptions:                        instanceOpts.CpuOptions,
+		HibernationOptions:                instanceOpts.HibernationOptions,
+		MetadataOptions:                   instanceOpts.MetadataOptions,
+		TagSpecifications:                 tagSpecifications,
 	}
 
 	_, ipv6CountOk := d.GetOk("ipv6_address_count")
@@ -471,37 +616,6 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if ipv6AddressOk && ipv6CountOk {
 		return fmt.Errorf("Only 1 of `ipv6_address_count` or `ipv6_addresses` can be specified")
-	}
-
-	restricted := meta.(*AWSClient).IsGovCloud() || meta.(*AWSClient).IsChinaCloud()
-	if !restricted {
-		tagsSpec := make([]*ec2.TagSpecification, 0)
-
-		if v, ok := d.GetOk("tags"); ok {
-			tags := tagsFromMap(v.(map[string]interface{}))
-
-			spec := &ec2.TagSpecification{
-				ResourceType: aws.String("instance"),
-				Tags:         tags,
-			}
-
-			tagsSpec = append(tagsSpec, spec)
-		}
-
-		if v, ok := d.GetOk("volume_tags"); ok {
-			tags := tagsFromMap(v.(map[string]interface{}))
-
-			spec := &ec2.TagSpecification{
-				ResourceType: aws.String("volume"),
-				Tags:         tags,
-			}
-
-			tagsSpec = append(tagsSpec, spec)
-		}
-
-		if len(tagsSpec) > 0 {
-			runOpts.TagSpecifications = tagsSpec
-		}
 	}
 
 	// Create the instance
@@ -524,6 +638,9 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 		return resource.NonRetryableError(err)
 	})
+	if isResourceTimeoutError(err) {
+		runResp, err = conn.RunInstances(runOpts)
+	}
 	// Warn if the AWS Error involves group ids, to help identify situation
 	// where a user uses group ids in security_groups for the Default VPC.
 	//   See https://github.com/hashicorp/terraform/issues/3798
@@ -552,7 +669,7 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"running"},
-		Refresh:    InstanceStateRefreshFunc(conn, *instance.InstanceId, "terminated"),
+		Refresh:    InstanceStateRefreshFunc(conn, *instance.InstanceId, []string{"terminated", "shutting-down"}),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -586,10 +703,9 @@ func resourceAwsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(d.Id())},
-	})
+	instance, err := resourceAwsInstanceFindByID(conn, d.Id())
 	if err != nil {
 		// If the instance was not found, return nil so that we can show
 		// that the instance is gone.
@@ -603,12 +719,10 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// If nothing was found, then return no state
-	if len(resp.Reservations) == 0 {
+	if instance == nil {
 		d.SetId("")
 		return nil
 	}
-
-	instance := resp.Reservations[0].Instances[0]
 
 	if instance.State != nil {
 		// If the instance is terminated, then it is gone
@@ -629,6 +743,22 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	if instance.Placement.Tenancy != nil {
 		d.Set("tenancy", instance.Placement.Tenancy)
 	}
+	if instance.Placement.HostId != nil {
+		d.Set("host_id", instance.Placement.HostId)
+	}
+
+	if instance.CpuOptions != nil {
+		d.Set("cpu_core_count", instance.CpuOptions.CoreCount)
+		d.Set("cpu_threads_per_core", instance.CpuOptions.ThreadsPerCore)
+	}
+
+	if instance.HibernationOptions != nil {
+		d.Set("hibernation", instance.HibernationOptions.Configured)
+	}
+
+	if err := d.Set("metadata_options", flattenEc2InstanceMetadataOptions(instance.MetadataOptions)); err != nil {
+		return fmt.Errorf("error setting metadata_options: %s", err)
+	}
 
 	d.Set("ami", instance.ImageId)
 	d.Set("instance_type", instance.InstanceType)
@@ -637,6 +767,7 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("public_ip", instance.PublicIpAddress)
 	d.Set("private_dns", instance.PrivateDnsName)
 	d.Set("private_ip", instance.PrivateIpAddress)
+	d.Set("outpost_arn", instance.OutpostArn)
 	d.Set("iam_instance_profile", iamInstanceProfileArnToName(instance.IamInstanceProfile))
 
 	// Set configured Network Interface Device Index Slice
@@ -687,12 +818,9 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("subnet_id", primaryNetworkInterface.SubnetId)
 		}
 		if primaryNetworkInterface.NetworkInterfaceId != nil {
-			d.Set("network_interface_id", primaryNetworkInterface.NetworkInterfaceId) // TODO: Deprecate me v0.10.0
 			d.Set("primary_network_interface_id", primaryNetworkInterface.NetworkInterfaceId)
 		}
-		if primaryNetworkInterface.Ipv6Addresses != nil {
-			d.Set("ipv6_address_count", len(primaryNetworkInterface.Ipv6Addresses))
-		}
+		d.Set("ipv6_address_count", len(primaryNetworkInterface.Ipv6Addresses))
 		if primaryNetworkInterface.SourceDestCheck != nil {
 			d.Set("source_dest_check", primaryNetworkInterface.SourceDestCheck)
 		}
@@ -704,9 +832,10 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 	} else {
-		d.Set("subnet_id", instance.SubnetId)
-		d.Set("network_interface_id", "") // TODO: Deprecate me v0.10.0
+		d.Set("associate_public_ip_address", instance.PublicIpAddress != nil)
+		d.Set("ipv6_address_count", 0)
 		d.Set("primary_network_interface_id", "")
+		d.Set("subnet_id", instance.SubnetId)
 	}
 
 	if err := d.Set("ipv6_addresses", ipv6Addresses); err != nil {
@@ -723,10 +852,17 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("monitoring", monitoringState == "enabled" || monitoringState == "pending")
 	}
 
-	d.Set("tags", tagsToMap(instance.Tags))
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(instance.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
-	if err := readVolumeTags(conn, d); err != nil {
+	volumeTags, err := readVolumeTags(conn, d.Id())
+	if err != nil {
 		return err
+	}
+
+	if err := d.Set("volume_tags", keyvaluetags.Ec2KeyValueTags(volumeTags).IgnoreAws().Map()); err != nil {
+		return fmt.Errorf("error setting volume_tags: %s", err)
 	}
 
 	if err := readSecurityGroups(d, instance, conn); err != nil {
@@ -739,6 +875,17 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	if _, ok := d.GetOk("ephemeral_block_device"); !ok {
 		d.Set("ephemeral_block_device", []interface{}{})
 	}
+
+	// ARN
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Service:   "ec2",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("instance/%s", d.Id()),
+	}
+	d.Set("arn", arn.String())
 
 	// Instance attributes
 	{
@@ -773,31 +920,58 @@ func resourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	// AWS Standard will return InstanceCreditSpecification.NotSupported errors for EC2 Instance IDs outside T2 and T3 instance types
+	// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/8055
+	if strings.HasPrefix(aws.StringValue(instance.InstanceType), "t2") || strings.HasPrefix(aws.StringValue(instance.InstanceType), "t3") {
+		creditSpecifications, err := getCreditSpecifications(conn, d.Id())
+
+		// Ignore UnsupportedOperation errors for AWS China and GovCloud (US)
+		// Reference: https://github.com/terraform-providers/terraform-provider-aws/pull/4362
+		if err != nil && !isAWSErr(err, "UnsupportedOperation", "") {
+			return fmt.Errorf("error getting EC2 Instance (%s) Credit Specifications: %s", d.Id(), err)
+		}
+
+		if err := d.Set("credit_specification", creditSpecifications); err != nil {
+			return fmt.Errorf("error setting credit_specification: %s", err)
+		}
+	}
+
+	if d.Get("get_password_data").(bool) {
+		passwordData, err := getAwsEc2InstancePasswordData(*instance.InstanceId, conn)
+		if err != nil {
+			return err
+		}
+		d.Set("password_data", passwordData)
+	} else {
+		d.Set("get_password_data", false)
+		d.Set("password_data", nil)
+	}
+
 	return nil
 }
 
 func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	d.Partial(true)
+	if d.HasChange("tags") && !d.IsNewResource() {
+		o, n := d.GetChange("tags")
 
-	restricted := meta.(*AWSClient).IsGovCloud() || meta.(*AWSClient).IsChinaCloud()
-
-	if d.HasChange("tags") {
-		if !d.IsNewResource() || restricted {
-			if err := setTags(conn, d); err != nil {
-				return err
-			} else {
-				d.SetPartial("tags")
-			}
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
 		}
 	}
-	if d.HasChange("volume_tags") {
-		if !d.IsNewResource() || !restricted {
-			if err := setVolumeTags(conn, d); err != nil {
-				return err
-			} else {
-				d.SetPartial("volume_tags")
+
+	if d.HasChange("volume_tags") && !d.IsNewResource() {
+		volumeIds, err := getAwsInstanceVolumeIds(conn, d.Id())
+		if err != nil {
+			return err
+		}
+
+		o, n := d.GetChange("volume_tags")
+
+		for _, volumeId := range volumeIds {
+			if err := keyvaluetags.Ec2UpdateTags(conn, volumeId, o, n); err != nil {
+				return fmt.Errorf("error updating volume_tags (%s): %s", volumeId, err)
 			}
 		}
 	}
@@ -822,46 +996,49 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		if _, ok := d.GetOk("iam_instance_profile"); ok {
 			// Does not have an Iam Instance Profile associated with it, need to associate
 			if len(resp.IamInstanceProfileAssociations) == 0 {
-				err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-					_, err := conn.AssociateIamInstanceProfile(&ec2.AssociateIamInstanceProfileInput{
-						InstanceId: aws.String(d.Id()),
-						IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-							Name: aws.String(d.Get("iam_instance_profile").(string)),
-						},
-					})
-					if err != nil {
-						if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile") {
-							return resource.RetryableError(err)
-						}
-						return resource.NonRetryableError(err)
-					}
-					return nil
-				})
-				if err != nil {
+				if err := associateInstanceProfile(d, conn); err != nil {
 					return err
 				}
-
 			} else {
 				// Has an Iam Instance Profile associated with it, need to replace the association
 				associationId := resp.IamInstanceProfileAssociations[0].AssociationId
+				input := &ec2.ReplaceIamInstanceProfileAssociationInput{
+					AssociationId: associationId,
+					IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
+						Name: aws.String(d.Get("iam_instance_profile").(string)),
+					},
+				}
 
-				err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-					_, err := conn.ReplaceIamInstanceProfileAssociation(&ec2.ReplaceIamInstanceProfileAssociationInput{
-						AssociationId: associationId,
-						IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
-							Name: aws.String(d.Get("iam_instance_profile").(string)),
-						},
-					})
-					if err != nil {
-						if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile") {
-							return resource.RetryableError(err)
+				// If the instance is running, we can replace the instance profile association.
+				// If it is stopped, the association must be removed and the new one attached separately. (GH-8262)
+				instanceState := d.Get("instance_state").(string)
+
+				if instanceState != "" {
+					if instanceState == ec2.InstanceStateNameStopped || instanceState == ec2.InstanceStateNameStopping || instanceState == ec2.InstanceStateNameShuttingDown {
+						if err := disassociateInstanceProfile(associationId, conn); err != nil {
+							return err
 						}
-						return resource.NonRetryableError(err)
+						if err := associateInstanceProfile(d, conn); err != nil {
+							return err
+						}
+					} else {
+						err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+							_, err := conn.ReplaceIamInstanceProfileAssociation(input)
+							if err != nil {
+								if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile") {
+									return resource.RetryableError(err)
+								}
+								return resource.NonRetryableError(err)
+							}
+							return nil
+						})
+						if isResourceTimeoutError(err) {
+							_, err = conn.ReplaceIamInstanceProfileAssociation(input)
+						}
+						if err != nil {
+							return fmt.Errorf("Error replacing instance profile association: %s", err)
+						}
 					}
-					return nil
-				})
-				if err != nil {
-					return err
 				}
 			}
 			// An Iam Instance Profile has _not_ been provided but is pending a change. This means there is a pending removal
@@ -869,11 +1046,7 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 			if len(resp.IamInstanceProfileAssociations) > 0 {
 				// Has an Iam Instance Profile associated with it, need to remove the association
 				associationId := resp.IamInstanceProfileAssociations[0].AssociationId
-
-				_, err := conn.DisassociateIamInstanceProfile(&ec2.DisassociateIamInstanceProfileInput{
-					AssociationId: associationId,
-				})
-				if err != nil {
+				if err := disassociateInstanceProfile(associationId, conn); err != nil {
 					return err
 				}
 			}
@@ -889,7 +1062,7 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		// Because we're calling Update prior to Read, and the default value of `source_dest_check` is `true`,
 		// HasChange() thinks there is a diff between what is set on the instance and what is set in state. We need to ensure that
-		// if a diff has occured, it's not because it's a new instance.
+		// if a diff has occurred, it's not because it's a new instance.
 		if d.HasChange("source_dest_check") && !d.IsNewResource() || d.IsNewResource() && !sourceDestCheck {
 			// SourceDestCheck can only be set on VPC instances
 			// AWS will return an error of InvalidParameterCombination if we attempt
@@ -905,7 +1078,7 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 				if ec2err, ok := err.(awserr.Error); ok {
 					// Tolerate InvalidParameterCombination error in Classic, otherwise
 					// return the error
-					if "InvalidParameterCombination" != ec2err.Code() {
+					if ec2err.Code() != "InvalidParameterCombination" {
 						return err
 					}
 					log.Printf("[WARN] Attempted to modify SourceDestCheck on non VPC instance: %s", ec2err.Message())
@@ -914,12 +1087,16 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("vpc_security_group_ids") {
+	if d.HasChange("vpc_security_group_ids") && !d.IsNewResource() {
 		var groups []*string
 		if v := d.Get("vpc_security_group_ids").(*schema.Set); v.Len() > 0 {
 			for _, v := range v.List() {
 				groups = append(groups, aws.String(v.(string)))
 			}
+		}
+
+		if len(groups) < 1 {
+			return fmt.Errorf("VPC-based instances require at least one security group to be attached.")
 		}
 		// If a user has multiple network interface attachments on the target EC2 instance, simply modifying the
 		// instance attributes via a `ModifyInstanceAttributes()` request would fail with the following error message:
@@ -927,13 +1104,10 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Thus, we need to actually modify the primary network interface for the new security groups, as the primary
 		// network interface is where we modify/create security group assignments during Create.
 		log.Printf("[INFO] Modifying `vpc_security_group_ids` on Instance %q", d.Id())
-		instances, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIds: []*string{aws.String(d.Id())},
-		})
+		instance, err := resourceAwsInstanceFindByID(conn, d.Id())
 		if err != nil {
-			return err
+			return fmt.Errorf("error retrieving instance %q: %w", d.Id(), err)
 		}
-		instance := instances.Reservations[0].Instances[0]
 		var primaryInterface ec2.InstanceNetworkInterface
 		for _, ni := range instance.NetworkInterfaces {
 			if *ni.Attachment.DeviceIndex == 0 {
@@ -961,20 +1135,12 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		_, err := conn.StopInstances(&ec2.StopInstancesInput{
 			InstanceIds: []*string{aws.String(d.Id())},
 		})
-
-		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"pending", "running", "shutting-down", "stopped", "stopping"},
-			Target:     []string{"stopped"},
-			Refresh:    InstanceStateRefreshFunc(conn, d.Id(), ""),
-			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			Delay:      10 * time.Second,
-			MinTimeout: 3 * time.Second,
+		if err != nil {
+			return fmt.Errorf("error stopping instance (%s): %s", d.Id(), err)
 		}
 
-		_, err = stateConf.WaitForState()
-		if err != nil {
-			return fmt.Errorf(
-				"Error waiting for instance (%s) to stop: %s", d.Id(), err)
+		if err := waitForInstanceStopping(conn, d.Id(), 10*time.Minute); err != nil {
+			return err
 		}
 
 		log.Printf("[INFO] Modifying instance type %s", d.Id())
@@ -992,11 +1158,14 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		_, err = conn.StartInstances(&ec2.StartInstancesInput{
 			InstanceIds: []*string{aws.String(d.Id())},
 		})
+		if err != nil {
+			return fmt.Errorf("error starting instance (%s): %s", d.Id(), err)
+		}
 
-		stateConf = &resource.StateChangeConf{
+		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"pending", "stopped"},
 			Target:     []string{"running"},
-			Refresh:    InstanceStateRefreshFunc(conn, d.Id(), "terminated"),
+			Refresh:    InstanceStateRefreshFunc(conn, d.Id(), []string{"terminated"}),
 			Timeout:    d.Timeout(schema.TimeoutUpdate),
 			Delay:      10 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -1010,7 +1179,7 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("disable_api_termination") {
+	if d.HasChange("disable_api_termination") && !d.IsNewResource() {
 		_, err := conn.ModifyInstanceAttribute(&ec2.ModifyInstanceAttributeInput{
 			InstanceId: aws.String(d.Id()),
 			DisableApiTermination: &ec2.AttributeBooleanValue{
@@ -1049,14 +1218,122 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 			})
 		}
 		if mErr != nil {
-			return fmt.Errorf("[WARN] Error updating Instance monitoring: %s", mErr)
+			return fmt.Errorf("Error updating Instance monitoring: %s", mErr)
+		}
+	}
+
+	if d.HasChange("credit_specification") && !d.IsNewResource() {
+		if v, ok := d.GetOk("credit_specification"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+			creditSpecification := v.([]interface{})[0].(map[string]interface{})
+			log.Printf("[DEBUG] Modifying credit specification for Instance (%s)", d.Id())
+			_, err := conn.ModifyInstanceCreditSpecification(&ec2.ModifyInstanceCreditSpecificationInput{
+				InstanceCreditSpecifications: []*ec2.InstanceCreditSpecificationRequest{
+					{
+						InstanceId: aws.String(d.Id()),
+						CpuCredits: aws.String(creditSpecification["cpu_credits"].(string)),
+					},
+				},
+			})
+			if err != nil {
+				return fmt.Errorf("Error updating Instance credit specification: %s", err)
+			}
+		}
+	}
+
+	if d.HasChange("metadata_options") && !d.IsNewResource() {
+		if v, ok := d.GetOk("metadata_options"); ok {
+			if mo, ok := v.([]interface{})[0].(map[string]interface{}); ok {
+				log.Printf("[DEBUG] Modifying metadata options for Instance (%s)", d.Id())
+				input := &ec2.ModifyInstanceMetadataOptionsInput{
+					InstanceId:   aws.String(d.Id()),
+					HttpEndpoint: aws.String(mo["http_endpoint"].(string)),
+				}
+				if mo["http_endpoint"].(string) == ec2.InstanceMetadataEndpointStateEnabled {
+					// These parameters are not allowed unless HttpEndpoint is enabled
+					input.HttpTokens = aws.String(mo["http_tokens"].(string))
+					input.HttpPutResponseHopLimit = aws.Int64(int64(mo["http_put_response_hop_limit"].(int)))
+				}
+				_, err := conn.ModifyInstanceMetadataOptions(input)
+				if err != nil {
+					return fmt.Errorf("Error updating metadata options: %s", err)
+				}
+			}
+		}
+	}
+
+	if d.HasChange("root_block_device.0") && !d.IsNewResource() {
+		volumeID := d.Get("root_block_device.0.volume_id").(string)
+
+		input := ec2.ModifyVolumeInput{
+			VolumeId: aws.String(volumeID),
+		}
+		modifyVolume := false
+
+		if d.HasChange("root_block_device.0.volume_size") {
+			if v, ok := d.Get("root_block_device.0.volume_size").(int); ok && v != 0 {
+				modifyVolume = true
+				input.Size = aws.Int64(int64(v))
+			}
+		}
+		if d.HasChange("root_block_device.0.volume_type") {
+			if v, ok := d.Get("root_block_device.0.volume_type").(string); ok && v != "" {
+				modifyVolume = true
+				input.VolumeType = aws.String(v)
+			}
+		}
+		if d.HasChange("root_block_device.0.iops") {
+			if v, ok := d.Get("root_block_device.0.iops").(int); ok && v != 0 {
+				modifyVolume = true
+				input.Iops = aws.Int64(int64(v))
+			}
+		}
+		if modifyVolume {
+			_, err := conn.ModifyVolume(&input)
+			if err != nil {
+				return fmt.Errorf("error modifying EC2 Volume %q: %w", volumeID, err)
+			}
+
+			// The volume is useable once the state is "optimizing", but will not be at full performance.
+			// Optimization can take hours. e.g. a full 1 TiB drive takes approximately 6 hours to optimize,
+			// according to https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-volume-modifications.html
+			stateConf := &resource.StateChangeConf{
+				Pending:    []string{"modifying"},
+				Target:     []string{"completed", "optimizing"},
+				Refresh:    VolumeStateRefreshFunc(conn, volumeID, "failed"),
+				Timeout:    d.Timeout(schema.TimeoutUpdate),
+				Delay:      30 * time.Second,
+				MinTimeout: 30 * time.Second,
+			}
+
+			_, err = stateConf.WaitForState()
+			if err != nil {
+				return fmt.Errorf("error waiting for EC2 volume (%s) to be modified: %w", volumeID, err)
+			}
+		}
+
+		if d.HasChange("root_block_device.0.delete_on_termination") {
+			deviceName := d.Get("root_block_device.0.device_name").(string)
+			if v, ok := d.Get("root_block_device.0.delete_on_termination").(bool); ok {
+				_, err := conn.ModifyInstanceAttribute(&ec2.ModifyInstanceAttributeInput{
+					InstanceId: aws.String(d.Id()),
+					BlockDeviceMappings: []*ec2.InstanceBlockDeviceMappingSpecification{
+						{
+							DeviceName: aws.String(deviceName),
+							Ebs: &ec2.EbsInstanceBlockDeviceSpecification{
+								DeleteOnTermination: aws.Bool(v),
+							},
+						},
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("error modifying delete on termination attribute for EC2 instance %q block device %q: %w", d.Id(), deviceName, err)
+				}
+			}
 		}
 	}
 
 	// TODO(mitchellh): wait for the attributes we modified to
 	// persist the change...
-
-	d.Partial(false)
 
 	return resourceAwsInstanceRead(d, meta)
 }
@@ -1064,44 +1341,68 @@ func resourceAwsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if err := awsTerminateInstance(conn, d.Id(), d); err != nil {
-		return err
+	err := awsTerminateInstance(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
+
+	if err != nil {
+		return fmt.Errorf("error terminating EC2 Instance (%s): %s", d.Id(), err)
 	}
 
-	d.SetId("")
 	return nil
 }
 
 // InstanceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
 // an EC2 instance.
-func InstanceStateRefreshFunc(conn *ec2.EC2, instanceID, failState string) resource.StateRefreshFunc {
+func InstanceStateRefreshFunc(conn *ec2.EC2, instanceID string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIds: []*string{aws.String(instanceID)},
-		})
+		instance, err := resourceAwsInstanceFindByID(conn, instanceID)
 		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
-				// Set this to nil as if we didn't find anything.
-				resp = nil
-			} else {
+			if !isAWSErr(err, "InvalidInstanceID.NotFound", "") {
 				log.Printf("Error on InstanceStateRefresh: %s", err)
 				return nil, "", err
 			}
 		}
 
-		if resp == nil || len(resp.Reservations) == 0 || len(resp.Reservations[0].Instances) == 0 {
+		if instance == nil || instance.State == nil {
 			// Sometimes AWS just has consistency issues and doesn't see
 			// our instance yet. Return an empty state.
 			return nil, "", nil
 		}
 
-		i := resp.Reservations[0].Instances[0]
-		state := *i.State.Name
+		state := aws.StringValue(instance.State.Name)
 
+		for _, failState := range failStates {
+			if state == failState {
+				return instance, state, fmt.Errorf("Failed to reach target state. Reason: %s",
+					stringifyStateReason(instance.StateReason))
+			}
+		}
+
+		return instance, state, nil
+	}
+}
+
+// VolumeStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch
+// an EC2 root device volume.
+func VolumeStateRefreshFunc(conn *ec2.EC2, volumeID, failState string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := conn.DescribeVolumesModifications(&ec2.DescribeVolumesModificationsInput{
+			VolumeIds: []*string{aws.String(volumeID)},
+		})
+		if err != nil {
+			if isAWSErr(err, "InvalidVolumeID.NotFound", "does not exist") {
+				return nil, "", nil
+			}
+			log.Printf("Error on VolumeStateRefresh: %s", err)
+			return nil, "", err
+		}
+		if resp == nil || len(resp.VolumesModifications) == 0 || resp.VolumesModifications[0] == nil {
+			return nil, "", nil
+		}
+
+		i := resp.VolumesModifications[0]
+		state := aws.StringValue(i.ModificationState)
 		if state == failState {
-			return i, state, fmt.Errorf("Failed to reach target state. Reason: %s",
-				stringifyStateReason(i.StateReason))
-
+			return i, state, fmt.Errorf("Failed to reach target state. Reason: %s", aws.StringValue(i.StatusMessage))
 		}
 
 		return i, state, nil
@@ -1146,10 +1447,47 @@ func readBlockDevices(d *schema.ResourceData, instance *ec2.Instance, conn *ec2.
 	return nil
 }
 
+func associateInstanceProfile(d *schema.ResourceData, conn *ec2.EC2) error {
+	input := &ec2.AssociateIamInstanceProfileInput{
+		InstanceId: aws.String(d.Id()),
+		IamInstanceProfile: &ec2.IamInstanceProfileSpecification{
+			Name: aws.String(d.Get("iam_instance_profile").(string)),
+		},
+	}
+	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+		_, err := conn.AssociateIamInstanceProfile(input)
+		if err != nil {
+			if isAWSErr(err, "InvalidParameterValue", "Invalid IAM Instance Profile") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	if isResourceTimeoutError(err) {
+		_, err = conn.AssociateIamInstanceProfile(input)
+	}
+	if err != nil {
+		return fmt.Errorf("error associating instance with instance profile: %s", err)
+	}
+	return nil
+}
+
+func disassociateInstanceProfile(associationId *string, conn *ec2.EC2) error {
+	_, err := conn.DisassociateIamInstanceProfile(&ec2.DisassociateIamInstanceProfileInput{
+		AssociationId: associationId,
+	})
+	if err != nil {
+		return fmt.Errorf("error disassociating instance with instance profile: %w", err)
+	}
+	return nil
+}
+
 func readBlockDevicesFromInstance(instance *ec2.Instance, conn *ec2.EC2) (map[string]interface{}, error) {
 	blockDevices := make(map[string]interface{})
 	blockDevices["ebs"] = make([]map[string]interface{}, 0)
 	blockDevices["root"] = nil
+	// Ephemeral devices don't show up in BlockDeviceMappings or DescribeVolumes so we can't actually set them
 
 	instanceBlockDevices := make(map[string]*ec2.InstanceBlockDeviceMapping)
 	for _, bd := range instance.BlockDeviceMappings {
@@ -1180,32 +1518,35 @@ func readBlockDevicesFromInstance(instance *ec2.Instance, conn *ec2.EC2) (map[st
 		instanceBd := instanceBlockDevices[*vol.VolumeId]
 		bd := make(map[string]interface{})
 
-		bd["volume_id"] = *vol.VolumeId
+		bd["volume_id"] = aws.StringValue(vol.VolumeId)
 
 		if instanceBd.Ebs != nil && instanceBd.Ebs.DeleteOnTermination != nil {
-			bd["delete_on_termination"] = *instanceBd.Ebs.DeleteOnTermination
+			bd["delete_on_termination"] = aws.BoolValue(instanceBd.Ebs.DeleteOnTermination)
 		}
 		if vol.Size != nil {
-			bd["volume_size"] = *vol.Size
+			bd["volume_size"] = aws.Int64Value(vol.Size)
 		}
 		if vol.VolumeType != nil {
-			bd["volume_type"] = *vol.VolumeType
+			bd["volume_type"] = aws.StringValue(vol.VolumeType)
 		}
 		if vol.Iops != nil {
-			bd["iops"] = *vol.Iops
+			bd["iops"] = aws.Int64Value(vol.Iops)
+		}
+		if vol.Encrypted != nil {
+			bd["encrypted"] = aws.BoolValue(vol.Encrypted)
+		}
+		if vol.KmsKeyId != nil {
+			bd["kms_key_id"] = aws.StringValue(vol.KmsKeyId)
+		}
+		if instanceBd.DeviceName != nil {
+			bd["device_name"] = aws.StringValue(instanceBd.DeviceName)
 		}
 
 		if blockDeviceIsRoot(instanceBd, instance) {
 			blockDevices["root"] = bd
 		} else {
-			if instanceBd.DeviceName != nil {
-				bd["device_name"] = *instanceBd.DeviceName
-			}
-			if vol.Encrypted != nil {
-				bd["encrypted"] = *vol.Encrypted
-			}
 			if vol.SnapshotId != nil {
-				bd["snapshot_id"] = *vol.SnapshotId
+				bd["snapshot_id"] = aws.StringValue(vol.SnapshotId)
 			}
 
 			blockDevices["ebs"] = append(blockDevices["ebs"].([]map[string]interface{}), bd)
@@ -1260,7 +1601,7 @@ func fetchRootDeviceName(ami string, conn *ec2.EC2) (*string, error) {
 	// BlockDeviceMapping entry serves as the root device.
 	rootDeviceNameInMapping := false
 	for _, bdm := range image.BlockDeviceMappings {
-		if bdm.DeviceName == image.RootDeviceName {
+		if aws.StringValue(bdm.DeviceName) == aws.StringValue(image.RootDeviceName) {
 			rootDeviceNameInMapping = true
 		}
 	}
@@ -1270,7 +1611,7 @@ func fetchRootDeviceName(ami string, conn *ec2.EC2) (*string, error) {
 	}
 
 	if rootDeviceName == nil {
-		return nil, fmt.Errorf("[WARN] Error finding Root Device Name for AMI (%s)", ami)
+		return nil, fmt.Errorf("Error finding Root Device Name for AMI (%s)", ami)
 	}
 
 	return rootDeviceName, nil
@@ -1344,8 +1685,7 @@ func buildNetworkInterfaceOpts(d *schema.ResourceData, groups []*string, nInterf
 	return networkInterfaces
 }
 
-func readBlockDeviceMappingsFromConfig(
-	d *schema.ResourceData, conn *ec2.EC2) ([]*ec2.BlockDeviceMapping, error) {
+func readBlockDeviceMappingsFromConfig(d *schema.ResourceData, conn *ec2.EC2) ([]*ec2.BlockDeviceMapping, error) {
 	blockDevices := make([]*ec2.BlockDeviceMapping, 0)
 
 	if v, ok := d.GetOk("ebs_block_device"); ok {
@@ -1362,6 +1702,10 @@ func readBlockDeviceMappingsFromConfig(
 
 			if v, ok := bd["encrypted"].(bool); ok && v {
 				ebs.Encrypted = aws.Bool(v)
+			}
+
+			if v, ok := bd["kms_key_id"].(string); ok && v != "" {
+				ebs.KmsKeyId = aws.String(v)
 			}
 
 			if v, ok := bd["volume_size"].(int); ok && v != 0 {
@@ -1412,13 +1756,18 @@ func readBlockDeviceMappingsFromConfig(
 
 	if v, ok := d.GetOk("root_block_device"); ok {
 		vL := v.([]interface{})
-		if len(vL) > 1 {
-			return nil, errors.New("Cannot specify more than one root_block_device.")
-		}
 		for _, v := range vL {
 			bd := v.(map[string]interface{})
 			ebs := &ec2.EbsBlockDevice{
 				DeleteOnTermination: aws.Bool(bd["delete_on_termination"].(bool)),
+			}
+
+			if v, ok := bd["encrypted"].(bool); ok && v {
+				ebs.Encrypted = aws.Bool(v)
+			}
+
+			if v, ok := bd["kms_key_id"].(string); ok && v != "" {
+				ebs.KmsKeyId = aws.String(bd["kms_key_id"].(string))
 			}
 
 			if v, ok := bd["volume_size"].(int); ok && v != 0 {
@@ -1461,37 +1810,22 @@ func readBlockDeviceMappingsFromConfig(
 	return blockDevices, nil
 }
 
-func readVolumeTags(conn *ec2.EC2, d *schema.ResourceData) error {
-	volumeIds, err := getAwsInstanceVolumeIds(conn, d)
+func readVolumeTags(conn *ec2.EC2, instanceId string) ([]*ec2.Tag, error) {
+	volumeIds, err := getAwsInstanceVolumeIds(conn, instanceId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	tagsResp, err := conn.DescribeTags(&ec2.DescribeTagsInput{
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("resource-id"),
-				Values: volumeIds,
-			},
-		},
+	resp, err := conn.DescribeTags(&ec2.DescribeTagsInput{
+		Filters: ec2AttributeFiltersFromMultimap(map[string][]string{
+			"resource-id": volumeIds,
+		}),
 	})
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error getting tags for volumes (%s): %s", volumeIds, err)
 	}
 
-	var tags []*ec2.Tag
-
-	for _, t := range tagsResp.Tags {
-		tag := &ec2.Tag{
-			Key:   t.Key,
-			Value: t.Value,
-		}
-		tags = append(tags, tag)
-	}
-
-	d.Set("volume_tags", tagsToMap(tags))
-
-	return nil
+	return ec2TagsFromTagDescriptions(resp.Tags), nil
 }
 
 // Determine whether we're referring to security groups with
@@ -1553,6 +1887,48 @@ func readSecurityGroups(d *schema.ResourceData, instance *ec2.Instance, conn *ec
 	return nil
 }
 
+func getAwsEc2InstancePasswordData(instanceID string, conn *ec2.EC2) (string, error) {
+	log.Printf("[INFO] Reading password data for instance %s", instanceID)
+
+	var passwordData string
+	var resp *ec2.GetPasswordDataOutput
+	input := &ec2.GetPasswordDataInput{
+		InstanceId: aws.String(instanceID),
+	}
+	err := resource.Retry(15*time.Minute, func() *resource.RetryError {
+		var err error
+		resp, err = conn.GetPasswordData(input)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if resp.PasswordData == nil || *resp.PasswordData == "" {
+			return resource.RetryableError(fmt.Errorf("Password data is blank for instance ID: %s", instanceID))
+		}
+
+		passwordData = strings.TrimSpace(*resp.PasswordData)
+
+		log.Printf("[INFO] Password data read for instance %s", instanceID)
+		return nil
+	})
+	if isResourceTimeoutError(err) {
+		resp, err = conn.GetPasswordData(input)
+		if err != nil {
+			return "", fmt.Errorf("Error getting password data: %s", err)
+		}
+		if resp.PasswordData == nil || *resp.PasswordData == "" {
+			return "", fmt.Errorf("Password data is blank for instance ID: %s", instanceID)
+		}
+		passwordData = strings.TrimSpace(*resp.PasswordData)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return passwordData, nil
+}
+
 type awsInstanceOpts struct {
 	BlockDeviceMappings               []*ec2.BlockDeviceMapping
 	DisableAPITermination             *bool
@@ -1573,17 +1949,45 @@ type awsInstanceOpts struct {
 	SpotPlacement                     *ec2.SpotPlacement
 	SubnetID                          *string
 	UserData64                        *string
+	CreditSpecification               *ec2.CreditSpecificationRequest
+	CpuOptions                        *ec2.CpuOptionsRequest
+	HibernationOptions                *ec2.HibernationOptionsRequest
+	MetadataOptions                   *ec2.InstanceMetadataOptionsRequest
 }
 
 func buildAwsInstanceOpts(
 	d *schema.ResourceData, meta interface{}) (*awsInstanceOpts, error) {
 	conn := meta.(*AWSClient).ec2conn
 
+	instanceType := d.Get("instance_type").(string)
 	opts := &awsInstanceOpts{
 		DisableAPITermination: aws.Bool(d.Get("disable_api_termination").(bool)),
 		EBSOptimized:          aws.Bool(d.Get("ebs_optimized").(bool)),
 		ImageID:               aws.String(d.Get("ami").(string)),
-		InstanceType:          aws.String(d.Get("instance_type").(string)),
+		InstanceType:          aws.String(instanceType),
+		MetadataOptions:       expandEc2InstanceMetadataOptions(d.Get("metadata_options").([]interface{})),
+	}
+
+	// Set default cpu_credits as Unlimited for T3 instance type
+	if strings.HasPrefix(instanceType, "t3") {
+		opts.CreditSpecification = &ec2.CreditSpecificationRequest{
+			CpuCredits: aws.String("unlimited"),
+		}
+	}
+
+	if v, ok := d.GetOk("credit_specification"); ok {
+		// Only T2 and T3 are burstable performance instance types and supports Unlimited
+		if strings.HasPrefix(instanceType, "t2") || strings.HasPrefix(instanceType, "t3") {
+			if cs, ok := v.([]interface{})[0].(map[string]interface{}); ok {
+				opts.CreditSpecification = &ec2.CreditSpecificationRequest{
+					CpuCredits: aws.String(cs["cpu_credits"].(string)),
+				}
+			} else {
+				log.Print("[WARN] credit_specification is defined but the value of cpu_credits is missing, default value will be used.")
+			}
+		} else {
+			log.Print("[WARN] credit_specification is defined but instance type is not T2/T3. Ignoring...")
+		}
 	}
 
 	if v := d.Get("instance_initiated_shutdown_behavior").(string); v != "" {
@@ -1625,6 +2029,26 @@ func buildAwsInstanceOpts(
 
 	if v := d.Get("tenancy").(string); v != "" {
 		opts.Placement.Tenancy = aws.String(v)
+	}
+	if v := d.Get("host_id").(string); v != "" {
+		opts.Placement.HostId = aws.String(v)
+	}
+
+	if v := d.Get("cpu_core_count").(int); v > 0 {
+		tc := d.Get("cpu_threads_per_core").(int)
+		if tc < 0 {
+			tc = 2
+		}
+		opts.CpuOptions = &ec2.CpuOptionsRequest{
+			CoreCount:      aws.Int64(int64(v)),
+			ThreadsPerCore: aws.Int64(int64(tc)),
+		}
+	}
+
+	if v := d.Get("hibernation"); v != "" {
+		opts.HibernationOptions = &ec2.HibernationOptionsRequest{
+			Configured: aws.Bool(v.(bool)),
+		}
 	}
 
 	var groups []*string
@@ -1702,22 +2126,50 @@ func buildAwsInstanceOpts(
 	return opts, nil
 }
 
-func awsTerminateInstance(conn *ec2.EC2, id string, d *schema.ResourceData) error {
+func awsTerminateInstance(conn *ec2.EC2, id string, timeout time.Duration) error {
 	log.Printf("[INFO] Terminating instance: %s", id)
 	req := &ec2.TerminateInstancesInput{
 		InstanceIds: []*string{aws.String(id)},
 	}
 	if _, err := conn.TerminateInstances(req); err != nil {
-		return fmt.Errorf("Error terminating instance: %s", err)
+		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
+			return nil
+		}
+		return err
 	}
 
+	return waitForInstanceDeletion(conn, id, timeout)
+}
+
+func waitForInstanceStopping(conn *ec2.EC2, id string, timeout time.Duration) error {
+	log.Printf("[DEBUG] Waiting for instance (%s) to become stopped", id)
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"pending", "running", "shutting-down", "stopped", "stopping"},
+		Target:     []string{"stopped"},
+		Refresh:    InstanceStateRefreshFunc(conn, id, []string{}),
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"error waiting for instance (%s) to stop: %s", id, err)
+	}
+
+	return nil
+}
+
+func waitForInstanceDeletion(conn *ec2.EC2, id string, timeout time.Duration) error {
 	log.Printf("[DEBUG] Waiting for instance (%s) to become terminated", id)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"pending", "running", "shutting-down", "stopped", "stopping"},
 		Target:     []string{"terminated"},
-		Refresh:    InstanceStateRefreshFunc(conn, id, ""),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Refresh:    InstanceStateRefreshFunc(conn, id, []string{}),
+		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
@@ -1752,26 +2204,115 @@ func userDataHashSum(user_data string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func getAwsInstanceVolumeIds(conn *ec2.EC2, d *schema.ResourceData) ([]*string, error) {
-	volumeIds := make([]*string, 0)
+func getAwsInstanceVolumeIds(conn *ec2.EC2, instanceId string) ([]string, error) {
+	volumeIds := []string{}
 
-	opts := &ec2.DescribeVolumesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("attachment.instance-id"),
-				Values: []*string{aws.String(d.Id())},
-			},
-		},
+	resp, err := conn.DescribeVolumes(&ec2.DescribeVolumesInput{
+		Filters: buildEC2AttributeFilterList(map[string]string{
+			"attachment.instance-id": instanceId,
+		}),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting volumes for instance (%s): %s", instanceId, err)
 	}
 
-	resp, err := conn.DescribeVolumes(opts)
+	for _, v := range resp.Volumes {
+		volumeIds = append(volumeIds, aws.StringValue(v.VolumeId))
+	}
+
+	return volumeIds, nil
+}
+
+func getCreditSpecifications(conn *ec2.EC2, instanceId string) ([]map[string]interface{}, error) {
+	var creditSpecifications []map[string]interface{}
+	creditSpecification := make(map[string]interface{})
+
+	attr, err := conn.DescribeInstanceCreditSpecifications(&ec2.DescribeInstanceCreditSpecificationsInput{
+		InstanceIds: []*string{aws.String(instanceId)},
+	})
+	if err != nil {
+		return creditSpecifications, err
+	}
+	if len(attr.InstanceCreditSpecifications) > 0 {
+		creditSpecification["cpu_credits"] = aws.StringValue(attr.InstanceCreditSpecifications[0].CpuCredits)
+		creditSpecifications = append(creditSpecifications, creditSpecification)
+	}
+
+	return creditSpecifications, nil
+}
+
+func expandEc2InstanceMetadataOptions(l []interface{}) *ec2.InstanceMetadataOptionsRequest {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	opts := &ec2.InstanceMetadataOptionsRequest{
+		HttpEndpoint: aws.String(m["http_endpoint"].(string)),
+	}
+
+	if m["http_endpoint"].(string) == ec2.InstanceMetadataEndpointStateEnabled {
+		// These parameters are not allowed unless HttpEndpoint is enabled
+
+		if v, ok := m["http_tokens"].(string); ok && v != "" {
+			opts.HttpTokens = aws.String(v)
+		}
+
+		if v, ok := m["http_put_response_hop_limit"].(int); ok && v != 0 {
+			opts.HttpPutResponseHopLimit = aws.Int64(int64(v))
+		}
+	}
+
+	return opts
+}
+
+func flattenEc2InstanceMetadataOptions(opts *ec2.InstanceMetadataOptionsResponse) []interface{} {
+	if opts == nil {
+		return nil
+	}
+
+	m := map[string]interface{}{
+		"http_endpoint":               aws.StringValue(opts.HttpEndpoint),
+		"http_put_response_hop_limit": aws.Int64Value(opts.HttpPutResponseHopLimit),
+		"http_tokens":                 aws.StringValue(opts.HttpTokens),
+	}
+
+	return []interface{}{m}
+}
+
+// resourceAwsInstanceFindByID returns the EC2 instance by ID
+// * If the instance is found, returns the instance and nil
+// * If no instance is found, returns nil and nil
+// * If an error occurs, returns nil and the error
+func resourceAwsInstanceFindByID(conn *ec2.EC2, id string) (*ec2.Instance, error) {
+	instances, err := resourceAwsInstanceFind(conn, &ec2.DescribeInstancesInput{
+		InstanceIds: aws.StringSlice([]string{id}),
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	for _, v := range resp.Volumes {
-		volumeIds = append(volumeIds, v.VolumeId)
+	if len(instances) == 0 {
+		return nil, nil
 	}
 
-	return volumeIds, nil
+	return instances[0], nil
+}
+
+// resourceAwsInstanceFind returns EC2 instances matching the input parameters
+// * If instances are found, returns a slice of instances and nil
+// * If no instances are found, returns an empty slice and nil
+// * If an error occurs, returns nil and the error
+func resourceAwsInstanceFind(conn *ec2.EC2, params *ec2.DescribeInstancesInput) ([]*ec2.Instance, error) {
+	resp, err := conn.DescribeInstances(params)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Reservations) == 0 {
+		return []*ec2.Instance{}, nil
+	}
+
+	return resp.Reservations[0].Instances, nil
 }

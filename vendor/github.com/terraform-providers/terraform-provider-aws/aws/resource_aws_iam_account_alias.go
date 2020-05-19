@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsIamAccountAlias() *schema.Resource {
@@ -41,7 +41,7 @@ func resourceAwsIamAccountAliasCreate(d *schema.ResourceData, meta interface{}) 
 	_, err := conn.CreateAccountAlias(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating account alias with name %s", account_alias)
+		return fmt.Errorf("Error creating account alias with name '%s': %s", account_alias, err)
 	}
 
 	d.SetId(account_alias)
@@ -57,7 +57,7 @@ func resourceAwsIamAccountAliasRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := conn.ListAccountAliases(params)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Error listing account aliases: %s", err)
 	}
 
 	if resp == nil || len(resp.AccountAliases) == 0 {
@@ -85,10 +85,8 @@ func resourceAwsIamAccountAliasDelete(d *schema.ResourceData, meta interface{}) 
 	_, err := conn.DeleteAccountAlias(params)
 
 	if err != nil {
-		return fmt.Errorf("Error deleting account alias with name %s", account_alias)
+		return fmt.Errorf("Error deleting account alias with name '%s': %s", account_alias, err)
 	}
-
-	d.SetId("")
 
 	return nil
 }

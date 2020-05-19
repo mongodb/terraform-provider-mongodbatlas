@@ -5,7 +5,7 @@ import (
 
 	"encoding/base64"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"time"
 )
@@ -14,18 +14,22 @@ func dataSourceGoogleKmsSecret() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceGoogleKmsSecretRead,
 		Schema: map[string]*schema.Schema{
-			"crypto_key": &schema.Schema{
+			"crypto_key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"ciphertext": &schema.Schema{
+			"ciphertext": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"plaintext": &schema.Schema{
+			"plaintext": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+			"additional_authenticated_data": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -44,6 +48,10 @@ func dataSourceGoogleKmsSecretRead(d *schema.ResourceData, meta interface{}) err
 
 	kmsDecryptRequest := &cloudkms.DecryptRequest{
 		Ciphertext: ciphertext,
+	}
+
+	if aad, ok := d.GetOk("additional_authenticated_data"); ok {
+		kmsDecryptRequest.AdditionalAuthenticatedData = aad.(string)
 	}
 
 	decryptResponse, err := config.clientKms.Projects.Locations.KeyRings.CryptoKeys.Decrypt(cryptoKeyId.cryptoKeyId(), kmsDecryptRequest).Do()

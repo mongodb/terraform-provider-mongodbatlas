@@ -2,9 +2,8 @@ package google
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceGoogleComputeGlobalAddress() *schema.Resource {
@@ -12,27 +11,27 @@ func dataSourceGoogleComputeGlobalAddress() *schema.Resource {
 		Read: dataSourceGoogleComputeGlobalAddressRead,
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"address": &schema.Schema{
+			"address": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"status": &schema.Schema{
+			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"self_link": &schema.Schema{
+			"self_link": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"project": &schema.Schema{
+			"project": {
 				Type:     schema.TypeString,
 				Computed: true,
 				Optional: true,
@@ -58,7 +57,6 @@ func dataSourceGoogleComputeGlobalAddressRead(d *schema.ResourceData, meta inter
 	d.Set("status", address.Status)
 	d.Set("self_link", address.SelfLink)
 	d.Set("project", project)
-
-	d.SetId(strconv.FormatUint(uint64(address.Id), 10))
+	d.SetId(fmt.Sprintf("projects/%s/global/addresses/%s", project, name))
 	return nil
 }

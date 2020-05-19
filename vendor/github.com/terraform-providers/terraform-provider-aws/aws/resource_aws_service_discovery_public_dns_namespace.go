@@ -2,12 +2,12 @@ package aws
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/servicediscovery/waiter"
 )
 
 func resourceAwsServiceDiscoveryPublicDnsNamespace() *schema.Resource {
@@ -46,9 +46,17 @@ func resourceAwsServiceDiscoveryPublicDnsNamespace() *schema.Resource {
 func resourceAwsServiceDiscoveryPublicDnsNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sdconn
 
-	requestId := resource.PrefixedUniqueId(fmt.Sprintf("tf-%s", d.Get("name").(string)))
+	name := d.Get("name").(string)
+	// The CreatorRequestId has a limit of 64 bytes
+	var requestId string
+	if len(name) > (64 - resource.UniqueIDSuffixLength) {
+		requestId = resource.PrefixedUniqueId(name[0:(64 - resource.UniqueIDSuffixLength - 1)])
+	} else {
+		requestId = resource.PrefixedUniqueId(name)
+	}
+
 	input := &servicediscovery.CreatePublicDnsNamespaceInput{
-		Name:             aws.String(d.Get("name").(string)),
+		Name:             aws.String(name),
 		CreatorRequestId: aws.String(requestId),
 	}
 
@@ -56,24 +64,34 @@ func resourceAwsServiceDiscoveryPublicDnsNamespaceCreate(d *schema.ResourceData,
 		input.Description = aws.String(v.(string))
 	}
 
-	resp, err := conn.CreatePublicDnsNamespace(input)
+	output, err := conn.CreatePublicDnsNamespace(input)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating Service Discovery Public DNS Namespace (%s): %w", name, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{servicediscovery.OperationStatusSubmitted, servicediscovery.OperationStatusPending},
-		Target:  []string{servicediscovery.OperationStatusSuccess},
-		Refresh: servicediscoveryOperationRefreshStatusFunc(conn, *resp.OperationId),
-		Timeout: 5 * time.Minute,
+	if output == nil || output.OperationId == nil {
+		return fmt.Errorf("error creating Service Discovery Public DNS Namespace (%s): creation response missing Operation ID", name)
 	}
 
-	opresp, err := stateConf.WaitForState()
+	operationOutput, err := waiter.OperationSuccess(conn, aws.StringValue(output.OperationId))
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error waiting for Service Discovery Public DNS Namespace (%s) creation: %w", name, err)
 	}
 
-	d.SetId(*opresp.(*servicediscovery.GetOperationOutput).Operation.Targets["NAMESPACE"])
+	if operationOutput == nil || operationOutput.Operation == nil {
+		return fmt.Errorf("error creating Service Discovery Public DNS Namespace (%s): operation response missing Operation information", name)
+	}
+
+	namespaceID, ok := operationOutput.Operation.Targets[servicediscovery.OperationTargetTypeNamespace]
+
+	if !ok {
+		return fmt.Errorf("error creating Service Discovery Public DNS Namespace (%s): operation response missing Namespace ID", name)
+	}
+
+	d.SetId(aws.StringValue(namespaceID))
+
 	return resourceAwsServiceDiscoveryPublicDnsNamespaceRead(d, meta)
 }
 
@@ -109,36 +127,17 @@ func resourceAwsServiceDiscoveryPublicDnsNamespaceDelete(d *schema.ResourceData,
 		Id: aws.String(d.Id()),
 	}
 
-	resp, err := conn.DeleteNamespace(input)
+	output, err := conn.DeleteNamespace(input)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error deleting Service Discovery Public DNS Namespace (%s): %w", d.Id(), err)
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{servicediscovery.OperationStatusSubmitted, servicediscovery.OperationStatusPending},
-		Target:  []string{servicediscovery.OperationStatusSuccess},
-		Refresh: servicediscoveryOperationRefreshStatusFunc(conn, *resp.OperationId),
-		Timeout: 5 * time.Minute,
+	if output != nil && output.OperationId != nil {
+		if _, err := waiter.OperationSuccess(conn, aws.StringValue(output.OperationId)); err != nil {
+			return fmt.Errorf("error waiting for Service Discovery Public DNS Namespace (%s) deletion: %w", d.Id(), err)
+		}
 	}
 
-	_, err = stateConf.WaitForState()
-	if err != nil {
-		return err
-	}
-
-	d.SetId("")
 	return nil
-}
-
-func servicediscoveryOperationRefreshStatusFunc(conn *servicediscovery.ServiceDiscovery, oid string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		input := &servicediscovery.GetOperationInput{
-			OperationId: aws.String(oid),
-		}
-		resp, err := conn.GetOperation(input)
-		if err != nil {
-			return nil, "failed", err
-		}
-		return resp, *resp.Operation.Status, nil
-	}
 }

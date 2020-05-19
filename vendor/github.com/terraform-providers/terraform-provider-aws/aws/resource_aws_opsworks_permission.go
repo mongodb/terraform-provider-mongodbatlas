@@ -1,15 +1,15 @@
 package aws
 
 import (
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAwsOpsworksPermission() *schema.Resource {
@@ -34,28 +34,17 @@ func resourceAwsOpsworksPermission() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// one of deny, show, deploy, manage, iam_only
 			"level": {
 				Type:     schema.TypeString,
 				Computed: true,
 				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-
-					expected := [5]string{"deny", "show", "deploy", "manage", "iam_only"}
-
-					found := false
-					for _, b := range expected {
-						if b == value {
-							found = true
-						}
-					}
-					if !found {
-						errors = append(errors, fmt.Errorf(
-							"%q has to be one of [deny, show, deploy, manage, iam_only]", k))
-					}
-					return
-				},
+				ValidateFunc: validation.StringInSlice([]string{
+					"deny",
+					"show",
+					"deploy",
+					"manage",
+					"iam_only",
+				}, false),
 			},
 			"stack_id": {
 				Type:     schema.TypeString,
@@ -109,7 +98,7 @@ func resourceAwsOpsworksPermissionRead(d *schema.ResourceData, meta interface{})
 
 	}
 
-	if false == found {
+	if !found {
 		d.SetId("")
 		log.Printf("[INFO] The correct permission could not be found for: %s on stack: %s", d.Get("user_arn"), d.Get("stack_id"))
 	}
@@ -127,24 +116,25 @@ func resourceAwsOpsworksSetPermission(d *schema.ResourceData, meta interface{}) 
 		StackId:    aws.String(d.Get("stack_id").(string)),
 	}
 
-	if v, ok := d.GetOk("level"); ok {
-		req.Level = aws.String(v.(string))
+	if d.HasChange("level") {
+		req.Level = aws.String(d.Get("level").(string))
 	}
 
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		var cerr error
-		_, cerr = client.SetPermission(req)
-		if cerr != nil {
-			log.Printf("[INFO] client error")
-			if opserr, ok := cerr.(awserr.Error); ok {
-				// XXX: handle errors
-				log.Printf("[ERROR] OpsWorks error: %s message: %s", opserr.Code(), opserr.Message())
-				return resource.RetryableError(cerr)
+		_, err := client.SetPermission(req)
+		if err != nil {
+
+			if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "Unable to find user with ARN") {
+				return resource.RetryableError(err)
 			}
-			return resource.NonRetryableError(cerr)
+			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
+
+	if isResourceTimeoutError(err) {
+		_, err = client.SetPermission(req)
+	}
 
 	if err != nil {
 		return err

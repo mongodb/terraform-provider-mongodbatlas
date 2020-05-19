@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"google.golang.org/api/sqladmin/v1beta4"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
 func resourceSqlUser() *schema.Resource {
@@ -19,35 +20,41 @@ func resourceSqlUser() *schema.Resource {
 			State: resourceSqlUserImporter,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
+
 		SchemaVersion: 1,
 		MigrateState:  resourceSqlUserMigrateState,
 
 		Schema: map[string]*schema.Schema{
-			"host": &schema.Schema{
+			"host": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
-			"instance": &schema.Schema{
+			"instance": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"password": &schema.Schema{
+			"password": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
 			},
 
-			"project": &schema.Schema{
+			"project": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -79,8 +86,13 @@ func resourceSqlUserCreate(d *schema.ResourceData, meta interface{}) error {
 
 	mutexKV.Lock(instanceMutexKey(project, instance))
 	defer mutexKV.Unlock(instanceMutexKey(project, instance))
-	op, err := config.clientSqlAdmin.Users.Insert(project, instance,
-		user).Do()
+	var op *sqladmin.Operation
+	insertFunc := func() error {
+		op, err = config.clientSqlAdmin.Users.Insert(project, instance,
+			user).Do()
+		return err
+	}
+	err = retryTimeDuration(insertFunc, d.Timeout(schema.TimeoutCreate))
 
 	if err != nil {
 		return fmt.Errorf("Error, failed to insert "+
@@ -91,7 +103,7 @@ func resourceSqlUserCreate(d *schema.ResourceData, meta interface{}) error {
 	// for which user.Host is an empty string.  That's okay.
 	d.SetId(fmt.Sprintf("%s/%s/%s", user.Name, user.Host, user.Instance))
 
-	err = sqladminOperationWait(config, op, project, "Insert User")
+	err = sqlAdminOperationWaitTime(config, op, project, "Insert User", d.Timeout(schema.TimeoutCreate))
 
 	if err != nil {
 		return fmt.Errorf("Error, failure waiting for insertion of %s "+
@@ -125,11 +137,13 @@ func resourceSqlUserRead(d *schema.ResourceData, meta interface{}) error {
 
 	var user *sqladmin.User
 	for _, currentUser := range users.Items {
-		// The second part of this conditional is irrelevant for postgres instances because
-		// host and currentUser.Host will always both be empty.
-		if currentUser.Name == name && currentUser.Host == host {
-			user = currentUser
-			break
+		if currentUser.Name == name {
+			// Host can only be empty for postgres instances,
+			// so don't compare the host if the API host is empty.
+			if currentUser.Host == "" || currentUser.Host == host {
+				user = currentUser
+				break
+			}
 		}
 	}
 
@@ -159,27 +173,30 @@ func resourceSqlUserUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		name := d.Get("name").(string)
 		instance := d.Get("instance").(string)
-		host := d.Get("host").(string)
 		password := d.Get("password").(string)
+		host := d.Get("host").(string)
 
 		user := &sqladmin.User{
 			Name:     name,
 			Instance: instance,
 			Password: password,
-			Host:     host,
 		}
 
 		mutexKV.Lock(instanceMutexKey(project, instance))
 		defer mutexKV.Unlock(instanceMutexKey(project, instance))
-		op, err := config.clientSqlAdmin.Users.Update(project, instance, name,
-			user).Do()
+		var op *sqladmin.Operation
+		updateFunc := func() error {
+			op, err = config.clientSqlAdmin.Users.Update(project, instance, user).Host(host).Name(name).Do()
+			return err
+		}
+		err = retryTimeDuration(updateFunc, d.Timeout(schema.TimeoutUpdate))
 
 		if err != nil {
 			return fmt.Errorf("Error, failed to update"+
 				"user %s into user %s: %s", name, instance, err)
 		}
 
-		err = sqladminOperationWait(config, op, project, "Insert User")
+		err = sqlAdminOperationWaitTime(config, op, project, "Insert User", d.Timeout(schema.TimeoutUpdate))
 
 		if err != nil {
 			return fmt.Errorf("Error, failure waiting for update of %s "+
@@ -201,24 +218,29 @@ func resourceSqlUserDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	name := d.Get("name").(string)
-	instance := d.Get("instance").(string)
 	host := d.Get("host").(string)
+	instance := d.Get("instance").(string)
 
 	mutexKV.Lock(instanceMutexKey(project, instance))
 	defer mutexKV.Unlock(instanceMutexKey(project, instance))
-	op, err := config.clientSqlAdmin.Users.Delete(project, instance, host, name).Do()
+
+	var op *sqladmin.Operation
+	err = retryTimeDuration(func() error {
+		op, err = config.clientSqlAdmin.Users.Delete(project, instance).Host(host).Name(name).Do()
+		if err != nil {
+			return err
+		}
+
+		if err := sqlAdminOperationWaitTime(config, op, project, "Delete User", d.Timeout(schema.TimeoutDelete)); err != nil {
+			return err
+		}
+		return nil
+	}, d.Timeout(schema.TimeoutDelete), isSqlOperationInProgressError, isSqlInternalError)
 
 	if err != nil {
 		return fmt.Errorf("Error, failed to delete"+
 			"user %s in instance %s: %s", name,
 			instance, err)
-	}
-
-	err = sqladminOperationWait(config, op, project, "Delete User")
-
-	if err != nil {
-		return fmt.Errorf("Error, failure waiting for deletion of %s "+
-			"in %s: %s", name, instance, err)
 	}
 
 	return nil
@@ -227,15 +249,17 @@ func resourceSqlUserDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceSqlUserImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	parts := strings.Split(d.Id(), "/")
 
-	if len(parts) == 2 {
-		d.Set("instance", parts[0])
-		d.Set("name", parts[1])
-	} else if len(parts) == 3 {
-		d.Set("instance", parts[0])
-		d.Set("host", parts[1])
+	if len(parts) == 3 {
+		d.Set("project", parts[0])
+		d.Set("instance", parts[1])
 		d.Set("name", parts[2])
+	} else if len(parts) == 4 {
+		d.Set("project", parts[0])
+		d.Set("instance", parts[1])
+		d.Set("host", parts[2])
+		d.Set("name", parts[3])
 	} else {
-		return nil, fmt.Errorf("Invalid specifier. Expecting {instance}/{name} for postgres instance and {instance}/{host}/{name} for MySQL instance")
+		return nil, fmt.Errorf("Invalid specifier. Expecting {project}/{instance}/{name} for postgres instance and {project}/{instance}/{host}/{name} for MySQL instance")
 	}
 
 	return []*schema.ResourceData{d}, nil

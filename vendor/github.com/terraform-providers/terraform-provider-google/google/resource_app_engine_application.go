@@ -3,10 +3,11 @@ package google
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/customdiff"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	appengine "google.golang.org/api/appengine/v1"
 )
 
@@ -21,42 +22,33 @@ func resourceAppEngineApplication() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(4 * time.Minute),
+			Update: schema.DefaultTimeout(4 * time.Minute),
+		},
+
 		CustomizeDiff: customdiff.All(
 			appEngineApplicationLocationIDCustomizeDiff,
 		),
 
 		Schema: map[string]*schema.Schema{
-			"project": &schema.Schema{
+			"project": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validateProjectID(),
 			},
-			"auth_domain": &schema.Schema{
+			"auth_domain": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
-			"location_id": &schema.Schema{
+			"location_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"northamerica-northeast1",
-					"us-central",
-					"us-west2",
-					"us-east1",
-					"us-east4",
-					"southamerica-east1",
-					"europe-west",
-					"europe-west2",
-					"europe-west3",
-					"asia-northeast1",
-					"asia-south1",
-					"australia-southeast1",
-				}, false),
 			},
-			"serving_status": &schema.Schema{
+			"serving_status": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -67,37 +59,70 @@ func resourceAppEngineApplication() *schema.Resource {
 				}, false),
 				Computed: true,
 			},
-			"feature_settings": &schema.Schema{
+			"feature_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem:     appEngineApplicationFeatureSettingsResource(),
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"url_dispatch_rule": &schema.Schema{
+			"app_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"url_dispatch_rule": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     appEngineApplicationURLDispatchRuleResource(),
 			},
-			"code_bucket": &schema.Schema{
+			"code_bucket": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"default_hostname": &schema.Schema{
+			"default_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"default_bucket": &schema.Schema{
+			"default_bucket": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"gcr_domain": &schema.Schema{
+			"gcr_domain": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"iap": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: `Settings for enabling Cloud Identity Aware Proxy`,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"oauth2_client_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"oauth2_client_secret": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"oauth2_client_secret_sha256": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -106,15 +131,15 @@ func resourceAppEngineApplication() *schema.Resource {
 func appEngineApplicationURLDispatchRuleResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"domain": &schema.Schema{
+			"domain": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"path": &schema.Schema{
+			"path": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"service": &schema.Schema{
+			"service": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -125,9 +150,9 @@ func appEngineApplicationURLDispatchRuleResource() *schema.Resource {
 func appEngineApplicationFeatureSettingsResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"split_health_checks": &schema.Schema{
+			"split_health_checks": {
 				Type:     schema.TypeBool,
-				Optional: true,
+				Required: true,
 			},
 		},
 	}
@@ -152,6 +177,14 @@ func resourceAppEngineApplicationCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+
+	lockName, err := replaceVars(d, config, "apps/{{project}}")
+	if err != nil {
+		return err
+	}
+	mutexKV.Lock(lockName)
+	defer mutexKV.Unlock(lockName)
+
 	log.Printf("[DEBUG] Creating App Engine App")
 	op, err := config.clientAppEngine.Apps.Create(app).Do()
 	if err != nil {
@@ -161,7 +194,7 @@ func resourceAppEngineApplicationCreate(d *schema.ResourceData, meta interface{}
 	d.SetId(project)
 
 	// Wait for the operation to complete
-	waitErr := appEngineOperationWait(config.clientAppEngine, op, project, "App Engine app to create")
+	waitErr := appEngineOperationWaitTime(config, op, project, "App Engine app to create", d.Timeout(schema.TimeoutCreate))
 	if waitErr != nil {
 		d.SetId("")
 		return waitErr
@@ -185,7 +218,9 @@ func resourceAppEngineApplicationRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("default_hostname", app.DefaultHostname)
 	d.Set("location_id", app.LocationId)
 	d.Set("name", app.Name)
+	d.Set("app_id", app.Id)
 	d.Set("serving_status", app.ServingStatus)
+	d.Set("gcr_domain", app.GcrDomain)
 	d.Set("project", pid)
 	dispatchRules, err := flattenAppEngineApplicationDispatchRules(app.DispatchRules)
 	if err != nil {
@@ -203,6 +238,14 @@ func resourceAppEngineApplicationRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("Error setting feature settings in state. This is a bug, please report it at https://github.com/terraform-providers/terraform-provider-google/issues. Error is:\n%s", err.Error())
 	}
+	iap, err := flattenAppEngineApplicationIap(d, app.Iap)
+	if err != nil {
+		return err
+	}
+	err = d.Set("iap", iap)
+	if err != nil {
+		return fmt.Errorf("Error setting iap in state. This is a bug, please report it at https://github.com/terraform-providers/terraform-provider-google/issues. Error is:\n%s", err.Error())
+	}
 	return nil
 }
 
@@ -213,14 +256,22 @@ func resourceAppEngineApplicationUpdate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+
+	lockName, err := replaceVars(d, config, "apps/{{project}}")
+	if err != nil {
+		return err
+	}
+	mutexKV.Lock(lockName)
+	defer mutexKV.Unlock(lockName)
+
 	log.Printf("[DEBUG] Updating App Engine App")
-	op, err := config.clientAppEngine.Apps.Patch(pid, app).UpdateMask("authDomain,servingStatus,featureSettings.splitHealthChecks").Do()
+	op, err := config.clientAppEngine.Apps.Patch(pid, app).UpdateMask("authDomain,servingStatus,featureSettings.splitHealthChecks,iap").Do()
 	if err != nil {
 		return fmt.Errorf("Error updating App Engine application: %s", err.Error())
 	}
 
 	// Wait for the operation to complete
-	waitErr := appEngineOperationWait(config.clientAppEngine, op, pid, "App Engine app to update")
+	waitErr := appEngineOperationWaitTime(config, op, pid, "App Engine app to update", d.Timeout(schema.TimeoutUpdate))
 	if waitErr != nil {
 		return waitErr
 	}
@@ -247,6 +298,11 @@ func expandAppEngineApplication(d *schema.ResourceData, project string) (*appeng
 		return nil, err
 	}
 	result.FeatureSettings = featureSettings
+	iap, err := expandAppEngineApplicationIap(d)
+	if err != nil {
+		return nil, err
+	}
+	result.Iap = iap
 	return result, nil
 }
 
@@ -262,12 +318,38 @@ func expandAppEngineApplicationFeatureSettings(d *schema.ResourceData) (*appengi
 	}, nil
 }
 
+func expandAppEngineApplicationIap(d *schema.ResourceData) (*appengine.IdentityAwareProxy, error) {
+	blocks := d.Get("iap").([]interface{})
+	if len(blocks) < 1 {
+		return nil, nil
+	}
+	return &appengine.IdentityAwareProxy{
+		Enabled:                  d.Get("iap.0.enabled").(bool),
+		Oauth2ClientId:           d.Get("iap.0.oauth2_client_id").(string),
+		Oauth2ClientSecret:       d.Get("iap.0.oauth2_client_secret").(string),
+		Oauth2ClientSecretSha256: d.Get("iap.0.oauth2_client_secret_sha256").(string),
+	}, nil
+}
+
 func flattenAppEngineApplicationFeatureSettings(settings *appengine.FeatureSettings) ([]map[string]interface{}, error) {
 	if settings == nil {
 		return []map[string]interface{}{}, nil
 	}
 	result := map[string]interface{}{
 		"split_health_checks": settings.SplitHealthChecks,
+	}
+	return []map[string]interface{}{result}, nil
+}
+
+func flattenAppEngineApplicationIap(d *schema.ResourceData, iap *appengine.IdentityAwareProxy) ([]map[string]interface{}, error) {
+	if iap == nil {
+		return []map[string]interface{}{}, nil
+	}
+	result := map[string]interface{}{
+		"enabled":                     iap.Enabled,
+		"oauth2_client_id":            iap.Oauth2ClientId,
+		"oauth2_client_secret":        d.Get("iap.0.oauth2_client_secret"),
+		"oauth2_client_secret_sha256": iap.Oauth2ClientSecretSha256,
 	}
 	return []map[string]interface{}{result}, nil
 }

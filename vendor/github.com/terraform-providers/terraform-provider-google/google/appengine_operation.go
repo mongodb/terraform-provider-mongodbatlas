@@ -1,13 +1,10 @@
 package google
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
-	"strconv"
 	"time"
-
-	"github.com/hashicorp/terraform/helper/resource"
 
 	"google.golang.org/api/appengine/v1"
 )
@@ -18,73 +15,56 @@ var (
 
 type AppEngineOperationWaiter struct {
 	Service *appengine.APIService
-	Op      *appengine.Operation
 	AppId   string
+	CommonOperationWaiter
 }
 
-func (w *AppEngineOperationWaiter) RefreshFunc() resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		matches := appEngineOperationIdRegexp.FindStringSubmatch(w.Op.Name)
-		if len(matches) != 2 {
-			return nil, "", fmt.Errorf("Expected %d results of parsing operation name, got %d from %s", 2, len(matches), w.Op.Name)
-		}
-		op, err := w.Service.Apps.Operations.Get(w.AppId, matches[1]).Do()
-		if err != nil {
-			return nil, "", err
-		}
-
-		log.Printf("[DEBUG] Got %v when asking for operation %q", op.Done, w.Op.Name)
-		return op, strconv.FormatBool(op.Done), nil
+func (w *AppEngineOperationWaiter) QueryOp() (interface{}, error) {
+	if w == nil {
+		return nil, fmt.Errorf("Cannot query operation, it's unset or nil.")
 	}
-}
-
-func (w *AppEngineOperationWaiter) Conf() *resource.StateChangeConf {
-	return &resource.StateChangeConf{
-		Pending: []string{"false"},
-		Target:  []string{"true"},
-		Refresh: w.RefreshFunc(),
+	matches := appEngineOperationIdRegexp.FindStringSubmatch(w.Op.Name)
+	if len(matches) != 2 {
+		return nil, fmt.Errorf("Expected %d results of parsing operation name, got %d from %s", 2, len(matches), w.Op.Name)
 	}
+	return w.Service.Apps.Operations.Get(w.AppId, matches[1]).Do()
 }
 
-// AppEngineOperationError wraps appengine.Status and implements the
-// error interface so it can be returned.
-type AppEngineOperationError appengine.Status
-
-func (e AppEngineOperationError) Error() string {
-	return e.Message
-}
-
-func appEngineOperationWait(client *appengine.APIService, op *appengine.Operation, appId, activity string) error {
-	return appEngineOperationWaitTime(client, op, appId, activity, 4)
-}
-
-func appEngineOperationWaitTime(client *appengine.APIService, op *appengine.Operation, appId, activity string, timeoutMin int) error {
-	if op.Done {
-		if op.Error != nil {
-			return AppEngineOperationError(*op.Error)
-		}
-		return nil
+func appEngineOperationWaitTimeWithResponse(config *Config, res interface{}, response *map[string]interface{}, appId, activity string, timeout time.Duration) error {
+	op := &appengine.Operation{}
+	err := Convert(res, op)
+	if err != nil {
+		return err
 	}
 
 	w := &AppEngineOperationWaiter{
-		Service: client,
-		Op:      op,
+		Service: config.clientAppEngine,
 		AppId:   appId,
 	}
 
-	state := w.Conf()
-	state.Delay = 10 * time.Second
-	state.Timeout = time.Duration(timeoutMin) * time.Minute
-	state.MinTimeout = 2 * time.Second
-	opRaw, err := state.WaitForState()
+	if err := w.SetOp(op); err != nil {
+		return err
+	}
+	if err := OperationWait(w, activity, timeout, config.PollInterval); err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(w.CommonOperationWaiter.Op.Response), response)
+}
+
+func appEngineOperationWaitTime(config *Config, res interface{}, appId, activity string, timeout time.Duration) error {
+	op := &appengine.Operation{}
+	err := Convert(res, op)
 	if err != nil {
-		return fmt.Errorf("Error waiting for %s: %s", activity, err)
+		return err
 	}
 
-	resultOp := opRaw.(*appengine.Operation)
-	if resultOp.Error != nil {
-		return AppEngineOperationError(*resultOp.Error)
+	w := &AppEngineOperationWaiter{
+		Service: config.clientAppEngine,
+		AppId:   appId,
 	}
 
-	return nil
+	if err := w.SetOp(op); err != nil {
+		return err
+	}
+	return OperationWait(w, activity, timeout, config.PollInterval)
 }

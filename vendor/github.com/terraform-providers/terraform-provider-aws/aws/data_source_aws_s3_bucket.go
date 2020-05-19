@@ -5,8 +5,9 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceAwsS3Bucket() *schema.Resource {
@@ -23,6 +24,10 @@ func dataSourceAwsS3Bucket() *schema.Resource {
 				Computed: true,
 			},
 			"bucket_domain_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"bucket_regional_domain_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -63,18 +68,30 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(bucket)
-	d.Set("arn", fmt.Sprintf("arn:%s:s3:::%s", meta.(*AWSClient).partition, bucket))
-	d.Set("bucket_domain_name", bucketDomainName(bucket))
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "s3",
+		Resource:  bucket,
+	}.String()
+	d.Set("arn", arn)
+	d.Set("bucket_domain_name", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("%s.s3", bucket)))
 
-	if err := bucketLocation(d, bucket, conn); err != nil {
+	err = bucketLocation(meta.(*AWSClient), d, bucket)
+	if err != nil {
+		return fmt.Errorf("error getting S3 Bucket location: %s", err)
+	}
+
+	regionalDomainName, err := BucketRegionalDomainName(bucket, d.Get("region").(string))
+	if err != nil {
 		return err
 	}
+	d.Set("bucket_regional_domain_name", regionalDomainName)
 
 	return nil
 }
 
-func bucketLocation(d *schema.ResourceData, bucket string, conn *s3.S3) error {
-	location, err := conn.GetBucketLocation(
+func bucketLocation(client *AWSClient, d *schema.ResourceData, bucket string) error {
+	location, err := client.s3conn.GetBucketLocation(
 		&s3.GetBucketLocationInput{
 			Bucket: aws.String(bucket),
 		},
@@ -98,14 +115,14 @@ func bucketLocation(d *schema.ResourceData, bucket string, conn *s3.S3) error {
 		d.Set("hosted_zone_id", hostedZoneID)
 	}
 
-	_, websiteErr := conn.GetBucketWebsite(
+	_, websiteErr := client.s3conn.GetBucketWebsite(
 		&s3.GetBucketWebsiteInput{
 			Bucket: aws.String(bucket),
 		},
 	)
 
 	if websiteErr == nil {
-		websiteEndpoint := WebsiteEndpoint(bucket, region)
+		websiteEndpoint := WebsiteEndpoint(client, bucket, region)
 		if err := d.Set("website_endpoint", websiteEndpoint.Endpoint); err != nil {
 			return err
 		}

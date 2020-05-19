@@ -3,45 +3,34 @@ package google
 import (
 	"errors"
 	"fmt"
-	"strings"
+	"log"
+	"sort"
 
-	"github.com/hashicorp/terraform/helper/schema"
 	computeBeta "google.golang.org/api/compute/v0.beta"
 	"google.golang.org/api/compute/v1"
 )
 
-const FINGERPRINT_RETRIES = 10
-
-var FINGERPRINT_FAIL_ERRORS = []string{"Invalid fingerprint.", "Supplied fingerprint does not match current metadata fingerprint."}
+const METADATA_FINGERPRINT_RETRIES = 10
 
 // Since the google compute API uses optimistic locking, there is a chance
 // we need to resubmit our updated metadata. To do this, you need to provide
 // an update function that attempts to submit your metadata
 func MetadataRetryWrapper(update func() error) error {
 	attempt := 0
-	for attempt < FINGERPRINT_RETRIES {
+	for attempt < METADATA_FINGERPRINT_RETRIES {
 		err := update()
 		if err == nil {
 			return nil
 		}
 
-		// Check to see if the error matches any of our fingerprint-related failure messages
-		var fingerprintError bool
-		for _, msg := range FINGERPRINT_FAIL_ERRORS {
-			if strings.Contains(err.Error(), msg) {
-				fingerprintError = true
-				break
-			}
-		}
-
-		if !fingerprintError {
+		if ok, _ := isFingerprintError(err); !ok {
 			// Something else went wrong, don't retry
 			return err
 		}
 
+		log.Printf("[DEBUG] Dismissed an error as retryable as a fingerprint mismatch: %s", err)
 		attempt++
 	}
-
 	return fmt.Errorf("Failed to update metadata after %d retries", attempt)
 }
 
@@ -111,18 +100,20 @@ func BetaMetadataUpdate(oldMDMap map[string]interface{}, newMDMap map[string]int
 	}
 }
 
-// expandComputeMetadata transforms a map representing computing metadata into a list of compute.MetadataItems suitable
-// for the GCP client.
-func expandComputeMetadata(m map[string]string) []*compute.MetadataItems {
+func expandComputeMetadata(m map[string]interface{}) []*compute.MetadataItems {
 	metadata := make([]*compute.MetadataItems, len(m))
-
-	idx := 0
-	for key, value := range m {
-		// Make a copy of value as we need a ptr type; if we directly use 'value' then all items will reference the same
-		// memory address
-		vtmp := value
-		metadata[idx] = &compute.MetadataItems{Key: key, Value: &vtmp}
-		idx++
+	var keys []string
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	// Append new metadata to existing metadata
+	for _, key := range keys {
+		v := m[key].(string)
+		metadata = append(metadata, &compute.MetadataItems{
+			Key:   key,
+			Value: &v,
+		})
 	}
 
 	return metadata
@@ -140,29 +131,34 @@ func flattenMetadataBeta(metadata *computeBeta.Metadata) map[string]string {
 // compute.metadata rather than computeBeta.metadata as an argument. It should
 // be removed in favour of flattenMetadataBeta if/when all resources using it get
 // beta support.
-func flattenMetadata(metadata *compute.Metadata) map[string]string {
-	metadataMap := make(map[string]string)
+func flattenMetadata(metadata *compute.Metadata) map[string]interface{} {
+	metadataMap := make(map[string]interface{})
 	for _, item := range metadata.Items {
 		metadataMap[item.Key] = *item.Value
 	}
 	return metadataMap
 }
 
-func resourceInstanceMetadata(d *schema.ResourceData) (*computeBeta.Metadata, error) {
+func resourceInstanceMetadata(d TerraformResourceData) (*computeBeta.Metadata, error) {
 	m := &computeBeta.Metadata{}
 	mdMap := d.Get("metadata").(map[string]interface{})
 	if v, ok := d.GetOk("metadata_startup_script"); ok && v.(string) != "" {
-		if ss, ok := mdMap["startup-script"]; ok && ss != "" {
+		if _, ok := mdMap["startup-script"]; ok {
 			return nil, errors.New("Cannot provide both metadata_startup_script and metadata.startup-script.")
 		}
 		mdMap["startup-script"] = v
 	}
 	if len(mdMap) > 0 {
 		m.Items = make([]*computeBeta.MetadataItems, 0, len(mdMap))
-		for key, val := range mdMap {
-			v := val.(string)
+		var keys []string
+		for k := range mdMap {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			v := mdMap[k].(string)
 			m.Items = append(m.Items, &computeBeta.MetadataItems{
-				Key:   key,
+				Key:   k,
 				Value: &v,
 			})
 		}
