@@ -307,11 +307,13 @@ Physical location of the region.
 
 -> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
 
+-> **NOTE:** This argument has been changed to type list make sure you have the proper syntax.
+
 Include **desired options** within advanced_configuration:
 
 ```hcl
 // Nest options within advanced_configuration
- advanced_configuration = {
+ advanced_configuration {
    javascript_enabled                   = false
    minimum_enabled_tls_protocol         = "TLS1_2"
  }
