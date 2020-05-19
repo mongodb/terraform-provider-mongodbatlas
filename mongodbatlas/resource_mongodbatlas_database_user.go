@@ -54,7 +54,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Default:  "NONE",
 			},
 			"roles": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -286,9 +286,9 @@ func splitDatabaseUserImportID(ID string) (*string, *string, *string, error) {
 func expandRoles(d *schema.ResourceData) []matlas.Role {
 	var roles []matlas.Role
 	if v, ok := d.GetOk("roles"); ok {
-		if rs := v.([]interface{}); len(rs) > 0 {
-			roles = make([]matlas.Role, len(rs))
-			for k, r := range rs {
+		if rs := v.(*schema.Set); rs.Len() > 0 {
+			roles = make([]matlas.Role, rs.Len())
+			for k, r := range rs.List() {
 				roleMap := r.(map[string]interface{})
 				roles[k] = matlas.Role{
 					RoleName:       roleMap["role_name"].(string),
@@ -301,8 +301,8 @@ func expandRoles(d *schema.ResourceData) []matlas.Role {
 	return roles
 }
 
-func flattenRoles(roles []matlas.Role) []map[string]interface{} {
-	roleList := make([]map[string]interface{}, 0)
+func flattenRoles(roles []matlas.Role) []interface{} {
+	roleList := make([]interface{}, 0)
 	for _, v := range roles {
 		roleList = append(roleList, map[string]interface{}{
 			"role_name":       v.RoleName,
