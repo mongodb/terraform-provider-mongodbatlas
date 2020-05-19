@@ -93,7 +93,7 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta in
 	if dayOfWeek, ok := d.GetOk("day_of_week"); ok {
 		maintenanceWindowReq.DayOfWeek = cast.ToInt(dayOfWeek)
 	}
-	if hourOfDay, ok := d.GetOkExists("hour_of_day"); ok {
+	if hourOfDay, ok := d.GetOk("hour_of_day"); ok {
 		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
 	}
 	if numberOfDeferrals, ok := d.GetOk("number_of_deferrals"); ok {

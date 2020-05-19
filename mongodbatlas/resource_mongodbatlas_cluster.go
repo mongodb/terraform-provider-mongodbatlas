@@ -56,8 +56,8 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
+				Default:  true,
 				Optional: true,
-				Computed: true,
 			},
 			"backup_enabled": {
 				Type:     schema.TypeBool,
@@ -372,13 +372,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	providerName := d.Get("provider_name").(string)
 
 	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(true),
-	}
-
-	if diskGBEnabled, ok := d.GetOkExists("auto_scaling_disk_gb_enabled"); ok {
-		autoScaling = &matlas.AutoScaling{
-			DiskGBEnabled: pointy.Bool(diskGBEnabled.(bool)),
-		}
+		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
 	}
 
 	//validate cluster_type conditional
@@ -875,7 +869,7 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 		}
 
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
-		if encryptEBSVolume, ok := d.GetOkExists("provider_encrypt_ebs_volume"); ok {
+		if encryptEBSVolume, ok := d.GetOk("provider_encrypt_ebs_volume"); ok {
 			providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(encryptEBSVolume))
 		}
 	}
