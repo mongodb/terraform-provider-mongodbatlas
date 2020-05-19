@@ -33,7 +33,6 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
 			},
@@ -46,7 +45,6 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
 			},
@@ -75,7 +73,6 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509Type(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", "MANAGED"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
 			},
@@ -104,7 +101,6 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 				),
 			},
@@ -128,7 +124,6 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 				),
 			},
@@ -156,8 +151,68 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "3"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
+	var dbUser matlas.DatabaseUser
+
+	resourceName := "mongodbatlas_database_user.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	username := acctest.RandomWithPrefix("test-acc-user-")
+	password := acctest.RandomWithPrefix("test-acc-pass-")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID,
+					[]*matlas.Role{
+						{
+							RoleName:       "read",
+							DatabaseName:   "admin",
+							CollectionName: "stir",
+						},
+						{
+							RoleName:       "read",
+							DatabaseName:   "admin",
+							CollectionName: "unpledged",
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID,
+					[]*matlas.Role{
+						{
+							RoleName:     "read",
+							DatabaseName: "admin",
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
 		},
@@ -182,7 +237,6 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
 			},
@@ -328,4 +382,42 @@ func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, userna
 
 		}
 	`, projectID, roleName, username, labelsConf)
+}
+
+func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID string, rolesArr []*matlas.Role) string {
+
+	var roles string
+	for _, role := range rolesArr {
+		var roleName, databaseName, collection string
+
+		if role.RoleName != "" {
+			roleName = fmt.Sprintf(`role_name = "%s"`, role.RoleName)
+		}
+		if role.DatabaseName != "" {
+			databaseName = fmt.Sprintf(`database_name = "%s"`, role.DatabaseName)
+		}
+		if role.CollectionName != "" {
+			collection = fmt.Sprintf(`collection_name = "%s"`, role.CollectionName)
+		}
+
+		roles += fmt.Sprintf(`
+			roles {
+				%s
+				%s
+				%s
+			}
+		`, roleName, databaseName, collection)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			username           = "%s"
+			password           = "%s"
+			project_id         = "%s"
+			auth_database_name = "admin"
+
+			%s
+
+		}
+	`, username, password, projectID, roles)
 }
