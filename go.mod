@@ -3,6 +3,7 @@ module github.com/terraform-providers/terraform-provider-mongodbatlas
 go 1.13
 
 require (
+	cloud.google.com/go/bigtable v1.3.0 // indirect
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/client9/misspell v0.3.4
@@ -11,6 +12,7 @@ require (
 	github.com/go-test/deep v1.0.6
 	github.com/golangci/golangci-lint v1.24.0
 	github.com/hashicorp/terraform v0.12.1
+	github.com/hashicorp/terraform-plugin-sdk v1.13.0
 	github.com/jen20/awspolicyequivalence v1.1.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
@@ -26,7 +28,6 @@ require (
 	github.com/terraform-providers/terraform-provider-random v2.0.0+incompatible // indirect
 	github.com/terraform-providers/terraform-provider-template v1.0.0 // indirect
 	github.com/terraform-providers/terraform-provider-tls v1.2.0 // indirect
-	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
