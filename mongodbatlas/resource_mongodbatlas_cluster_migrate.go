@@ -329,11 +329,16 @@ func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 
 func resourceMongoDBAtlasClusterStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
+	rawState = migrateAdvancedConfiguration(rawState)
+
+	return rawState, nil
+}
+
+func migrateAdvancedConfiguration(rawState map[string]interface{}) map[string]interface{} {
 	if v, ok := rawState["advanced_configuration"]; ok || v != nil {
 		rawState["advanced_configuration"] = []interface{}{v.(map[string]interface{})}
 	} else {
 		rawState["advanced_configuration"] = []interface{}{}
 	}
-
-	return rawState, nil
+	return rawState
 }
