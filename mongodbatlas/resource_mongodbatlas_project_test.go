@@ -110,6 +110,40 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
+	resourceName := "mongodbatlas_project.test"
+	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	teamID := "5e0fa8c99ccf641c722fe683"
+	roleName := "GROUP_DATA_ACCESS_ADMIN"
+	roleNameUpdated := "GROUP_READ_ONLY"
+	clusterCount := "0"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasPropjectConfigWithUpdatedRole(projectName, orgID, teamID, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasPropjectConfigWithUpdatedRole(projectName, orgID, teamID, roleNameUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 
 	projectName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
@@ -214,4 +248,18 @@ func testAccMongoDBAtlasPropjectConfig(projectName, orgID string, teams []*matla
 			%s
 		}
 	`, projectName, orgID, ts)
+}
+
+func testAccMongoDBAtlasPropjectConfigWithUpdatedRole(projectName, orgID, teamID, roleName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+
+			teams {
+				team_id = "%s"
+				role_names = ["%s"]
+			}
+		}
+	`, projectName, orgID, teamID, roleName)
 }
