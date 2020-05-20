@@ -556,6 +556,51 @@ func TestAccResourceMongoDBAtlasCluster_withGCPAndContainerID(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	name := acctest.RandomWithPrefix("test-acc")
+
+	minSize := ""
+	maxSize := "M60"
+	minSizeUpdated := "M20"
+	maxSizeUpdated := "M80"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, "true", "false", minSize, maxSize, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "provider_auto_scaling_compute_max_instance_size", maxSize),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, "true", "true", minSizeUpdated, maxSizeUpdated, "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_scale_down_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "provider_auto_scaling_compute_min_instance_size", minSizeUpdated),
+					resource.TestCheckResourceAttr(resourceName, "provider_auto_scaling_compute_max_instance_size", maxSizeUpdated),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
@@ -1173,4 +1218,30 @@ func testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion,
 			peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 		}
 	`, gcpProjectID, gcpRegion, projectID, clusterName, providerName, gcpClusterRegion, gcpPeeringName)
+}
+
+func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, backupEnabled string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[1]s"
+			name         = "%[2]s"
+			disk_size_gb = 100
+			num_shards   = 1
+			replication_factor           = 3
+			provider_backup_enabled      = %[7]s
+			auto_scaling_disk_gb_enabled = true
+			auto_scaling_compute_enabled = %[3]s
+			auto_scaling_compute_scale_down_enabled = %[4]s
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_disk_iops 			    = 300
+			provider_encrypt_ebs_volume = false
+			provider_instance_size_name = "M30"
+			provider_region_name        = "EU_CENTRAL_1"
+			provider_auto_scaling_compute_min_instance_size = "%[5]s"
+			provider_auto_scaling_compute_max_instance_size = "%[6]s"
+		}
+	`, projectID, name, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, backupEnabled)
 }
