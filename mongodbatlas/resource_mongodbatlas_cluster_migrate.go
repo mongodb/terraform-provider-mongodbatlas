@@ -336,7 +336,27 @@ func resourceMongoDBAtlasClusterStateUpgradeV0(rawState map[string]interface{}, 
 
 func migrateAdvancedConfiguration(rawState map[string]interface{}) map[string]interface{} {
 	if v, ok := rawState["advanced_configuration"]; ok || v != nil {
-		rawState["advanced_configuration"] = []interface{}{v.(map[string]interface{})}
+		advancedConfig := v.(map[string]interface{})
+		if advancedConfig["oplog_size_mb"] == "" {
+			advancedConfig["oplog_size_mb"] = "0"
+		}
+		if advancedConfig["sample_refresh_interval_bi_connector"] == "" {
+			advancedConfig["sample_refresh_interval_bi_connector"] = "0"
+		}
+		if advancedConfig["sample_size_bi_connector"] == "" {
+			advancedConfig["sample_size_bi_connector"] = "0"
+		}
+		rawState["advanced_configuration"] = []interface{}{
+			map[string]interface{}{
+				"fail_index_key_too_long":              advancedConfig["fail_index_key_too_long"],
+				"javascript_enabled":                   advancedConfig["javascript_enabled"],
+				"minimum_enabled_tls_protocol":         advancedConfig["minimum_enabled_tls_protocol"],
+				"no_table_scan":                        advancedConfig["no_table_scan"],
+				"oplog_size_mb":                        advancedConfig["oplog_size_mb"],
+				"sample_refresh_interval_bi_connector": advancedConfig["sample_refresh_interval_bi_connector"],
+				"sample_size_bi_connector":             advancedConfig["sample_size_bi_connector"],
+			},
+		}
 	} else {
 		rawState["advanced_configuration"] = []interface{}{}
 	}
