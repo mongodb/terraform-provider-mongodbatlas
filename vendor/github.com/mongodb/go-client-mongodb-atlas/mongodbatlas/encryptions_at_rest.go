@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mwielbut/pointy"
+	"github.com/openlyinc/pointy"
 )
 
 const (

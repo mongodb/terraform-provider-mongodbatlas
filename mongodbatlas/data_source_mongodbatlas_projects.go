@@ -72,8 +72,8 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-
-	projects, _, err := conn.Projects.GetAllProjects(context.Background())
+	options := &matlas.ListOptions{}
+	projects, _, err := conn.Projects.GetAllProjects(context.Background(), options)
 	if err != nil {
 		return fmt.Errorf("error getting projects information: %s", err)
 	}

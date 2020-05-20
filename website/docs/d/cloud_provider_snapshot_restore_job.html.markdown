@@ -63,5 +63,8 @@ In addition to all arguments above, the following attributes are exported:
 * `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
+* `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
+* `oplogInc` - Oplog operation number from which to you want to restore this snapshot. 
+* `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs-get-one/)

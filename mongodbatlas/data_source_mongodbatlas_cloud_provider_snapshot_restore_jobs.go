@@ -78,6 +78,18 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"oplog_ts": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"point_in_time_utc_seconds": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"oplog_inc": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -120,18 +132,21 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 
 		for k, cloudProviderSnapshotRestoreJob := range cloudProviderSnapshotRestoreJobs {
 			results[k] = map[string]interface{}{
-				"id":                  cloudProviderSnapshotRestoreJob.ID,
-				"cancelled":           cloudProviderSnapshotRestoreJob.Cancelled,
-				"created_at":          cloudProviderSnapshotRestoreJob.CreatedAt,
-				"delivery_type":       cloudProviderSnapshotRestoreJob.DeliveryType,
-				"delivery_url":        cloudProviderSnapshotRestoreJob.DeliveryURL,
-				"expired":             cloudProviderSnapshotRestoreJob.Expired,
-				"expires_at":          cloudProviderSnapshotRestoreJob.ExpiresAt,
-				"finished_at":         cloudProviderSnapshotRestoreJob.FinishedAt,
-				"snapshot_id":         cloudProviderSnapshotRestoreJob.SnapshotID,
-				"target_project_id":   cloudProviderSnapshotRestoreJob.TargetGroupID,
-				"target_cluster_name": cloudProviderSnapshotRestoreJob.TargetClusterName,
-				"timestamp":           cloudProviderSnapshotRestoreJob.Timestamp,
+				"id":                        cloudProviderSnapshotRestoreJob.ID,
+				"cancelled":                 cloudProviderSnapshotRestoreJob.Cancelled,
+				"created_at":                cloudProviderSnapshotRestoreJob.CreatedAt,
+				"delivery_type":             cloudProviderSnapshotRestoreJob.DeliveryType,
+				"delivery_url":              cloudProviderSnapshotRestoreJob.DeliveryURL,
+				"expired":                   cloudProviderSnapshotRestoreJob.Expired,
+				"expires_at":                cloudProviderSnapshotRestoreJob.ExpiresAt,
+				"finished_at":               cloudProviderSnapshotRestoreJob.FinishedAt,
+				"snapshot_id":               cloudProviderSnapshotRestoreJob.SnapshotID,
+				"target_project_id":         cloudProviderSnapshotRestoreJob.TargetGroupID,
+				"target_cluster_name":       cloudProviderSnapshotRestoreJob.TargetClusterName,
+				"timestamp":                 cloudProviderSnapshotRestoreJob.Timestamp,
+				"oplog_ts":                  cloudProviderSnapshotRestoreJob.OplogTs,
+				"point_in_time_utc_seconds": cloudProviderSnapshotRestoreJob.PointInTimeUTCSeconds,
+				"oplog_inc":                 cloudProviderSnapshotRestoreJob.OplogInc,
 			}
 		}
 	}

@@ -24,7 +24,7 @@ const (
 // endpoints of the MongoDB Atlas API.
 // See more: https://docs.atlas.mongodb.com/reference/api/projects/
 type ProjectsService interface {
-	GetAllProjects(context.Context) (*Projects, *Response, error)
+	GetAllProjects(context.Context, *ListOptions) (*Projects, *Response, error)
 	GetOneProject(context.Context, string) (*Project, *Response, error)
 	GetOneProjectByName(context.Context, string) (*Project, *Response, error)
 	Create(context.Context, *Project) (*Project, *Response, error)
@@ -80,9 +80,14 @@ type TeamsAssigned struct {
 
 //GetAllProjects gets all project.
 //See more: https://docs.atlas.mongodb.com/reference/api/project-get-all/
-func (s *ProjectsServiceOp) GetAllProjects(ctx context.Context) (*Projects, *Response, error) {
+func (s *ProjectsServiceOp) GetAllProjects(ctx context.Context, listOptions *ListOptions) (*Projects, *Response, error) {
 
-	req, err := s.Client.NewRequest(ctx, http.MethodGet, projectBasePath, nil)
+	path, err := setListOptions(projectBasePath, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -3,14 +3,13 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
-	"testing"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	"log"
+	"os"
+	"testing"
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing.T) {
@@ -76,6 +75,28 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"retention_in_days"},
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	clusterName := acctest.RandomWithPrefix("test-acc")
+	description := fmt.Sprintf("My description in %s", clusterName)
+	retentionInDays := "1"
+	targetClusterName := clusterName
+	targetGroupID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	timeUtc := int64(1589318358)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID, timeUtc),
+				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -221,4 +242,44 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}
 	`, projectID, clusterName, description, retentionInDays)
+}
+
+func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID string, pointTimeUTC int64) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+			disk_size_gb = 5
+
+		//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "EU_WEST_2"
+			provider_instance_size_name = "M10"
+			provider_backup_enabled     = true   // enable cloud provider snapshots
+			provider_disk_iops          = 100
+			provider_encrypt_ebs_volume = false
+			pit_enabled = true
+		}
+
+		resource "mongodbatlas_cloud_provider_snapshot" "test" {
+			project_id        = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name      = mongodbatlas_cluster.my_cluster.name
+			description       = "%s"
+			retention_in_days = %s
+		}
+
+		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
+			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+			delivery_type   = {
+				point_in_time           = true
+				target_cluster_name = "%s"
+				target_project_id   = "%s"
+				oplog_ts = %v
+				oplog_inc = 1
+			}
+			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
+		}
+	`, projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID, pointTimeUTC)
 }

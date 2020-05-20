@@ -15,7 +15,7 @@ const eventsPathOrganization = "orgs/%s/events"
 type EventsService interface {
 	ListOrganizationEvents(context.Context, string, *EventListOptions) (*EventResponse, *Response, error)
 	GetOrganizationEvent(context.Context, string, string) (*Event, *Response, error)
-	ListProjectEvents(context.Context, string, *ListOptions) (*EventResponse, *Response, error)
+	ListProjectEvents(context.Context, string, *EventListOptions) (*EventResponse, *Response, error)
 	GetProjectEvent(context.Context, string, string) (*Event, *Response, error)
 }
 
@@ -70,14 +70,17 @@ type EventResponse struct {
 // EventListOptions specifies the optional parameters to the Event List methods.
 type EventListOptions struct {
 	ListOptions
-	EventType string `url:"eventType,omitempty"`
-	MinDate   string `url:"minDate,omitempty"`
-	MaxDate   string `url:"maxDate,omitempty"`
+	EventType []string `url:"eventType,omitempty"`
+	MinDate   string   `url:"minDate,omitempty"`
+	MaxDate   string   `url:"maxDate,omitempty"`
 }
 
 // ListOrganizationEvents lists all events in the organization associated to {ORG-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/events-orgs-get-all/
 func (s *EventsServiceOp) ListOrganizationEvents(ctx context.Context, orgID string, listOptions *EventListOptions) (*EventResponse, *Response, error) {
+	if orgID == "" {
+		return nil, nil, NewArgError("orgID", "must be set")
+	}
 	path := fmt.Sprintf(eventsPathOrganization, orgID)
 
 	//Add query params from listOptions
@@ -103,6 +106,12 @@ func (s *EventsServiceOp) ListOrganizationEvents(ctx context.Context, orgID stri
 // GetOrganizationEvent gets the alert specified to {EVENT-ID} from the organization associated to {ORG-ID}.
 // See more: https://docs.opsmanager.mongodb.com/current/reference/api/events/get-one-event-for-org/
 func (s *EventsServiceOp) GetOrganizationEvent(ctx context.Context, orgID string, eventID string) (*Event, *Response, error) {
+	if orgID == "" {
+		return nil, nil, NewArgError("orgID", "must be set")
+	}
+	if eventID == "" {
+		return nil, nil, NewArgError("eventID", "must be set")
+	}
 	basePath := fmt.Sprintf(eventsPathOrganization, orgID)
 	path := fmt.Sprintf("%s/%s", basePath, eventID)
 
@@ -120,10 +129,13 @@ func (s *EventsServiceOp) GetOrganizationEvent(ctx context.Context, orgID string
 	return root, resp, err
 }
 
-// ListOrganizationEvents lists all events in the project associated to {PROJECT-ID}.
+// ListProjectEvents lists all events in the project associated to {PROJECT-ID}.
 // See more: https://docs.opsmanager.mongodb.com/current/reference/api/events/get-all-events-for-project/
-func (s *EventsServiceOp) ListProjectEvents(ctx context.Context, projectID string, listOptions *ListOptions) (*EventResponse, *Response, error) {
-	path := fmt.Sprintf(eventsPathProjects, projectID)
+func (s *EventsServiceOp) ListProjectEvents(ctx context.Context, groupID string, listOptions *EventListOptions) (*EventResponse, *Response, error) {
+	if groupID == "" {
+		return nil, nil, NewArgError("groupID", "must be set")
+	}
+	path := fmt.Sprintf(eventsPathProjects, groupID)
 
 	//Add query params from listOptions
 	path, err := setListOptions(path, listOptions)
@@ -145,10 +157,16 @@ func (s *EventsServiceOp) ListProjectEvents(ctx context.Context, projectID strin
 	return root, resp, nil
 }
 
-// GetOrganizationEvent gets the alert specified to {EVENT-ID} from the project associated to {PROJECT-ID}.
+// GetProjectEvent gets the alert specified to {EVENT-ID} from the project associated to {PROJECT-ID}.
 // See more: https://docs.opsmanager.mongodb.com/current/reference/api/events/get-one-event-for-project/
-func (s *EventsServiceOp) GetProjectEvent(ctx context.Context, projectID string, eventID string) (*Event, *Response, error) {
-	basePath := fmt.Sprintf(eventsPathProjects, projectID)
+func (s *EventsServiceOp) GetProjectEvent(ctx context.Context, groupID string, eventID string) (*Event, *Response, error) {
+	if groupID == "" {
+		return nil, nil, NewArgError("groupID", "must be set")
+	}
+	if eventID == "" {
+		return nil, nil, NewArgError("eventID", "must be set")
+	}
+	basePath := fmt.Sprintf(eventsPathProjects, groupID)
 	path := fmt.Sprintf("%s/%s", basePath, eventID)
 
 	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)

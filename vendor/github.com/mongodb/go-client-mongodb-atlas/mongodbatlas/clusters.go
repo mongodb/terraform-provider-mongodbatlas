@@ -81,9 +81,9 @@ type ConnectionStrings struct {
 
 // Cluster represents MongoDB cluster.
 type Cluster struct {
-	AutoScaling              AutoScaling              `json:"autoScaling,omitempty"`
+	AutoScaling              *AutoScaling             `json:"autoScaling,omitempty"`
 	BackupEnabled            *bool                    `json:"backupEnabled,omitempty"`
-	BiConnector              BiConnector              `json:"biConnector,omitempty"`
+	BiConnector              *BiConnector             `json:"biConnector,omitempty"`
 	ClusterType              string                   `json:"clusterType,omitempty"`
 	DiskSizeGB               *float64                 `json:"diskSizeGB,omitempty"`
 	EncryptionAtRestProvider string                   `json:"encryptionAtRestProvider,omitempty"`
