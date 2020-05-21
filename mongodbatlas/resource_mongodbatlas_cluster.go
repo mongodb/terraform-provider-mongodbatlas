@@ -406,13 +406,13 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be set when `auto_scaling_compute_enabled` is set")
 	}
 	if !computeEnabledOk && (maxInstanceSizeOk || maxInstanceSize.(string) != "") {
-		return fmt.Errorf("`auto_scaling_compute_enabled` must be set when `provider_auto_scaling_compute_max_instance_size` is set")
+		return fmt.Errorf("`auto_scaling_compute_enabled` must be set true when `provider_auto_scaling_compute_max_instance_size` is set")
 	}
 	if scaleDownEnabledOk && (!minInstanceSizedOk || minInstanceSize.(string) == "") {
 		return fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be set when `auto_scaling_compute_scale_down_enabled` is set")
 	}
 	if (!computeEnabledOk || !scaleDownEnabledOk) && (minInstanceSizedOk || minInstanceSize.(string) != "") {
-		return fmt.Errorf("`auto_scaling_compute_enabled` and `auto_scaling_compute_scale_down_enabled` must be set when `provider_auto_scaling_compute_min_instance_size` is set")
+		return fmt.Errorf("`auto_scaling_compute_enabled` and `auto_scaling_compute_scale_down_enabled` must be set true when `provider_auto_scaling_compute_min_instance_size` is set")
 	}
 	if computeEnabledOk {
 		compute.Enabled = pointy.Bool(computeEnabled.(bool))
@@ -424,11 +424,22 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 	compute = &matlas.Compute{}
 	providerAutoScaling := &matlas.AutoScaling{}
+	regex := regexp.MustCompile("[0-9]+")
 	if minInstanceSizedOk {
+		sizeName := regex.FindString(d.Get("provider_instance_size_name").(string))
+		minName := regex.FindString(minInstanceSize.(string))
+		if minName > sizeName {
+			return fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
+		}
 		compute.MinInstanceSize = minInstanceSize.(string)
 		providerAutoScaling.Compute = compute
 	}
 	if maxInstanceSizeOk {
+		sizeName := regex.FindString(d.Get("provider_instance_size_name").(string))
+		maxName := regex.FindString(maxInstanceSize.(string))
+		if sizeName > maxName {
+			return fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
+		}
 		compute.MaxInstanceSize = maxInstanceSize.(string)
 		providerAutoScaling.Compute = compute
 	}
