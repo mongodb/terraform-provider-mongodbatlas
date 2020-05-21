@@ -563,8 +563,10 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	name := acctest.RandomWithPrefix("test-acc")
 
+	instanceSize := "M30"
 	minSize := ""
 	maxSize := "M60"
+	instanceSizeUpdated := "M60"
 	minSizeUpdated := "M20"
 	maxSizeUpdated := "M80"
 
@@ -574,7 +576,7 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, "true", "false", minSize, maxSize, "true"),
+				Config: testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, "true", "false", minSize, maxSize, "true", instanceSize),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -585,7 +587,7 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, "true", "true", minSizeUpdated, maxSizeUpdated, "false"),
+				Config: testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, "true", "true", minSizeUpdated, maxSizeUpdated, "false", instanceSizeUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1220,7 +1222,7 @@ func testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion,
 	`, gcpProjectID, gcpRegion, projectID, clusterName, providerName, gcpClusterRegion, gcpPeeringName)
 }
 
-func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, backupEnabled string) string {
+func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, backupEnabled, instanceSizeName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%[1]s"
@@ -1238,10 +1240,13 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(projectID, name, autoSca
 			provider_name               = "AWS"
 			provider_disk_iops 			    = 300
 			provider_encrypt_ebs_volume = false
-			provider_instance_size_name = "M30"
+			provider_instance_size_name = "%[8]s"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_auto_scaling_compute_min_instance_size = "%[5]s"
 			provider_auto_scaling_compute_max_instance_size = "%[6]s"
+			lifecycle{ // To simulate if there a new instance size name to avoid scale cluster down to original value
+				ignore_changes = [provider_instance_size_name]
+			}
 		}
-	`, projectID, name, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, backupEnabled)
+	`, projectID, name, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, backupEnabled, instanceSizeName)
 }
