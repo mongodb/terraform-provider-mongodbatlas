@@ -307,7 +307,7 @@ Physical location of the region.
 
 -> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
 
--> **NOTE:** This argument has been changed to type list make sure you have the proper syntax. The list can have only one  item maximum.
+-> **NOTE:** This argument's syntax has been changed as of version 0.6.0. Make sure you have the new syntax in your configuration as shown below (remove the previously required = sign).
 
 Include **desired options** within advanced_configuration:
 
