@@ -385,7 +385,6 @@ func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, userna
 }
 
 func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID string, rolesArr []*matlas.Role) string {
-
 	var roles string
 	for _, role := range rolesArr {
 		var roleName, databaseName, collection string
