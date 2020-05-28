@@ -5,24 +5,29 @@ package google
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
-	computeBeta "google.golang.org/api/compute/v0.beta"
-	"google.golang.org/api/compute/v1"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"google.golang.org/api/googleapi"
 )
 
 type TerraformResourceData interface {
 	HasChange(string) bool
+	GetOkExists(string) (interface{}, bool)
 	GetOk(string) (interface{}, bool)
+	Get(string) interface{}
 	Set(string, interface{}) error
 	SetId(string)
 	Id() string
+}
+
+type TerraformResourceDiff interface {
+	GetChange(string) (interface{}, interface{})
+	Get(string) interface{}
+	Clear(string) error
 }
 
 // getRegionFromZone returns the region from a zone for Google cloud.
@@ -41,20 +46,6 @@ func getRegionFromZone(zone string) string {
 // - region extracted from the provider-level zone
 func getRegion(d TerraformResourceData, config *Config) (string, error) {
 	return getRegionFromSchema("region", "zone", d, config)
-}
-
-func getRegionFromInstanceState(is *terraform.InstanceState, config *Config) (string, error) {
-	res, ok := is.Attributes["region"]
-
-	if ok && res != "" {
-		return res, nil
-	}
-
-	if config.Region != "" {
-		return config.Region, nil
-	}
-
-	return "", fmt.Errorf("region: required field is not set")
 }
 
 // getProject reads the "project" field from the given resource data and falls
@@ -76,68 +67,6 @@ func getProjectFromDiff(d *schema.ResourceDiff, config *Config) (string, error) 
 		return config.Project, nil
 	}
 	return "", fmt.Errorf("%s: required field is not set", "project")
-}
-
-func getProjectFromInstanceState(is *terraform.InstanceState, config *Config) (string, error) {
-	res, ok := is.Attributes["project"]
-
-	if ok && res != "" {
-		return res, nil
-	}
-
-	if config.Project != "" {
-		return config.Project, nil
-	}
-
-	return "", fmt.Errorf("project: required field is not set")
-}
-
-func getZonalResourceFromRegion(getResource func(string) (interface{}, error), region string, compute *compute.Service, project string) (interface{}, error) {
-	zoneList, err := compute.Zones.List(project).Do()
-	if err != nil {
-		return nil, err
-	}
-	var resource interface{}
-	for _, zone := range zoneList.Items {
-		if strings.Contains(zone.Name, region) {
-			resource, err = getResource(zone.Name)
-			if err != nil {
-				if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-					// Resource was not found in this zone
-					continue
-				}
-				return nil, fmt.Errorf("Error reading Resource: %s", err)
-			}
-			// Resource was found
-			return resource, nil
-		}
-	}
-	// Resource does not exist in this region
-	return nil, nil
-}
-
-func getZonalBetaResourceFromRegion(getResource func(string) (interface{}, error), region string, compute *computeBeta.Service, project string) (interface{}, error) {
-	zoneList, err := compute.Zones.List(project).Do()
-	if err != nil {
-		return nil, err
-	}
-	var resource interface{}
-	for _, zone := range zoneList.Items {
-		if strings.Contains(zone.Name, region) {
-			resource, err = getResource(zone.Name)
-			if err != nil {
-				if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-					// Resource was not found in this zone
-					continue
-				}
-				return nil, fmt.Errorf("Error reading Resource: %s", err)
-			}
-			// Resource was found
-			return resource, nil
-		}
-	}
-	// Resource does not exist in this region
-	return nil, nil
 }
 
 func getRouterLockName(region string, router string) string {
@@ -211,78 +140,8 @@ func isConflictError(err error) bool {
 	return false
 }
 
-func linkDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	if GetResourceNameFromSelfLink(old) == new {
-		return true
-	}
-	return false
-}
-
-func optionalPrefixSuppress(prefix string) schema.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *schema.ResourceData) bool {
-		return prefix+old == new || prefix+new == old
-	}
-}
-
-func optionalSurroundingSpacesSuppress(k, old, new string, d *schema.ResourceData) bool {
-	return strings.TrimSpace(old) == strings.TrimSpace(new)
-}
-
-func emptyOrDefaultStringSuppress(defaultVal string) schema.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *schema.ResourceData) bool {
-		return (old == "" && new == defaultVal) || (new == "" && old == defaultVal)
-	}
-}
-
-func ipCidrRangeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	// The range may be a:
-	// A) single IP address (e.g. 10.2.3.4)
-	// B) CIDR format string (e.g. 10.1.2.0/24)
-	// C) netmask (e.g. /24)
-	//
-	// For A) and B), no diff to suppress, they have to match completely.
-	// For C), The API picks a network IP address and this creates a diff of the form:
-	// network_interface.0.alias_ip_range.0.ip_cidr_range: "10.128.1.0/24" => "/24"
-	// We should only compare the mask portion for this case.
-	if len(new) > 0 && new[0] == '/' {
-		oldNetmaskStartPos := strings.LastIndex(old, "/")
-
-		if oldNetmaskStartPos != -1 {
-			oldNetmask := old[strings.LastIndex(old, "/"):]
-			if oldNetmask == new {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-func caseDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
-	return strings.ToUpper(old) == strings.ToUpper(new)
-}
-
-// Port range '80' and '80-80' is equivalent.
-// `old` is read from the server and always has the full range format (e.g. '80-80', '1024-2048').
-// `new` can be either a single port or a port range.
-func portRangeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	if old == new+"-"+new {
-		return true
-	}
-	return false
-}
-
-// Single-digit hour is equivalent to hour with leading zero e.g. suppress diff 1:00 => 01:00.
-// Assume either value could be in either format.
-func rfc3339TimeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	if (len(old) == 4 && "0"+old == new) || (len(new) == 4 && "0"+new == old) {
-		return true
-	}
-	return false
-}
-
-// expandLabels pulls the value of "labels" out of a schema.ResourceData as a map[string]string.
-func expandLabels(d *schema.ResourceData) map[string]string {
+// expandLabels pulls the value of "labels" out of a TerraformResourceData as a map[string]string.
+func expandLabels(d TerraformResourceData) map[string]string {
 	return expandStringMap(d, "labels")
 }
 
@@ -291,8 +150,8 @@ func expandEnvironmentVariables(d *schema.ResourceData) map[string]string {
 	return expandStringMap(d, "environment_variables")
 }
 
-// expandStringMap pulls the value of key out of a schema.ResourceData as a map[string]string.
-func expandStringMap(d *schema.ResourceData, key string) map[string]string {
+// expandStringMap pulls the value of key out of a TerraformResourceData as a map[string]string.
+func expandStringMap(d TerraformResourceData, key string) map[string]string {
 	v, ok := d.GetOk(key)
 
 	if !ok {
@@ -325,6 +184,14 @@ func convertAndMapStringArr(ifaceArr []interface{}, f func(string) string) []str
 	return arr
 }
 
+func mapStringArr(original []string, f func(string) string) []string {
+	var arr []string
+	for _, v := range original {
+		arr = append(arr, f(v))
+	}
+	return arr
+}
+
 func convertStringArrToInterface(strs []string) []interface{} {
 	arr := make([]interface{}, len(strs))
 	for i, str := range strs {
@@ -338,7 +205,50 @@ func convertStringSet(set *schema.Set) []string {
 	for _, v := range set.List() {
 		s = append(s, v.(string))
 	}
+	sort.Strings(s)
+
 	return s
+}
+
+func golangSetFromStringSlice(strings []string) map[string]struct{} {
+	set := map[string]struct{}{}
+	for _, v := range strings {
+		set[v] = struct{}{}
+	}
+
+	return set
+}
+
+func stringSliceFromGolangSet(sset map[string]struct{}) []string {
+	ls := make([]string, 0, len(sset))
+	for s := range sset {
+		ls = append(ls, s)
+	}
+	sort.Strings(ls)
+
+	return ls
+}
+
+func reverseStringMap(m map[string]string) map[string]string {
+	o := map[string]string{}
+	for k, v := range m {
+		o[v] = k
+	}
+	return o
+}
+
+func mergeStringMaps(a, b map[string]string) map[string]string {
+	merged := make(map[string]string)
+
+	for k, v := range a {
+		merged[k] = v
+	}
+
+	for k, v := range b {
+		merged[k] = v
+	}
+
+	return merged
 }
 
 func mergeSchemas(a, b map[string]*schema.Schema) map[string]*schema.Schema {
@@ -355,39 +265,26 @@ func mergeSchemas(a, b map[string]*schema.Schema) map[string]*schema.Schema {
 	return merged
 }
 
-func mergeResourceMaps(ms ...map[string]*schema.Resource) map[string]*schema.Resource {
+func mergeResourceMaps(ms ...map[string]*schema.Resource) (map[string]*schema.Resource, error) {
 	merged := make(map[string]*schema.Resource)
+	duplicates := []string{}
 
 	for _, m := range ms {
 		for k, v := range m {
+			if _, ok := merged[k]; ok {
+				duplicates = append(duplicates, k)
+			}
+
 			merged[k] = v
 		}
 	}
 
-	return merged
-}
+	var err error
+	if len(duplicates) > 0 {
+		err = fmt.Errorf("saw duplicates in mergeResourceMaps: %v", duplicates)
+	}
 
-func retry(retryFunc func() error) error {
-	return retryTime(retryFunc, 1)
-}
-
-func retryTime(retryFunc func() error, minutes int) error {
-	return retryTimeDuration(retryFunc, time.Duration(minutes)*time.Minute)
-}
-
-func retryTimeDuration(retryFunc func() error, duration time.Duration) error {
-	return resource.Retry(duration, func() *resource.RetryError {
-		err := retryFunc()
-		if err == nil {
-			return nil
-		}
-		for _, e := range errwrap.GetAllType(err, &googleapi.Error{}) {
-			if gerr, ok := e.(*googleapi.Error); ok && (gerr.Code == 429 || gerr.Code == 500 || gerr.Code == 502 || gerr.Code == 503) {
-				return resource.RetryableError(gerr)
-			}
-		}
-		return resource.NonRetryableError(err)
-	})
+	return merged, err
 }
 
 func extractFirstMapConfig(m []interface{}) map[string]interface{} {
@@ -403,6 +300,17 @@ func lockedCall(lockKey string, f func() error) error {
 	defer mutexKV.Unlock(lockKey)
 
 	return f()
+}
+
+// This is a Printf sibling (Nprintf; Named Printf), which handles strings like
+// Nprintf("Hello %{target}!", map[string]interface{}{"target":"world"}) == "Hello world!".
+// This is particularly useful for generated tests, where we don't want to use Printf,
+// since that would require us to generate a very particular ordering of arguments.
+func Nprintf(format string, params map[string]interface{}) string {
+	for key, val := range params {
+		format = strings.Replace(format, "%{"+key+"}", fmt.Sprintf("%v", val), -1)
+	}
+	return format
 }
 
 // serviceAccountFQN will attempt to generate the fully qualified name in the format of:
@@ -429,4 +337,92 @@ func serviceAccountFQN(serviceAccount string, d TerraformResourceData, config *C
 	}
 
 	return fmt.Sprintf("projects/-/serviceAccounts/%s@%s.iam.gserviceaccount.com", serviceAccount, project), nil
+}
+
+func paginatedListRequest(project, baseUrl string, config *Config, flattener func(map[string]interface{}) []interface{}) ([]interface{}, error) {
+	res, err := sendRequest(config, "GET", project, baseUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ls := flattener(res)
+	pageToken, ok := res["pageToken"]
+	for ok {
+		if pageToken.(string) == "" {
+			break
+		}
+		url := fmt.Sprintf("%s?pageToken=%s", baseUrl, pageToken.(string))
+		res, err = sendRequest(config, "GET", project, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		ls = append(ls, flattener(res))
+		pageToken, ok = res["pageToken"]
+	}
+
+	return ls, nil
+}
+
+func getInterconnectAttachmentLink(config *Config, project, region, ic string) (string, error) {
+	if !strings.Contains(ic, "/") {
+		icData, err := config.clientCompute.InterconnectAttachments.Get(
+			project, region, ic).Do()
+		if err != nil {
+			return "", fmt.Errorf("Error reading interconnect attachment: %s", err)
+		}
+		ic = icData.SelfLink
+	}
+
+	return ic, nil
+}
+
+// Given two sets of references (with "from" values in self link form),
+// determine which need to be added or removed // during an update using
+// addX/removeX APIs.
+func calcAddRemove(from []string, to []string) (add, remove []string) {
+	add = make([]string, 0)
+	remove = make([]string, 0)
+	for _, u := range to {
+		found := false
+		for _, v := range from {
+			if compareSelfLinkOrResourceName("", v, u, nil) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			add = append(add, u)
+		}
+	}
+	for _, u := range from {
+		found := false
+		for _, v := range to {
+			if compareSelfLinkOrResourceName("", u, v, nil) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			remove = append(remove, u)
+		}
+	}
+	return add, remove
+}
+
+func stringInSlice(arr []string, str string) bool {
+	for _, i := range arr {
+		if i == str {
+			return true
+		}
+	}
+
+	return false
+}
+
+func migrateStateNoop(v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+	return is, nil
+}
+
+func expandString(v interface{}, d TerraformResourceData, config *Config) (string, error) {
+	return v.(string), nil
 }

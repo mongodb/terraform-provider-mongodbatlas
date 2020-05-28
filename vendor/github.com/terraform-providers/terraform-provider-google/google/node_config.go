@@ -1,11 +1,8 @@
 package google
 
 import (
-	"strconv"
-	"strings"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	containerBeta "google.golang.org/api/container/v1beta1"
 )
 
@@ -43,23 +40,26 @@ var schemaNodeConfig = &schema.Schema{
 				ValidateFunc: validation.StringInSlice([]string{"pd-standard", "pd-ssd"}, false),
 			},
 
-			"guest_accelerator": &schema.Schema{
+			"guest_accelerator": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				// Legacy config mode allows removing GPU's from an existing resource
+				// See https://www.terraform.io/docs/configuration/attr-as-blocks.html
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"count": &schema.Schema{
+						"count": {
 							Type:     schema.TypeInt,
 							Required: true,
 							ForceNew: true,
 						},
-						"type": &schema.Schema{
+						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: linkDiffSuppress,
+							DiffSuppressFunc: compareSelfLinkOrResourceName,
 						},
 					},
 				},
@@ -74,6 +74,8 @@ var schemaNodeConfig = &schema.Schema{
 			"labels": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				// Computed=true because GKE Sandbox will automatically add labels to nodes that can/cannot run sandboxed pods.
+				Computed: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -96,6 +98,7 @@ var schemaNodeConfig = &schema.Schema{
 			"metadata": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
@@ -117,7 +120,8 @@ var schemaNodeConfig = &schema.Schema{
 						return canonicalizeServiceScope(v.(string))
 					},
 				},
-				Set: stringScopeHashcode,
+				DiffSuppressFunc: containerClusterAddedScopesSuppress,
+				Set:              stringScopeHashcode,
 			},
 
 			"preemptible": {
@@ -141,12 +145,39 @@ var schemaNodeConfig = &schema.Schema{
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
+			"shielded_instance_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enable_secure_boot": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
+						"enable_integrity_monitoring": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  true,
+						},
+					},
+				},
+			},
+
 			"taint": {
-				Deprecated:       "This field is in beta and will be removed from this provider. Use it in the the google-beta provider instead. See https://terraform.io/docs/providers/google/provider_versions.html for more details.",
-				Type:             schema.TypeList,
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: taintDiffSuppress,
+				Type:     schema.TypeList,
+				Optional: true,
+				// Computed=true because GKE Sandbox will automatically add taints to nodes that can/cannot run sandboxed pods.
+				Computed: true,
+				ForceNew: true,
+				// Legacy config mode allows explicitly defining an empty taint.
+				// See https://www.terraform.io/docs/configuration/attr-as-blocks.html
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -170,18 +201,37 @@ var schemaNodeConfig = &schema.Schema{
 			},
 
 			"workload_metadata_config": {
-				Deprecated: "This field is in beta and will be removed from this provider. Use it in the the google-beta provider instead. See https://terraform.io/docs/providers/google/provider_versions.html for more details.",
-				Type:       schema.TypeList,
-				Optional:   true,
-				ForceNew:   true,
-				MaxItems:   1,
+				Removed:  "This field is in beta. Use it in the the google-beta provider instead. See https://terraform.io/docs/providers/google/guides/provider_versions.html for more details.",
+				Computed: true,
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"node_metadata": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validation.StringInSlice([]string{"UNSPECIFIED", "SECURE", "EXPOSE"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"UNSPECIFIED", "SECURE", "EXPOSE", "GKE_METADATA_SERVER"}, false),
+						},
+					},
+				},
+			},
+
+			"sandbox_config": {
+				Removed:  "This field is in beta. Use it in the the google-beta provider instead. See https://terraform.io/docs/providers/google/guides/provider_versions.html for more details.",
+				Computed: true,
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"sandbox_type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"gvisor"}, false),
 						},
 					},
 				},
@@ -272,10 +322,21 @@ func expandNodeConfig(v interface{}) *containerBeta.NodeConfig {
 		tagsList := v.([]interface{})
 		tags := []string{}
 		for _, v := range tagsList {
-			tags = append(tags, v.(string))
+			if v != nil {
+				tags = append(tags, v.(string))
+			}
 		}
 		nc.Tags = tags
 	}
+
+	if v, ok := nodeConfig["shielded_instance_config"]; ok && len(v.([]interface{})) > 0 {
+		conf := v.([]interface{})[0].(map[string]interface{})
+		nc.ShieldedInstanceConfig = &containerBeta.ShieldedInstanceConfig{
+			EnableSecureBoot:          conf["enable_secure_boot"].(bool),
+			EnableIntegrityMonitoring: conf["enable_integrity_monitoring"].(bool),
+		}
+	}
+
 	// Preemptible Is Optional+Default, so it always has a value
 	nc.Preemptible = nodeConfig["preemptible"].(bool)
 
@@ -296,13 +357,6 @@ func expandNodeConfig(v interface{}) *containerBeta.NodeConfig {
 			nodeTaints = append(nodeTaints, taint)
 		}
 		nc.Taints = nodeTaints
-	}
-
-	if v, ok := nodeConfig["workload_metadata_config"]; ok && len(v.([]interface{})) > 0 {
-		conf := v.([]interface{})[0].(map[string]interface{})
-		nc.WorkloadMetadataConfig = &containerBeta.WorkloadMetadataConfig{
-			NodeMetadata: conf["node_metadata"].(string),
-		}
 	}
 
 	return nc
@@ -328,8 +382,8 @@ func flattenNodeConfig(c *containerBeta.NodeConfig) []map[string]interface{} {
 		"tags":                     c.Tags,
 		"preemptible":              c.Preemptible,
 		"min_cpu_platform":         c.MinCpuPlatform,
+		"shielded_instance_config": flattenShieldedInstanceConfig(c.ShieldedInstanceConfig),
 		"taint":                    flattenTaints(c.Taints),
-		"workload_metadata_config": flattenWorkloadMetadataConfig(c.WorkloadMetadataConfig),
 	})
 
 	if len(c.OauthScopes) > 0 {
@@ -350,6 +404,17 @@ func flattenContainerGuestAccelerators(c []*containerBeta.AcceleratorConfig) []m
 	return result
 }
 
+func flattenShieldedInstanceConfig(c *containerBeta.ShieldedInstanceConfig) []map[string]interface{} {
+	result := []map[string]interface{}{}
+	if c != nil {
+		result = append(result, map[string]interface{}{
+			"enable_secure_boot":          c.EnableSecureBoot,
+			"enable_integrity_monitoring": c.EnableIntegrityMonitoring,
+		})
+	}
+	return result
+}
+
 func flattenTaints(c []*containerBeta.NodeTaint) []map[string]interface{} {
 	result := []map[string]interface{}{}
 	for _, taint := range c {
@@ -360,31 +425,4 @@ func flattenTaints(c []*containerBeta.NodeTaint) []map[string]interface{} {
 		})
 	}
 	return result
-}
-
-func flattenWorkloadMetadataConfig(c *containerBeta.WorkloadMetadataConfig) []map[string]interface{} {
-	result := []map[string]interface{}{}
-	if c != nil {
-		result = append(result, map[string]interface{}{
-			"node_metadata": c.NodeMetadata,
-		})
-	}
-	return result
-}
-
-func taintDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	if strings.HasSuffix(k, "#") {
-		oldCount, oldErr := strconv.Atoi(old)
-		newCount, newErr := strconv.Atoi(new)
-		// If either of them isn't a number somehow, or if there's one that we didn't have before.
-		return oldErr != nil || newErr != nil || oldCount == newCount+1
-	} else {
-		lastDot := strings.LastIndex(k, ".")
-		taintKey := d.Get(k[:lastDot] + ".key").(string)
-		if taintKey == "nvidia.com/gpu" {
-			return true
-		} else {
-			return false
-		}
-	}
 }

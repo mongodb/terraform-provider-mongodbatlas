@@ -3,13 +3,14 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing.T) {
@@ -215,7 +216,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-	
+
 		//Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_WEST_2"
@@ -231,7 +232,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			description       = "%s"
 			retention_in_days = %s
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name

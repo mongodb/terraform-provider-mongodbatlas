@@ -7,9 +7,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsBatchComputeEnvironment() *schema.Resource {
@@ -19,12 +20,27 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 		Update: resourceAwsBatchComputeEnvironmentUpdate,
 		Delete: resourceAwsBatchComputeEnvironmentDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("compute_environment_name", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"compute_environment_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateBatchName,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"compute_environment_name_prefix"},
+				ValidateFunc:  validateBatchName,
+			},
+			"compute_environment_name_prefix": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"compute_environment_name"},
+				ValidateFunc:  validateBatchPrefix,
 			},
 			"compute_resources": {
 				Type:     schema.TypeList,
@@ -33,6 +49,15 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"allocation_strategy": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								batch.CRAllocationStrategyBestFit,
+								batch.CRAllocationStrategyBestFitProgressive,
+								batch.CRAllocationStrategySpotCapacityOptimized}, true),
+						},
 						"bid_percentage": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -64,6 +89,33 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 							ForceNew: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+						"launch_template": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"launch_template_id": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"compute_resources.0.launch_template.0.launch_template_name"},
+										ForceNew:      true,
+									},
+									"launch_template_name": {
+										Type:          schema.TypeString,
+										Optional:      true,
+										ConflictsWith: []string{"compute_resources.0.launch_template.0.launch_template_id"},
+										ForceNew:      true,
+									},
+									"version": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
 						"max_vcpus": {
 							Type:     schema.TypeInt,
 							Required: true,
@@ -90,7 +142,7 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 							ForceNew: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"tags": tagsSchema(),
+						"tags": tagsSchemaForceNew(),
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -122,9 +174,9 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 				Computed: true,
 			},
 			"ecc_cluster_arn": {
-				Type:       schema.TypeString,
-				Computed:   true,
-				Deprecated: "Use ecs_cluster_arn instead",
+				Type:     schema.TypeString,
+				Computed: true,
+				Removed:  "Use `ecs_cluster_arn` attribute instead",
 			},
 			"ecs_cluster_arn": {
 				Type:     schema.TypeString,
@@ -145,7 +197,16 @@ func resourceAwsBatchComputeEnvironment() *schema.Resource {
 func resourceAwsBatchComputeEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
 
-	computeEnvironmentName := d.Get("compute_environment_name").(string)
+	// Build the compute environment name.
+	var computeEnvironmentName string
+	if v, ok := d.GetOk("compute_environment_name"); ok {
+		computeEnvironmentName = v.(string)
+	} else if v, ok := d.GetOk("compute_environment_name_prefix"); ok {
+		computeEnvironmentName = resource.PrefixedUniqueId(v.(string))
+	} else {
+		computeEnvironmentName = resource.UniqueId()
+	}
+	d.Set("compute_environment_name", computeEnvironmentName)
 
 	serviceRole := d.Get("service_role").(string)
 	computeEnvironmentType := d.Get("type").(string)
@@ -197,6 +258,9 @@ func resourceAwsBatchComputeEnvironmentCreate(d *schema.ResourceData, meta inter
 			Type:             aws.String(computeResourceType),
 		}
 
+		if v, ok := computeResource["allocation_strategy"]; ok {
+			input.ComputeResources.AllocationStrategy = aws.String(v.(string))
+		}
 		if v, ok := computeResource["bid_percentage"]; ok {
 			input.ComputeResources.BidPercentage = aws.Int64(int64(v.(int)))
 		}
@@ -213,7 +277,21 @@ func resourceAwsBatchComputeEnvironmentCreate(d *schema.ResourceData, meta inter
 			input.ComputeResources.SpotIamFleetRole = aws.String(v.(string))
 		}
 		if v, ok := computeResource["tags"]; ok {
-			input.ComputeResources.Tags = tagsFromMapGeneric(v.(map[string]interface{}))
+			input.ComputeResources.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().BatchTags()
+		}
+
+		if raw, ok := computeResource["launch_template"]; ok && len(raw.([]interface{})) > 0 {
+			input.ComputeResources.LaunchTemplate = &batch.LaunchTemplateSpecification{}
+			launchTemplate := raw.([]interface{})[0].(map[string]interface{})
+			if v, ok := launchTemplate["launch_template_id"]; ok {
+				input.ComputeResources.LaunchTemplate.LaunchTemplateId = aws.String(v.(string))
+			}
+			if v, ok := launchTemplate["launch_template_name"]; ok {
+				input.ComputeResources.LaunchTemplate.LaunchTemplateName = aws.String(v.(string))
+			}
+			if v, ok := launchTemplate["version"]; ok {
+				input.ComputeResources.LaunchTemplate.Version = aws.String(v.(string))
+			}
 		}
 	}
 
@@ -228,7 +306,7 @@ func resourceAwsBatchComputeEnvironmentCreate(d *schema.ResourceData, meta inter
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{batch.CEStatusCreating},
 		Target:     []string{batch.CEStatusValid},
-		Refresh:    resourceAwsBatchComputeEnvironmentStatusRefreshFunc(d, meta),
+		Refresh:    resourceAwsBatchComputeEnvironmentStatusRefreshFunc(computeEnvironmentName, conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 	}
@@ -266,12 +344,13 @@ func resourceAwsBatchComputeEnvironmentRead(d *schema.ResourceData, meta interfa
 	d.Set("state", computeEnvironment.State)
 	d.Set("type", computeEnvironment.Type)
 
-	if *(computeEnvironment.Type) == "MANAGED" {
-		d.Set("compute_resources", flattenComputeResources(computeEnvironment.ComputeResources))
+	if aws.StringValue(computeEnvironment.Type) == batch.CETypeManaged {
+		if err := d.Set("compute_resources", flattenBatchComputeResources(computeEnvironment.ComputeResources)); err != nil {
+			return fmt.Errorf("error setting compute_resources: %s", err)
+		}
 	}
 
 	d.Set("arn", computeEnvironment.ComputeEnvironmentArn)
-	d.Set("ecc_cluster_arn", computeEnvironment.EcsClusterArn)
 	d.Set("ecs_cluster_arn", computeEnvironment.EcsClusterArn)
 	d.Set("status", computeEnvironment.Status)
 	d.Set("status_reason", computeEnvironment.StatusReason)
@@ -279,23 +358,32 @@ func resourceAwsBatchComputeEnvironmentRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func flattenComputeResources(computeResource *batch.ComputeResource) []map[string]interface{} {
+func flattenBatchComputeResources(computeResource *batch.ComputeResource) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
 
-	m["bid_percentage"] = computeResource.BidPercentage
-	m["desired_vcpus"] = computeResource.DesiredvCpus
-	m["ec2_key_pair"] = computeResource.Ec2KeyPair
-	m["image_id"] = computeResource.ImageId
-	m["instance_role"] = computeResource.InstanceRole
+	m["allocation_strategy"] = aws.StringValue(computeResource.AllocationStrategy)
+	m["bid_percentage"] = int(aws.Int64Value(computeResource.BidPercentage))
+	m["desired_vcpus"] = int(aws.Int64Value(computeResource.DesiredvCpus))
+	m["ec2_key_pair"] = aws.StringValue(computeResource.Ec2KeyPair)
+	m["image_id"] = aws.StringValue(computeResource.ImageId)
+	m["instance_role"] = aws.StringValue(computeResource.InstanceRole)
 	m["instance_type"] = schema.NewSet(schema.HashString, flattenStringList(computeResource.InstanceTypes))
-	m["max_vcpus"] = computeResource.MaxvCpus
-	m["min_vcpus"] = computeResource.MinvCpus
+	m["max_vcpus"] = int(aws.Int64Value(computeResource.MaxvCpus))
+	m["min_vcpus"] = int(aws.Int64Value(computeResource.MinvCpus))
 	m["security_group_ids"] = schema.NewSet(schema.HashString, flattenStringList(computeResource.SecurityGroupIds))
-	m["spot_iam_fleet_role"] = computeResource.SpotIamFleetRole
+	m["spot_iam_fleet_role"] = aws.StringValue(computeResource.SpotIamFleetRole)
 	m["subnets"] = schema.NewSet(schema.HashString, flattenStringList(computeResource.Subnets))
-	m["tags"] = tagsToMapGeneric(computeResource.Tags)
-	m["type"] = computeResource.Type
+	m["tags"] = keyvaluetags.BatchKeyValueTags(computeResource.Tags).IgnoreAws().Map()
+	m["type"] = aws.StringValue(computeResource.Type)
+
+	if launchTemplate := computeResource.LaunchTemplate; launchTemplate != nil {
+		lt := make(map[string]interface{})
+		lt["launch_template_id"] = aws.StringValue(launchTemplate.LaunchTemplateId)
+		lt["launch_template_name"] = aws.StringValue(launchTemplate.LaunchTemplateName)
+		lt["version"] = aws.StringValue(launchTemplate.Version)
+		m["launch_template"] = []map[string]interface{}{lt}
+	}
 
 	result = append(result, m)
 	return result
@@ -303,51 +391,19 @@ func flattenComputeResources(computeResource *batch.ComputeResource) []map[strin
 
 func resourceAwsBatchComputeEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
-
 	computeEnvironmentName := d.Get("compute_environment_name").(string)
 
-	updateInput := &batch.UpdateComputeEnvironmentInput{
-		ComputeEnvironment: aws.String(computeEnvironmentName),
-		State:              aws.String(batch.CEStateDisabled),
+	log.Printf("[DEBUG] Disabling Batch Compute Environment: %s", computeEnvironmentName)
+	err := disableBatchComputeEnvironment(computeEnvironmentName, d.Timeout(schema.TimeoutDelete), conn)
+	if err != nil {
+		return fmt.Errorf("error disabling Batch Compute Environment (%s): %s", computeEnvironmentName, err)
 	}
 
-	log.Printf("[DEBUG] Delete compute environment %s.\n", updateInput)
-
-	if _, err := conn.UpdateComputeEnvironment(updateInput); err != nil {
-		return err
+	log.Printf("[DEBUG] Deleting Batch Compute Environment: %s", computeEnvironmentName)
+	err = deleteBatchComputeEnvironment(computeEnvironmentName, d.Timeout(schema.TimeoutDelete), conn)
+	if err != nil {
+		return fmt.Errorf("error deleting Batch Compute Environment (%s): %s", computeEnvironmentName, err)
 	}
-
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{batch.CEStatusUpdating},
-		Target:     []string{batch.CEStatusValid},
-		Refresh:    resourceAwsBatchComputeEnvironmentStatusRefreshFunc(d, meta),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 5 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return err
-	}
-
-	input := &batch.DeleteComputeEnvironmentInput{
-		ComputeEnvironment: aws.String(computeEnvironmentName),
-	}
-
-	if _, err := conn.DeleteComputeEnvironment(input); err != nil {
-		return err
-	}
-
-	stateConfForDelete := &resource.StateChangeConf{
-		Pending:    []string{batch.CEStatusDeleting},
-		Target:     []string{batch.CEStatusDeleted},
-		Refresh:    resourceAwsBatchComputeEnvironmentDeleteRefreshFunc(d, meta),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 5 * time.Second,
-	}
-	if _, err := stateConfForDelete.WaitForState(); err != nil {
-		return err
-	}
-
-	d.SetId("")
 
 	return nil
 }
@@ -366,7 +422,7 @@ func resourceAwsBatchComputeEnvironmentUpdate(d *schema.ResourceData, meta inter
 		input.ServiceRole = aws.String(d.Get("service_role").(string))
 	}
 	if d.HasChange("state") {
-		input.ServiceRole = aws.String(d.Get("state").(string))
+		input.State = aws.String(d.Get("state").(string))
 	}
 
 	if d.HasChange("compute_resources") {
@@ -390,12 +446,8 @@ func resourceAwsBatchComputeEnvironmentUpdate(d *schema.ResourceData, meta inter
 	return resourceAwsBatchComputeEnvironmentRead(d, meta)
 }
 
-func resourceAwsBatchComputeEnvironmentStatusRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+func resourceAwsBatchComputeEnvironmentStatusRefreshFunc(computeEnvironmentName string, conn *batch.Batch) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		conn := meta.(*AWSClient).batchconn
-
-		computeEnvironmentName := d.Get("compute_environment_name").(string)
-
 		result, err := conn.DescribeComputeEnvironments(&batch.DescribeComputeEnvironmentsInput{
 			ComputeEnvironments: []*string{
 				aws.String(computeEnvironmentName),
@@ -414,12 +466,8 @@ func resourceAwsBatchComputeEnvironmentStatusRefreshFunc(d *schema.ResourceData,
 	}
 }
 
-func resourceAwsBatchComputeEnvironmentDeleteRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+func resourceAwsBatchComputeEnvironmentDeleteRefreshFunc(computeEnvironmentName string, conn *batch.Batch) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		conn := meta.(*AWSClient).batchconn
-
-		computeEnvironmentName := d.Get("compute_environment_name").(string)
-
 		result, err := conn.DescribeComputeEnvironments(&batch.DescribeComputeEnvironmentsInput{
 			ComputeEnvironments: []*string{
 				aws.String(computeEnvironmentName),
@@ -436,4 +484,45 @@ func resourceAwsBatchComputeEnvironmentDeleteRefreshFunc(d *schema.ResourceData,
 		computeEnvironment := result.ComputeEnvironments[0]
 		return result, *(computeEnvironment.Status), nil
 	}
+}
+
+func deleteBatchComputeEnvironment(computeEnvironment string, timeout time.Duration, conn *batch.Batch) error {
+	input := &batch.DeleteComputeEnvironmentInput{
+		ComputeEnvironment: aws.String(computeEnvironment),
+	}
+
+	if _, err := conn.DeleteComputeEnvironment(input); err != nil {
+		return err
+	}
+
+	stateChangeConf := &resource.StateChangeConf{
+		Pending:    []string{batch.CEStatusDeleting},
+		Target:     []string{batch.CEStatusDeleted},
+		Refresh:    resourceAwsBatchComputeEnvironmentDeleteRefreshFunc(computeEnvironment, conn),
+		Timeout:    timeout,
+		MinTimeout: 5 * time.Second,
+	}
+	_, err := stateChangeConf.WaitForState()
+	return err
+}
+
+func disableBatchComputeEnvironment(computeEnvironment string, timeout time.Duration, conn *batch.Batch) error {
+	input := &batch.UpdateComputeEnvironmentInput{
+		ComputeEnvironment: aws.String(computeEnvironment),
+		State:              aws.String(batch.CEStateDisabled),
+	}
+
+	if _, err := conn.UpdateComputeEnvironment(input); err != nil {
+		return err
+	}
+
+	stateChangeConf := &resource.StateChangeConf{
+		Pending:    []string{batch.CEStatusUpdating},
+		Target:     []string{batch.CEStatusValid},
+		Refresh:    resourceAwsBatchComputeEnvironmentStatusRefreshFunc(computeEnvironment, conn),
+		Timeout:    timeout,
+		MinTimeout: 5 * time.Second,
+	}
+	_, err := stateChangeConf.WaitForState()
+	return err
 }

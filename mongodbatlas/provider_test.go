@@ -7,10 +7,10 @@ import (
 	"github.com/go-test/deep"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
-	google "github.com/terraform-providers/terraform-provider-google/google"
+	"github.com/terraform-providers/terraform-provider-google/google"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsVpnGatewayAttachment() *schema.Resource {
@@ -20,12 +20,12 @@ func resourceAwsVpnGatewayAttachment() *schema.Resource {
 		Delete: resourceAwsVpnGatewayAttachmentDelete,
 
 		Schema: map[string]*schema.Schema{
-			"vpc_id": &schema.Schema{
+			"vpc_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"vpn_gateway_id": &schema.Schema{
+			"vpn_gateway_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -85,7 +85,7 @@ func resourceAwsVpnGatewayAttachmentRead(d *schema.ResourceData, meta interface{
 
 	if err != nil {
 		awsErr, ok := err.(awserr.Error)
-		if ok && awsErr.Code() == "InvalidVPNGatewayID.NotFound" {
+		if ok && awsErr.Code() == "InvalidVpnGatewayID.NotFound" {
 			log.Printf("[WARN] VPN Gateway %q not found.", vgwId)
 			d.SetId("")
 			return nil
@@ -101,12 +101,12 @@ func resourceAwsVpnGatewayAttachmentRead(d *schema.ResourceData, meta interface{
 	}
 
 	vga := vpnGatewayGetAttachment(vgw)
-	if len(vgw.VpcAttachments) == 0 || *vga.State == "detached" {
+	if vga == nil {
 		d.Set("vpc_id", "")
 		return nil
 	}
 
-	d.Set("vpc_id", *vga.VpcId)
+	d.Set("vpc_id", vga.VpcId)
 	return nil
 }
 
@@ -130,15 +130,9 @@ func resourceAwsVpnGatewayAttachmentDelete(d *schema.ResourceData, meta interfac
 		awsErr, ok := err.(awserr.Error)
 		if ok {
 			switch awsErr.Code() {
-			case "InvalidVPNGatewayID.NotFound":
-				log.Printf("[WARN] VPN Gateway %q not found.", vgwId)
-				d.SetId("")
+			case "InvalidVpnGatewayID.NotFound":
 				return nil
 			case "InvalidVpnGatewayAttachment.NotFound":
-				log.Printf(
-					"[WARN] VPN Gateway %q attachment to VPC %q not found.",
-					vgwId, vpcId)
-				d.SetId("")
 				return nil
 			}
 		}
@@ -163,19 +157,15 @@ func resourceAwsVpnGatewayAttachmentDelete(d *schema.ResourceData, meta interfac
 	}
 	log.Printf("[DEBUG] VPN Gateway %q detached from VPC %q.", vgwId, vpcId)
 
-	d.SetId("")
 	return nil
 }
 
 func vpnGatewayAttachmentStateRefresh(conn *ec2.EC2, vpcId, vgwId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := conn.DescribeVpnGateways(&ec2.DescribeVpnGatewaysInput{
-			Filters: []*ec2.Filter{
-				&ec2.Filter{
-					Name:   aws.String("attachment.vpc-id"),
-					Values: []*string{aws.String(vpcId)},
-				},
-			},
+			Filters: buildEC2AttributeFilterList(map[string]string{
+				"attachment.vpc-id": vpcId,
+			}),
 			VpnGatewayIds: []*string{aws.String(vgwId)},
 		})
 
@@ -183,7 +173,7 @@ func vpnGatewayAttachmentStateRefresh(conn *ec2.EC2, vpcId, vgwId string) resour
 			awsErr, ok := err.(awserr.Error)
 			if ok {
 				switch awsErr.Code() {
-				case "InvalidVPNGatewayID.NotFound":
+				case "InvalidVpnGatewayID.NotFound":
 					fallthrough
 				case "InvalidVpnGatewayAttachment.NotFound":
 					return nil, "", nil
@@ -194,15 +184,19 @@ func vpnGatewayAttachmentStateRefresh(conn *ec2.EC2, vpcId, vgwId string) resour
 		}
 
 		vgw := resp.VpnGateways[0]
-		if len(vgw.VpcAttachments) == 0 {
-			return vgw, "detached", nil
-		}
 
-		vga := vpnGatewayGetAttachment(vgw)
-
-		log.Printf("[DEBUG] VPN Gateway %q attachment status: %s", vgwId, *vga.State)
-		return vgw, *vga.State, nil
+		return vgw, vpnGatewayGetAttachmentState(vgw, vpcId), nil
 	}
+}
+
+// vpnGatewayGetAttachmentState returns the state of any VGW attachment to the specified VPC or "detached".
+func vpnGatewayGetAttachmentState(vgw *ec2.VpnGateway, vpcId string) string {
+	for _, vpcAttachment := range vgw.VpcAttachments {
+		if aws.StringValue(vpcAttachment.VpcId) == vpcId {
+			return aws.StringValue(vpcAttachment.State)
+		}
+	}
+	return ec2.AttachmentStatusDetached
 }
 
 func vpnGatewayAttachmentId(vpcId, vgwId string) string {

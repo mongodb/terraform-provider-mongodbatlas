@@ -3,9 +3,10 @@ package google
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"google.golang.org/api/sqladmin/v1beta4"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
 func resourceSqlSslCert() *schema.Resource {
@@ -16,51 +17,63 @@ func resourceSqlSslCert() *schema.Resource {
 
 		SchemaVersion: 1,
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
-			"common_name": &schema.Schema{
+			"common_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"instance": &schema.Schema{
+			"instance": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"cert": &schema.Schema{
+			"project": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"cert": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"cert_serial_number": &schema.Schema{
+			"cert_serial_number": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"create_time": &schema.Schema{
+			"create_time": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"expiration_time": &schema.Schema{
+			"expiration_time": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"private_key": &schema.Schema{
+			"private_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"server_ca_cert": &schema.Schema{
+			"server_ca_cert": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"sha1_fingerprint": &schema.Schema{
+			"sha1_fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -91,14 +104,14 @@ func resourceSqlSslCertCreate(d *schema.ResourceData, meta interface{}) error {
 			"ssl cert %s into instance %s: %s", commonName, instance, err)
 	}
 
-	err = sqladminOperationWait(config, resp.Operation, project, "Create Ssl Cert")
+	err = sqlAdminOperationWaitTime(config, resp.Operation, project, "Create Ssl Cert", d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("Error, failure waiting for creation of %q "+
 			"in %q: %s", commonName, instance, err)
 	}
 
 	fingerprint := resp.ClientCert.CertInfo.Sha1Fingerprint
-	d.SetId(fmt.Sprintf("%s/%s", instance, fingerprint))
+	d.SetId(fmt.Sprintf("projects/%s/instances/%s/sslCerts/%s", project, instance, fingerprint))
 	d.Set("sha1_fingerprint", fingerprint)
 
 	// The private key is only returned on the initial insert so set it here.
@@ -133,6 +146,7 @@ func resourceSqlSslCertRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("instance", sslCerts.Instance)
+	d.Set("project", project)
 	d.Set("sha1_fingerprint", sslCerts.Sha1Fingerprint)
 	d.Set("common_name", sslCerts.CommonName)
 	d.Set("cert", sslCerts.Cert)
@@ -140,7 +154,7 @@ func resourceSqlSslCertRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("create_time", sslCerts.CreateTime)
 	d.Set("expiration_time", sslCerts.ExpirationTime)
 
-	d.SetId(fmt.Sprintf("%s/%s", instance, fingerprint))
+	d.SetId(fmt.Sprintf("projects/%s/instances/%s/sslCerts/%s", project, instance, fingerprint))
 	return nil
 }
 
@@ -166,7 +180,7 @@ func resourceSqlSslCertDelete(d *schema.ResourceData, meta interface{}) error {
 			instance, err)
 	}
 
-	err = sqladminOperationWait(config, op, project, "Delete Ssl Cert")
+	err = sqlAdminOperationWaitTime(config, op, project, "Delete Ssl Cert", d.Timeout(schema.TimeoutDelete))
 
 	if err != nil {
 		return fmt.Errorf("Error, failure waiting for deletion of ssl cert %q "+

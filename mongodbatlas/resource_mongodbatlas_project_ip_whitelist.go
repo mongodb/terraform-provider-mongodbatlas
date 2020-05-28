@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 )
 
@@ -69,7 +69,7 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"aws_security_group", "cidr_block"},
-				ValidateFunc:  validation.SingleIP(),
+				ValidateFunc:  validation.IsIPAddress,
 			},
 			// You must configure VPC peering for your project before you can whitelist an AWS security group.
 			"aws_security_group": {

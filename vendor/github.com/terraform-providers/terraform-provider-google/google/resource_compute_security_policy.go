@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"google.golang.org/api/compute/v0.beta"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	compute "google.golang.org/api/compute/v0.beta"
 )
 
 func resourceComputeSecurityPolicy() *schema.Resource {
@@ -19,8 +19,9 @@ func resourceComputeSecurityPolicy() *schema.Resource {
 		Update: resourceComputeSecurityPolicyUpdate,
 		Delete: resourceComputeSecurityPolicyDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceSecurityPolicyStateImporter,
 		},
+		CustomizeDiff: rulesCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(4 * time.Minute),
@@ -29,80 +30,107 @@ func resourceComputeSecurityPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateGCPName,
 			},
 
-			"description": &schema.Schema{
+			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 
-			"project": &schema.Schema{
+			"project": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
-			"rule": &schema.Schema{
+			"rule": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true, // If no rules are set, a default rule is added
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"action": &schema.Schema{
+						"action": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"allow", "deny(403)", "deny(404)", "deny(502)"}, false),
 						},
 
-						"priority": &schema.Schema{
+						"priority": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"match": &schema.Schema{
+						"match": {
 							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"config": &schema.Schema{
+									"config": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"src_ip_ranges": &schema.Schema{
+												"src_ip_ranges": {
 													Type:     schema.TypeSet,
 													Required: true,
 													MinItems: 1,
-													MaxItems: 5,
+													MaxItems: 10,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 											},
 										},
 									},
 
-									"versioned_expr": &schema.Schema{
+									"versioned_expr": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringInSlice([]string{"SRC_IPS_V1"}, false),
+									},
+
+									"expr": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"expression": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												// These fields are not yet supported (Issue terraform-providers/terraform-provider-google#4497: mbang)
+												// "title": {
+												// 	Type:     schema.TypeString,
+												// 	Optional: true,
+												// },
+												// "description": {
+												// 	Type:     schema.TypeString,
+												// 	Optional: true,
+												// },
+												// "location": {
+												// 	Type:     schema.TypeString,
+												// 	Optional: true,
+												// },
+											},
+										},
 									},
 								},
 							},
 						},
 
-						"description": &schema.Schema{
+						"description": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 
-						"preview": &schema.Schema{
+						"preview": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -110,17 +138,33 @@ func resourceComputeSecurityPolicy() *schema.Resource {
 				},
 			},
 
-			"fingerprint": &schema.Schema{
+			"fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"self_link": &schema.Schema{
+			"self_link": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
+}
+
+func rulesCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
+	_, n := diff.GetChange("rule")
+	nSet := n.(*schema.Set)
+
+	nPriorities := map[int64]bool{}
+	for _, rule := range nSet.List() {
+		priority := int64(rule.(map[string]interface{})["priority"].(int))
+		if nPriorities[priority] {
+			return fmt.Errorf("Two rules have the same priority, please update one of the priorities to be different.")
+		}
+		nPriorities[priority] = true
+	}
+
+	return nil
 }
 
 func resourceComputeSecurityPolicyCreate(d *schema.ResourceData, meta interface{}) error {
@@ -148,9 +192,13 @@ func resourceComputeSecurityPolicyCreate(d *schema.ResourceData, meta interface{
 		return errwrap.Wrapf("Error creating SecurityPolicy: {{err}}", err)
 	}
 
-	d.SetId(securityPolicy.Name)
+	id, err := replaceVars(d, config, "projects/{{project}}/global/securityPolicies/{{name}}")
+	if err != nil {
+		return fmt.Errorf("Error constructing id: %s", err)
+	}
+	d.SetId(id)
 
-	err = computeSharedOperationWaitTime(config.clientCompute, op, project, int(d.Timeout(schema.TimeoutCreate).Minutes()), fmt.Sprintf("Creating SecurityPolicy %q", sp))
+	err = computeOperationWaitTime(config, op, project, fmt.Sprintf("Creating SecurityPolicy %q", sp), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return err
 	}
@@ -166,7 +214,8 @@ func resourceComputeSecurityPolicyRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	securityPolicy, err := config.clientComputeBeta.SecurityPolicies.Get(project, d.Id()).Do()
+	sp := d.Get("name").(string)
+	securityPolicy, err := config.clientComputeBeta.SecurityPolicies.Get(project, sp).Do()
 	if err != nil {
 		return handleNotFoundError(err, d, fmt.Sprintf("SecurityPolicy %q", d.Id()))
 	}
@@ -191,7 +240,7 @@ func resourceComputeSecurityPolicyUpdate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	sp := d.Id()
+	sp := d.Get("name").(string)
 
 	if d.HasChange("description") {
 		securityPolicy := &compute.SecurityPolicy{
@@ -205,7 +254,7 @@ func resourceComputeSecurityPolicyUpdate(d *schema.ResourceData, meta interface{
 			return errwrap.Wrapf(fmt.Sprintf("Error updating SecurityPolicy %q: {{err}}", sp), err)
 		}
 
-		err = computeSharedOperationWaitTime(config.clientCompute, op, project, int(d.Timeout(schema.TimeoutCreate).Minutes()), fmt.Sprintf("Updating SecurityPolicy %q", sp))
+		err = computeOperationWaitTime(config, op, project, fmt.Sprintf("Updating SecurityPolicy %q", sp), d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return err
 		}
@@ -233,7 +282,7 @@ func resourceComputeSecurityPolicyUpdate(d *schema.ResourceData, meta interface{
 					return errwrap.Wrapf(fmt.Sprintf("Error updating SecurityPolicy %q: {{err}}", sp), err)
 				}
 
-				err = computeSharedOperationWaitTime(config.clientCompute, op, project, int(d.Timeout(schema.TimeoutCreate).Minutes()), fmt.Sprintf("Updating SecurityPolicy %q", sp))
+				err = computeOperationWaitTime(config, op, project, fmt.Sprintf("Updating SecurityPolicy %q", sp), d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return err
 				}
@@ -245,7 +294,7 @@ func resourceComputeSecurityPolicyUpdate(d *schema.ResourceData, meta interface{
 					return errwrap.Wrapf(fmt.Sprintf("Error updating SecurityPolicy %q: {{err}}", sp), err)
 				}
 
-				err = computeSharedOperationWaitTime(config.clientCompute, op, project, int(d.Timeout(schema.TimeoutCreate).Minutes()), fmt.Sprintf("Updating SecurityPolicy %q", sp))
+				err = computeOperationWaitTime(config, op, project, fmt.Sprintf("Updating SecurityPolicy %q", sp), d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return err
 				}
@@ -262,7 +311,7 @@ func resourceComputeSecurityPolicyUpdate(d *schema.ResourceData, meta interface{
 					return errwrap.Wrapf(fmt.Sprintf("Error updating SecurityPolicy %q: {{err}}", sp), err)
 				}
 
-				err = computeSharedOperationWaitTime(config.clientCompute, op, project, int(d.Timeout(schema.TimeoutCreate).Minutes()), fmt.Sprintf("Updating SecurityPolicy %q", sp))
+				err = computeOperationWaitTime(config, op, project, fmt.Sprintf("Updating SecurityPolicy %q", sp), d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return err
 				}
@@ -282,12 +331,12 @@ func resourceComputeSecurityPolicyDelete(d *schema.ResourceData, meta interface{
 	}
 
 	// Delete the SecurityPolicy
-	op, err := config.clientComputeBeta.SecurityPolicies.Delete(project, d.Id()).Do()
+	op, err := config.clientComputeBeta.SecurityPolicies.Delete(project, d.Get("name").(string)).Do()
 	if err != nil {
 		return errwrap.Wrapf("Error deleting SecurityPolicy: {{err}}", err)
 	}
 
-	err = computeSharedOperationWaitTime(config.clientCompute, op, project, int(d.Timeout(schema.TimeoutDelete).Minutes()), "Deleting SecurityPolicy")
+	err = computeOperationWaitTime(config, op, project, "Deleting SecurityPolicy", d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return err
 	}
@@ -325,6 +374,7 @@ func expandSecurityPolicyMatch(configured []interface{}) *compute.SecurityPolicy
 	return &compute.SecurityPolicyRuleMatcher{
 		VersionedExpr: data["versioned_expr"].(string),
 		Config:        expandSecurityPolicyMatchConfig(data["config"].([]interface{})),
+		Expr:          expandSecurityPolicyMatchExpr(data["expr"].([]interface{})),
 	}
 }
 
@@ -339,6 +389,21 @@ func expandSecurityPolicyMatchConfig(configured []interface{}) *compute.Security
 	}
 }
 
+func expandSecurityPolicyMatchExpr(expr []interface{}) *compute.Expr {
+	if len(expr) == 0 || expr[0] == nil {
+		return nil
+	}
+
+	data := expr[0].(map[string]interface{})
+	return &compute.Expr{
+		Expression: data["expression"].(string),
+		// These fields are not yet supported  (Issue terraform-providers/terraform-provider-google#4497: mbang)
+		// Title:       data["title"].(string),
+		// Description: data["description"].(string),
+		// Location:    data["location"].(string),
+	}
+}
+
 func flattenSecurityPolicyRules(rules []*compute.SecurityPolicyRule) []map[string]interface{} {
 	rulesSchema := make([]map[string]interface{}, 0, len(rules))
 	for _, rule := range rules {
@@ -347,19 +412,68 @@ func flattenSecurityPolicyRules(rules []*compute.SecurityPolicyRule) []map[strin
 			"priority":    rule.Priority,
 			"action":      rule.Action,
 			"preview":     rule.Preview,
-			"match": []map[string]interface{}{
-				{
-					"versioned_expr": rule.Match.VersionedExpr,
-					"config": []map[string]interface{}{
-						{
-							"src_ip_ranges": schema.NewSet(schema.HashString, convertStringArrToInterface(rule.Match.Config.SrcIpRanges)),
-						},
-					},
-				},
-			},
+			"match":       flattenMatch(rule.Match),
 		}
 
 		rulesSchema = append(rulesSchema, data)
 	}
 	return rulesSchema
+}
+
+func flattenMatch(match *compute.SecurityPolicyRuleMatcher) []map[string]interface{} {
+	if match == nil {
+		return nil
+	}
+
+	data := map[string]interface{}{
+		"versioned_expr": match.VersionedExpr,
+		"config":         flattenMatchConfig(match.Config),
+		"expr":           flattenMatchExpr(match),
+	}
+
+	return []map[string]interface{}{data}
+}
+
+func flattenMatchConfig(conf *compute.SecurityPolicyRuleMatcherConfig) []map[string]interface{} {
+	if conf == nil {
+		return nil
+	}
+
+	data := map[string]interface{}{
+		"src_ip_ranges": schema.NewSet(schema.HashString, convertStringArrToInterface(conf.SrcIpRanges)),
+	}
+
+	return []map[string]interface{}{data}
+}
+
+func flattenMatchExpr(match *compute.SecurityPolicyRuleMatcher) []map[string]interface{} {
+	if match.Expr == nil {
+		return nil
+	}
+
+	data := map[string]interface{}{
+		"expression": match.Expr.Expression,
+		// These fields are not yet supported (Issue terraform-providers/terraform-provider-google#4497: mbang)
+		// "title":       match.Expr.Title,
+		// "description": match.Expr.Description,
+		// "location":    match.Expr.Location,
+	}
+
+	return []map[string]interface{}{data}
+}
+
+func resourceSecurityPolicyStateImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	config := meta.(*Config)
+	if err := parseImportId([]string{"projects/(?P<project>[^/]+)/global/securityPolicies/(?P<name>[^/]+)", "(?P<project>[^/]+)/(?P<name>[^/]+)", "(?P<name>[^/]+)"}, d, config); err != nil {
+		return nil, err
+	}
+
+	// Replace import id for the resource id
+	id, err := replaceVars(d, config, "projects/{{project}}/global/securityPolicies/{{name}}")
+	if err != nil {
+		return nil, fmt.Errorf("Error constructing id: %s", err)
+	}
+	d.SetId(id)
+
+	return []*schema.ResourceData{d}, nil
 }

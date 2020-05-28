@@ -7,33 +7,76 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/customdiff"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	"google.golang.org/api/googleapi"
-	"google.golang.org/api/sqladmin/v1beta4"
+	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
 const privateNetworkLinkRegex = "projects/(" + ProjectRegex + ")/global/networks/((?:[a-z](?:[-a-z0-9]*[a-z0-9])?))$"
 
 var sqlDatabaseAuthorizedNetWorkSchemaElem *schema.Resource = &schema.Resource{
 	Schema: map[string]*schema.Schema{
-		"expiration_time": &schema.Schema{
+		"expiration_time": {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		"name": &schema.Schema{
+		"name": {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
-		"value": &schema.Schema{
+		"value": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Required: true,
 		},
 	},
 }
+
+var (
+	backupConfigurationKeys = []string{
+		"settings.0.backup_configuration.0.binary_log_enabled",
+		"settings.0.backup_configuration.0.enabled",
+		"settings.0.backup_configuration.0.start_time",
+		"settings.0.backup_configuration.0.location",
+	}
+
+	ipConfigurationKeys = []string{
+		"settings.0.ip_configuration.0.authorized_networks",
+		"settings.0.ip_configuration.0.ipv4_enabled",
+		"settings.0.ip_configuration.0.require_ssl",
+		"settings.0.ip_configuration.0.private_network",
+	}
+
+	maintenanceWindowKeys = []string{
+		"settings.0.maintenance_window.0.day",
+		"settings.0.maintenance_window.0.hour",
+		"settings.0.maintenance_window.0.update_track",
+	}
+
+	serverCertsKeys = []string{
+		"server_ca_cert.0.cert",
+		"server_ca_cert.0.common_name",
+		"server_ca_cert.0.create_time",
+		"server_ca_cert.0.expiration_time",
+		"server_ca_cert.0.sha1_fingerprint",
+	}
+
+	replicaConfigurationKeys = []string{
+		"replica_configuration.0.ca_certificate",
+		"replica_configuration.0.client_certificate",
+		"replica_configuration.0.client_key",
+		"replica_configuration.0.connect_retry_interval",
+		"replica_configuration.0.dump_file_path",
+		"replica_configuration.0.failover_target",
+		"replica_configuration.0.master_heartbeat_period",
+		"replica_configuration.0.password",
+		"replica_configuration.0.ssl_cipher",
+		"replica_configuration.0.username",
+		"replica_configuration.0.verify_server_certificate",
+	}
+)
 
 func resourceSqlDatabaseInstance() *schema.Resource {
 	return &schema.Resource{
@@ -46,47 +89,49 @@ func resourceSqlDatabaseInstance() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(20 * time.Minute),
+			Update: schema.DefaultTimeout(20 * time.Minute),
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
 		CustomizeDiff: customdiff.All(
 			customdiff.ForceNewIfChange("settings.0.disk_size", isDiskShrinkage)),
 
 		Schema: map[string]*schema.Schema{
-			"region": &schema.Schema{
+			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
-			"settings": &schema.Schema{
+			"settings": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"version": &schema.Schema{
+						"version": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"tier": &schema.Schema{
+						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"activation_policy": &schema.Schema{
+						"activation_policy": {
 							Type:     schema.TypeString,
 							Optional: true,
 							// Defaults differ between first and second gen instances
 							Computed: true,
 						},
-						"authorized_gae_applications": &schema.Schema{
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+						"authorized_gae_applications": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Elem:       &schema.Schema{Type: schema.TypeString},
+							Deprecated: "This property is only applicable to First Generation instances, and First Generation instances are now deprecated.",
 						},
-						"availability_type": &schema.Schema{
+						"availability_type": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppressFirstGen,
@@ -96,219 +141,249 @@ func resourceSqlDatabaseInstance() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "ZONAL"}, false),
 						},
-						"backup_configuration": &schema.Schema{
+						"backup_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"binary_log_enabled": &schema.Schema{
-										Type:     schema.TypeBool,
-										Optional: true,
+									"binary_log_enabled": {
+										Type:         schema.TypeBool,
+										Optional:     true,
+										AtLeastOneOf: backupConfigurationKeys,
 									},
-									"enabled": &schema.Schema{
-										Type:     schema.TypeBool,
-										Optional: true,
+									"enabled": {
+										Type:         schema.TypeBool,
+										Optional:     true,
+										AtLeastOneOf: backupConfigurationKeys,
 									},
-									"start_time": &schema.Schema{
+									"start_time": {
 										Type:     schema.TypeString,
 										Optional: true,
 										// start_time is randomly assigned if not set
-										Computed: true,
+										Computed:     true,
+										AtLeastOneOf: backupConfigurationKeys,
+									},
+									"location": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										AtLeastOneOf: backupConfigurationKeys,
 									},
 								},
 							},
 						},
-						"crash_safe_replication": &schema.Schema{
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
+						"crash_safe_replication": {
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This property is only applicable to First Generation instances, and First Generation instances are now deprecated.",
 						},
-						"database_flags": &schema.Schema{
+						"database_flags": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"value": &schema.Schema{
+									"value": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
-									"name": &schema.Schema{
+									"name": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 								},
 							},
 						},
-						"disk_autoresize": &schema.Schema{
+						"disk_autoresize": {
 							Type:             schema.TypeBool,
 							Optional:         true,
 							Default:          true,
 							DiffSuppressFunc: suppressFirstGen,
 						},
-						"disk_size": &schema.Schema{
+						"disk_size": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							// Defaults differ between first and second gen instances
 							Computed: true,
 						},
-						"disk_type": &schema.Schema{
+						"disk_type": {
 							Type:     schema.TypeString,
 							Optional: true,
 							// Set computed instead of default because this property is for second-gen only.
 							Computed: true,
 						},
-						"ip_configuration": &schema.Schema{
+						"ip_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"authorized_networks": &schema.Schema{
-										Type:     schema.TypeSet,
-										Optional: true,
-										Set:      schema.HashResource(sqlDatabaseAuthorizedNetWorkSchemaElem),
-										Elem:     sqlDatabaseAuthorizedNetWorkSchemaElem,
+									"authorized_networks": {
+										Type:         schema.TypeSet,
+										Optional:     true,
+										Set:          schema.HashResource(sqlDatabaseAuthorizedNetWorkSchemaElem),
+										Elem:         sqlDatabaseAuthorizedNetWorkSchemaElem,
+										AtLeastOneOf: ipConfigurationKeys,
 									},
-									"ipv4_enabled": &schema.Schema{
-										Type:     schema.TypeBool,
-										Optional: true,
-										// Defaults differ between first and second gen instances
-										Computed: true,
+									"ipv4_enabled": {
+										Type:         schema.TypeBool,
+										Optional:     true,
+										Default:      true,
+										AtLeastOneOf: ipConfigurationKeys,
 									},
-									"require_ssl": &schema.Schema{
-										Type:     schema.TypeBool,
-										Optional: true,
+									"require_ssl": {
+										Type:         schema.TypeBool,
+										Optional:     true,
+										AtLeastOneOf: ipConfigurationKeys,
 									},
-									"private_network": &schema.Schema{
+									"private_network": {
 										Type:             schema.TypeString,
 										Optional:         true,
-										ValidateFunc:     validateRegexp(privateNetworkLinkRegex),
+										ValidateFunc:     orEmpty(validateRegexp(privateNetworkLinkRegex)),
 										DiffSuppressFunc: compareSelfLinkRelativePaths,
+										AtLeastOneOf:     ipConfigurationKeys,
 									},
 								},
 							},
 						},
-						"location_preference": &schema.Schema{
+						"location_preference": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"follow_gae_application": &schema.Schema{
-										Type:     schema.TypeString,
-										Optional: true,
+									"follow_gae_application": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										AtLeastOneOf: []string{"settings.0.location_preference.0.follow_gae_application", "settings.0.location_preference.0.zone"},
 									},
-									"zone": &schema.Schema{
-										Type:     schema.TypeString,
-										Optional: true,
+									"zone": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										AtLeastOneOf: []string{"settings.0.location_preference.0.follow_gae_application", "settings.0.location_preference.0.zone"},
 									},
 								},
 							},
 						},
-						"maintenance_window": &schema.Schema{
+						"maintenance_window": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"day": &schema.Schema{
+									"day": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntBetween(1, 7),
+										AtLeastOneOf: maintenanceWindowKeys,
 									},
-									"hour": &schema.Schema{
+									"hour": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntBetween(0, 23),
+										AtLeastOneOf: maintenanceWindowKeys,
 									},
-									"update_track": &schema.Schema{
-										Type:     schema.TypeString,
-										Optional: true,
+									"update_track": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										AtLeastOneOf: maintenanceWindowKeys,
 									},
 								},
 							},
 						},
-						"pricing_plan": &schema.Schema{
+						"pricing_plan": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "PER_USE",
 						},
-						"replication_type": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "SYNCHRONOUS",
+						"replication_type": {
+							Type:       schema.TypeString,
+							Optional:   true,
+							Deprecated: "This property is only applicable to First Generation instances, and First Generation instances are now deprecated.",
+							Default:    "SYNCHRONOUS",
 						},
-						"user_labels": &schema.Schema{
+						"user_labels": {
 							Type:     schema.TypeMap,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 					},
 				},
 			},
 
-			"connection_name": &schema.Schema{
+			"connection_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"database_version": &schema.Schema{
+			"database_version": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "MYSQL_5_6",
 				ForceNew: true,
 			},
 
-			"ip_address": &schema.Schema{
+			"ip_address": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"ip_address": &schema.Schema{
+						"ip_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"time_to_retire": &schema.Schema{
+						"type": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
+						},
+						"time_to_retire": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
 
-			"first_ip_address": &schema.Schema{
+			"first_ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"name": &schema.Schema{
+			"public_ip_address": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
-			"master_instance_name": &schema.Schema{
+			"private_ip_address": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
-			"project": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
 			},
 
-			"replica_configuration": &schema.Schema{
+			"master_instance_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"project": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"replica_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -316,99 +391,115 @@ func resourceSqlDatabaseInstance() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"ca_certificate": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+						"ca_certificate": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"client_certificate": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+						"client_certificate": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"client_key": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+						"client_key": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"connect_retry_interval": &schema.Schema{
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
+						"connect_retry_interval": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"dump_file_path": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+						"dump_file_path": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"failover_target": &schema.Schema{
-							Type:     schema.TypeBool,
-							Optional: true,
-							ForceNew: true,
+						"failover_target": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"master_heartbeat_period": &schema.Schema{
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
+						"master_heartbeat_period": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"password": &schema.Schema{
-							Type:      schema.TypeString,
-							Optional:  true,
-							ForceNew:  true,
-							Sensitive: true,
+						"password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Sensitive:    true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"ssl_cipher": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+						"ssl_cipher": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"username": &schema.Schema{
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+						"username": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
-						"verify_server_certificate": &schema.Schema{
-							Type:     schema.TypeBool,
-							Optional: true,
-							ForceNew: true,
+						"verify_server_certificate": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							ForceNew:     true,
+							AtLeastOneOf: replicaConfigurationKeys,
 						},
 					},
 				},
 			},
-			"server_ca_cert": &schema.Schema{
+			"server_ca_cert": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cert": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"cert": {
+							Type:         schema.TypeString,
+							Computed:     true,
+							AtLeastOneOf: serverCertsKeys,
 						},
-						"common_name": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"common_name": {
+							Type:         schema.TypeString,
+							Computed:     true,
+							AtLeastOneOf: serverCertsKeys,
 						},
-						"create_time": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"create_time": {
+							Type:         schema.TypeString,
+							Computed:     true,
+							AtLeastOneOf: serverCertsKeys,
 						},
-						"expiration_time": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"expiration_time": {
+							Type:         schema.TypeString,
+							Computed:     true,
+							AtLeastOneOf: serverCertsKeys,
 						},
-						"sha1_fingerprint": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"sha1_fingerprint": {
+							Type:         schema.TypeString,
+							Computed:     true,
+							AtLeastOneOf: serverCertsKeys,
 						},
 					},
 				},
 			},
-			"service_account_email_address": &schema.Schema{
+			"service_account_email_address": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"self_link": &schema.Schema{
+			"self_link": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -477,18 +568,22 @@ func resourceSqlDatabaseInstanceCreate(d *schema.ResourceData, meta interface{})
 		defer mutexKV.Unlock(instanceMutexKey(project, instance.MasterInstanceName))
 	}
 
-	op, err := config.clientSqlAdmin.Instances.Insert(project, instance).Do()
+	var op *sqladmin.Operation
+	err = retryTimeDuration(func() (operr error) {
+		op, operr = config.clientSqlAdmin.Instances.Insert(project, instance).Do()
+		return operr
+	}, d.Timeout(schema.TimeoutCreate), isSqlOperationInProgressError)
 	if err != nil {
-		if googleapiError, ok := err.(*googleapi.Error); ok && googleapiError.Code == 409 {
-			return fmt.Errorf("Error, the name %s is unavailable because it was used recently", instance.Name)
-		} else {
-			return fmt.Errorf("Error, failed to create instance %s: %s", instance.Name, err)
-		}
+		return fmt.Errorf("Error, failed to create instance %s: %s", instance.Name, err)
 	}
 
-	d.SetId(instance.Name)
+	id, err := replaceVars(d, config, "projects/{{project}}/instances/{{name}}")
+	if err != nil {
+		return fmt.Errorf("Error constructing id: %s", err)
+	}
+	d.SetId(id)
 
-	err = sqladminOperationWaitTime(config, op, project, "Create Instance", int(d.Timeout(schema.TimeoutCreate).Minutes()))
+	err = sqlAdminOperationWaitTime(config, op, project, "Create Instance", d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		d.SetId("")
 		return err
@@ -503,19 +598,19 @@ func resourceSqlDatabaseInstanceCreate(d *schema.ResourceData, meta interface{})
 	// Users in a replica instance are inherited from the master instance and should be left alone.
 	if sqlDatabaseIsMaster(d) {
 		var users *sqladmin.UsersListResponse
-		err = retryTime(func() error {
+		err = retryTimeDuration(func() error {
 			users, err = config.clientSqlAdmin.Users.List(project, instance.Name).Do()
 			return err
-		}, 5)
+		}, d.Timeout(schema.TimeoutRead), isSqlOperationInProgressError)
 		if err != nil {
 			return fmt.Errorf("Error, attempting to list users associated with instance %s: %s", instance.Name, err)
 		}
 		for _, u := range users.Items {
 			if u.Name == "root" && u.Host == "%" {
 				err = retry(func() error {
-					op, err = config.clientSqlAdmin.Users.Delete(project, instance.Name, u.Host, u.Name).Do()
+					op, err = config.clientSqlAdmin.Users.Delete(project, instance.Name).Host(u.Host).Name(u.Name).Do()
 					if err == nil {
-						err = sqladminOperationWaitTime(config, op, project, "Delete default root User", int(d.Timeout(schema.TimeoutCreate).Minutes()))
+						err = sqlAdminOperationWaitTime(config, op, project, "Delete default root User", d.Timeout(schema.TimeoutCreate))
 					}
 					return err
 				})
@@ -536,6 +631,8 @@ func expandSqlDatabaseInstanceSettings(configured []interface{}, secondGen bool)
 
 	_settings := configured[0].(map[string]interface{})
 	settings := &sqladmin.Settings{
+		// Version is unset in Create but is set during update
+		SettingsVersion:             int64(_settings["version"].(int)),
 		Tier:                        _settings["tier"].(string),
 		ForceSendFields:             []string{"StorageAutoResize"},
 		ActivationPolicy:            _settings["activation_policy"].(string),
@@ -557,7 +654,8 @@ func expandSqlDatabaseInstanceSettings(configured []interface{}, secondGen bool)
 	// 1st Generation instances don't support the disk_autoresize parameter
 	// and it defaults to true - so we shouldn't set it if this is first gen
 	if secondGen {
-		settings.StorageAutoResize = googleapi.Bool(_settings["disk_autoresize"].(bool))
+		resize := _settings["disk_autoresize"].(bool)
+		settings.StorageAutoResize = &resize
 	}
 
 	return settings
@@ -596,9 +694,10 @@ func expandMaintenanceWindow(configured []interface{}) *sqladmin.MaintenanceWind
 
 	window := configured[0].(map[string]interface{})
 	return &sqladmin.MaintenanceWindow{
-		Day:         int64(window["day"].(int)),
-		Hour:        int64(window["hour"].(int)),
-		UpdateTrack: window["update_track"].(string),
+		Day:             int64(window["day"].(int)),
+		Hour:            int64(window["hour"].(int)),
+		UpdateTrack:     window["update_track"].(string),
+		ForceSendFields: []string{"Hour"},
 	}
 }
 
@@ -620,11 +719,13 @@ func expandIpConfiguration(configured []interface{}) *sqladmin.IpConfiguration {
 	}
 
 	_ipConfiguration := configured[0].(map[string]interface{})
+
 	return &sqladmin.IpConfiguration{
 		Ipv4Enabled:        _ipConfiguration["ipv4_enabled"].(bool),
 		RequireSsl:         _ipConfiguration["require_ssl"].(bool),
 		PrivateNetwork:     _ipConfiguration["private_network"].(string),
 		AuthorizedNetworks: expandAuthorizedNetworks(_ipConfiguration["authorized_networks"].(*schema.Set).List()),
+		ForceSendFields:    []string{"Ipv4Enabled", "RequireSsl"},
 	}
 }
 func expandAuthorizedNetworks(configured []interface{}) []*sqladmin.AclEntry {
@@ -672,6 +773,8 @@ func expandBackupConfiguration(configured []interface{}) *sqladmin.BackupConfigu
 		BinaryLogEnabled: _backupConfiguration["binary_log_enabled"].(bool),
 		Enabled:          _backupConfiguration["enabled"].(bool),
 		StartTime:        _backupConfiguration["start_time"].(string),
+		Location:         _backupConfiguration["location"].(string),
+		ForceSendFields:  []string{"BinaryLogEnabled", "Enabled"},
 	}
 }
 
@@ -683,9 +786,11 @@ func resourceSqlDatabaseInstanceRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	instance, err := config.clientSqlAdmin.Instances.Get(project,
-		d.Id()).Do()
-
+	var instance *sqladmin.DatabaseInstance
+	err = retryTimeDuration(func() (rerr error) {
+		instance, rerr = config.clientSqlAdmin.Instances.Get(project, d.Get("name").(string)).Do()
+		return rerr
+	}, d.Timeout(schema.TimeoutRead), isSqlOperationInProgressError)
 	if err != nil {
 		return handleNotFoundError(err, d, fmt.Sprintf("SQL Database Instance %q", d.Get("name").(string)))
 	}
@@ -703,20 +808,31 @@ func resourceSqlDatabaseInstanceRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("replica_configuration", flattenReplicaConfiguration(instance.ReplicaConfiguration, d)); err != nil {
 		log.Printf("[WARN] Failed to set SQL Database Instance Replica Configuration")
 	}
-
 	ipAddresses := flattenIpAddresses(instance.IpAddresses)
 	if err := d.Set("ip_address", ipAddresses); err != nil {
 		log.Printf("[WARN] Failed to set SQL Database Instance IP Addresses")
 	}
 
 	if len(ipAddresses) > 0 {
-		firstIpAddress := ipAddresses[0]["ip_address"]
-		if err := d.Set("first_ip_address", firstIpAddress); err != nil {
-			log.Printf("[WARN] Failed to set SQL Database Instance First IP Address")
+		d.Set("first_ip_address", ipAddresses[0]["ip_address"])
+	}
+
+	publicIpAddress := ""
+	privateIpAddress := ""
+	for _, ip := range instance.IpAddresses {
+		if publicIpAddress == "" && ip.Type == "PRIMARY" {
+			publicIpAddress = ip.IpAddress
+		}
+
+		if privateIpAddress == "" && ip.Type == "PRIVATE" {
+			privateIpAddress = ip.IpAddress
 		}
 	}
 
-	if err := d.Set("server_ca_cert", flattenServerCaCert(instance.ServerCaCert)); err != nil {
+	d.Set("public_ip_address", publicIpAddress)
+	d.Set("private_ip_address", privateIpAddress)
+
+	if err := d.Set("server_ca_cert", flattenServerCaCerts([]*sqladmin.SslCert{instance.ServerCaCert})); err != nil {
 		log.Printf("[WARN] Failed to set SQL Database CA Certificate")
 	}
 
@@ -736,260 +852,10 @@ func resourceSqlDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	d.Partial(true)
-
-	instance, err := config.clientSqlAdmin.Instances.Get(project,
-		d.Get("name").(string)).Do()
-
-	if err != nil {
-		return fmt.Errorf("Error retrieving instance %s: %s",
-			d.Get("name").(string), err)
+	// Update only updates the settings, so they are all we need to set.
+	instance := &sqladmin.DatabaseInstance{
+		Settings: expandSqlDatabaseInstanceSettings(d.Get("settings").([]interface{}), !isFirstGen(d)),
 	}
-
-	if d.HasChange("settings") {
-		_oListCast, _settingsListCast := d.GetChange("settings")
-		_oList := _oListCast.([]interface{})
-		_o := _oList[0].(map[string]interface{})
-		_settingsList := _settingsListCast.([]interface{})
-
-		_settings := _settingsList[0].(map[string]interface{})
-
-		settings := &sqladmin.Settings{
-			Tier:            _settings["tier"].(string),
-			SettingsVersion: instance.Settings.SettingsVersion,
-			ForceSendFields: []string{"StorageAutoResize"},
-		}
-
-		if !isFirstGen(d) {
-			autoResize := _settings["disk_autoresize"].(bool)
-			settings.StorageAutoResize = &autoResize
-		}
-
-		if v, ok := _settings["activation_policy"]; ok {
-			settings.ActivationPolicy = v.(string)
-		}
-
-		if v, ok := _settings["authorized_gae_applications"]; ok {
-			settings.AuthorizedGaeApplications = make([]string, 0)
-			for _, app := range v.([]interface{}) {
-				settings.AuthorizedGaeApplications = append(settings.AuthorizedGaeApplications,
-					app.(string))
-			}
-		}
-
-		if v, ok := _settings["availability_type"]; ok {
-			settings.AvailabilityType = v.(string)
-		}
-
-		if v, ok := _settings["backup_configuration"]; ok {
-			_backupConfigurationList := v.([]interface{})
-
-			settings.BackupConfiguration = &sqladmin.BackupConfiguration{}
-			if len(_backupConfigurationList) == 1 && _backupConfigurationList[0] != nil {
-				_backupConfiguration := _backupConfigurationList[0].(map[string]interface{})
-
-				if vp, okp := _backupConfiguration["binary_log_enabled"]; okp {
-					settings.BackupConfiguration.BinaryLogEnabled = vp.(bool)
-				}
-
-				if vp, okp := _backupConfiguration["enabled"]; okp {
-					settings.BackupConfiguration.Enabled = vp.(bool)
-				}
-
-				if vp, okp := _backupConfiguration["start_time"]; okp {
-					settings.BackupConfiguration.StartTime = vp.(string)
-				}
-			}
-		}
-
-		if v, ok := _settings["crash_safe_replication"]; ok {
-			settings.CrashSafeReplicationEnabled = v.(bool)
-		}
-
-		if v, ok := _settings["disk_size"]; ok {
-			if v.(int) > 0 && int64(v.(int)) > instance.Settings.DataDiskSizeGb {
-				settings.DataDiskSizeGb = int64(v.(int))
-			}
-		}
-
-		if v, ok := _settings["disk_type"]; ok && len(v.(string)) > 0 {
-			settings.DataDiskType = v.(string)
-		}
-
-		_oldDatabaseFlags := make([]interface{}, 0)
-		if ov, ook := _o["database_flags"]; ook {
-			_oldDatabaseFlags = ov.([]interface{})
-		}
-
-		if v, ok := _settings["database_flags"]; ok || len(_oldDatabaseFlags) > 0 {
-			oldDatabaseFlags := settings.DatabaseFlags
-			settings.DatabaseFlags = make([]*sqladmin.DatabaseFlags, 0)
-			_databaseFlagsList := make([]interface{}, 0)
-			if v != nil {
-				_databaseFlagsList = v.([]interface{})
-			}
-
-			_odbf_map := make(map[string]interface{})
-			for _, _dbf := range _oldDatabaseFlags {
-				_entry := _dbf.(map[string]interface{})
-				_odbf_map[_entry["name"].(string)] = true
-			}
-
-			// First read the flags from the server, and reinsert those that
-			// were not previously defined
-			for _, entry := range oldDatabaseFlags {
-				_, ok_old := _odbf_map[entry.Name]
-				if !ok_old {
-					settings.DatabaseFlags = append(
-						settings.DatabaseFlags, entry)
-				}
-			}
-			// finally, insert only those that were previously defined
-			// and are still defined.
-			for _, _flag := range _databaseFlagsList {
-				_entry := _flag.(map[string]interface{})
-				flag := &sqladmin.DatabaseFlags{}
-				if vp, okp := _entry["name"]; okp {
-					flag.Name = vp.(string)
-				}
-
-				if vp, okp := _entry["value"]; okp {
-					flag.Value = vp.(string)
-				}
-
-				settings.DatabaseFlags = append(settings.DatabaseFlags, flag)
-			}
-		}
-
-		if v, ok := _settings["ip_configuration"]; ok {
-			_ipConfigurationList := v.([]interface{})
-
-			settings.IpConfiguration = &sqladmin.IpConfiguration{}
-			if len(_ipConfigurationList) == 1 && _ipConfigurationList[0] != nil {
-				_ipConfiguration := _ipConfigurationList[0].(map[string]interface{})
-
-				if vp, okp := _ipConfiguration["ipv4_enabled"]; okp {
-					settings.IpConfiguration.Ipv4Enabled = vp.(bool)
-				}
-
-				if vp, okp := _ipConfiguration["require_ssl"]; okp {
-					settings.IpConfiguration.RequireSsl = vp.(bool)
-				}
-
-				_oldAuthorizedNetworkList := make([]interface{}, 0)
-				if ov, ook := _o["ip_configuration"]; ook {
-					_oldIpConfList := ov.([]interface{})
-					if len(_oldIpConfList) > 0 {
-						_oldIpConf := _oldIpConfList[0].(map[string]interface{})
-						if ovp, ookp := _oldIpConf["authorized_networks"]; ookp {
-							_oldAuthorizedNetworkList = ovp.(*schema.Set).List()
-						}
-					}
-				}
-
-				if vp, okp := _ipConfiguration["authorized_networks"]; okp || len(_oldAuthorizedNetworkList) > 0 {
-					oldAuthorizedNetworks := instance.Settings.IpConfiguration.AuthorizedNetworks
-					settings.IpConfiguration.AuthorizedNetworks = make([]*sqladmin.AclEntry, 0)
-
-					_authorizedNetworksList := make([]interface{}, 0)
-					if vp != nil {
-						_authorizedNetworksList = vp.(*schema.Set).List()
-					}
-					_oipc_map := make(map[string]interface{})
-					for _, _ipc := range _oldAuthorizedNetworkList {
-						_entry := _ipc.(map[string]interface{})
-						_oipc_map[_entry["value"].(string)] = true
-					}
-					// Next read the network tuples from the server, and reinsert those that
-					// were not previously defined
-					for _, entry := range oldAuthorizedNetworks {
-						_, ok_old := _oipc_map[entry.Value]
-						if !ok_old {
-							settings.IpConfiguration.AuthorizedNetworks = append(
-								settings.IpConfiguration.AuthorizedNetworks, entry)
-						}
-					}
-					// finally, update old entries and insert new ones
-					// and are still defined.
-					for _, _ipc := range _authorizedNetworksList {
-						_entry := _ipc.(map[string]interface{})
-						entry := &sqladmin.AclEntry{}
-
-						if vpp, okpp := _entry["expiration_time"]; okpp {
-							entry.ExpirationTime = vpp.(string)
-						}
-
-						if vpp, okpp := _entry["name"]; okpp {
-							entry.Name = vpp.(string)
-						}
-
-						if vpp, okpp := _entry["value"]; okpp {
-							entry.Value = vpp.(string)
-						}
-
-						settings.IpConfiguration.AuthorizedNetworks = append(
-							settings.IpConfiguration.AuthorizedNetworks, entry)
-					}
-				}
-			}
-		}
-
-		if v, ok := _settings["location_preference"]; ok {
-			_locationPreferenceList := v.([]interface{})
-
-			settings.LocationPreference = &sqladmin.LocationPreference{}
-			if len(_locationPreferenceList) == 1 && _locationPreferenceList[0] != nil {
-				_locationPreference := _locationPreferenceList[0].(map[string]interface{})
-
-				if vp, okp := _locationPreference["follow_gae_application"]; okp {
-					settings.LocationPreference.FollowGaeApplication = vp.(string)
-				}
-
-				if vp, okp := _locationPreference["zone"]; okp {
-					settings.LocationPreference.Zone = vp.(string)
-				}
-			}
-		}
-
-		if v, ok := _settings["maintenance_window"]; ok && len(v.([]interface{})) > 0 {
-			_maintenanceWindowList := v.([]interface{})
-
-			settings.MaintenanceWindow = &sqladmin.MaintenanceWindow{}
-			if len(_maintenanceWindowList) == 1 && _maintenanceWindowList[0] != nil {
-				_maintenanceWindow := _maintenanceWindowList[0].(map[string]interface{})
-
-				if vp, okp := _maintenanceWindow["day"]; okp {
-					settings.MaintenanceWindow.Day = int64(vp.(int))
-				}
-
-				if vp, okp := _maintenanceWindow["hour"]; okp {
-					settings.MaintenanceWindow.Hour = int64(vp.(int))
-				}
-
-				if vp, ok := _maintenanceWindow["update_track"]; ok {
-					if len(vp.(string)) > 0 {
-						settings.MaintenanceWindow.UpdateTrack = vp.(string)
-					}
-				}
-			}
-		}
-
-		if v, ok := _settings["pricing_plan"]; ok {
-			settings.PricingPlan = v.(string)
-		}
-
-		if v, ok := _settings["replication_type"]; ok {
-			settings.ReplicationType = v.(string)
-		}
-
-		if v, ok := _settings["user_labels"]; ok {
-			settings.UserLabels = convertStringMap(v.(map[string]interface{}))
-		}
-
-		instance.Settings = settings
-	}
-
-	d.Partial(false)
 
 	// Lock on the master_instance_name just in case updating any replica
 	// settings causes operations on the master.
@@ -998,12 +864,16 @@ func resourceSqlDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{})
 		defer mutexKV.Unlock(instanceMutexKey(project, v.(string)))
 	}
 
-	op, err := config.clientSqlAdmin.Instances.Update(project, instance.Name, instance).Do()
+	var op *sqladmin.Operation
+	err = retryTimeDuration(func() (rerr error) {
+		op, rerr = config.clientSqlAdmin.Instances.Update(project, d.Get("name").(string), instance).Do()
+		return rerr
+	}, d.Timeout(schema.TimeoutUpdate), isSqlOperationInProgressError)
 	if err != nil {
-		return fmt.Errorf("Error, failed to update instance %s: %s", instance.Name, err)
+		return fmt.Errorf("Error, failed to update instance settings for %s: %s", instance.Name, err)
 	}
 
-	err = sqladminOperationWaitTime(config, op, project, "Update Instance", int(d.Timeout(schema.TimeoutUpdate).Minutes()))
+	err = sqlAdminOperationWaitTime(config, op, project, "Update Instance", d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return err
 	}
@@ -1026,29 +896,35 @@ func resourceSqlDatabaseInstanceDelete(d *schema.ResourceData, meta interface{})
 		defer mutexKV.Unlock(instanceMutexKey(project, v.(string)))
 	}
 
-	op, err := config.clientSqlAdmin.Instances.Delete(project, d.Get("name").(string)).Do()
-
+	var op *sqladmin.Operation
+	err = retryTimeDuration(func() (rerr error) {
+		op, rerr = config.clientSqlAdmin.Instances.Delete(project, d.Get("name").(string)).Do()
+		if rerr != nil {
+			return rerr
+		}
+		err = sqlAdminOperationWaitTime(config, op, project, "Delete Instance", d.Timeout(schema.TimeoutDelete))
+		if err != nil {
+			return err
+		}
+		return nil
+	}, d.Timeout(schema.TimeoutDelete), isSqlOperationInProgressError, isSqlInternalError)
 	if err != nil {
 		return fmt.Errorf("Error, failed to delete instance %s: %s", d.Get("name").(string), err)
 	}
-
-	err = sqladminOperationWaitTime(config, op, project, "Delete Instance", int(d.Timeout(schema.TimeoutDelete).Minutes()))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func resourceSqlDatabaseInstanceImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	config := meta.(*Config)
-	parseImportId([]string{
+	if err := parseImportId([]string{
 		"projects/(?P<project>[^/]+)/instances/(?P<name>[^/]+)",
 		"(?P<project>[^/]+)/(?P<name>[^/]+)",
-		"(?P<name>[^/]+)"}, d, config)
+		"(?P<name>[^/]+)"}, d, config); err != nil {
+		return nil, err
+	}
 
 	// Replace import id for the resource id
-	id, err := replaceVars(d, config, "{{name}}")
+	id, err := replaceVars(d, config, "projects/{{project}}/instances/{{name}}")
 	if err != nil {
 		return nil, fmt.Errorf("Error constructing id: %s", err)
 	}
@@ -1092,9 +968,7 @@ func flattenSettings(settings *sqladmin.Settings) []map[string]interface{} {
 		data["maintenance_window"] = flattenMaintenanceWindow(settings.MaintenanceWindow)
 	}
 
-	if settings.StorageAutoResize != nil {
-		data["disk_autoresize"] = *settings.StorageAutoResize
-	}
+	data["disk_autoresize"] = settings.StorageAutoResize
 
 	if settings.UserLabels != nil {
 		data["user_labels"] = settings.UserLabels
@@ -1108,6 +982,7 @@ func flattenBackupConfiguration(backupConfiguration *sqladmin.BackupConfiguratio
 		"binary_log_enabled": backupConfiguration.BinaryLogEnabled,
 		"enabled":            backupConfiguration.Enabled,
 		"start_time":         backupConfiguration.StartTime,
+		"location":           backupConfiguration.Location,
 	}
 
 	return []map[string]interface{}{data}
@@ -1211,6 +1086,7 @@ func flattenIpAddresses(ipAddresses []*sqladmin.IpMapping) []map[string]interfac
 	for _, ip := range ipAddresses {
 		data := map[string]interface{}{
 			"ip_address":     ip.IpAddress,
+			"type":           ip.Type,
 			"time_to_retire": ip.TimeToRetire,
 		}
 
@@ -1220,22 +1096,24 @@ func flattenIpAddresses(ipAddresses []*sqladmin.IpMapping) []map[string]interfac
 	return ips
 }
 
-func flattenServerCaCert(caCert *sqladmin.SslCert) []map[string]interface{} {
-	var cert []map[string]interface{}
+func flattenServerCaCerts(caCerts []*sqladmin.SslCert) []map[string]interface{} {
+	var certs []map[string]interface{}
 
-	if caCert != nil {
-		data := map[string]interface{}{
-			"cert":             caCert.Cert,
-			"common_name":      caCert.CommonName,
-			"create_time":      caCert.CreateTime,
-			"expiration_time":  caCert.ExpirationTime,
-			"sha1_fingerprint": caCert.Sha1Fingerprint,
+	for _, caCert := range caCerts {
+		if caCert != nil {
+			data := map[string]interface{}{
+				"cert":             caCert.Cert,
+				"common_name":      caCert.CommonName,
+				"create_time":      caCert.CreateTime,
+				"expiration_time":  caCert.ExpirationTime,
+				"sha1_fingerprint": caCert.Sha1Fingerprint,
+			}
+
+			certs = append(certs, data)
 		}
-
-		cert = append(cert, data)
 	}
 
-	return cert
+	return certs
 }
 
 func instanceMutexKey(project, instance_name string) string {

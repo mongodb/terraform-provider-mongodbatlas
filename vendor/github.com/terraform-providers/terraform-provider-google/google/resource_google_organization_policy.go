@@ -2,23 +2,28 @@ package google
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"google.golang.org/api/cloudresourcemanager/v1"
 	"strings"
+	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 var schemaOrganizationPolicy = map[string]*schema.Schema{
+	// Although the API suggests that boolean_policy, list_policy, or restore_policy must be set,
+	// Organization policies can be "inherited from parent" in the UI, and this is the default
+	// state of the resource without any policy set.
+	// See https://github.com/terraform-providers/terraform-provider-google/issues/3607
 	"constraint": {
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		DiffSuppressFunc: linkDiffSuppress,
+		DiffSuppressFunc: compareSelfLinkOrResourceName,
 	},
 	"boolean_policy": {
-		Type:          schema.TypeList,
-		Optional:      true,
-		MaxItems:      1,
-		ConflictsWith: []string{"list_policy", "restore_policy"},
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"enforced": {
@@ -29,51 +34,53 @@ var schemaOrganizationPolicy = map[string]*schema.Schema{
 		},
 	},
 	"list_policy": {
-		Type:          schema.TypeList,
-		Optional:      true,
-		MaxItems:      1,
-		ConflictsWith: []string{"boolean_policy", "restore_policy"},
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"allow": {
-					Type:          schema.TypeList,
-					Optional:      true,
-					MaxItems:      1,
-					ConflictsWith: []string{"list_policy.0.deny"},
+					Type:         schema.TypeList,
+					Optional:     true,
+					MaxItems:     1,
+					ExactlyOneOf: []string{"list_policy.0.allow", "list_policy.0.deny"},
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"all": {
-								Type:          schema.TypeBool,
-								Optional:      true,
-								Default:       false,
-								ConflictsWith: []string{"list_policy.0.allow.0.values"},
+								Type:         schema.TypeBool,
+								Optional:     true,
+								Default:      false,
+								ExactlyOneOf: []string{"list_policy.0.allow.0.all", "list_policy.0.allow.0.values"},
 							},
 							"values": {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem:     &schema.Schema{Type: schema.TypeString},
-								Set:      schema.HashString,
+								Type:         schema.TypeSet,
+								Optional:     true,
+								ExactlyOneOf: []string{"list_policy.0.allow.0.all", "list_policy.0.allow.0.values"},
+								Elem:         &schema.Schema{Type: schema.TypeString},
+								Set:          schema.HashString,
 							},
 						},
 					},
 				},
 				"deny": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MaxItems: 1,
+					Type:         schema.TypeList,
+					Optional:     true,
+					MaxItems:     1,
+					ExactlyOneOf: []string{"list_policy.0.allow", "list_policy.0.deny"},
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"all": {
-								Type:          schema.TypeBool,
-								Optional:      true,
-								Default:       false,
-								ConflictsWith: []string{"list_policy.0.deny.0.values"},
+								Type:         schema.TypeBool,
+								Optional:     true,
+								Default:      false,
+								ExactlyOneOf: []string{"list_policy.0.deny.0.all", "list_policy.0.deny.0.values"},
 							},
 							"values": {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem:     &schema.Schema{Type: schema.TypeString},
-								Set:      schema.HashString,
+								Type:         schema.TypeSet,
+								Optional:     true,
+								ExactlyOneOf: []string{"list_policy.0.deny.0.all", "list_policy.0.deny.0.values"},
+								Elem:         &schema.Schema{Type: schema.TypeString},
+								Set:          schema.HashString,
 							},
 						},
 					},
@@ -82,6 +89,10 @@ var schemaOrganizationPolicy = map[string]*schema.Schema{
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
+				},
+				"inherit_from_parent": {
+					Type:     schema.TypeBool,
+					Optional: true,
 				},
 			},
 		},
@@ -100,10 +111,9 @@ var schemaOrganizationPolicy = map[string]*schema.Schema{
 		Computed: true,
 	},
 	"restore_policy": {
-		Type:          schema.TypeList,
-		Optional:      true,
-		MaxItems:      1,
-		ConflictsWith: []string{"boolean_policy", "list_policy"},
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"default": {
@@ -126,6 +136,13 @@ func resourceGoogleOrganizationPolicy() *schema.Resource {
 			State: resourceGoogleOrganizationPolicyImportState,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(4 * time.Minute),
+			Update: schema.DefaultTimeout(4 * time.Minute),
+			Read:   schema.DefaultTimeout(4 * time.Minute),
+			Delete: schema.DefaultTimeout(4 * time.Minute),
+		},
+
 		Schema: mergeSchemas(
 			schemaOrganizationPolicy,
 			map[string]*schema.Schema{
@@ -139,11 +156,15 @@ func resourceGoogleOrganizationPolicy() *schema.Resource {
 }
 
 func resourceGoogleOrganizationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+	d.SetId(fmt.Sprintf("%s/%s", d.Get("org_id"), d.Get("constraint").(string)))
+
+	if isOrganizationPolicyUnset(d) {
+		return resourceGoogleOrganizationPolicyDelete(d, meta)
+	}
+
 	if err := setOrganizationPolicy(d, meta); err != nil {
 		return err
 	}
-
-	d.SetId(fmt.Sprintf("%s:%s", d.Get("org_id"), d.Get("constraint").(string)))
 
 	return resourceGoogleOrganizationPolicyRead(d, meta)
 }
@@ -152,10 +173,13 @@ func resourceGoogleOrganizationPolicyRead(d *schema.ResourceData, meta interface
 	config := meta.(*Config)
 	org := "organizations/" + d.Get("org_id").(string)
 
-	policy, err := config.clientResourceManager.Organizations.GetOrgPolicy(org, &cloudresourcemanager.GetOrgPolicyRequest{
-		Constraint: canonicalOrgPolicyConstraint(d.Get("constraint").(string)),
-	}).Do()
-
+	var policy *cloudresourcemanager.OrgPolicy
+	err := retryTimeDuration(func() (readErr error) {
+		policy, readErr = config.clientResourceManager.Organizations.GetOrgPolicy(org, &cloudresourcemanager.GetOrgPolicyRequest{
+			Constraint: canonicalOrgPolicyConstraint(d.Get("constraint").(string)),
+		}).Do()
+		return readErr
+	}, d.Timeout(schema.TimeoutRead))
 	if err != nil {
 		return handleNotFoundError(err, d, fmt.Sprintf("Organization policy for %s", org))
 	}
@@ -172,6 +196,10 @@ func resourceGoogleOrganizationPolicyRead(d *schema.ResourceData, meta interface
 }
 
 func resourceGoogleOrganizationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+	if isOrganizationPolicyUnset(d) {
+		return resourceGoogleOrganizationPolicyDelete(d, meta)
+	}
+
 	if err := setOrganizationPolicy(d, meta); err != nil {
 		return err
 	}
@@ -183,10 +211,12 @@ func resourceGoogleOrganizationPolicyDelete(d *schema.ResourceData, meta interfa
 	config := meta.(*Config)
 	org := "organizations/" + d.Get("org_id").(string)
 
-	_, err := config.clientResourceManager.Organizations.ClearOrgPolicy(org, &cloudresourcemanager.ClearOrgPolicyRequest{
-		Constraint: canonicalOrgPolicyConstraint(d.Get("constraint").(string)),
-	}).Do()
-
+	err := retryTimeDuration(func() error {
+		_, dErr := config.clientResourceManager.Organizations.ClearOrgPolicy(org, &cloudresourcemanager.ClearOrgPolicyRequest{
+			Constraint: canonicalOrgPolicyConstraint(d.Get("constraint").(string)),
+		}).Do()
+		return dErr
+	}, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return err
 	}
@@ -195,15 +225,28 @@ func resourceGoogleOrganizationPolicyDelete(d *schema.ResourceData, meta interfa
 }
 
 func resourceGoogleOrganizationPolicyImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	parts := strings.Split(d.Id(), ":")
+	parts := strings.SplitN(d.Id(), "/", 2)
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("Invalid id format. Expecting {org_id}:{constraint}, got '%s' instead.", d.Id())
+		return nil, fmt.Errorf("Invalid id format. Expecting {org_id}/{constraint}, got '%s' instead.", d.Id())
 	}
 
 	d.Set("org_id", parts[0])
 	d.Set("constraint", parts[1])
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// Organization policies can be "inherited from parent" the UI, and this is the default
+// state of the resource without any policy set. In order to revert to this state the current
+// resource cannot be updated it must instead be Deleted. This allows Terraform to assert that
+// no policy has been set even if previously one had.
+// See https://github.com/terraform-providers/terraform-provider-google/issues/3607
+func isOrganizationPolicyUnset(d *schema.ResourceData) bool {
+	listPolicy := d.Get("list_policy").([]interface{})
+	booleanPolicy := d.Get("boolean_policy").([]interface{})
+	restorePolicy := d.Get("restore_policy").([]interface{})
+
+	return len(listPolicy)+len(booleanPolicy)+len(restorePolicy) == 0
 }
 
 func setOrganizationPolicy(d *schema.ResourceData, meta interface{}) error {
@@ -220,17 +263,19 @@ func setOrganizationPolicy(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	_, err = config.clientResourceManager.Organizations.SetOrgPolicy(org, &cloudresourcemanager.SetOrgPolicyRequest{
-		Policy: &cloudresourcemanager.OrgPolicy{
-			Constraint:     canonicalOrgPolicyConstraint(d.Get("constraint").(string)),
-			BooleanPolicy:  expandBooleanOrganizationPolicy(d.Get("boolean_policy").([]interface{})),
-			ListPolicy:     listPolicy,
-			RestoreDefault: restoreDefault,
-			Version:        int64(d.Get("version").(int)),
-			Etag:           d.Get("etag").(string),
-		},
-	}).Do()
-
+	err = retryTimeDuration(func() (setErr error) {
+		_, setErr = config.clientResourceManager.Organizations.SetOrgPolicy(org, &cloudresourcemanager.SetOrgPolicyRequest{
+			Policy: &cloudresourcemanager.OrgPolicy{
+				Constraint:     canonicalOrgPolicyConstraint(d.Get("constraint").(string)),
+				BooleanPolicy:  expandBooleanOrganizationPolicy(d.Get("boolean_policy").([]interface{})),
+				ListPolicy:     listPolicy,
+				RestoreDefault: restoreDefault,
+				Version:        int64(d.Get("version").(int)),
+				Etag:           d.Get("etag").(string),
+			},
+		}).Do()
+		return setErr
+	}, d.Timeout(schema.TimeoutCreate))
 	return err
 }
 
@@ -295,7 +340,10 @@ func flattenListOrganizationPolicy(policy *cloudresourcemanager.ListPolicy) []ma
 		return lPolicies
 	}
 
-	listPolicy := map[string]interface{}{}
+	listPolicy := map[string]interface{}{
+		"suggested_value":     policy.SuggestedValue,
+		"inherit_from_parent": policy.InheritFromParent,
+	}
 	switch {
 	case policy.AllValues == "ALLOW":
 		listPolicy["allow"] = []interface{}{map[string]interface{}{
@@ -359,10 +407,12 @@ func expandListOrganizationPolicy(configured []interface{}) (*cloudresourcemanag
 
 	listPolicy := configured[0].(map[string]interface{})
 	return &cloudresourcemanager.ListPolicy{
-		AllValues:      allValues,
-		AllowedValues:  allowedValues,
-		DeniedValues:   deniedValues,
-		SuggestedValue: listPolicy["suggested_value"].(string),
+		AllValues:         allValues,
+		AllowedValues:     allowedValues,
+		DeniedValues:      deniedValues,
+		SuggestedValue:    listPolicy["suggested_value"].(string),
+		InheritFromParent: listPolicy["inherit_from_parent"].(bool),
+		ForceSendFields:   []string{"InheritFromParent"},
 	}, nil
 }
 

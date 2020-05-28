@@ -3,10 +3,10 @@ package google
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/encryption"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"google.golang.org/api/iam/v1"
 )
 
@@ -17,13 +17,13 @@ func resourceGoogleServiceAccountKey() *schema.Resource {
 		Delete: resourceGoogleServiceAccountKeyDelete,
 		Schema: map[string]*schema.Schema{
 			// Required
-			"service_account_id": &schema.Schema{
+			"service_account_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 			// Optional
-			"key_algorithm": &schema.Schema{
+			"key_algorithm": {
 				Type:         schema.TypeString,
 				Default:      "KEY_ALG_RSA_2048",
 				Optional:     true,
@@ -33,16 +33,17 @@ func resourceGoogleServiceAccountKey() *schema.Resource {
 			"pgp_key": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+				Removed:  "The pgp_key field has been removed. See https://www.terraform.io/docs/extend/best-practices/sensitive-state.html for more information.",
+				Computed: true,
 			},
-			"private_key_type": &schema.Schema{
+			"private_key_type": {
 				Type:         schema.TypeString,
 				Default:      "TYPE_GOOGLE_CREDENTIALS_FILE",
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"TYPE_UNSPECIFIED", "TYPE_PKCS12_FILE", "TYPE_GOOGLE_CREDENTIALS_FILE"}, false),
 			},
-			"public_key_type": &schema.Schema{
+			"public_key_type": {
 				Type:         schema.TypeString,
 				Default:      "TYPE_X509_PEM_FILE",
 				Optional:     true,
@@ -50,7 +51,7 @@ func resourceGoogleServiceAccountKey() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"TYPE_NONE", "TYPE_X509_PEM_FILE", "TYPE_RAW_PUBLIC_KEY"}, false),
 			},
 			// Computed
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Computed: true,
 				ForceNew: true,
@@ -60,26 +61,28 @@ func resourceGoogleServiceAccountKey() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"private_key": &schema.Schema{
+			"private_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
-			"valid_after": &schema.Schema{
+			"valid_after": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"valid_before": &schema.Schema{
+			"valid_before": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"private_key_encrypted": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Removed:  "The private_key_encrypted field has been removed. See https://www.terraform.io/docs/extend/best-practices/sensitive-state.html for more information.",
 			},
 			"private_key_fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Removed:  "The private_key_fingerprint field has been removed. See https://www.terraform.io/docs/extend/best-practices/sensitive-state.html for more information.",
 			},
 		},
 	}
@@ -107,24 +110,9 @@ func resourceGoogleServiceAccountKeyCreate(d *schema.ResourceData, meta interfac
 	// Data only available on create.
 	d.Set("valid_after", sak.ValidAfterTime)
 	d.Set("valid_before", sak.ValidBeforeTime)
-	if v, ok := d.GetOk("pgp_key"); ok {
-		encryptionKey, err := encryption.RetrieveGPGKey(v.(string))
-		if err != nil {
-			return err
-		}
+	d.Set("private_key", sak.PrivateKeyData)
 
-		fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, sak.PrivateKeyData, "Google Service Account Key")
-		if err != nil {
-			return err
-		}
-
-		d.Set("private_key_encrypted", encrypted)
-		d.Set("private_key_fingerprint", fingerprint)
-	} else {
-		d.Set("private_key", sak.PrivateKeyData)
-	}
-
-	err = serviceAccountKeyWaitTime(config.clientIAM.Projects.ServiceAccounts.Keys, d.Id(), d.Get("public_key_type").(string), "Creating Service account key", 4)
+	err = serviceAccountKeyWaitTime(config.clientIAM.Projects.ServiceAccounts.Keys, d.Id(), d.Get("public_key_type").(string), "Creating Service account key", 4*time.Minute)
 	if err != nil {
 		return err
 	}

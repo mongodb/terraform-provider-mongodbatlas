@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsNetworkInterfaceAttachment() *schema.Resource {
@@ -149,7 +149,7 @@ func resourceAwsNetworkInterfaceAttachmentDelete(d *schema.ResourceData, meta in
 		}
 	}
 
-	log.Printf("[DEBUG] Waiting for ENI (%s) to become dettached", interfaceId)
+	log.Printf("[DEBUG] Waiting for ENI (%s) to become detached", interfaceId)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"true"},
 		Target:  []string{"false"},
@@ -159,7 +159,7 @@ func resourceAwsNetworkInterfaceAttachmentDelete(d *schema.ResourceData, meta in
 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf(
-			"Error waiting for ENI (%s) to become dettached: %s", interfaceId, err)
+			"Error waiting for ENI (%s) to become detached: %s", interfaceId, err)
 	}
 
 	return nil
