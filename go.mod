@@ -10,7 +10,7 @@ require (
 	github.com/golangci/golangci-lint v1.26.0
 	github.com/hashicorp/go-getter v1.4.2-0.20200106182914-9813cbd4eb02 // indirect
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20191212124732-c6ae6269b9d7 // indirect
-	github.com/hashicorp/terraform-plugin-sdk v1.12.0
+	github.com/hashicorp/terraform-plugin-sdk v1.13.0
 	github.com/hashicorp/vault v1.4.1 // indirect
 	github.com/mongodb/go-client-mongodb-atlas v0.2.1-0.20200515182955-c06f91978bf0
 	github.com/mwielbut/pointy v1.1.0
