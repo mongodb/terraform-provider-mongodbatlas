@@ -723,6 +723,11 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 	}
 
+	// when Provider instance type changes this argument must be passed explicitly in patch request
+	if d.HasChange("provider_instance_size_name") {
+		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
+	}
+
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		_, _, err := conn.Clusters.Update(context.Background(), projectID, clusterName, cluster)

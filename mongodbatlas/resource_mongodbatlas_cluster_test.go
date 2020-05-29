@@ -57,6 +57,51 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 		},
 	})
 }
+func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, name, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "provider_backup_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M40_NVME"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+				),
+			},
+		},
+	})
+}
 
 func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
 	var cluster matlas.Cluster
@@ -692,6 +737,29 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) 
 			provider_disk_iops 			    = 300
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M30"
+			provider_region_name        = "EU_CENTRAL_1"
+		}
+	`, projectID, name, backupEnabled)
+}
+func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnabled string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "test" {
+			project_id   = "%[1]s"
+			name         = "%[2]s"
+			disk_size_gb = 100
+			num_shards   = 1
+			replication_factor           = 3
+			provider_backup_enabled      = %[3]s
+			pit_enabled 				 = %[3]s
+			auto_scaling_disk_gb_enabled = true
+			mongo_db_major_version       = "4.0"
+
+			//Provider Settings "block"
+			provider_name               = "AWS"
+			provider_disk_iops 		    = 3000
+			provider_encrypt_ebs_volume = false
+			provider_volume_type        = "PROVISIONED"
+			provider_instance_size_name = "M40_NVME"
 			provider_region_name        = "EU_CENTRAL_1"
 		}
 	`, projectID, name, backupEnabled)
