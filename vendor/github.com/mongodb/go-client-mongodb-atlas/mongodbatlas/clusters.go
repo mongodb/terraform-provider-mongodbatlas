@@ -32,7 +32,16 @@ var _ ClustersService = &ClustersServiceOp{}
 
 // AutoScaling configures your cluster to automatically scale its storage
 type AutoScaling struct {
-	DiskGBEnabled *bool `json:"diskGBEnabled,omitempty"`
+	DiskGBEnabled *bool    `json:"diskGBEnabled,omitempty"`
+	Compute       *Compute `json:"compute,omitempty"`
+}
+
+// Compute Specifies whether the cluster automatically scales its cluster tier and whether the cluster can scale down.
+type Compute struct {
+	Enabled          *bool  `json:"enabled,omitempty"`
+	ScaleDownEnabled *bool  `json:"scaleDownEnabled,omitempty"`
+	MinInstanceSize  string `json:"minInstanceSize,omitempty"`
+	MaxInstanceSize  string `json:"maxInstanceSize,omitempty"`
 }
 
 // BiConnector specifies BI Connector for Atlas configuration on this cluster
@@ -43,14 +52,15 @@ type BiConnector struct {
 
 // ProviderSettings configuration for the provisioned servers on which MongoDB runs. The available options are specific to the cloud service provider.
 type ProviderSettings struct {
-	BackingProviderName string `json:"backingProviderName,omitempty"`
-	DiskIOPS            *int64 `json:"diskIOPS,omitempty"`
-	DiskTypeName        string `json:"diskTypeName,omitempty"`
-	EncryptEBSVolume    *bool  `json:"encryptEBSVolume,omitempty"`
-	InstanceSizeName    string `json:"instanceSizeName,omitempty"`
-	ProviderName        string `json:"providerName,omitempty"`
-	RegionName          string `json:"regionName,omitempty"`
-	VolumeType          string `json:"volumeType,omitempty"`
+	BackingProviderName string       `json:"backingProviderName,omitempty"`
+	DiskIOPS            *int64       `json:"diskIOPS,omitempty"`
+	DiskTypeName        string       `json:"diskTypeName,omitempty"`
+	EncryptEBSVolume    *bool        `json:"encryptEBSVolume,omitempty"`
+	InstanceSizeName    string       `json:"instanceSizeName,omitempty"`
+	ProviderName        string       `json:"providerName,omitempty"`
+	RegionName          string       `json:"regionName,omitempty"`
+	VolumeType          string       `json:"volumeType,omitempty"`
+	AutoScaling         *AutoScaling `json:"autoScaling,omitempty"`
 }
 
 // RegionsConfig describes the region’s priority in elections and the number and type of MongoDB nodes Atlas deploys to the region.

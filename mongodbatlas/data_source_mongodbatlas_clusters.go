@@ -33,6 +33,14 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"auto_scaling_compute_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"auto_scaling_compute_scale_down_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"backup_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -140,6 +148,14 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Computed: true,
 						},
 						"provider_volume_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"provider_auto_scaling_compute_min_instance_size": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"provider_auto_scaling_compute_max_instance_size": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
