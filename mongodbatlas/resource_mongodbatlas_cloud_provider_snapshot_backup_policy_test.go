@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	"github.com/mwielbut/pointy"
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testing.T) {
@@ -25,9 +26,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testi
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    3,
-					ReferenceMinuteOfHour: 45,
-					RestoreWindowDays:     4,
+					ReferenceHourOfDay:    pointy.Int64(3),
+					ReferenceMinuteOfHour: pointy.Int64(45),
+					RestoreWindowDays:     pointy.Int64(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyExists(resourceName),
@@ -40,9 +41,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testi
 			},
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    0,
-					ReferenceMinuteOfHour: 0,
-					RestoreWindowDays:     0,
+					ReferenceHourOfDay:    pointy.Int64(0),
+					ReferenceMinuteOfHour: pointy.Int64(0),
+					RestoreWindowDays:     pointy.Int64(7),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyExists(resourceName),
@@ -50,7 +51,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testi
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "0"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 				),
 			},
 		},
@@ -71,9 +72,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_importBasic(t 
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
-					ReferenceHourOfDay:    3,
-					ReferenceMinuteOfHour: 45,
-					RestoreWindowDays:     4,
+					ReferenceHourOfDay:    pointy.Int64(3),
+					ReferenceMinuteOfHour: pointy.Int64(45),
+					RestoreWindowDays:     pointy.Int64(4),
 				}),
 			},
 			{
@@ -204,5 +205,5 @@ func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clust
 				}
 			}
 		}
-	`, projectID, clusterName, p.ReferenceHourOfDay, p.ReferenceMinuteOfHour, p.RestoreWindowDays)
+	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
