@@ -37,6 +37,8 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
   project_id     = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id}"
   cluster_name = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name}"
+  page_num = 1
+  items_per_page = 5
 }
 ```
 
@@ -44,6 +46,8 @@ data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve restore jobs.
+* `page_num` - (Optional)  	The page to return. Defaults to `1`.
+* `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
 
 ## Attributes Reference
 
