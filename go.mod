@@ -12,8 +12,9 @@ require (
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20191212124732-c6ae6269b9d7 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.13.0
 	github.com/hashicorp/vault v1.4.1 // indirect
-	github.com/mongodb/go-client-mongodb-atlas v0.2.1-0.20200515182955-c06f91978bf0
+	github.com/mongodb/go-client-mongodb-atlas v0.2.1-0.20200601155512-c9ee4b994737
 	github.com/mwielbut/pointy v1.1.0
+	github.com/openlyinc/pointy v1.1.2
 	github.com/spf13/cast v1.3.1
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20200518153306-40099de47e37
