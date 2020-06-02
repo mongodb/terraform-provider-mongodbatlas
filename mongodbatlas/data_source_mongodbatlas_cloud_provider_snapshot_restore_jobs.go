@@ -22,6 +22,14 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"page_num": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"items_per_page": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -108,8 +116,12 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(d *schema.Resour
 		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
+	options := &matlas.ListOptions{
+		PageNum:      d.Get("page_num").(int),
+		ItemsPerPage: d.Get("items_per_page").(int),
+	}
 
-	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudProviderSnapshotRestoreJobs.List(context.Background(), requestParameters)
+	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudProviderSnapshotRestoreJobs.List(context.Background(), requestParameters, options)
 	if err != nil {
 		return fmt.Errorf("error getting cloudProviderSnapshotRestoreJobs information: %s", err)
 	}
