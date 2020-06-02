@@ -23,7 +23,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *test
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, clusterName, description, retentionInDays),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, clusterName, description, retentionInDays, 1, 5),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotExists("mongodbatlas_cloud_provider_snapshot.test", &cloudProviderSnapshot),
 					resource.TestCheckResourceAttrSet("mongodbatlas_cloud_provider_snapshot.test", "project_id"),
@@ -36,7 +36,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *test
 	})
 }
 
-func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, clusterName, description, retentionInDays string) string {
+func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, clusterName, description, retentionInDays string, pageNum, itemPage int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
@@ -71,6 +71,8 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, cluste
 		data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
+			page_num = %d
+			items_per_page = %d
 		}
-	`, projectID, clusterName, description, retentionInDays)
+	`, projectID, clusterName, description, retentionInDays, pageNum, itemPage)
 }

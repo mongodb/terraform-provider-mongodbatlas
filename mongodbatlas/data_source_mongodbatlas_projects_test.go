@@ -30,6 +30,7 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
+					2, 5,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
@@ -40,10 +41,12 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam) string {
+func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []*matlas.ProjectTeam, pageNum, itemPage int) string {
 	return fmt.Sprintf(`
 		%s
-
-		data "mongodbatlas_projects" "test" {}
-	`, testAccMongoDBAtlasPropjectConfig(projectName, orgID, teams))
+		data "mongodbatlas_projects" "test" {
+			page_num = %d
+			items_per_page = %d
+		}
+	`, testAccMongoDBAtlasPropjectConfig(projectName, orgID, teams), pageNum, itemPage)
 }

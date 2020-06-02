@@ -20,7 +20,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, clusterName, description, retentionInDays),
+				Config: testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, clusterName, description, retentionInDays, 1, 5),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_cloud_provider_snapshot.test", "project_id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_cloud_provider_snapshot.test", "cluster_name"),
@@ -32,7 +32,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, clusterName, description, retentionInDays string) string {
+func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, clusterName, description, retentionInDays string, pageNum, itemPage int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
@@ -58,6 +58,8 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, cluste
 		data "mongodbatlas_cloud_provider_snapshots" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+			page_num = %d
+			items_per_page = %d
 		}
-	`, projectID, clusterName, description, retentionInDays)
+	`, projectID, clusterName, description, retentionInDays, pageNum, itemPage)
 }
