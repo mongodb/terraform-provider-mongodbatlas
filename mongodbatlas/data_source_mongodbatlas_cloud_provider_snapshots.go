@@ -22,6 +22,14 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"page_num": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"items_per_page": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -86,8 +94,12 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(d *schema.ResourceData, me
 		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}
+	options := &matlas.ListOptions{
+		PageNum:      d.Get("page_num").(int),
+		ItemsPerPage: d.Get("items_per_page").(int),
+	}
 
-	cloudProviderSnapshots, _, err := conn.CloudProviderSnapshots.GetAllCloudProviderSnapshots(context.Background(), requestParameters)
+	cloudProviderSnapshots, _, err := conn.CloudProviderSnapshots.GetAllCloudProviderSnapshots(context.Background(), requestParameters, options)
 	if err != nil {
 		return fmt.Errorf("error getting cloudProviderSnapshots information: %s", err)
 	}

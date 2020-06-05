@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/openlyinc/pointy"
 	"net/http"
 	"strings"
 
@@ -235,10 +236,10 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.
 
 func snapshotScheduleUpdate(d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) error {
 	req := &matlas.CloudProviderSnapshotBackupPolicy{
-		ReferenceHourOfDay:    d.Get("reference_hour_of_day").(int),
-		ReferenceMinuteOfHour: d.Get("reference_minute_of_hour").(int),
-		RestoreWindowDays:     d.Get("restore_window_days").(int),
-		UpdateSnapshots:       cast.ToBool(d.Get("update_snapshots").(bool)),
+		ReferenceHourOfDay:    pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day"))),
+		ReferenceMinuteOfHour: pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour"))),
+		RestoreWindowDays:     pointy.Int64(cast.ToInt64(d.Get("restore_window_days"))),
+		UpdateSnapshots:       pointy.Bool(d.Get("update_snapshots").(bool)),
 		Policies:              expandPolicies(d),
 	}
 

@@ -14,6 +14,14 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasProjectsRead,
 		Schema: map[string]*schema.Schema{
+			"page_num": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"items_per_page": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -72,7 +80,10 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	//Get client connection.
 	conn := meta.(*matlas.Client)
-	options := &matlas.ListOptions{}
+	options := &matlas.ListOptions{
+		PageNum:      d.Get("page_num").(int),
+		ItemsPerPage: d.Get("items_per_page").(int),
+	}
 	projects, _, err := conn.Projects.GetAllProjects(context.Background(), options)
 	if err != nil {
 		return fmt.Errorf("error getting projects information: %s", err)

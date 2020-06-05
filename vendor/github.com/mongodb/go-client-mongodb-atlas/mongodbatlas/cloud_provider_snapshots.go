@@ -14,7 +14,7 @@ const (
 // endpoints of the MongoDB Atlas API.
 // See more: https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot/
 type CloudProviderSnapshotsService interface {
-	GetAllCloudProviderSnapshots(context.Context, *SnapshotReqPathParameters) (*CloudProviderSnapshots, *Response, error)
+	GetAllCloudProviderSnapshots(context.Context, *SnapshotReqPathParameters, *ListOptions) (*CloudProviderSnapshots, *Response, error)
 	GetOneCloudProviderSnapshot(context.Context, *SnapshotReqPathParameters) (*CloudProviderSnapshot, *Response, error)
 	Create(context.Context, *SnapshotReqPathParameters, *CloudProviderSnapshot) (*CloudProviderSnapshot, *Response, error)
 	Delete(context.Context, *SnapshotReqPathParameters) (*Response, error)
@@ -61,7 +61,7 @@ type SnapshotReqPathParameters struct {
 
 //GetAllCloudProviderSnapshots gets all cloud provider snapshots for the specified cluster.
 //See more: https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-get-all/
-func (s *CloudProviderSnapshotsServiceOp) GetAllCloudProviderSnapshots(ctx context.Context, requestParameters *SnapshotReqPathParameters) (*CloudProviderSnapshots, *Response, error) {
+func (s *CloudProviderSnapshotsServiceOp) GetAllCloudProviderSnapshots(ctx context.Context, requestParameters *SnapshotReqPathParameters, listOptions *ListOptions) (*CloudProviderSnapshots, *Response, error) {
 	if requestParameters.GroupID == "" {
 		return nil, nil, NewArgError("groupId", "must be set")
 	}
@@ -70,6 +70,11 @@ func (s *CloudProviderSnapshotsServiceOp) GetAllCloudProviderSnapshots(ctx conte
 	}
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/snapshots", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName)
+
+	path, err := setListOptions(path, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {

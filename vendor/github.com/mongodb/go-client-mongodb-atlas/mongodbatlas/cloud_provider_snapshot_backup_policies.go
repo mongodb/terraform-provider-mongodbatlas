@@ -30,10 +30,10 @@ var _ CloudProviderSnapshotBackupPoliciesService = &CloudProviderSnapshotBackupP
 type CloudProviderSnapshotBackupPolicy struct {
 	ClusterID             string   `json:"clusterId,omitempty"`             //	Unique identifier of the Atlas cluster.
 	ClusterName           string   `json:"clusterName,omitempty"`           //	Name of the Atlas cluster.
-	ReferenceHourOfDay    int      `json:"referenceHourOfDay,omitempty"`    // UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
-	ReferenceMinuteOfHour int      `json:"referenceMinuteOfHour,omitempty"` // UTC Minutes after referenceHourOfDay that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive. Number of days back in time you can restore to with point-in-time accuracy.
-	RestoreWindowDays     int      `json:"restoreWindowDays,omitempty"`     // Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
-	UpdateSnapshots       bool     `json:"updateSnapshots,omitempty"`       // Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
+	ReferenceHourOfDay    *int64   `json:"referenceHourOfDay,omitempty"`    // UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
+	ReferenceMinuteOfHour *int64   `json:"referenceMinuteOfHour,omitempty"` // UTC Minutes after referenceHourOfDay that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive. Number of days back in time you can restore to with point-in-time accuracy.
+	RestoreWindowDays     *int64   `json:"restoreWindowDays,omitempty"`     // Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
+	UpdateSnapshots       *bool    `json:"updateSnapshots,omitempty"`       // Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
 	NextSnapshot          string   `json:"nextSnapshot,omitempty"`          // UTC ISO 8601 formatted point in time when Atlas will take the next snapshot.
 	Policies              []Policy `json:"policies,omitempty"`              // A list of policy definitions for the cluster.
 }

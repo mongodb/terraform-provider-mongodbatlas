@@ -14,7 +14,7 @@ const (
 // endpoints of the MongoDB Atlas API.
 // See more: https://docs.atlas.mongodb.com/reference/api/cloudProviderSnapshotRestoreJobs/
 type CloudProviderSnapshotRestoreJobsService interface {
-	List(context.Context, *SnapshotReqPathParameters) (*CloudProviderSnapshotRestoreJobs, *Response, error)
+	List(context.Context, *SnapshotReqPathParameters, *ListOptions) (*CloudProviderSnapshotRestoreJobs, *Response, error)
 	Get(context.Context, *SnapshotReqPathParameters) (*CloudProviderSnapshotRestoreJob, *Response, error)
 	Create(context.Context, *SnapshotReqPathParameters, *CloudProviderSnapshotRestoreJob) (*CloudProviderSnapshotRestoreJob, *Response, error)
 	Delete(context.Context, *SnapshotReqPathParameters) (*Response, error)
@@ -57,7 +57,7 @@ type CloudProviderSnapshotRestoreJobs struct {
 
 //List gets all cloud provider snapshot restore jobs for the specified cluster.
 //See more: https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs-get-all/
-func (s *CloudProviderSnapshotRestoreJobsServiceOp) List(ctx context.Context, requestParameters *SnapshotReqPathParameters) (*CloudProviderSnapshotRestoreJobs, *Response, error) {
+func (s *CloudProviderSnapshotRestoreJobsServiceOp) List(ctx context.Context, requestParameters *SnapshotReqPathParameters, listOptions *ListOptions) (*CloudProviderSnapshotRestoreJobs, *Response, error) {
 	if requestParameters.GroupID == "" {
 		return nil, nil, NewArgError("groupId", "must be set")
 	}
@@ -66,6 +66,10 @@ func (s *CloudProviderSnapshotRestoreJobsServiceOp) List(ctx context.Context, re
 	}
 
 	path := fmt.Sprintf("%s/%s/clusters/%s/backup/restoreJobs", cloudProviderSnapshotsBasePath, requestParameters.GroupID, requestParameters.ClusterName)
+	path, err := setListOptions(path, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {

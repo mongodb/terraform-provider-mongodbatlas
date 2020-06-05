@@ -8,7 +8,7 @@ cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/longrunning
 cloud.google.com/go/longrunning/autogen
-# cloud.google.com/go/bigtable v1.1.0
+# cloud.google.com/go/bigtable v1.3.0
 cloud.google.com/go/bigtable
 cloud.google.com/go/bigtable/internal/option
 # cloud.google.com/go/storage v1.6.0
@@ -537,7 +537,7 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
 github.com/mitchellh/reflectwalk
-# github.com/mongodb/go-client-mongodb-atlas v0.2.1-0.20200520173549-680098893b2f
+# github.com/mongodb/go-client-mongodb-atlas v0.2.1-0.20200601155512-c9ee4b994737
 github.com/mongodb/go-client-mongodb-atlas/mongodbatlas
 # github.com/mwielbut/pointy v1.1.0
 github.com/mwielbut/pointy

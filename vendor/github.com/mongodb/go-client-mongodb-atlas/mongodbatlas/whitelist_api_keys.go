@@ -12,7 +12,7 @@ const whitelistAPIKeysPath = "orgs/%s/apiKeys/%s/whitelist"
 // endpoints of the MongoDB Atlas API.
 // See more: https://docs.atlas.mongodb.com/reference/api/apiKeys/#organization-api-key-endpoints
 type WhitelistAPIKeysService interface {
-	List(context.Context, string, string) (*WhitelistAPIKeys, *Response, error)
+	List(context.Context, string, string, *ListOptions) (*WhitelistAPIKeys, *Response, error)
 	Get(context.Context, string, string, string) (*WhitelistAPIKey, *Response, error)
 	Create(context.Context, string, string, []*WhitelistAPIKeysReq) (*WhitelistAPIKeys, *Response, error)
 	Delete(context.Context, string, string, string) (*Response, error)
@@ -52,7 +52,7 @@ type WhitelistAPIKeysReq struct {
 
 // List gets all Whitelist API keys.
 // See more: https://docs.atlas.mongodb.com/reference/api/apiKeys-org-whitelist-get-all/
-func (s *WhitelistAPIKeysServiceOp) List(ctx context.Context, orgID string, apiKeyID string) (*WhitelistAPIKeys, *Response, error) {
+func (s *WhitelistAPIKeysServiceOp) List(ctx context.Context, orgID string, apiKeyID string, listOptions *ListOptions) (*WhitelistAPIKeys, *Response, error) {
 	if orgID == "" {
 		return nil, nil, NewArgError("orgID", "must be set")
 	}
@@ -61,6 +61,10 @@ func (s *WhitelistAPIKeysServiceOp) List(ctx context.Context, orgID string, apiK
 	}
 
 	path := fmt.Sprintf(whitelistAPIKeysPath, orgID, apiKeyID)
+	path, err := setListOptions(path, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
