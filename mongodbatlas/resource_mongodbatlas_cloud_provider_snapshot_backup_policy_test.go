@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	"github.com/mwielbut/pointy"
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testing.T) {
@@ -24,11 +25,33 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testi
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+					ReferenceHourOfDay:    pointy.Int64(3),
+					ReferenceMinuteOfHour: pointy.Int64(45),
+					RestoreWindowDays:     pointy.Int64(4),
+				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
+					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+					ReferenceHourOfDay:    pointy.Int64(0),
+					ReferenceMinuteOfHour: pointy.Int64(0),
+					RestoreWindowDays:     pointy.Int64(7),
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
+					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 				),
 			},
 		},
@@ -48,7 +71,11 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_importBasic(t 
 		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName),
+				Config: testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+					ReferenceHourOfDay:    pointy.Int64(3),
+					ReferenceMinuteOfHour: pointy.Int64(45),
+					RestoreWindowDays:     pointy.Int64(4),
+				}),
 			},
 			{
 				ResourceName:            resourceName,
@@ -120,7 +147,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(
 	}
 }
 
-func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName string) string {
+func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
@@ -140,9 +167,9 @@ func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clust
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
-			reference_hour_of_day    = 3
-			reference_minute_of_hour = 45
-			restore_window_days      = 4
+			reference_hour_of_day    = %d 
+			reference_minute_of_hour = %d 
+			restore_window_days      = %d 
 
 
 			policies {
@@ -178,5 +205,5 @@ func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clust
 				}
 			}
 		}
-	`, projectID, clusterName)
+	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }

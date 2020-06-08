@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 
 	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
@@ -235,11 +235,18 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.
 }
 
 func snapshotScheduleUpdate(d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) error {
+
+	if restoreWindowDays, ok := d.GetOk("restore_window_days"); ok {
+		if cast.ToInt64(restoreWindowDays) <= 0 {
+			return fmt.Errorf("`restore_window_days` cannot be <= 0")
+		}
+	}
+
 	req := &matlas.CloudProviderSnapshotBackupPolicy{
 		ReferenceHourOfDay:    pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day"))),
 		ReferenceMinuteOfHour: pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour"))),
 		RestoreWindowDays:     pointy.Int64(cast.ToInt64(d.Get("restore_window_days"))),
-		UpdateSnapshots:       pointy.Bool(d.Get("update_snapshots").(bool)),
+		UpdateSnapshots:       pointy.Bool(cast.ToBool(d.Get("update_snapshots").(bool))),
 		Policies:              expandPolicies(d),
 	}
 
