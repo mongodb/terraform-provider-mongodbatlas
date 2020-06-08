@@ -1,0 +1,9 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas Provider 0.6.0: Upgrade Guide"
+description: |-
+    MongoDB Atlas Provider 0.6.0: Upgrade Guide
+
+---
+
+# MongoDB Atlas Provider 0.6.0: Upgrade Guide
