@@ -3,14 +3,16 @@ layout: "mongodbatlas"
 page_title: "Provider: MongoDB Atlas"
 sidebar_current: "docs-mongodbatlas-index"
 description: |-
-  The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Atlas Services. The provider needs to be configured with the proper credentials before it can be used.
+  The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Atlas. The provider needs to be configured with the proper credentials before it can be used.
 ---
 
 # MongoDB Atlas Provider
 
-The MongoDB Atlas provider is used to interact with the resources supported by MongoDB Atlas Services. The provider needs to be configured with the proper credentials before it can be used.
+The MongoDB Atlas provider is used to interact with the resources supported by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas). The provider needs to be configured with the proper credentials before it can be used.
 
-Use the navigation to the left to read about the available resources.
+Use the navigation to the left to read about the available provider resources and data sources.
+
+You may want to consider pinning the [provider version](https://www.terraform.io/docs/configuration/providers.html#provider-versions) to ensure you have a chance to review and prepare for changes.   Speaking of changes, see [CHANGELOG](https://github.com/terraform-providers/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
 
 ## Example Usage
 ```hcl
@@ -21,29 +23,35 @@ provider "mongodbatlas" {
 }
 
 #Create the resources
+...
 ```
 
-## Authentication
+## Configure Atlas Programmatic Access
 
-The MongoDB Atlas provider offers a flexible means of providing credentials for authentication. The following methods are supported, in this order, and explained below:
+In order to setup authentication with the MongoDB Atlas provider a programmatic API key must be generated for MongoDB Atlas with the appropriate permissions and IP whitelist entries.   The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s) and IP access.   Be aware, not all API resources require an IP access list by default, but one can set Atlas to require IP access entries for all API resources, see the [organization settings documentation](https://docs.atlas.mongodb.com/tutorial/manage-organization-settings/#require-ip-whitelist-for-public-api) for more info. 
+
+## Authenticate the Provider
+
+The MongoDB Atlas provider offers a flexible means of providing credentials for authentication. The following methods are supported and explained below:
 
 ### Static credentials
 
-Static credentials can be provided by adding the following attributes in-line in the MongoDB Atlas provider block:
+Static credentials can be provided by adding the following attributes in-line in the MongoDB Atlas provider block, either directly or via input variable/local value:
 
 Usage:
 
 ```hcl
 provider "mongodbatlas" {
-  public_key = "" #required
-  private_key  = "" #required
+  public_key = "atlas_public_api_key" #required
+  private_key  = "atlas_private_api_key" #required
 }
 ```
 
+~> *IMPORTANT* Hard-coding your MongoDB Atlas programmatic API key pair into a Terraform configuration is not recommended.  Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository. 
+
 ### Environment variables
 
-You can provide your credentials via environment variables, representing your MongoDB Atlas
-authentication.
+You can also provide your credentials via the environment variables, MONGODB_ATLAS_PUBLIC_KEY and MONGODB_ATLAS_PRIVATE_KEY, for your public and private MongoDB Atlas programmatic API key pair respectively: 
 
 ```hcl
 provider "mongodbatlas" {}
@@ -64,15 +72,15 @@ arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
 `alias` and `version`), the following arguments are supported in the MongoDB
 Atlas `provider` block:
 
-* `public_key` - (Optional) This is the MongoDB Atlas API public_key. It must be
+* `public_key` - (Optional) This is the public key of your MongoDB Atlas API key pair. It must be
   provided, but it can also be sourced from the `MONGODB_ATLAS_PUBLIC_KEY`
   environment variable.
 
-* `private_key` - (Optional) This is the MongoDB Atlas private_key. It must be
+* `private_key` - (Optional) This is the private key of your MongoDB Atlas key pair. It must be
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
-For more information about how to get these programmatic API Keys see the following [link](https://docs.atlas.mongodb.com/configure-api-access/#manage-programmatic-access-to-an-organization).
+For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
 ## Helpful Links/Information
 

@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_backup_policy"
 sidebar_current: "docs-mongodbatlas-datasource-cloud-provider-snapshot-backup-policy"
 description: |-
-    Provides a Cloud Provider Snapshot Backup Policy Datasource.
+    Provides a Cloud Backup Snapshot Policy Datasource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_backup_policy
 
-`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a Cloud Provider Snapshot Backup Policy entry datasource. An Atlas Cloud Provider Snapshot Backup Policy provides the current snapshot schedule and retention settings for the cluster.
+`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a Cloud Backup Snapshot Backup Policy datasource. An Atlas Cloud Backup Snapshot Policy provides the current snapshot schedule and retention settings for the cluster. 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -24,7 +24,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // enable cloud provider snapshots
+  provider_backup_enabled     = true // enable cloud backup snapshots
   provider_disk_iops          = 100
   provider_encrypt_ebs_volume = false
 }
@@ -91,7 +91,7 @@ In addition to all arguments above, the following attributes are exported:
 * `next_snapshot` - UTC ISO 8601 formatted point in time when Atlas will take the next snapshot.
 * `reference_hour_of_day` - UTC Hour of day between 0 and 23 representing which hour of the day that Atlas takes a snapshot.
 * `reference_minute_of_hour` - UTC Minute of day between 0 and 59 representing which minute of the referenceHourOfDay that Atlas takes the snapshot.
-* `restore_window_days` - Specifies a restore window in days for the cloud provider backup to maintain.
+* `restore_window_days` - Specifies a restore window in days for cloud backup to maintain.
 
 ### Policies
 * `policies` - A list of policy definitions for the cluster.
@@ -105,4 +105,4 @@ In addition to all arguments above, the following attributes are exported:
 * `policies.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
 * `policies.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-schedule-get-all/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/)

@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_backup_policy"
 sidebar_current: "docs-mongodbatlas-resource-cloud-provider-snapshot-backup-policy"
 description: |-
-    Provides a Cloud Provider Snapshot Backup Policy resource.
+    Provides a Cloud Backup Snapshot Policy resource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_backup_policy
 
-`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a resource that enables you to view and modify the snapshot schedule and retention settings for an Atlas cluster with Cloud Provider Snapshots enabled.
+`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a resource that enables you to view and modify the snapshot schedule and retention settings for an Atlas cluster with Cloud Backup enabled.  A default policy is created automatically when Cloud Backup is enabled for the cluster.  
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -104,10 +104,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Provider Snapshot Backup Policy entries can be imported using project project_id, cluster_name, in the format `PROJECTID-CLUSTERNAME`, e.g.
+Cloud Backup Snapshot Policy entries can be imported using project project_id and cluster_name, in the format `PROJECTID-CLUSTERNAME`, e.g.
 
 ```
 $ terraform import mongodbatlas_cloud_provider_snapshot_backup_policy.test 5d0f1f73cf09a29120e173cf-MyClusterTest
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-schedule-modify-one/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/modify-one-schedule/)
