@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot"
 sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot"
 description: |-
-    Provides an Cloud Provider Snapshot resource.
+    Provides an Cloud Backup Snapshot resource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot
 
-`mongodbatlas_cloud_provider_snapshot` provides a resource to take a cloud provider snapshot on demand.
+`mongodbatlas_cloud_provider_snapshot` provides a resource to take a cloud backup snapshot on demand.
 On-demand snapshots happen immediately, unlike scheduled snapshots which occur at regular intervals. If there is already an on-demand snapshot with a status of queued or inProgress, you must wait until Atlas has completed the on-demand snapshot before taking another.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
@@ -25,7 +25,7 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
     provider_name               = "AWS"
     provider_region_name        = "EU_WEST_2"
     provider_instance_size_name = "M10"
-    provider_backup_enabled     = true   // enable cloud provider snapshots
+    provider_backup_enabled     = true   // enable cloud backup snapshots
     provider_disk_iops          = 100
     provider_encrypt_ebs_volume = false
   }
@@ -72,10 +72,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Cloud Provider Snapshot entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-SNAPSHOTID`, e.g.
+Cloud Backup Snapshot entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-SNAPSHOTID`, e.g.
 
 ```
 $ terraform import mongodbatlas_cloud_provider_snapshot.test 5d0f1f73cf09a29120e173cf-MyClusterTest-5d116d82014b764445b2f9b5
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/backups/)

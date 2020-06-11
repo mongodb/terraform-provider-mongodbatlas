@@ -8,9 +8,19 @@ description: |-
 
 # mongodbatlas_encryption_at_rest
 
-`mongodbatlas_encryption_at_rest` Atlas encrypts your data at rest using encrypted storage media. 
-Using keys you manage with AWS KMS, Atlas encrypts your data a second time when it writes it to the MongoDB encrypted storage engine. 
-You can use the following clouds: AWS CMK, AZURE KEY VAULT and GOOGLE KEY VAULT to encrypt the MongoDB master encryption keys.
+`mongodbatlas_encryption_at_rest` Allows management of encryption at rest for an Atlas project with one of the following providers:
+
+[Amazon Web Services Key Management Service](https://docs.atlas.mongodb.com/security-aws-kms/#security-aws-kms)
+[Azure Key Vault](https://docs.atlas.mongodb.com/security-azure-kms/#security-azure-kms)
+[Google Cloud KMS](https://docs.atlas.mongodb.com/security-gcp-kms/#security-gcp-kms)
+
+After configuring at least one Encryption at Rest provider for the Atlas project, Project Owners can enable Encryption at Rest for each Atlas cluster for which they require encryption. The Encryption at Rest provider does not have to match the cluster cloud service provider.
+
+Atlas does not automatically rotate user-managed encryption keys. Defer to your preferred Encryption at Rest provider’s documentation and guidance for best practices on key rotation. Atlas automatically creates a 365-day key rotation alert when you configure Encryption at Rest using your Key Management in an Atlas project.
+
+See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/index.html) for more information, including prerequisites and restrictions.
+
+~> **IMPORTANT** Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -79,4 +89,4 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 * `key_version_resource_id` - The Key Version Resource ID from your GCP account.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/)
+For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/)

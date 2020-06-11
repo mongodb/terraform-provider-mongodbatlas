@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot"
 sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot"
 description: |-
-    Provides an Cloud Provider Snapshot Datasource.
+    Provides an Cloud Backup Snapshot Datasource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot
 
-`mongodbatlas_cloud_provider_snapshot` provides an Cloud Provider Snapshot entry datasource. Atlas Cloud Provider Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service provider.
+`mongodbatlas_cloud_provider_snapshot` provides an Cloud Backup Snapshot datasource. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -50,4 +50,4 @@ In addition to all arguments above, the following attributes are exported:
 * `storage_size_bytes` - Specifies the size of the snapshot in bytes.
 * `type` - Specifies the type of cluster: replicaSet or shardedCluster.
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-get-one/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-one-backup/)

@@ -22,7 +22,7 @@ MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams pe
 resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
-  usernames  = ["user1", "user2", "user3"]
+  usernames  = ["user1@email.com", "user2@email.com", "user3@email.com"]
 }
 ```
 
@@ -30,8 +30,7 @@ resource "mongodbatlas_teams" "test" {
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
 * `name` - (Required) The name of the team you want to create.
-* `usernames` - (Required) You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team.
-
+* `usernames` - (Required) The Atlas usernames (email address). You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team. 
 
 ## Attributes Reference
 

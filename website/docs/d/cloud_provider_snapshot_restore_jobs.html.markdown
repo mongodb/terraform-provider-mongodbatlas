@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_jobs"
 sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_jobs"
 description: |-
-    Provides a Cloud Provider Snapshot Restore Jobs Datasource.
+    Provides a Cloud Backup Snapshot Restore Jobs Datasource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_restore_jobs
 
-`mongodbatlas_cloud_provider_snapshot_restore_jobs` provides a Cloud Provider Snapshot Restore Jobs entry datasource. Gets all cloud provider snapshot restore jobs for the specified cluster.
+`mongodbatlas_cloud_provider_snapshot_restore_jobs` provides a Cloud Backup Snapshot Restore Jobs datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -75,4 +75,4 @@ In addition to all arguments above, the following attributes are exported:
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs-get-all/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/get-all-restore-jobs/)

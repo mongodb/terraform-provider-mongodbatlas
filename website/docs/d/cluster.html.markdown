@@ -63,7 +63,7 @@ In addition to all arguments above, the following attributes are exported:
 
     Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `paused` - Flag that indicates whether the cluster is paused or not.
-* `pit_enabled` - Flag that indicates if the cluster uses Point-in-Time backups.
+* `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `srv_address` - Connection string for connecting to the Atlas cluster. The +srv modifier forces the connection to use TLS/SSL. See the mongoURI for additional options.
 * `state_name` - Indicates the current state of the cluster. The possible states are:
     - IDLE
@@ -91,7 +91,7 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Name of the cluster as it appears in Atlas.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
-* `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Provider Snapshots for backups.
+* `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.
 * `backing_provider_name` - Indicates Cloud service provider on which the server for a multi-tenant cluster is provisioned.

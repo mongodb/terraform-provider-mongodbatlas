@@ -3,17 +3,17 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
 sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot_restore_job"
 description: |-
-    Provides a Cloud Provider Snapshot Restore Job resource.
+    Provides a Cloud Backup Snapshot Restore Job resource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_restore_job
 
-`mongodbatlas_cloud_provider_snapshot_restore_job` provides a resource to create a new restore job from a cloud provider snapshot of a specified cluster. The restore job can be one of three types: 
+`mongodbatlas_cloud_provider_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job can be one of three types: 
 * **automated:** Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId.
 
 * **download:** Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. The contents of the archive contain the data files for your Atlas cluster.
 
-* **pointInTime:**  Atlas performs a Point-in-Time restore.
+* **pointInTime:**  Atlas performs a Continuous Cloud Backup restore.
 
 -> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your request body to create an automated restore job, Atlas removes all existing data on the target cluster prior to the restore.
 
@@ -33,7 +33,7 @@ description: |-
     provider_name               = "AWS"
     provider_region_name        = "EU_WEST_2"
     provider_instance_size_name = "M10"
-    provider_backup_enabled     = true   // enable cloud provider snapshots
+    provider_backup_enabled     = true   // enable cloud backup snapshots
     provider_disk_iops          = 100
     provider_encrypt_ebs_volume = false
   }
@@ -70,7 +70,7 @@ description: |-
     provider_name               = "AWS"
     provider_region_name        = "EU_WEST_2"
     provider_instance_size_name = "M10"
-    provider_backup_enabled     = true   // enable cloud provider snapshots
+    provider_backup_enabled     = true   // enable cloud backup snapshots
     provider_disk_iops          = 100
     provider_encrypt_ebs_volume = false
   }
@@ -129,25 +129,25 @@ In addition to all arguments above, the following attributes are exported:
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 * `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot.
     Three conditions apply to this parameter:
-    * Enable Point-in-Time restores on your cluster.
+    * Enable Continuous Cloud Backup on your cluster.
     * Specify oplogInc.
     * Specify either oplogTs and oplogInc or pointInTimeUTCSeconds, but not both.
 * `oplogInc` - Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp.
     Three conditions apply to this parameter:
-    * Enable Point-in-Time restores on your cluster.
+    * Enable Continuous Cloud Backup on your cluster.
     * Specify oplogTs.
     * Specify either oplogTs and oplogInc or pointInTimeUTCSeconds, but not both.
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot.
     Two conditions apply to this parameter:
-    * Enable Point-in-Time restores on your cluster.
+    * Enable Continuous Cloud Backup on your cluster.
     * Specify either pointInTimeUTCSeconds or oplogTs and oplogInc, but not both.
 
 ## Import
 
-Cloud Provider Snapshot Restore Job entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-JOBID`, e.g.
+Cloud Backup Snapshot Restore Job entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-JOBID`, e.g.
 
 ```
 $ terraform import mongodbatlas_cloud_provider_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/restores/)

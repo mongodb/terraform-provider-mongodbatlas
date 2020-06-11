@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
 sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_job"
 description: |-
-    Provides a Cloud Provider Snapshot Restore Job Datasource.
+    Provides a Cloud Backup Snapshot Restore Job Datasource.
 ---
 
 # mongodbatlas_cloud_provider_snapshot_restore_job
 
-`mongodbatlas_cloud_provider_snapshot_restore_job` provides a Cloud Provider Snapshot Restore Job entry datasource. Gets all cloud provider snapshot restore jobs for the specified cluster.
+`mongodbatlas_cloud_provider_snapshot_restore_job` provides a Cloud Backup Snapshot Restore Job datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -67,4 +67,4 @@ In addition to all arguments above, the following attributes are exported:
 * `oplogInc` - Oplog operation number from which to you want to restore this snapshot. 
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs-get-one/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/get-one-restore-job/)
