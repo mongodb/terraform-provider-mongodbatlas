@@ -1,8 +1,19 @@
 ## 0.6.0 (Unreleased)
 
+**Recommendation:**
+
+Before upgrading read the [MongoDB Atlas Provider 0.6.0: Upgrade Guide](https://github.com/terraform-providers/terraform-provider-mongodbatlas/blob/master/website/docs/guides/0.6.0-upgrade-guide.html.markdown)
+
 **Implemented enhancements:**
 
-- mongodbatlas\_database\_user can not be imported when they contain dashes "-" in the name [\#179](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/179)
+- New parameters about pagination for datasources [\#237](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/237) ([coderGo93](https://github.com/coderGo93))
+- Added support for cluster autoscaling attributes [\#233](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/233) ([coderGo93](https://github.com/coderGo93))
+- Migrated to new Terraform SDK [\#229](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/229) ([PacoDw](https://github.com/PacoDw))
+- Added attribute container_id to the cluster resource (useful for when a cluster exists before creating a peering connection) [\#208](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/208) ([coderGo93](https://github.com/coderGo93))
+- Added attributes to snapshot restore jobs resource and datasources to support continuous cloud backup [\#224](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/224) ([coderGo93](https://github.com/coderGo93))
+- General documentation improvements, Guide section add, and Upgrade Guide for 0.6.0 [\#240](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/240) ([themantissa](https://github.com/themantissa))
+- General documentation improvements: connection string doc [\#223](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/223) ([themantissa](https://github.com/themantissa))
+- General documentation improvements: network peering doc [\#217](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/217) ([themantissa](https://github.com/themantissa))
 
 **Fixed bugs:**
 
@@ -15,6 +26,7 @@
 
 **Closed issues:**
 
+- mongodbatlas\_database\_user can not be imported when they contain dashes "-" in the name [\#179](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/179)
 - Updating Snapshot Backup Policy: This resource requires access through a whitelist of ip ranges. [\#235](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/235)
 - Cannot import mongodbatlas\_database\_user if username contains a hyphen [\#234](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/234)
 - How to create a custom db role using built-in and connection action [\#226](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/226)
@@ -26,21 +38,13 @@
 
 **Merged pull requests:**
 
-- Documentation Improvements and New Guide for 0.6.0 [\#240](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/240) ([themantissa](https://github.com/themantissa))
 - fixes \#210: Issues with advanced\_configuration section on mongodbatlas\_cluster [\#238](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/238) ([gmlp](https://github.com/gmlp))
-- New parameters about pagination for datasources [\#237](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/237) ([coderGo93](https://github.com/coderGo93))
 - fix: fixes \#132 issues upgrading cluster to an AWS NVME tier [\#236](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/236) ([gmlp](https://github.com/gmlp))
-- Cluster autoscaling [\#233](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/233) ([coderGo93](https://github.com/coderGo93))
 - Fix \#228: Changes to mongodbatlas\_database\_user.role.collection\_name are ignored [\#231](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/231) ([PacoDw](https://github.com/PacoDw))
 - fixes \#211: Hour and minute properties don't update when they are zero for mongodbatlas\_cloud\_provider\_snapshot\_backup\_policy [\#230](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/230) ([gmlp](https://github.com/gmlp))
-- Terraform sdk [\#229](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/229) ([PacoDw](https://github.com/PacoDw))
 - Fix \#209: Changes are not detected when changing Team's role\_names attribute on mongodbatlas\_project [\#225](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/225) ([PacoDw](https://github.com/PacoDw))
-- New fields for snapshot restore jobs [\#224](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/224) ([coderGo93](https://github.com/coderGo93))
-- Improve connection string doc [\#223](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/223) ([themantissa](https://github.com/themantissa))
-- Update network\_peering.html.markdown [\#217](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/217) ([themantissa](https://github.com/themantissa))
 - fix: fixed DatabaseUserID to allows names with multiple dashes [\#214](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/214) ([PacoDw](https://github.com/PacoDw))
 - Fix \#80 - Update for GCP Encryption at rest [\#212](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/212) ([coderGo93](https://github.com/coderGo93))
-- Added field container\_id in resource cluster [\#208](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/208) ([coderGo93](https://github.com/coderGo93))
 
 ## 0.5.1 (April 27, 2020)
 
