@@ -1,4 +1,4 @@
-## 0.6.0 (Unreleased)
+## 0.6.0 (June 11, 2020)
 
 **Recommendation:**
 
