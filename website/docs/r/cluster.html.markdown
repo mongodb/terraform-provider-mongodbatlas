@@ -209,14 +209,12 @@ resource "mongodbatlas_cluster" "cluster-test" {
     - Set to `true` to enable cluster tier auto-scaling. If enabled, you must specify a value for `providerSettings.autoScaling.compute.maxInstanceSize`.
     - Set to `false` to disable cluster tier auto-scaling.
   
-  **IMPORTANT:** If `auto_scaling_compute_enabled` is true,  then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
-    This will cause the value of `provider_instance_size_name` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this,
-     Terraform will scale the cluster back down to the original instanceSizeName value. 
-     To prevent this a lifecycle customization should be used, i.e.:  
-      ```hcl
-      lifecycle {
-         ignore_changes = [provider_instance_size_name]
-      }  
+~> **IMPORTANT:** If `auto_scaling_compute_enabled` is true,  then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
+This will cause the value of `provider_instance_size_name` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back down to the original instanceSizeName value.
+To prevent this a lifecycle customization should be used, i.e.:  
+`lifecycle {
+  ignore_changes = [provider_instance_size_name]
+}`
             
 * `auto_scaling_compute_scale_down_enabled` - (Optional) Set to `true` to enable the cluster tier to scale down. This option is only available if `autoScaling.compute.enabled` is `true`.
     - If this option is enabled, you must specify a value for `providerSettings.autoScaling.compute.minInstanceSize`
@@ -361,7 +359,7 @@ Include **desired options** within advanced_configuration:
 
 ```hcl
 // Nest options within advanced_configuration
- advanced_configuration = {
+ advanced_configuration {
    javascript_enabled                   = false
    minimum_enabled_tls_protocol         = "TLS1_2"
  }

@@ -323,16 +323,19 @@ resource "mongodbatlas_network_peering" "test" {
 * `provider_name` - (Required) Cloud provider to whom the peering connection is being made. (Possible Values `AWS`, `AZURE`, `GCP`).
 
 **AWS ONLY:**
+
 * `accepter_region_name` - (Required - AWS) Specifies the AWS region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `aws_account_id` - (Required - AWS) AWS Account ID of the owner of the peer VPC.
 * `vpc_id` - (Required) Unique identifier of the AWS peer VPC (Note: this is **not** the same as the Atlas AWS VPC that is returned by the network_container resource).
 * `route_table_cidr_block` - (Required - AWS) AWS VPC CIDR block or subnet.
 
 **GCP ONLY:**
+
 * `gcp_project_id` - (Required - GCP) GCP project ID of the owner of the network peer.
 * `network_name` - (Required- AWS) Name of the network peer to which Atlas connects.
   
 **AZURE ONLY:** 
+
 * `azure_directory_id` - (Required - AZURE) Unique identifier for an Azure AD directory.
 * `azure_subscription_id` - (Required - AZURE) Unique identifier of the Azure subscription in which the VNet resides.
 * `resource_group_name` - (Required - AZURE) Name of your Azure resource group.
@@ -348,23 +351,27 @@ In addition to all arguments above, the following attributes are exported:
 * `provider_name` - Cloud provider to whom the peering connection is being made. (Possible Values `AWS`, `AZURE`, `GCP`).
 
 **AWS ONLY:**
- `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
+
+* `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `aws_account_id` - Account ID of the owner of the peer VPC.
 * `route_table_cidr_block` - Peer VPC CIDR block or subnet.
 * `vpc_id` - Unique identifier of the peer VPC.
 * `error_state_name` - Error state, if any. The VPC peering connection error state value can be one of the following: `REJECTED`, `EXPIRED`, `INVALID_ARGUMENT`.
 * `status_name` - (AWS Only) The VPC peering connection status value can be one of the following: `INITIATING`, `PENDING_ACCEPTANCE`, `FAILED`, `FINALIZING`, `AVAILABLE`, `TERMINATING`.
-   
-**AZURE/GCP ONLY:**   
+
+**AZURE/GCP ONLY:**
+
 * `status` - Status of the Atlas network peering connection.  Azure/GCP: `ADDING_PEER`, `AVAILABLE`, `FAILED`, `DELETING` GCP Only:  `WAITING_FOR_USER`.
   
 **GCP ONLY:**
+
 * `gcp_project_id` - GCP project ID of the owner of the network peer.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 * `network_name` - Name of the network peer to which Atlas connects.
 * `atlas_gcp_project_id` - The Atlas GCP Project ID for the GCP VPC used by your atlas cluster that it is need to set up the reciprocal connection.
   
 **AZURE ONLY:**
+
 * `azure_directory_id` - Unique identifier for an Azure AD directory.
 * `azure_subscription_id` - Unique identifer of the Azure subscription in which the VNet resides.
 * `error_state` - Description of the Atlas error when `status` is `Failed`, Otherwise, Atlas returns `null`.

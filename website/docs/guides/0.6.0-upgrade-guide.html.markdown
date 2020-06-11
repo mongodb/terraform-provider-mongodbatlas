@@ -19,12 +19,12 @@ The state migration happens automatically the first time the managed cluster(s) 
 
 ## You simply need to perform two actions after upgrading to the 0.6.0 MongoDB Atlas Provider
 
-1) Run `terraform refresh`
-    This will perform the migration from the previous state version to the new.  `terraform refresh` will, by default, create a backup state file `terraform.tfstate.backup` containing the state before the migration.  If you have a different process/procedure for backing up the state file ensure you follow that before refreshing the state.  Either way err on the side of caution and **ensure you have a backup of the state before the migration.**
+Step 1: Run `terraform refresh`
 
-    FYI: Before the refresh the state file contains the following section for advanced_configuration:
+This will perform the migration from the previous state version to the new.  `terraform refresh` will, by default, create a backup state file `terraform.tfstate.backup` containing the state before the migration.  If you have a different process/procedure for backing up the state file ensure you follow that before refreshing the state.  Either way err on the side of caution and **ensure you have a backup of the state before the migration.**
 
-    ```hcl
+Before the refresh the state file contains the following section for advanced_configuration:
+
     "advanced_configuration": {
               "fail_index_key_too_long": "true",
               "javascript_enabled": "true",
@@ -34,11 +34,9 @@ The state migration happens automatically the first time the managed cluster(s) 
               "sample_refresh_interval_bi_connector": "",
               "sample_size_bi_connector": ""
             },
-    ```
 
-    After the refresh the state file contains:
+After the refresh the state file contains:
 
-    ```hcl
      "advanced_configuration": [
               {
                 "fail_index_key_too_long": true,
@@ -50,24 +48,20 @@ The state migration happens automatically the first time the managed cluster(s) 
                 "sample_size_bi_connector": 0
               }
             ],
-    ```
 
-2) Update Terraform configs that contain modifications of the default advanced_configuration options
+Step 2: Update Terraform configs that contain modifications of the default advanced_configuration options
 
-    If you had previously configured [advanced_configuration](https://www.terraform.io/docs/providers/mongodbatlas/r/cluster.html#advanced-configuration-options) options you'll need to make a simple edit to your Terraform configuration, simply remove the `=` sign from the block:
-    Change from this:
+If you had previously configured [advanced_configuration](https://www.terraform.io/docs/providers/mongodbatlas/r/cluster.html#advanced-configuration-options) options you'll need to make a simple edit to your Terraform configuration, simply remove the `=` sign from the block:
 
-    ```hcl
+Change from this:
+
      advanced_configuration = {
      }
-    ```
 
-    to this for 0.6.0 forward:
+to this for 0.6.0 forward:
 
-    ```hcl
     advanced_configuration {
     }
-    ```
 
 After that you are ready to move forward with this new version!
 
