@@ -537,8 +537,6 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
 github.com/mitchellh/reflectwalk
-# github.com/mongodb/go-client-mongodb-atlas v0.3.0
-github.com/mongodb/go-client-mongodb-atlas/mongodbatlas
 # github.com/mwielbut/pointy v1.1.0
 github.com/mwielbut/pointy
 # github.com/nakabonne/nestif v0.3.0
@@ -652,6 +650,8 @@ github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/set
 # github.com/zclconf/go-cty-yaml v1.0.1
 github.com/zclconf/go-cty-yaml
+# go.mongodb.org/atlas v0.3.1-0.20200610163544-41bae9e4adcc
+go.mongodb.org/atlas/mongodbatlas
 # go.opencensus.io v0.22.3
 go.opencensus.io
 go.opencensus.io/internal

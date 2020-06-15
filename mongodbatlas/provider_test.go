@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
 	"github.com/terraform-providers/terraform-provider-google/google"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"

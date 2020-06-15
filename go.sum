@@ -675,6 +675,7 @@ github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJ
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
+github.com/mongodb/go-client-mongodb-atlas v0.1.2 h1:qmUme1TlQBPZupmXMnpD8DxnfGXLVGs3w+0Z17HBiSA=
 github.com/mongodb/go-client-mongodb-atlas v0.1.2/go.mod h1:LS8O0YLkA+sbtOb3fZLF10yY3tJM+1xATXMJ3oU35LU=
 github.com/mongodb/go-client-mongodb-atlas v0.3.0 h1:G2sNi2M/8ovfqSDmvOuxusXmafSqu4qOcQBwjoJiuKg=
 github.com/mongodb/go-client-mongodb-atlas v0.3.0/go.mod h1:182DADO+2ZDWQyW25uIxzop3U0rrQdeNEzqvs6w9kTI=
@@ -916,6 +917,9 @@ github.com/zclconf/go-cty-yaml v1.0.1/go.mod h1:IP3Ylp0wQpYm50IHK8OZWKMu6sPJIUgK
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/etcd v0.5.0-alpha.5.0.20191023171146-3cf2f69b5738/go.mod h1:dnLIgRNXwCJa5e+c6mIZCrds/GIG4ncV9HhK5PX7jPg=
+go.mongodb.org/atlas v0.3.0 h1:kYVI2xi0B++orhjBYu/L4MmJDV18jC8MmcHqUifKePk=
+go.mongodb.org/atlas v0.3.1-0.20200610163544-41bae9e4adcc h1:4ctQf+myJr8vnlCBE8UADNplAmSYQTuRLJgwB4+JFRo=
+go.mongodb.org/atlas v0.3.1-0.20200610163544-41bae9e4adcc/go.mod h1:xa/V3muNuVoReSG0y2pigUUnfPOx1cHF0ZV2uCE+c7I=
 go.mongodb.org/mongo-driver v1.2.1/go.mod h1:u7ryQJ+DOzQmeO7zB6MHyr8jkEQvC8vH7qLUO4lqsUM=
 go.opencensus.io v0.19.1/go.mod h1:gug0GbSHa8Pafr0d2urOSgoXHZ6x/RUlaiT0d9pqb4A=
 go.opencensus.io v0.19.2/go.mod h1:NO/8qkisMZLZ1FCsKNqtJPwc8/TaclWyY0B6wcYNg9M=

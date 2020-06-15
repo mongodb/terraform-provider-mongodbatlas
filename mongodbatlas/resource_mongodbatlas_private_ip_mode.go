@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/mwielbut/pointy"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
