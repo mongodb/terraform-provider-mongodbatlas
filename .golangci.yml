@@ -1,0 +1,109 @@
+linters-settings:
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - octalLiteral
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 0
+  maligned:
+    suggest-new: true
+  depguard:
+    list-type: blacklist
+    packages:
+      # logging is allowed only by logutils.Log, logrus
+      # is allowed to use only in logutils package
+      - github.com/sirupsen/logrus
+  misspell:
+    locale: US
+    ignore-words:
+      - cancelled
+  lll:
+    # Default is 120. '\t' is counted as 1 character.
+    # set our project to 200, as things like v3_structs with inline comments end up being a touch long
+    # also, for anyone using vscode, use the following configs:
+    # "rewrap.wrappingColumn": 200 ... requires the rewrap plugin
+    # "editor.rulers": [200]
+    line-length: 200
+  nestif:
+    # minimal complexity of if statements to report, 5 by default
+    min-complexity: 7
+  gomnd:
+    settings:
+      mnd:
+        # don't include the "operation" and "assign"
+        checks: case,return
+  funlen:
+    lines: 360
+    statements: 120
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - errcheck
+    - funlen
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - misspell
+    - nakedret
+    - nolintlint
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unused
+    - varcheck
+    - whitespace
+  # don't enable:
+  #   - gocyclo # we already have funlen lint
+  #   - dupl  # we have a lot of duplicate test cases
+  #   - gochecknoinits # we need the init function for the provider
+  #   - gochecknoglobals # we need some global variables
+  #   - unparam # Forces to create global variables when one variable is repeated in different functions
+  #   - goerr113 # It does not allow you to return an error, you need to save the error in a variable to do it
+  #   - goconst
+  #   - gocognit
+issues:
+  exclude:
+    - composite literal uses unkeyed fields
+    - Using the variable on range scope .* in function literal
+    - declaration of ".*" shadows declaration at line .*
+    - only one cuddle assignment allowed before if statement
+    - func `testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime` is unused
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - testpackage
+      # part of the golangci govet package is picking up things that go vet doesn't. Seems flaky, shutting that specific error off
+
+        # Exclude some staticcheck messages
+    - linters:
+      - staticcheck
+      text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
+
+run:
+  # which dirs to skip: they won't be analyzed;
+  skip-dirs:
+    - vendor
