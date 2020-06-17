@@ -42,11 +42,11 @@ func resourceMongoDBAtlasPrivateIPMode() *schema.Resource {
 }
 
 func resourceMongoDBAtlasPrivateIPModeCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
-	//Get the required ones
+	// Get the required ones
 	privateIPModeRequest := &matlas.PrivateIPMode{
 		Enabled: pointy.Bool(d.Get("enabled").(bool)),
 	}
@@ -62,7 +62,7 @@ func resourceMongoDBAtlasPrivateIPModeCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceMongoDBAtlasPrivateIPModeRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Id()
@@ -70,9 +70,9 @@ func resourceMongoDBAtlasPrivateIPModeRead(d *schema.ResourceData, meta interfac
 	privateIPMode, resp, err := conn.PrivateIPMode.Get(context.Background(), projectID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-
 			return nil
 		}
+
 		return fmt.Errorf(errorPrivateIPModeRead, projectID, err)
 	}
 
@@ -84,11 +84,11 @@ func resourceMongoDBAtlasPrivateIPModeRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceMongoDBAtlasPrivateIPModeDelete(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Id()
 
-	//Get the required ones
+	// Get the required ones
 	privateIPModeRequest := &matlas.PrivateIPMode{
 		Enabled: pointy.Bool(false),
 	}
@@ -106,5 +106,6 @@ func resourceMongoDBAtlasPrivateIPModeImportState(d *schema.ResourceData, meta i
 	if err := d.Set("project_id", d.Id()); err != nil {
 		log.Printf("[WARN] Error setting project_id for private IP Mode: %s", err)
 	}
+
 	return []*schema.ResourceData{d}, nil
 }

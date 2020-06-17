@@ -10,10 +10,11 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
-	dataSourceName := "data.mongodbatlas_global_cluster_config.config"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	name := fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	var (
+		dataSourceName = "data.mongodbatlas_global_cluster_config.config"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name           = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,7 +30,6 @@ func TestAccDataSourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name string) string {
@@ -41,7 +41,7 @@ func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name string) string {
 		provider_backup_enabled = false
 		cluster_type            = "GEOSHARDED"
 
-		//Provider Settings "block"
+		// Provider Settings "block"
 		provider_name               = "AWS"
 		provider_disk_iops          = 240
 		provider_instance_size_name = "M30"

@@ -77,7 +77,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 }
 
 func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
+	// Get the client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Get("project_id").(string)
@@ -90,12 +90,15 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta in
 	}
 
 	maintenanceWindowReq := &matlas.MaintenanceWindow{}
+
 	if dayOfWeek, ok := d.GetOk("day_of_week"); ok {
 		maintenanceWindowReq.DayOfWeek = cast.ToInt(dayOfWeek)
 	}
+
 	if hourOfDay, ok := d.GetOk("hour_of_day"); ok {
 		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(hourOfDay))
 	}
+
 	if numberOfDeferrals, ok := d.GetOk("number_of_deferrals"); ok {
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(numberOfDeferrals)
 	}
@@ -111,7 +114,7 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta in
 }
 
 func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
+	// Get the client connection.
 	conn := meta.(*matlas.Client)
 
 	maintenanceWindow, _, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
@@ -122,9 +125,11 @@ func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta inte
 	if err := d.Set("day_of_week", maintenanceWindow.DayOfWeek); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
+
 	if err := d.Set("hour_of_day", maintenanceWindow.HourOfDay); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
+
 	if err := d.Set("number_of_deferrals", maintenanceWindow.NumberOfDeferrals); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
@@ -139,7 +144,7 @@ func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta inte
 }
 
 func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
+	// Get the client connection.
 	conn := meta.(*matlas.Client)
 
 	maintenanceWindowReq := &matlas.MaintenanceWindow{}
@@ -154,9 +159,11 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta in
 	if d.HasChange("day_of_week") {
 		maintenanceWindowReq.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 	}
+
 	if d.HasChange("hour_of_day") {
 		maintenanceWindowReq.HourOfDay = pointy.Int(cast.ToInt(d.Get("hour_of_day")))
 	}
+
 	if d.HasChange("number_of_deferrals") {
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(d.Get("number_of_deferrals"))
 	}
@@ -170,7 +177,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceMongoDBAtlasMaintenanceWindowDelete(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
+	// Get the client connection.
 	conn := meta.(*matlas.Client)
 
 	_, err := conn.MaintenanceWindows.Reset(context.Background(), d.Id())

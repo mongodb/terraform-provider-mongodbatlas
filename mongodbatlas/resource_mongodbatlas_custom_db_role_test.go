@@ -16,10 +16,11 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasCustomDBRoles_Basic(t *testing.T) {
-
-	resourceName := "mongodbatlas_custom_db_role.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	roleName := fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+	var (
+		resourceName = "mongodbatlas_custom_db_role.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		roleName     = fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -61,7 +62,6 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_Basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
-
 	testRoleResourceName := "mongodbatlas_custom_db_role.test_role"
 	InheritedRoleResourceNameOne := "mongodbatlas_custom_db_role.inherited_role_one"
 	InheritedRoleResourceNameTwo := "mongodbatlas_custom_db_role.inherited_role_two"
@@ -70,11 +70,11 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 
 	inheritRole := []matlas.CustomDBRole{
 		{
-			RoleName: fmt.Sprintf("test-acc-INHERITED_ROLE-%s", acctest.RandString(5)),
+			RoleName: fmt.Sprintf("a_test-acc-INHERITED_ROLE-%s", acctest.RandString(5)),
 			Actions: []matlas.Action{{
 				Action: "INSERT",
 				Resources: []matlas.Resource{{
-					Db: fmt.Sprintf("test-acc-ddb_name-%s", acctest.RandString(5)),
+					Db: fmt.Sprintf("b_test-acc-ddb_name-%s", acctest.RandString(5)),
 				}},
 			}},
 		},
@@ -233,8 +233,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_Multiple(t *testing.T) {
-
+func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	testRoleResourceName := "mongodbatlas_custom_db_role.test_role"
 	InheritedRoleResourceName := "mongodbatlas_custom_db_role.inherited_role"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -422,10 +421,11 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_Multiple(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
-
-	resourceName := "mongodbatlas_custom_db_role.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var roleName string
+	var (
+		resourceName = "mongodbatlas_custom_db_role.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		roleName     string
+	)
 
 	for i := 0; i < 100; i++ {
 		roleName = fmt.Sprintf("test-acc-custom_role-%d", i)
@@ -455,7 +455,6 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
 			})
 		})
 	}
-
 }
 
 func TestAccResourceMongoDBAtlasCustomDBRoles_importBasic(t *testing.T) {
@@ -491,6 +490,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -499,8 +499,9 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 
 		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
 		if err != nil {
-			return fmt.Errorf("Custome DB Role (%s) does not exist", ids["role_name"])
+			return fmt.Errorf("custom DB Role (%s) does not exist", ids["role_name"])
 		}
+
 		return nil
 	}
 }
@@ -517,9 +518,10 @@ func testAccCheckMongoDBAtlasCustomDBRolesDestroy(s *terraform.State) error {
 
 		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
 		if err == nil {
-			return fmt.Errorf("Custome DB Role (%s) still exists", ids["role_name"])
+			return fmt.Errorf("custom DB Role (%s) still exists", ids["role_name"])
 		}
 	}
+
 	return nil
 }
 
@@ -527,7 +529,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName string)
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
@@ -555,6 +557,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigBasic(projectID, roleName, action, da
 
 func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, inheritedRole []matlas.CustomDBRole, testRole *matlas.CustomDBRole) string {
 	log.Printf("LOG___ inheritedRole: %#+v\n", inheritedRole[1])
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_custom_db_role" "inherited_role_one" {
 		 	project_id = "%s"
@@ -610,11 +613,12 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, 
 	)
 }
 
-func testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID string, inheritedRole *matlas.CustomDBRole, testRole *matlas.CustomDBRole) string {
-
+func testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID string, inheritedRole, testRole *matlas.CustomDBRole) string {
 	getCustomRoleFields := func(customRole *matlas.CustomDBRole) map[string]string {
-		var actions string
-		var inheritedRoles string
+		var (
+			actions        string
+			inheritedRoles string
+		)
 
 		for _, a := range customRole.Actions {
 			var resources string

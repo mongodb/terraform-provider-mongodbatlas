@@ -15,12 +15,13 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
-	var project matlas.Project
-
-	resourceName := "mongodbatlas_project.test"
-	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	clusterCount := "0"
+	var (
+		project      matlas.Project
+		resourceName = "mongodbatlas_project.test"
+		projectName  = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		clusterCount = "0"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -111,13 +112,15 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
-	resourceName := "mongodbatlas_project.test"
-	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	teamID := "5e0fa8c99ccf641c722fe683"
-	roleName := "GROUP_DATA_ACCESS_ADMIN"
-	roleNameUpdated := "GROUP_READ_ONLY"
-	clusterCount := "0"
+	var (
+		resourceName    = "mongodbatlas_project.test"
+		projectName     = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		teamID          = "5e0fa8c99ccf641c722fe683"
+		roleName        = "GROUP_DATA_ACCESS_ADMIN"
+		roleNameUpdated = "GROUP_READ_ONLY"
+		clusterCount    = "0"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -145,11 +148,11 @@ func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
-
-	projectName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-
-	resourceName := "mongodbatlas_project.test"
+	var (
+		projectName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		resourceName = "mongodbatlas_project.test"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -179,6 +182,7 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -189,6 +193,7 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 			*project = *projectResp
 			return nil
 		}
+
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
 	}
 }
@@ -198,6 +203,7 @@ func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectN
 		if project.Name != projectName {
 			return fmt.Errorf("bad project name: %s", project.Name)
 		}
+
 		return nil
 	}
 }
@@ -215,6 +221,7 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}
 	}
+
 	return nil
 }
 
@@ -222,8 +229,9 @@ func testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName string) resou
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
+
 		return rs.Primary.ID, nil
 	}
 }

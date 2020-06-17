@@ -52,7 +52,7 @@ func dataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -60,9 +60,9 @@ func dataSourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interf
 	globalCluster, resp, err := conn.GlobalClusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-
 			return nil
 		}
+
 		return fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
 

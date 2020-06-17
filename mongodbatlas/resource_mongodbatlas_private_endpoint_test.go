@@ -12,10 +12,12 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	region := os.Getenv("AWS_REGION")
-	providerName := "AWS"
+	var (
+		resourceName = "mongodbatlas_private_endpoint.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		region       = os.Getenv("AWS_REGION")
+		providerName = "AWS"
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
@@ -40,10 +42,12 @@ func TestAccResourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpoint_import(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	region := os.Getenv("AWS_REGION")
-	providerName := "AWS"
+	var (
+		resourceName = "mongodbatlas_private_endpoint.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		region       = os.Getenv("AWS_REGION")
+		providerName = "AWS"
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
@@ -78,8 +82,9 @@ func testAccCheckMongoDBAtlasPrivateEndpointImportStateIDFunc(resourceName strin
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
+
 		ids := decodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["private_link_id"]), nil
@@ -98,13 +103,14 @@ func testAccCheckMongoDBAtlasPrivateEndpointExists(resourceName string) resource
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
+
 		ids := decodeStateID(rs.Primary.ID)
 
 		if _, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["private_link_id"]); err == nil {
 			return nil
 		}
 
-		return fmt.Errorf("MongoDB Private Endpoint(%s) for the project(%s) does not exist", rs.Primary.Attributes["private_link_id"], rs.Primary.Attributes["project_id"])
+		return fmt.Errorf("the MongoDB Private Endpoint(%s) for the project(%s) does not exist", rs.Primary.Attributes["private_link_id"], rs.Primary.Attributes["project_id"])
 	}
 }
 
@@ -119,9 +125,10 @@ func testAccCheckMongoDBAtlasPrivateEndpointDestroy(s *terraform.State) error {
 		ids := decodeStateID(rs.Primary.ID)
 		_, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["private_link_id"])
 		if err == nil {
-			return fmt.Errorf("MongoDB Private Endpoint(%s) still exists", ids["private_link_id"])
+			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["private_link_id"])
 		}
 	}
+
 	return nil
 }
 

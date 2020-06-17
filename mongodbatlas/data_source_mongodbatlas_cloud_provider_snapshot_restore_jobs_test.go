@@ -11,12 +11,13 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *testing.T) {
-	var cloudProviderSnapshot matlas.CloudProviderSnapshot
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		cloudProviderSnapshot matlas.CloudProviderSnapshot
+		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description           = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays       = "1"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -37,12 +38,13 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *test
 }
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_withPagination(t *testing.T) {
-	var cloudProviderSnapshot matlas.CloudProviderSnapshot
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		cloudProviderSnapshot matlas.CloudProviderSnapshot
+		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description           = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays       = "1"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -68,8 +70,8 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, cluste
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
@@ -77,7 +79,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, cluste
 			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
 			project_id        = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name      = mongodbatlas_cluster.my_cluster.name
@@ -93,7 +95,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, cluste
 				download = true
 			}
 		}
-	
+
 		data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
@@ -107,8 +109,8 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithPagination(pro
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
@@ -116,7 +118,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithPagination(pro
 			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
 			project_id        = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name      = mongodbatlas_cluster.my_cluster.name
@@ -132,7 +134,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithPagination(pro
 				download = true
 			}
 		}
-	
+
 		data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name

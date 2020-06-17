@@ -95,6 +95,7 @@ func dataSourceMongoDBAtlasCustomDBRolesRead(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(resource.UniqueId())
+
 	return nil
 }
 

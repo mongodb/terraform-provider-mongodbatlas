@@ -23,12 +23,14 @@ func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
 	warns, errs := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+
 	if len(warns) > 0 || len(errs) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
+
 		return
 	}
 
-	//test migrate function
+	// test migrate function
 	v1State := migrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
@@ -36,6 +38,7 @@ func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	if len(warns) > 0 || len(errs) > 0 {
 		fmt.Println(warns, errs)
 		t.Error("migrated cluster advanced config is invalid")
+
 		return
 	}
 }
@@ -66,10 +69,11 @@ func TestAccMongoDBAtlasClusterMigrateState_with_advancedConfig(t *testing.T) {
 	warns, errs := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
 	if len(warns) > 0 || len(errs) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
+
 		return
 	}
 
-	//test migrate function
+	// test migrate function
 	v1State := migrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
@@ -77,6 +81,7 @@ func TestAccMongoDBAtlasClusterMigrateState_with_advancedConfig(t *testing.T) {
 	if len(warns) > 0 || len(errs) > 0 {
 		fmt.Println(warns, errs)
 		t.Error("migrated cluster advanced config is invalid")
+
 		return
 	}
 }
@@ -107,10 +112,11 @@ func TestAccMongoDBAtlasClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t 
 	warns, errs := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
 	if len(warns) > 0 || len(errs) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
+
 		return
 	}
 
-	//test migrate function
+	// test migrate function
 	v1State := migrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
@@ -118,6 +124,7 @@ func TestAccMongoDBAtlasClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t 
 	if len(warns) > 0 || len(errs) > 0 {
 		fmt.Println(warns, errs)
 		t.Error("migrated cluster advanced config is invalid")
+
 		return
 	}
 }

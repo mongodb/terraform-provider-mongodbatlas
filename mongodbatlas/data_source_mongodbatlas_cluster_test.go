@@ -11,12 +11,13 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
-	var cluster matlas.Cluster
-
-	resourceName := "mongodbatlas_cluster.test"
-	dataSourceName := "data.mongodbatlas_cluster.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	var (
+		cluster        matlas.Cluster
+		resourceName   = "mongodbatlas_cluster.basic_ds"
+		dataSourceName = "data.mongodbatlas_cluster.basic_ds"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,17 +51,17 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 
 func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test" {
+		resource "mongodbatlas_cluster" "basic_ds" {
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 100
 			num_shards   = 1
-			
+
 			replication_factor           = 3
 			provider_backup_enabled      = %s
 			auto_scaling_disk_gb_enabled = true
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_disk_iops          = 300
 			provider_encrypt_ebs_volume = false
@@ -77,10 +78,9 @@ func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled s
 			}
 		}
 
-
-		data "mongodbatlas_cluster" "test" {
-			project_id = mongodbatlas_cluster.test.project_id
-			name 	   = mongodbatlas_cluster.test.name
+		data "mongodbatlas_cluster" "basic_ds" {
+			project_id = mongodbatlas_cluster.basic_ds.project_id
+			name 	     = mongodbatlas_cluster.basic_ds.name
 		}
 	`, projectID, name, backupEnabled)
 }

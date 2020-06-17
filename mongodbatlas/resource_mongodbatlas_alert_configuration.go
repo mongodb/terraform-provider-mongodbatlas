@@ -66,14 +66,19 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"field_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"TYPE_NAME", "HOSTNAME", "PORT", "HOSTNAME_AND_PORT", "REPLICA_SET_NAME", "REPLICA_SET_NAME", "SHARD_NAME", "CLUSTER_NAME", "CLUSTER_NAME", "SHARD_NAME"}, false),
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"TYPE_NAME", "HOSTNAME", "PORT", "HOSTNAME_AND_PORT",
+								"REPLICA_SET_NAME", "REPLICA_SET_NAME", "SHARD_NAME",
+								"CLUSTER_NAME", "CLUSTER_NAME", "SHARD_NAME"}, false),
 						},
 						"operator": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS", "STARTS_WITH", "ENDS_WITH", "REGEX"}, false),
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS",
+								"STARTS_WITH", "ENDS_WITH", "REGEX"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -296,22 +301,28 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 	if err := d.Set("alert_configuration_id", alert.ID); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err)
 	}
+
 	if err := d.Set("created", alert.Created); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err)
 	}
+
 	if err := d.Set("updated", alert.Updated); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err)
 	}
+
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err)
 	}
+
 	return nil
 }
 
 func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
-	ids := decodeStateID(d.Id())
-	var err error
+	var (
+		conn = meta.(*matlas.Client)
+		ids  = decodeStateID(d.Id())
+		err  error
+	)
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
@@ -333,12 +344,15 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 	if d.HasChange("enabled") {
 		req.Enabled = pointy.Bool(d.Get("enabled").(bool))
 	}
+
 	if d.HasChange("event_type_name") {
 		req.EventTypeName = d.Get("event_type_name").(string)
 	}
+
 	if d.HasChange("metric_threshold") {
 		req.MetricThreshold = expandAlertConfigurationMetricThreshold(d)
 	}
+
 	if d.HasChange("notification") {
 		req.Notifications = expandAlertConfigurationNotification(d)
 	}
@@ -350,6 +364,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 	} else {
 		_, _, err = conn.AlertConfigurations.Update(context.Background(), ids["project_id"], ids["id"], req)
 	}
+
 	if err != nil {
 		return fmt.Errorf(errorReadAlertConf, err)
 	}
@@ -365,12 +380,14 @@ func resourceMongoDBAtlasAlertConfigurationDelete(d *schema.ResourceData, meta i
 	if err != nil {
 		return fmt.Errorf(errorDeleteAlertConf, err)
 	}
+
 	return nil
 }
 
 func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 	parts := strings.SplitN(d.Id(), "-", 2)
+
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a cluster, use the format {project_id}-{id}")
 	}
@@ -386,18 +403,23 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	if err := d.Set("project_id", alert.GroupID); err != nil {
 		log.Printf(errorAlertConfSetting, "project_id", id, err)
 	}
+
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
 		log.Printf(errorAlertConfSetting, "event_type", id, err)
 	}
+
 	if err := d.Set("enabled", alert.Enabled); err != nil {
 		log.Printf(errorAlertConfSetting, "enabled", id, err)
 	}
+
 	if err := d.Set("matcher", flattenAlertConfigurationMatchers(alert.Matchers)); err != nil {
 		log.Printf(errorAlertConfSetting, "matcher", id, err)
 	}
+
 	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
 		log.Printf(errorAlertConfSetting, "metric_threshold", id, err)
 	}
+
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
 		log.Printf(errorAlertConfSetting, "notification", id, err)
 	}
@@ -416,6 +438,7 @@ func expandAlertConfigurationMatchers(d *schema.ResourceData) []matlas.Matcher {
 	if m, ok := d.GetOk("matcher"); ok {
 		for _, value := range m.([]interface{}) {
 			v := value.(map[string]interface{})
+
 			matchers = append(matchers, matlas.Matcher{
 				FieldName: v["field_name"].(string),
 				Operator:  v["operator"].(string),
@@ -423,6 +446,7 @@ func expandAlertConfigurationMatchers(d *schema.ResourceData) []matlas.Matcher {
 			})
 		}
 	}
+
 	return matchers
 }
 
@@ -436,12 +460,14 @@ func flattenAlertConfigurationMatchers(matchers []matlas.Matcher) []map[string]i
 			"value":      m.Value,
 		}
 	}
+
 	return mts
 }
 
 func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.MetricThreshold {
 	if value, ok := d.GetOk("metric_threshold"); ok {
 		v := value.(map[string]interface{})
+
 		return &matlas.MetricThreshold{
 			MetricName: cast.ToString(v["metric_name"]),
 			Operator:   cast.ToString(v["operator"]),
@@ -450,6 +476,7 @@ func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.Met
 			Mode:       cast.ToString(v["mode"]),
 		}
 	}
+
 	return nil
 }
 
@@ -463,11 +490,13 @@ func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[str
 			"mode":        m.Mode,
 		}
 	}
+
 	return map[string]interface{}{}
 }
 
 func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notification {
 	notifications := make([]matlas.Notification, len(d.Get("notification").([]interface{})))
+
 	for i, value := range d.Get("notification").([]interface{}) {
 		v := value.(map[string]interface{})
 		notifications[i] = matlas.Notification{
@@ -495,37 +524,43 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notif
 			Roles:               cast.ToStringSlice(v["roles"]),
 		}
 	}
+
 	return notifications
 }
 
 func flattenAlertConfigurationNotifications(notifications []matlas.Notification) []map[string]interface{} {
 	nts := make([]map[string]interface{}, len(notifications))
 
-	for i, n := range notifications {
+	for i := range notifications {
 		nts[i] = map[string]interface{}{
-			"api_token":              n.APIToken,
-			"channel_name":           n.ChannelName,
-			"datadog_api_key":        n.DatadogRegion,
-			"datadog_region":         n.DatadogRegion,
-			"delay_min":              n.DelayMin,
-			"email_address":          n.EmailAddress,
-			"email_enabled":          n.EmailEnabled,
-			"flowdock_api_token":     n.FlowdockAPIToken,
-			"flow_name":              n.FlowName,
-			"interval_min":           n.IntervalMin,
-			"mobile_number":          n.MobileNumber,
-			"ops_genie_api_key":      n.OpsGenieAPIKey,
-			"ops_genie_region":       n.OpsGenieRegion,
-			"org_name":               n.OrgName,
-			"service_key":            n.ServiceKey,
-			"sms_enabled":            n.SMSEnabled,
-			"team_id":                n.TeamID,
-			"type_name":              n.TypeName,
-			"username":               n.Username,
-			"victor_ops_api_key":     n.VictorOpsAPIKey,
-			"victor_ops_routing_key": n.VictorOpsRoutingKey,
-			"roles":                  n.Roles,
+			"api_token":              notifications[i].APIToken,
+			"channel_name":           notifications[i].ChannelName,
+			"datadog_api_key":        notifications[i].DatadogRegion,
+			"datadog_region":         notifications[i].DatadogRegion,
+			"delay_min":              notifications[i].DelayMin,
+			"email_address":          notifications[i].EmailAddress,
+			"email_enabled":          notifications[i].EmailEnabled,
+			"flowdock_api_token":     notifications[i].FlowdockAPIToken,
+			"flow_name":              notifications[i].FlowName,
+			"interval_min":           notifications[i].IntervalMin,
+			"mobile_number":          notifications[i].MobileNumber,
+			"ops_genie_api_key":      notifications[i].OpsGenieAPIKey,
+			"ops_genie_region":       notifications[i].OpsGenieRegion,
+			"org_name":               notifications[i].OrgName,
+			"service_key":            notifications[i].ServiceKey,
+			"sms_enabled":            notifications[i].SMSEnabled,
+			"team_id":                notifications[i].TeamID,
+			"type_name":              notifications[i].TypeName,
+			"username":               notifications[i].Username,
+			"victor_ops_api_key":     notifications[i].VictorOpsAPIKey,
+			"victor_ops_routing_key": notifications[i].VictorOpsRoutingKey,
+		}
+
+		// We need to validate it due to the datasource haven't the roles attribute
+		if len(notifications[i].Roles) > 0 {
+			nts[i]["roles"] = notifications[i].Roles
 		}
 	}
+
 	return nts
 }

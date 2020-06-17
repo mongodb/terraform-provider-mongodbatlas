@@ -11,7 +11,6 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
-
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
@@ -42,7 +41,6 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 }
 
 func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
-
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 

@@ -87,7 +87,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -103,14 +103,17 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(d *schema.ResourceData, me
 	if err != nil {
 		return fmt.Errorf("error getting cloudProviderSnapshots information: %s", err)
 	}
+
 	if err := d.Set("results", flattenCloudProviderSnapshots(cloudProviderSnapshots.Results)); err != nil {
 		return fmt.Errorf("error setting `results`: %s", err)
 	}
+
 	if err := d.Set("total_count", cloudProviderSnapshots.TotalCount); err != nil {
 		return fmt.Errorf("error setting `total_count`: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())
+
 	return nil
 }
 
@@ -135,5 +138,6 @@ func flattenCloudProviderSnapshots(cloudProviderSnapshots []*matlas.CloudProvide
 			}
 		}
 	}
+
 	return results
 }

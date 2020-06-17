@@ -6,13 +6,13 @@ import (
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 )
 
-//Config ...
+// Config struct ...
 type Config struct {
 	PublicKey  string
 	PrivateKey string
 }
 
-//NewClient ...
+// NewClient func...
 func (c *Config) NewClient() interface{} {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(c.PublicKey, c.PrivateKey)
@@ -25,6 +25,6 @@ func (c *Config) NewClient() interface{} {
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	//Initialize the MongoDB Atlas API Client.
+	// Initialize the MongoDB Atlas API Client.
 	return matlasClient.NewClient(client)
 }

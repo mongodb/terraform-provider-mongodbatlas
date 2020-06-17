@@ -147,7 +147,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyCreate(d *schema.Resou
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
@@ -162,21 +162,27 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d *schema.Resourc
 	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "cluster_id", clusterName, err)
 	}
+
 	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "reference_hour_of_day", clusterName, err)
 	}
+
 	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "reference_minute_of_hour", clusterName, err)
 	}
+
 	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "restore_window_days", clusterName, err)
 	}
+
 	if err := d.Set("update_snapshots", backupPolicy.UpdateSnapshots); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "update_snapshots", clusterName, err)
 	}
+
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "next_snapshot", clusterName, err)
 	}
+
 	if err := d.Set("policies", flattenPolicies(backupPolicy.Policies)); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "policies", clusterName, err)
 	}
@@ -222,6 +228,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.
 	if err := d.Set("project_id", projectID); err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupPolicySetting, "project_id", clusterName, err)
 	}
+
 	if err := d.Set("cluster_name", clusterName); err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupPolicySetting, "cluster_name", clusterName, err)
 	}
@@ -235,7 +242,6 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.
 }
 
 func snapshotScheduleUpdate(d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) error {
-
 	if restoreWindowDays, ok := d.GetOk("restore_window_days"); ok {
 		if cast.ToInt64(restoreWindowDays) <= 0 {
 			return fmt.Errorf("`restore_window_days` cannot be <= 0")
@@ -268,6 +274,7 @@ func expandPolicies(d *schema.ResourceData) []matlas.Policy {
 			PolicyItems: expandPolicyItems(policy["policy_item"].([]interface{})),
 		}
 	}
+
 	return policies
 }
 
@@ -279,6 +286,7 @@ func flattenPolicies(policies []matlas.Policy) []map[string]interface{} {
 			"policy_item": flattenPolicyItems(v.PolicyItems),
 		})
 	}
+
 	return actionList
 }
 
@@ -295,6 +303,7 @@ func expandPolicyItems(p []interface{}) []matlas.PolicyItem {
 			RetentionValue:    item["retention_value"].(int),
 		}
 	}
+
 	return policyItems
 }
 
@@ -309,6 +318,7 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]interface{} {
 			"retention_value":    v.RetentionValue,
 		})
 	}
+
 	return policyItems
 }
 
@@ -321,6 +331,7 @@ func flattenCloudProviderSnapshotBackupPolicy(d *schema.ResourceData, conn *matl
 			strings.Contains(fmt.Sprint(err), "404") {
 			return []map[string]interface{}{}, nil
 		}
+
 		return []map[string]interface{}{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
 	}
 

@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/spf13/cast"
 	"log"
-	"strings"
+	"regexp"
+
+	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
@@ -84,7 +85,9 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 					_, download := v["download"]
 					_, pointInTime := v["point_in_time"]
 
-					if (v["automated"] == "true" && v["download"] == "true" && v["point_in_time"] == "true") || (v["automated"] == "false" && v["download"] == "false" && v["point_in_time"] == "false") || (!automated && !download && !pointInTime) {
+					if (v["automated"] == "true" && v["download"] == "true" && v["point_in_time"] == "true") ||
+						(v["automated"] == "false" && v["download"] == "false" && v["point_in_time"] == "false") ||
+						(!automated && !download && !pointInTime) {
 						errs = append(errs, fmt.Errorf("%q you can only submit one type of restore job: automated, download or point_in_time", key))
 					}
 					if v["automated"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) {
@@ -95,7 +98,8 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 							errs = append(errs, fmt.Errorf("%q target_project_id must be set", key))
 						}
 					}
-					if v["download"] == "true" && (v["automated"] == "false" || v["automated"] == "" || !automated) && (v["point_in_time"] == "false" || v["point_in_time"] == "" || !pointInTime) {
+					if v["download"] == "true" && (v["automated"] == "false" || v["automated"] == "" || !automated) &&
+						(v["point_in_time"] == "false" || v["point_in_time"] == "" || !pointInTime) {
 						if targetClusterName, ok := v["target_cluster_name"]; ok || targetClusterName == "" {
 							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key))
 						}
@@ -103,8 +107,9 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key))
 						}
 					}
-					if v["point_in_time"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) && (v["automated"] == "false" || v["automated"] == "" || !automated) {
-						_, oplogTs := v["oplog_ts"]
+					if v["point_in_time"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) &&
+						(v["automated"] == "false" || v["automated"] == "" || !automated) {
+						_, oplogTS := v["oplog_ts"]
 						_, pointTimeUTC := v["point_in_time_utc_seconds"]
 						_, oplogInc := v["oplog_inc"]
 						if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
@@ -113,14 +118,13 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 						if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
 							errs = append(errs, fmt.Errorf("%q target_project_id must be set", key))
 						}
-						if !pointTimeUTC && !oplogTs && !oplogInc {
+						if !pointTimeUTC && !oplogTS && !oplogInc {
 							errs = append(errs, fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key))
 						}
-						if (oplogTs && !oplogInc) || (!oplogTs && oplogInc) {
+						if (oplogTS && !oplogInc) || (!oplogTS && oplogInc) {
 							errs = append(errs, fmt.Errorf("%q if oplog_ts or oplog_inc is provided, oplog_inc and oplog_ts must be set", key))
-
 						}
-						if pointTimeUTC && (oplogTs || oplogInc) {
+						if pointTimeUTC && (oplogTS || oplogInc) {
 							errs = append(errs, fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key))
 						}
 					}
@@ -167,7 +171,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -179,9 +183,11 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 	if aut, _ := d.Get("delivery_type.automated").(string); aut != "true" {
 		deliveryType = "download"
 	}
+
 	if aut, _ := d.Get("delivery_type.point_in_time").(string); aut == "true" {
 		deliveryType = "pointInTime"
 	}
+
 	snapshotReq := &matlas.CloudProviderSnapshotRestoreJob{
 		SnapshotID:            d.Get("snapshot_id").(string),
 		DeliveryType:          deliveryType,
@@ -191,22 +197,23 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 		OplogInc:              cast.ToInt64(d.Get("delivery_type.oplog_inc")),
 		PointInTimeUTCSeconds: cast.ToInt64(d.Get("delivery_type.point_in_time_utc_seconds")),
 	}
+
 	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(context.Background(), requestParameters, snapshotReq)
 	if err != nil {
 		return fmt.Errorf("error restore a snapshot: %s", err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
 		"project_id":              d.Get("project_id").(string),
 		"cluster_name":            d.Get("cluster_name").(string),
+		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
 	}))
 
 	return resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d, meta)
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 
@@ -224,27 +231,35 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceD
 	if err = d.Set("delivery_url", snapshotReq.DeliveryURL); err != nil {
 		return fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("cancelled", snapshotReq.Cancelled); err != nil {
 		return fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("created_at", snapshotReq.CreatedAt); err != nil {
 		return fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("expired", snapshotReq.Expired); err != nil {
 		return fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("expires_at", snapshotReq.ExpiresAt); err != nil {
 		return fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("finished_at", snapshotReq.FinishedAt); err != nil {
 		return fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("timestamp", snapshotReq.Timestamp); err != nil {
 		return fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	if err = d.Set("snapshot_restore_job_id", snapshotReq.ID); err != nil {
 		return fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 	}
+
 	return nil
 }
 
@@ -267,21 +282,22 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(d *schema.Resourc
 			return fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
 		}
 	}
+
 	return nil
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}-{cluster_name}-{job_id}")
+	projectID, clusterName, snapshotJobID, err := splitSnapshotRestoreJobImportID(d.Id())
+	if err != nil {
+		return nil, err
 	}
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		GroupID:     parts[0],
-		ClusterName: parts[1],
-		JobID:       parts[2],
+		GroupID:     *projectID,
+		ClusterName: *clusterName,
+		JobID:       *snapshotJobID,
 	}
 
 	u, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
@@ -292,6 +308,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 	if err := d.Set("project_id", requestParameters.GroupID); err != nil {
 		log.Printf("[WARN] Error setting project_id for (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("cluster_name", requestParameters.ClusterName); err != nil {
 		log.Printf("[WARN] Error setting cluster_name for (%s): %s", d.Id(), err)
 	}
@@ -313,10 +330,26 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"snapshot_restore_job_id": u.ID,
-		"project_id":              requestParameters.GroupID,
-		"cluster_name":            requestParameters.ClusterName,
+		"project_id":              *projectID,
+		"cluster_name":            *clusterName,
+		"snapshot_restore_job_id": *snapshotJobID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapshotJobID *string, err error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
+	parts := re.FindStringSubmatch(id)
+
+	if len(parts) != 4 {
+		err = errors.New("import format error: to import a cloudProviderSnapshotRestoreJob, use the format {project_id}-{cluster_name}-{snapshot_restore_job_id}")
+		return
+	}
+
+	projectID = &parts[1]
+	clusterName = &parts[2]
+	snapshotJobID = &parts[3]
+
+	return
 }

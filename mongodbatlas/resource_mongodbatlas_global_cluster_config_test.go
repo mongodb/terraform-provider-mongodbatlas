@@ -14,12 +14,12 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
-	var globalConfig matlas.GlobalCluster
-
-	resourceName := "mongodbatlas_global_cluster_config.config"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	name := fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	var (
+		globalConfig matlas.GlobalCluster
+		resourceName = "mongodbatlas_global_cluster_config.config"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -44,12 +44,12 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
-	var globalConfig matlas.GlobalCluster
-
-	resourceName := "mongodbatlas_global_cluster_config.config"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	name := fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	var (
+		globalConfig matlas.GlobalCluster
+		resourceName = "mongodbatlas_global_cluster_config.config"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -74,10 +74,11 @@ func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
-	resourceName := "mongodbatlas_global_cluster_config.config"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	name := fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	var (
+		resourceName = "mongodbatlas_global_cluster_config.config"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -106,6 +107,7 @@ func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConf
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -129,7 +131,7 @@ func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string)
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
@@ -143,6 +145,7 @@ func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.Globa
 		if len(globalCluster.ManagedNamespaces) != managedNamespacesCount {
 			return fmt.Errorf("bad managed namespaces: %s", globalCluster.ManagedNamespaces)
 		}
+
 		return nil
 	}
 }
@@ -163,6 +166,7 @@ func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
 			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
 				return nil
 			}
+
 			return err
 		}
 
@@ -183,12 +187,12 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 			backup_enabled          = "%s"
 			provider_backup_enabled = true
 			cluster_type            = "GEOSHARDED"
-		
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_disk_iops          = 240
 			provider_instance_size_name = "M30"
-		
+
 			replication_specs {
 				zone_name  = "Zone 1"
 				num_shards = 1
@@ -199,7 +203,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 					read_only_nodes = 0
 				}
 			}
-		
+
 			replication_specs {
 				zone_name  = "Zone 2"
 				num_shards = 1
@@ -211,17 +215,17 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 				}
 			}
 		}
-		
+
 		resource "mongodbatlas_global_cluster_config" "config" {
 			project_id   = mongodbatlas_cluster.test.project_id
 			cluster_name = mongodbatlas_cluster.test.name
-		
+
 			managed_namespaces {
 				db               = "mydata"
 				collection       = "publishers"
 				custom_shard_key = "city"
 			}
-		
+
 			custom_zone_mappings {
 				location = "CA"
 				zone     = "Zone 1"
@@ -239,28 +243,28 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 			num_shards   = 1
 
 			replication_factor           = 3
-			backup_enabled               = %s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
-		
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_disk_iops 			    = 300
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M30"
 			provider_region_name        = "EU_CENTRAL_1"
+			provider_backup_enabled     = %s
 		}
 
 		resource "mongodbatlas_global_cluster_config" "config" {
 			project_id   = mongodbatlas_cluster.test.project_id
 			cluster_name = mongodbatlas_cluster.test.name
-		
+
 			managed_namespaces {
 				db               = "mydata"
 				collection       = "publishers"
 				custom_shard_key = "city"
 			}
-		
+
 			custom_zone_mappings {
 				location = "CA"
 				zone     = "Zone 1"

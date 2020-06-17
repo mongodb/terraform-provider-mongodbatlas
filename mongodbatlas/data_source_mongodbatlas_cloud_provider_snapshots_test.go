@@ -10,10 +10,12 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_basic(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description     = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays = "1"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -33,10 +35,12 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_basic(t *testing.T) {
 }
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_withPagination(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description     = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays = "1"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -61,8 +65,8 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, cluste
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
@@ -70,14 +74,14 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, cluste
 			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
 			project_id        = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name      = mongodbatlas_cluster.my_cluster.name
 			description       = "%s"
 			retention_in_days = %s
 		}
-		
+
 		data "mongodbatlas_cloud_provider_snapshots" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
@@ -91,8 +95,8 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfigWithPagination(pro
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
@@ -100,14 +104,14 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfigWithPagination(pro
 			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot" "test" {
 			project_id        = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name      = mongodbatlas_cluster.my_cluster.name
 			description       = "%s"
 			retention_in_days = %s
 		}
-		
+
 		data "mongodbatlas_cloud_provider_snapshots" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name

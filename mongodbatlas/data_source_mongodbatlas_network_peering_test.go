@@ -10,10 +10,9 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
-
 	var peer matlas.Peer
 
-	resourceName := "mongodbatlas_network_peering.test"
+	resourceName := "mongodbatlas_network_peering.basic"
 	dataSourceName := "data.mongodbatlas_network_peering.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	vpcID := os.Getenv("AWS_VPC_ID")
@@ -44,31 +43,30 @@ func TestAccDataSourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDSMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {
 	return fmt.Sprintf(`
-resource "mongodbatlas_network_container" "test" {
-	project_id   		= "%[1]s"
-	atlas_cidr_block    = "192.168.208.0/21"
-	provider_name		= "AWS"
-	region_name			= "%[5]s"
-}
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		= "%[1]s"
+			atlas_cidr_block    = "192.168.208.0/21"
+			provider_name		= "AWS"
+			region_name			= "%[5]s"
+		}
 
-resource "mongodbatlas_network_peering" "test" {
-	accepter_region_name	= "us-east-1"
-	project_id    			= "%[1]s"
-	container_id            = mongodbatlas_network_container.test.id
-	provider_name           = "AWS"
-	route_table_cidr_block  = "%[4]s"
-	vpc_id					= "%[2]s"
-	aws_account_id			= "%[3]s"
-}
+		resource "mongodbatlas_network_peering" "basic" {
+			accepter_region_name	= "us-east-1"
+			project_id    			= "%[1]s"
+			container_id            = mongodbatlas_network_container.test.id
+			provider_name           = "AWS"
+			route_table_cidr_block  = "%[4]s"
+			vpc_id					= "%[2]s"
+			aws_account_id			= "%[3]s"
+		}
 
-data "mongodbatlas_network_peering" "test" {
-	project_id = "%[1]s"
-	peering_id = mongodbatlas_network_peering.test.id
-}
-`, projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
+		data "mongodbatlas_network_peering" "test" {
+			project_id = "%[1]s"
+			peering_id = mongodbatlas_network_peering.basic.id
+		}
+	`, projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }

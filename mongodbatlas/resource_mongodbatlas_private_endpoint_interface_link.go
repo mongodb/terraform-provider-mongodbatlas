@@ -111,9 +111,11 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData
 	if err := d.Set("delete_requested", cast.ToBool(interfaceEndpoint.DeleteRequested)); err != nil {
 		return fmt.Errorf(errorInterfaceEndpointSetting, "delete_requested", interfaceEndpointID, err)
 	}
+
 	if err := d.Set("error_message", interfaceEndpoint.ErrorMessage); err != nil {
 		return fmt.Errorf(errorInterfaceEndpointSetting, "error_message", interfaceEndpointID, err)
 	}
+
 	if err := d.Set("connection_status", interfaceEndpoint.ConnectionStatus); err != nil {
 		return fmt.Errorf(errorInterfaceEndpointSetting, "connection_status", interfaceEndpointID, err)
 	}
@@ -174,9 +176,11 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.Resou
 	if err := d.Set("project_id", projectID); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "project_id", privateLinkID, err)
 	}
+
 	if err := d.Set("private_link_id", privateLinkID); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
 	}
+
 	if err := d.Set("interface_endpoint_id", interfaceEndpointID); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoint_id", privateLinkID, err)
 	}
@@ -197,6 +201,7 @@ func resourceInterfaceEndpointRefreshFunc(client *matlas.Client, projectID, priv
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
+
 			return nil, "FAILED", err
 		}
 

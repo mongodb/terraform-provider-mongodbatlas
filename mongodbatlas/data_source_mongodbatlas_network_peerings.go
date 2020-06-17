@@ -113,7 +113,7 @@ func dataSourceMongoDBAtlasNetworkPeerings() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasNetworkPeeringsRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
@@ -136,41 +136,42 @@ func flattenNetworkPeerings(peers []matlas.Peer) []map[string]interface{} {
 
 	if len(peers) > 0 {
 		peersMap = make([]map[string]interface{}, len(peers))
-
-		for k, peer := range peers {
-			peersMap[k] = map[string]interface{}{
-				"peering_id":             peer.ID,
-				"container_id":           peer.ContainerID,
-				"accepter_region_name":   peer.AccepterRegionName,
-				"aws_account_id":         peer.AWSAccountID,
-				"provider_name":          getProviderNameByPeer(peer),
-				"route_table_cidr_block": peer.RouteTableCIDRBlock,
-				"vpc_id":                 peer.VpcID,
-				"connection_id":          peer.ConnectionID,
-				"error_state_name":       peer.ErrorStateName,
-				"status_name":            peer.StatusName,
-				"atlas_cidr_block":       peer.AtlasCIDRBlock,
-				"azure_directory_id":     peer.AzureDirectoryID,
-				"azure_subscription_id":  peer.AzureSubscriptionID,
-				"resource_group_name":    peer.ResourceGroupName,
-				"vnet_name":              peer.VNetName,
-				"error_state":            peer.ErrorState,
-				"status":                 peer.Status,
-				"gcp_project_id":         peer.GCPProjectID,
-				"network_name":           peer.NetworkName,
-				"error_message":          peer.ErrorMessage,
+		for i := range peers {
+			peersMap[i] = map[string]interface{}{
+				"peering_id":             peers[i].ID,
+				"container_id":           peers[i].ContainerID,
+				"accepter_region_name":   peers[i].AccepterRegionName,
+				"aws_account_id":         peers[i].AWSAccountID,
+				"provider_name":          getProviderNameByPeer(&peers[i]),
+				"route_table_cidr_block": peers[i].RouteTableCIDRBlock,
+				"vpc_id":                 peers[i].VpcID,
+				"connection_id":          peers[i].ConnectionID,
+				"error_state_name":       peers[i].ErrorStateName,
+				"status_name":            peers[i].StatusName,
+				"atlas_cidr_block":       peers[i].AtlasCIDRBlock,
+				"azure_directory_id":     peers[i].AzureDirectoryID,
+				"azure_subscription_id":  peers[i].AzureSubscriptionID,
+				"resource_group_name":    peers[i].ResourceGroupName,
+				"vnet_name":              peers[i].VNetName,
+				"error_state":            peers[i].ErrorState,
+				"status":                 peers[i].Status,
+				"gcp_project_id":         peers[i].GCPProjectID,
+				"network_name":           peers[i].NetworkName,
+				"error_message":          peers[i].ErrorMessage,
 			}
 		}
 	}
+
 	return peersMap
 }
 
-func getProviderNameByPeer(peer matlas.Peer) string {
+func getProviderNameByPeer(peer *matlas.Peer) string {
 	provider := "AWS"
 	if peer.VNetName != "" {
 		provider = "AZURE"
 	} else if peer.NetworkName != "" {
 		provider = "GCP"
 	}
+
 	return provider
 }

@@ -12,13 +12,14 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasAuditing_basic(t *testing.T) {
-	var auditing matlas.Auditing
-	resourceName := "mongodbatlas_auditing.test"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	auditAuth := true
-	auditFilter := "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-	enabled := true
+	var (
+		auditing     matlas.Auditing
+		resourceName = "mongodbatlas_auditing.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		auditAuth    = true
+		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		enabled      = true
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,13 +64,14 @@ func TestAccResourceMongoDBAtlasAuditing_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAuditing_importBasic(t *testing.T) {
-	auditing := &matlas.Auditing{}
-	resourceName := "mongodbatlas_auditing.test"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	auditAuth := true
-	auditFilter := "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-	enabled := true
+	var (
+		auditing     = &matlas.Auditing{}
+		resourceName = "mongodbatlas_auditing.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		auditAuth    = true
+		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		enabled      = true
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -111,15 +113,18 @@ func testAccCheckMongoDBAtlasAuditingExists(resourceName string, auditing *matla
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
 		auditingRes, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Auditing (%s) does not exist", rs.Primary.ID)
+			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
+
 		auditing = auditingRes
+
 		return nil
 	}
 }
@@ -134,9 +139,10 @@ func testAccCheckMongoDBAtlasAuditingDestroy(s *terraform.State) error {
 
 		_, _, err := conn.Auditing.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Auditing (%s) does not exist", rs.Primary.ID)
+			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
 	}
+
 	return nil
 }
 
@@ -144,8 +150,9 @@ func testAccCheckMongoDBAtlasAuditingImportStateIDFunc(resourceName string) reso
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
+
 		return rs.Primary.ID, nil
 	}
 }

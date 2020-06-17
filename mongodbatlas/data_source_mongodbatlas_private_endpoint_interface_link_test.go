@@ -39,7 +39,6 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {

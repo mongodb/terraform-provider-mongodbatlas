@@ -62,9 +62,11 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 	if auditAuth, ok := d.GetOk("audit_authorization_success"); ok {
 		auditingReq.AuditAuthorizationSuccess = pointy.Bool(auditAuth.(bool))
 	}
+
 	if auditFilter, ok := d.GetOk("audit_filter"); ok {
 		auditingReq.AuditFilter = auditFilter.(string)
 	}
+
 	if enabled, ok := d.GetOk("enabled"); ok {
 		auditingReq.Enabled = pointy.Bool(enabled.(bool))
 	}
@@ -75,6 +77,7 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(projectID)
+
 	return resourceMongoDBAtlasAuditingRead(d, meta)
 }
 
@@ -89,20 +92,24 @@ func resourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) 
 	if err := d.Set("audit_authorization_success", auditing.AuditAuthorizationSuccess); err != nil {
 		return fmt.Errorf(errorAuditingRead, d.Id(), err)
 	}
+
 	if err := d.Set("audit_filter", auditing.AuditFilter); err != nil {
 		return fmt.Errorf(errorAuditingRead, d.Id(), err)
 	}
+
 	if err := d.Set("enabled", auditing.Enabled); err != nil {
 		return fmt.Errorf(errorAuditingRead, d.Id(), err)
 	}
+
 	if err := d.Set("configuration_type", auditing.ConfigurationType); err != nil {
 		return fmt.Errorf(errorAuditingRead, d.Id(), err)
 	}
+
 	return nil
 }
 
 func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
+	// Get the client connection.
 	conn := meta.(*matlas.Client)
 
 	auditingReq := &matlas.Auditing{}
@@ -110,9 +117,11 @@ func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("audit_authorization_success") {
 		auditingReq.AuditAuthorizationSuccess = pointy.Bool((d.Get("audit_authorization_success").(bool)))
 	}
+
 	if d.HasChange("audit_filter") {
 		auditingReq.AuditFilter = d.Get("audit_filter").(string)
 	}
+
 	if d.HasChange("enabled") {
 		auditingReq.Enabled = pointy.Bool(d.Get("enabled").(bool))
 	}
@@ -127,5 +136,6 @@ func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceMongoDBAtlasAuditingDelete(d *schema.ResourceData, meta interface{}) error {
 	d.SetId("")
+
 	return nil
 }

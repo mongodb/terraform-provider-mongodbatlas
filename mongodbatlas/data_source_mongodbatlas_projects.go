@@ -78,24 +78,28 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
+
 	projects, _, err := conn.Projects.GetAllProjects(context.Background(), options)
 	if err != nil {
 		return fmt.Errorf("error getting projects information: %s", err)
 	}
+
 	if err := d.Set("results", flattenProjects(conn, projects.Results)); err != nil {
 		return fmt.Errorf("error setting `results`: %s", err)
 	}
+
 	if err := d.Set("total_count", projects.TotalCount); err != nil {
 		return fmt.Errorf("error setting `name`: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())
+
 	return nil
 }
 
@@ -106,7 +110,6 @@ func flattenProjects(conn *matlas.Client, projects []*matlas.Project) []map[stri
 		results = make([]map[string]interface{}, len(projects))
 
 		for k, project := range projects {
-
 			teams, _, err := conn.Projects.GetProjectTeamsAssigned(context.Background(), project.ID)
 			if err != nil {
 				fmt.Printf("[WARN] error getting project's teams assigned (%s): %s", project.ID, err)
@@ -122,5 +125,6 @@ func flattenProjects(conn *matlas.Client, projects []*matlas.Project) []map[stri
 			}
 		}
 	}
+
 	return results
 }

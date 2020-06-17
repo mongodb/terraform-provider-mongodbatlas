@@ -28,7 +28,6 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccMongoDBAtlasPrivateEndpointDataSourceConfig(projectID, providerName, region string) string {

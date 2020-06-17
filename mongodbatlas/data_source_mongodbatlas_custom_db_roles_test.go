@@ -10,7 +10,6 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCustomDBRoles_basic(t *testing.T) {
-
 	resourceName := "mongodbatlas_custom_db_role.test"
 	dataSourceName := "data.mongodbatlas_custom_db_roles.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -43,7 +42,6 @@ func TestAccDataSourceMongoDBAtlasCustomDBRoles_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDSMongoDBAtlasCustomDBRolesConfig(projectID, roleName, action, databaseName string) string {
@@ -51,7 +49,7 @@ func testAccDSMongoDBAtlasCustomDBRolesConfig(projectID, roleName, action, datab
 		resource "mongodbatlas_custom_db_role" "test" {
 			project_id = "%s"
 			role_name  = "%s"
-		
+
 			actions {
 				action = "%s"
 				resources {
@@ -60,7 +58,7 @@ func testAccDSMongoDBAtlasCustomDBRolesConfig(projectID, roleName, action, datab
 				}
 			}
 		}
-		
+
 		data "mongodbatlas_custom_db_roles" "test" {
 			project_id = "${mongodbatlas_custom_db_role.test.project_id}"
 		}

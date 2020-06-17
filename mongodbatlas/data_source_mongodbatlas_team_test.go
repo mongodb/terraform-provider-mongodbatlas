@@ -37,7 +37,6 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
@@ -67,7 +66,6 @@ func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username string) string {

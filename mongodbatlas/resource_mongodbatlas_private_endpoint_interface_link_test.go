@@ -12,11 +12,12 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint_interface_link.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-
-	privateLinkID := os.Getenv("MONGODB_PRIVATE_LINK_ID")
-	interfaceEndpointID := os.Getenv("AWS_INTERFACE_ENDPOINT_ID")
+	var (
+		resourceName        = "mongodbatlas_private_endpoint_interface_link.test"
+		projectID           = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		privateLinkID       = os.Getenv("MONGODB_PRIVATE_LINK_ID")
+		interfaceEndpointID = os.Getenv("AWS_INTERFACE_ENDPOINT_ID")
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -45,18 +46,19 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint_interface_link.test"
+	var (
+		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
 
-	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	region := os.Getenv("AWS_REGION")
-	providerName := "AWS"
-
-	vpcID := os.Getenv("AWS_VPC_ID")
-	subnetID := os.Getenv("AWS_SUBNET_ID")
-	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
+		providerName    = "AWS"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		region          = os.Getenv("AWS_REGION")
+		vpcID           = os.Getenv("AWS_VPC_ID")
+		subnetID        = os.Getenv("AWS_SUBNET_ID")
+		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
@@ -79,18 +81,19 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_import(t *testing.T) {
-	resourceName := "mongodbatlas_private_endpoint_interface_link.test"
+	var (
+		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
 
-	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	region := os.Getenv("AWS_REGION")
-	providerName := "AWS"
-
-	vpcID := os.Getenv("AWS_VPC_ID")
-	subnetID := os.Getenv("AWS_SUBNET_ID")
-	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
+		providerName    = "AWS"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		region          = os.Getenv("AWS_REGION")
+		vpcID           = os.Getenv("AWS_VPC_ID")
+		subnetID        = os.Getenv("AWS_SUBNET_ID")
+		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
@@ -122,8 +125,9 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkImportStateIDFunc(resourceName s
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
+
 		ids := decodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"]), nil
@@ -142,13 +146,15 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName string) reso
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
+
 		ids := decodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("MongoDB Interface Endpoint(%s) for the project(%s) does not exist", rs.Primary.Attributes["interface_endpoint_id"], rs.Primary.Attributes["project_id"])
+
+		return fmt.Errorf("the MongoDB Interface Endpoint(%s) for the project(%s) does not exist", rs.Primary.Attributes["interface_endpoint_id"], rs.Primary.Attributes["project_id"])
 	}
 }
 
@@ -163,9 +169,10 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy(s *terraform.State) erro
 		ids := decodeStateID(rs.Primary.ID)
 		_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
 		if err == nil {
-			return fmt.Errorf("MongoDB Private Endpoint(%s) still exists", ids["interface_endpoint_id"])
+			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["interface_endpoint_id"])
 		}
 	}
+
 	return nil
 }
 

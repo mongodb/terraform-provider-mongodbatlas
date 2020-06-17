@@ -13,7 +13,6 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
-
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -55,10 +54,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T
 			},
 		},
 	})
-
 }
-func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 
+func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
@@ -103,7 +101,6 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testing.T) {
-
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -154,7 +151,6 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *te
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T) {
-
 	resourceName := "mongodbatlas_project_ip_whitelist.test_%d"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
@@ -225,6 +221,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string) resou
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -235,6 +232,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string) resou
 		if err != nil {
 			return fmt.Errorf("project ip whitelist entry (%s) does not exist", ids["entry"])
 		}
+
 		return nil
 	}
 }
@@ -254,6 +252,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistDestroy(s *terraform.State) error
 			return fmt.Errorf("project ip whitelist entry (%s) still exists", ids["entry"])
 		}
 	}
+
 	return nil
 }
 
@@ -261,7 +260,7 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName st
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
@@ -300,7 +299,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectI
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			accepter_region_name	  = "us-east-1"	
+			accepter_region_name	  = "us-east-1"
 			project_id    			    = "%[1]s"
 			container_id            = mongodbatlas_network_container.test.container_id
 			provider_name           = "%[2]s"

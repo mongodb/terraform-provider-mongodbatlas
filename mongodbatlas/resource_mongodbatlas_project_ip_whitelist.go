@@ -149,6 +149,7 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 	}
 
 	var entry string
+
 	switch {
 	case cirdBlock != "":
 		entry = cirdBlock
@@ -171,7 +172,6 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 	ids := decodeStateID(d.Id())
 
 	return resource.Retry(2*time.Minute, func() *resource.RetryError {
-
 		whitelist, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"])
 		if err != nil {
 			switch {
@@ -189,22 +189,26 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 			if err := d.Set("aws_security_group", whitelist.AwsSecurityGroup); err != nil {
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "aws_security_group", ids["project_id"], err))
 			}
+
 			if err := d.Set("cidr_block", whitelist.CIDRBlock); err != nil {
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "cidr_block", ids["project_id"], err))
 			}
+
 			if err := d.Set("ip_address", whitelist.IPAddress); err != nil {
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "ip_address", ids["project_id"], err))
 			}
+
 			if err := d.Set("comment", whitelist.Comment); err != nil {
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistSetting, "comment", ids["project_id"], err))
 			}
 		}
+
 		return nil
 	})
 }
 
 func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
-	//Get the client connection.
+	// Get the client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 
@@ -216,6 +220,7 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 				strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") {
 				return resource.RetryableError(err)
 			}
+
 			return resource.NonRetryableError(fmt.Errorf(errorWhitelistDelete, err))
 		}
 
@@ -225,8 +230,10 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 				strings.Contains(fmt.Sprint(err), "ATLAS_WHITELIST_NOT_FOUND") {
 				return nil
 			}
+
 			return resource.RetryableError(err)
 		}
+
 		if entry != nil {
 			_, err := conn.ProjectIPWhitelist.Delete(context.Background(), ids["project_id"], ids["entry"])
 			if err != nil {
@@ -238,6 +245,7 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistDelete, err))
 			}
 		}
+
 		return nil
 	})
 }

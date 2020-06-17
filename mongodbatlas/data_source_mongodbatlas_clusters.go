@@ -51,7 +51,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
-										Type:     schema.TypeString, //Convert to Bool
+										Type:     schema.TypeString, // Convert to Bool
 										Computed: true,
 									},
 									"read_preference": {
@@ -272,7 +272,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	d.SetId(resource.UniqueId())
@@ -282,6 +282,7 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
+
 		return fmt.Errorf("error reading cluster list for project(%s): %s", projectID, err)
 	}
 
@@ -295,47 +296,46 @@ func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}
 func flattenClusters(d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
-	for _, cluster := range clusters {
-
-		// Get the snapshot policy and set the data
-		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(d, conn, cluster.GroupID, cluster.Name)
+	for i := range clusters {
+		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(d, conn, clusters[i].GroupID, clusters[i].Name)
 		if err != nil {
-			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", cluster.ID, err)
+			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", clusters[i].ID, err)
 		}
 
 		result := map[string]interface{}{
-			"auto_scaling_disk_gb_enabled": cluster.BackupEnabled,
-			"backup_enabled":               cluster.BackupEnabled,
-			"provider_backup_enabled":      cluster.ProviderBackupEnabled,
-			"cluster_type":                 cluster.ClusterType,
-			"connection_strings":           flattenConnectionStrings(cluster.ConnectionStrings),
-			"disk_size_gb":                 cluster.DiskSizeGB,
-			"encryption_at_rest_provider":  cluster.EncryptionAtRestProvider,
-			"mongo_db_major_version":       cluster.MongoDBMajorVersion,
-			"name":                         cluster.Name,
-			"num_shards":                   cluster.NumShards,
-			"mongo_db_version":             cluster.MongoDBVersion,
-			"mongo_uri":                    cluster.MongoURI,
-			"mongo_uri_updated":            cluster.MongoURIUpdated,
-			"mongo_uri_with_options":       cluster.MongoURIWithOptions,
-			"pit_enabled":                  cluster.PitEnabled,
-			"paused":                       cluster.Paused,
-			"srv_address":                  cluster.SrvAddress,
-			"state_name":                   cluster.StateName,
-			"replication_factor":           cluster.ReplicationFactor,
-			"backing_provider_name":        cluster.ProviderSettings.BackingProviderName,
-			"provider_disk_iops":           cluster.ProviderSettings.DiskIOPS,
-			"provider_disk_type_name":      cluster.ProviderSettings.DiskTypeName,
-			"provider_encrypt_ebs_volume":  cluster.ProviderSettings.EncryptEBSVolume,
-			"provider_instance_size_name":  cluster.ProviderSettings.InstanceSizeName,
-			"provider_name":                cluster.ProviderSettings.ProviderName,
-			"provider_region_name":         cluster.ProviderSettings.RegionName,
-			"bi_connector":                 flattenBiConnector(cluster.BiConnector),
-			"replication_specs":            flattenReplicationSpecs(cluster.ReplicationSpecs),
-			"labels":                       flattenLabels(cluster.Labels),
+			"auto_scaling_disk_gb_enabled": clusters[i].BackupEnabled,
+			"backup_enabled":               clusters[i].BackupEnabled,
+			"provider_backup_enabled":      clusters[i].ProviderBackupEnabled,
+			"cluster_type":                 clusters[i].ClusterType,
+			"connection_strings":           flattenConnectionStrings(clusters[i].ConnectionStrings),
+			"disk_size_gb":                 clusters[i].DiskSizeGB,
+			"encryption_at_rest_provider":  clusters[i].EncryptionAtRestProvider,
+			"mongo_db_major_version":       clusters[i].MongoDBMajorVersion,
+			"name":                         clusters[i].Name,
+			"num_shards":                   clusters[i].NumShards,
+			"mongo_db_version":             clusters[i].MongoDBVersion,
+			"mongo_uri":                    clusters[i].MongoURI,
+			"mongo_uri_updated":            clusters[i].MongoURIUpdated,
+			"mongo_uri_with_options":       clusters[i].MongoURIWithOptions,
+			"pit_enabled":                  clusters[i].PitEnabled,
+			"paused":                       clusters[i].Paused,
+			"srv_address":                  clusters[i].SrvAddress,
+			"state_name":                   clusters[i].StateName,
+			"replication_factor":           clusters[i].ReplicationFactor,
+			"backing_provider_name":        clusters[i].ProviderSettings.BackingProviderName,
+			"provider_disk_iops":           clusters[i].ProviderSettings.DiskIOPS,
+			"provider_disk_type_name":      clusters[i].ProviderSettings.DiskTypeName,
+			"provider_encrypt_ebs_volume":  clusters[i].ProviderSettings.EncryptEBSVolume,
+			"provider_instance_size_name":  clusters[i].ProviderSettings.InstanceSizeName,
+			"provider_name":                clusters[i].ProviderSettings.ProviderName,
+			"provider_region_name":         clusters[i].ProviderSettings.RegionName,
+			"bi_connector":                 flattenBiConnector(clusters[i].BiConnector),
+			"replication_specs":            flattenReplicationSpecs(clusters[i].ReplicationSpecs),
+			"labels":                       flattenLabels(clusters[i].Labels),
 			"snapshot_backup_policy":       snapshotBackupPolicy,
 		}
 		results = append(results, result)
 	}
+
 	return results
 }
