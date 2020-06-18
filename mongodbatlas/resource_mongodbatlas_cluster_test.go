@@ -57,6 +57,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 		},
 	})
 }
+
 func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 	var cluster matlas.Cluster
 
@@ -102,6 +103,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 		},
 	})
 }
+
 func TestAccResourceMongoDBAtlasCluster_basic_Partial_AdvancedConf(t *testing.T) {
 	var cluster matlas.Cluster
 
@@ -302,7 +304,6 @@ func TestAccResourceMongoDBAtlasCluster_basicAzure(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
@@ -345,7 +346,6 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccResourceMongoDBAtlasCluster_MultiRegion(t *testing.T) {
@@ -394,7 +394,6 @@ func TestAccResourceMongoDBAtlasCluster_MultiRegion(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
@@ -748,11 +747,7 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-
-	importStateID := fmt.Sprintf("%s-%s", projectID, clusterName)
-
 	resourceName := "mongodbatlas_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -764,11 +759,10 @@ func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, clusterName, "true"),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateId:           importStateID,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -810,7 +804,18 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 			},
 		},
 	})
+}
 
+func testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
+	}
 }
 
 func testAccCheckMongoDBAtlasClusterExists(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
@@ -886,6 +891,7 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name, backupEnabled string) 
 		}
 	`, projectID, name, backupEnabled)
 }
+
 func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
@@ -896,7 +902,6 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnab
 			replication_factor           = 3
 			provider_backup_enabled      = %[3]s
 			pit_enabled 				 = %[3]s
-			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
 			//Provider Settings "block"
@@ -941,6 +946,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, AutoscalingEn
 		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
 }
+
 func testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, name, AutoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
@@ -973,7 +979,7 @@ func testAccMongoDBAtlasClusterConfigAzure(projectID, name, backupEnabled string
 			num_shards   = 1
 
 			replication_factor           = 3
-			backup_enabled               = %s
+			provider_backup_enabled      = %s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
@@ -995,7 +1001,7 @@ func testAccMongoDBAtlasClusterConfigGCP(projectID, name, backupEnabled string) 
 			num_shards   = 1
 
 			replication_factor           = 3
-			backup_enabled               = %s
+			provider_backup_enabled      = %s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
@@ -1010,12 +1016,12 @@ func testAccMongoDBAtlasClusterConfigGCP(projectID, name, backupEnabled string) 
 func testAccMongoDBAtlasClusterConfigMultiRegion(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
-			project_id     = "%s"
-			name           = "%s"
-			disk_size_gb   = 100
-			num_shards     = 1
-			backup_enabled = %s
-			cluster_type   = "REPLICASET"
+			project_id              = "%s"
+			name                    = "%s"
+			disk_size_gb            = 100
+			num_shards              = 1
+			provider_backup_enabled = %s
+			cluster_type            = "REPLICASET"
 			//Provider Settings "block"
 			provider_name               = "AWS"
 			provider_disk_iops          = 300
