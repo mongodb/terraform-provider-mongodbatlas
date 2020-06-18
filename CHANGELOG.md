@@ -1,4 +1,15 @@
-## 0.7.0 (Unreleased)
+## 0.6.1 (Unreleased)
+
+**Fixed bugs:**
+
+- Error when use provider\_name = TENANT on 0.6.0 mongodbatlas provider version. [\#246](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/246)
+- Error when create or import cluster - panic: runtime error: invalid memory address or nil pointer dereference [\#243](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/243)
+
+**Merged pull requests:**
+
+- Fix \#246: Error when use provider\_name = TENANT on 0.6.0 mongodbatlas provider version [\#247](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/247) ([PacoDw](https://github.com/PacoDw))
+- Fix \#243: Error when create or import cluster - panic: runtime error: invalid memory address or nil pointer dereference [\#245](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/245) ([PacoDw](https://github.com/PacoDw))
+
 ## 0.6.0 (June 11, 2020)
 
 **Recommendation:**
