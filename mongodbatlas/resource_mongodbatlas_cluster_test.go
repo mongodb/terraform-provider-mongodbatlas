@@ -781,7 +781,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name),
+				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "M2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -799,6 +799,32 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+		},
+	})
+}
+func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
+	var cluster matlas.Cluster
+
+	resourceName := "mongodbatlas_cluster.tenant"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "M5"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 				),
 			},
@@ -1092,7 +1118,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 	`, projectID, name, backupEnabled)
 }
 
-func testAccMongoDBAtlasClusterConfigTenant(projectID, name string) string {
+func testAccMongoDBAtlasClusterConfigTenant(projectID, name, instanceSize string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_cluster" "tenant" {
 		project_id = "%s"
@@ -1102,11 +1128,10 @@ func testAccMongoDBAtlasClusterConfigTenant(projectID, name string) string {
 		backing_provider_name = "AWS"
 		provider_region_name  = "EU_CENTRAL_1"
 
-		provider_instance_size_name  = "M2"
-		disk_size_gb                 = 2
+		provider_instance_size_name  = "%s"
 		auto_scaling_disk_gb_enabled = false
 	  }
-	`, projectID, name)
+	`, projectID, name, instanceSize)
 }
 
 func testAccMongoDBAtlasClusterConfigTenantUpdated(projectID, name string) string {
