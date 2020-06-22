@@ -21,7 +21,7 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (

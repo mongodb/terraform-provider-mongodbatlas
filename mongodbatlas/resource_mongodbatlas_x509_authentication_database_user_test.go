@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	matlas "github.com/mongodb/go-client-mongodb-atlas/mongodbatlas"
 	"github.com/spf13/cast"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasX509AuthDBUser_basic(t *testing.T) {
