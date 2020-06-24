@@ -25,17 +25,27 @@ data "mongodbatlas_teams" "test" {
 	org_id     = mongodbatlas_teams.test.org_id
 	team_id    = mongodbatlas_teams.test.team_id
 }
+
+data "mongodbatlas_teams" "test2" {
+	org_id     = mongodbatlas_teams.test.org_id
+	name       = mongodbatlas_teams.test.name
+}
 ```
+
 
 ## Argument Reference
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
-* `team_id` - (Required) The unique identifier for the team.
+* `team_id` - (Optional) The unique identifier for the team.
+* `name` - (Optional) The team name.
+
+~> **IMPORTANT:** Either `team_id` or `name` must be configurated.
 
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
+
 * `id` -	The Terraform's unique identifier used internally for state management.
 * `name` -  The name of the team you want to create.
 * `usernames` - The users who are part of the organization.
