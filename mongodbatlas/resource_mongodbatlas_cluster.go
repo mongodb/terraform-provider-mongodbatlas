@@ -488,12 +488,29 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	tenantDisksize := pointy.Float64(0)
 	if providerName == "TENANT" {
 		if diskGBEnabled := d.Get("auto_scaling_disk_gb_enabled"); diskGBEnabled.(bool) {
 			return fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT")
 		}
 		autoScaling = &matlas.AutoScaling{
 			DiskGBEnabled: pointy.Bool(false),
+		}
+		if instanceSizeName, ok := d.GetOk("provider_instance_size_name"); ok {
+			if instanceSizeName == "M2" {
+				if diskSizeGB, ok := d.GetOk("disk_size_gb"); ok {
+					if cast.ToFloat64(diskSizeGB) != 2 {
+						return fmt.Errorf("`disk_size_gb` must be 2 for M2 shared tier")
+					}
+				}
+			}
+			if instanceSizeName == "M5" {
+				if diskSizeGB, ok := d.GetOk("disk_size_gb"); ok {
+					if cast.ToFloat64(diskSizeGB) != 5 {
+						return fmt.Errorf("`disk_size_gb` must be 5 for M5 shared tier")
+					}
+				}
+			}
 		}
 	}
 
@@ -543,7 +560,9 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
 	}
-
+	if cast.ToFloat64(tenantDisksize) != 0 {
+		clusterRequest.DiskSizeGB = tenantDisksize
+	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		clusterRequest.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
 	}
