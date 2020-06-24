@@ -52,5 +52,10 @@ func testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username string) strin
 			org_id     = mongodbatlas_teams.test.org_id
 			team_id    = mongodbatlas_teams.test.team_id
 		}
+
+		data "mongodbatlas_teams" "test2" {
+			org_id     = mongodbatlas_teams.test.org_id
+			name    = mongodbatlas_teams.test.name
+		}
 	`, orgID, name, username)
 }
