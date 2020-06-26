@@ -26,6 +26,15 @@ data "mongodbatlas_teams" "test" {
 	team_id    = mongodbatlas_teams.test.team_id
 }
 
+```
+
+```hcl
+resource "mongodbatlas_teams" "test" {
+  org_id     = "<ORGANIZATION-ID>"
+  name       = "myNewTeam"
+  usernames  = ["user1", "user2", "user3"]
+}
+
 data "mongodbatlas_teams" "test2" {
 	org_id     = mongodbatlas_teams.test.org_id
 	name       = mongodbatlas_teams.test.name
@@ -39,7 +48,7 @@ data "mongodbatlas_teams" "test2" {
 * `team_id` - (Optional) The unique identifier for the team.
 * `name` - (Optional) The team name.
 
-~> **IMPORTANT:** Either `team_id` or `name` must be configurated.
+~> **IMPORTANT:** Either `team_id` or `name` must be configured.
 
 
 ## Attributes Reference
@@ -47,6 +56,7 @@ data "mongodbatlas_teams" "test2" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` -	The Terraform's unique identifier used internally for state management.
+* `team_id` -  The unique identifier for the team.
 * `name` -  The name of the team you want to create.
 * `usernames` - The users who are part of the organization.
 

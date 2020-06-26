@@ -20,11 +20,13 @@ func dataSourceMongoDBAtlasTeam() *schema.Resource {
 			},
 			"team_id": {
 				Type:          schema.TypeString,
+				Computed:      true,
 				Optional:      true,
 				ConflictsWith: []string{"name"},
 			},
 			"name": {
 				Type:          schema.TypeString,
+				Computed:      true,
 				Optional:      true,
 				ConflictsWith: []string{"team_id"},
 			},
