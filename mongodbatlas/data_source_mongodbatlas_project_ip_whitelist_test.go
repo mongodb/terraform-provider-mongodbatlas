@@ -10,7 +10,6 @@ import (
 )
 
 func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
-
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -34,10 +33,9 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
 			},
 		},
 	})
-
 }
-func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 
+func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
@@ -65,7 +63,6 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 }
 
 func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testing.T) {
-
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -74,7 +71,7 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testin
 	providerName := "AWS"
 
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	awsSGroup := "sg-0026348ec11780bd1"
+	awsSGroup := os.Getenv("AWS_SECURITY_GROUP_ID")
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 
 	resource.Test(t, resource.TestCase{
@@ -97,6 +94,7 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testin
 		},
 	})
 }
+
 func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_ip_whitelist" "test" {
