@@ -286,11 +286,23 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf(errorPeersRead, peerID, err)
 	}
 
-	// Workaround until fix.
+	/* This fix the bug https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/53
+	 * If the region name of the peering connection resource is the same as the container resource,
+	 * the API returns it as a null value, so this causes the issue mentioned.
+	 */
+	var acepterRegionName string
 	if peer.AccepterRegionName != "" {
-		if err := d.Set("accepter_region_name", peer.AccepterRegionName); err != nil {
-			return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)
+		acepterRegionName = peer.AccepterRegionName
+	} else {
+		container, _, err := conn.Containers.Get(context.Background(), projectID, peer.ContainerID)
+		if err != nil {
+			return err
 		}
+		acepterRegionName = strings.ToLower(strings.ReplaceAll(container.RegionName, "_", "-"))
+	}
+
+	if err := d.Set("accepter_region_name", acepterRegionName); err != nil {
+		return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)
 	}
 
 	if err := d.Set("aws_account_id", peer.AWSAccountID); err != nil {
