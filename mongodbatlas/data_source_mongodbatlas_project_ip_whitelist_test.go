@@ -136,8 +136,8 @@ func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(proj
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
-			accepter_region_name	  = "us-east-1"	
-			project_id    			    = "%[1]s"
+			accepter_region_name    = lower(replace("%[6]s", "_", "-"))
+			project_id    		    = "%[1]s"
 			container_id            = mongodbatlas_network_container.test.container_id
 			provider_name           = "%[2]s"
 			route_table_cidr_block  = "%[5]s"
