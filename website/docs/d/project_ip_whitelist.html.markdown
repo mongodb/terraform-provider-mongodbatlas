@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: project_ip_whitelist"
-sidebar_current: "docs-mongodbatlas-resource-project-ip-whitelist"
+sidebar_current: "docs-mongodbatlas-datasource-project-ip-whitelist"
 description: |-
     Provides an IP Whitelist resource.
 ---
@@ -79,7 +79,7 @@ data "mongodbatlas_project_ip_whitelist" "test" {
 }
 ```
 
-~> **IMPORTANT:** In order to use AWS Security Group(s) VPC Peering must be enabled like above example.
+~> **IMPORTANT:** In order to use AWS Security Group(s) VPC Peering must be enabled like in the above example.
 
 ## Argument Reference
 
@@ -94,7 +94,7 @@ data "mongodbatlas_project_ip_whitelist" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - Unique identifier used for terraform for internal manages and can be used to import.
+* `id` - Unique identifier used by Terraform for internal management and can be used to import.
 * `comment` - Comment to add to the whitelist entry.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/whitelist/)

@@ -85,20 +85,20 @@ func dataSourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta i
 
 	whitelist, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry.String())
 	if err != nil {
-		return fmt.Errorf("error getting white List IP information: %s", err)
+		return fmt.Errorf("error getting whitelist information: %s", err)
 	}
 
 	if err := d.Set("cidr_block", whitelist.CIDRBlock); err != nil {
-		return fmt.Errorf("error setting `cidr_block` for Project IP white list: %s", err)
+		return fmt.Errorf("error setting `cidr_block` for Project whitelist: %s", err)
 	}
 	if err := d.Set("ip_address", whitelist.IPAddress); err != nil {
-		return fmt.Errorf("error setting `ip_address` for Project IP white list: %s", err)
+		return fmt.Errorf("error setting `ip_address` for Project whitelist: %s", err)
 	}
 	if err := d.Set("aws_security_group", whitelist.AwsSecurityGroup); err != nil {
-		return fmt.Errorf("error setting `aws_security_group` for Project IP white list: %s", err)
+		return fmt.Errorf("error setting `aws_security_group` for Project whitelist: %s", err)
 	}
 	if err := d.Set("comment", whitelist.Comment); err != nil {
-		return fmt.Errorf("error setting `comment` for Project IP white list: %s", err)
+		return fmt.Errorf("error setting `comment` for Project whitelist: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())
