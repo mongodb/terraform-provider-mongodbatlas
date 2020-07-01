@@ -396,74 +396,37 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 }
 
 func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	// Get client connection.
-	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	providerName := d.Get("provider_name").(string)
+	var (
+		//Get client connection.
+		conn = meta.(*matlas.Client)
 
-	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
+		projectID    = d.Get("project_id").(string)
+		providerName = d.Get("provider_name").(string)
+
+		computeEnabled   = d.Get("auto_scaling_compute_enabled").(bool)
+		scaleDownEnabled = d.Get("auto_scaling_compute_scale_down_enabled").(bool)
+		minInstanceSize  = d.Get("provider_auto_scaling_compute_min_instance_size").(string)
+		maxInstanceSize  = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
+	)
+
+	if scaleDownEnabled && !computeEnabled {
+		return fmt.Errorf("`auto_scaling_compute_scale_down_enabled` must be set when `auto_scaling_compute_enabled` is set")
 	}
 
-	compute := &matlas.Compute{}
-
-	computeEnabled, computeEnabledOk := d.GetOk("auto_scaling_compute_enabled")
-	scaleDownEnabled, scaleDownEnabledOk := d.GetOk("auto_scaling_compute_scale_down_enabled")
-	minInstanceSize, minInstanceSizedOk := d.GetOk("provider_auto_scaling_compute_min_instance_size")
-	maxInstanceSize, maxInstanceSizeOk := d.GetOk("provider_auto_scaling_compute_max_instance_size")
-
-	if computeEnabledOk && (!maxInstanceSizeOk || maxInstanceSize.(string) == "") {
+	if computeEnabled && maxInstanceSize == "" {
 		return fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be set when `auto_scaling_compute_enabled` is set")
 	}
 
-	if !computeEnabledOk && (maxInstanceSizeOk || maxInstanceSize.(string) != "") {
-		return fmt.Errorf("`auto_scaling_compute_enabled` must be set true when `provider_auto_scaling_compute_max_instance_size` is set")
-	}
-
-	if scaleDownEnabledOk && (!minInstanceSizedOk || minInstanceSize.(string) == "") {
+	if scaleDownEnabled && minInstanceSize == "" {
 		return fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be set when `auto_scaling_compute_scale_down_enabled` is set")
 	}
 
-	if (!computeEnabledOk || !scaleDownEnabledOk) && (minInstanceSizedOk || minInstanceSize.(string) != "") {
-		return fmt.Errorf("`auto_scaling_compute_enabled` and `auto_scaling_compute_scale_down_enabled` must be set true when `provider_auto_scaling_compute_min_instance_size` is set")
-	}
-
-	if computeEnabledOk {
-		compute.Enabled = pointy.Bool(computeEnabled.(bool))
-	}
-
-	if scaleDownEnabledOk {
-		compute.ScaleDownEnabled = pointy.Bool(scaleDownEnabled.(bool))
-	}
-
-	autoScaling.Compute = compute
-
-	compute = &matlas.Compute{}
-	providerAutoScaling := &matlas.AutoScaling{}
-	regex := regexp.MustCompile("[0-9]+")
-
-	if minInstanceSizedOk {
-		sizeName := regex.FindString(d.Get("provider_instance_size_name").(string))
-		minName := regex.FindString(minInstanceSize.(string))
-
-		if minName > sizeName {
-			return fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
-		}
-
-		compute.MinInstanceSize = minInstanceSize.(string)
-		providerAutoScaling.Compute = compute
-	}
-
-	if maxInstanceSizeOk {
-		sizeName := regex.FindString(d.Get("provider_instance_size_name").(string))
-		maxName := regex.FindString(maxInstanceSize.(string))
-
-		if sizeName > maxName {
-			return fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
-		}
-
-		compute.MaxInstanceSize = maxInstanceSize.(string)
-		providerAutoScaling.Compute = compute
+	autoScaling := &matlas.AutoScaling{
+		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
+		Compute: &matlas.Compute{
+			Enabled:          &computeEnabled,
+			ScaleDownEnabled: &scaleDownEnabled,
+		},
 	}
 
 	// validate cluster_type conditional
@@ -543,15 +506,14 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorClusterCreate, err)
 	}
 
-	providerSettings := expandProviderSetting(d)
-
-	replicationSpecs, err := expandReplicationSpecs(d)
+	providerSettings, err := expandProviderSetting(d)
 	if err != nil {
 		return fmt.Errorf(errorClusterCreate, err)
 	}
 
-	if compute.MaxInstanceSize != "" || compute.MinInstanceSize != "" {
-		providerSettings.AutoScaling = providerAutoScaling
+	replicationSpecs, err := expandReplicationSpecs(d)
+	if err != nil {
+		return fmt.Errorf(errorClusterCreate, err)
 	}
 
 	clusterRequest := &matlas.Cluster{
@@ -563,7 +525,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		BiConnector:              biConnector,
-		ProviderSettings:         &providerSettings,
+		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
 	}
 
@@ -818,10 +780,6 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.BiConnector, _ = expandBiConnector(d)
 	}
 
-	providerSettings := matlas.ProviderSettings{}
-	compute := &matlas.Compute{}
-	autoScaling := &matlas.AutoScaling{}
-
 	// If at least one of the provider settings argument has changed, expand all provider settings
 	if d.HasChange("provider_disk_iops") || d.HasChange("provider_encrypt_ebs_volume") ||
 		d.HasChange("backing_provider_name") || d.HasChange("provider_disk_type_name") ||
@@ -829,12 +787,11 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		d.HasChange("provider_instance_size_name") || d.HasChange("provider_name") ||
 		d.HasChange("provider_region_name") || d.HasChange("provider_volume_type") ||
 		d.HasChange("provider_auto_scaling_compute_min_instance_size") || d.HasChange("provider_auto_scaling_compute_max_instance_size") {
-		providerSettings = expandProviderSetting(d)
-	}
-
-	// Check if Provider setting was changed.
-	if !reflect.DeepEqual(providerSettings, matlas.ProviderSettings{}) {
-		cluster.ProviderSettings = &providerSettings
+		var err error
+		cluster.ProviderSettings, err = expandProviderSetting(d)
+		if err != nil {
+			return fmt.Errorf(errorClusterUpdate, clusterName, err)
+		}
 	}
 
 	if d.HasChange("replication_specs") {
@@ -846,52 +803,18 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.ReplicationSpecs = replicationSpecs
 	}
 
+	cluster.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
+
 	if d.HasChange("auto_scaling_disk_gb_enabled") {
 		cluster.AutoScaling.DiskGBEnabled = pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaling_compute_enabled") {
-		compute.Enabled = pointy.Bool(d.Get("auto_scaling_compute_enabled").(bool))
-		autoScaling.Compute = compute
-		cluster.AutoScaling = autoScaling
+		cluster.AutoScaling.Compute.Enabled = pointy.Bool(d.Get("auto_scaling_compute_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaling_compute_scale_down_enabled") {
-		compute.ScaleDownEnabled = pointy.Bool(d.Get("auto_scaling_compute_scale_down_enabled").(bool))
-		autoScaling.Compute = compute
-		cluster.AutoScaling = autoScaling
-	}
-
-	providerAutoScaling := &matlas.AutoScaling{}
-	compute = &matlas.Compute{}
-	regex := regexp.MustCompile("[0-9]+")
-
-	if d.HasChange("provider_auto_scaling_compute_min_instance_size") {
-		sizeName := regex.FindString(d.Get("provider_instance_size_name").(string))
-		minName := regex.FindString(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
-
-		if minName > sizeName {
-			return fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
-		}
-
-		compute.MinInstanceSize = d.Get("provider_auto_scaling_compute_min_instance_size").(string)
-		providerAutoScaling.Compute = compute
-		providerSettings.AutoScaling = providerAutoScaling
-		cluster.ProviderSettings = &providerSettings
-	}
-
-	if d.HasChange("provider_auto_scaling_compute_max_instance_size") {
-		sizeName := regex.FindString(d.Get("provider_instance_size_name").(string))
-		maxName := regex.FindString(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
-
-		if sizeName > maxName {
-			return fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
-		}
-
-		compute.MaxInstanceSize = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
-		providerAutoScaling.Compute = compute
-		providerSettings.AutoScaling = providerAutoScaling
-		cluster.ProviderSettings = &providerSettings
+		cluster.AutoScaling.Compute.ScaleDownEnabled = pointy.Bool(d.Get("auto_scaling_compute_scale_down_enabled").(bool))
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
@@ -963,7 +886,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	// Wait, catching any errors
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorClusterCreate, err)
+		return fmt.Errorf(errorClusterUpdate, clusterName, err)
 	}
 
 	/*
@@ -1095,8 +1018,52 @@ func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} 
 	return biConnectorMap
 }
 
-func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
-	providerSettings := matlas.ProviderSettings{}
+func getInstanceSizeToInt(instanceSize string) int {
+	regex := regexp.MustCompile("[0-9]+")
+	num := regex.FindString(instanceSize)
+
+	return cast.ToInt(num) // if the string is empty it always return 0
+}
+
+func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, error) {
+	var (
+		region, _       = valRegion(d.Get("provider_region_name"))
+		minInstanceSize = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
+		maxInstanceSize = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
+		instanceSize    = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
+		compute         *matlas.Compute
+	)
+
+	if minInstanceSize != 0 {
+		if instanceSize < minInstanceSize {
+			return nil, fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
+		}
+
+		compute = &matlas.Compute{
+			MinInstanceSize: d.Get("provider_auto_scaling_compute_min_instance_size").(string),
+		}
+	}
+
+	if maxInstanceSize != 0 {
+		if instanceSize > maxInstanceSize {
+			return nil, fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
+		}
+
+		if compute == nil {
+			compute = &matlas.Compute{}
+		}
+		compute.MaxInstanceSize = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
+	}
+
+	providerSettings := &matlas.ProviderSettings{
+		BackingProviderName: cast.ToString(d.Get("backing_provider_name")),
+		InstanceSizeName:    cast.ToString(d.Get("provider_instance_size_name")),
+		ProviderName:        cast.ToString(d.Get("provider_name")),
+		RegionName:          region,
+		VolumeType:          cast.ToString(d.Get("provider_volume_type")),
+		DiskTypeName:        cast.ToString(d.Get("provider_disk_type_name")),
+		AutoScaling:         &matlas.AutoScaling{Compute: compute},
+	}
 
 	if d.Get("provider_name") == "AWS" {
 		// Check if the Provider Disk IOS sets in the Terraform configuration.
@@ -1111,16 +1078,7 @@ func expandProviderSetting(d *schema.ResourceData) matlas.ProviderSettings {
 		}
 	}
 
-	region, _ := valRegion(d.Get("provider_region_name"))
-
-	providerSettings.BackingProviderName = cast.ToString(d.Get("backing_provider_name"))
-	providerSettings.InstanceSizeName = cast.ToString(d.Get("provider_instance_size_name"))
-	providerSettings.ProviderName = cast.ToString(d.Get("provider_name"))
-	providerSettings.RegionName = region
-	providerSettings.VolumeType = cast.ToString(d.Get("provider_volume_type"))
-	providerSettings.DiskTypeName = cast.ToString(d.Get("provider_disk_type_name"))
-
-	return providerSettings
+	return providerSettings, nil
 }
 
 func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
