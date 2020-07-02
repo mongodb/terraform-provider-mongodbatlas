@@ -38,6 +38,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_database_users":                        dataSourceMongoDBAtlasDatabaseUsers(),
 			"mongodbatlas_project":                               dataSourceMongoDBAtlasProject(),
 			"mongodbatlas_projects":                              dataSourceMongoDBAtlasProjects(),
+			"mongodbatlas_project_ip_whitelist":                  dataSourceMongoDBAtlasProjectIPWhitelist(),
 			"mongodbatlas_cluster":                               dataSourceMongoDBAtlasCluster(),
 			"mongodbatlas_clusters":                              dataSourceMongoDBAtlasClusters(),
 			"mongodbatlas_cloud_provider_snapshot":               dataSourceMongoDBAtlasCloudProviderSnapshot(),
