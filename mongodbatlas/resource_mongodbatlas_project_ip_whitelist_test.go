@@ -171,7 +171,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 
 		whitelist = append(whitelist, entry)
 	}
-
+	//TODO: make testAccCheckMongoDBAtlasProjectIPWhitelistExists dynamic
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -325,26 +325,6 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectI
 		}
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
-
-// func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment string, i int) string {
-// 	if i%2 == 0 {
-// 		return fmt.Sprintf(`
-// 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
-// 				project_id = "%s"
-// 				cidr_block = "%s"
-// 				comment    = "%s"
-// 			}
-// 		`, i, projectID, entry, comment)
-// 	}
-
-// 	return fmt.Sprintf(`
-// 		resource "mongodbatlas_project_ip_whitelist" "test_%d" {
-// 			project_id = "%s"
-// 			ip_address = "%s"
-// 			comment    = "%s"
-// 		}
-// 	`, i, projectID, entry, comment)
-// }
 
 func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID string, whitelist []map[string]string, isUpdate bool) string {
 	config := ""

@@ -191,7 +191,6 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 					return nil
 				}
 				return resource.RetryableError(err)
-				//return nil
 			default:
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistRead, err))
 			}
