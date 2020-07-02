@@ -97,11 +97,11 @@ func resourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	cirdBlock := d.Get("cidr_block").(string)
+	cidrBlock := d.Get("cidr_block").(string)
 	ipAddress := d.Get("ip_address").(string)
 	awsSecurityGroup := d.Get("aws_security_group").(string)
 
-	if cirdBlock == "" && ipAddress == "" && awsSecurityGroup == "" {
+	if cidrBlock == "" && ipAddress == "" && awsSecurityGroup == "" {
 		return errors.New("cidr_block, ip_address or aws_security_group needs to contain a value")
 	}
 
@@ -112,7 +112,7 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 			whitelist, _, err := conn.ProjectIPWhitelist.Create(context.Background(), projectID, []*matlas.ProjectIPWhitelist{
 				{
 					AwsSecurityGroup: awsSecurityGroup,
-					CIDRBlock:        cirdBlock,
+					CIDRBlock:        cidrBlock,
 					IPAddress:        ipAddress,
 					Comment:          d.Get("comment").(string),
 				},
@@ -127,8 +127,15 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 			}
 
 			if len(whitelist) > 0 {
+				whiteListEntry := ipAddress
+				if cidrBlock != "" {
+					whiteListEntry = cidrBlock
+				}
+
 				for _, entry := range whitelist {
-					if entry.IPAddress == ipAddress || entry.CIDRBlock == cirdBlock {
+					if entry.IPAddress == whiteListEntry || entry.CIDRBlock == whiteListEntry {
+
+						log.Printf("[DEBUG] Entry %+v is created, ipAddress=%s, cidrBlock=%s", entry, ipAddress, cidrBlock)
 						return whitelist, "created", nil
 					}
 				}
@@ -138,21 +145,21 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 			return whitelist, "created", nil
 		},
 		Timeout:    45 * time.Minute,
-		Delay:      30 * time.Second,
-		MinTimeout: 10 * time.Second,
+		Delay:      4 * time.Second,
+		MinTimeout: 2 * time.Second,
 	}
 
 	// Wait, catching any errors
 	_, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorPeersCreate, err)
+		return fmt.Errorf(errorWhitelistCreate, err)
 	}
 
 	var entry string
 
 	switch {
-	case cirdBlock != "":
-		entry = cirdBlock
+	case cidrBlock != "":
+		entry = cidrBlock
 	case ipAddress != "":
 		entry = ipAddress
 	default:
@@ -178,8 +185,13 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 			case strings.Contains(fmt.Sprint(err), "500"):
 				return resource.RetryableError(err)
 			case strings.Contains(fmt.Sprint(err), "404"):
-				d.SetId("")
-				return nil
+				log.Printf("[DEBUG] whitelist entry %s is not found", ids["entry"])
+				if !d.IsNewResource() {
+					d.SetId("")
+					return nil
+				}
+				return resource.RetryableError(err)
+				//return nil
 			default:
 				return resource.NonRetryableError(fmt.Errorf(errorWhitelistRead, err))
 			}

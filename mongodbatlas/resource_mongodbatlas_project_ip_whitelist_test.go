@@ -154,39 +154,47 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 	resourceName := "mongodbatlas_project_ip_whitelist.test_%d"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	var entry, comment, entryName string
+	whitelist := make([]map[string]string, 0)
 
-	// Creating 100 whitelist entriies at the same time
 	for i := 0; i < 100; i++ {
-		entry = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
-		comment = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
-		if i%2 == 0 {
-			entry = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
-			comment = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
-		}
+		entry := make(map[string]string)
+		entryName := ""
 
-		t.Run(comment, func(t *testing.T) {
-			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:     func() { testAccPreCheck(t) },
-				Providers:    testAccProviders,
-				CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
-				Steps: []resource.TestStep{
-					{
-						Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment, i),
-						Check: resource.ComposeTestCheckFunc(
-							testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, i)),
-						),
-					},
-					{
-						Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment+" updated", i),
-						Check: resource.ComposeTestCheckFunc(
-							testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, i)),
-						),
-					},
-				},
-			})
-		})
+		if i%2 == 0 {
+			entryName = "cidr_block"
+			entry["cidr_block"] = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+		} else {
+			entryName = "ip_address"
+			entry["ip_address"] = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+		}
+		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
+
+		whitelist = append(whitelist, entry)
 	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, whitelist, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, 0)),
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, 1)),
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, 2)),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, whitelist, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, 0)),
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, 1)),
+					testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, 2)),
+				),
+			},
+		},
+	})
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
@@ -318,22 +326,55 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectI
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
 
-func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment string, i int) string {
-	if i%2 == 0 {
-		return fmt.Sprintf(`
+// func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment string, i int) string {
+// 	if i%2 == 0 {
+// 		return fmt.Sprintf(`
+// 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+// 				project_id = "%s"
+// 				cidr_block = "%s"
+// 				comment    = "%s"
+// 			}
+// 		`, i, projectID, entry, comment)
+// 	}
+
+// 	return fmt.Sprintf(`
+// 		resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+// 			project_id = "%s"
+// 			ip_address = "%s"
+// 			comment    = "%s"
+// 		}
+// 	`, i, projectID, entry, comment)
+// }
+
+func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID string, whitelist []map[string]string, isUpdate bool) string {
+	config := ""
+
+	for i, entry := range whitelist {
+		comment := entry["comment"]
+
+		if isUpdate {
+			comment = entry["comment"] + " update"
+		}
+
+		if cidr, ok := entry["cidr_block"]; ok {
+			config = config + fmt.Sprintf(`
+
 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
 				project_id = "%s"
 				cidr_block = "%s"
 				comment    = "%s"
 			}
-		`, i, projectID, entry, comment)
-	}
-
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_whitelist" "test_%d" {
-			project_id = "%s"
-			ip_address = "%s"
-			comment    = "%s"
+		`, i, projectID, cidr, comment)
+		} else {
+			config = config + fmt.Sprintf(`
+			
+			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+				project_id = "%s"
+				ip_address = "%s"
+				comment    = "%s"
+			}
+		`, i, projectID, entry["ip_address"], comment)
 		}
-	`, i, projectID, entry, comment)
+	}
+	return config
 }
