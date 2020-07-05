@@ -13,9 +13,9 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
+func dataSourceMongoDBAtlasProjectIPAllowlist() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasProjectIPWhitelistRead,
+		Read: dataSourceMongoDBAtlasProjectIPAllowlistRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -67,7 +67,7 @@ func dataSourceMongoDBAtlasProjectIPWhitelist() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasProjectIPAllowlistRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	cidrBlock := d.Get("cidr_block").(string)
@@ -83,22 +83,22 @@ func dataSourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta i
 	entry.WriteString(ipAddress)
 	entry.WriteString(awsSecurityGroup)
 
-	whitelist, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry.String())
+	allowlist, _, err := conn.ProjectIPWhitelist.Get(context.Background(), projectID, entry.String()) // TODO: Language Inclusivity
 	if err != nil {
-		return fmt.Errorf("error getting whitelist information: %s", err)
+		return fmt.Errorf("error getting allowlist information: %s", err)
 	}
 
-	if err := d.Set("cidr_block", whitelist.CIDRBlock); err != nil {
-		return fmt.Errorf("error setting `cidr_block` for Project whitelist: %s", err)
+	if err := d.Set("cidr_block", allowlist.CIDRBlock); err != nil {
+		return fmt.Errorf("error setting `cidr_block` for Project allowlist: %s", err)
 	}
-	if err := d.Set("ip_address", whitelist.IPAddress); err != nil {
-		return fmt.Errorf("error setting `ip_address` for Project whitelist: %s", err)
+	if err := d.Set("ip_address", allowlist.IPAddress); err != nil {
+		return fmt.Errorf("error setting `ip_address` for Project allowlist: %s", err)
 	}
-	if err := d.Set("aws_security_group", whitelist.AwsSecurityGroup); err != nil {
-		return fmt.Errorf("error setting `aws_security_group` for Project whitelist: %s", err)
+	if err := d.Set("aws_security_group", allowlist.AwsSecurityGroup); err != nil {
+		return fmt.Errorf("error setting `aws_security_group` for Project allowlist: %s", err)
 	}
-	if err := d.Set("comment", whitelist.Comment); err != nil {
-		return fmt.Errorf("error setting `comment` for Project whitelist: %s", err)
+	if err := d.Set("comment", allowlist.Comment); err != nil {
+		return fmt.Errorf("error setting `comment` for Project allowlist: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())

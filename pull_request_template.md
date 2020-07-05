@@ -16,7 +16,7 @@ Link to any related issue(s):
 
 - [ ] I have signed the MongoDB CLA
 - [ ] I have read the Terraform contribution guidelines 
-- [ ] I have added tests that prove my fix is effective or that my feature works per HashiCorp requirments
+- [ ] I have added tests that prove my fix is effective or that my feature works per HashiCorp requirements
 - [ ] I have added any necessary documentation (if appropriate)
 - [ ] I have run make fmt and formatted my code
 

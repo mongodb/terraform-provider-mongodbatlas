@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+func TestAccDataMongoDBAtlasProjectIPAllowlist_SettingIPAddress(t *testing.T) {
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
@@ -20,7 +20,7 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment),
+				Config: testAccDataMongoDBAtlasProjectIPAllowlistConfigSettingIPAddress(projectID, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -35,8 +35,8 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
 	})
 }
 
-func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+func TestAccDataMongoDBAtlasProjectIPAllowlist_SettingCIDRBlock(t *testing.T) {
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
@@ -46,9 +46,9 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, cidrBlock, comment),
+				Config: testAccDataMongoDBAtlasProjectIPAllowlistConfigSettingCIDRBlock(projectID, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -62,8 +62,8 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+func TestAccDataMongoDBAtlasProjectIPAllowlist_SettingAWSSecurityGroup(t *testing.T) {
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
 	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
@@ -79,9 +79,9 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testin
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Config: testAccDataMongoDBAtlasProjectIPAllowlistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -95,36 +95,36 @@ func TestAccDataMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testin
 	})
 }
 
-func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment string) string {
+func testAccDataMongoDBAtlasProjectIPAllowlistConfigSettingIPAddress(projectID, ipAddress, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_whitelist" "test" {
+		resource "mongodbatlas_project_ip_allowlist" "test" {
 			project_id = "%s"
 			ip_address = "%s"
 			comment    = "%s"
 		}
 
-		data "mongodbatlas_project_ip_whitelist" "test" {
-			project_id = mongodbatlas_project_ip_whitelist.test.project_id
-			ip_address = mongodbatlas_project_ip_whitelist.test.ip_address
+		data "mongodbatlas_project_ip_allowlist" "test" {
+			project_id = mongodbatlas_project_ip_allowlist.test.project_id
+			ip_address = mongodbatlas_project_ip_allowlist.test.ip_address
 		}
 	`, projectID, ipAddress, comment)
 }
 
-func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, cidrBlock, comment string) string {
+func testAccDataMongoDBAtlasProjectIPAllowlistConfigSettingCIDRBlock(projectID, cidrBlock, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_whitelist" "test" {
+		resource "mongodbatlas_project_ip_allowlist" "test" {
 			project_id = "%s"
 			cidr_block = "%s"
 			comment    = "%s"
 		}
-		data "mongodbatlas_project_ip_whitelist" "test" {
-			project_id = mongodbatlas_project_ip_whitelist.test.project_id
-			cidr_block = mongodbatlas_project_ip_whitelist.test.cidr_block
+		data "mongodbatlas_project_ip_allowlist" "test" {
+			project_id = mongodbatlas_project_ip_allowlist.test.project_id
+			cidr_block = mongodbatlas_project_ip_allowlist.test.cidr_block
 		}
 	`, projectID, cidrBlock, comment)
 }
 
-func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
+func testAccDataMongoDBAtlasProjectIPAllowlistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = "%[1]s"
@@ -143,7 +143,7 @@ func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(proj
 			aws_account_id	        = "%[4]s"
 		}
 
-		resource "mongodbatlas_project_ip_whitelist" "test" {
+		resource "mongodbatlas_project_ip_allowlist" "test" {
 			project_id         = "%[1]s"
 			aws_security_group = "%[7]s"
 			comment            = "%[8]s"
@@ -151,9 +151,9 @@ func testAccDataMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(proj
 			depends_on = ["mongodbatlas_network_peering.test"]
 		}
 
-		data "mongodbatlas_project_ip_whitelist" "test" {
-			project_id = mongodbatlas_project_ip_whitelist.test.project_id
-			aws_security_group = mongodbatlas_project_ip_whitelist.test.aws_security_group
+		data "mongodbatlas_project_ip_allowlist" "test" {
+			project_id = mongodbatlas_project_ip_allowlist.test.project_id
+			aws_security_group = mongodbatlas_project_ip_allowlist.test.aws_security_group
 		}
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }

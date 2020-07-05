@@ -12,9 +12,9 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T) {
+func TestAccResourceMongoDBAtlasProjectIPAllowlist_SettingIPAddress(t *testing.T) {
 
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
@@ -25,12 +25,12 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAllowlistDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingIPAddress(projectID, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -41,9 +41,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, updatedIPAddress, updatedComment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingIPAddress(projectID, updatedIPAddress, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -57,9 +57,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingIPAddress(t *testing.T
 	})
 
 }
-func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T) {
+func TestAccResourceMongoDBAtlasProjectIPAllowlist_SettingCIDRBlock(t *testing.T) {
 
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
@@ -70,12 +70,12 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAllowlistDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, cidrBlock, comment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingCIDRBlock(projectID, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -86,9 +86,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -102,9 +102,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccResourceMongoDBAtlasProjectIPAllowlist_SettingAWSSecurityGroup(t *testing.T) {
 
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
 	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
@@ -121,12 +121,12 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *te
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAllowlistDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -137,9 +137,9 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *te
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName),
+					testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
@@ -153,14 +153,14 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *te
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T) {
+func TestAccResourceMongoDBAtlasProjectIPAllowlist_SettingMultiple(t *testing.T) {
 
-	resourceName := "mongodbatlas_project_ip_whitelist.test_%d"
+	resourceName := "mongodbatlas_project_ip_allowlist.test_%d"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	var entry, comment, entryName string
 
-	// Creating 100 whitelist entriies at the same time
+	// Creating 100 allowlist entriies at the same time
 	for i := 0; i < 100; i++ {
 		entry = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
 		comment = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
@@ -173,18 +173,18 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:     func() { testAccPreCheck(t) },
 				Providers:    testAccProviders,
-				CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+				CheckDestroy: testAccCheckMongoDBAtlasProjectIPAllowlistDestroy,
 				Steps: []resource.TestStep{
 					{
-						Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment, i),
+						Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingMultiple(projectID, entry, comment, i),
 						Check: resource.ComposeTestCheckFunc(
-							testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, i)),
+							testAccCheckMongoDBAtlasProjectIPAllowlistExists(fmt.Sprintf(resourceName, i)),
 						),
 					},
 					{
-						Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment+" updated", i),
+						Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingMultiple(projectID, entry, comment+" updated", i),
 						Check: resource.ComposeTestCheckFunc(
-							testAccCheckMongoDBAtlasProjectIPWhitelistExists(fmt.Sprintf(resourceName, i)),
+							testAccCheckMongoDBAtlasProjectIPAllowlistExists(fmt.Sprintf(resourceName, i)),
 						),
 					},
 				},
@@ -193,23 +193,23 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 	}
 }
 
-func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
+func TestAccResourceMongoDBAtlasProjectIPAllowlist_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
-	resourceName := "mongodbatlas_project_ip_whitelist.test"
+	resourceName := "mongodbatlas_project_ip_allowlist.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasProjectIPWhitelistDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAllowlistDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment),
+				Config: testAccMongoDBAtlasProjectIPAllowlistConfigSettingIPAddress(projectID, ipAddress, comment),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName),
+				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPAllowlistImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -217,7 +217,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasProjectIPAllowlistExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
 
@@ -231,33 +231,33 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistExists(resourceName string) resou
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"])
+		_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"]) // TODO: Language Inclusivity
 		if err != nil {
-			return fmt.Errorf("project ip whitelist entry (%s) does not exist", ids["entry"])
+			return fmt.Errorf("project ip allowlist entry (%s) does not exist", ids["entry"])
 		}
 		return nil
 	}
 }
 
-func testAccCheckMongoDBAtlasProjectIPWhitelistDestroy(s *terraform.State) error {
+func testAccCheckMongoDBAtlasProjectIPAllowlistDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project_ip_whitelist" {
+		if rs.Type != "mongodbatlas_project_ip_allowlist" {
 			continue
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"])
+		_, _, err := conn.ProjectIPWhitelist.Get(context.Background(), ids["project_id"], ids["entry"]) // TODO: Language Inclusivity
 		if err == nil {
-			return fmt.Errorf("project ip whitelist entry (%s) still exists", ids["entry"])
+			return fmt.Errorf("project ip allowlist entry (%s) still exists", ids["entry"])
 		}
 	}
 	return nil
 }
 
-func testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccCheckMongoDBAtlasProjectIPAllowlistImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -270,9 +270,9 @@ func testAccCheckMongoDBAtlasProjectIPWhitelistImportStateIDFunc(resourceName st
 	}
 }
 
-func testAccMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAddress, comment string) string {
+func testAccMongoDBAtlasProjectIPAllowlistConfigSettingIPAddress(projectID, ipAddress, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_whitelist" "test" {
+		resource "mongodbatlas_project_ip_allowlist" "test" {
 			project_id = "%s"
 			ip_address = "%s"
 			comment    = "%s"
@@ -280,9 +280,9 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingIPAddress(projectID, ipAd
 	`, projectID, ipAddress, comment)
 }
 
-func testAccMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, cidrBlock, comment string) string {
+func testAccMongoDBAtlasProjectIPAllowlistConfigSettingCIDRBlock(projectID, cidrBlock, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_whitelist" "test" {
+		resource "mongodbatlas_project_ip_allowlist" "test" {
 			project_id = "%s"
 			cidr_block = "%s"
 			comment    = "%s"
@@ -290,7 +290,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingCIDRBlock(projectID, cidr
 	`, projectID, cidrBlock, comment)
 }
 
-func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
+func testAccMongoDBAtlasProjectIPAllowlistConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = "%[1]s"
@@ -309,7 +309,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectI
 			aws_account_id	        = "%[4]s"
 		}
 
-		resource "mongodbatlas_project_ip_whitelist" "test" {
+		resource "mongodbatlas_project_ip_allowlist" "test" {
 			project_id         = "%[1]s"
 			aws_security_group = "%[7]s"
 			comment            = "%[8]s"
@@ -319,10 +319,10 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingAWSSecurityGroup(projectI
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
 
-func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry, comment string, i int) string {
+func testAccMongoDBAtlasProjectIPAllowlistConfigSettingMultiple(projectID, entry, comment string, i int) string {
 	if i%2 == 0 {
 		return fmt.Sprintf(`
-			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+			resource "mongodbatlas_project_ip_allowlist" "test_%d" {
 				project_id = "%s"
 				cidr_block = "%s"
 				comment    = "%s"
@@ -331,7 +331,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID, entry
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_whitelist" "test_%d" {
+		resource "mongodbatlas_project_ip_allowlist" "test_%d" {
 			project_id = "%s"
 			ip_address = "%s"
 			comment    = "%s"

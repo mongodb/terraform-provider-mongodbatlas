@@ -21,7 +21,7 @@ Ensure you have first created a network container if it is required for your con
     Microsoft.Network/virtualNetworks/peer/action
 For more information see https://docs.atlas.mongodb.com/security-vpc-peering/ and https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/
 
--> **Create a Whitelist:** Ensure you whitelist the private IP ranges of the subnets in which your application is hosted in order to connect to your Atlas cluster.  See the project_ip_whitelist resource.
+-> **Create an Allowlist:** Ensure you allow the private IP ranges of the subnets in which your application is hosted in order to connect to your Atlas cluster.  See the project_ip_allowlist resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 

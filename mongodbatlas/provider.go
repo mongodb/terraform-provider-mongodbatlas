@@ -38,7 +38,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_database_users":                        dataSourceMongoDBAtlasDatabaseUsers(),
 			"mongodbatlas_project":                               dataSourceMongoDBAtlasProject(),
 			"mongodbatlas_projects":                              dataSourceMongoDBAtlasProjects(),
-			"mongodbatlas_project_ip_whitelist":                  dataSourceMongoDBAtlasProjectIPWhitelist(),
+			"mongodbatlas_project_ip_allowlist":                  dataSourceMongoDBAtlasProjectIPAllowlist(),
 			"mongodbatlas_cluster":                               dataSourceMongoDBAtlasCluster(),
 			"mongodbatlas_clusters":                              dataSourceMongoDBAtlasClusters(),
 			"mongodbatlas_cloud_provider_snapshot":               dataSourceMongoDBAtlasCloudProviderSnapshot(),
@@ -64,7 +64,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"mongodbatlas_custom_db_role":                        resourceMongoDBAtlasCustomDBRole(),
 			"mongodbatlas_database_user":                         resourceMongoDBAtlasDatabaseUser(),
-			"mongodbatlas_project_ip_whitelist":                  resourceMongoDBAtlasProjectIPWhitelist(),
+			"mongodbatlas_project_ip_allowlist":                  resourceMongoDBAtlasProjectIPAllowlist(),
 			"mongodbatlas_project":                               resourceMongoDBAtlasProject(),
 			"mongodbatlas_cluster":                               resourceMongoDBAtlasCluster(),
 			"mongodbatlas_cloud_provider_snapshot":               resourceMongoDBAtlasCloudProviderSnapshot(),
