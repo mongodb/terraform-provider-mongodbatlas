@@ -7,13 +7,15 @@ language: go
 env:
   global:
     GOFLAGS=-mod=vendor
-
+    GOGC=10
+    GOOPTS="-p 2"
 matrix:
   fast_finish: true
   allow_failures:
     - go: tip
   include:
   - go: "1.13.x"
+  - go: "1.14.x"
     name: "Code Lint"
     script: make lint
   - go: "1.13.x"
