@@ -90,7 +90,7 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 }
 
 func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -149,7 +149,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interf
 	return resourceMongoDBAtlasGlobalClusterRead(d, meta)
 }
 func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -176,7 +176,7 @@ func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceMongoDBAtlasGlobalClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -207,7 +207,7 @@ func resourceMongoDBAtlasGlobalClusterUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceMongoDBAtlasGlobalClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]

@@ -638,7 +638,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -806,7 +806,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -986,7 +986,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]

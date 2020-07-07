@@ -60,7 +60,7 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
-	// GGet client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID, projectIDOk := d.GetOk("project_id")
