@@ -396,18 +396,16 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 }
 
 func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	var (
-		//Get client connection.
-		conn = meta.(*matlas.Client)
+	// Get client connection.
+	conn := meta.(*matlas.Client)
 
-		projectID    = d.Get("project_id").(string)
-		providerName = d.Get("provider_name").(string)
+	projectID := d.Get("project_id").(string)
+	providerName := d.Get("provider_name").(string)
 
-		computeEnabled   = d.Get("auto_scaling_compute_enabled").(bool)
-		scaleDownEnabled = d.Get("auto_scaling_compute_scale_down_enabled").(bool)
-		minInstanceSize  = d.Get("provider_auto_scaling_compute_min_instance_size").(string)
-		maxInstanceSize  = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
-	)
+	computeEnabled := d.Get("auto_scaling_compute_enabled").(bool)
+	scaleDownEnabled := d.Get("auto_scaling_compute_scale_down_enabled").(bool)
+	minInstanceSize := d.Get("provider_auto_scaling_compute_min_instance_size").(string)
+	maxInstanceSize := d.Get("provider_auto_scaling_compute_max_instance_size").(string)
 
 	if scaleDownEnabled && !computeEnabled {
 		return fmt.Errorf("`auto_scaling_compute_scale_down_enabled` must be set when `auto_scaling_compute_enabled` is set")
