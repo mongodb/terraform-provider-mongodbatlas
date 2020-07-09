@@ -109,7 +109,7 @@ func dataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	peerID := d.Get("peering_id").(string)
@@ -119,10 +119,11 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta inter
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
+
 		return fmt.Errorf(errorPeersRead, peerID, err)
 	}
 
-	//Workaround until fix.
+	// Workaround until fix.
 	if peer.AccepterRegionName != "" {
 		if err := d.Set("accepter_region_name", peer.AccepterRegionName); err != nil {
 			return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)

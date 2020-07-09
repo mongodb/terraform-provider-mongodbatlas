@@ -36,7 +36,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotBackupPolicyConfig(projec
 			name         = "%s"
 			disk_size_gb = 5
 
-			//Provider Settings "block"
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"

@@ -47,7 +47,7 @@ func dataSourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasPrivateEndpointrRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Get("project_id").(string)
@@ -61,15 +61,19 @@ func dataSourceMongoDBAtlasPrivateEndpointrRead(d *schema.ResourceData, meta int
 	if err := d.Set("private_link_id", privateEndpoint.ID); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
 	}
+
 	if err := d.Set("endpoint_service_name", privateEndpoint.EndpointServiceName); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "endpoint_service_name", privateLinkID, err)
 	}
+
 	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "error_message", privateLinkID, err)
 	}
+
 	if err := d.Set("interface_endpoints", privateEndpoint.InterfaceEndpoints); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
 	}
+
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "status", privateLinkID, err)
 	}

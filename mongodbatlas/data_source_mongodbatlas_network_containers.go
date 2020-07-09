@@ -78,7 +78,7 @@ func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasNetworkContainersRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
@@ -105,21 +105,22 @@ func flattenNetworkContainers(containers []matlas.Container) []map[string]interf
 	if len(containers) > 0 {
 		containersMap = make([]map[string]interface{}, len(containers))
 
-		for k, container := range containers {
-			containersMap[k] = map[string]interface{}{
-				"id":                    container.ID,
-				"atlas_cidr_block":      container.AtlasCIDRBlock,
-				"provider_name":         container.ProviderName,
-				"region_name":           container.RegionName,
-				"region":                container.Region,
-				"azure_subscription_id": container.AzureSubscriptionID,
-				"provisioned":           container.Provisioned,
-				"gcp_project_id":        container.GCPProjectID,
-				"network_name":          container.NetworkName,
-				"vpc_id":                container.VPCID,
-				"vnet_name":             container.VNetName,
+		for i := range containers {
+			containersMap[i] = map[string]interface{}{
+				"id":                    containers[i].ID,
+				"atlas_cidr_block":      containers[i].AtlasCIDRBlock,
+				"provider_name":         containers[i].ProviderName,
+				"region_name":           containers[i].RegionName,
+				"region":                containers[i].Region,
+				"azure_subscription_id": containers[i].AzureSubscriptionID,
+				"provisioned":           containers[i].Provisioned,
+				"gcp_project_id":        containers[i].GCPProjectID,
+				"network_name":          containers[i].NetworkName,
+				"vpc_id":                containers[i].VPCID,
+				"vnet_name":             containers[i].VNetName,
 			}
 		}
 	}
+
 	return containersMap
 }

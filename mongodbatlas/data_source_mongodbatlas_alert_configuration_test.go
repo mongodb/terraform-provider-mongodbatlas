@@ -10,10 +10,11 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlaAlertConfiguration_basic(t *testing.T) {
-	var alert = &matlas.AlertConfiguration{}
-
-	dataSourceName := "data.mongodbatlas_alert_configuration.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	var (
+		alert          = &matlas.AlertConfiguration{}
+		dataSourceName = "data.mongodbatlas_alert_configuration.test"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,7 +30,6 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
@@ -38,7 +38,7 @@ func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 			project_id = "%s"
 			event_type = "OUTSIDE_METRIC_THRESHOLD"
 			enabled    = true
-		
+
 			notification {
 				type_name     = "GROUP"
 				interval_min  = 5
@@ -46,13 +46,13 @@ func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 				sms_enabled   = false
 				email_enabled = true
 			}
-		
+
 			matcher {
 				field_name = "HOSTNAME_AND_PORT"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}
-		
+
 			metric_threshold = {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
@@ -61,7 +61,7 @@ func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 				mode        = "AVERAGE"
 			}
 		}
-		
+
 		data "mongodbatlas_alert_configuration" "test" {
 			project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
 			alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"

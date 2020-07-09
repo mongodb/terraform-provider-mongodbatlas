@@ -81,7 +81,6 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 					},
 				},
 			},
-			//Computed:
 			"custom_zone_mapping": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -91,7 +90,7 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 }
 
 func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -117,6 +116,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interf
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
 		var customZoneMappings []matlas.CustomZoneMapping
+
 		for _, czms := range v.(*schema.Set).List() {
 			cz := czms.(map[string]interface{})
 
@@ -139,7 +139,6 @@ func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interf
 				return fmt.Errorf(errorGlobalClusterCreate, err)
 			}
 		}
-
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -150,7 +149,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interf
 	return resourceMongoDBAtlasGlobalClusterRead(d, meta)
 }
 func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -159,9 +158,9 @@ func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interfac
 	globalCluster, resp, err := conn.GlobalClusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-
 			return nil
 		}
+
 		return fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
 
@@ -177,16 +176,16 @@ func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceMongoDBAtlasGlobalClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
 	if d.HasChange("managed_namespaces") {
-		old, new := d.GetChange("managed_namespaces")
+		old, newMN := d.GetChange("managed_namespaces")
 		oldSet := old.(*schema.Set)
-		newSet := new.(*schema.Set)
+		newSet := newMN.(*schema.Set)
 
 		remove := oldSet.Difference(newSet).List()
 		add := newSet.Difference(oldSet).List()
@@ -195,7 +194,6 @@ func resourceMongoDBAtlasGlobalClusterUpdate(d *schema.ResourceData, meta interf
 			if err := addManagedNamespaces(conn, add, projectID, clusterName); err != nil {
 				return fmt.Errorf(errorGlobalClusterUpdate, clusterName, err)
 			}
-
 		}
 
 		if len(remove) > 0 {
@@ -209,7 +207,7 @@ func resourceMongoDBAtlasGlobalClusterUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceMongoDBAtlasGlobalClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -246,12 +244,11 @@ func flattenManagedNamespaces(managedNamespaces []matlas.ManagedNamespace) []map
 			}
 		}
 	}
+
 	return results
 }
 
 func resourceMongoDBAtlasGlobalClusterImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	//conn := meta.(*matlas.Client)
-
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a global cluster, use the format {project_id}-{cluster-name}")
@@ -290,6 +287,7 @@ func removeManagedNamespaces(conn *matlas.Client, remove []interface{}, projectI
 			return err
 		}
 	}
+
 	return nil
 }
 

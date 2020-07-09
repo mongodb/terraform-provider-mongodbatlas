@@ -5,10 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -87,7 +85,7 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasDatabaseUsersRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Get("project_id").(string)
@@ -112,16 +110,17 @@ func flattenDBUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
 	if len(dbUsers) > 0 {
 		dbUsersMap = make([]map[string]interface{}, len(dbUsers))
 
-		for k, dbUser := range dbUsers {
-			dbUsersMap[k] = map[string]interface{}{
-				"roles":              flattenRoles(dbUser.Roles),
-				"username":           dbUser.Username,
-				"project_id":         dbUser.GroupID,
-				"auth_database_name": dbUser.DatabaseName,
-				"x509_type":          dbUser.X509Type,
-				"labels":             flattenLabels(dbUser.Labels),
+		for i := range dbUsers {
+			dbUsersMap[i] = map[string]interface{}{
+				"roles":              flattenRoles(dbUsers[i].Roles),
+				"username":           dbUsers[i].Username,
+				"project_id":         dbUsers[i].GroupID,
+				"auth_database_name": dbUsers[i].DatabaseName,
+				"x509_type":          dbUsers[i].X509Type,
+				"labels":             flattenLabels(dbUsers[i].Labels),
 			}
 		}
 	}
+
 	return dbUsersMap
 }

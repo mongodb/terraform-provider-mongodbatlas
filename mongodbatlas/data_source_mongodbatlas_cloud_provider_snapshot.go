@@ -82,27 +82,35 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, met
 	if err = d.Set("created_at", snapshotRes.CreatedAt); err != nil {
 		return fmt.Errorf("error setting `created_at` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("description", snapshotRes.Description); err != nil {
 		return fmt.Errorf("error setting `description` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("expires_at", snapshotRes.ExpiresAt); err != nil {
 		return fmt.Errorf("error setting `expires_at` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("master_key_uuid", snapshotRes.MasterKeyUUID); err != nil {
 		return fmt.Errorf("error setting `master_key_uuid` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("mongod_version", snapshotRes.MongodVersion); err != nil {
 		return fmt.Errorf("error setting `mongod_version` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("snapshot_type", snapshotRes.SnapshotType); err != nil {
 		return fmt.Errorf("error setting `snapshot_type` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("status", snapshotRes.Status); err != nil {
 		return fmt.Errorf("error setting `status` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("storage_size_bytes", snapshotRes.StorageSizeBytes); err != nil {
 		return fmt.Errorf("error setting `storage_size_bytes` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}
+
 	if err = d.Set("type", snapshotRes.Type); err != nil {
 		return fmt.Errorf("error setting `type` for cloudProviderSnapshot (%s): %s", d.Id(), err)
 	}

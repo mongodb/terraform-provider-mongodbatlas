@@ -67,7 +67,7 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 }
 
 func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectReq := &matlas.Project{
@@ -111,15 +111,19 @@ func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("name", projectRes.Name); err != nil {
 		return fmt.Errorf(errorProjectSetting, `name`, projectID, err)
 	}
+
 	if err := d.Set("org_id", projectRes.OrgID); err != nil {
 		return fmt.Errorf(errorProjectSetting, `org_id`, projectID, err)
 	}
+
 	if err := d.Set("cluster_count", projectRes.ClusterCount); err != nil {
 		return fmt.Errorf(errorProjectSetting, `clusterCount`, projectID, err)
 	}
+
 	if err := d.Set("created", projectRes.Created); err != nil {
 		return fmt.Errorf(errorProjectSetting, `created`, projectID, err)
 	}
+
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
 		return fmt.Errorf(errorProjectSetting, `created`, projectID, err)
 	}
@@ -179,6 +183,7 @@ func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf(errorProjectDelete, projectID, err)
 	}
+
 	return nil
 }
 
@@ -192,6 +197,7 @@ func expandTeamsSet(teams *schema.Set) []*matlas.ProjectTeam {
 			RoleNames: expandStringList(v["role_names"].(*schema.Set).List()),
 		}
 	}
+
 	return res
 }
 
@@ -205,6 +211,7 @@ func expandTeamsList(teams []interface{}) []*matlas.ProjectTeam {
 			RoleNames: expandStringList(v["role_names"].(*schema.Set).List()),
 		}
 	}
+
 	return res
 }
 
@@ -218,31 +225,34 @@ func flattenTeams(ta *matlas.TeamsAssigned) []map[string]interface{} {
 			"role_names": team.RoleNames,
 		}
 	}
+
 	return res
 }
 
-func getStateTeams(d *schema.ResourceData) ([]interface{}, []interface{}, []interface{}) {
+func getStateTeams(d *schema.ResourceData) (newTeams, changedTeams, removedTeams []interface{}) {
 	currentTeams, changes := d.GetChange("teams")
 
-	removedTeams := currentTeams.(*schema.Set).Difference(changes.(*schema.Set))
-	newTeams := changes.(*schema.Set).Difference(currentTeams.(*schema.Set))
-	changedTeams := make([]interface{}, 0)
+	rTeams := currentTeams.(*schema.Set).Difference(changes.(*schema.Set))
+	nTeams := changes.(*schema.Set).Difference(currentTeams.(*schema.Set))
+	changedTeams = make([]interface{}, 0)
 
-	for _, changed := range newTeams.List() {
-
-		for _, removed := range removedTeams.List() {
+	for _, changed := range nTeams.List() {
+		for _, removed := range rTeams.List() {
 			if changed.(map[string]interface{})["team_id"] == removed.(map[string]interface{})["team_id"] {
-				removedTeams.Remove(removed)
+				rTeams.Remove(removed)
 			}
 		}
 
 		for _, current := range currentTeams.(*schema.Set).List() {
 			if changed.(map[string]interface{})["team_id"] == current.(map[string]interface{})["team_id"] {
 				changedTeams = append(changedTeams, changed.(map[string]interface{}))
-				newTeams.Remove(changed)
+				nTeams.Remove(changed)
 			}
 		}
 	}
 
-	return newTeams.List(), changedTeams, removedTeams.List()
+	newTeams = nTeams.List()
+	removedTeams = rTeams.List()
+
+	return
 }

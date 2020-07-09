@@ -14,24 +14,26 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
-	resourceName := "mongodbatlas_encryption_at_rest.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	awsKms := matlas.AwsKms{
-		Enabled:             pointy.Bool(true),
-		AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
-		SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
-		Region:              os.Getenv("AWS_REGION"),
-	}
+		awsKms = matlas.AwsKms{
+			Enabled:             pointy.Bool(true),
+			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
+			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
+			Region:              os.Getenv("AWS_REGION"),
+		}
 
-	awsKmsUpdated := matlas.AwsKms{
-		Enabled:             pointy.Bool(true),
-		AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID_UPDATED"),
-		SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
-		CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED"),
-		Region:              os.Getenv("AWS_REGION_UPDATED"),
-	}
+		awsKmsUpdated = matlas.AwsKms{
+			Enabled:             pointy.Bool(true),
+			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID_UPDATED"),
+			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
+			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED"),
+			Region:              os.Getenv("AWS_REGION_UPDATED"),
+		}
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
@@ -67,32 +69,34 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
-	resourceName := "mongodbatlas_encryption_at_rest.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	azureKeyVault := matlas.AzureKeyVault{
-		Enabled:           pointy.Bool(true),
-		ClientID:          os.Getenv("AZURE_CLIENT_ID"),
-		AzureEnvironment:  "AZURE",
-		SubscriptionID:    os.Getenv("AZURE_SUBCRIPTION_ID"),
-		ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME"),
-		KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME"),
-		KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER"),
-		Secret:            os.Getenv("AZURE_SECRET"),
-		TenantID:          os.Getenv("AZURE_TENANT_ID"),
-	}
+		azureKeyVault = matlas.AzureKeyVault{
+			Enabled:           pointy.Bool(true),
+			ClientID:          os.Getenv("AZURE_CLIENT_ID"),
+			AzureEnvironment:  "AZURE",
+			SubscriptionID:    os.Getenv("AZURE_SUBCRIPTION_ID"),
+			ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME"),
+			KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME"),
+			KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER"),
+			Secret:            os.Getenv("AZURE_SECRET"),
+			TenantID:          os.Getenv("AZURE_TENANT_ID"),
+		}
 
-	azureKeyVaultUpdated := matlas.AzureKeyVault{
-		Enabled:           pointy.Bool(true),
-		ClientID:          os.Getenv("AZURE_CLIENT_ID_UPDATED"),
-		AzureEnvironment:  "AZURE",
-		SubscriptionID:    os.Getenv("AZURE_SUBCRIPTION_ID"),
-		ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED"),
-		KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED"),
-		KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED"),
-		Secret:            os.Getenv("AZURE_SECRET_UPDATED"),
-		TenantID:          os.Getenv("AZURE_TENANT_ID"),
-	}
+		azureKeyVaultUpdated = matlas.AzureKeyVault{
+			Enabled:           pointy.Bool(true),
+			ClientID:          os.Getenv("AZURE_CLIENT_ID_UPDATED"),
+			AzureEnvironment:  "AZURE",
+			SubscriptionID:    os.Getenv("AZURE_SUBCRIPTION_ID"),
+			ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED"),
+			KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED"),
+			KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED"),
+			Secret:            os.Getenv("AZURE_SECRET_UPDATED"),
+			TenantID:          os.Getenv("AZURE_TENANT_ID"),
+		}
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkEncryptionAtRestEnvAzure(t) },
@@ -136,19 +140,22 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
-	resourceName := "mongodbatlas_encryption_at_rest.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
-	googleCloudKms := matlas.GoogleCloudKms{
-		Enabled:              pointy.Bool(true),
-		ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY"),
-		KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID"),
-	}
-	googleCloudKmsUpdated := matlas.GoogleCloudKms{
-		Enabled:              pointy.Bool(true),
-		ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED"),
-		KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED"),
-	}
+		googleCloudKms = matlas.GoogleCloudKms{
+			Enabled:              pointy.Bool(true),
+			ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY"),
+			KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID"),
+		}
+
+		googleCloudKmsUpdated = matlas.GoogleCloudKms{
+			Enabled:              pointy.Bool(true),
+			ServiceAccountKey:    os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED"),
+			KeyVersionResourceID: os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED"),
+		}
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
@@ -187,6 +194,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -194,6 +202,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 		if _, _, err := conn.EncryptionsAtRest.Get(context.Background(), rs.Primary.ID); err == nil {
 			return nil
 		}
+
 		return fmt.Errorf("encryptionAtRest (%s) does not exist", rs.Primary.ID)
 	}
 }
@@ -215,6 +224,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
 			return fmt.Errorf("encryptionAtRest (%s) still exists: err: %s", rs.Primary.ID, err)
 		}
 	}
+
 	return nil
 }
 

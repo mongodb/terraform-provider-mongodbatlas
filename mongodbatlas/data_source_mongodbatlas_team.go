@@ -42,7 +42,7 @@ func dataSourceMongoDBAtlasTeam() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	orgID := d.Get("org_id").(string)
 	teamID, teamIDOk := d.GetOk("team_id")
@@ -59,7 +59,7 @@ func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) er
 	} else {
 		team, _, err = conn.Teams.GetOneTeamByName(context.Background(), orgID, name.(string))
 	}
-	//	team, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
+
 	if err != nil {
 		return fmt.Errorf(errorTeamRead, err)
 	}
@@ -68,15 +68,15 @@ func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf(errorTeamSetting, "name", d.Id(), err)
 	}
 
-	//Set Usernames
+	// Set Usernames
 	users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, team.ID)
 	if err != nil {
 		return fmt.Errorf(errorTeamRead, err)
 	}
 
-	var usernames []string
-	for _, u := range users {
-		usernames = append(usernames, u.Username)
+	usernames := []string{}
+	for i := range users {
+		usernames = append(usernames, users[i].Username)
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {

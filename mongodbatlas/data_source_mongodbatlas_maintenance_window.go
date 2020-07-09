@@ -39,7 +39,7 @@ func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
@@ -51,16 +51,20 @@ func dataSourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta in
 	if err := d.Set("day_of_week", maintenance.DayOfWeek); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, projectID, err)
 	}
+
 	if err := d.Set("hour_of_day", maintenance.HourOfDay); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, projectID, err)
 	}
+
 	if err := d.Set("number_of_deferrals", maintenance.NumberOfDeferrals); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, projectID, err)
 	}
+
 	if err := d.Set("start_asap", cast.ToBool(maintenance.StartASAP)); err != nil {
 		return fmt.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	d.SetId(projectID)
+
 	return nil
 }

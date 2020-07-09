@@ -49,7 +49,6 @@ func TestAccDataSourceMongoDBAtlasNetworkContainers_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccMongoDBAtlasNetworkContainersDSConfig(projectID, cidrBlock string) string {

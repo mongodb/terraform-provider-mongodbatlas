@@ -101,7 +101,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 }
 
 func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -138,9 +138,11 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
 		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
@@ -155,7 +157,7 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 }
 
 func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
@@ -197,7 +199,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -230,7 +232,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -241,6 +243,7 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
 	}
+
 	return nil
 }
 
@@ -260,6 +263,7 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 	if err := d.Set("project_id", u.GroupID); err != nil {
 		return nil, fmt.Errorf("error setting `project_id` for database user (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("auth_database_name", u.DatabaseName); err != nil {
 		return nil, fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
 	}
@@ -273,21 +277,29 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitDatabaseUserImportID(ID string) (*string, *string, *string, error) {
+func splitDatabaseUserImportID(id string) (projectID, username, authDatabaseName *string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([a-z]{1,15})$`)
-	parts := re.FindStringSubmatch(ID)
+	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		return nil, nil, nil, errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name}")
+		err = errors.New("import format error: to import a Database User, use the format {project_id}-{username}-{auth_database_name}")
+		return
 	}
-	return &parts[1], &parts[2], &parts[3], nil
+
+	projectID = &parts[1]
+	username = &parts[2]
+	authDatabaseName = &parts[3]
+
+	return
 }
 
 func expandRoles(d *schema.ResourceData) []matlas.Role {
 	var roles []matlas.Role
+
 	if v, ok := d.GetOk("roles"); ok {
 		if rs := v.(*schema.Set); rs.Len() > 0 {
 			roles = make([]matlas.Role, rs.Len())
+
 			for k, r := range rs.List() {
 				roleMap := r.(map[string]interface{})
 				roles[k] = matlas.Role{
@@ -298,6 +310,7 @@ func expandRoles(d *schema.ResourceData) []matlas.Role {
 			}
 		}
 	}
+
 	return roles
 }
 
@@ -310,5 +323,6 @@ func flattenRoles(roles []matlas.Role) []interface{} {
 			"collection_name": v.CollectionName,
 		})
 	}
+
 	return roleList
 }

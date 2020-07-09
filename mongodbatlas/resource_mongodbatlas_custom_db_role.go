@@ -124,6 +124,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 				}
 				return nil, "failed", err
 			}
+
 			return customDBRoleRes, "created", nil
 		},
 		Timeout:    10 * time.Minute,
@@ -159,9 +160,11 @@ func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface
 	if err := d.Set("role_name", customDBRole.RoleName); err != nil {
 		return fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("actions", flattenActions(customDBRole.Actions)); err != nil {
 		return fmt.Errorf("error setting `actions` for custom db role (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("inherited_roles", flattenInheritedRoles(customDBRole.InheritedRoles)); err != nil {
 		return fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err)
 	}
@@ -277,11 +280,13 @@ func expandActions(d *schema.ResourceData) []matlas.Action {
 			Resources: expandActionResources(a["resources"].(*schema.Set)),
 		}
 	}
+
 	return actions
 }
 
 func expandActionResources(resources *schema.Set) []matlas.Resource {
 	actionResources := make([]matlas.Resource, resources.Len())
+
 	for k, v := range resources.List() {
 		resourceMap := v.(map[string]interface{})
 		actionResources[k] = matlas.Resource{
@@ -290,6 +295,7 @@ func expandActionResources(resources *schema.Set) []matlas.Resource {
 			Cluster:    pointy.Bool(cast.ToBool(resourceMap["cluster"])),
 		}
 	}
+
 	return actionResources
 }
 
@@ -301,11 +307,13 @@ func flattenActions(actions []matlas.Action) []map[string]interface{} {
 			"resources": flattenActionResources(v.Resources),
 		})
 	}
+
 	return actionList
 }
 
 func flattenActionResources(resources []matlas.Resource) []map[string]interface{} {
 	actionResourceList := make([]map[string]interface{}, 0)
+
 	for _, v := range resources {
 		if cluster := v.Cluster; cluster != nil {
 			actionResourceList = append(actionResourceList, map[string]interface{}{
@@ -318,14 +326,17 @@ func flattenActionResources(resources []matlas.Resource) []map[string]interface{
 			})
 		}
 	}
+
 	return actionResourceList
 }
 
 func expandInheritedRoles(d *schema.ResourceData) []matlas.InheritedRole {
 	var inheritedRoles []matlas.InheritedRole
+
 	if v, ok := d.GetOk("inherited_roles"); ok {
 		if rs := v.([]interface{}); len(rs) > 0 {
 			inheritedRoles = make([]matlas.InheritedRole, len(rs))
+
 			for k, r := range rs {
 				roleMap := r.(map[string]interface{})
 				inheritedRoles[k] = matlas.InheritedRole{
@@ -335,6 +346,7 @@ func expandInheritedRoles(d *schema.ResourceData) []matlas.InheritedRole {
 			}
 		}
 	}
+
 	return inheritedRoles
 }
 
@@ -346,5 +358,6 @@ func flattenInheritedRoles(roles []matlas.InheritedRole) []map[string]interface{
 			"role_name":     v.Role,
 		})
 	}
+
 	return inheritedRoleList
 }

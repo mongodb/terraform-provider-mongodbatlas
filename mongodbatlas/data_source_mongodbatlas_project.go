@@ -60,23 +60,27 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	name, nameOk := d.GetOk("name")
+
 	if !projectIDOk && !nameOk {
 		return errors.New("either project_id or name must be configured")
 	}
 
-	var err error
-	var project *matlas.Project
+	var (
+		err     error
+		project *matlas.Project
+	)
 
 	if projectIDOk {
 		project, _, err = conn.Projects.GetOneProject(context.Background(), projectID.(string))
 	} else {
 		project, _, err = conn.Projects.GetOneProjectByName(context.Background(), name.(string))
 	}
+
 	if err != nil {
 		return fmt.Errorf(errorProjectRead, projectID, err)
 	}
@@ -89,16 +93,20 @@ func dataSourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{})
 	if err := d.Set("org_id", project.OrgID); err != nil {
 		return fmt.Errorf(errorProjectSetting, `org_id`, project.ID, err)
 	}
+
 	if err := d.Set("cluster_count", project.ClusterCount); err != nil {
 		return fmt.Errorf(errorProjectSetting, `clusterCount`, project.ID, err)
 	}
+
 	if err := d.Set("created", project.Created); err != nil {
 		return fmt.Errorf(errorProjectSetting, `created`, project.ID, err)
 	}
+
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
 		return fmt.Errorf(errorProjectSetting, `teams`, project.ID, err)
 	}
 
 	d.SetId(project.ID)
+
 	return nil
 }

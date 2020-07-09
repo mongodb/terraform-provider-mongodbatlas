@@ -46,7 +46,7 @@ func dataSourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Get("project_id").(string)
@@ -61,9 +61,11 @@ func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceDa
 	if err := d.Set("delete_requested", cast.ToBool(interfaceEndpoint.DeleteRequested)); err != nil {
 		return fmt.Errorf(errorInterfaceEndpointSetting, "delete_requested", interfaceEndpointID, err)
 	}
+
 	if err := d.Set("error_message", interfaceEndpoint.ErrorMessage); err != nil {
 		return fmt.Errorf(errorInterfaceEndpointSetting, "error_message", interfaceEndpointID, err)
 	}
+
 	if err := d.Set("connection_status", interfaceEndpoint.ConnectionStatus); err != nil {
 		return fmt.Errorf(errorInterfaceEndpointSetting, "connection_status", interfaceEndpointID, err)
 	}

@@ -10,13 +10,14 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasAuditing_basic(t *testing.T) {
-	var auditing matlas.Auditing
-	dataSourceName := "data.mongodbatlas_auditing.test"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	auditAuth := true
-	auditFilter := "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
-	enabled := true
+	var (
+		auditing       matlas.Auditing
+		dataSourceName = "data.mongodbatlas_auditing.test"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		auditAuth      = true
+		auditFilter    = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		enabled        = true
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

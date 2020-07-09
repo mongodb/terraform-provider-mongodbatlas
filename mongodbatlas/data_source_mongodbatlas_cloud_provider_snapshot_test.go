@@ -11,12 +11,13 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
-	var cloudProviderSnapshot matlas.CloudProviderSnapshot
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		cloudProviderSnapshot matlas.CloudProviderSnapshot
+		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description           = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays       = "1"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -42,8 +43,8 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotConfig(projectID, cluster
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"

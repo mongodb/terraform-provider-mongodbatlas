@@ -78,13 +78,14 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
 	dbName, dbNameOk := d.GetOk("database_name")
 	authDBName, authDBNameOk := d.GetOk("auth_database_name")
+
 	if !dbNameOk && !authDBNameOk {
 		return errors.New("one of database_name or auth_database_name must be configured")
 	}
@@ -100,6 +101,7 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
+
 	if err := d.Set("username", dbUser.Username); err != nil {
 		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
 	}
@@ -117,9 +119,11 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
 		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}

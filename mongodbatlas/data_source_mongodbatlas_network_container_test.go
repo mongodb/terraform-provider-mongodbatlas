@@ -15,10 +15,10 @@ func TestAccDataSourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
 
 	randInt := acctest.RandIntRange(0, 255)
 
-	resourceName := "mongodbatlas_network_container.test"
+	resourceName := "mongodbatlas_network_container.test_ds"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("10.8.%d.0/24", randInt)
-	dataSourceName := "data.mongodbatlas_network_container.test"
+	dataSourceName := "data.mongodbatlas_network_container.test_ds"
 
 	providerName := "AWS"
 
@@ -42,21 +42,20 @@ func TestAccDataSourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccMongoDBAtlasNetworkContainerDSConfig(projectID, cidrBlock string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_network_container" "test" {
+		resource "mongodbatlas_network_container" "test_ds" {
 			project_id   		 = "%s"
 			atlas_cidr_block = "%s"
 			provider_name		 = "AWS"
 			region_name			 = "US_EAST_1"
 		}
 
-		data "mongodbatlas_network_container" "test" {
-			project_id   		= mongodbatlas_network_container.test.project_id
-			container_id		= mongodbatlas_network_container.test.id
+		data "mongodbatlas_network_container" "test_ds" {
+			project_id   		= mongodbatlas_network_container.test_ds.project_id
+			container_id		= mongodbatlas_network_container.test_ds.container_id
 		}
 	`, projectID, cidrBlock)
 }

@@ -10,7 +10,6 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasNetworkPeerings_basic(t *testing.T) {
-
 	var peer matlas.Peer
 
 	resourceName := "mongodbatlas_network_peering.test"
@@ -43,7 +42,6 @@ func TestAccDataSourceMongoDBAtlasNetworkPeerings_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDSMongoDBAtlasNetworkPeeringsConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion string) string {

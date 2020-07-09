@@ -41,7 +41,6 @@ func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username string) string {

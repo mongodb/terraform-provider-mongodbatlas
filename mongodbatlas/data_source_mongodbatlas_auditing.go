@@ -39,7 +39,6 @@ func dataSourceMongoDBAtlasAuditing() *schema.Resource {
 
 func dataSourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
-
 	projectID := d.Get("project_id").(string)
 
 	auditing, _, err := conn.Auditing.Get(context.Background(), projectID)
@@ -50,16 +49,20 @@ func dataSourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}
 	if err := d.Set("audit_authorization_success", auditing.AuditAuthorizationSuccess); err != nil {
 		return fmt.Errorf(errorAuditingRead, projectID, err)
 	}
+
 	if err := d.Set("audit_filter", auditing.AuditFilter); err != nil {
 		return fmt.Errorf(errorAuditingRead, projectID, err)
 	}
+
 	if err := d.Set("enabled", auditing.Enabled); err != nil {
 		return fmt.Errorf(errorAuditingRead, projectID, err)
 	}
+
 	if err := d.Set("configuration_type", auditing.ConfigurationType); err != nil {
 		return fmt.Errorf(errorAuditingRead, projectID, err)
 	}
 
 	d.SetId(projectID)
+
 	return nil
 }

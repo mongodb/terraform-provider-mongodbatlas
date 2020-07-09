@@ -103,21 +103,27 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d *schema.Resou
 	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "cluster_id", clusterName, err)
 	}
+
 	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "reference_hour_of_day", clusterName, err)
 	}
+
 	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "reference_minute_of_hour", clusterName, err)
 	}
+
 	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "restore_window_days", clusterName, err)
 	}
+
 	if err := d.Set("update_snapshots", backupPolicy.UpdateSnapshots); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "update_snapshots", clusterName, err)
 	}
+
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "next_snapshot", clusterName, err)
 	}
+
 	if err := d.Set("policies", flattenPolicies(backupPolicy.Policies)); err != nil {
 		return fmt.Errorf(errorSnapshotBackupPolicySetting, "policies", clusterName, err)
 	}

@@ -11,12 +11,13 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing.T) {
-	var cloudProviderSnapshot matlas.CloudProviderSnapshot
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		cloudProviderSnapshot matlas.CloudProviderSnapshot
+		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description           = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays       = "1"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -42,8 +43,8 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 5
-			
-			//Provider Settings "block"
+
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_WEST_2"
 			provider_instance_size_name = "M10"
@@ -58,7 +59,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 			description       = "%s"
 			retention_in_days = %s
 		}
-		
+
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id    = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name  = mongodbatlas_cloud_provider_snapshot.test.cluster_name

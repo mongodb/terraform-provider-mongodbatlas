@@ -15,7 +15,7 @@ import (
 func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
-	resourceName := "mongodbatlas_database_user.test"
+	resourceName := "mongodbatlas_database_user.basic_ds"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
@@ -223,7 +223,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	username := fmt.Sprintf("test-username-%s", acctest.RandString(5))
-	resourceName := "mongodbatlas_database_user.test"
+	resourceName := "mongodbatlas_database_user.basic_ds"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -255,10 +255,11 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
+
 		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
 	}
 }
@@ -271,6 +272,7 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.Attributes["project_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -281,6 +283,7 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 			*dbUser = *dbUserResp
 			return nil
 		}
+
 		return fmt.Errorf("database user(%s) does not exist", ids["project_id"])
 	}
 }
@@ -290,6 +293,7 @@ func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser,
 		if dbUser.Username != username {
 			return fmt.Errorf("bad username: %s", dbUser.Username)
 		}
+
 		return nil
 	}
 }
@@ -309,12 +313,13 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 			return fmt.Errorf("database user (%s) still exists", ids["project_id"])
 		}
 	}
+
 	return nil
 }
 
 func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_database_user" "basic_ds" {
 			username           = "%[3]s"
 			password           = "test-acc-password"
 			project_id         = "%[1]s"
@@ -355,7 +360,6 @@ func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, roleName, user
 }
 
 func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, username string, labels []matlas.Label) string {
-
 	var labelsConf string
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
@@ -386,15 +390,18 @@ func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, userna
 
 func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID string, rolesArr []*matlas.Role) string {
 	var roles string
+
 	for _, role := range rolesArr {
 		var roleName, databaseName, collection string
 
 		if role.RoleName != "" {
 			roleName = fmt.Sprintf(`role_name = "%s"`, role.RoleName)
 		}
+
 		if role.DatabaseName != "" {
 			databaseName = fmt.Sprintf(`database_name = "%s"`, role.DatabaseName)
 		}
+
 		if role.CollectionName != "" {
 			collection = fmt.Sprintf(`collection_name = "%s"`, role.CollectionName)
 		}

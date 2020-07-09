@@ -126,15 +126,19 @@ func resourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interf
 	if err := d.Set("private_link_id", privateEndpoint.ID); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
 	}
+
 	if err := d.Set("endpoint_service_name", privateEndpoint.EndpointServiceName); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "endpoint_service_name", privateLinkID, err)
 	}
+
 	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "error_message", privateLinkID, err)
 	}
+
 	if err := d.Set("interface_endpoints", privateEndpoint.InterfaceEndpoints); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
 	}
+
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "status", privateLinkID, err)
 	}
@@ -154,6 +158,7 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 		if resp.Response.StatusCode == 404 {
 			return nil
 		}
+
 		return fmt.Errorf(errorPrivateEndpointsDelete, privateLinkID, err)
 	}
 
@@ -211,6 +216,7 @@ func resourcePrivateEndpointRefreshFunc(client *matlas.Client, projectID, privat
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
+
 			return nil, "REJECTED", err
 		}
 

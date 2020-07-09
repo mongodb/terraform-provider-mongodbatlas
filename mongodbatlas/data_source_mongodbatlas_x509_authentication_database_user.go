@@ -61,7 +61,7 @@ func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interface{}) error {
-	//Get client connection.
+	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
@@ -71,6 +71,7 @@ func dataSourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta inter
 		if err != nil {
 			return fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
+
 		if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
 			return fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
 		}
@@ -80,6 +81,7 @@ func dataSourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta inter
 	if err != nil {
 		return fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
 	}
+
 	if err := d.Set("customer_x509_cas", customerX509.Cas); err != nil {
 		return fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
 	}

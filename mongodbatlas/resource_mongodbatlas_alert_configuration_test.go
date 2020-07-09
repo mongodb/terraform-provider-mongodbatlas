@@ -12,10 +12,11 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_basic(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var alert = &matlas.AlertConfiguration{}
-
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		alert        = &matlas.AlertConfiguration{}
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,10 +42,11 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_Notifications(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var alert = &matlas.AlertConfiguration{}
-
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		alert        = &matlas.AlertConfiguration{}
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -70,10 +72,11 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_Notifications(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_WithMatchers(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var alert = &matlas.AlertConfiguration{}
-
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		alert        = &matlas.AlertConfiguration{}
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -119,10 +122,11 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_WithMatchers(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	var alert = &matlas.AlertConfiguration{}
-
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		alert        = &matlas.AlertConfiguration{}
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -148,10 +152,11 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
-	var alert = &matlas.AlertConfiguration{}
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		alert        = &matlas.AlertConfiguration{}
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -170,9 +175,10 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		resourceName = "mongodbatlas_alert_configuration.test"
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -194,9 +200,10 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_importConfigNotifications(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-
-	resourceName := "mongodbatlas_alert_configuration.test"
+	var (
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		resourceName = "mongodbatlas_alert_configuration.test"
+	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -225,6 +232,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -233,9 +241,11 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 
 		alertResp, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 		if err != nil {
-			return fmt.Errorf("Alert Configuration(%s) does not exist", ids["id"])
+			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids["id"])
 		}
+
 		alert = alertResp
+
 		return nil
 	}
 }
@@ -247,13 +257,15 @@ func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error
 		if rs.Type != "mongodbatlas_alert_configuration" {
 			continue
 		}
+
 		ids := decodeStateID(rs.Primary.ID)
 
 		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 		if alert != nil {
-			return fmt.Errorf("project Alert Configuration(%s) still exists %s", ids["id"], err)
+			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids["id"], err)
 		}
 	}
+
 	return nil
 }
 
@@ -261,8 +273,9 @@ func testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName st
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
+
 		ids := decodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["id"]), nil

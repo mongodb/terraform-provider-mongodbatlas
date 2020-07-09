@@ -15,14 +15,14 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
-	var cloudProviderSnapshot = matlas.CloudProviderSnapshot{}
-
-	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		cloudProviderSnapshot = matlas.CloudProviderSnapshot{}
+		resourceName          = "mongodbatlas_cloud_provider_snapshot.test"
+		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description           = "My description in my cluster"
+		retentionInDays       = "4"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,13 +45,13 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) {
-
-	resourceName := "mongodbatlas_cloud_provider_snapshot.test"
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	description := fmt.Sprintf("My description in %s", clusterName)
-	retentionInDays := "1"
+	var (
+		resourceName    = "mongodbatlas_cloud_provider_snapshot.test"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description     = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays = "5"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,6 +80,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
+
 		if rs.Primary.Attributes["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
@@ -97,6 +98,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotExists(resourceName string, cl
 			*cloudProviderSnapshot = *res
 			return nil
 		}
+
 		return fmt.Errorf("cloudProviderSnapshot (%s) does not exist", rs.Primary.Attributes["snapshot_id"])
 	}
 }
@@ -106,6 +108,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotAttributes(cloudProviderSnapsh
 		if cloudProviderSnapshot.Description != description {
 			return fmt.Errorf("bad cloudProviderSnapshot description: %s", cloudProviderSnapshot.Description)
 		}
+
 		return nil
 	}
 }
@@ -130,6 +133,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy(s *terraform.State) er
 			return fmt.Errorf("cloudProviderSnapshot (%s) still exists", rs.Primary.Attributes["snapshot_id"])
 		}
 	}
+
 	return nil
 }
 
@@ -137,7 +141,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("Not found: %s", resourceName)
+			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
 		log.Printf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_id"])
@@ -151,9 +155,9 @@ func testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, desc
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
+			disk_size_gb = 10
 
-			//Provider Settings "block"
+			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
@@ -190,5 +194,4 @@ func TestResourceMongoDBAtlasCloudProviderSnapshot_snapshotID(t *testing.T) {
 	if _, err := splitSnapshotImportID("5cf5a45a9ccf6400e60981b6projectname-environment-mongo-global-cluster5cf5a45a9ccf6400e60981b7"); err == nil {
 		t.Error("splitSnapshotImportID expected to have error")
 	}
-
 }
