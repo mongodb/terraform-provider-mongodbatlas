@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_cloud_provider_snapshot_backup_policy
 
-`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a resource that enables you to view and modify the snapshot schedule and retention settings for an Atlas cluster with Cloud Backup enabled.  A default policy is created automatically when Cloud Backup is enabled for the cluster.  
+`mongodbatlas_cloud_provider_snapshot_backup_policy` provides a resource that enables you to view and modify the snapshot schedule and retention settings for an Atlas cluster with Cloud Backup enabled.  A default policy is created automatically when Cloud Backup is enabled for the cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -72,6 +72,47 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
   }
 }
 ```
+
+## Example Usage implementing at least one Policy Item
+
+```hcl
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "EU_CENTRAL_1"
+  provider_instance_size_name = "M10"
+  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
+  provider_disk_iops          = 100
+  provider_encrypt_ebs_volume = false
+}
+
+resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+
+  policies {
+    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
+
+    policy_item {
+      id                 = 5f0747cad187d8609a72f546
+      frequency_interval = 1
+      frequency_type     = "hourly"
+      retention_unit     = "days"
+      retention_value    = 1
+    }
+  }
+}
+```
+-> **NOTE:** By default, MongoDB Atlas automatically creates a four schedule for each cluster if you want to remove and keep at least one, you can implement the above example. When the cluster is created, we need to note that `snapshot_backup_policy` information is created in its state as well, so you can choose the `policy_item` that you want to keep or remove before creating the `mongodbatlas_cloud_provider_snapshot_backup_policy` resource.Also, if the `mongodbatlas_cloud_provider_snapshot_backup_policy` resource has been created with its four default schedules, you can remove the policy is needed just removing it on the configuration.
 
 ## Argument Reference
 
