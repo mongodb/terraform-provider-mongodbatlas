@@ -48,6 +48,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
       retention_unit     = "days"
       retention_value    = 1
     }
+
     policy_item {
       id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
       frequency_interval = 1
@@ -55,6 +56,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
       retention_unit     = "days"
       retention_value    = 2
     }
+
     policy_item {
       id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
       frequency_interval = 4
@@ -62,6 +64,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
       retention_unit     = "weeks"
       retention_value    = 3
     }
+
     policy_item {
       id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id
       frequency_interval = 5
@@ -72,8 +75,11 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
   }
 }
 ```
+# Examples Modifying Polices
+When Cloud Backup is enabled for a cluster MongoDB Atlas automatically creates a default Cloud Backup schedule for the cluster with four policy items; hourly, daily, weekly, and monthly. Because of this default creation this provider automatically saves the Cloud Backup Snapshot Policy into the Terraform state. If the default works well for you then you do not need to do anything other than create a cluster with Cloud Backup enabled and your Terraform state will have this information if you need it. However,  if you want the policy to be different than the default simply follow the next examples.
 
-## Example Usage implementing at least one Policy Item
+## Example Usage - Create a Cluster and Modify the 4 Default Policies Simultaneously
+This cluster has already been created and is here as an example
 
 ```hcl
 resource "mongodbatlas_cluster" "my_cluster" {
@@ -104,15 +110,162 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
     policy_item {
       id                 = 5f0747cad187d8609a72f546
+      frequency_interval = 4
+      frequency_type     = "weekly"
+      retention_unit     = "days"
+      retention_value    = 3
+    }
+  }
+}
+```
+
+-> **NOTE:** This is the id MongoDB Atlas returns for the policy item we want to keep. Here it is hard coded because you need to either use the actual value from the Terraform state or look to map the policy item you want to keep to it's placement in the state file array that was imported in when the cluster was originally created.
+
+Summarized: to use the state file value for a policy item you need to determine the array placement # of the same frequency_type you want to keep. With this Terraform configuration the anothers policy items will be removed.
+
+~> **IMPORTANT:** For example in the state file we are using the weekly policy is the third policy in the array so it could be referred to with `mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id` instead of the hard coded value, but it's not recommended when the cluster presents changes or make `terraform refresh` due to once this will applied, the cluster state will remove the rest of the items, so the posicion of the array will change to position 0.
+
+## Example Usage - Create a Cluster and Modify 3 Default Policies and Remove 1 Default Policy Simultaneously
+
+```hcl
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "EU_CENTRAL_1"
+  provider_instance_size_name = "M10"
+  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
+  provider_disk_iops          = 100
+  provider_encrypt_ebs_volume = false
+}
+
+resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+
+  policies {
+    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
+
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
       frequency_interval = 1
       frequency_type     = "hourly"
       retention_unit     = "days"
       retention_value    = 1
     }
+
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
+      frequency_interval = 1
+      frequency_type     = "daily"
+      retention_unit     = "days"
+      retention_value    = 2
+    }
+
+    # Item removed
+    # policy_item {
+    #   id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
+    #   frequency_interval = 4
+    #   frequency_type     = "weekly"
+    #   retention_unit     = "weeks"
+    #   retention_value    = 3
+    # }
+
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id
+      frequency_interval = 5
+      frequency_type     = "monthly"
+      retention_unit     = "months"
+      retention_value    = 4
+    }
   }
 }
 ```
--> **NOTE:** By default, MongoDB Atlas automatically creates a four schedule for each cluster if you want to remove and keep at least one, you can implement the above example. When the cluster is created, we need to note that `snapshot_backup_policy` information is created in its state as well, so you can choose the `policy_item` that you want to keep or remove before creating the `mongodbatlas_cloud_provider_snapshot_backup_policy` resource.Also, if the `mongodbatlas_cloud_provider_snapshot_backup_policy` resource has been created with its four default schedules, you can remove the policy is needed just removing it on the configuration.
+
+-> **NOTE:** (See text in first example for more details on the default.) If you want the Cloud Backup Snapshot Policy to vary in the number of policies from the default when creating the cluster, perhaps you want to remove one policy item and modify the remaining three, simply follow this example here to remove a policy and modify three.
+
+~> **IMPORTANT:** If we decide to remove item 2 as our above example marked with `#` we need to consider that once the cluster being modified or makes a `terraform refresh` the item 2 will be replaced with the 3, so it could cause inconsistency. We recommend using hardcoded id value to handle these situations. (See text in the first example for more details on it)
+
+
+
+## Example Usage - Remove 3 Default Policies Items After the Cluster Has Already Been Created
+
+```hcl
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "EU_CENTRAL_1"
+  provider_instance_size_name = "M10"
+  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
+  provider_disk_iops          = 100
+  provider_encrypt_ebs_volume = false
+}
+
+resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+
+  policies {
+    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
+
+    # Item removed
+    # policy_item {
+    #   id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
+    #   frequency_interval = 1
+    #   frequency_type     = "hourly"
+    #   retention_unit     = "days"
+    #   retention_value    = 1
+    # }
+
+    # Item removed
+    # policy_item {
+    #   id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
+    #   frequency_interval = 1
+    #   frequency_type     = "daily"
+    #   retention_unit     = "days"
+    #   retention_value    = 2
+    # }
+
+    # Item removed
+    # policy_item {
+    #   id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
+    #   frequency_interval = 4
+    #   frequency_type     = "weekly"
+    #   retention_unit     = "weeks"
+    #   retention_value    = 3
+    # }
+
+    policy_item {
+      id                 = 5f0747cad187d8609a72f546
+      frequency_interval = 5
+      frequency_type     = "monthly"
+      retention_unit     = "months"
+      retention_value    = 4
+    }
+  }
+}
+```
+
+-> **NOTE:** (See text in first example for more details on the default.) If you want the Cloud Backup Snapshot Policy to vary in number of policies for a cluster that was already created/imported, perhaps you want to remove three policy items and modify the remaining policy, simply follow the above example here.
+
+~> **IMPORTANT:** Note in this example we decided to remove the first 3 items so we can't use `mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id` this sentence to retrieve the monthly id value of the cluster state due to once the cluster being modified or makes a `terraform refresh` will cause that the three items will remove from the state, so we will get an error due to the index 3 doesn't exists any more and our monthly policy item is moved to the first place of the array.(See text in the first example for more details on it)
 
 ## Argument Reference
 
