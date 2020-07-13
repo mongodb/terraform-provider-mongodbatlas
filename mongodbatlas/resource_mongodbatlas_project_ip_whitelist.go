@@ -134,8 +134,6 @@ func resourceMongoDBAtlasProjectIPWhitelistCreate(d *schema.ResourceData, meta i
 
 				for _, entry := range whitelist {
 					if entry.IPAddress == whiteListEntry || entry.CIDRBlock == whiteListEntry {
-
-						log.Printf("[DEBUG] Entry %+v is created, ipAddress=%s, cidrBlock=%s", entry, ipAddress, cidrBlock)
 						return whitelist, "created", nil
 					}
 				}
@@ -185,7 +183,6 @@ func resourceMongoDBAtlasProjectIPWhitelistRead(d *schema.ResourceData, meta int
 			case strings.Contains(fmt.Sprint(err), "500"):
 				return resource.RetryableError(err)
 			case strings.Contains(fmt.Sprint(err), "404"):
-				log.Printf("[DEBUG] whitelist entry %s is not found", ids["entry"])
 				if !d.IsNewResource() {
 					d.SetId("")
 					return nil

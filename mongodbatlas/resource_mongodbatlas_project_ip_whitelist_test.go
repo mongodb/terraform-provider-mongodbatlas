@@ -337,8 +337,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID string
 		}
 
 		if cidr, ok := entry["cidr_block"]; ok {
-			config = config + fmt.Sprintf(`
-
+			config = fmt.Sprintf(`
 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
 				project_id = "%s"
 				cidr_block = "%s"
@@ -346,8 +345,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID string
 			}
 		`, i, projectID, cidr, comment)
 		} else {
-			config = config + fmt.Sprintf(`
-			
+			config = fmt.Sprintf(`
 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
 				project_id = "%s"
 				ip_address = "%s"
