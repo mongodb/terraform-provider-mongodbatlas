@@ -10,6 +10,7 @@
 **Fixed bugs:**
 
 - Adding 16 whitelist entries at the same time causes an error [\#252](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/252)
+- Error when create or import cluster - panic: runtime error: invalid memory address or nil pointer dereference [\#243](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/243)
 - Cannot re-apply config when M2/M5 `disk\_size\_gb` is specified incorrectly [\#115](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/115)
 - accepter\_region\_name not required for AWS on read/import/update [\#53](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/53)
 - Fix resource/project\_ip\_whitelist - modify ip whitelist entry validation and fix acctests [\#257](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/257) ([marinsalinas](https://github.com/marinsalinas))
