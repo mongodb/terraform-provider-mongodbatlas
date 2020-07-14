@@ -58,11 +58,11 @@ You can also provide your credentials via the environment variables, MONGODB_ATL
 provider "mongodbatlas" {}
 ```
 
-Usage:
+Usage (prefix the export commands with a space to avoid the keys being recorded in OS history):
 
 ```shell
-$ export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-$ export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+$  export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
+$  export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
 $ terraform plan
 ```
 
