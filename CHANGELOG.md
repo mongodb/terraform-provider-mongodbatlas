@@ -1,4 +1,25 @@
-## 0.7.0 (Unreleased)
+## 0.6.2 (Unreleased)
+
+**Implemented enhancements:**
+- Updated go version to v1.14 [\#260](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/260) ([PacoDw](https://github.com/PacoDw))
+- Added project\_ip\_whitelist datasource [\#254](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/254) ([gmlp](https://github.com/gmlp))
+- Added team datasource add team name option [\#253](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/253) ([gmlp](https://github.com/gmlp))
+- Added golangci configuration and travis fix [\#248](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/248) ([PacoDw](https://github.com/PacoDw))
+
+
+**Fixed bugs:**
+
+- Adding 16 whitelist entries at the same time causes an error [\#252](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/252)
+- Cannot re-apply config when M2/M5 `disk\_size\_gb` is specified incorrectly [\#115](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/115)
+- accepter\_region\_name not required for AWS on read/import/update [\#53](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/53)
+- Fix resource/project\_ip\_whitelist - modify ip whitelist entry validation and fix acctests [\#257](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/257) ([marinsalinas](https://github.com/marinsalinas))
+
+**Merged pull requests:**
+
+- Fixed auto scaling attributes [\#255](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/255) ([PacoDw](https://github.com/PacoDw))
+- Fixed fixes \#115 issue with disk size for shared tiers [\#251](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/251) ([gmlp](https://github.com/gmlp))
+- Updated the name of module client mongodb atlas [\#244](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/244) ([coderGo93](https://github.com/coderGo93))
+- Fixed \#53 accepter\_region\_name not required for AWS on read/import/update [\#242](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/242) ([gmlp](https://github.com/gmlp)) ([PacoDw](https://github.com/PacoDw))
 
 ## 0.6.1 (June 18, 2020)
 
