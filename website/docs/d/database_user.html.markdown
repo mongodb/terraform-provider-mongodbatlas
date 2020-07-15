@@ -62,6 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The database user's name.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `x509_type` - X.509 method by which the provided username is authenticated.
+* `aws_iam_type` - The new database user authenticates with AWS IAM credentials. 
 
 ### Roles
 
