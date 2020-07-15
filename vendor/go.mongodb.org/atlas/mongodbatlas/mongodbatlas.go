@@ -56,6 +56,7 @@ type Client struct {
 	CustomDBRoles                       CustomDBRolesService
 	DatabaseUsers                       DatabaseUsersService
 	ProjectIPWhitelist                  ProjectIPWhitelistService
+	Organizations                       OrganizationsService
 	Projects                            ProjectsService
 	Clusters                            ClustersService
 	CloudProviderSnapshots              CloudProviderSnapshotsService
@@ -89,6 +90,8 @@ type Client struct {
 	ProcessDatabaseMeasurements         ProcessDatabaseMeasurementsService
 	Indexes                             IndexesService
 	Logs                                LogsService
+	DataLakes                           DataLakeService
+	OnlineArchives                      OnlineArchiveService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -192,6 +195,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.CustomDBRoles = &CustomDBRolesServiceOp{Client: c}
 	c.DatabaseUsers = &DatabaseUsersServiceOp{Client: c}
 	c.EncryptionsAtRest = &EncryptionsAtRestServiceOp{Client: c}
+	c.Organizations = &OrganizationsServiceOp{Client: c}
 	c.Projects = &ProjectsServiceOp{Client: c}
 	c.ProjectAPIKeys = &ProjectAPIKeysOp{Client: c}
 	c.Peers = &PeersServiceOp{Client: c}
@@ -219,6 +223,8 @@ func NewClient(httpClient *http.Client) *Client {
 	c.ProcessDatabaseMeasurements = &ProcessDatabaseMeasurementsServiceOp{Client: c}
 	c.Indexes = &IndexesServiceOp{Client: c}
 	c.Logs = &LogsServiceOp{Client: c}
+	c.DataLakes = &DataLakeServiceOp{Client: c}
+	c.OnlineArchives = &OnlineArchiveServiceOp{Client: c}
 
 	return c
 }

@@ -1,7 +1,7 @@
 module github.com/terraform-providers/terraform-provider-mongodbatlas
 
 go 1.13
-
+replace go.mongodb.org/atlas => ../go-client-mongodb-atlas
 require (
 	github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
 	github.com/client9/misspell v0.3.4
