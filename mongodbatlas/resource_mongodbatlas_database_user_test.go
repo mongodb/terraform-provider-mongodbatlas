@@ -3,6 +3,8 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/url"
 	"os"
 	"testing"
 
@@ -57,7 +59,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509Type(t *testing.T) {
 
 	resourceName := "mongodbatlas_database_user.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	username := "CN=ellen@example.com,OU=users,DC=example,DC=com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +73,34 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509Type(t *testing.T) {
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "x509_type", "MANAGED"),
+					resource.TestCheckResourceAttr(resourceName, "x509_type", "CUSTOMER"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType(t *testing.T) {
+	var dbUser matlas.DatabaseUser
+
+	resourceName := "mongodbatlas_database_user.test"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	username := "arn:aws:iam::520983883852:user/edgar.lopez"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectID, "atlasAdmin", username, "First Key", "First value"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
@@ -278,8 +307,11 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
+		username := ids["username"]
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], ids["username"]); err == nil {
+		dbUsername := url.QueryEscape(username)
+
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], dbUsername); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -290,6 +322,7 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 
 func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser, username string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		log.Printf("[DEBUG] difference dbUser.Username: %s , username : %s", dbUser.Username, username)
 		if dbUser.Username != username {
 			return fmt.Errorf("bad username: %s", dbUser.Username)
 		}
@@ -342,7 +375,7 @@ func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, roleName, user
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user" "test" {
 			username           = "%[3]s"
-			x509_type          = "MANAGED"
+			x509_type          = "CUSTOMER"
 			project_id         = "%[1]s"
 			auth_database_name = "$external"
 
@@ -426,4 +459,25 @@ func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID stri
 
 		}
 	`, username, password, projectID, roles)
+}
+
+func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectID, roleName, username, keyLabel, valueLabel string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_database_user" "test" {
+			username           = "%[3]s"
+			aws_iam_type          = "USER"
+			project_id         = "%[1]s"
+			auth_database_name = "$external"
+
+			roles {
+				role_name     = "%[2]s"
+				database_name = "admin"
+			}
+
+			labels {
+				key   = "%s"
+				value = "%s"
+			}
+		}
+	`, projectID, roleName, username, keyLabel, valueLabel)
 }
