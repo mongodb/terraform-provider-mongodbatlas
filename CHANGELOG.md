@@ -1,3 +1,4 @@
+## 0.7.0 (Unreleased)
 ## 0.6.2 (July 16, 2020)
 
 **Implemented enhancements:**
