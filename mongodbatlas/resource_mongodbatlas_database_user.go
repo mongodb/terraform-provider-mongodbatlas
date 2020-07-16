@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"net/url"
 	"regexp"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
