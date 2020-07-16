@@ -1,4 +1,4 @@
-## 0.6.2 (Unreleased)
+## 0.6.2 (July 16, 2020)
 
 **Implemented enhancements:**
 - Updated go version to v1.14 [\#260](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/260) ([PacoDw](https://github.com/PacoDw))
