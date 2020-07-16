@@ -20,6 +20,7 @@ github.com/Djarvur/go-err113
 # github.com/OpenPeeDeeP/depguard v1.0.1
 github.com/OpenPeeDeeP/depguard
 # github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
+## explicit
 github.com/Sectorbob/mlab-ns2/gae/ns/digest
 # github.com/agext/levenshtein v1.2.2
 github.com/agext/levenshtein
@@ -226,6 +227,7 @@ github.com/bgentry/speakeasy
 # github.com/bombsimon/wsl/v3 v3.0.0
 github.com/bombsimon/wsl/v3
 # github.com/client9/misspell v0.3.4
+## explicit
 github.com/client9/misspell
 github.com/client9/misspell/cmd/misspell
 # github.com/davecgh/go-spew v1.1.1
@@ -245,6 +247,7 @@ github.com/go-critic/go-critic/checkers/internal/lintutil
 github.com/go-lintpack/lintpack
 github.com/go-lintpack/lintpack/astwalk
 # github.com/go-test/deep v1.0.3
+## explicit
 github.com/go-test/deep
 # github.com/go-toolsmith/astcast v1.0.0
 github.com/go-toolsmith/astcast
@@ -314,6 +317,7 @@ github.com/golangci/gocyclo/pkg/gocyclo
 github.com/golangci/gofmt/gofmt
 github.com/golangci/gofmt/goimports
 # github.com/golangci/golangci-lint v1.26.0
+## explicit
 github.com/golangci/golangci-lint/cmd/golangci-lint
 github.com/golangci/golangci-lint/internal/cache
 github.com/golangci/golangci-lint/internal/errorutil
@@ -419,6 +423,7 @@ github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-json v0.5.0
 github.com/hashicorp/terraform-json
 # github.com/hashicorp/terraform-plugin-sdk v1.14.0
+## explicit
 github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
@@ -537,6 +542,7 @@ github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
 github.com/mitchellh/reflectwalk
 # github.com/mwielbut/pointy v1.1.0
+## explicit
 github.com/mwielbut/pointy
 # github.com/nakabonne/nestif v0.3.0
 github.com/nakabonne/nestif
@@ -581,6 +587,7 @@ github.com/sourcegraph/go-diff/diff
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
+## explicit
 github.com/spf13/cast
 # github.com/spf13/cobra v0.0.5
 github.com/spf13/cobra
@@ -602,6 +609,7 @@ github.com/subosito/gotenv
 # github.com/tdakkota/asciicheck v0.0.0-20200416190851-d7f85be797a2
 github.com/tdakkota/asciicheck
 # github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20200518153306-40099de47e37
+## explicit
 github.com/terraform-providers/terraform-provider-aws/aws
 github.com/terraform-providers/terraform-provider-aws/aws/internal/flatmap
 github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags
@@ -614,6 +622,7 @@ github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/w
 github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kms/waiter
 github.com/terraform-providers/terraform-provider-aws/aws/internal/service/servicediscovery/waiter
 # github.com/terraform-providers/terraform-provider-google v1.20.1-0.20200518165017-1dd21651c496
+## explicit
 github.com/terraform-providers/terraform-provider-google/google
 github.com/terraform-providers/terraform-provider-google/version
 # github.com/tetafro/godot v0.3.3
@@ -649,7 +658,8 @@ github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/set
 # github.com/zclconf/go-cty-yaml v1.0.1
 github.com/zclconf/go-cty-yaml
-# go.mongodb.org/atlas v0.3.1-0.20200610163544-41bae9e4adcc => ../go-client-mongodb-atlas
+# go.mongodb.org/atlas v0.3.1-0.20200716160607-1b4e8b15eadf
+## explicit
 go.mongodb.org/atlas/mongodbatlas
 # go.opencensus.io v0.22.3
 go.opencensus.io

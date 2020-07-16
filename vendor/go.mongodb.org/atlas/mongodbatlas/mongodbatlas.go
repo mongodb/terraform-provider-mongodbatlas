@@ -92,6 +92,8 @@ type Client struct {
 	Logs                                LogsService
 	DataLakes                           DataLakeService
 	OnlineArchives                      OnlineArchiveService
+	Search                              SearchService
+	CustomAWSDNS                        AWSCustomDNSService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -225,6 +227,8 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Logs = &LogsServiceOp{Client: c}
 	c.DataLakes = &DataLakeServiceOp{Client: c}
 	c.OnlineArchives = &OnlineArchiveServiceOp{Client: c}
+	c.Search = &SearchServiceOp{Client: c}
+	c.CustomAWSDNS = &AWSCustomDNSServiceOp{Client: c}
 
 	return c
 }
