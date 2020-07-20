@@ -1025,14 +1025,15 @@ func getInstanceSizeToInt(instanceSize string) int {
 
 func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, error) {
 	var (
-		region, _       = valRegion(d.Get("provider_region_name"))
-		minInstanceSize = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
-		maxInstanceSize = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
-		instanceSize    = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
-		compute         *matlas.Compute
+		region, _          = valRegion(d.Get("provider_region_name"))
+		minInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
+		maxInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
+		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
+		compute            *matlas.Compute
+		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
 	)
 
-	if minInstanceSize != 0 {
+	if minInstanceSize != 0 && autoScalingEnabled {
 		if instanceSize < minInstanceSize {
 			return nil, fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
 		}
@@ -1042,7 +1043,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		}
 	}
 
-	if maxInstanceSize != 0 {
+	if maxInstanceSize != 0 && autoScalingEnabled {
 		if instanceSize > maxInstanceSize {
 			return nil, fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
 		}
@@ -1060,7 +1061,10 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		RegionName:          region,
 		VolumeType:          cast.ToString(d.Get("provider_volume_type")),
 		DiskTypeName:        cast.ToString(d.Get("provider_disk_type_name")),
-		AutoScaling:         &matlas.AutoScaling{Compute: compute},
+	}
+
+	if autoScalingEnabled {
+		providerSettings.AutoScaling = &matlas.AutoScaling{Compute: compute}
 	}
 
 	if d.Get("provider_name") == "AWS" {
