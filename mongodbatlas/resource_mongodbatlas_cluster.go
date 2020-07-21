@@ -1017,7 +1017,7 @@ func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} 
 }
 
 func getInstanceSizeToInt(instanceSize string) int {
-	regex := regexp.MustCompile("[0-9]+")
+	regex := regexp.MustCompile(`\d+`)
 	num := regex.FindString(instanceSize)
 
 	return cast.ToInt(num) // if the string is empty it always return 0
