@@ -797,7 +797,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "M2"),
+				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "M2", "2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -834,7 +834,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "M5"),
+				Config: testAccMongoDBAtlasClusterConfigTenant(projectID, name, "M5", "5"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1140,7 +1140,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 	`, projectID, name, backupEnabled)
 }
 
-func testAccMongoDBAtlasClusterConfigTenant(projectID, name, instanceSize string) string {
+func testAccMongoDBAtlasClusterConfigTenant(projectID, name, instanceSize, diskSize string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_cluster" "tenant" {
 		project_id = "%s"
@@ -1148,12 +1148,16 @@ func testAccMongoDBAtlasClusterConfigTenant(projectID, name, instanceSize string
 
 		provider_name         = "TENANT"
 		backing_provider_name = "AWS"
-		provider_region_name  = "EU_CENTRAL_1"
+		provider_region_name  = "US_EAST_1"
+	  	//M2 must be 2, M5 must be 5
+	  	disk_size_gb            = "%s"
 
 		provider_instance_size_name  = "%s"
+		//These must be the following values
+ 	 	mongo_db_major_version = "4.2"
 		auto_scaling_disk_gb_enabled = false
 	  }
-	`, projectID, name, instanceSize)
+	`, projectID, name, diskSize, instanceSize)
 }
 
 func testAccMongoDBAtlasClusterConfigTenantUpdated(projectID, name string) string {
