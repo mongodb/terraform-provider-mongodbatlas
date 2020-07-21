@@ -36,7 +36,8 @@ websitefmtcheck:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./$(PKG_NAME)
+	# https://github.com/golangci/golangci-lint/issues/337 fixing error
+	golangci-lint run ./$(PKG_NAME) -v --deadline=30m
 
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
