@@ -120,9 +120,9 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 			authDatabaseName = d.Get("auth_database_name").(string)
 		}
 	}
-	dbUsername := url.QueryEscape(username)
+	usernameEscaped := url.QueryEscape(username)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, dbUsername)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
@@ -146,7 +146,7 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	}
 
 	if err := d.Set("aws_iam_type", dbUser.AWSIAMType); err != nil {
-		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
+		return fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
@@ -217,9 +217,9 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	dbUsername := url.QueryEscape(username)
+	usernameEscaped := url.QueryEscape(username)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, dbUsername)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
 		return fmt.Errorf("error getting database user information to update it: %s", err)
 	}
@@ -252,9 +252,9 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	dbUsername := url.QueryEscape(username)
+	usernameEscaped := url.QueryEscape(username)
 
-	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, dbUsername)
+	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
 	}

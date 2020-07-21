@@ -68,7 +68,7 @@ In addition to all arguments above, the following attributes are exported:
 * `auth_database_name` - The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
 
 * `x509_type` - X.509 method by which the provided username is authenticated.
-* `aws_iam_type` - The new database user authenticates with AWS IAM credentials. 
+* `aws_iam_type` - The new database user authenticates with AWS IAM credentials. Default is `NONE`, `USER` means user has AWS IAM user credentials, `ROLE` - means user has credentials associated with an AWS IAM role.
 
 ### Roles
 
