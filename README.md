@@ -1,4 +1,5 @@
 # MongoDB Atlas Provider
+[![Build Status](https://travis-ci.org/terraform-providers/terraform-provider-mongodbatlas.svg?branch=master)](https://travis-ci.org/terraform-providers/terraform-provider-mongodbatlas)
 
 This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas.
 Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)

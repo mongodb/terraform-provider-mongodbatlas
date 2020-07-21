@@ -3,11 +3,18 @@ GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=mongodbatlas
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 
+GOFLAGS=-mod=vendor
+GOGC=10
+GOOPTS="-p 2"
+
+GOLANGCI_VERSION=v1.29.0
+
+export PATH := ./bin:$(PATH)
+
 default: build
 
 build: fmtcheck
 	go install
-
 
 test: fmtcheck
 	go test $(TEST) -timeout=30s -parallel=4
@@ -32,9 +39,12 @@ lint:
 	# https://github.com/golangci/golangci-lint/issues/337 fixing error
 	golangci-lint run ./$(PKG_NAME) -v --deadline=30m
 
-tools:
+tools:  ## Install dev tools
+	@echo "==> Installing dependencies..."
 	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
-	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_VERSION)
+
+check: test lint
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -62,4 +72,4 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build test testacc fmt fmtcheck lint tools test-compile website website-lint website-test
+.PHONY: build test testacc fmt fmtcheck lint check tools test-compile website website-lint website-test

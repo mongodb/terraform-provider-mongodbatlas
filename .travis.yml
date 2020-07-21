@@ -1,30 +1,20 @@
-dist: xenial
-sudo: required
-services:
-  - docker
 language: go
 
-env:
-  global:
-    GOFLAGS=-mod=vendor
-    GOGC=10
-    GOOPTS="-p 2"
+go:
+  - 1.14.x
+  - tip
+
 matrix:
   fast_finish: true
   allow_failures:
     - go: tip
   include:
-  - go: "1.14.x"
-    name: "Code Lint"
-    script: make lint
-  - go: "1.14.x"
-    name: "Code UnitTest"
-    script: make test
-  - go: "1.14.x"
-    name: "Website"
-    script:
-      #- make website-test #commented until Terraform Provider Program Validation
-      - make website-lint
-
-install:
-- make tools
+    - name: "Code Lint"
+      before_install: make tools
+      script: make lint
+    - name: "Website"
+      before_install: make tools
+      script:
+        #- make website-test #commented until Terraform Provider Program Validation
+        - make website-lint
+script: make test
