@@ -1,4 +1,19 @@
-## 0.7.0 (Unreleased)
+## 0.6.3 (Unreleased)
+
+**Fixed bugs:**
+
+- Can't create a new cluster \(M2/M5\) after 0.6.2 version [\#265](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/265)
+
+**Closed issues:**
+
+- Creating cluster eventually returns 503 [\#256](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/256)
+
+**Merged pull requests:**
+
+- Fix golangci lint and travis [\#269](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/269) ([gssbzn](https://github.com/gssbzn))
+- Add a unique user agent [\#268](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/268) ([gssbzn](https://github.com/gssbzn))
+- Added validation for autoscaling compute enabled and when true add the parameter autoscaling to request and its test [\#267](https://github.com/terraform-providers/terraform-provider-mongodbatlas/pull/267) ([coderGo93](https://github.com/coderGo93))
+
 ## 0.6.2 (July 16, 2020)
 
 **Implemented enhancements:**
