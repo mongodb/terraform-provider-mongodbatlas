@@ -15,9 +15,6 @@ cloud.google.com/go/bigtable/internal/option
 cloud.google.com/go/storage
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
-# github.com/Sectorbob/mlab-ns2 v0.0.0-20171030222938-d3aa0c295a8a
-## explicit
-github.com/Sectorbob/mlab-ns2/gae/ns/digest
 # github.com/agext/levenshtein v1.2.2
 github.com/agext/levenshtein
 # github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412
@@ -253,8 +250,6 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/ptypes/wrappers
 # github.com/golang/snappy v0.0.1
 github.com/golang/snappy
-# github.com/golangci/golangci-lint v1.26.0
-## explicit
 # github.com/google/go-cmp v0.4.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
@@ -419,6 +414,9 @@ github.com/mitchellh/hashstructure
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
 github.com/mitchellh/reflectwalk
+# github.com/mongodb-forks/digest v1.0.1
+## explicit
+github.com/mongodb-forks/digest
 # github.com/mwielbut/pointy v1.1.0
 ## explicit
 github.com/mwielbut/pointy
