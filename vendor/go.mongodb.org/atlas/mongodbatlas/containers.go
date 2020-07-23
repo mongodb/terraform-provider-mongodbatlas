@@ -9,11 +9,12 @@ import (
 
 const containersPath = "groups/%s/containers"
 
-// ContainersService is an interface for interfacing with the Network Peering Containers
-// endpoints of the MongoDB Atlas API.
+// ContainersService provides access to the network peering containers related functions in the Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc/
 type ContainersService interface {
 	List(context.Context, string, *ContainersListOptions) ([]Container, *Response, error)
+	ListAll(context.Context, string, *ListOptions) ([]Container, *Response, error)
 	Get(context.Context, string, string) (*Container, *Response, error)
 	Create(context.Context, string, *Container) (*Container, *Response, error)
 	Update(context.Context, string, string, *Container) (*Container, *Response, error)
@@ -53,7 +54,8 @@ type containersResponse struct {
 	TotalCount int         `json:"totalCount,omitempty"`
 }
 
-// List all containers in the project associated to {GROUP-ID}.
+// List gets details for all network peering containers in an Atlas project for a single cloud provider.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc-get-containers-list/
 func (s *ContainersServiceOp) List(ctx context.Context, groupID string, listOptions *ContainersListOptions) ([]Container, *Response, error) {
 	path := fmt.Sprintf(containersPath, groupID)
@@ -82,7 +84,38 @@ func (s *ContainersServiceOp) List(ctx context.Context, groupID string, listOpti
 	return root.Results, resp, nil
 }
 
-// Get gets the network peering container specified to {CONTAINER-ID} from the project associated to {GROUP-ID}.
+// ListAll gets details for all network peering containers in an Atlas project.
+//
+// See more: https://docs.atlas.mongodb.com/reference/api/vpc-get-containers-list-all/
+func (s *ContainersServiceOp) ListAll(ctx context.Context, groupID string, listOptions *ListOptions) ([]Container, *Response, error) {
+	basePath := fmt.Sprintf(containersPath, groupID)
+	path := fmt.Sprintf("%s/all", basePath)
+	// Add query params from listOptions
+	path, err := setListOptions(path, listOptions)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(containersResponse)
+	resp, err := s.Client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	if l := root.Links; l != nil {
+		resp.Links = l
+	}
+
+	return root.Results, resp, nil
+}
+
+// Get gets details for one network peering container in an Atlas project.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc-get-container/
 func (s *ContainersServiceOp) Get(ctx context.Context, groupID, containerID string) (*Container, *Response, error) {
 	if containerID == "" {
@@ -107,7 +140,8 @@ func (s *ContainersServiceOp) Get(ctx context.Context, groupID, containerID stri
 	return root, resp, err
 }
 
-// Add a network peering container to the project associated to {GROUP-ID}.
+// Create adds a network peering container to the project associated to {GROUP-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc-create-container/
 func (s *ContainersServiceOp) Create(ctx context.Context, groupID string, createRequest *Container) (*Container, *Response, error) {
 	if createRequest == nil {
@@ -130,7 +164,8 @@ func (s *ContainersServiceOp) Create(ctx context.Context, groupID string, create
 	return root, resp, err
 }
 
-// Update a network peering container in the project associated to {GROUP-ID}
+// Update a network peering container in the project associated to {GROUP-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc-update-container/
 func (s *ContainersServiceOp) Update(ctx context.Context, groupID, containerID string, updateRequest *Container) (*Container, *Response, error) {
 	if updateRequest == nil {
@@ -155,6 +190,7 @@ func (s *ContainersServiceOp) Update(ctx context.Context, groupID, containerID s
 }
 
 // Delete the network peering container specified to {CONTAINER-ID} from the project associated to {GROUP-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc-delete-one-container/
 func (s *ContainersServiceOp) Delete(ctx context.Context, groupID, containerID string) (*Response, error) {
 	if containerID == "" {

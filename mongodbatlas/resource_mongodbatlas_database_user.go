@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -49,9 +51,16 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				ConflictsWith: []string{"x509_type"},
 			},
 			"x509_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "NONE",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice([]string{"NONE", "MANAGED", "CUSTOMER"}, false),
+			},
+			"aws_iam_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice([]string{"NONE", "USER", "ROLE"}, false),
 			},
 			"roles": {
 				Type:     schema.TypeSet,
@@ -115,8 +124,9 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 			authDatabaseName = d.Get("auth_database_name").(string)
 		}
 	}
+	usernameEscaped := url.QueryEscape(username)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
@@ -137,6 +147,10 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
 		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("aws_iam_type", dbUser.AWSIAMType); err != nil {
+		return fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
@@ -180,6 +194,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		Username:     d.Get("username").(string),
 		Password:     d.Get("password").(string),
 		X509Type:     d.Get("x509_type").(string),
+		AWSIAMType:   d.Get("aws_iam_type").(string),
 		DatabaseName: authDatabaseName,
 		Labels:       expandLabelSliceFromSetSchema(d),
 	}
@@ -206,7 +221,9 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	usernameEscaped := url.QueryEscape(username)
+
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
 		return fmt.Errorf("error getting database user information to update it: %s", err)
 	}
@@ -239,7 +256,9 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, username)
+	usernameEscaped := url.QueryEscape(username)
+
+	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
 	}

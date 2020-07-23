@@ -40,6 +40,7 @@ type DatabaseUser struct {
 	Labels          []Label `json:"labels,omitempty"`
 	LDAPAuthType    string  `json:"ldapAuthType,omitempty"`
 	X509Type        string  `json:"x509Type,omitempty"`
+	AWSIAMType      string  `json:"awsIAMType,omitempty"`
 	GroupID         string  `json:"groupId,omitempty"`
 	Roles           []Role  `json:"roles,omitempty"`
 	Password        string  `json:"password,omitempty"`

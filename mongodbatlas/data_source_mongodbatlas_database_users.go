@@ -41,6 +41,10 @@ func dataSourceMongoDBAtlasDatabaseUsers() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"aws_iam_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"roles": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -117,6 +121,7 @@ func flattenDBUsers(dbUsers []matlas.DatabaseUser) []map[string]interface{} {
 				"project_id":         dbUsers[i].GroupID,
 				"auth_database_name": dbUsers[i].DatabaseName,
 				"x509_type":          dbUsers[i].X509Type,
+				"aws_iam_type":       dbUsers[i].AWSIAMType,
 				"labels":             flattenLabels(dbUsers[i].Labels),
 			}
 		}

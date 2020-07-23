@@ -37,6 +37,10 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"aws_iam_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"roles": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -118,6 +122,10 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
 		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("aws_iam_type", dbUser.AWSIAMType); err != nil {
+		return fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
