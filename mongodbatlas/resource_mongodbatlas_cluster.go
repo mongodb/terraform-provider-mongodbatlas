@@ -557,7 +557,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(d.Get("name").(string), projectID, conn),
 		Timeout:    3 * time.Hour,
@@ -1266,6 +1266,9 @@ func resourceClusterRefreshFunc(name, projectID string, client *matlas.Client) r
 		} else if err != nil {
 			if resp.StatusCode == 404 {
 				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
 			}
 			return nil, "", err
 		}
