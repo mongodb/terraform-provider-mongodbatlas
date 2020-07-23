@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -49,14 +51,16 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				ConflictsWith: []string{"x509_type"},
 			},
 			"x509_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "NONE",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice([]string{"NONE", "MANAGED", "CUSTOMER"}, false),
 			},
 			"aws_iam_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "NONE",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice([]string{"NONE", "USER", "ROLE"}, false),
 			},
 			"roles": {
 				Type:     schema.TypeSet,
