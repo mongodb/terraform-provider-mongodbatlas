@@ -1,8 +1,8 @@
 package mongodbatlas
 
 import (
-	digest "github.com/Sectorbob/mlab-ns2/gae/ns/digest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
+	digest "github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 )
 
