@@ -600,8 +600,6 @@ github.com/zclconf/go-cty v1.2.1/go.mod h1:hOPWgoHbaTUnI5k4D2ld+GRpFJSCe6bCM7m1q
 github.com/zclconf/go-cty-yaml v1.0.1 h1:up11wlgAaDvlAGENcFDnZgkn0qUJurso7k6EpURKNF8=
 github.com/zclconf/go-cty-yaml v1.0.1/go.mod h1:IP3Ylp0wQpYm50IHK8OZWKMu6sPJIUgKa8XhiVHura0=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
-go.mongodb.org/atlas v0.3.1-0.20200610163544-41bae9e4adcc h1:4ctQf+myJr8vnlCBE8UADNplAmSYQTuRLJgwB4+JFRo=
-go.mongodb.org/atlas v0.3.1-0.20200610163544-41bae9e4adcc/go.mod h1:xa/V3muNuVoReSG0y2pigUUnfPOx1cHF0ZV2uCE+c7I=
 go.mongodb.org/atlas v0.3.1-0.20200716160607-1b4e8b15eadf h1:uphQUeBtEbNSmlhg1MRVJOMMhFBtrT6+K6rSmXGxCPk=
 go.mongodb.org/atlas v0.3.1-0.20200716160607-1b4e8b15eadf/go.mod h1:xa/V3muNuVoReSG0y2pigUUnfPOx1cHF0ZV2uCE+c7I=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
