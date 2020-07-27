@@ -27,7 +27,7 @@ func (c *Config) NewClient() interface{} {
 
 	// Initialize the MongoDB Atlas API Client.
 	atlasClient := matlasClient.NewClient(client)
-	atlasClient.UserAgent = "terraform-provider-mongodbatlas"
+	atlasClient.UserAgent = "terraform-provider-mongodbatlas/" + ProviderVersion
 
 	return atlasClient
 }
