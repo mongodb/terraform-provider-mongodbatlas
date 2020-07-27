@@ -25,6 +25,8 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      - name: Set the user terminal
+        run: export GPG_TTY=$(tty)
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
