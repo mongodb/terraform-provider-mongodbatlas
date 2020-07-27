@@ -27,7 +27,7 @@ Clone repository to: `$HOME/development/terraform-providers/`
 
 ```
 $ mkdir -p $HOME/development/terraform-providers/; cd $HOME/development/terraform-providers/
-$ git clone git@github.com:terraform-providers/terraform-provider-mongodbatlas
+$ git clone git@github.com:mongodb/terraform-provider-mongodbatlas
 ...
 ```
 
