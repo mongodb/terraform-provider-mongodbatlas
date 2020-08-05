@@ -92,8 +92,16 @@ func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name,
-					[]string{"mongodbatlas.testing@gmail.com"},
+				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{"mongodbatlas.testing@gmail.com"}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "usernames.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "team_id"),
+
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{

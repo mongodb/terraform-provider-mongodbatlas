@@ -7,17 +7,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
-	var team matlas.Team
-
-	resourceName := "data.mongodbatlas_teams.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-
-	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	username := "mongodbatlas.testing@gmail.com"
+	var (
+		dataSourseName = "data.mongodbatlas_teams.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username       = "mongodbatlas.testing@gmail.com"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,12 +25,10 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "team_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourseName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourseName, "team_id"),
+					resource.TestCheckResourceAttr(dataSourseName, "name", name),
+					resource.TestCheckResourceAttr(dataSourseName, "usernames.#", "1"),
 				),
 			},
 		},
@@ -40,13 +36,12 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 }
 
 func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
-	var team matlas.Team
-
-	resourceName := "data.mongodbatlas_teams.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-
-	name := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	username := "mongodbatlas.testing@gmail.com"
+	var (
+		dataSourseName = "data.mongodbatlas_teams.test2"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username       = "mongodbatlas.testing@gmail.com"
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -56,12 +51,10 @@ func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfigByName(orgID, name, username),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasTeamExists(resourceName, &team),
-					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "team_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourseName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourseName, "team_id"),
+					resource.TestCheckResourceAttr(dataSourseName, "name", name),
+					resource.TestCheckResourceAttr(dataSourseName, "usernames.#", "1"),
 				),
 			},
 		},
