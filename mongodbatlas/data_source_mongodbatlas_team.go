@@ -42,18 +42,20 @@ func dataSourceMongoDBAtlasTeam() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) error {
-	// Get client connection.
-	conn := meta.(*matlas.Client)
-	orgID := d.Get("org_id").(string)
-	teamID, teamIDOk := d.GetOk("team_id")
-	name, nameOk := d.GetOk("name")
+	var (
+		conn             = meta.(*matlas.Client)
+		orgID            = d.Get("org_id").(string)
+		teamID, teamIDOk = d.GetOk("team_id")
+		name, nameOk     = d.GetOk("name")
+
+		err  error
+		team *matlas.Team
+	)
 
 	if !teamIDOk && !nameOk {
 		return errors.New("either team_id or name must be configured")
 	}
 
-	var err error
-	var team *matlas.Team
 	if teamIDOk {
 		team, _, err = conn.Teams.Get(context.Background(), orgID, teamID.(string))
 	} else {
@@ -62,6 +64,10 @@ func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) er
 
 	if err != nil {
 		return fmt.Errorf(errorTeamRead, err)
+	}
+
+	if err := d.Set("team_id", team.ID); err != nil {
+		return fmt.Errorf(errorTeamSetting, "name", d.Id(), err)
 	}
 
 	if err := d.Set("name", team.Name); err != nil {
