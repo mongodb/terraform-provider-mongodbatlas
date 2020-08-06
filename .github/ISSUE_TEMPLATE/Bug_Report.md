@@ -16,7 +16,7 @@ If your issue relates to Terraform itself, please open it in the Terraform repos
 <!---
 Run `terraform version` to show the version, and paste the result for Terraform and the MongoDB Atlas Provider between the ``` marks below.
 
-If you are not running the latest version of Terraform and the MongoDB Atlas Provider, please try upgrading because your issue may have already been fixed.
+If you are not running the latest version of Terraform and the MongoDB Atlas Provider, please try to reproduce the issue in a more recent version in case it has been fixed already.
 -->
 
 ```hcl
