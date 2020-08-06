@@ -11,7 +11,7 @@ import (
 
 func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 	var (
-		dataSourseName = "data.mongodbatlas_teams.test"
+		dataSourceName = "data.mongodbatlas_teams.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		username       = "mongodbatlas.testing@gmail.com"
@@ -25,10 +25,10 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourseName, "org_id"),
-					resource.TestCheckResourceAttrSet(dataSourseName, "team_id"),
-					resource.TestCheckResourceAttr(dataSourseName, "name", name),
-					resource.TestCheckResourceAttr(dataSourseName, "usernames.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "usernames.#", "1"),
 				),
 			},
 		},
@@ -37,7 +37,7 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 
 func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
 	var (
-		dataSourseName = "data.mongodbatlas_teams.test2"
+		dataSourceName = "data.mongodbatlas_teams.test2"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		username       = "mongodbatlas.testing@gmail.com"
@@ -51,10 +51,10 @@ func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfigByName(orgID, name, username),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourseName, "org_id"),
-					resource.TestCheckResourceAttrSet(dataSourseName, "team_id"),
-					resource.TestCheckResourceAttr(dataSourseName, "name", name),
-					resource.TestCheckResourceAttr(dataSourseName, "usernames.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "usernames.#", "1"),
 				),
 			},
 		},
