@@ -242,7 +242,6 @@ To prevent this a lifecycle customization should be used, i.e.:
   * Cannot be used with clusters with local NVMe SSDs
   * Cannot be used with Azure clusters
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-aws-kms/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For complete documentation on configuring Encryption at Rest, see Encryption at Rest using Customer Key Management. Requires M10 or greater. and for legacy backups, backup_enabled, to be false or omitted. **Note: Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default**.   
-* `labels` - (Optional) Array containing key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters. You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `3.6`, `4.0`, or `4.2`. You must set this value to `4.2` if `provider_instance_size_name` is either M2 or M5.
 * `num_shards` - (Optional) Selects whether the cluster is a replica set or a sharded cluster. If you use the replicationSpecs parameter, you must set num_shards.
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, provider_backup_enabled must also be set to true.
@@ -381,7 +380,19 @@ Include **desired options** within advanced_configuration:
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 
 ### Labels
-Contains key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.
+
+ ```hcl
+ labels {
+        key   = "Key 1"
+        value = "Value 1"
+  }
+ labels {
+        key   = "Key 2"
+        value = "Value 2"
+  }
+```
+
+ Key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
