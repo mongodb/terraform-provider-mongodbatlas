@@ -12,7 +12,7 @@ The MongoDB Atlas provider is used to interact with the resources supported by [
 
 Use the navigation to the left to read about the available provider resources and data sources.
 
-You may want to consider pinning the [provider version](https://www.terraform.io/docs/configuration/providers.html#provider-versions) to ensure you have a chance to review and prepare for changes.   Speaking of changes, see [CHANGELOG](https://github.com/terraform-providers/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
+You may want to consider pinning the [provider version](https://www.terraform.io/docs/configuration/providers.html#provider-versions) to ensure you have a chance to review and prepare for changes.   Speaking of changes, see [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
 
 ## Example Usage
 
@@ -89,7 +89,7 @@ For more information on configuring and managing programmatic API Keys see the [
 
 [MongoDB Atlas and Terraform Landing Page](https://www.mongodb.com/atlas/terraform)
 
-[Report bugs](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues)
+[Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
 
 [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 

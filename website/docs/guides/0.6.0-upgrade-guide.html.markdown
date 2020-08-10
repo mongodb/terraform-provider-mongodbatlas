@@ -9,10 +9,10 @@ description: |-
 
 # MongoDB Atlas Provider 0.6.0: Upgrade Guide
 
-Besides the bug fixes, improvements and enhancements listed in the  [CHANGELOG](https://github.com/terraform-providers/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for 0.6.0 an important change is included that you should be aware of before upgrading to the newest provider.
+Besides the bug fixes, improvements and enhancements listed in the  [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for 0.6.0 an important change is included that you should be aware of before upgrading to the newest provider.
 
 **0.6.0 contains an automatic state migration**
-Provider versions from 0.3.1 to 0.5.1 tracked the state information for the MongoDB Atlas (optional) [advanced_configuration](https://www.terraform.io/docs/providers/mongodbatlas/r/cluster.html#advanced-configuration-options) options so that they could be modified if needed.  In order to correct issues reported in [#210](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues/210), a change in how this information is stored in the Terraform state file is required.
+Provider versions from 0.3.1 to 0.5.1 tracked the state information for the MongoDB Atlas (optional) [advanced_configuration](https://www.terraform.io/docs/providers/mongodbatlas/r/cluster.html#advanced-configuration-options) options so that they could be modified if needed.  In order to correct issues reported in [#210](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/210), a change in how this information is stored in the Terraform state file is required.
 
 Since this information is in the state file whether you modified the advanced_configuration or not the migration is required for all users of the provider who have a MongoDB Atlas cluster managed by the MongoDB Atlas Provider.
 The state migration happens automatically the first time the managed cluster(s) data is refreshed.  
@@ -67,7 +67,7 @@ After that you are ready to move forward with this new version!
 
 ### Helpful Links
 
-* [Report bugs](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues)
+* [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
 
 * [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 
