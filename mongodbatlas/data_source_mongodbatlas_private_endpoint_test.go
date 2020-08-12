@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	resourceName := "data.mongodbatlas_private_endpoint.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	region := os.Getenv("AWS_REGION")

@@ -54,6 +54,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		peer              matlas.Peer
 		resourceName      = "mongodbatlas_network_peering.test"
@@ -93,6 +94,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		peer         matlas.Peer
 		resourceName = "mongodbatlas_network_peering.test"
@@ -131,6 +133,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkPeering_AWSDifferentRegionName(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		peer                  matlas.Peer
 		resourcePeerName      = "mongodbatlas_network_peering.diff_region"

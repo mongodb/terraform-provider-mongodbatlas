@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName        = "mongodbatlas_private_endpoint_interface_link.test"
 		projectID           = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -46,6 +47,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
 
@@ -81,6 +83,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpointLink_import(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
 

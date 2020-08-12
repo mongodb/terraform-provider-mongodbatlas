@@ -10,6 +10,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCustomDBRole_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	resourceName := "mongodbatlas_custom_db_role.test"
 	dataSourceName := "data.mongodbatlas_custom_db_role.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
