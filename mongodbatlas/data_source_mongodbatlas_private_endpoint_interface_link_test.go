@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	resourceName := "data.mongodbatlas_private_endpoint_interface_link.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")

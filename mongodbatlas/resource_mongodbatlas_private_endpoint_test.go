@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_private_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -42,6 +43,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasPrivateEndpoint_import(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_private_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

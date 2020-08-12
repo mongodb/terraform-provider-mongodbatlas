@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -146,5 +147,11 @@ func TestRemoveLabel(t *testing.T) {
 
 	if diff := deep.Equal(expected, got); diff != nil {
 		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
+	}
+}
+
+func SkipTestExtCred(t *testing.T) {
+	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
+		t.Skip()
 	}
 }

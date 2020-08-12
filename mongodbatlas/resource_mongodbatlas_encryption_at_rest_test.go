@@ -14,6 +14,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -69,6 +70,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -140,6 +142,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
