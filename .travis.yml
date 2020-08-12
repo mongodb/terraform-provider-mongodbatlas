@@ -17,7 +17,8 @@ matrix:
       script:
         #- make website-test #commented until Terraform Provider Program Validation
         - make website-lint
-script:
-  - make test
-  - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
-  - if [[ $TRAVIS_PULL_REQUEST == “true” ]]; then make testacc; fi
+    - name: "Test"
+      script:
+        - make test
+        - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
+        - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
