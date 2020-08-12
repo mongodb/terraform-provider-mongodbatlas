@@ -20,5 +20,7 @@ matrix:
     - name: "Test"
       script:
         - make test
+    - name: "Test Acceptances"
+      script:
         - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
         - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
