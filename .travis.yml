@@ -20,7 +20,7 @@ matrix:
     - name: "Test"
       script:
         - make test
-    - name: "Acceptances test"
+    - name: "Test Acceptances"
       script:
         - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done & make testacc; fi
         - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done & make testacc; fi

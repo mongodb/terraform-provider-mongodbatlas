@@ -650,6 +650,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 

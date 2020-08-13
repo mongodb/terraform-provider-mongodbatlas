@@ -15,6 +15,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		peer         matlas.Peer
 		resourceName = "mongodbatlas_network_peering.test"
