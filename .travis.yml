@@ -22,5 +22,5 @@ matrix:
         - make test
     - name: "Test Acceptances"
       script:
-        - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then travis_wait 360 make testacc; fi
-        - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then travis_wait 360 make testacc; fi
+        - travis_wait 360 if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
+        - travis_wait 360 if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
