@@ -21,6 +21,6 @@ jobs:
       - name: Website
         run: make tools && make website-lint
       - name: Test
-          run: make test
+        run: make test
       - name: Test Acceptances
-          run: make testacc
+        run: make testacc
