@@ -24,7 +24,7 @@ jobs:
         run: make tools && make website-lint
       - name: Test
         run: make test
-      - name: Test Acceptances
+      - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
