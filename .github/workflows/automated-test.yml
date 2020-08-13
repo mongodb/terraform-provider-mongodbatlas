@@ -12,11 +12,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        - name: Set output
-        id: vars
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
-       - name: Check current branch name
-       run: echo ${{ steps.vars.outputs.short_ref }}
+        - name: Set branch name
+          id: vars
+          run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+        - name: Check branch name
+          run: echo ${{ steps.vars.outputs.short_ref }}
         with:
           ref: ${{ steps.vars.outputs.short_ref }}
       - name: Set up Go
