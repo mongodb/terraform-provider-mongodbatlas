@@ -9,8 +9,8 @@ MongoDB welcomes community contributions! If you’re interested in making a con
 
 1. Sign the [contributor's agreement](http://www.mongodb.com/contributor). This will allow us to review and accept contributions.
 1. Read the [Terraform contribution guidelines]
-(https://www.terraform.io/docs/extend/community/contributing.html) and the [README](https://github.com/terraform-providers/terraform-provider-mongodbatlas/blob/master/README.md) in this repo
-1. Reach out by filing an [issue](https://github.com/terraform-providers/terraform-provider-mongodbatlas/issues) to discuss your proposed contribution, be it a bug fix or feature/other improvements.  
+(https://www.terraform.io/docs/extend/community/contributing.html) and the [README](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/README.md) in this repo
+1. Reach out by filing an [issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues) to discuss your proposed contribution, be it a bug fix or feature/other improvements.  
 
 After the above 3 steps are completed and we've agreed on a path forward:
 1. Fork the repository on GitHub
