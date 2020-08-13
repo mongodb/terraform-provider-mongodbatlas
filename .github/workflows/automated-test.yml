@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
