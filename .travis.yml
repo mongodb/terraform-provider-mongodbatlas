@@ -20,7 +20,12 @@ matrix:
     - name: "Test"
       script:
         - make test
-    - name: "Test Acceptances"
+    - name: "Acceptances tests"
       script:
-        - travis_wait 360 if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
-        - travis_wait 360 if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
+        # Output something every 10 minutes or Travis kills the job
+        - |
+            while sleep 9m; do
+              echo "====[ $SECONDS seconds still running ]===="
+            done &
+        - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
+        - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
