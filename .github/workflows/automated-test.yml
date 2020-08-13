@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request:
+    types: [opened]
 
 jobs:
   tests:
@@ -12,13 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        - name: Set branch name
-          id: vars
-          run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
-        - name: Check branch name
-          run: echo ${{ steps.vars.outputs.short_ref }}
         with:
-          ref: ${{ steps.vars.outputs.short_ref }}
+          ref: ${{ github.ref }}
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
