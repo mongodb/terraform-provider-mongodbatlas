@@ -20,11 +20,15 @@ matrix:
     - name: "Test"
       script:
         - make test
-    - name: "Acceptances tests"
+    - name: "Acceptances test"
+      before_script:
+        # Ping stdout every 9 minutes or Travis kills build,
+        # as travis_wait does not show the command output while processing.
+        # https://docs.travis-ci.com/user/common-build-problems/#build-times-out-because-no-output-was-received
+        - |
+          while sleep 9m; do
+              echo "====[ $SECONDS seconds still running ]===="
+          done &
       script:
-        # Output something every 10 minutes or Travis kills the job
-        - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
         - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
         - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
-        # Killing background sleep loop
-        - kill %1
