@@ -21,6 +21,8 @@ matrix:
       script:
         - make test
     - name: "Test Acceptances"
+      before_script:
+        - while travis_wait 50 sleep 480 &> /tmp/build.log || (tail -n 200 /tmp/build.log && exit 1); do echo "=====[ $SECONDS seconds, testacc still running... ]====="; done
       script:
         - if [[ $TRAVIS_PULL_REQUEST == “false” ]] && [[ $TRAVIS_BRANCH == “master” ]]; then make testacc; fi
         - if [[ $TRAVIS_PULL_REQUEST != “false” ]]; then make testacc; fi
