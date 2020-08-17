@@ -219,8 +219,23 @@ type IndexMapping struct {
 
 // IndexField field specifications.
 type IndexField struct {
-	Analyzer string `json:"analyzer"`
-	Type     string `json:"type"`
+	Analyzer       string                 `json:"analyzer,omitempty"`
+	Type           string                 `json:"type"`
+	Tokenization   string                 `json:"tokenization,omitempty"` // edgeGram|nGram
+	MinGrams       *int                   `json:"minGrams,omitempty"`
+	MaxGrams       *int                   `json:"maxGrams,omitempty"`
+	FoldDiacritics *bool                  `json:"foldDiacritics,omitempty"`
+	Fields         *map[string]IndexField `json:"fields,omitempty"`
+	SearchAnalyzer string                 `json:"searchAnalyzer,omitempty"`
+	IndexOptions   string                 `json:"indexOptions,omitempty"` // docs|freqs|positions
+	Store          *bool                  `json:"store,omitempty"`
+	IgnoreAbove    *int                   `json:"ignoreAbove,omitempty"`
+	Norms          string                 `json:"norms,omitempty"` // include|omit
+	Dynamic        *bool                  `json:"dynamic,omitempty"`
+	Representation string                 `json:"representation,omitempty"`
+	IndexIntegers  *bool                  `json:"indexIntegers,omitempty"`
+	IndexDoubles   *bool                  `json:"indexDoubles,omitempty"`
+	IndexShapes    *bool                  `json:"indexShapes,omitempty"`
 }
 
 // SearchAnalyzer custom analyzer definition.

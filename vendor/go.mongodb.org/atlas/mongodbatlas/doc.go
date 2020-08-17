@@ -36,17 +36,17 @@ can be used as a starting point.
 Authentication
 
 The mongodbatlas library does not directly handle authentication. Instead, when
-creating a new client, pass an http.Client that can handle authentication for
-you. The easiest and recommended way to do this is using the https://github.com/Sectorbob/mlab-ns2/gae/ns/digest
-library, but you can always use any other library that provides an http.Client.
-If you have a private and public API token pair, you can
-use it with the digest library using:
+creating a new client, pass an http.Client that can handle Digest Access authentication for
+you. The easiest way to do this is using the https://github.com/mongodb-forks/digest
+library, but you can always use any other library that provides an `http.Client`.
+If you have a private and public API token pair (https://docs.atlas.mongodb.com/configure-api-access),
+you can use it with the digest library using:
 
 	import (
 		"context"
 		"log"
 
-		"github.com/Sectorbob/mlab-ns2/gae/ns/digest"
+		"github.com/mongodb-forks/digest"
 		"go.mongodb.org/atlas/mongodbatlas"
 	)
 
@@ -60,6 +60,7 @@ use it with the digest library using:
 		client := mongodbatlas.NewClient(tc)
 		orgs, _, err := client.Projects.GetAllProjects(context.Background(), nil)
 	}
+
 
 Note that when using an authenticated Client, all calls made by the client will
 include the specified tokens. Therefore, authenticated clients should

@@ -47,7 +47,7 @@ type InheritedRole struct {
 // CustomDBRole represents a Custom MongoDB Role in your cluster.
 type CustomDBRole struct {
 	Actions        []Action        `json:"actions,omitempty"`
-	InheritedRoles []InheritedRole `json:"inheritedRoles,omitempty"`
+	InheritedRoles []InheritedRole `json:"inheritedRoles"`
 	RoleName       string          `json:"roleName,omitempty"`
 }
 
