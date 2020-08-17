@@ -80,7 +80,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 				},
 			},
 			"inherited_roles": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -192,6 +192,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("inherited_roles") {
 		customDBRole.InheritedRoles = expandInheritedRoles(d)
+
 	}
 
 	_, _, err = conn.CustomDBRoles.Update(context.Background(), projectID, roleName, customDBRole)
@@ -331,23 +332,21 @@ func flattenActionResources(resources []matlas.Resource) []map[string]interface{
 }
 
 func expandInheritedRoles(d *schema.ResourceData) []matlas.InheritedRole {
-	var inheritedRoles []matlas.InheritedRole
+	vIR := d.Get("inherited_roles").(*schema.Set).List()
+	ir := make([]matlas.InheritedRole, len(vIR))
 
-	if v, ok := d.GetOk("inherited_roles"); ok {
-		if rs := v.([]interface{}); len(rs) > 0 {
-			inheritedRoles = make([]matlas.InheritedRole, len(rs))
+	if len(vIR) != 0 {
+		for i := range vIR {
+			r := vIR[i].(map[string]interface{})
 
-			for k, r := range rs {
-				roleMap := r.(map[string]interface{})
-				inheritedRoles[k] = matlas.InheritedRole{
-					Db:   roleMap["database_name"].(string),
-					Role: roleMap["role_name"].(string),
-				}
+			ir[i] = matlas.InheritedRole{
+				Db:   r["database_name"].(string),
+				Role: r["role_name"].(string),
 			}
 		}
 	}
 
-	return inheritedRoles
+	return ir
 }
 
 func flattenInheritedRoles(roles []matlas.InheritedRole) []map[string]interface{} {
