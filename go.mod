@@ -13,3 +13,5 @@ require (
 	github.com/terraform-providers/terraform-provider-google v1.20.1-0.20200518165017-1dd21651c496
 	go.mongodb.org/atlas v0.4.1-0.20200820152733-8dc4a7c19a2b
 )
+
+replace go.mongodb.org/atlas => go.mongodb.org/atlas v0.4.1-0.20200819194203-09c49e85aa0d
