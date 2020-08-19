@@ -45,6 +45,35 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+```hcl
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = "<PROJECT-ID>"
+  event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+  enabled    = true
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = false
+    email_enabled = true
+    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
+  }
+
+  matcher {
+    field_name = "HOSTNAME_AND_PORT"
+    operator   = "EQUALS"
+    value      = "SECONDARY"
+  }
+
+  threshold = {
+    operator    = "LESS_THAN"
+    threshold   = 1
+    units       = "HOURS"
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
@@ -157,6 +186,15 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
     - `DAYS`
 
 * `mode` - This must be set to AVERAGE. Atlas computes the current metric value as an average.
+
+### Threshold
+* `operator` - Operator to apply when checking the current metric value against the threshold value.
+  Accepted values are:
+    - `GREATER_THAN`
+    - `LESS_THAN`
+
+* `threshold` - Threshold value outside of which an alert will be triggered.
+* `units` - The units for the threshold value. Depends on the type of metric.
 
 ### Notifications
 Notifications to send when an alert condition is detected.
