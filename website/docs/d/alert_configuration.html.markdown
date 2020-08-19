@@ -51,6 +51,40 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+```hcl
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = "<PROJECT-ID>"
+  event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+  enabled    = true
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = false
+    email_enabled = true
+    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
+  }
+
+  matcher {
+    field_name = "HOSTNAME_AND_PORT"
+    operator   = "EQUALS"
+    value      = "SECONDARY"
+  }
+
+  threshold = {
+    operator    = "LESS_THAN"
+    threshold   = 1
+    units       = "HOURS"
+  }
+}
+
+data "mongodbatlas_alert_configuration" "test" {
+	project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
+	alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
@@ -66,35 +100,35 @@ In addition to all arguments above, the following attributes are exported:
 * `enabled` - If set to true, the alert configuration is enabled. If enabled is not exported it is set to false.
 * `event_type` - The type of event that will trigger an alert.
   Alert type. Possible values:
-	 - Host 	
+	 - Host
 		- `OUTSIDE_METRIC_THRESHOLD`
 		- `HOST_RESTARTED`
 		- `HOST_UPGRADED`
 		- `HOST_NOW_SECONDARY`
 		- `HOST_NOW_PRIMARY`
-    - Replica set 	
+    - Replica set
       - `NO_PRIMARY`
       - `TOO_MANY_ELECTIONS`
-    Sharded cluster 	
+    Sharded cluster
       - `CLUSTER_MONGOS_IS_MISSING`
-      - `User` 	
+      - `User`
       - `JOINED_GROUP`
       - `REMOVED_FROM_GROUP`
       - `USER_ROLES_CHANGED_AUDIT`
-    - Project 	
+    - Project
       - `USERS_AWAITING_APPROVAL`
       - `USERS_WITHOUT_MULTI_FACTOR_AUTH`
       - `GROUP_CREATED`
-    - Team 	
+    - Team
       - `JOINED_TEAM`
       - `REMOVED_FROM_TEAM`
-    - Organization 	
+    - Organization
       - `INVITED_TO_ORG`
       - `JOINED_ORG`
-    - Data Explorer 	
+    - Data Explorer
       - `DATA_EXPLORER`
       - `DATA_EXPLORER_CRUD`
-    - Billing 	
+    - Billing
       - `CREDIT_CARD_ABOUT_TO_EXPIRE`
       - `CHARGE_SUCCEEDED`
       - `INVOICE_CLOSED`
@@ -126,7 +160,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 * `value` - If omitted, the configuration is disabled.
 
 
-* `operator` - The operator to test the field’s value. 
+* `operator` - The operator to test the field’s value.
   Accepted values are:
     - `EQUALS`
     - `NOT_EQUALS`
@@ -147,7 +181,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 The threshold that causes an alert to be triggered. Required if `event_type_name` : "OUTSIDE_METRIC_THRESHOLD".
 
 * `metric_name` - Name of the metric to check.
-* `operator` - Operator to apply when checking the current metric value against the threshold value. 
+* `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
     - `LESS_THAN`
@@ -174,6 +208,15 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 
 * `mode` - This must be set to AVERAGE. Atlas computes the current metric value as an average.
 
+### Threshold
+* `operator` - Operator to apply when checking the current metric value against the threshold value.
+  Accepted values are:
+    - `GREATER_THAN`
+    - `LESS_THAN`
+
+* `threshold` - Threshold value outside of which an alert will be triggered.
+* `units` - The units for the threshold value. Depends on the type of metric.
+
 ### Notifications
 Notifications to send when an alert condition is detected.
 
@@ -194,7 +237,7 @@ Notifications to send when an alert condition is detected.
 * `service_key` - PagerDuty service key. Required for the PAGER_DUTY notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `sms_enabled` - Flag indicating if text message notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
 * `team_id` - Unique identifier of a team.
-* `type_name` - Type of alert notification. 
+* `type_name` - Type of alert notification.
   Accepted values are:
     - `DATADOG`
     - `EMAIL`
