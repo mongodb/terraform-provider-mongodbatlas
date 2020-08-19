@@ -245,7 +245,7 @@ func testAccMongoDBAtlasNetworkContainerConfigAzure(projectID, cidrBlock, provid
 			project_id   		 = "%s"
 			atlas_cidr_block = "%s"
 			provider_name		 = "%s"
-			region			     = "US_EAST_2"
+			region			     = "US_EAST"
 		}
 	`, projectID, cidrBlock, providerName)
 }

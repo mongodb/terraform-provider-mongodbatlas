@@ -115,13 +115,13 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName 
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.Attributes["snapshot_restore_job_id"] == "" {
+		ids := decodeStateID(rs.Primary.ID)
+
+		if ids["snapshot_restore_job_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
 		log.Printf("[DEBUG] cloudProviderSnapshotRestoreJob ID: %s", rs.Primary.Attributes["snapshot_restore_job_id"])
-
-		ids := decodeStateID(rs.Primary.ID)
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			GroupID:     ids["project_id"],

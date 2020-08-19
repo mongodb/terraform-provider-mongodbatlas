@@ -14,6 +14,7 @@ import (
 )
 
 func TestAccResourcePrivateIPMode_basic(t *testing.T) {
+	t.Skip()
 	var (
 		privateIPMode matlas.PrivateIPMode
 		resourceName  = "mongodbatlas_private_ip_mode.test"

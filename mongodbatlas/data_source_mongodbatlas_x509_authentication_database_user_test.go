@@ -94,7 +94,9 @@ func testAccMongoX509AuthDBUserDataSourceConfigWithCustomerX509(projectID, usern
 	return fmt.Sprintf(`
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
 			project_id        = "%s"
-			customer_x509_cas = "%s"
+			customer_x509_cas = <<EOT
+								%s
+								EOT
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {

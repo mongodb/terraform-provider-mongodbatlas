@@ -123,8 +123,10 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		orgID := rs.Primary.Attributes["org_id"]
-		id := rs.Primary.Attributes["team_id"]
+		ids := decodeStateID(rs.Primary.ID)
+
+		orgID := ids["org_id"]
+		id := ids["id"]
 
 		if orgID == "" && id == "" {
 			return fmt.Errorf("no ID is set")
@@ -161,8 +163,10 @@ func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
 			continue
 		}
 
-		orgID := rs.Primary.Attributes["org_id"]
-		id := rs.Primary.Attributes["team_id"]
+		ids := decodeStateID(rs.Primary.ID)
+
+		orgID := ids["org_id"]
+		id := ids["id"]
 
 		// Try to find the team
 		_, _, err := conn.Teams.Get(context.Background(), orgID, id)
@@ -181,7 +185,9 @@ func testAccCheckMongoDBAtlasTeamStateIDFunc(resourceName string) resource.Impor
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["team_id"]), nil
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s", ids["org_id"], ids["id"]), nil
 	}
 }
 

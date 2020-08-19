@@ -61,7 +61,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotConfig(projectID, cluster
 		}
 
 		data "mongodbatlas_cloud_provider_snapshot" "test" {
-			snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
+			snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
 			project_id   = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 		}

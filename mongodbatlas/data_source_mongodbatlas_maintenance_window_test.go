@@ -34,6 +34,7 @@ func TestAccDataSourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 }
 
 func TestAccDataSourceMongoDBAtlasMaintenanceWindow_basicWithStartASAP(t *testing.T) {
+	t.Skip()
 	var maintenance matlas.MaintenanceWindow
 
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")

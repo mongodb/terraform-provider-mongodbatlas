@@ -63,7 +63,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id    = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name  = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-			snapshot_id   = mongodbatlas_cloud_provider_snapshot.test.id
+			snapshot_id   = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
 			delivery_type = {
 				download = true
 			}
@@ -73,7 +73,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 		data "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id   = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
 			cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
-			job_id       = mongodbatlas_cloud_provider_snapshot_restore_job.test.id
+			job_id       = mongodbatlas_cloud_provider_snapshot_restore_job.test.snapshot_restore_job_id
 		}
 	`, projectID, clusterName, description, retentionInDays)
 }

@@ -62,9 +62,10 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.basic"
+		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		nameUpdated  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,12 +88,12 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, "true"),
+				Config: testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, nameUpdated, "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, nameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", nameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
 					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "provider_backup_enabled", "true"),
@@ -760,7 +761,7 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cluster.basic"
+		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -874,9 +875,11 @@ func testAccCheckMongoDBAtlasClusterExists(resourceName string, cluster *matlas.
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
+		ids := decodeStateID(rs.Primary.ID)
 
-		if clusterResp, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]); err == nil {
+		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
+
+		if clusterResp, _, err := conn.Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
 			*cluster = *clusterResp
 			return nil
 		}
@@ -903,11 +906,13 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
+		ids := decodeStateID(rs.Primary.ID)
+
 		// Try to find the cluster
-		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"])
+		_, _, err := conn.Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
 
 		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["name"], rs.Primary.ID)
+			return fmt.Errorf("cluster (%s:%s) still exists", ids["cluster_name"], ids["project_id"])
 		}
 	}
 
