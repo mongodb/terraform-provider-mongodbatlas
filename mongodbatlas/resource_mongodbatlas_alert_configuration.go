@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -444,31 +443,31 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	}
 
 	if err := d.Set("project_id", alert.GroupID); err != nil {
-		log.Printf(errorAlertConfSetting, "project_id", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "project_id", id, err)
 	}
 
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
-		log.Printf(errorAlertConfSetting, "event_type", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "event_type", id, err)
 	}
 
 	if err := d.Set("enabled", alert.Enabled); err != nil {
-		log.Printf(errorAlertConfSetting, "enabled", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "enabled", id, err)
 	}
 
 	if err := d.Set("matcher", flattenAlertConfigurationMatchers(alert.Matchers)); err != nil {
-		log.Printf(errorAlertConfSetting, "matcher", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "matcher", id, err)
 	}
 
 	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
-		log.Printf(errorAlertConfSetting, "metric_threshold", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
 	}
 
 	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
-		log.Printf(errorAlertConfSetting, "metric_threshold", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
-		log.Printf(errorAlertConfSetting, "notification", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "notification", id, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
