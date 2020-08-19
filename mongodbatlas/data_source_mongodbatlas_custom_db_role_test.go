@@ -10,14 +10,13 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasCustomDBRole_basic(t *testing.T) {
-	SkipTestExtCred(t)
 	resourceName := "mongodbatlas_custom_db_role.test"
 	dataSourceName := "data.mongodbatlas_custom_db_role.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	roleName := fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{

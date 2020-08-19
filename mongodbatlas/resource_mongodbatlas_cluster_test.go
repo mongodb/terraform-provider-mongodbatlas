@@ -305,7 +305,6 @@ func TestAccResourceMongoDBAtlasCluster_basicAzure(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
-	SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.basic_gcp"
@@ -314,7 +313,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
