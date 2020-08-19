@@ -506,29 +506,6 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 		},
 	}
 
-	testRole := &matlas.CustomDBRole{
-		RoleName: fmt.Sprintf("test-acc-TEST_ROLE-%s", acctest.RandString(5)),
-		Actions: []matlas.Action{
-			{
-				Action: "INSERT",
-				Resources: []matlas.Resource{
-					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
-					},
-					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
-					},
-				},
-			},
-		},
-		InheritedRoles: []matlas.InheritedRole{
-			{
-				Role: inheritRole.RoleName,
-				Db:   "admin",
-			},
-		},
-	}
-
 	inheritRoleUpdated := &matlas.CustomDBRole{
 		RoleName: inheritRole.RoleName,
 		Actions: []matlas.Action{
@@ -565,27 +542,12 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 		},
 	}
 
-	testRoleUpdated := &matlas.CustomDBRole{
-		RoleName: testRole.RoleName,
-		Actions: []matlas.Action{
+	testRole := &matlas.CustomDBRole{
+		RoleName: fmt.Sprintf("test-acc-TEST_ROLE-%s", acctest.RandString(5)),
+		InheritedRoles: []matlas.InheritedRole{
 			{
-				Action: "UPDATE",
-				Resources: []matlas.Resource{
-					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
-					},
-					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
-					},
-				},
-			},
-			{
-				Action: "REMOVE",
-				Resources: []matlas.Resource{
-					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
-					},
-				},
+				Role: inheritRole.RoleName,
+				Db:   "admin",
 			},
 		},
 	}
@@ -615,16 +577,14 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 
 					resource.TestCheckResourceAttr(testRoleResourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.Actions))),
 					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "1"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID, inheritRoleUpdated, testRoleUpdated),
+				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID, inheritRoleUpdated, testRole),
 				Check: resource.ComposeTestCheckFunc(
 
 					// For Inherited Role
@@ -643,14 +603,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 					testAccCheckMongoDBAtlasCustomDBRolesExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(testRoleResourceName, "actions.0.action"),
 
 					resource.TestCheckResourceAttr(testRoleResourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.Actions))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.Actions[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRoleUpdated.Actions[0].Resources))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "0"),
+					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
+					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "1"),
 				),
 			},
 		},
