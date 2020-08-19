@@ -177,6 +177,13 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitThresholdUpdated(t *testi
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id", "matcher.0.field_name"},
+			},
 		},
 	})
 }
