@@ -906,13 +906,11 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
 		// Try to find the cluster
-		_, _, err := conn.Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 
 		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", ids["cluster_name"], ids["project_id"])
+			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
 		}
 	}
 
