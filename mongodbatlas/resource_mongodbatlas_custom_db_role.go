@@ -49,7 +49,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 			},
 			"actions": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"action": {
@@ -192,7 +192,6 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("inherited_roles") {
 		customDBRole.InheritedRoles = expandInheritedRoles(d)
-
 	}
 
 	_, _, err = conn.CustomDBRoles.Update(context.Background(), projectID, roleName, customDBRole)
