@@ -11,9 +11,9 @@ const peersPath = "groups/%s/peers"
 
 // PeersService is an interface for interfacing with the Peers
 // endpoints of the MongoDB Atlas API.
-// See more: https://docs.atlas.mongodb.com/reference/api/peers/
+// See more: https://docs.atlas.mongodb.com/reference/api/vpc/
 type PeersService interface {
-	List(context.Context, string, *ListOptions) ([]Peer, *Response, error)
+	List(context.Context, string, *ContainersListOptions) ([]Peer, *Response, error)
 	Get(context.Context, string, string) (*Peer, *Response, error)
 	Create(context.Context, string, *Peer) (*Peer, *Response, error)
 	Update(context.Context, string, string, *Peer) (*Peer, *Response, error)
@@ -59,7 +59,7 @@ type peersResponse struct {
 
 // List all peers in the project associated to {GROUP-ID}.
 // See more: https://docs.atlas.mongodb.com/reference/api/vpc-get-connections-list/
-func (s *PeersServiceOp) List(ctx context.Context, groupID string, listOptions *ListOptions) ([]Peer, *Response, error) {
+func (s *PeersServiceOp) List(ctx context.Context, groupID string, listOptions *ContainersListOptions) ([]Peer, *Response, error) {
 	path := fmt.Sprintf(peersPath, groupID)
 
 	// Add query params from listOptions

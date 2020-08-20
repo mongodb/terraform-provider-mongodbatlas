@@ -53,6 +53,7 @@ type AlertConfiguration struct {
 	CurrentValue           *CurrentValue    `json:"currentValue,omitempty"`           // CurrentValue represents current value of the metric that triggered the alert. Only present for alerts of type HOST_METRIC.
 	Matchers               []Matcher        `json:"matchers,omitempty"`               // You can filter using the matchers array only when the EventTypeName specifies an event for a host, replica set, or sharded cluster.
 	MetricThreshold        *MetricThreshold `json:"metricThreshold,omitempty"`        // MetricThreshold  causes an alert to be triggered.
+	Threshold              *Threshold       `json:"threshold,omitempty"`              // Threshold  causes an alert to be triggered.
 	Notifications          []Notification   `json:"notifications,omitempty"`          // Notifications are sending when an alert condition is detected.
 }
 
@@ -71,6 +72,13 @@ type MetricThreshold struct {
 	Threshold  float64 `json:"threshold,omitempty"`  // Threshold value outside of which an alert will be triggered.
 	Units      string  `json:"units,omitempty"`      // The units for the threshold value.
 	Mode       string  `json:"mode,omitempty"`       // This must be set to AVERAGE. Atlas computes the current metric value as an average.
+}
+
+// Threshold that triggers an alert. Don’t include if "eventTypeName" : "OUTSIDE_METRIC_THRESHOLD".
+type Threshold struct {
+	Operator  string  `json:"operator,omitempty"`  // Operator to apply when checking the current metric value against the threshold value. it accepts the following values: GREATER_THAN, LESS_THAN
+	Units     string  `json:"units,omitempty"`     // The units for the threshold value.
+	Threshold float64 `json:"threshold,omitempty"` // Threshold value outside of which an alert will be triggered.
 }
 
 // Notification sends when an alert condition is detected.

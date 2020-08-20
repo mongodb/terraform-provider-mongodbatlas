@@ -135,7 +135,7 @@ func (s *PrivateEndpointsServiceOp) Delete(ctx context.Context, groupID, private
 		return nil, NewArgError("groupID", "must be set")
 	}
 	if privateLinkID == "" {
-		return nil, NewArgError("whitelistEntry", "must be set")
+		return nil, NewArgError("privateLinkID", "must be set")
 	}
 
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
