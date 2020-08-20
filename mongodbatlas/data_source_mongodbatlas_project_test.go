@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -13,20 +14,24 @@ import (
 func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+	if len(teamsIds) < 2 {
+		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); checkTeamsIds(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithDSByID(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    "5e0fa8c99ccf641c722fe683",
+							TeamID:    teamsIds[0],
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    "5e1dd7b4f2a30ba80a70cd3a",
+							TeamID:    teamsIds[1],
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -43,20 +48,24 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+	if len(teamsIds) < 2 {
+		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); checkTeamsIds(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
-							TeamID:    "5e0fa8c99ccf641c722fe683",
+							TeamID:    teamsIds[0],
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamID:    "5e1dd7b4f2a30ba80a70cd3a",
+							TeamID:    teamsIds[1],
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
@@ -77,7 +86,7 @@ func testAccMongoDBAtlasProjectConfigWithDSByID(projectName, orgID string, teams
 		data "mongodbatlas_project" "test" {
 			project_id = "${mongodbatlas_project.test.id}"
 		}
-	`, testAccMongoDBAtlasPropjectConfig(projectName, orgID, teams))
+	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams))
 }
 
 func testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID string, teams []*matlas.ProjectTeam) string {
@@ -87,5 +96,5 @@ func testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID string, tea
 		data "mongodbatlas_project" "test" {
 			name = "${mongodbatlas_project.test.name}"
 		}
-	`, testAccMongoDBAtlasPropjectConfig(projectName, orgID, teams))
+	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams))
 }

@@ -155,3 +155,9 @@ func SkipTestExtCred(t *testing.T) {
 		t.Skip()
 	}
 }
+
+func checkTeamsIds(t *testing.T) {
+	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
+		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
+	}
+}
