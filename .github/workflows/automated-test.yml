@@ -17,4 +17,6 @@ jobs:
       - name: Website
         run: make tools && make website-lint
       - name: Test
+        env:
+          MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
         run: make test
