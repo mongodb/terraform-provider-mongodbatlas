@@ -79,59 +79,26 @@ resource "mongodbatlas_alert_configuration" "test" {
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
 * `enabled` - It is not required, but If the attribute is omitted, by default will be false, and the configuration would be disabled. You must set true to enable the configuration.
 * `event_type` - (Required) The type of event that will trigger an alert.
-  Alert type 	Possible values:
-    * Host
-      - `OUTSIDE_METRIC_THRESHOLD`
-      - `HOST_RESTARTED`
-      - `HOST_UPGRADED`
-      - `HOST_NOW_SECONDARY`
-      - `HOST_NOW_PRIMARY`
-    * Replica set
-      - `NO_PRIMARY`
-      - `TOO_MANY_ELECTIONS`
-    * Sharded cluster
-      - `CLUSTER_MONGOS_IS_MISSING`
-      - `User`
-      - `JOINED_GROUP`
-      - `REMOVED_FROM_GROUP`
-      - `USER_ROLES_CHANGED_AUDIT`
-    * Project
-      - `USERS_AWAITING_APPROVAL`
-      - `USERS_WITHOUT_MULTI_FACTOR_AUTH`
-      - `GROUP_CREATED`
-    * Team
-      - `JOINED_TEAM`
-      - `REMOVED_FROM_TEAM`
-    * Organization
-      - `INVITED_TO_ORG`
-      - `JOINED_ORG`
-    * Data Explorer
-      - `DATA_EXPLORER`
-      - `DATA_EXPLORER_CRUD`
-    * Billing
-      - `CREDIT_CARD_ABOUT_TO_EXPIRE`
-      - `CHARGE_SUCCEEDED`
-      - `INVOICE_CLOSED`
 
-    -> **NOTE:** If this is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
+  -> **IMPORTANT:** Event Type has many possible values, you can see more details at: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/ (you can found them in the "Condition Tab" under eventTypeName)
+
+  -> **NOTE:** If this is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
+
 
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.
 
 * `field_name` - Name of the field in the target object to match on.
-  Host alerts support these fields:
-    - `TYPE_NAME`
-    - `HOSTNAME`
-    - `PORT`
-    - `HOSTNAME_AND_PORT`
-    - `REPLICA_SET_NAME`
-  Replica set alerts support these fields:
-    - `REPLICA_SET_NAME`
-    - `SHARD_NAME`
-    - `CLUSTER_NAME`
-  Sharded cluster alerts support these fields:
-    - `CLUSTER_NAME`
-    - `SHARD_NAME`
+
+| Host alerts         | Replica set alerts  |  Sharded cluster alerts |
+|:----------           |:-------------       |:------                 |
+| `TYPE_NAME`         | `REPLICA_SET_NAME`  | `CLUSTER_NAME`          |
+| `HOSTNAME`          | `SHARD_NAME`        | `SHARD_NAME`            |
+| `PORT`              | `CLUSTER_NAME`      |                         |
+| `HOSTNAME_AND_PORT` |                     |                         |
+| `REPLICA_SET_NAME`  |                     |                         |
+
+
 
   All other types of alerts do not support matchers.
 
@@ -235,15 +202,18 @@ Notifications to send when an alert condition is detected.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
-* `Roles` - Roles. Optional. The following roles grant privileges within a project.
+* `Roles` - Optional. The following roles grant privileges within a project.
   Accepted values are:
-    - `GROUP_CHARTS_ADMIN`
-    - `GROUP_CLUSTER_MANAGER`
-    - `GROUP_DATA_ACCESS_ADMIN`
-    - `GROUP_DATA_ACCESS_READ_ONLY`
-    - `GROUP_DATA_ACCESS_READ_WRITE`
-    - `GROUP_OWNER`
-    - `GROUP_READ_ONLY`
+
+    | Project roles                   | Organization roles  |
+    |:----------                      |:-----------         |
+    | `GROUP_CHARTS_ADMIN`            | `ORG_OWNER`         |
+    | `GROUP_CLUSTER_MANAGER`         | `ORG_MEMBER`        |
+    | `GROUP_DATA_ACCESS_ADMIN`       | `ORG_GROUP_CREATOR` |
+    | `GROUP_DATA_ACCESS_READ_ONLY`   | `ORG_BILLING_ADMIN` |
+    | `GROUP_DATA_ACCESS_READ_WRITE`  | `ORG_READ_ONLY`     |
+    | `GROUP_OWNER`                   |                     |
+    | `GROUP_READ_ONLY`               |                     |
 
 ## Attributes Reference
 
