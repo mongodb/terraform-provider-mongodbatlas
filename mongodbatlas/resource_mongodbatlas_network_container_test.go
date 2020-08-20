@@ -260,7 +260,7 @@ func testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBloc
 			project_id   		 = "${mongodbatlas_project.test.id}"
 			atlas_cidr_block = "%s"
 			provider_name		 = "%s"
-			region			     = "US_EAST"
+			region			     = "US_EAST_2"
 		}
 	`, projectName, orgID, cidrBlock, providerName)
 }
