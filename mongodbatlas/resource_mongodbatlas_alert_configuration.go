@@ -67,17 +67,10 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"field_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"TYPE_NAME", "HOSTNAME", "PORT", "HOSTNAME_AND_PORT",
-								"REPLICA_SET_NAME", "REPLICA_SET_NAME", "SHARD_NAME",
-								"CLUSTER_NAME", "CLUSTER_NAME", "SHARD_NAME"}, false),
 						},
 						"operator": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS",
-								"STARTS_WITH", "ENDS_WITH", "REGEX"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -94,17 +87,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"metric_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"TYPE_NAME",
-								"HOSTNAME",
-								"PORT",
-								"HOSTNAME_AND_PORT",
-								"REPLICA_SET_NAME",
-								"REPLICA_SET_NAME",
-								"SHARD_NAME",
-								"CLUSTER_NAME",
-								"CLUSTER_NAME",
-								"SHARD_NAME"}, false),
 						},
 						"operator": {
 							Type:         schema.TypeString,
@@ -118,23 +100,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"units": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"RAW",
-								"BITS",
-								"BYTES",
-								"KILOBITS",
-								"KILOBYTES",
-								"MEGABITS",
-								"MEGABYTES",
-								"GIGABITS",
-								"GIGABYTES",
-								"TERABYTES",
-								"PETABYTES",
-								"MILLISECONDS",
-								"SECONDS",
-								"MINUTES",
-								"HOURS",
-								"DAYS"}, false),
 						},
 						"mode": {
 							Type:     schema.TypeString,
@@ -149,9 +114,8 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"operator": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringInSlice([]string{"GREATER_THAN", "LESS_THAN"}, false),
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"threshold": {
 							Type:     schema.TypeFloat,
@@ -160,23 +124,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"units": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"RAW",
-								"BITS",
-								"BYTES",
-								"KILOBITS",
-								"KILOBYTES",
-								"MEGABITS",
-								"MEGABYTES",
-								"GIGABITS",
-								"GIGABYTES",
-								"TERABYTES",
-								"PETABYTES",
-								"MILLISECONDS",
-								"SECONDS",
-								"MINUTES",
-								"HOURS",
-								"DAYS"}, false),
 						},
 					},
 				},
@@ -259,20 +206,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"type_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"DATADOG",
-								"EMAIL",
-								"FLOWDOCK",
-								"GROUP",
-								"OPS_GENIE",
-								"ORG",
-								"PAGER_DUTY",
-								"SLACK",
-								"SMS",
-								"TEAM",
-								"USER",
-								"VICTOR_OPS",
-								"WEBHOOK"}, false),
 						},
 						"username": {
 							Type:     schema.TypeString,
