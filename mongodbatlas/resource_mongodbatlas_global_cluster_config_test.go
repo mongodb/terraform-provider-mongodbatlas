@@ -158,10 +158,8 @@ func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
 		// Try to find the cluster
-		globalConfig, _, err := conn.GlobalClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+		globalConfig, _, err := conn.GlobalClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		if err != nil {
 			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
 				return nil
