@@ -289,15 +289,15 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":         *projectID,
-		"username":           *username,
-		"auth_database_name": *authDatabaseName,
+		"username":           u.Username,
+		"auth_database_name": u.DatabaseName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
 func splitDatabaseUserImportID(id string) (projectID, username, authDatabaseName *string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([a-z]{1,15})$`)
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
