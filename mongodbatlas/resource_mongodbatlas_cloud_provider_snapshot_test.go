@@ -148,11 +148,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
-		log.Printf("%s-%s-%s", ids["project_id"], ids["cluster_name"], ids["snapshot_id"])
-
-		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["cluster_name"], ids["snapshot_id"]), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["snapshot_id"]), nil
 	}
 }
 
