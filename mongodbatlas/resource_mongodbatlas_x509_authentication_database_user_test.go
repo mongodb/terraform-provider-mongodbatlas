@@ -121,9 +121,10 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_importBasic(t *testing.T) {
 func TestAccResourceMongoDBAtlasX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgId        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		months       = acctest.RandIntRange(1, 24)
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -132,13 +133,12 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username, months),
+				Config: testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectName, orgId, username, months),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "months_until_expiration"),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "months_until_expiration", cast.ToString(months)),
 				),
@@ -279,10 +279,15 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithCustomerX509(projectID, cas stri
 	`, projectID, cas)
 }
 
-func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username string, months int) string {
+func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectName, orgID, username string, months int) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_database_user" "user" {
-			project_id         = "%s"
+			project_id         = "${mongodbatlas_project.test.id}"
 			username           = "%s"
 			x509_type          = "MANAGED"
 			auth_database_name = "$external"
@@ -303,5 +308,5 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectID, username
 			username                = "${mongodbatlas_database_user.user.username}"
 			months_until_expiration = %d
 		}
-	`, projectID, username, months)
+	`, projectName, orgID, username, months)
 }
