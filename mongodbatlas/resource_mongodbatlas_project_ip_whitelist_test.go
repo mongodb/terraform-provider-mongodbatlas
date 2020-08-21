@@ -157,7 +157,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 
 	whitelist := make([]map[string]string, 0)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 20; i++ {
 		entry := make(map[string]string)
 		entryName := ""
 		ipAddr := ""
