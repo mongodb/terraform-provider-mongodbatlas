@@ -570,26 +570,9 @@ func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, rol
 		}
 
 		resource "mongodbatlas_database_user" "test" {
-<<<<<<< HEAD
-<<<<<<< HEAD
-			username           = "%[3]s"
-			aws_iam_type       = "USER"
-			project_id         = "%[1]s"
-=======
 			username           = "%[4]s"
 			aws_iam_type       = "USER"
 			project_id         = "${mongodbatlas_project.test.id}"
->>>>>>> test: changed database user to create project and get it, changed import to rs primare attributes instead of decode state id
-=======
-			username           = "%[4]s"
-			aws_iam_type       = "USER"
-			project_id         = "${mongodbatlas_project.test.id}"
-=======
-			username           = "%[3]s"
-			aws_iam_type       = "USER"
-			project_id         = "%[1]s"
->>>>>>> Fix #285: Unable to import $external auth users (#297)
->>>>>>> Fix #285: Unable to import $external auth users (#297)
 			auth_database_name = "$external"
 
 			roles {
