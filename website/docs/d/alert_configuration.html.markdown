@@ -51,6 +51,8 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+-> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/
+
 ```hcl
 resource "mongodbatlas_alert_configuration" "test" {
   project_id = "<PROJECT-ID>"
@@ -100,10 +102,9 @@ In addition to all arguments above, the following attributes are exported:
 * `enabled` - If set to true, the alert configuration is enabled. If enabled is not exported it is set to false.
 * `event_type` - The type of event that will trigger an alert.
 
-  -> **IMPORTANT:** Event Type has many possible values, you can see more details at: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/ (you can found them in the "Condition Tab" under eventTypeName)
+  -> ***IMPORTANT:*** Event Type has many possible values. All current options at available at https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/ Details for both conditional and metric based alerts can be found by selecting the tabs on the [alert config page](https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/) and checking the latest eventTypeName options.
 
-  -> **NOTE:** If this is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
-
+  -> **NOTE:** If `event_type` is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
 
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.
@@ -145,7 +146,8 @@ Rules to apply when matching an object against this alert configuration. Only en
 ### Metric Threshold
 The threshold that causes an alert to be triggered. Required if `event_type_name` : "OUTSIDE_METRIC_THRESHOLD".
 
-* `metric_name` - Name of the metric to check.
+* `metric_name` - Name of the metric to check. The full list of current options is available [here](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types)
+
 * `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
@@ -181,6 +183,23 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 
 * `threshold` - Threshold value outside of which an alert will be triggered.
 * `units` - The units for the threshold value. Depends on the type of metric.
+    Accepted values are:
+      - `RAW`
+      - `BITS`
+      - `BYTES`
+      - `KILOBITS`
+      - `KILOBYTES`
+      - `MEGABITS`
+      - `MEGABYTES`
+      - `GIGABITS`
+      - `GIGABYTES`
+      - `TERABYTES`
+      - `PETABYTES`
+      - `MILLISECONDS`
+      - `SECONDS`
+      - `MINUTES`
+      - `HOURS`
+      - `DAYS`
 
 ### Notifications
 Notifications to send when an alert condition is detected.
