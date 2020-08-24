@@ -289,8 +289,8 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":         *projectID,
-		"username":           u.Username,
-		"auth_database_name": u.DatabaseName,
+		"username":           *username,
+		"auth_database_name": *authDatabaseName,
 	}))
 
 	return []*schema.ResourceData{d}, nil

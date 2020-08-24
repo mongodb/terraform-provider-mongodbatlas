@@ -147,9 +147,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]), nil
 	}
 }
 
