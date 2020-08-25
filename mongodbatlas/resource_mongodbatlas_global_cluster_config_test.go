@@ -74,6 +74,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_global_cluster_config.config"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

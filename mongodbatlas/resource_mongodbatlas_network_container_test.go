@@ -137,6 +137,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		randInt      = acctest.RandIntRange(0, 255)
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
