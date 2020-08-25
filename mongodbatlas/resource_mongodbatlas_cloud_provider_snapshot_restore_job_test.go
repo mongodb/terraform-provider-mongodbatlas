@@ -196,7 +196,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 
 		// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true
 			provider_disk_iops          = 100
@@ -232,7 +232,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			disk_size_gb = 5
 
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true   // enable cloud provider snapshots
 			provider_disk_iops          = 100
@@ -267,7 +267,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 
 		// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true
 			provider_disk_iops          = 100
@@ -281,7 +281,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 
 		// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true   // enable cloud provider snapshots
 			provider_disk_iops          = 100

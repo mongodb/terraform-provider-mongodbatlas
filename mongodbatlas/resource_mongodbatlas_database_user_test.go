@@ -292,6 +292,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
 		resourceName = "mongodbatlas_database_user.basic_ds"
