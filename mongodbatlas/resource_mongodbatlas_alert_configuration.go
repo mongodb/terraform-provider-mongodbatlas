@@ -438,7 +438,7 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"id":         id,
+		"id":         alert.ID,
 		"project_id": projectID,
 	}))
 

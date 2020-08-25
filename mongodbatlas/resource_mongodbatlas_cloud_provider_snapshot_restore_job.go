@@ -331,7 +331,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":              *projectID,
-		"cluster_name":            *clusterName,
+		"cluster_name":            requestParameters.ClusterName,
 		"snapshot_restore_job_id": *snapshotJobID,
 	}))
 

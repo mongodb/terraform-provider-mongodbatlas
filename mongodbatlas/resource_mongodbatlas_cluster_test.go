@@ -861,7 +861,9 @@ func testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName string) resou
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]), nil
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
 	}
 }
 
