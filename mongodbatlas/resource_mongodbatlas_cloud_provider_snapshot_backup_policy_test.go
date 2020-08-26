@@ -60,6 +60,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testi
 }
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_cloud_provider_snapshot_backup_policy.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -65,6 +65,7 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		maintenance  matlas.MaintenanceWindow
 		resourceName = "mongodbatlas_maintenance_window.test"
