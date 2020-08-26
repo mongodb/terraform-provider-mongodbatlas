@@ -1128,7 +1128,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 				zone_name  = "Zone 1"
 				num_shards = 2
 				regions_config {
-				region_name     = "EU_CENTRAL_1"
+				region_name     = "US_EAST_1"
 				electable_nodes = 3
 				priority        = 7
 				read_only_nodes = 0
