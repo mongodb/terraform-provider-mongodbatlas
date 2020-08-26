@@ -196,7 +196,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 				zone_name  = "Zone 1"
 				num_shards = 1
 				regions_config {
-					region_name     = "EU_CENTRAL_1"
+					region_name     = "US_EAST_1"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
@@ -250,7 +250,7 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 			provider_disk_iops 			    = 300
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M30"
-			provider_region_name        = "EU_CENTRAL_1"
+			provider_region_name        = "US_EAST_1"
 			provider_backup_enabled     = %s
 		}
 
