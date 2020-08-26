@@ -220,7 +220,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.
 	projectID := parts[0]
 	clusterName := parts[1]
 
-	c, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
 	}
@@ -235,7 +235,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
-		"cluster_name": c.ClusterName,
+		"cluster_name": clusterName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
