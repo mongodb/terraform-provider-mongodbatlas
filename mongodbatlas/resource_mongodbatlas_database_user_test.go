@@ -327,6 +327,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importX509TypeCustomer(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
