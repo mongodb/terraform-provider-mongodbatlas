@@ -87,6 +87,26 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					},
 				},
 			},
+			"threshold": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"operator": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"threshold": {
+							Type:     schema.TypeFloat,
+							Computed: true,
+						},
+						"units": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"notification": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -176,6 +196,13 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"roles": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -212,6 +239,10 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta i
 
 	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err)
+	}
+
+	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
+		return fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err)
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {

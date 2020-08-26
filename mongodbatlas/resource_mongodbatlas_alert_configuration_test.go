@@ -151,6 +151,43 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.
 	})
 }
 
+func TestAccResourceMongoDBAtlasAlertConfiguration_whitThresholdUpdated(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID, true, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID, false, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id", "matcher.0.field_name"},
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
 	var (
 		alert        = &matlas.AlertConfiguration{}
@@ -435,6 +472,37 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(projectID string, e
 				threshold   = %f
 				units       = "RAW"
 				mode        = "AVERAGE"
+			}
+		}
+	`, projectID, enabled, threshold)
+}
+
+func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID string, enabled bool, threshold float64) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = "%s"
+			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+			enabled    = "%t"
+
+			notification {
+				type_name     = "GROUP"
+				interval_min  = 5
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = true
+				roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
+			}
+
+			matcher {
+				field_name = "HOSTNAME_AND_PORT"
+				operator   = "EQUALS"
+				value      = "SECONDARY"
+			}
+
+			threshold = {
+				operator    = "LESS_THAN"
+				units       = "HOURS"
+				threshold   = %f
 			}
 		}
 	`, projectID, enabled, threshold)

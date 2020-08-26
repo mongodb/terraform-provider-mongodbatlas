@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -68,17 +67,10 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"field_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"TYPE_NAME", "HOSTNAME", "PORT", "HOSTNAME_AND_PORT",
-								"REPLICA_SET_NAME", "REPLICA_SET_NAME", "SHARD_NAME",
-								"CLUSTER_NAME", "CLUSTER_NAME", "SHARD_NAME"}, false),
 						},
 						"operator": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS",
-								"STARTS_WITH", "ENDS_WITH", "REGEX"}, false),
 						},
 						"value": {
 							Type:     schema.TypeString,
@@ -95,17 +87,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"metric_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"TYPE_NAME",
-								"HOSTNAME",
-								"PORT",
-								"HOSTNAME_AND_PORT",
-								"REPLICA_SET_NAME",
-								"REPLICA_SET_NAME",
-								"SHARD_NAME",
-								"CLUSTER_NAME",
-								"CLUSTER_NAME",
-								"SHARD_NAME"}, false),
 						},
 						"operator": {
 							Type:         schema.TypeString,
@@ -140,6 +121,43 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"mode": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+					},
+				},
+			},
+			"threshold": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"operator": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"threshold": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
+						"units": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"RAW",
+								"BITS",
+								"BYTES",
+								"KILOBITS",
+								"KILOBYTES",
+								"MEGABITS",
+								"MEGABYTES",
+								"GIGABITS",
+								"GIGABYTES",
+								"TERABYTES",
+								"PETABYTES",
+								"MILLISECONDS",
+								"SECONDS",
+								"MINUTES",
+								"HOURS",
+								"DAYS"}, false),
 						},
 					},
 				},
@@ -222,20 +240,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"type_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"DATADOG",
-								"EMAIL",
-								"FLOWDOCK",
-								"GROUP",
-								"OPS_GENIE",
-								"ORG",
-								"PAGER_DUTY",
-								"SLACK",
-								"SMS",
-								"TEAM",
-								"USER",
-								"VICTOR_OPS",
-								"WEBHOOK"}, false),
 						},
 						"username": {
 							Type:     schema.TypeString,
@@ -273,6 +277,7 @@ func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta i
 		Enabled:         pointy.Bool(d.Get("enabled").(bool)),
 		Matchers:        expandAlertConfigurationMatchers(d),
 		MetricThreshold: expandAlertConfigurationMetricThreshold(d),
+		Threshold:       expandAlertConfigurationThreshold(d),
 		Notifications:   expandAlertConfigurationNotification(d),
 	}
 
@@ -353,6 +358,10 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 		req.MetricThreshold = expandAlertConfigurationMetricThreshold(d)
 	}
 
+	if d.HasChange("threshold") {
+		req.Threshold = expandAlertConfigurationThreshold(d)
+	}
+
 	if d.HasChange("notification") {
 		req.Notifications = expandAlertConfigurationNotification(d)
 	}
@@ -401,27 +410,31 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	}
 
 	if err := d.Set("project_id", alert.GroupID); err != nil {
-		log.Printf(errorAlertConfSetting, "project_id", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "project_id", id, err)
 	}
 
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
-		log.Printf(errorAlertConfSetting, "event_type", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "event_type", id, err)
 	}
 
 	if err := d.Set("enabled", alert.Enabled); err != nil {
-		log.Printf(errorAlertConfSetting, "enabled", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "enabled", id, err)
 	}
 
 	if err := d.Set("matcher", flattenAlertConfigurationMatchers(alert.Matchers)); err != nil {
-		log.Printf(errorAlertConfSetting, "matcher", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "matcher", id, err)
 	}
 
 	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
-		log.Printf(errorAlertConfSetting, "metric_threshold", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
+	}
+
+	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
+		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
-		log.Printf(errorAlertConfSetting, "notification", id, err)
+		return nil, fmt.Errorf(errorAlertConfSetting, "notification", id, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -480,6 +493,20 @@ func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.Met
 	return nil
 }
 
+func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold {
+	if value, ok := d.GetOk("threshold"); ok {
+		v := value.(map[string]interface{})
+
+		return &matlas.Threshold{
+			Operator:  cast.ToString(v["operator"]),
+			Units:     cast.ToString(v["units"]),
+			Threshold: cast.ToFloat64(v["threshold"]),
+		}
+	}
+
+	return nil
+}
+
 func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[string]interface{} {
 	if m != nil {
 		return map[string]interface{}{
@@ -488,6 +515,18 @@ func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[str
 			"threshold":   cast.ToString(m.Threshold),
 			"units":       m.Units,
 			"mode":        m.Mode,
+		}
+	}
+
+	return map[string]interface{}{}
+}
+
+func flattenAlertConfigurationThreshold(m *matlas.Threshold) map[string]interface{} {
+	if m != nil {
+		return map[string]interface{}{
+			"operator":  m.Operator,
+			"units":     m.Units,
+			"threshold": cast.ToString(m.Threshold),
 		}
 	}
 

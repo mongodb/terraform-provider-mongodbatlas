@@ -51,6 +51,42 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+-> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/
+
+```hcl
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = "<PROJECT-ID>"
+  event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+  enabled    = true
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = false
+    email_enabled = true
+    roles         = ["GROUP_CHARTS_ADMIN", "GROUP_CLUSTER_MANAGER"]
+  }
+
+  matcher {
+    field_name = "HOSTNAME_AND_PORT"
+    operator   = "EQUALS"
+    value      = "SECONDARY"
+  }
+
+  threshold = {
+    operator    = "LESS_THAN"
+    threshold   = 1
+    units       = "HOURS"
+  }
+}
+
+data "mongodbatlas_alert_configuration" "test" {
+	project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
+	alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
@@ -65,60 +101,24 @@ In addition to all arguments above, the following attributes are exported:
 * `updated` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.
 * `enabled` - If set to true, the alert configuration is enabled. If enabled is not exported it is set to false.
 * `event_type` - The type of event that will trigger an alert.
-  Alert type. Possible values:
-	 - Host 	
-		- `OUTSIDE_METRIC_THRESHOLD`
-		- `HOST_RESTARTED`
-		- `HOST_UPGRADED`
-		- `HOST_NOW_SECONDARY`
-		- `HOST_NOW_PRIMARY`
-    - Replica set 	
-      - `NO_PRIMARY`
-      - `TOO_MANY_ELECTIONS`
-    Sharded cluster 	
-      - `CLUSTER_MONGOS_IS_MISSING`
-      - `User` 	
-      - `JOINED_GROUP`
-      - `REMOVED_FROM_GROUP`
-      - `USER_ROLES_CHANGED_AUDIT`
-    - Project 	
-      - `USERS_AWAITING_APPROVAL`
-      - `USERS_WITHOUT_MULTI_FACTOR_AUTH`
-      - `GROUP_CREATED`
-    - Team 	
-      - `JOINED_TEAM`
-      - `REMOVED_FROM_TEAM`
-    - Organization 	
-      - `INVITED_TO_ORG`
-      - `JOINED_ORG`
-    - Data Explorer 	
-      - `DATA_EXPLORER`
-      - `DATA_EXPLORER_CRUD`
-    - Billing 	
-      - `CREDIT_CARD_ABOUT_TO_EXPIRE`
-      - `CHARGE_SUCCEEDED`
-      - `INVOICE_CLOSED`
 
-    -> **NOTE:** If this is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
+  -> ***IMPORTANT:*** Event Type has many possible values. All current options at available at https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/ Details for both conditional and metric based alerts can be found by selecting the tabs on the [alert config page](https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/) and checking the latest eventTypeName options.
 
+  -> **NOTE:** If `event_type` is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
 
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.
 
 * `field_name` - Name of the field in the target object to match on.
-  Host alerts support these fields:
-    - `TYPE_NAME`
-    - `HOSTNAME`
-    - `PORT`
-    - `HOSTNAME_AND_PORT`
-    - `REPLICA_SET_NAME`
-  Replica set alerts support these fields:
-    - `REPLICA_SET_NAME`
-    - `SHARD_NAME`
-    - `CLUSTER_NAME`
-  Sharded cluster alerts support these fields:
-    - `CLUSTER_NAME`
-    - `SHARD_NAME`
+
+| Host alerts         | Replica set alerts  |  Sharded cluster alerts |
+|:--------------      |:-------------       |:------                 |
+| `TYPE_NAME`         | `REPLICA_SET_NAME`  | `CLUSTER_NAME`          |
+| `HOSTNAME`          | `SHARD_NAME`        | `SHARD_NAME`            |
+| `PORT`              | `CLUSTER_NAME`      |                         |
+| `HOSTNAME_AND_PORT` |                     |                         |
+| `REPLICA_SET_NAME`  |                     |                         |
+
 
   All other types of alerts do not support matchers.
 
@@ -126,7 +126,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 * `value` - If omitted, the configuration is disabled.
 
 
-* `operator` - The operator to test the field’s value. 
+* `operator` - The operator to test the field’s value.
   Accepted values are:
     - `EQUALS`
     - `NOT_EQUALS`
@@ -146,8 +146,9 @@ Rules to apply when matching an object against this alert configuration. Only en
 ### Metric Threshold
 The threshold that causes an alert to be triggered. Required if `event_type_name` : "OUTSIDE_METRIC_THRESHOLD".
 
-* `metric_name` - Name of the metric to check.
-* `operator` - Operator to apply when checking the current metric value against the threshold value. 
+* `metric_name` - Name of the metric to check. The full list of current options is available [here](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types)
+
+* `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
     - `LESS_THAN`
@@ -174,6 +175,32 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 
 * `mode` - This must be set to AVERAGE. Atlas computes the current metric value as an average.
 
+### Threshold
+* `operator` - Operator to apply when checking the current metric value against the threshold value.
+  Accepted values are:
+    - `GREATER_THAN`
+    - `LESS_THAN`
+
+* `threshold` - Threshold value outside of which an alert will be triggered.
+* `units` - The units for the threshold value. Depends on the type of metric.
+    Accepted values are:
+      - `RAW`
+      - `BITS`
+      - `BYTES`
+      - `KILOBITS`
+      - `KILOBYTES`
+      - `MEGABITS`
+      - `MEGABYTES`
+      - `GIGABITS`
+      - `GIGABYTES`
+      - `TERABYTES`
+      - `PETABYTES`
+      - `MILLISECONDS`
+      - `SECONDS`
+      - `MINUTES`
+      - `HOURS`
+      - `DAYS`
+
 ### Notifications
 Notifications to send when an alert condition is detected.
 
@@ -194,7 +221,7 @@ Notifications to send when an alert condition is detected.
 * `service_key` - PagerDuty service key. Required for the PAGER_DUTY notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `sms_enabled` - Flag indicating if text message notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
 * `team_id` - Unique identifier of a team.
-* `type_name` - Type of alert notification. 
+* `type_name` - Type of alert notification.
   Accepted values are:
     - `DATADOG`
     - `EMAIL`
@@ -213,5 +240,17 @@ Notifications to send when an alert condition is detected.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
+
+* `Roles` - The following roles grant privileges within a project.
+
+    | Project roles                   | Organization roles  |
+    |:----------                      |:-----------         |
+    | `GROUP_CHARTS_ADMIN`            | `ORG_OWNER`         |
+    | `GROUP_CLUSTER_MANAGER`         | `ORG_MEMBER`        |
+    | `GROUP_DATA_ACCESS_ADMIN`       | `ORG_GROUP_CREATOR` |
+    | `GROUP_DATA_ACCESS_READ_ONLY`   | `ORG_BILLING_ADMIN` |
+    | `GROUP_DATA_ACCESS_READ_WRITE`  | `ORG_READ_ONLY`     |
+    | `GROUP_OWNER`                   |                     |
+    | `GROUP_READ_ONLY`               |                     |
 
 See detailed information for arguments and attributes: [MongoDB API Alert Configuration](https://docs.atlas.mongodb.com/reference/api/alert-configurations-get-config/)

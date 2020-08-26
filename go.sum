@@ -136,7 +136,6 @@ github.com/go-ole/go-ole v1.2.1/go.mod h1:7FAglXiTm7HKlQRDeOQ6ZNUHidzCWXuZWq/1dT
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
-github.com/go-test/deep v1.0.1/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-test/deep v1.0.3 h1:ZrJSEWsXzPOxaZnFteGEfooLba+ju3FYIbOrS+rQd68=
 github.com/go-test/deep v1.0.3/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-test/deep v1.0.7 h1:/VSMRlnY/JSyqxQUzQLKVMAskpY/NZKFA5j2P+0pP2M=
@@ -606,6 +605,8 @@ go.mongodb.org/atlas v0.3.1-0.20200716160607-1b4e8b15eadf h1:uphQUeBtEbNSmlhg1MR
 go.mongodb.org/atlas v0.3.1-0.20200716160607-1b4e8b15eadf/go.mod h1:xa/V3muNuVoReSG0y2pigUUnfPOx1cHF0ZV2uCE+c7I=
 go.mongodb.org/atlas v0.4.1-0.20200817181428-cd1e61b39f75 h1:aXDdZDxIeD37cn0uVGQl+oHbT//g9OYybLF+R4u2NHk=
 go.mongodb.org/atlas v0.4.1-0.20200817181428-cd1e61b39f75/go.mod h1:QlKvZKT43+R6lhHlaTy2E7Q/3AoAljMI6v5apfqslIs=
+go.mongodb.org/atlas v0.4.1-0.20200819194203-09c49e85aa0d h1:5GrmSNMip4s758EBOchuRTLarSxpRMOclvUjo9Dez7M=
+go.mongodb.org/atlas v0.4.1-0.20200819194203-09c49e85aa0d/go.mod h1:QlKvZKT43+R6lhHlaTy2E7Q/3AoAljMI6v5apfqslIs=
 go.mongodb.org/atlas v0.4.1-0.20200820152733-8dc4a7c19a2b h1:AuAQZDrQLesdmz9mIPaIn07OJRoG4Vfm+M3xd31HGgo=
 go.mongodb.org/atlas v0.4.1-0.20200820152733-8dc4a7c19a2b/go.mod h1:QlKvZKT43+R6lhHlaTy2E7Q/3AoAljMI6v5apfqslIs=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
