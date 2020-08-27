@@ -65,7 +65,12 @@ In addition to all arguments above, the following attributes are exported:
 * `project_id` - ID of the Atlas project the user belongs to.
 * `username` - Username for authenticating to MongoDB.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
-* `auth_database_name` - The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is always the admin database.
+* `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.
+Possible values include:
+  * `admin` if `x509_type` and `aws_iam_type` are omitted or NONE.
+  * `$external` if:
+    * `x509_type` is MANAGED or CUSTOMER, or
+    * `aws_iam_type` is USER or ROLE.
 
 * `x509_type` - X.509 method by which the provided username is authenticated.
 * `aws_iam_type` - The new database user authenticates with AWS IAM credentials. Default is `NONE`, `USER` means user has AWS IAM user credentials, `ROLE` - means user has credentials associated with an AWS IAM role.

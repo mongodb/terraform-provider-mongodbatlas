@@ -94,3 +94,9 @@ For more information on configuring and managing programmatic API Keys see the [
 [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 
 [Support](https://docs.atlas.mongodb.com/support/) covered by MongoDB Atlas support plans, Developer and above.
+
+## Examples from the Community
+
+Have a good example you've created and want to share?  Let us know the details via an [issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
+
+[Example - AWS and Atlas PrivateLink with Terraform](https://github.com/nikhil-mongo/aws-atlas-privatelink)

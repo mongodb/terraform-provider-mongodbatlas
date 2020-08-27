@@ -188,6 +188,13 @@ resource "mongodbatlas_cluster" "cluster-test" {
   auto_scaling_disk_gb_enabled = "false"
 }
 ```
+### Example - Return a Connection String
+```hcl
+output "plstring" {
+    value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].aws_private_link_srv, aws_vpc_endpoint.ptfe_service.id)
+}
+//Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
+```
 
 ## Argument Reference
 
