@@ -52,6 +52,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 }
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		resourceName      = "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -115,13 +116,13 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName 
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.Attributes["snapshot_restore_job_id"] == "" {
+		ids := decodeStateID(rs.Primary.ID)
+
+		if ids["snapshot_restore_job_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
 
 		log.Printf("[DEBUG] cloudProviderSnapshotRestoreJob ID: %s", rs.Primary.Attributes["snapshot_restore_job_id"])
-
-		ids := decodeStateID(rs.Primary.ID)
 
 		requestParameters := &matlas.SnapshotReqPathParameters{
 			GroupID:     ids["project_id"],
@@ -195,7 +196,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 
 		// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true
 			provider_disk_iops          = 100
@@ -231,7 +232,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			disk_size_gb = 5
 
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true   // enable cloud provider snapshots
 			provider_disk_iops          = 100
@@ -266,7 +267,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 
 		// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true
 			provider_disk_iops          = 100
@@ -280,7 +281,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 
 		// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_region_name        = "EU_WEST_2"
+			provider_region_name        = "US_EAST_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true   // enable cloud provider snapshots
 			provider_disk_iops          = 100

@@ -1,0 +1,55 @@
+name: 'Automated Acceptances Tests'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  acceptances-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14
+      - name: Acceptance Tests
+        env:
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
+          MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
+          MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
+          AWS_VPC_CIDR_BLOCK: ${{ secrets.AWS_VPC_CIDR_BLOCK }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
+          AZURE_DIRECTORY_ID: ${{ secrets.AZURE_DIRECTORY_ID }}
+          AZURE_SUBCRIPTION_ID: ${{ secrets.AZURE_SUBCRIPTION_ID }}
+          AZURE_VNET_NAME: ${{ secrets.AZURE_VNET_NAME }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_ID_UPDATED: ${{ secrets.AZURE_CLIENT_ID_UPDATED }}
+          AZURE_RESOURCE_GROUP_NAME_UPDATED: ${{ secrets.AZURE_RESOURCE_GROUP_NAME_UPDATED }}
+          AZURE_SECRET: ${{ secrets.AZURE_SECRET }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+          AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.AZURE_KEY_VAULT_NAME_UPDATED }}
+          AZURE_KEY_IDENTIFIER: ${{ secrets.AZURE_KEY_IDENTIFIER }}
+          AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.AZURE_KEY_IDENTIFIER_UPDATED }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_CLUSTER_REGION_NAME: ${{ secrets.GCP_CLUSTER_REGION_NAME }}
+          GCP_REGION_NAME: ${{ secrets.GCP_REGION_NAME }}
+          GOOGLE_CLOUD_KEYFILE_JSON: ${{ secrets.GOOGLE_CLOUD_KEYFILE_JSON }}
+          GCP_KEY_VERSION_RESOURCE_ID: ${{ secrets.GCP_KEY_VERSION_RESOURCE_ID }}
+        run: make testacc

@@ -76,7 +76,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				Computed: true,
 			},
 			"oplog_ts": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"point_in_time_utc_seconds": {

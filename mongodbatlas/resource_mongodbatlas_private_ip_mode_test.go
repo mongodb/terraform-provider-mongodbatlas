@@ -29,9 +29,9 @@ func TestAccResourcePrivateIPMode_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasPrivateIPModeConfig(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckPrivateIPModeExists(resourceName, &privateIPMode),
-					testAccCheckPrivateIPModeAttributes(&privateIPMode, pointy.Bool(true)),
+					testAccCheckPrivateIPModeAttributes(&privateIPMode, pointy.Bool(false)),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
 			{
@@ -100,7 +100,7 @@ func testAccMongoDBAtlasPrivateIPModeConfig(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_private_ip_mode" "test" {
 			project_id  = "%s"
-			enabled		= true
+			enabled		= false
 		}
 	`, projectID)
 }

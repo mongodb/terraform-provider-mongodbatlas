@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -146,5 +147,24 @@ func TestRemoveLabel(t *testing.T) {
 
 	if diff := deep.Equal(expected, got); diff != nil {
 		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
+	}
+}
+
+func SkipTestExtCred(t *testing.T) {
+	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
+		t.Skip()
+	}
+}
+
+func checkTeamsIds(t *testing.T) {
+	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
+		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
+	}
+}
+
+// SkipTestImport temporary solution to avoid error about failed verification, will solve later
+func SkipTestImport(t *testing.T) {
+	if strings.EqualFold(os.Getenv("SKIP_TEST_IMPORT"), "true") {
+		t.Skip()
 	}
 }

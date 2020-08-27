@@ -62,7 +62,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.basic"
+		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -313,7 +313,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -511,6 +511,7 @@ func TestAccResourceMongoDBAtlasCluster_AWSWithLabels(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_endpoint_link"
@@ -546,6 +547,7 @@ func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_azure_peering"
@@ -580,6 +582,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		cluster          matlas.Cluster
 		resourceName     = "mongodbatlas_cluster.test"
@@ -615,6 +618,7 @@ func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName      = "mongodbatlas_cluster.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -645,6 +649,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 
@@ -677,6 +682,7 @@ func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withGCPAndContainerID(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName     = "mongodbatlas_cluster.test"
 		gcpProjectID     = os.Getenv("GCP_PROJECT_ID")
@@ -759,8 +765,9 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
-		resourceName = "mongodbatlas_cluster.basic"
+		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -874,9 +881,11 @@ func testAccCheckMongoDBAtlasClusterExists(resourceName string, cluster *matlas.
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] projectID: %s", rs.Primary.Attributes["project_id"])
+		ids := decodeStateID(rs.Primary.ID)
 
-		if clusterResp, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"]); err == nil {
+		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
+
+		if clusterResp, _, err := conn.Clusters.Get(context.Background(), ids["project_id"], ids["cluster_name"]); err == nil {
 			*cluster = *clusterResp
 			return nil
 		}
@@ -904,10 +913,10 @@ func testAccCheckMongoDBAtlasClusterDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the cluster
-		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["name"])
+		_, _, err := conn.Clusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 
 		if err == nil {
-			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["name"], rs.Primary.ID)
+			return fmt.Errorf("cluster (%s:%s) still exists", rs.Primary.Attributes["cluster_name"], rs.Primary.ID)
 		}
 	}
 
@@ -939,7 +948,7 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
 
 func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "basic" {
+		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 			disk_size_gb = 100
@@ -1119,7 +1128,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 				zone_name  = "Zone 1"
 				num_shards = 2
 				regions_config {
-				region_name     = "EU_CENTRAL_1"
+				region_name     = "US_EAST_1"
 				electable_nodes = 3
 				priority        = 7
 				read_only_nodes = 0

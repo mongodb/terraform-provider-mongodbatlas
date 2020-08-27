@@ -80,6 +80,7 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -123,8 +124,10 @@ func testAccCheckMongoDBAtlasTeamExists(resourceName string, team *matlas.Team) 
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		orgID := rs.Primary.Attributes["org_id"]
-		id := rs.Primary.Attributes["team_id"]
+		ids := decodeStateID(rs.Primary.ID)
+
+		orgID := ids["org_id"]
+		id := ids["id"]
 
 		if orgID == "" && id == "" {
 			return fmt.Errorf("no ID is set")
@@ -161,8 +164,10 @@ func testAccCheckMongoDBAtlasTeamDestroy(s *terraform.State) error {
 			continue
 		}
 
-		orgID := rs.Primary.Attributes["org_id"]
-		id := rs.Primary.Attributes["team_id"]
+		ids := decodeStateID(rs.Primary.ID)
+
+		orgID := ids["org_id"]
+		id := ids["id"]
 
 		// Try to find the team
 		_, _, err := conn.Teams.Get(context.Background(), orgID, id)

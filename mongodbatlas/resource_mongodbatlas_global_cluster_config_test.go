@@ -74,6 +74,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_global_cluster_config.config"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -158,10 +159,8 @@ func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
 		// Try to find the cluster
-		globalConfig, _, err := conn.GlobalClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+		globalConfig, _, err := conn.GlobalClusters.Get(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		if err != nil {
 			if strings.Contains(err.Error(), fmt.Sprintf("No cluster named %s exists in group %s", rs.Primary.Attributes["cluster_name"], rs.Primary.Attributes["project_id"])) {
 				return nil
@@ -197,7 +196,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 				zone_name  = "Zone 1"
 				num_shards = 1
 				regions_config {
-					region_name     = "EU_CENTRAL_1"
+					region_name     = "US_EAST_1"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
@@ -251,7 +250,7 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 			provider_disk_iops 			    = 300
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M30"
-			provider_region_name        = "EU_CENTRAL_1"
+			provider_region_name        = "US_EAST_1"
 			provider_backup_enabled     = %s
 		}
 

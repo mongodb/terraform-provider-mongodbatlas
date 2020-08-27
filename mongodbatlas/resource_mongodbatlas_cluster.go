@@ -963,7 +963,7 @@ func resourceMongoDBAtlasClusterImportState(d *schema.ResourceData, meta interfa
 	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":    u.ID,
 		"project_id":    *projectID,
-		"cluster_name":  *name,
+		"cluster_name":  u.Name,
 		"provider_name": u.ProviderSettings.ProviderName,
 	}))
 

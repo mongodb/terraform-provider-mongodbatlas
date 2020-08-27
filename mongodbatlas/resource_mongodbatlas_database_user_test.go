@@ -18,8 +18,9 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.basic_ds"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,7 +29,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "atlasAdmin", username, "First Key", "First value"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -40,7 +41,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read", username, "Second Key", "Second value"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "read", username, "Second Key", "Second value"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -59,9 +60,10 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeCustomer(t *testing.T) 
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
 		x509Type     = "CUSTOMER"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,7 +72,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeCustomer(t *testing.T) 
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -89,9 +91,10 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeManaged(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = acctest.RandomWithPrefix("test-acc")
 		x509Type     = "MANAGED"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -100,7 +103,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeManaged(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -119,8 +122,9 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -129,7 +133,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectID, "atlasAdmin", username, "First Key", "First value"),
+				Config: testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -148,8 +152,9 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -158,7 +163,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, "atlasAdmin", username, []matlas.Label{}),
+				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -170,7 +175,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, "atlasAdmin", username,
+				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
 					[]matlas.Label{
 						{
 							Key:   "key 1",
@@ -193,7 +198,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, "read", username,
+				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "read", username,
 					[]matlas.Label{
 						{
 							Key:   "key 4",
@@ -227,9 +232,10 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = acctest.RandomWithPrefix("test-acc-user-")
 		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -238,7 +244,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID,
+				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
 							RoleName:       "read",
@@ -263,7 +269,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID,
+				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
 							RoleName:     "read",
@@ -286,10 +292,12 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	var (
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
 		resourceName = "mongodbatlas_database_user.basic_ds"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -298,7 +306,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserConfig(projectID, "read", username, "First Key", "First value"),
+				Config: testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, "read", username, "First Key", "First value"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
@@ -319,12 +327,14 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDatabaseUser_importX509TypeCustomer(t *testing.T) {
+	SkipTestImport(t)
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		username     = "CN=ellen@example.com,OU=users,DC=example,DC=com"
 		x509Type     = "CUSTOMER"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -333,7 +343,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importX509TypeCustomer(t *testing.T
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, "atlasAdmin", username, "First Key", "First value", x509Type),
+				Config: testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value", x509Type),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -425,16 +435,21 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName, username, keyLabel, valueLabel string) string {
+func testAccMongoDBAtlasDatabaseUserConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_database_user" "basic_ds" {
-			username           = "%[3]s"
+			username           = "%[4]s"
 			password           = "test-acc-password"
-			project_id         = "%[1]s"
+			project_id         = "${mongodbatlas_project.test.id}"
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = "%[3]s"
 				database_name = "admin"
 			}
 
@@ -443,19 +458,24 @@ func testAccMongoDBAtlasDatabaseUserConfig(projectID, roleName, username, keyLab
 				value = "%s"
 			}
 		}
-	`, projectID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
 
-func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, roleName, username, keyLabel, valueLabel, x509Type string) string {
+func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[3]s"
-			x509_type          = "%[6]s"
-			project_id         = "%[1]s"
+			username           = "%[4]s"
+			x509_type          = "%[7]s"
+			project_id         = "${mongodbatlas_project.test.id}"
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = "%[3]s"
 				database_name = "admin"
 			}
 
@@ -464,10 +484,10 @@ func testAccMongoDBAtlasDatabaseUserWithX509TypeConfig(projectID, roleName, user
 				value = "%s"
 			}
 		}
-	`, projectID, roleName, username, keyLabel, valueLabel, x509Type)
+	`, projectName, orgID, roleName, username, keyLabel, valueLabel, x509Type)
 }
 
-func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, username string, labels []matlas.Label) string {
+func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, roleName, username string, labels []matlas.Label) string {
 	var labelsConf string
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
@@ -479,24 +499,29 @@ func testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectID, roleName, userna
 	}
 
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[3]s"
+			username           = "%[4]s"
 			password           = "test-acc-password"
-			project_id         = "%[1]s"
+			project_id         = "${mongodbatlas_project.test.id}"
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = "%[3]s"
 				database_name = "admin"
 			}
 
-			%[4]s
+			%[5]s
 
 		}
-	`, projectID, roleName, username, labelsConf)
+	`, projectName, orgID, roleName, username, labelsConf)
 }
 
-func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID string, rolesArr []*matlas.Role) string {
+func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID string, rolesArr []*matlas.Role) string {
 	var roles string
 
 	for _, role := range rolesArr {
@@ -524,28 +549,38 @@ func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectID stri
 	}
 
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_database_user" "test" {
 			username           = "%s"
 			password           = "%s"
-			project_id         = "%s"
+			project_id         = "${mongodbatlas_project.test.id}"
 			auth_database_name = "admin"
 
 			%s
 
 		}
-	`, username, password, projectID, roles)
+	`, projectName, orgID, username, password, roles)
 }
 
-func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectID, roleName, username, keyLabel, valueLabel string) string {
+func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[3]s"
+			username           = "%[4]s"
 			aws_iam_type       = "USER"
-			project_id         = "%[1]s"
+			project_id         = "${mongodbatlas_project.test.id}"
 			auth_database_name = "$external"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = "%[3]s"
 				database_name = "admin"
 			}
 
@@ -554,5 +589,5 @@ func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectID, roleName, us
 				value = "%s"
 			}
 		}
-	`, projectID, roleName, username, keyLabel, valueLabel)
+	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }

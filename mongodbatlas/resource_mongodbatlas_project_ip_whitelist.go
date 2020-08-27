@@ -243,15 +243,7 @@ func resourceMongoDBAtlasProjectIPWhitelistDelete(d *schema.ResourceData, meta i
 		}
 
 		if entry != nil {
-			_, err := conn.ProjectIPWhitelist.Delete(context.Background(), ids["project_id"], ids["entry"])
-			if err != nil {
-				if strings.Contains(fmt.Sprint(err), "500") ||
-					strings.Contains(fmt.Sprint(err), "Unexpected error") ||
-					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") {
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(fmt.Errorf(errorWhitelistDelete, err))
-			}
+			return resource.RetryableError(fmt.Errorf(errorWhitelistDelete, "Whitelist still exists"))
 		}
 
 		return nil

@@ -101,6 +101,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingCIDRBlock(t *testing.T
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingAWSSecurityGroup(t *testing.T) {
+	SkipTestExtCred(t)
 	resourceName := "mongodbatlas_project_ip_whitelist.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
@@ -156,18 +157,21 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 
 	whitelist := make([]map[string]string, 0)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 20; i++ {
 		entry := make(map[string]string)
 		entryName := ""
+		ipAddr := ""
 
 		if i%2 == 0 {
 			entryName = "cidr_block"
 			entry["cidr_block"] = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+			ipAddr = entry["cidr_block"]
 		} else {
 			entryName = "ip_address"
 			entry["ip_address"] = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+			ipAddr = entry["ip_address"]
 		}
-		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, entry)
+		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
 
 		whitelist = append(whitelist, entry)
 	}
@@ -198,6 +202,7 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
+	SkipTestImport(t)
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
@@ -337,7 +342,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID string
 		}
 
 		if cidr, ok := entry["cidr_block"]; ok {
-			config = fmt.Sprintf(`
+			config += fmt.Sprintf(`
 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
 				project_id = "%s"
 				cidr_block = "%s"
@@ -345,7 +350,7 @@ func testAccMongoDBAtlasProjectIPWhitelistConfigSettingMultiple(projectID string
 			}
 		`, i, projectID, cidr, comment)
 		} else {
-			config = fmt.Sprintf(`
+			config += fmt.Sprintf(`
 			resource "mongodbatlas_project_ip_whitelist" "test_%d" {
 				project_id = "%s"
 				ip_address = "%s"

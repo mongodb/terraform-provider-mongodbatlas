@@ -11,14 +11,14 @@ import (
 func TestAccDataSourceMongoX509AuthDBUser_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_x509_authentication_database_user.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	username := os.Getenv("DB_USERNAME")
+	username := os.Getenv("MONGODB_ATLAS_DB_USERNAME")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 			func() {
-				if os.Getenv("DB_USERNAME") == "" {
-					t.Fatal("`DB_USERNAME` must be set for MongoDB Atlas X509 Authentication Database users  testing")
+				if os.Getenv("MONGODB_ATLAS_DB_USERNAME") == "" {
+					t.Fatal("`MONGODB_ATLAS_DB_USERNAME` must be set for MongoDB Atlas X509 Authentication Database users  testing")
 				}
 			}()
 		},
@@ -94,7 +94,9 @@ func testAccMongoX509AuthDBUserDataSourceConfigWithCustomerX509(projectID, usern
 	return fmt.Sprintf(`
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
 			project_id        = "%s"
-			customer_x509_cas = "%s"
+			customer_x509_cas = <<EOT
+								%s
+								EOT
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {
