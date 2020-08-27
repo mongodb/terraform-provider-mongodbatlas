@@ -251,9 +251,12 @@ func snapshotScheduleUpdate(d *schema.ResourceData, conn *matlas.Client, project
 	req := &matlas.CloudProviderSnapshotBackupPolicy{
 		ReferenceHourOfDay:    pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day"))),
 		ReferenceMinuteOfHour: pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour"))),
-		RestoreWindowDays:     pointy.Int64(cast.ToInt64(d.Get("restore_window_days"))),
 		UpdateSnapshots:       pointy.Bool(cast.ToBool(d.Get("update_snapshots").(bool))),
 		Policies:              expandPolicies(d),
+	}
+
+	if rwd, ok := d.GetOk("restore_window_days"); ok {
+		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(rwd))
 	}
 
 	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
