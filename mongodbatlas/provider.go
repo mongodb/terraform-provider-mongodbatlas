@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -102,8 +103,16 @@ func encodeStateID(values map[string]string) string {
 	encode := func(e string) string { return base64.StdEncoding.EncodeToString([]byte(e)) }
 	encodedValues := make([]string, 0)
 
-	for key, value := range values {
-		encodedValues = append(encodedValues, fmt.Sprintf("%s:%s", encode(key), encode(value)))
+	// sort to make sure the same encoding is returned in case of same input
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		encodedValues = append(encodedValues, fmt.Sprintf("%s:%s", encode(key), encode(values[key])))
 	}
 
 	return strings.Join(encodedValues, "-")
