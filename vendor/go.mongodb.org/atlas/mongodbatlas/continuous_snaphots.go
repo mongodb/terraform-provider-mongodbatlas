@@ -12,6 +12,7 @@ const (
 
 // ContinuousSnapshotsService is an interface for interfacing with the Continuous Snapshots
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/snapshots/
 type ContinuousSnapshotsService interface {
 	List(context.Context, string, string, *ListOptions) (*ContinuousSnapshots, *Response, error)
@@ -26,7 +27,7 @@ type ContinuousSnapshotsServiceOp service
 
 var _ ContinuousSnapshotsService = &ContinuousSnapshotsServiceOp{}
 
-// CloudProviderSnapshot represents a cloud provider snapshot.
+// ContinuousSnapshot represents a cloud provider snapshot.
 type ContinuousSnapshot struct {
 	ClusterID                 string             `json:"clusterId,omitempty"`
 	Complete                  bool               `json:"complete,omitempty"`
@@ -76,7 +77,7 @@ type MissingShard struct {
 	LastHeartbeat  string `json:"lastHeartbeat"`
 }
 
-// CloudProviderSnapshots represents all cloud provider snapshots.
+// ContinuousSnapshots represents all cloud provider snapshots.
 type ContinuousSnapshots struct {
 	Results    []*ContinuousSnapshot `json:"results,omitempty"`    // Includes one ContinuousSnapshots object for each item detailed in the results array section.
 	Links      []*Link               `json:"links,omitempty"`      // One or more links to sub-resources and/or related resources.
@@ -84,6 +85,7 @@ type ContinuousSnapshots struct {
 }
 
 // List lists continuous snapshots for the given cluster
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/snapshots-get-all/
 func (s *ContinuousSnapshotsServiceOp) List(ctx context.Context, groupID, clusterID string, listOptions *ListOptions) (*ContinuousSnapshots, *Response, error) {
 	if groupID == "" {
@@ -106,7 +108,8 @@ func (s *ContinuousSnapshotsServiceOp) List(ctx context.Context, groupID, cluste
 	return root, resp, err
 }
 
-// List gets the continuous snapshot for the given cluster and snapshot ID
+// Get gets the continuous snapshot for the given cluster and snapshot ID
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/snapshots-get-one/
 func (s *ContinuousSnapshotsServiceOp) Get(ctx context.Context, groupID, clusterID, snapshotID string) (*ContinuousSnapshot, *Response, error) {
 	if groupID == "" {
@@ -133,6 +136,7 @@ func (s *ContinuousSnapshotsServiceOp) Get(ctx context.Context, groupID, cluster
 }
 
 // ChangeExpiry changes the expiry date for the given cluster and snapshot ID
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/snapshots-change-expiration/
 func (s *ContinuousSnapshotsServiceOp) ChangeExpiry(ctx context.Context, groupID, clusterID, snapshotID string, updateRequest *ContinuousSnapshot) (*ContinuousSnapshot, *Response, error) {
 	if groupID == "" {
@@ -160,6 +164,7 @@ func (s *ContinuousSnapshotsServiceOp) ChangeExpiry(ctx context.Context, groupID
 }
 
 // Delete deletes the given continuous snapshot
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/snapshots-delete-one/
 func (s *ContinuousSnapshotsServiceOp) Delete(ctx context.Context, groupID, clusterID, snapshotID string) (*Response, error) {
 	if groupID == "" {

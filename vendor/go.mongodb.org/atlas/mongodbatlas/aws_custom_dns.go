@@ -16,7 +16,7 @@ type AWSCustomDNSService interface {
 	Update(context.Context, string, *AWSCustomDNSSetting) (*AWSCustomDNSSetting, *Response, error)
 }
 
-// CustomAWSDNSOp provides an implementation of the CustomAWSDNS interface.
+// AWSCustomDNSServiceOp provides an implementation of the CustomAWSDNS interface.
 type AWSCustomDNSServiceOp service
 
 var _ AWSCustomDNSService = &AWSCustomDNSServiceOp{}

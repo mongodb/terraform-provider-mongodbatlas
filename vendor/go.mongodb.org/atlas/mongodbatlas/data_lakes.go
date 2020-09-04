@@ -97,13 +97,13 @@ type DataLake struct {
 	Storage             Storage             `json:"storage,omitempty"`             // Configuration for each data store and its mapping to MongoDB collections / databases.
 }
 
-// DataLakeReqPathParameters represents all possible fields that can be updated in a data lake
+// DataLakeUpdateRequest represents all possible fields that can be updated in a data lake
 type DataLakeUpdateRequest struct {
 	CloudProviderConfig *CloudProviderConfig `json:"cloudProviderConfig,omitempty"`
 	DataProcessRegion   *DataProcessRegion   `json:"dataProcessRegion,omitempty"`
 }
 
-// DataLakeReqPathParameters represents the required fields to create a new data lake
+// DataLakeCreateRequest represents the required fields to create a new data lake
 type DataLakeCreateRequest struct {
 	Name string `json:"name,omitempty"`
 }

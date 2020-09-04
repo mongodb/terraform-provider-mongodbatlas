@@ -8,6 +8,9 @@ import (
 
 const continuousRestoreJobsPath = "groups/%s/clusters/%s/restoreJobs"
 
+// ContinuousRestoreJobsService provides access to the restore jobs related functions in the Atlas API.
+//
+// See more: https://docs.atlas.mongodb.com/reference/api/legacy-backup/restore/restores/
 type ContinuousRestoreJobsService interface {
 	List(context.Context, string, string, *ListOptions) (*ContinuousJobs, *Response, error)
 	Get(context.Context, string, string, string) (*ContinuousJob, *Response, error)
@@ -76,7 +79,8 @@ type ContinuousJobRequest struct {
 	SnapshotID           string   `json:"snapshotId,omitempty"`
 }
 
-// List list all continuous backup jobs in Atlas
+// List lists all continuous backup jobs in Atlas
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/restore-jobs-get-all/
 func (s *ContinuousRestoreJobsServiceOp) List(ctx context.Context, groupID, clusterID string, opts *ListOptions) (*ContinuousJobs, *Response, error) {
 	if clusterID == "" {
@@ -105,6 +109,7 @@ func (s *ContinuousRestoreJobsServiceOp) List(ctx context.Context, groupID, clus
 }
 
 // Get gets a continuous backup job in Atlas
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/restore-jobs-get-one/
 func (s *ContinuousRestoreJobsServiceOp) Get(ctx context.Context, groupID, clusterID, jobID string) (*ContinuousJob, *Response, error) {
 	if clusterID == "" {
@@ -133,6 +138,7 @@ func (s *ContinuousRestoreJobsServiceOp) Get(ctx context.Context, groupID, clust
 }
 
 // Create creates a continuous backup job in Atlas
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/restore-jobs-create-one/
 func (s *ContinuousRestoreJobsServiceOp) Create(ctx context.Context, groupID, clusterID string, request *ContinuousJobRequest) (*ContinuousJobs, *Response, error) {
 	if request == nil {

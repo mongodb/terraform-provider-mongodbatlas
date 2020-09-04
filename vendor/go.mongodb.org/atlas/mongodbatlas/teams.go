@@ -12,6 +12,7 @@ const (
 
 // TeamsService is an interface for interfacing with the Teams
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams/
 type TeamsService interface {
 	List(context.Context, string, *ListOptions) ([]Team, *Response, error)
@@ -33,13 +34,14 @@ type TeamsServiceOp service
 
 var _ TeamsService = &TeamsServiceOp{}
 
-// Teams represents a array of project
+// TeamsResponse represents a array of project
 type TeamsResponse struct {
 	Links      []*Link `json:"links"`
 	Results    []Team  `json:"results"`
 	TotalCount int     `json:"totalCount"`
 }
 
+// Team defines an Atlas team structure
 type Team struct {
 	ID        string   `json:"id,omitempty"`
 	Name      string   `json:"name"`
@@ -53,23 +55,27 @@ type AtlasUserAssigned struct {
 	TotalCount int         `json:"totalCount"`
 }
 
+// TeamUpdateRoles update request body
 type TeamUpdateRoles struct {
 	RoleNames []string `json:"roleNames"`
 }
 
+// TeamUpdateRolesResponse update roles response
 type TeamUpdateRolesResponse struct {
 	Links      []*Link     `json:"links"`
 	Results    []TeamRoles `json:"results"`
 	TotalCount int         `json:"totalCount"`
 }
 
+// TeamRoles List of roles for a team
 type TeamRoles struct {
 	Links     []*Link  `json:"links"`
 	RoleNames []string `json:"roleNames"`
 	TeamID    string   `json:"teamId"`
 }
 
-// GetAllTeams gets all teams.
+// List gets all teams.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/project-get-all/
 func (s *TeamsServiceOp) List(ctx context.Context, orgID string, listOptions *ListOptions) ([]Team, *Response, error) {
 	path := fmt.Sprintf(teamsBasePath, orgID)
@@ -99,6 +105,7 @@ func (s *TeamsServiceOp) List(ctx context.Context, orgID string, listOptions *Li
 }
 
 // Get gets a single team in the organization by team ID.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-get-one-by-id/
 func (s *TeamsServiceOp) Get(ctx context.Context, orgID, teamID string) (*Team, *Response, error) {
 	if teamID == "" {
@@ -123,6 +130,7 @@ func (s *TeamsServiceOp) Get(ctx context.Context, orgID, teamID string) (*Team, 
 }
 
 // GetOneTeamByName gets a single project by its name.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/project-get-one-by-name/
 func (s *TeamsServiceOp) GetOneTeamByName(ctx context.Context, orgID, teamName string) (*Team, *Response, error) {
 	if teamName == "" {
@@ -147,6 +155,7 @@ func (s *TeamsServiceOp) GetOneTeamByName(ctx context.Context, orgID, teamName s
 }
 
 // GetTeamUsersAssigned gets all the users assigned to a team.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-get-all-users/
 func (s *TeamsServiceOp) GetTeamUsersAssigned(ctx context.Context, orgID, teamID string) ([]AtlasUser, *Response, error) {
 	if orgID == "" {
@@ -175,6 +184,7 @@ func (s *TeamsServiceOp) GetTeamUsersAssigned(ctx context.Context, orgID, teamID
 }
 
 // Create creates a team.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-create-one/
 func (s *TeamsServiceOp) Create(ctx context.Context, orgID string, createRequest *Team) (*Team, *Response, error) {
 	if createRequest == nil {
@@ -195,7 +205,8 @@ func (s *TeamsServiceOp) Create(ctx context.Context, orgID string, createRequest
 	return root, resp, err
 }
 
-// RenameTeam renames a team
+// Rename renames a team.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-rename-one/
 func (s *TeamsServiceOp) Rename(ctx context.Context, orgID, teamID, teamName string) (*Team, *Response, error) {
 	if teamName == "" {
@@ -222,6 +233,7 @@ func (s *TeamsServiceOp) Rename(ctx context.Context, orgID, teamID, teamName str
 }
 
 // UpdateTeamRoles Update the roles of a team in an Atlas project.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-update-roles/
 func (s *TeamsServiceOp) UpdateTeamRoles(ctx context.Context, orgID, teamID string, updateTeamRolesRequest *TeamUpdateRoles) ([]TeamRoles, *Response, error) {
 	if updateTeamRolesRequest == nil {
@@ -249,6 +261,7 @@ func (s *TeamsServiceOp) UpdateTeamRoles(ctx context.Context, orgID, teamID stri
 }
 
 // AddUsersToTeam adds a users from the organization associated with {ORG-ID} to the team with ID {TEAM-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-add-user/
 func (s *TeamsServiceOp) AddUsersToTeam(ctx context.Context, orgID, teamID string, usersID []string) ([]AtlasUser, *Response, error) {
 	if len(usersID) < 1 {
@@ -283,6 +296,7 @@ func (s *TeamsServiceOp) AddUsersToTeam(ctx context.Context, orgID, teamID strin
 }
 
 // RemoveUserToTeam removes the specified user from the specified team.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-remove-user/
 func (s *TeamsServiceOp) RemoveUserToTeam(ctx context.Context, orgID, teamID, userID string) (*Response, error) {
 	if userID == "" {
@@ -306,6 +320,7 @@ func (s *TeamsServiceOp) RemoveUserToTeam(ctx context.Context, orgID, teamID, us
 }
 
 // RemoveTeamFromOrganization deletes the team with ID {TEAM-ID} from the organization specified to {ORG-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-delete-one/
 func (s *TeamsServiceOp) RemoveTeamFromOrganization(ctx context.Context, orgID, teamID string) (*Response, error) {
 	if teamID == "" {
@@ -329,6 +344,7 @@ func (s *TeamsServiceOp) RemoveTeamFromOrganization(ctx context.Context, orgID, 
 }
 
 // RemoveTeamFromProject removes the specified team from the specified project.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/teams-remove-from-project/
 func (s *TeamsServiceOp) RemoveTeamFromProject(ctx context.Context, groupID, teamID string) (*Response, error) {
 	if teamID == "" {

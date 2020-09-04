@@ -32,20 +32,24 @@ var (
 	userAgent = fmt.Sprintf("%s/%s (%s;%s)", libraryName, Version, runtime.GOOS, runtime.GOARCH)
 )
 
+// Doer basic interface of a client to be able to do a request
 type Doer interface {
 	Do(context.Context, *http.Request, interface{}) (*Response, error)
 }
 
+// Completer interface for clients with callback
 type Completer interface {
 	OnRequestCompleted(RequestCompletionCallback)
 }
 
+// RequestDoer minimum interface for any service of the client
 type RequestDoer interface {
 	Doer
 	Completer
 	NewRequest(context.Context, string, string, interface{}) (*http.Request, error)
 }
 
+// GZipRequestDoer minimum interface for any service of the client that should handle gzip downloads
 type GZipRequestDoer interface {
 	Doer
 	Completer
@@ -100,6 +104,7 @@ type Client struct {
 	OnlineArchives                      OnlineArchiveService
 	Search                              SearchService
 	CustomAWSDNS                        AWSCustomDNSService
+	Integrations                        IntegrationsService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -235,6 +240,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.OnlineArchives = &OnlineArchiveServiceOp{Client: c}
 	c.Search = &SearchServiceOp{Client: c}
 	c.CustomAWSDNS = &AWSCustomDNSServiceOp{Client: c}
+	c.Integrations = &IntegrationsServiceOp{Client: c}
 
 	return c
 }
@@ -320,6 +326,9 @@ func (c *Client) newEncodedBody(body interface{}) (io.Reader, error) {
 // NewGZipRequest creates an API request that accepts gzip. A relative URL can be provided in urlStr, which will be resolved to the
 // BaseURL of the Client. Relative URLS should always be specified without a preceding slash.
 func (c *Client) NewGZipRequest(ctx context.Context, method, urlStr string) (*http.Request, error) {
+	if !strings.HasSuffix(c.BaseURL.Path, "/") {
+		return nil, fmt.Errorf("base URL must have a trailing slash, but %q does not", c.BaseURL)
+	}
 	rel, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err

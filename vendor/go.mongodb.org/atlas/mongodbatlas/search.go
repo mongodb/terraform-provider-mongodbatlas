@@ -63,7 +63,7 @@ func (s *SearchServiceOp) ListIndexes(ctx context.Context, groupID, clusterName,
 	return root, resp, err
 }
 
-// Get gets one Atlas Search index by its indexId.
+// GetIndex gets one Atlas Search index by its indexId.
 //
 // See more: https://docs.atlas.mongodb.com/reference/api/fts-indexes-get-one/
 func (s *SearchServiceOp) GetIndex(ctx context.Context, groupID, clusterName, indexID string) (*SearchIndex, *Response, error) {
@@ -91,7 +91,7 @@ func (s *SearchServiceOp) GetIndex(ctx context.Context, groupID, clusterName, in
 	return root, resp, err
 }
 
-// Create creates an Atlas Search index.
+// CreateIndex creates an Atlas Search index.
 //
 // See more: https://docs.atlas.mongodb.com/reference/api/fts-indexes-create-one/
 func (s *SearchServiceOp) CreateIndex(ctx context.Context, projectID, clusterName string, r *SearchIndex) (*SearchIndex, *Response, error) {
@@ -116,7 +116,7 @@ func (s *SearchServiceOp) CreateIndex(ctx context.Context, projectID, clusterNam
 	return root, resp, err
 }
 
-// Update updates an Atlas Search index by its indexId.
+// UpdateIndex updates an Atlas Search index by its indexId.
 //
 // See more: https://docs.atlas.mongodb.com/reference/api/fts-indexes-update-one/
 func (s *SearchServiceOp) UpdateIndex(ctx context.Context, projectID, clusterName, indexID string, r *SearchIndex) (*SearchIndex, *Response, error) {
@@ -144,7 +144,7 @@ func (s *SearchServiceOp) UpdateIndex(ctx context.Context, projectID, clusterNam
 	return root, resp, err
 }
 
-// Delete deletes one Atlas Search index by its indexId.
+// DeleteIndex deletes one Atlas Search index by its indexId.
 //
 // See more: https://docs.atlas.mongodb.com/reference/api/fts-indexes-delete-one/
 func (s *SearchServiceOp) DeleteIndex(ctx context.Context, projectID, clusterName, indexID string) (*Response, error) {
