@@ -291,6 +291,68 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasDatabaseUser_withScopes(t *testing.T) {
+	var (
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc-user-")
+		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+					[]*matlas.Scope{
+						{
+							Name: "test-acc-nurk4llu2z",
+							Type: "CLUSTER",
+						},
+						{
+							Name: "test-acc-nurk4llu2z",
+							Type: "DATA_LAKE",
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+					[]*matlas.Scope{
+						{
+							Name: "test-acc-nurk4llu2z",
+							Type: "CLUSTER",
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	var (
 		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
@@ -588,4 +650,59 @@ func testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, rol
 			}
 		}
 	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
+}
+
+func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, roleName, clusterName string, scopesArr []*matlas.Scope) string {
+	var scopes string
+
+	for _, scope := range scopesArr {
+		var scopeType string
+
+		if scope.Type != "" {
+			scopeType = fmt.Sprintf(`type = "%s"`, scope.Type)
+		}
+
+		scopes += fmt.Sprintf(`
+			scopes {
+				name = "${mongodbatlas_cluster.my_cluster.name}"
+				%s
+			}
+		`, scopeType)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "${mongodbatlas_project.test.id}"
+			name         = "%s"
+			disk_size_gb = 5
+
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_2"
+			provider_instance_size_name = "M10"
+			provider_backup_enabled     = true //enable cloud provider snapshots
+			provider_disk_iops          = 100
+			provider_encrypt_ebs_volume = false
+		}
+
+		resource "mongodbatlas_database_user" "test" {
+			username           = "%s"
+			password           = "%s"
+			project_id         = "${mongodbatlas_project.test.id}"
+			auth_database_name = "admin"
+
+			roles {
+				role_name     = "%s"
+				database_name = "admin"
+			}
+
+			%s
+
+		}
+	`, projectName, orgID, clusterName, username, password, roleName, scopes)
 }

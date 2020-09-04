@@ -105,6 +105,25 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 					},
 				},
 			},
+			"scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -161,6 +180,10 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("scopes", flattenScopes(dbUser.Scopes)); err != nil {
+		return fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":         projectID,
 		"username":           username,
@@ -197,6 +220,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		AWSIAMType:   d.Get("aws_iam_type").(string),
 		DatabaseName: authDatabaseName,
 		Labels:       expandLabelSliceFromSetSchema(d),
+		Scopes:       expandScopes(d),
 	}
 
 	dbUserRes, _, err := conn.DatabaseUsers.Create(context.Background(), projectID, dbUserReq)
@@ -238,6 +262,10 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("labels") {
 		dbUser.Labels = expandLabelSliceFromSetSchema(d)
+	}
+
+	if d.HasChange("scopes") {
+		dbUser.Scopes = expandScopes(d)
 	}
 
 	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
@@ -344,4 +372,30 @@ func flattenRoles(roles []matlas.Role) []interface{} {
 	}
 
 	return roleList
+}
+
+func flattenScopes(l []matlas.Scope) []map[string]interface{} {
+	scopes := make([]map[string]interface{}, len(l))
+	for i, v := range l {
+		scopes[i] = map[string]interface{}{
+			"name": v.Name,
+			"type": v.Type,
+		}
+	}
+
+	return scopes
+}
+
+func expandScopes(d *schema.ResourceData) []matlas.Scope {
+	scopes := make([]matlas.Scope, len(d.Get("scopes").([]interface{})))
+
+	for k, v := range d.Get("scopes").([]interface{}) {
+		a := v.(map[string]interface{})
+		scopes[k] = matlas.Scope{
+			Name: a["name"].(string),
+			Type: a["type"].(string),
+		}
+	}
+
+	return scopes
 }
