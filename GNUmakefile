@@ -7,6 +7,10 @@ GOFLAGS=-mod=vendor
 GOGC=10
 GOOPTS="-p 2"
 
+GITTAG=$(shell git describe --always --tags)
+VERSION=$(GITTAG:v%=%)
+LINKER_FLAGS="-X mongodbatlas/version.ProviderVersion=${VERSION}"
+
 GOLANGCI_VERSION=v1.29.0
 
 export PATH := ./bin:$(PATH)
@@ -14,13 +18,14 @@ export PATH := ./bin:$(PATH)
 default: build
 
 build: fmtcheck
-	go install
+	go install "$(LINKER_FLAGS)"
 
 test: fmtcheck
 	go test $(TEST) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 120m -cover
+	@$(eval VERSION=acc)
+	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 120m -cover "$(LINKER_FLAGS)"
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
