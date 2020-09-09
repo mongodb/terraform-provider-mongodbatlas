@@ -212,7 +212,6 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -238,7 +237,6 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_importConfigNotifications(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		resourceName = "mongodbatlas_alert_configuration.test"

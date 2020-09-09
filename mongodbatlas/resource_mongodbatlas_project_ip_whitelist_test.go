@@ -202,7 +202,6 @@ func TestAccResourceMongoDBAtlasProjectIPWhitelist_SettingMultiple(t *testing.T)
 }
 
 func TestAccResourceMongoDBAtlasProjectIPWhitelist_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)

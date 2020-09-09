@@ -765,7 +765,6 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

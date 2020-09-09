@@ -88,7 +88,6 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_WithCustomerX509(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasX509AuthDBUser_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		username     = os.Getenv("MONGODB_ATLAS_DB_USERNAME")

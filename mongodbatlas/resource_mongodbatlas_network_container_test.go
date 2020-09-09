@@ -140,7 +140,6 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		randInt      = acctest.RandIntRange(0, 255)
 		resourceName = "mongodbatlas_network_container.test"

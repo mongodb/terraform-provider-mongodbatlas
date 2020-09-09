@@ -80,7 +80,6 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

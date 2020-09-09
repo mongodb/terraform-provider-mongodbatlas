@@ -64,7 +64,6 @@ func TestAccResourceMongoDBAtlasAuditing_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAuditing_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		auditing     = &matlas.Auditing{}
 		resourceName = "mongodbatlas_auditing.test"

@@ -161,10 +161,3 @@ func checkTeamsIds(t *testing.T) {
 		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
 	}
 }
-
-// SkipTestImport temporary solution to avoid error about failed verification, will solve later
-func SkipTestImport(t *testing.T) {
-	if strings.EqualFold(os.Getenv("SKIP_TEST_IMPORT"), "true") {
-		t.Skip()
-	}
-}

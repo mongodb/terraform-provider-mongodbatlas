@@ -450,7 +450,6 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCustomDBRoles_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		resourceName = "mongodbatlas_custom_db_role.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
