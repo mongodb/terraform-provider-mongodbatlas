@@ -18,14 +18,14 @@ export PATH := ./bin:$(PATH)
 default: build
 
 build: fmtcheck
-	go install "$(LINKER_FLAGS)"
+	go install -ldflags="$(LINKER_FLAGS)"
 
 test: fmtcheck
 	go test $(TEST) -timeout=30s -parallel=4
 
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 120m -cover "$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 120m -cover -ldflags="$(LINKER_FLAGS)"
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
