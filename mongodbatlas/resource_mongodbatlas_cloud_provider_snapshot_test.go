@@ -45,7 +45,6 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		resourceName    = "mongodbatlas_cloud_provider_snapshot.test"
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

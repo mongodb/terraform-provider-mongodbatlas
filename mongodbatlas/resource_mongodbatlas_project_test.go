@@ -152,7 +152,6 @@ func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
-	SkipTestImport(t)
 	var (
 		projectName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
