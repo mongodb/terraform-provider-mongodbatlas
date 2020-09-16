@@ -44,6 +44,11 @@ resource "mongodbatlas_database_user" "test" {
     name   = "My cluster name"
     type = "CLUSTER"
   }
+
+  scopes {
+    name   = "My second cluster name"
+    type = "CLUSTER"
+  }
 }
 ```
 
@@ -84,9 +89,6 @@ Accepted values include:
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB.
 * `password` - (Required) User's initial password. A value is required to create the database user, however the argument but may be removed from your Terraform configuration after user creation without impacting the user, password or Terraform management. IMPORTANT --- Passwords may show up in Terraform related logs and it will be stored in the Terraform state file as plain-text. Password can be changed after creation using your preferred method, e.g. via the MongoDB Atlas UI, to ensure security.  If you do change management of the password to outside of Terraform be sure to remove the argument from the Terraform configuration so it is not inadvertently updated to the original password.
-* `scopes` - (Optional) Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
-    * `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
-    * `type` - (Required) Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
 
 * `x509_type` - (Optional) X.509 method by which the provided username is authenticated. If no value is given, Atlas uses the default value of NONE. The accepted types are:
   * `NONE` -	The user does not use X.509 authentication.
@@ -115,6 +117,12 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
+
+### Scopes
+Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
+
+* `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
+* `type` - (Required) Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
 
 ## Attributes Reference
 

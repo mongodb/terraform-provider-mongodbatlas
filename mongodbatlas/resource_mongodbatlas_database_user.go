@@ -106,7 +106,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				},
 			},
 			"scopes": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -387,15 +387,16 @@ func flattenScopes(l []matlas.Scope) []map[string]interface{} {
 }
 
 func expandScopes(d *schema.ResourceData) []matlas.Scope {
-	scopes := make([]matlas.Scope, len(d.Get("scopes").([]interface{})))
+	list := d.Get("scopes").(*schema.Set)
+	res := make([]matlas.Scope, list.Len())
 
-	for k, v := range d.Get("scopes").([]interface{}) {
-		a := v.(map[string]interface{})
-		scopes[k] = matlas.Scope{
-			Name: a["name"].(string),
-			Type: a["type"].(string),
+	for i, val := range list.List() {
+		v := val.(map[string]interface{})
+		res[i] = matlas.Scope{
+			Type: v["type"].(string),
+			Name: v["name"].(string),
 		}
 	}
 
-	return scopes
+	return res
 }
