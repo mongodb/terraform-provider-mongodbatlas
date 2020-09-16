@@ -392,7 +392,7 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		ids := decodeStateID(rs.Primary.ID)
 		username := ids["username"]
 
-		dbUsername := url.QueryEscape(username)
+		dbUsername := url.PathEscape(username)
 
 		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], dbUsername); err == nil {
 			*dbUser = *dbUserResp

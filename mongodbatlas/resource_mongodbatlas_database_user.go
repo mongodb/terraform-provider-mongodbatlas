@@ -124,7 +124,7 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 			authDatabaseName = d.Get("auth_database_name").(string)
 		}
 	}
-	usernameEscaped := url.QueryEscape(username)
+	usernameEscaped := url.PathEscape(username)
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
@@ -221,7 +221,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	usernameEscaped := url.QueryEscape(username)
+	usernameEscaped := url.PathEscape(username)
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
@@ -256,7 +256,7 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	usernameEscaped := url.QueryEscape(username)
+	usernameEscaped := url.PathEscape(username)
 
 	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
