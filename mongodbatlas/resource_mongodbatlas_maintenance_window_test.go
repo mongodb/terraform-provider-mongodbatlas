@@ -95,11 +95,10 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasMaintenanceWindowImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasMaintenanceWindowImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

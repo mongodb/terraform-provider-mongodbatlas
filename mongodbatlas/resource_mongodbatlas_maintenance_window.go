@@ -140,6 +140,10 @@ func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
 
+	if err := d.Set("project_id", d.Id()); err != nil {
+		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+	}
+
 	return nil
 }
 
