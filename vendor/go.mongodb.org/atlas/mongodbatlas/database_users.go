@@ -8,6 +8,16 @@ import (
 
 const dbUsersBasePath = "groups/%s/databaseUsers"
 
+var adminX509Type = map[string]struct{}{
+	"MANAGED":  {},
+	"CUSTOMER": {},
+}
+
+var awsIAMType = map[string]struct{}{
+	"USER": {},
+	"ROLE": {},
+}
+
 // DatabaseUsersService is an interface for interfacing with the Database Users
 // endpoints of the MongoDB Atlas API.
 // See more: https://docs.atlas.mongodb.com/reference/api/database-users/index.html
@@ -46,6 +56,24 @@ type DatabaseUser struct {
 	Scopes          []Scope `json:"scopes,omitempty"`
 	Password        string  `json:"password,omitempty"`
 	Username        string  `json:"username,omitempty"`
+}
+
+// GetAuthDB determines the authentication database based on the type of user.
+// LDAP, X509 and AWSIAM should all use $external.
+// SCRAM-SHA should use admin
+func (user *DatabaseUser) GetAuthDB() (name string) {
+	// base documentation https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/database_user
+	name = "admin"
+	_, isX509 := adminX509Type[user.X509Type]
+	_, isIAM := awsIAMType[user.AWSIAMType]
+
+	isLDAP := len(user.LDAPAuthType) > 0 && user.LDAPAuthType != "NONE"
+
+	if isX509 || isIAM || isLDAP {
+		name = "$external"
+	}
+
+	return
 }
 
 // Scope if presents a database user only have access to the indicated resource
@@ -158,7 +186,8 @@ func (s *DatabaseUsersServiceOp) Update(ctx context.Context, groupID, username s
 	}
 
 	basePath := fmt.Sprintf(dbUsersBasePath, groupID)
-	path := fmt.Sprintf("%s/admin/%s", basePath, username)
+
+	path := fmt.Sprintf("%s/%s/%s", basePath, updateRequest.GetAuthDB(), username)
 
 	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
 	if err != nil {
