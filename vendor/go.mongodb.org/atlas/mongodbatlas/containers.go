@@ -27,6 +27,7 @@ type ContainersServiceOp service
 
 var _ ContainersService = &ContainersServiceOp{}
 
+// ContainersListOptions filtering options for containers
 type ContainersListOptions struct {
 	ProviderName string `url:"providerName,omitempty"`
 	ListOptions

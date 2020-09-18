@@ -10,6 +10,7 @@ const alertPath = "groups/%s/alerts"
 
 // AlertsService is an interface for interfacing with the Alerts
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/alerts/
 type AlertsService interface {
 	List(context.Context, string, *AlertsListOptions) (*AlertsResponse, *Response, error)
@@ -17,8 +18,7 @@ type AlertsService interface {
 	Acknowledge(context.Context, string, string, *AcknowledgeRequest) (*Alert, *Response, error)
 }
 
-// AlertServiceOp handles communication with the Alert related methods
-// of the MongoDB Atlas API
+// AlertsServiceOp provides an implementation of AlertsService
 type AlertsServiceOp service
 
 var _ AlertsService = &AlertsServiceOp{}
@@ -48,26 +48,27 @@ type Alert struct {
 	Notifications          []Notification   `json:"notifications,omitempty"`          // Notifications are sending when an alert condition is detected.
 }
 
-// AlertsRequest contains the request Body Parameters
+// AcknowledgeRequest contains the request Body Parameters
 type AcknowledgeRequest struct {
 	AcknowledgedUntil      *string `json:"acknowledgedUntil,omitempty"`      // The date through which the alert has been acknowledged. Will not be present if the alert has never been acknowledged.
 	AcknowledgementComment string  `json:"acknowledgementComment,omitempty"` // The comment left by the user who acknowledged the alert. Will not be present if the alert has never been acknowledged.
 }
 
-// AlertsListOptions contains the list of options for Alerts
+// AlertsListOptions contains the list of options for Alerts.
 type AlertsListOptions struct {
 	Status string `url:"status,omitempty"`
 	ListOptions
 }
 
-// AlertResponse is the response from the AlertService.List.
+// AlertsResponse is the response from the AlertService.List.
 type AlertsResponse struct {
 	Links      []*Link `json:"links"`
 	Results    []Alert `json:"results"`
 	TotalCount int     `json:"totalCount"`
 }
 
-// GetAnAlert gets the alert specified to {ALERT-ID} for the project associated to {GROUP-ID}.
+// Get gets the alert specified to {ALERT-ID} for the project associated to {GROUP-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/alerts-get-alert/
 func (s *AlertsServiceOp) Get(ctx context.Context, groupID, alertID string) (*Alert, *Response, error) {
 	if groupID == "" {
@@ -95,6 +96,7 @@ func (s *AlertsServiceOp) Get(ctx context.Context, groupID, alertID string) (*Al
 }
 
 // List gets all alert for the project associated to {GROUP-ID}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/alerts-get-all-alerts/
 func (s *AlertsServiceOp) List(ctx context.Context, groupID string, listOptions *AlertsListOptions) (*AlertsResponse, *Response, error) {
 	if groupID == "" {
@@ -127,7 +129,8 @@ func (s *AlertsServiceOp) List(ctx context.Context, groupID string, listOptions 
 	return root, resp, nil
 }
 
-// AckAnAlert allows to acknowledge an alert
+// Acknowledge allows to acknowledge an alert.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/alerts-acknowledge-alert/
 func (s *AlertsServiceOp) Acknowledge(ctx context.Context, groupID, alertID string, params *AcknowledgeRequest) (*Alert, *Response, error) {
 	if groupID == "" {

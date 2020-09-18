@@ -77,6 +77,22 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 					},
 				},
 			},
+			"scopes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -134,6 +150,10 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
 		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("scopes", flattenScopes(dbUser.Scopes)); err != nil {
+		return fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{

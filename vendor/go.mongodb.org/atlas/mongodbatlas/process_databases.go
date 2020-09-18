@@ -10,12 +10,13 @@ const processesDatabasesPath = "groups/%s/processes/%s:%d/databases"
 
 // ProcessDatabasesService is an interface for interfacing with the Process Measurements
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/process-databases/
 type ProcessDatabasesService interface {
 	List(context.Context, string, string, int, *ListOptions) (*ProcessDatabasesResponse, *Response, error)
 }
 
-// ProcessDatabasesOp handles communication with the process disks related methods of the
+// ProcessDatabasesServiceOp handles communication with the process disks related methods of the
 // MongoDB Atlas API
 type ProcessDatabasesServiceOp service
 
@@ -35,6 +36,7 @@ type ProcessDatabase struct {
 }
 
 // List gets databases for a specific Atlas MongoDB process.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/process-databases/
 func (s *ProcessDatabasesServiceOp) List(ctx context.Context, groupID, host string, port int, opts *ListOptions) (*ProcessDatabasesResponse, *Response, error) {
 	if groupID == "" {

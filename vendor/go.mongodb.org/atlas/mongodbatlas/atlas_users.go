@@ -12,6 +12,7 @@ const (
 
 // AtlasUsersService is an interface for interfacing with the AtlasUsers
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/users/
 type AtlasUsersService interface {
 	List(context.Context, string, *ListOptions) ([]AtlasUser, *Response, error)
@@ -26,13 +27,14 @@ type AtlasUsersServiceOp service
 
 var _ AtlasUsersService = &AtlasUsersServiceOp{}
 
-// AtlasUsers represents a array of project
+// AtlasUsersResponse represents a array of users
 type AtlasUsersResponse struct {
 	Links      []*Link     `json:"links"`
 	Results    []AtlasUser `json:"results"`
 	TotalCount int         `json:"totalCount"`
 }
 
+// AtlasUser represents a user
 type AtlasUser struct {
 	EmailAddress string      `json:"emailAddress"`
 	FirstName    string      `json:"firstName"`
@@ -47,6 +49,7 @@ type AtlasUser struct {
 }
 
 // List gets all users.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/user-get-all/
 func (s *AtlasUsersServiceOp) List(ctx context.Context, orgID string, listOptions *ListOptions) ([]AtlasUser, *Response, error) {
 	path := fmt.Sprintf(usersBasePath, orgID)
@@ -76,6 +79,7 @@ func (s *AtlasUsersServiceOp) List(ctx context.Context, orgID string, listOption
 }
 
 // Get gets a single atlas user.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/user-get-by-id/
 func (s *AtlasUsersServiceOp) Get(ctx context.Context, userID string) (*AtlasUser, *Response, error) {
 	if userID == "" {
@@ -99,6 +103,7 @@ func (s *AtlasUsersServiceOp) Get(ctx context.Context, userID string) (*AtlasUse
 }
 
 // GetByName gets a single atlas user by name.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/user-get-one-by-name/
 func (s *AtlasUsersServiceOp) GetByName(ctx context.Context, username string) (*AtlasUser, *Response, error) {
 	if username == "" {
@@ -122,6 +127,7 @@ func (s *AtlasUsersServiceOp) GetByName(ctx context.Context, username string) (*
 }
 
 // Create creates an Atlas User.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/user-create/
 func (s *AtlasUsersServiceOp) Create(ctx context.Context, createRequest *AtlasUser) (*AtlasUser, *Response, error) {
 	if createRequest == nil {

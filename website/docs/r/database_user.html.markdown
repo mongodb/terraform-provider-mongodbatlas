@@ -39,6 +39,16 @@ resource "mongodbatlas_database_user" "test" {
     key   = "My Key"
     value = "My Value"
   }
+
+  scopes {
+    name   = "My cluster name"
+    type = "CLUSTER"
+  }
+
+  scopes {
+    name   = "My second cluster name"
+    type = "CLUSTER"
+  }
 }
 ```
 
@@ -58,6 +68,11 @@ resource "mongodbatlas_database_user" "test" {
   labels {
     key   = "%s"
     value = "%s"
+  }
+
+  scopes {
+    name   = "My cluster name"
+    type = "CLUSTER"
   }
 }
 ```
@@ -102,6 +117,12 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
+
+### Scopes
+Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
+
+* `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
+* `type` - (Required) Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
 
 ## Attributes Reference
 

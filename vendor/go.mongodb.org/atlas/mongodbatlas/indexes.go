@@ -10,6 +10,7 @@ const indexesPath = "groups/%s/clusters/%s/index"
 
 // IndexesService is an interface for interfacing with the clusters indexes
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/indexes/
 type IndexesService interface {
 	Create(context.Context, string, string, *IndexConfiguration) (*Response, error)
@@ -30,7 +31,8 @@ type IndexConfiguration struct {
 	Collation  *CollationOptions   `json:"collation,omitempty"` // Collation Mongo collation index options
 }
 
-// IndexOptions, represents mdb index options
+// IndexOptions represents mongodb index options.
+//
 // See: https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#options
 type IndexOptions struct {
 	Background              bool                    `json:"background,omitempty"`
@@ -51,7 +53,8 @@ type IndexOptions struct {
 	ExpireAfterSeconds      int                     `json:"expireAfterSeconds,omitempty"`
 }
 
-// CollationOptions represents options for collation indexes
+// CollationOptions represents options for collation indexes.
+//
 // See: https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#option-for-collation
 type CollationOptions struct {
 	Locale          string `json:"locale,omitempty"`
@@ -66,6 +69,7 @@ type CollationOptions struct {
 }
 
 // Create creates a request for a rolling index creation for the project associated to {GROUP-ID} and the {CLUSTER-NAME}.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/rolling-index-create-one/
 func (s *IndexesServiceOp) Create(ctx context.Context, groupID, clusterName string, createReq *IndexConfiguration) (*Response, error) {
 	if groupID == "" {

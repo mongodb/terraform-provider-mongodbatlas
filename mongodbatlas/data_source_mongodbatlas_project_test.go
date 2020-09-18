@@ -65,6 +65,7 @@ func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
+
 							TeamID:    teamsIds[1],
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
