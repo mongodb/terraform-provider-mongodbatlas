@@ -42,9 +42,10 @@ var _ OrganizationsService = &OrganizationsServiceOp{}
 
 // Organization represents the structure of an organization.
 type Organization struct {
-	ID    string  `json:"id,omitempty"`
-	Links []*Link `json:"links,omitempty"`
-	Name  string  `json:"name,omitempty"`
+	ID        string  `json:"id,omitempty"`
+	IsDeleted *bool   `json:"isDeleted,omitempty"`
+	Links     []*Link `json:"links,omitempty"`
+	Name      string  `json:"name,omitempty"`
 }
 
 // Organizations represents an array of organization

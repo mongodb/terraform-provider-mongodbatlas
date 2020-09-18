@@ -611,6 +611,8 @@ go.mongodb.org/atlas v0.4.1-0.20200820152733-8dc4a7c19a2b h1:AuAQZDrQLesdmz9mIPa
 go.mongodb.org/atlas v0.4.1-0.20200820152733-8dc4a7c19a2b/go.mod h1:QlKvZKT43+R6lhHlaTy2E7Q/3AoAljMI6v5apfqslIs=
 go.mongodb.org/atlas v0.4.1-0.20200903102338-049d0778b833 h1:gH8Ih2OacuB6qVitO+wI5EBKdbtM/YdbhJstiMR2Vfw=
 go.mongodb.org/atlas v0.4.1-0.20200903102338-049d0778b833/go.mod h1:CIaBeO8GLHhtYLw7xSSXsw7N90Z4MFY87Oy9qcPyuEs=
+go.mongodb.org/atlas v0.4.1-0.20200916170654-ac3833accfa2 h1:qjEP4bC8yTi57jBYHtSSA8gzPN4vJl3XG23YBMXCgUg=
+go.mongodb.org/atlas v0.4.1-0.20200916170654-ac3833accfa2/go.mod h1:CIaBeO8GLHhtYLw7xSSXsw7N90Z4MFY87Oy9qcPyuEs=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
