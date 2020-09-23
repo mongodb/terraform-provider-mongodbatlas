@@ -61,6 +61,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_private_endpoint_interface_link":       dataSourceMongoDBAtlasPrivateEndpointInterfaceLink(),
 			"mongodbatlas_cloud_provider_snapshot_backup_policy": dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
 			"mongodbatlas_third_party_integrations":              dataSourceMongoDBAtlasThirdPartyIntegrations(),
+			"mongodbatlas_third_party_integration":               dataSourceMongoDBAtlasThirdPartyIntegration(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
