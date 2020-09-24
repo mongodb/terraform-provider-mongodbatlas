@@ -16,7 +16,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 		Required: true,
 	}
 
-	integration.Schema["integration_type"] = &schema.Schema{
+	integration.Schema["type"] = &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Third-party service integration identifier",

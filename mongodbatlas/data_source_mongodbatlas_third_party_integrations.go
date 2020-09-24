@@ -79,3 +79,73 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 		"secret":       integration.Secret,
 	}
 }
+
+func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegration) {
+	out = &matlas.ThirdPartyIntegration{}
+
+	if _type, ok := in.GetOk("type"); ok {
+		out.Type = _type.(string)
+	}
+
+	if licenseKey, ok := in.GetOk("license_key"); ok {
+		out.LicenseKey = licenseKey.(string)
+	}
+
+	if accountID, ok := in.GetOk("account_id"); ok {
+		out.AccountID = accountID.(string)
+	}
+
+	if writeToken, ok := in.GetOk("write_token"); ok {
+		out.WriteToken = writeToken.(string)
+	}
+
+	if readToken, ok := in.GetOk("read_token"); ok {
+		out.ReadToken = readToken.(string)
+	}
+
+	if apiKey, ok := in.GetOk("api_key"); ok {
+		out.APIKey = apiKey.(string)
+	}
+
+	if region, ok := in.GetOk("region"); ok {
+		out.Region = region.(string)
+	}
+
+	if serviceKey, ok := in.GetOk("service_key"); ok {
+		out.ServiceKey = serviceKey.(string)
+	}
+
+	if apiToken, ok := in.GetOk("api_token"); ok {
+		out.APIToken = apiToken.(string)
+	}
+
+	if teamName, ok := in.GetOk("team_name"); ok {
+		out.TeamName = teamName.(string)
+	}
+
+	if channelName, ok := in.GetOk("channel_name"); ok {
+		out.ChannelName = channelName.(string)
+	}
+
+	if routingKey, ok := in.GetOk("routing_key"); ok {
+		out.RoutingKey = routingKey.(string)
+	}
+
+	if flowName, ok := in.GetOk("flow_name"); ok {
+		out.FlowName = flowName.(string)
+	}
+
+	if orgName, ok := in.GetOk("org_name"); ok {
+		out.OrgName = orgName.(string)
+	}
+
+	if url, ok := in.GetOk("url"); ok {
+		out.URL = url.(string)
+	}
+
+	if secret, ok := in.GetOk("secret"); ok {
+		out.Secret = secret.(string)
+	}
+
+	return out
+}
