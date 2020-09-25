@@ -149,3 +149,65 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 
 	return out
 }
+
+func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) {
+	if d.HasChange("license_key") {
+		integration.LicenseKey = d.Get("license_key").(string)
+	}
+
+	if d.HasChange("account_id") {
+		integration.AccountID = d.Get("account_id").(string)
+	}
+
+	if d.HasChange("write_token") {
+		integration.WriteToken = d.Get("write_token").(string)
+	}
+
+	if d.HasChange("read_token") {
+		integration.ReadToken = d.Get("read_token").(string)
+	}
+
+	if d.HasChange("api_key") {
+		integration.APIKey = d.Get("api_key").(string)
+	}
+
+	if d.HasChange("region") {
+		integration.Region = d.Get("region").(string)
+	}
+
+	if d.HasChange("service_key") {
+		integration.ServiceKey = d.Get("service_key").(string)
+	}
+
+	if d.HasChange("api_token") {
+		integration.APIToken = d.Get("api_token").(string)
+	}
+
+	if d.HasChange("team_name") {
+		integration.TeamName = d.Get("team_name").(string)
+	}
+
+	if d.HasChange("channel_name") {
+		integration.ChannelName = d.Get("channel_name").(string)
+	}
+
+	if d.HasChange("routing_key") {
+		integration.RoutingKey = d.Get("routing_key").(string)
+	}
+
+	if d.HasChange("flow_name") {
+		integration.FlowName = d.Get("flow_name").(string)
+	}
+
+	if d.HasChange("org_name") {
+		integration.OrgName = d.Get("org_name").(string)
+	}
+
+	if d.HasChange("url") {
+		integration.URL = d.Get("url").(string)
+	}
+
+	if d.HasChange("secret") {
+		integration.Secret = d.Get("secret").(string)
+	}
+}

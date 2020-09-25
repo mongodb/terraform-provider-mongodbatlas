@@ -2,7 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -37,6 +39,9 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 		Read:   resourceMongoDBAtlasThirdPartyIntegrationRead,
 		Update: resourceMongoDBAtlasThirdPartyIntegrationUpdate,
 		Delete: resourceMongoDBAtlasThirdPartyIntegrationDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasThirdPartyIntegrationImportState,
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -153,7 +158,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta 
 	integration, _, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
 
 	if err != nil {
-		return fmt.Errorf("error getting third party integration resource info %s", integration)
+		return fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err)
 	}
 
 	integrationMap := integrationToSchema(integration)
@@ -173,9 +178,89 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+
+	projectID := ids["project_id"]
+	integrationType := ids["type"]
+
+	integration, _, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
+
+	if err != nil {
+		return fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err)
+	}
+
+	// check for changed attributes per type
+
+	updateIntegrationFromSchema(d, integration)
+
+	_, _, err = conn.Integrations.Replace(context.Background(), projectID, integrationType, integration)
+
+	if err != nil {
+		return fmt.Errorf("error updating third party integration type `%s` (%s): %w", integrationType, d.Id(), err)
+	}
+
+	return resourceMongoDBAtlasThirdPartyIntegrationRead(d, meta)
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+
+	projectID := ids["project_id"]
+	integrationType := ids["type"]
+
+	_, err := conn.Integrations.Delete(context.Background(), projectID, integrationType)
+
+	if err != nil {
+		return fmt.Errorf("error deleting third party integration type `%s` (%s): %w", integrationType, d.Id(), err)
+	}
+
 	return nil
+}
+
+func resourceMongoDBAtlasThirdPartyIntegrationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	projectID, integrationType, err := splitIntegrationTypeID(d.Id())
+
+	if err != nil {
+		return nil, err
+	}
+
+	integration, _, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
+
+	if err != nil {
+		return nil, fmt.Errorf("couldn't import third party integration (%s) in project(%s), error: %w", integrationType, projectID, err)
+	}
+
+	if err := d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf("error setting `project_id` for third party integration (%s): %w", d.Id(), err)
+	}
+
+	if err := d.Set("type", integration.Type); err != nil {
+		return nil, fmt.Errorf("error setting `type` for third party integration (%s): %w", d.Id(), err)
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"type":       integrationType,
+	}))
+
+	return []*schema.ResourceData{d}, nil
+}
+
+// format {project_id}-{integration_type}
+func splitIntegrationTypeID(id string) (projectID, integrationType string, err error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
+	parts := re.FindStringSubmatch(id)
+
+	if len(parts) != 3 {
+		err = errors.New("import format error: to import a third party integration, use the format {project_id}-{integration_type}")
+		return
+	}
+
+	projectID, integrationType = parts[1], parts[2]
+
+	return
 }
