@@ -5,6 +5,7 @@ on:
     branches:
       - master
   pull_request:
+    types: [ labeled ]
 
 jobs:
   authorize:
