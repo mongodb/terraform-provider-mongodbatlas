@@ -57,58 +57,70 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 			"license_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
+				Optional:  true,
 			},
 			"account_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"write_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
+				Optional:  true,
 			},
 			"read_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
+				Optional:  true,
 			},
 			"api_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
+				Optional:  true,
 			},
 			"region": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 			"service_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
+				Optional:  true,
 			},
 			"api_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
+				Optional:  true,
 			},
 			"team_name": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"channel_name": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"routing_key": {
 				Type:      schema.TypeString,
+				Optional:  true,
 				Sensitive: true,
 			},
 			"flow_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"org_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"url": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"secret": {
 				Type:      schema.TypeString,
+				Optional:  true,
 				Sensitive: true,
 			},
 		},
