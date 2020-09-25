@@ -19,6 +19,7 @@ jobs:
 
   acceptances-tests:
     needs: [ authorize ]
+    if: ${{ github.event.label.name == 'run-testacc' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
