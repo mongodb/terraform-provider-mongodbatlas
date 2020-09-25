@@ -4,10 +4,21 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
+  pull_request:
 
 jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.0.0
+        with:
+          route: GET /repos/:repository/collaborators/${{ github.actor }}
+          repository: ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   acceptances-tests:
+    needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
