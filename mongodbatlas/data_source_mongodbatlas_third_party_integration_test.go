@@ -73,6 +73,7 @@ const (
 		project_id = "%[2]s"
 		type = "%[3]s"
 		api_key = "%[4]s"
+		routing_key = "%[5]s"
 	}
 	`
 
@@ -205,6 +206,7 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.ProjectID,
 			config.Integration.Type,
 			config.Integration.APIKey,
+			config.Integration.RoutingKey,
 		)
 
 	case "FLOWDOCK":
