@@ -239,8 +239,8 @@ func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 		LicenseKey: testGenString(20, alphabet),
 		// Slack xoxb-333649436676-799261852869-clFJVVIaoJahpORboa3Ba2al
 		APIToken:    fmt.Sprintf("xoxb-%s-%s-%s", testGenString(12, numeric), testGenString(12, numeric), testGenString(24, alphaNum)),
-		TeamName:    "MongoSlackTest " + account,
-		ChannelName: "MongoSlackTest " + account,
+		TeamName:    "MongoSlackTestTeam " + account,
+		ChannelName: "MongoSlackTestChannel " + account,
 		// DataDog 40
 		APIKey: testGenString(40, alphaNum),
 		Region: "EU",
