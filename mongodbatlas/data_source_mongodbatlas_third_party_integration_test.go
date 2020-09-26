@@ -16,21 +16,21 @@ import (
 
 const (
 	Unknown3rdParty = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 	}
 	`
 
 	PAGERDUTY = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		service_key = "%[4]s"
 	}
 	`
 	SLACK = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 
@@ -41,7 +41,7 @@ const (
 	`
 
 	DATADOG = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		api_key = "%[4]s"
@@ -50,7 +50,7 @@ const (
 	`
 
 	NEWRELIC = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		license_key = "%[4]s"
@@ -61,7 +61,7 @@ const (
 	`
 
 	OPSGENIE = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		api_key = "%[4]s"
@@ -69,7 +69,7 @@ const (
 	}
 	`
 	VICTOROPS = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		api_key = "%[4]s"
@@ -77,7 +77,7 @@ const (
 	`
 
 	FLOWDOCK = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		flow_name = "%[4]s"
@@ -87,7 +87,7 @@ const (
 	`
 
 	WEBHOOK = `
-	resource "third_party_integration" "%[1]s" {
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
 		url = "%[4]s"	
@@ -111,14 +111,14 @@ type thirdPartyConfig struct {
 func TestAccdataSourceMongoDBAtlasThirdPartyIntegration_basic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
-		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		config            = testAccCreateThirdPartyIntegrationConfig()
 		testExecutionName = "test_" + config.AccountID
 		resourceName      = "data.mongodbatlas_third_party_integration." + testExecutionName
 
 		seedConfig = thirdPartyConfig{
 			Name:        testExecutionName,
-			ProjectID:   orgID,
+			ProjectID:   projectID,
 			Integration: *config,
 		}
 	)
@@ -132,8 +132,9 @@ func TestAccdataSourceMongoDBAtlasThirdPartyIntegration_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
 					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
-					resource.TestCheckResourceAttr(resourceName, "team_name", config.TeamName),
-					resource.TestCheckResourceAttr(resourceName, "channel_name", config.ChannelName),
+					resource.TestCheckResourceAttr(resourceName, "api_token", config.APIToken),
+					resource.TestCheckResourceAttr(resourceName, "flow_name", config.FlowName),
+					resource.TestCheckResourceAttr(resourceName, "org_name", config.OrgName),
 				),
 			},
 		},
@@ -234,7 +235,7 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 	account := testGenString(6, numeric)
 	return &matlas.ThirdPartyIntegration{
-		Type: "SLACK",
+		Type: "FLOWDOCK",
 		// Pager dutty 20-character strings
 		LicenseKey: testGenString(20, alphabet),
 		// Slack xoxb-333649436676-799261852869-clFJVVIaoJahpORboa3Ba2al

@@ -80,7 +80,6 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 			},
 			"region": {
 				Type:     schema.TypeString,
-				Computed: true,
 				Optional: true,
 			},
 			"service_key": {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -108,7 +107,7 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 
 func dataSourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta interface{}) error {
 	projectID := d.Get("project_id").(string)
-	queryType := d.Get("integration_type").(string)
+	queryType := d.Get("type").(string)
 
 	conn := meta.(*matlas.Client)
 
@@ -126,7 +125,10 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, met
 		}
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(encodeStateID(map[string]string{
+		"project_id": projectID,
+		"type":       queryType,
+	}))
 
 	return nil
 }
