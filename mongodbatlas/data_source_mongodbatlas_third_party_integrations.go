@@ -36,7 +36,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(d *schema.ResourceData, me
 		return fmt.Errorf("error getting third party integration list: %s", err)
 	}
 
-	if err = d.Set("results", flattenIntegrations(integrations)); err != nil {
+	if err = d.Set("results", flattenIntegrations(integrations, projectID)); err != nil {
 		return fmt.Errorf("error setting results for third party integrations %s", err)
 	}
 
@@ -45,7 +45,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(d *schema.ResourceData, me
 	return nil
 }
 
-func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations) (list []map[string]interface{}) {
+func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID string) (list []map[string]interface{}) {
 	if len(integrations.Results) == 0 {
 		return
 	}
@@ -53,7 +53,9 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations) (list []ma
 	list = make([]map[string]interface{}, 0, len(integrations.Results))
 
 	for _, integration := range integrations.Results {
-		list = append(list, integrationToSchema(integration))
+		service := integrationToSchema(integration)
+		service["project_id"] = projectID
+		list = append(list, service)
 	}
 
 	return

@@ -29,6 +29,10 @@ func dataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 func thirdPartyIntegrationSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
+			"project_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
