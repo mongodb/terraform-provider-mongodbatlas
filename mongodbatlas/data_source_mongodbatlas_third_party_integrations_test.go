@@ -13,7 +13,7 @@ import (
 func TestAccdataSourceMongoDBAtlasThirdPartyIntegrations_basic(t *testing.T) {
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		intgTypes = []string{"FLOWDOCK", "VICTOR_OPS", "NEW_RELIC"}
+		intgTypes = []string{"NEW_RELIC"}
 		hclConfig = make([]*thirdPartyConfig, 0, len(intgTypes))
 		dsName    = "data.mongodbatlas_third_party_integrations.test"
 	)
@@ -42,8 +42,6 @@ func TestAccdataSourceMongoDBAtlasThirdPartyIntegrations_basic(t *testing.T) {
 			{
 				Config: intgResourcesHCL,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_third_party_integration.test_FLOWDOCK", "id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_third_party_integration.test_VICTOR_OPS", "id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_third_party_integration.test_NEW_RELIC", "id"),
 				),
 			}, {
@@ -52,7 +50,7 @@ func TestAccdataSourceMongoDBAtlasThirdPartyIntegrations_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dsName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dsName, "project_id"),
-					resource.TestCheckResourceAttr(dsName, "results.#", "3"),
+					resource.TestCheckResourceAttr(dsName, "results.#", "1"),
 					resource.TestCheckResourceAttrSet(dsName, "results.0.type"),
 				),
 			},
