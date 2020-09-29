@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 
@@ -263,11 +262,11 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(d *schema.ResourceData
 
 // format {project_id}-{integration_type}
 func splitIntegrationTypeID(id string) (projectID, integrationType string, err error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a third party integration, use the format {project_id}-{integration_type}")
+		err = fmt.Errorf("import format error: to import a third party integration, use the format {project_id}-{integration_type} %s, %+v", id, parts)
 		return
 	}
 
