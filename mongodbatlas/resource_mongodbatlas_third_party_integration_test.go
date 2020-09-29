@@ -89,6 +89,61 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_importBasic(t *testing.T) 
 	)
 }
 
+func TestAccResourceMongoDBAtlasThirdPartyIntegration_updateBasic(t *testing.T) {
+	var (
+		targetIntegration = matlas.ThirdPartyIntegration{}
+		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		config            = testAccCreateThirdPartyIntegrationConfig()
+		updatedConfig     = testAccCreateThirdPartyIntegrationConfig()
+		testExecutionName = "test_3rd_party_" + config.AccountID
+		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
+	)
+
+	// setting type
+	config.Type = "OPS_GENIE"
+	updatedConfig.Type = "OPS_GENIE"
+	updatedConfig.Region = "US"
+
+	seedInitialConfig := thirdPartyConfig{
+		Name:        testExecutionName,
+		ProjectID:   projectID,
+		Integration: *config,
+	}
+
+	seedUpdatedConfig := thirdPartyConfig{
+		Name:        testExecutionName,
+		ProjectID:   projectID,
+		Integration: *updatedConfig,
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedInitialConfig),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
+					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
+					resource.TestCheckResourceAttr(resourceName, "api_key", config.APIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", config.Region),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedUpdatedConfig),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
+					resource.TestCheckResourceAttr(resourceName, "type", updatedConfig.Type),
+					resource.TestCheckResourceAttr(resourceName, "api_key", updatedConfig.APIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", updatedConfig.Region),
+				),
+			},
+		},
+	},
+	)
+}
+
 func testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 	for _, rs := range s.RootModule().Resources {

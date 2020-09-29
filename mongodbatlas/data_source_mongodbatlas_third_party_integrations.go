@@ -62,7 +62,7 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID 
 }
 
 func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]interface{} {
-	return map[string]interface{}{
+	out := map[string]interface{}{
 		"type":         integration.Type,
 		"license_key":  integration.LicenseKey,
 		"account_id":   integration.AccountID,
@@ -80,6 +80,22 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 		"url":          integration.URL,
 		"secret":       integration.Secret,
 	}
+
+	// removing optional empty values, terraform complains about unexpected values even though they're empty
+	optionals := []string{"license_key", "account_id", "write_token",
+		"read_token", "api_key", "region", "service_key", "api_token",
+		"team_name", "channel_name", "flow_name", "org_name", "url", "secret"}
+
+	for _, attr := range optionals {
+		if val, ok := out[attr]; ok {
+			strval, okT := val.(string)
+			if okT && strval == "" {
+				delete(out, attr)
+			}
+		}
+	}
+
+	return out
 }
 
 func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegration) {
