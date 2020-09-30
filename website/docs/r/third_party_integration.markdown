@@ -78,7 +78,7 @@ Additional values based on Type
 
 ## Attributes Reference
 
-* `id` - Unique identifier used for terraform for internal manages and can be used to import.
+* `id` - Unique identifier used by terraform for internal management, which can also be used to import.
 
 ## Import
 
