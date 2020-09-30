@@ -12,7 +12,6 @@ import (
 
 var integrationTypes = []string{
 	"PAGER_DUTY",
-	"SLACK",
 	"DATADOG",
 	"NEW_RELIC",
 	"OPS_GENIE",
@@ -23,7 +22,6 @@ var integrationTypes = []string{
 
 var requiredPerType = map[string][]string{
 	"PAGER_DUTY": {"service_key"},
-	"SLACK":      {"api_token", "team_name"},
 	"DATADOG":    {"api_key", "region"},
 	"NEW_RELIC":  {"license_key", "account_id", "write_token", "read_token"},
 	"OPS_GENIE":  {"api_key", "region"},
@@ -79,6 +77,7 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 			},
 			"region": {
 				Type:     schema.TypeString,
+				Default:  "US",
 				Optional: true,
 			},
 			"service_key": {

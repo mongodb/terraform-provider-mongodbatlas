@@ -32,8 +32,8 @@ data "mongodbatlas_third_party_integration" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations
-* `type`       - (Required) Third-Party service integration type PAGER_DUTY
-     * SLACK
+* `type`       - (Required) Third-Party service integration type
+     * PAGER_DUTY
      * DATADOG
      * NEW_RELIC
      * OPS_GENIE
@@ -53,10 +53,6 @@ Additional values based on Type
 
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
-* `SLACK`
-  * `api_token` - Your API Token.
-  * `team_name` - Your team name.
-  * `channel_name` -  (Optional) The channel name to reconfigure.      
 * `DATADOG`
    * `api_key` - Your API Key.
    * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    

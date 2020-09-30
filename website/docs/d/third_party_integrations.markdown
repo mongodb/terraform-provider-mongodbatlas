@@ -56,10 +56,6 @@ Additional values based on Type
 
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
-* `SLACK`
-  * `api_token` - Your API Token.
-  * `team_name` - Your team name.
-  * `channel_name` -  (Optional) The channel name to reconfigure.      
 * `DATADOG`
    * `api_key` - Your API Key.
    * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    

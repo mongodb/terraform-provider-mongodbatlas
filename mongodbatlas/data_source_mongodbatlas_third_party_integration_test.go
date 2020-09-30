@@ -29,16 +29,6 @@ const (
 		service_key = "%[4]s"
 	}
 	`
-	SLACK = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-
-		api_token = "%[4]s"
-		team_name = "%[5]s"
-		channel_name = "%[6]s"
-	}
-	`
 
 	DATADOG = `
 	resource "mongodbatlas_third_party_integration" "%[1]s" {
@@ -164,15 +154,6 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.ProjectID,
 			config.Integration.Type,
 			config.Integration.LicenseKey,
-		)
-	case "SLACK":
-		return fmt.Sprintf(SLACK,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.APIToken,
-			config.Integration.TeamName,
-			config.Integration.ChannelName,
 		)
 	case "DATADOG":
 		return fmt.Sprintf(DATADOG,

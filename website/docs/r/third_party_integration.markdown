@@ -12,8 +12,6 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
--> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.
-
 ~> **IMPORTANT** Each project can only have one configuration per {INTEGRATION-TYPE}.
 
 ~> **IMPORTANT:** All arguments including the secrets will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
@@ -38,7 +36,6 @@ resource "third_party_integration" "test_flowdock" {
 * `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations
 * `type`       - (Required) Third-Party Integration Settings type 
      * PAGER_DUTY
-     * SLACK
      * DATADOG
      * NEW_RELIC
      * OPS_GENIE
@@ -50,10 +47,6 @@ Additional values based on Type
 
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
-* `SLACK`
-  * `api_token` - Your API Token.
-  * `team_name` - Your team name.
-  * `channel_name` -  (Optional) The channel name to reconfigure.      
 * `DATADOG`
    * `api_key` - Your API Key.
    * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    
