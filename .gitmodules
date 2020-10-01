@@ -1,0 +1,3 @@
+[submodule "examples/atlas-database-users"]
+	path = examples/atlas-database-users
+	url = https://github.com/nikhil-mongo/atlas-database-users
