@@ -114,6 +114,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"api_token": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"channel_name": {
@@ -122,6 +123,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						},
 						"datadog_api_key": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"datadog_region": {
@@ -142,6 +144,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						},
 						"flowdock_api_token": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"flow_name": {
@@ -158,6 +161,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						},
 						"ops_genie_api_key": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"ops_genie_region": {
@@ -170,6 +174,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						},
 						"service_key": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"sms_enabled": {
@@ -190,10 +195,12 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						},
 						"victor_ops_api_key": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"victor_ops_routing_key": {
 							Type:     schema.TypeString,
+							Sensitive: true,
 							Computed: true,
 						},
 						"roles": {
