@@ -113,18 +113,18 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_token": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"channel_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"datadog_api_key": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"datadog_region": {
 							Type:     schema.TypeString,
@@ -143,9 +143,9 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Computed: true,
 						},
 						"flowdock_api_token": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"flow_name": {
 							Type:     schema.TypeString,
@@ -160,9 +160,9 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Computed: true,
 						},
 						"ops_genie_api_key": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"ops_genie_region": {
 							Type:     schema.TypeString,
@@ -173,9 +173,9 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Computed: true,
 						},
 						"service_key": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"sms_enabled": {
 							Type:     schema.TypeBool,
@@ -194,14 +194,14 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Computed: true,
 						},
 						"victor_ops_api_key": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"victor_ops_routing_key": {
-							Type:     schema.TypeString,
+							Type:      schema.TypeString,
 							Sensitive: true,
-							Computed: true,
+							Computed:  true,
 						},
 						"roles": {
 							Type:     schema.TypeList,
