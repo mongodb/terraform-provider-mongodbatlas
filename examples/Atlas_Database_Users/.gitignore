@@ -1,0 +1,4 @@
+atlaspl.code-workspace
+terraform.tfvars
+.terraform/
+*.tfstate*
