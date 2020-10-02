@@ -60,7 +60,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
-	SkipTest(t) //Skipped for now because of paramater provider_disk_iops breaks the terraform flow
+	SkipTest(t) // Skipped for now because of paramater provider_disk_iops breaks the terraform flow
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
