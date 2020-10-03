@@ -224,6 +224,7 @@ To prevent this a lifecycle customization should be used, i.e.:
 `lifecycle {
   ignore_changes = [provider_instance_size_name]
 }`
+But in order to explicitly change `provider_instance_size_name` comment the `lifecycle` block and run `terraform apply`. Please ensure to uncomment it to prevent any accidental changes.
             
 * `auto_scaling_compute_scale_down_enabled` - (Optional) Set to `true` to enable the cluster tier to scale down. This option is only available if `autoScaling.compute.enabled` is `true`.
     - If this option is enabled, you must specify a value for `providerSettings.autoScaling.compute.minInstanceSize`
