@@ -224,6 +224,7 @@ To prevent this a lifecycle customization should be used, i.e.:
 `lifecycle {
   ignore_changes = [provider_instance_size_name]
 }`
+But in order to explicitly change `provider_instance_size_name` comment the `lifecycle` block and run `terraform apply`. Please ensure to uncomment it to prevent any accidental changes.
             
 * `auto_scaling_compute_scale_down_enabled` - (Optional) Set to `true` to enable the cluster tier to scale down. This option is only available if `autoScaling.compute.enabled` is `true`.
     - If this option is enabled, you must specify a value for `providerSettings.autoScaling.compute.minInstanceSize`
@@ -231,7 +232,11 @@ To prevent this a lifecycle customization should be used, i.e.:
 * `backup_enabled` - (Optional) Legacy Backup - Set to true to enable Atlas legacy backups for the cluster.
 **Important** - MongoDB deprecated the Legacy Backup feature. Clusters that use Legacy Backup can continue to use it. MongoDB recommends using [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/). 
     * Any net new Atlas clusters of any type do not support this parameter. These clusters must use Cloud Backup, `provider_backup_enabled`, to enable Cloud Backup.  If you create a new Atlas cluster and set `backup_enabled` to true, the Provider will respond with an error.  This change doesn’t affect existing clusters that use legacy backups.
-    * Set to false to disable legacy backups for the cluster. Atlas deletes any stored snapshots.
+    * Setting this value to false to disable legacy backups for the cluster will let Atlas delete any stored snapshots. In order to preserve the legacy backups snapshots, disable the legacy backups and enable the cloud backups in the single **terraform apply** action.
+    ```
+    backup_enabled = "false"
+    provider_backup_enabled = "true"
+    ```
     * The default value is false.  M10 and above only.
 
 * `bi_connector` - (Optional) Specifies BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
@@ -273,7 +278,7 @@ To prevent this a lifecycle customization should be used, i.e.:
     - AZURE - Microsoft Azure
 
 * `provider_disk_iops` - (Optional) The maximum input/output operations per second (IOPS) the system can perform. The possible values depend on the selected `provider_instance_size_name` and `disk_size_gb`.
-* `provider_disk_type_name` - (Optional - Azure Only) Azure disk type of the server’s root volume. If omitted, Atlas uses the default disk type for the selected providerSettings.instanceSizeName.  Example disk types and associated storage sizes: P4 - 32GB, P6 - 64GB, P10 - 128GB, P20 - 512GB, P30 - 1024GB, P40 - 2048GB, P50 - 4095GB.  More information and the most update to date disk types/storage sizes can be located at https://docs.atlas.mongodb.com/reference/api/clusters-create-one/.
+* `provider_disk_type_name` - (Optional - Azure Only) Azure disk type of the server’s root volume. If omitted, Atlas uses the default disk type for the selected providerSettings.instanceSizeName.  Example disk types and associated storage sizes: P4 - 32GB, P6 - 64GB, P10 - 128GB, P15 - 256GB, P20 - 512GB, P30 - 1024GB, P40 - 2048GB, P50 - 4095GB.  More information and the most update to date disk types/storage sizes can be located at https://docs.atlas.mongodb.com/reference/api/clusters-create-one/.
 * `provider_encrypt_ebs_volume` - (Optional- AWS ONLY) If enabled, the Amazon EBS encryption feature encrypts the server’s root volume for both data at rest within the volume and for data moving between the volume and the cluster.  **Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default**.
 * `provider_region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
     Do not specify this field when creating a multi-region cluster using the replicationSpec document or a Global Cluster with the replicationSpecs array.

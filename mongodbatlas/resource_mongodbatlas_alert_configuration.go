@@ -168,16 +168,18 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_token": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"channel_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 						"datadog_api_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"datadog_region": {
 							Type:         schema.TypeString,
@@ -197,8 +199,9 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Optional: true,
 						},
 						"flowdock_api_token": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"flow_name": {
 							Type:     schema.TypeString,
@@ -213,8 +216,9 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Optional: true,
 						},
 						"ops_genie_api_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"ops_genie_region": {
 							Type:         schema.TypeString,
@@ -226,8 +230,9 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Optional: true,
 						},
 						"service_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"sms_enabled": {
 							Type:     schema.TypeBool,
@@ -246,12 +251,14 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Optional: true,
 						},
 						"victor_ops_api_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"victor_ops_routing_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 						"roles": {
 							Type:     schema.TypeList,

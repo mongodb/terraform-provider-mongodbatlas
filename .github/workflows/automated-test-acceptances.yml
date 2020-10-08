@@ -5,9 +5,22 @@ on:
     branches:
       - master
   pull_request:
+    types: [ labeled ]
 
 jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.0.0
+        with:
+          route: GET /repos/:repository/collaborators/${{ github.actor }}
+          repository: ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   acceptances-tests:
+    if: ${{ github.event.label.name == 'run-testacc' }}
+    needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,6 +33,7 @@ jobs:
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
+          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
