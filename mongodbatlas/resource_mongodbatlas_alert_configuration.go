@@ -307,6 +307,14 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 
 	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 	if err != nil {
+		// deleted in the backend case
+		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+
+		if reset {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorReadAlertConf, err)
 	}
 
