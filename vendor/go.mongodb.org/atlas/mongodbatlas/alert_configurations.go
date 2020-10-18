@@ -69,7 +69,7 @@ type Matcher struct {
 type MetricThreshold struct {
 	MetricName string  `json:"metricName,omitempty"` // Name of the metric to check.
 	Operator   string  `json:"operator,omitempty"`   // Operator to apply when checking the current metric value against the threshold value.
-	Threshold  float64 `json:"threshold,omitempty"`  // Threshold value outside of which an alert will be triggered.
+	Threshold  float64 `json:"threshold"`            // Threshold value outside of which an alert will be triggered.
 	Units      string  `json:"units,omitempty"`      // The units for the threshold value.
 	Mode       string  `json:"mode,omitempty"`       // This must be set to AVERAGE. Atlas computes the current metric value as an average.
 }

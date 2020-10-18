@@ -62,9 +62,9 @@ type Shape struct {
 
 // Operation represents a document with specific information and log lines for individual queries.
 type Operation struct {
-	Raw        string                         `json:"raw,omitempty"`        // Raw log line produced by the query.
-	Stats      Stats                          `json:"stats,omitempty"`      // Query statistics.
-	Predicates []map[string]map[string]string `json:"predicates,omitempty"` // Documents containing the search criteria used by the query.
+	Raw        string                   `json:"raw,omitempty"`        // Raw log line produced by the query.
+	Stats      Stats                    `json:"stats,omitempty"`      // Query statistics.
+	Predicates []map[string]interface{} `json:"predicates,omitempty"` // Documents containing the search criteria used by the query.
 }
 
 // Stats represents query statistics.
