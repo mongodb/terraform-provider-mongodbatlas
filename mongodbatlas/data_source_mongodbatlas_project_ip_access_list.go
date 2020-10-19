@@ -85,7 +85,7 @@ func dataSourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta 
 
 	accessList, _, err := conn.ProjectIPAccessList.Get(context.Background(), projectID, entry.String())
 	if err != nil {
-		return fmt.Errorf("Error getting access list information: %s", err)
+		return fmt.Errorf("error getting access list information: %s", err)
 	}
 
 	if err := d.Set("cidr_block", accessList.CIDRBlock); err != nil {
