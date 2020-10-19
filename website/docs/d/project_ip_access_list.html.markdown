@@ -83,7 +83,7 @@ data "mongodbatlas_project_ip_access_list" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project to which you want to add one or more Access List entries.
+* `project_id` - (Required) Unique identifier for the project to which you want to add one or more access list entries.
 * `aws_security_group` - (Optional) Unique identifier of the AWS security group to add to the access list.
 * `cidr_block` - (Optional) Range of IP addresses in CIDR notation to be added to the access list.
 * `ip_address` - (Optional) Single IP address to be added to the access list.

@@ -85,20 +85,20 @@ func dataSourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta 
 
 	accessList, _, err := conn.ProjectIPAccessList.Get(context.Background(), projectID, entry.String())
 	if err != nil {
-		return fmt.Errorf("error getting accessList information: %s", err)
+		return fmt.Errorf("Error getting access list information: %s", err)
 	}
 
 	if err := d.Set("cidr_block", accessList.CIDRBlock); err != nil {
-		return fmt.Errorf("error setting `cidr_block` for Project accessList: %s", err)
+		return fmt.Errorf("error setting `cidr_block` for the project access list: %s", err)
 	}
 	if err := d.Set("ip_address", accessList.IPAddress); err != nil {
-		return fmt.Errorf("error setting `ip_address` for Project accessList: %s", err)
+		return fmt.Errorf("error setting `ip_address` for the project access list: %s", err)
 	}
 	if err := d.Set("aws_security_group", accessList.AwsSecurityGroup); err != nil {
-		return fmt.Errorf("error setting `aws_security_group` for Project accessList: %s", err)
+		return fmt.Errorf("error setting `aws_security_group` for the project access list: %s", err)
 	}
 	if err := d.Set("comment", accessList.Comment); err != nil {
-		return fmt.Errorf("error setting `comment` for Project accessList: %s", err)
+		return fmt.Errorf("error setting `comment` for the project access list: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())

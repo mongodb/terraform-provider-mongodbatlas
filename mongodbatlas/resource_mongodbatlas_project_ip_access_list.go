@@ -71,7 +71,7 @@ func resourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 				ConflictsWith: []string{"aws_security_group", "cidr_block"},
 				ValidateFunc:  validation.IsIPAddress,
 			},
-			// You must configure VPC peering for your project before you can access list an AWS security group.
+			// You must configure VPC peering for your project before you can add an AWS security group to the access list.
 			"aws_security_group": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -243,7 +243,7 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(d *schema.ResourceData, meta 
 		}
 
 		if entry != nil {
-			return resource.RetryableError(fmt.Errorf(errorAccessListDelete, "access list still exists"))
+			return resource.RetryableError(fmt.Errorf(errorAccessListDelete, "Access list still exists"))
 		}
 
 		return nil
