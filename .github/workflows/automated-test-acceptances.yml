@@ -19,7 +19,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   acceptances-tests:
-    if: ${{ github.event.label.name == 'run-testacc' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
