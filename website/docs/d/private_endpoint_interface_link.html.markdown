@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_private_endpoint_link
 
-`mongodbatlas_private_endpoint_link` describe a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
+`mongodbatlas_private_endpoint_interface_link` describe a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -29,13 +29,13 @@ resource "aws_vpc_endpoint" "ptfe_service" {
   security_group_ids = ["sg-3f238186"]
 }
 
-resource "mongodbatlas_private_endpoint_link" "test" {
+resource "mongodbatlas_private_endpoint_interface_link" "test" {
   project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
   private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
   interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
 }
 
-data "mongodbatlas_private_endpoint_link" "test" {
+data "mongodbatlas_private_endpoint_interface_link" "test" {
   project_id            = "${mongodbatlas_private_endpoint_link.test.project_id}"
   private_link_id       = "${mongodbatlas_private_endpoint_link.test.private_link_id}"
   interface_endpoint_id = "${mongodbatlas_private_endpoint_link.test.interface_endpoint_id}"
