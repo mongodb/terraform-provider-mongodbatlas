@@ -322,6 +322,10 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 		return fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err)
 	}
 
+	if err := d.Set("event_type", alert.EventTypeName); err != nil {
+		return fmt.Errorf(errorAlertConfSetting, "event_type", ids["id"], err)
+	}
+
 	if err := d.Set("created", alert.Created); err != nil {
 		return fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err)
 	}
@@ -365,8 +369,8 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 		req.Enabled = pointy.Bool(d.Get("enabled").(bool))
 	}
 
-	if d.HasChange("event_type_name") {
-		req.EventTypeName = d.Get("event_type_name").(string)
+	if d.HasChange("event_type") {
+		req.EventTypeName = d.Get("event_type").(string)
 	}
 
 	if d.HasChange("metric_threshold") {
