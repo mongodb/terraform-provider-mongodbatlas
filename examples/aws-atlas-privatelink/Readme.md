@@ -5,7 +5,7 @@ This project aims to provide a very straight-forward example of setting up Priva
 
 ## Dependencies
 
-* Terraform v0.12 or v0.13
+* Terraform v0.13
 * An AWS account - provider.aws: version = "~> 3.3"
 * A MongoDB Atlas account - provider.mongodbatlas: version = "~> 0.6"
 
