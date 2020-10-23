@@ -19,9 +19,9 @@ variable "org_id" {
 variable "region" {
   description = "MongoDB Atlas Cluster Region"
 }
-variable "mongodbversion"{
+variable "mongodbversion" {
   description = "The Major MongoDB Version"
 }
-variable "project_name"{
+variable "project_name" {
   description = "The Atlas Project Name"
 }
