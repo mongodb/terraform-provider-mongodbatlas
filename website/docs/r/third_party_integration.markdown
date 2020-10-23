@@ -23,7 +23,7 @@ description: |-
 
 ```hcl
 
-resource "third_party_integration" "test_flowdock" {
+resource "mongodbatlas_third_party_integration" "test_flowdock" {
 	project_id = "<PROJECT-ID>"
 	type = "FLOWDOCK"
 	flow_name = "<FLOW-NAME>"
