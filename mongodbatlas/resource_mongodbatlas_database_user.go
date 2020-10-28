@@ -268,7 +268,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 		dbUser.Scopes = expandScopes(d)
 	}
 
-	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
+	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, usernameEscaped, dbUser)
 	if err != nil {
 		return fmt.Errorf("error updating database user(%s): %s", username, err)
 	}
