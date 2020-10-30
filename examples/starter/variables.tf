@@ -4,11 +4,11 @@ variable "public_key" {
 variable "private_key" {
   description = "Private API key to authenticate to Atlas"
 }
-variable "user" {
-  description = "MongoDB Atlas User"
+variable "dbuser" {
+  description = "MongoDB Atlas Database User"
 }
-variable "password" {
-  description = "MongoDB Atlas User Password"
+variable "dbuser_password" {
+  description = "MongoDB Atlas Database User Password"
 }
 variable "database_name" {
   description = "The Database in the cluster"

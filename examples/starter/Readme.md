@@ -1,12 +1,21 @@
 # Example - A basic example to start with the MongoDB Atlas and Terraform
 
-This project aims to provide a very straight-forward example of setting up Terraform with MongoDB Atlas.
+This project aims to provide a very straight-forward example of setting up Terraform with MongoDB Atlas. This will create the following resources in MongoDB Atlas:
 
+- Atlas Project
+- MongoDB Cluster - M10
+- Database User
+- IP Access List
+
+You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provier's region name.
+[Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
+[Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
+[Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
 
 ## Dependencies
 
 * Terraform v0.13
-* A MongoDB Atlas account - provider.mongodbatlas: version = "~> 0.6.5"
+* A MongoDB Atlas account - provider.mongodbatlas: version = "~> 0.7.0"
 
 ## Usage
 
@@ -21,6 +30,10 @@ export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
+
+> **IMPORTANT** Hard-coding your MongoDB Atlas programmatic API key pair into a Terraform configuration is not recommended. Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
+
+
 **2\. Review the Terraform plan.**
 
 Execute the below command and ensure you are happy with the plan.
@@ -28,26 +41,22 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently does the below deployments:
+This project currently creates the below deployments:
 
 - Atlas Project
 - MongoDB cluster - M10
 - Database User
-- IP Whitelist
+- IP Access list
 
-**3\. Configure the security group as required.**
+**3\. Execute the Terraform apply.**
 
-The security group in this configuration allows All Traffic access in Inbound and Outbound Rules.
-
-**4\. Execute the Terraform apply.**
-
-Now execute the plan to provision the AWS and Atlas resources.
+Now execute the plan to provision the MongoDB Atlas resources.
 
 ``` bash
 $ terraform apply
 ```
 
-**5\. Destroy the resources.**
+**4\. Destroy the resources.**
 
 Once you are finished your testing, ensure you destroy the resources to avoid unnecessary charges.
 
@@ -57,7 +66,10 @@ $ terraform destroy
 
 **Important Point**
 
-To fetch the connection string follow the below steps:
+You can fetch the connection string as per the use case by following the MongoDB Atlas documentation on [Connect to your cluster](https://docs.atlas.mongodb.com/tutorial/connect-to-your-cluster/index.html).
+
+Or to fetch the connection string using terraform follow the below steps:
+
 ```
 output "atlasclusterstring" {
     value = mongodbatlas_cluster.cluster.connection_strings
