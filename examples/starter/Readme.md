@@ -15,7 +15,8 @@ You can refer to the MongoDB Atlas documentation to know about the region names 
 ## Dependencies
 
 * Terraform v0.13
-* A MongoDB Atlas account - provider.mongodbatlas: version = "~> 0.7.0"
+* A MongoDB Atlas account 
+* provider.mongodbatlas: version = "~> 0.7.0"
 
 ## Usage
 
@@ -45,7 +46,7 @@ This project currently creates the below deployments:
 
 - Atlas Project
 - MongoDB cluster - M10
-- Database User
+- Database User //Create the dbuser password variable as mentioned in the variables.tfs
 - IP Access list
 
 **3\. Execute the Terraform apply.**
