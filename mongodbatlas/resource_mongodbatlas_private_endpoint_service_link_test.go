@@ -11,45 +11,41 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
-	SkipTestExtCred(t)
+func TestAccResourceMongoDBAtlasPrivateEndpointLinkAWS_basic(t *testing.T) {
+	//SkipTestExtCred(t)
 	var (
-		resourceName        = "mongodbatlas_private_endpoint_interface_link.test"
-		projectID           = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		privateLinkID       = os.Getenv("MONGODB_PRIVATE_LINK_ID")
-		interfaceEndpointID = os.Getenv("AWS_INTERFACE_ENDPOINT_ID")
+		resourceName = "mongodbatlas_private_endpoint_service_link.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		vpcID        = os.Getenv("AWS_VPC_ENDPOINT_ID")
+		region       = "us-east-1"
+		providerName = "AWS"
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			checkPeeringEnvAWS(t)
-			func() {
-				if os.Getenv("MONGODB_PRIVATE_LINK_ID") == "" && os.Getenv("AWS_INTERFACE_ENDPOINT_ID") == "" {
-					t.Fatal("`MONGODB_PRIVATE_LINK_ID` and `AWS_INTERFACE_ENDPOINT_ID` must be set for acceptance testing")
-				}
-			}()
+			//checkPeeringEnvAWS(t)
 		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigBasic(projectID, privateLinkID, interfaceEndpointID),
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigBasicAWS(projectID, providerName, vpcID, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
-	SkipTestExtCred(t)
+func TestAccResourceMongoDBAtlasPrivateEndpointLinkAWS_Complete(t *testing.T) {
+	//SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
+		resourceName = "mongodbatlas_private_endpoint_service_link.test"
 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -63,12 +59,12 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
+		PreCheck:     func() { testAccPreCheck(t) /*; checkAwsEnv(t); checkPeeringEnvAWS(t) */ },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -82,10 +78,10 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateEndpointLink_import(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpointLinkAWS_import(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
+		resourceName = "mongodbatlas_private_endpoint_service_link.test"
 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -104,9 +100,76 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLink_import(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigCompleteAWS(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivateEndpointLinkImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasPrivateEndpointLinkAzure_basic(t *testing.T) {
+	//SkipTestExtCred(t)
+	var (
+		resourceName = "mongodbatlas_private_endpoint_service_link.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		azureID      = os.Getenv("AZURE_SUBCRIPTION_ID")
+		ipAddress    = ""
+		region       = "US_EAST_2"
+		providerName = "AZURE"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			//checkPeeringEnvAWS(t)
+		},
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigBasicAzure(projectID, providerName, region, azureID, ipAddress),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasPrivateEndpointLinkAzure_import(t *testing.T) {
+	SkipTestExtCred(t)
+	var (
+		resourceName = "mongodbatlas_private_endpoint_service_link.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		azureID      = os.Getenv("AZURE_SUBCRIPTION_ID")
+		ipAddress    = ""
+		region       = "US_EAST_2"
+		providerName = "AZURE"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigBasicAzure(projectID, providerName, region, azureID, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -152,7 +215,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName string) reso
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
+		_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], ids["interface_endpoint_id"])
 		if err == nil {
 			return nil
 		}
@@ -170,7 +233,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy(s *terraform.State) erro
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
+		_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], ids["interface_endpoint_id"])
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["interface_endpoint_id"])
 		}
@@ -179,7 +242,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasPrivateEndpointLinkConfigCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "us-east-1"
@@ -189,7 +252,7 @@ func testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(awsAccessKey, awsSecre
 
 		resource "mongodbatlas_private_endpoint" "test" {
 			project_id    = "%s"
-			provider_name = "%s"
+			provider_name = "%[4]s"
 			region        = "%s"
 		}
 
@@ -201,20 +264,44 @@ func testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(awsAccessKey, awsSecre
 			security_group_ids = ["%s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_interface_link" "test" {
+		resource "mongodbatlas_private_endpoint_service_link" "test" {
 			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
-			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
-			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
+			private_link_id       =  "${aws_vpc_endpoint.ptfe_service.id}"
+			endpoint_service_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
+			provider_name = "%[4]s"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
 }
 
-func testAccMongoDBAtlasPrivateEndpointLinkConfigBasic(projectID, privateLinkID, interfaceEndpointID string) string {
+func testAccMongoDBAtlasPrivateEndpointLinkConfigBasicAWS(projectID, providerName, vpcId, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_private_endpoint_interface_link" "test" {
-			project_id            = "%s"
-			private_link_id       = "%s"
-			interface_endpoint_id = "%s"
+		resource "mongodbatlas_private_endpoint" "test" {
+			project_id    = "%[1]s"
+			provider_name = "%[2]s"
+			region        = "%[3]s"
 		}
-	`, projectID, privateLinkID, interfaceEndpointID)
+		resource "mongodbatlas_private_endpoint_service_link" "test" {
+			project_id            = "%[1]s"
+			private_link_id       = "%[4]s"
+			provider_name = "%[2]s"
+			endpoint_service_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
+		}
+	`, projectID, providerName, region, vpcId)
+}
+
+func testAccMongoDBAtlasPrivateEndpointLinkConfigBasicAzure(projectID, providerName, region, azureID, ipAddress string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_private_endpoint" "test" {
+			project_id    = "%[1]s"
+			provider_name = "%[2]s"
+			region        = "%[3]s"
+		}
+		resource "mongodbatlas_private_endpoint_service_link" "test" {
+			project_id            = "%[1]s"
+			private_link_id       = "%[4]s"
+			provider_name = "%[2]s"
+			endpoint_service_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
+			private_endpoint_ip_address       = "%[5]s"
+		}
+	`, projectID, providerName, region, azureID, ipAddress)
 }

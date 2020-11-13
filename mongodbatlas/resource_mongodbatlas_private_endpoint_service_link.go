@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"strings"
 	"time"
 
@@ -15,19 +16,19 @@ import (
 )
 
 const (
-	errorInterfaceEndpointAdd     = "error adding MongoDB Interface Endpoint Connection(%s) to a Private Endpoint (%s): %s"
-	errorInterfaceEndpointRead    = "error reading MongoDB Interface Endpoint Connection(%s): %s"
-	errorInterfaceEndpointDelete  = "error deleting MongoDB Interface Endpoints Connection(%s): %s"
-	errorInterfaceEndpointSetting = "error setting `%s` for MongoDB Interface Endpoints Connection(%s): %s"
+	errorServiceEndpointAdd  = "error adding MongoDB Private Service Endpoint Connection(%s) to a Private Endpoint (%s): %s"
+	errorServiceEndpointRead = "error reading MongoDB Private Service Endpoint Connection(%s): %s"
+	errorEndpointDelete      = "error deleting MongoDB Private Service Endpoint Connection(%s): %s"
+	errorEndpointSetting     = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
 )
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
+func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate,
-		Read:   resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead,
-		Delete: resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete,
+		Create: resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
+		Read:   resourceMongoDBAtlasPrivateEndpointServiceLinkRead,
+		Delete: resourceMongoDBAtlasPrivateEndpointServiceLinkDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState,
+			State: resourceMongoDBAtlasPrivateEndpointServiceLinkImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -35,15 +36,38 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"provider_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
+			},
 			"private_link_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+			"endpoint_service_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 			"interface_endpoint_id": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
+			},
+			"private_endpoint_connection_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_endpoint_ip_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"private_endpoint_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"delete_requested": {
 				Type:     schema.TypeBool,
@@ -61,21 +85,27 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	privateLinkID := d.Get("private_link_id").(string)
-	interfaceEndpointID := d.Get("interface_endpoint_id").(string)
+	providerName := d.Get("provider_name").(string)
+	endpointServiceID := d.Get("endpoint_service_id").(string)
 
-	interfaceEndpointConn, _, err := conn.PrivateEndpoints.AddOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	request := &matlas.InterfaceEndpointConnection{
+		ID:                       privateLinkID,
+		PrivateEndpointIPAddress: d.Get("private_endpoint_ip_address").(string),
+	}
+
+	privateEndpointConn, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, request)
 	if err != nil {
-		return fmt.Errorf(errorInterfaceEndpointAdd, interfaceEndpointID, privateLinkID, err)
+		return fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED"},
-		Refresh:    resourceInterfaceEndpointRefreshFunc(conn, projectID, privateLinkID, interfaceEndpointConn.ID),
+		Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, privateEndpointConn.ID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -83,64 +113,87 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate(d *schema.ResourceDa
 	// Wait, catching any errors
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorInterfaceEndpointAdd, interfaceEndpointConn.ID, privateLinkID, err)
+		return fmt.Errorf(errorServiceEndpointAdd, privateEndpointConn.ID, privateLinkID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"project_id":            projectID,
-		"private_link_id":       privateLinkID,
-		"interface_endpoint_id": interfaceEndpointConn.ID,
+		"project_id":          projectID,
+		"private_link_id":     privateLinkID,
+		"endpoint_service_id": privateEndpointConn.ID,
+		"provider_name":       providerName,
 	}))
 
-	return resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d, meta)
+	return resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
-	interfaceEndpointID := ids["interface_endpoint_id"]
+	endpointServiceID := ids["endpoint_service_id"]
+	providerName := ids["provider_name"]
 
-	interfaceEndpoint, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
 	if err != nil {
-		return fmt.Errorf(errorInterfaceEndpointRead, interfaceEndpointID, err)
+		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
 
-	if err := d.Set("delete_requested", cast.ToBool(interfaceEndpoint.DeleteRequested)); err != nil {
-		return fmt.Errorf(errorInterfaceEndpointSetting, "delete_requested", interfaceEndpointID, err)
+	if err := d.Set("delete_requested", cast.ToBool(privateEndpoint.DeleteRequested)); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err)
 	}
 
-	if err := d.Set("error_message", interfaceEndpoint.ErrorMessage); err != nil {
-		return fmt.Errorf(errorInterfaceEndpointSetting, "error_message", interfaceEndpointID, err)
+	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err)
 	}
 
-	if err := d.Set("connection_status", interfaceEndpoint.ConnectionStatus); err != nil {
-		return fmt.Errorf(errorInterfaceEndpointSetting, "connection_status", interfaceEndpointID, err)
+	if err := d.Set("connection_status", privateEndpoint.ConnectionStatus); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("interface_endpoint_id", privateEndpoint.InterfaceEndpointID); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("private_endpoint_connection_name", privateEndpoint.PrivateEndpointConnectionName); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("private_endpoint_ip_address", privateEndpoint.PrivateEndpointIPAddress); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("private_endpoint_resource_id", privateEndpoint.PrivateEndpointResourceID); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("endpoint_service_id", privateEndpoint.ID); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
-	interfaceEndpointID := ids["interface_endpoint_id"]
+	endpointServiceID := ids["endpoint_service_id"]
+	providerName := ids["provider_name"]
 
-	if interfaceEndpointID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	if endpointServiceID != "" {
+		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
-			return fmt.Errorf(errorInterfaceEndpointDelete, interfaceEndpointID, err)
+			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
 		}
 
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
 			Target:     []string{"REJECTED", "DELETED"},
-			Refresh:    resourceInterfaceEndpointRefreshFunc(conn, projectID, privateLinkID, interfaceEndpointID),
+			Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    1 * time.Hour,
 			MinTimeout: 5 * time.Second,
 			Delay:      3 * time.Second,
@@ -149,28 +202,29 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete(d *schema.ResourceDa
 		// Wait, catching any errors
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf(errorInterfaceEndpointDelete, interfaceEndpointID, err)
+			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
 		}
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
 	parts := strings.SplitN(d.Id(), "-", 4)
 	if len(parts) != 4 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{interface_endpoint_id}")
+		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{endpoint_service_id}-{provider_name}")
 	}
 
 	projectID := parts[0]
 	privateLinkID := parts[1]
-	interfaceEndpointID := parts[2] + "-" + parts[3]
+	endpointServiceID := parts[2]
+	providerName := parts[3]
 
-	_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 	if err != nil {
-		return nil, fmt.Errorf(errorInterfaceEndpointRead, interfaceEndpointID, err)
+		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
@@ -181,25 +235,27 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.Resou
 		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
 	}
 
-	if err := d.Set("interface_endpoint_id", interfaceEndpointID); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoint_id", privateLinkID, err)
+	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
+		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "endpoint_service_id", privateLinkID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"project_id":            projectID,
-		"private_link_id":       privateLinkID,
-		"interface_endpoint_id": interfaceEndpointID,
+		"project_id":          projectID,
+		"private_link_id":     privateLinkID,
+		"endpoint_service_id": endpointServiceID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceInterfaceEndpointRefreshFunc(client *matlas.Client, projectID, privateLinkID, interfaceEndpointID string) resource.StateRefreshFunc {
+func resourceServiceEndpointRefreshFunc(client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		i, resp, err := client.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
-			if resp.Response.StatusCode == 404 {
-				return "", "DELETED", nil
+			if resp != nil{
+				if resp.Response.StatusCode == 404 {
+					return "", "DELETED", nil
+				}
 			}
 
 			return nil, "FAILED", err
