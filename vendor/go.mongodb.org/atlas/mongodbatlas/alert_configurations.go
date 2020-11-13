@@ -8,9 +8,9 @@ import (
 
 const alertConfigurationPath = "groups/%s/alertConfigs"
 
-// AlertConfigurationsService is an interface of the Alert Configuration
-// endpoints of the MongoDB Atlas API.
-// See more: hhttps://docs.atlas.mongodb.com/reference/api/alert-configurations
+// AlertConfigurationsService provides access to the alert configuration related functions in the Atlas API.
+//
+// See more: https://docs.atlas.mongodb.com/reference/api/alert-configurations
 type AlertConfigurationsService interface {
 	Create(context.Context, string, *AlertConfiguration) (*AlertConfiguration, *Response, error)
 	EnableAnAlertConfig(context.Context, string, string, *bool) (*AlertConfiguration, *Response, error)
