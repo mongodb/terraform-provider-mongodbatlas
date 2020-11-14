@@ -165,7 +165,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedDestroy(s *terraform.S
 	conn := testAccProvider.Meta().(*matlas.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_private_endpoint" {
+		if rs.Type != "mongodbatlas_private_endpoint_interface_link_deprecated" {
 			continue
 		}
 
