@@ -97,15 +97,15 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 		PrivateEndpointIPAddress: d.Get("private_endpoint_ip_address").(string),
 	}
 
-	privateEndpointConn, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, request)
+	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, request)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
+		Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED"},
-		Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, privateEndpointConn.ID),
+		Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -113,13 +113,13 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 	// Wait, catching any errors
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf(errorServiceEndpointAdd, privateEndpointConn.ID, privateLinkID, err)
+		return fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
-		"endpoint_service_id": privateEndpointConn.ID,
+		"endpoint_service_id": endpointServiceID,
 		"provider_name":       providerName,
 	}))
 
@@ -185,13 +185,13 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
 		if err != nil {
 			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
 		}
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
+			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER"},
 			Target:     []string{"REJECTED", "DELETED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    1 * time.Hour,
@@ -222,7 +222,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	endpointServiceID := parts[2]
 	providerName := parts[3]
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -250,15 +250,13 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 
 func resourceServiceEndpointRefreshFunc(client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
 		if err != nil {
-			if resp != nil{
-				if resp.Response.StatusCode == 404 {
-					return "", "DELETED", nil
-				}
+			if resp != nil && resp.StatusCode == 404 {
+				return "", "DELETED", nil
 			}
 
-			return nil, "FAILED", err
+			return nil, "", err
 		}
 
 		if i.ConnectionStatus != "AVAILABLE" {
