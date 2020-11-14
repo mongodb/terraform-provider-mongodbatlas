@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -168,7 +169,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
 	}
 
-	if err := d.Set("endpoint_service_id", privateEndpoint.ID); err != nil {
+	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
 		return fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err)
 	}
 
@@ -212,9 +213,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 4)
+	parts := strings.SplitN(d.Id(), "--", 4)
 	if len(parts) != 4 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{endpoint_service_id}-{provider_name}")
+		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
 	}
 
 	projectID := parts[0]
@@ -239,10 +240,15 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "endpoint_service_id", privateLinkID, err)
 	}
 
+	if err := d.Set("provider_name", providerName); err != nil {
+		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "provider_name", privateLinkID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
 		"endpoint_service_id": endpointServiceID,
+		"provider_name":       providerName,
 	}))
 
 	return []*schema.ResourceData{d}, nil

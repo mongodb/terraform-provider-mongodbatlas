@@ -73,10 +73,10 @@ In addition to all arguments above, the following attributes are exported:
     * `DELETING` - Atlas is removing the interface endpoint from the private endpoint connection.
 
 ## Import
-Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}-{private_link_id}-{endpoint_service_id}-{provider_name}`, e.g.
+Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_private_endpoint_service_link.test 1112222b3bf99403840e8934-3242342343112-vpce-4242342343-aws
+$ terraform import mongodbatlas_private_endpoint_service_link.test 1112222b3bf99403840e8934--3242342343112--vpce--4242342343-aws
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Private Endpoint Link Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/)
