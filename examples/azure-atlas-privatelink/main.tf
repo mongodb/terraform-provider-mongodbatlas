@@ -41,7 +41,8 @@ resource "azurerm_private_endpoint" "test" {
   private_service_connection {
     name                           = mongodbatlas_private_endpoint.test.private_link_service_name
     private_connection_resource_id = mongodbatlas_private_endpoint.test.private_link_service_resource_id
-    is_manual_connection           = false
+    is_manual_connection           = true
+    request_message = "Azure Private Link test"
   }
         
 }
@@ -50,5 +51,6 @@ resource "mongodbatlas_private_endpoint_service_link" "test" {
   project_id            = mongodbatlas_private_endpoint.test.project_id
   private_link_id       =  azurerm_private_endpoint.test.id
   endpoint_service_id = mongodbatlas_private_endpoint.test.private_link_id
+  private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
   provider_name = "AZURE"
 }
