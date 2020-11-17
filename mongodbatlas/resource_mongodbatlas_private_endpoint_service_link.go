@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -135,8 +136,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
+	encodedPath := url.PathEscape(privateLinkID)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPath)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -222,8 +224,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
+	encodedPath := url.PathEscape(privateLinkID)
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPath)
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
