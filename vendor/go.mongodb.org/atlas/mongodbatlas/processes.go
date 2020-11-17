@@ -34,6 +34,7 @@ type Process struct {
 	ReplicaSetName string  `json:"replicaSetName"`
 	TypeName       string  `json:"typeName"`
 	Version        string  `json:"version"`
+	UserAlias      string  `json:"userAlias"`
 }
 
 // processesResponse is the response from Processes.List.

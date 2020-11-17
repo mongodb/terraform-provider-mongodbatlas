@@ -109,6 +109,7 @@ type Client struct {
 	Integrations                        IntegrationsService
 	LDAPConfigurations                  LDAPConfigurationsService
 	PerformanceAdvisor                  PerformanceAdvisorService
+	CloudProviderAccess                 CloudProviderAccessService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -249,6 +250,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Integrations = &IntegrationsServiceOp{Client: c}
 	c.LDAPConfigurations = &LDAPConfigurationsServiceOp{Client: c}
 	c.PerformanceAdvisor = &PerformanceAdvisorServiceOp{Client: c}
+	c.CloudProviderAccess = &CloudProviderAccessServiceOp{Client: c}
 
 	return c
 }
