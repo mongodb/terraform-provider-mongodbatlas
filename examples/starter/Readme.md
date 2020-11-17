@@ -42,12 +42,12 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
+
 This project currently creates the below deployments:
 
 - Atlas Project
 - MongoDB cluster - M10
 - Database User
-//Create the dbuser password variable as mentioned in the variables.tf
 - IP Access list
 
 **3\. Execute the Terraform apply.**

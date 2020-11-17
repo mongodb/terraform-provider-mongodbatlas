@@ -7,7 +7,7 @@ variable "private_key" {
 variable "dbuser" {
   description = "MongoDB Atlas Database User"
 }
-variable "" { //Declare and initialize variable for the db-user-password and set the password accordingly
+variable "dbuser_password" { 
   description = "MongoDB Atlas Database User Password"
 }
 variable "database_name" {
