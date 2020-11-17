@@ -136,9 +136,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
-	encodedPath := url.PathEscape(privateLinkID)
+	encodedPrivateLinkID := url.PathEscape(privateLinkID)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPath)
+	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPrivateLinkID)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -186,9 +186,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
+	encodedPrivateLinkID := url.PathEscape(privateLinkID)
 
 	if endpointServiceID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
+		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPrivateLinkID)
 		if err != nil {
 			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
 		}
@@ -224,9 +225,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
-	encodedPath := url.PathEscape(privateLinkID)
+	encodedPrivateLinkID := url.PathEscape(privateLinkID)
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPath)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPrivateLinkID)
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
