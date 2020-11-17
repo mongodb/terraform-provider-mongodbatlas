@@ -88,6 +88,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkAWS_import(t *testing.T) {
 		},
 	})
 }
+
 func testAccCheckMongoDBAtlasPrivateEndpointLinkImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -149,41 +150,6 @@ func testAccMongoDBAtlasPrivateEndpointLinkConfigCompleteAWS(awsAccessKey, awsSe
 			region        = "%[5]s"
 			access_key = "%[1]s"
 			secret_key = "%[2]s"
-		}
-
-		resource "mongodbatlas_private_endpoint" "test" {
-			project_id    = "%[3]s"
-			provider_name = "%[4]s"
-			region        = "%[5]s"
-		}
-
-		resource "aws_vpc_endpoint" "ptfe_service" {
-			vpc_id             = "%[6]s"
-			service_name       = mongodbatlas_private_endpoint.test.endpoint_service_name
-			vpc_endpoint_type  = "Interface"
-			subnet_ids         = ["%[7]s"]
-			security_group_ids = ["%[8]s"]
-			
-		}
-
-		resource "mongodbatlas_private_endpoint_service_link" "test" {
-			project_id            = mongodbatlas_private_endpoint.test.project_id
-			private_link_id       =  aws_vpc_endpoint.ptfe_service.id
-			endpoint_service_id = mongodbatlas_private_endpoint.test.private_link_id
-			provider_name = "%[4]s"
-		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
-}
-
-func testAccMongoDBAtlasPrivateEndpointLinkConfigCompleteAzure(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
-	return fmt.Sprintf(`
-		provider "azurerm" {		
-			subscription_id = "00000000-0000-0000-0000-000000000000"
-			client_id = "00000000-0000-0000-0000-000000000000"
-			client_secret = "secret here "
-			tenant_id = "00000000-0000-0000-0000-000000000000"
-			
-			features {}     = "00000000-0000-0000-0000-000000000000"
 		}
 
 		resource "mongodbatlas_private_endpoint" "test" {
