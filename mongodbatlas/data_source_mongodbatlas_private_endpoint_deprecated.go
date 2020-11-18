@@ -43,6 +43,7 @@ func dataSourceMongoDBAtlasPrivateEndpointDeprecated() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "use mongodbatlas_private_endpoint datasource instead",
 	}
 }
 

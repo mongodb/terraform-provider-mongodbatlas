@@ -58,6 +58,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecated() *schema.Resour
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "use mongodbatlas_private_endpoint_service_link resource instead",
 	}
 }
 
