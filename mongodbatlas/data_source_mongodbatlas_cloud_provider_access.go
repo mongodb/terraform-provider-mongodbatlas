@@ -1,16 +1,37 @@
 package mongodbatlas
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
+const (
+	errorGetRead = "error reading cloud provider access %s"
+)
+
+func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
+		Read: dataSourceMongoDBAtlasCloudProviderAccessRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"aws_iam_roles": {
+				Type:     schema.TypeList,
+				Elem:     dataSourceMongoDBAtlasCloudProviderAccess(),
+				Computed: true,
+			},
+		},
+	}
+}
+
+func dataSourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
 			"atlas_aws_account_arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -61,4 +82,25 @@ func featureUsagesSchema() *schema.Resource {
 			},
 		},
 	}
+}
+
+func dataSourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	projectID := d.Get("project_id").(string)
+
+	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+
+	if err != nil {
+		return fmt.Errorf(errorGetRead, err)
+	}
+
+	if err = flatCloudProviderAccessRoles(roles, d); err != nil {
+		return fmt.Errorf(errorGetRead, err)
+	}
+
+	return nil
+}
+
+func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles, d *schema.ResourceData) error {
+	return nil
 }

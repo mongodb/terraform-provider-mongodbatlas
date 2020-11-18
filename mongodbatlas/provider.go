@@ -63,6 +63,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_third_party_integrations":              dataSourceMongoDBAtlasThirdPartyIntegrations(),
 			"mongodbatlas_third_party_integration":               dataSourceMongoDBAtlasThirdPartyIntegration(),
 			"mongodbatlas_project_ip_access_list":                dataSourceMongoDBAtlasProjectIPAccessList(),
+			"mongodbatlas_cloud_provider_access":                 dataSourceMongoDBAtlasCloudProviderAccessList(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
