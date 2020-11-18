@@ -10,6 +10,8 @@ description: |-
 
 `mongodbatlas_private_endpoint` provides a Private Endpoint resource. This represents a Private Endpoint Connection that can be created in an Atlas project.
 
+!> **WARNING:** This resource is deprecated and will be removed in the next major version
+
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
   * Project Owner

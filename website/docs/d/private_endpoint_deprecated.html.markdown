@@ -10,6 +10,8 @@ description: |-
 
 `mongodbatlas_private_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
 
+!> **WARNING:** This datasource is deprecated and will be removed in the next major version
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
