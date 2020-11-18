@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -94,13 +95,59 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta 
 		return fmt.Errorf(errorGetRead, err)
 	}
 
-	if err = flatCloudProviderAccessRoles(roles, d); err != nil {
+	if err = d.Set("aws_iam_roles", flatCloudProviderAccessRoles(roles)); err != nil {
 		return fmt.Errorf(errorGetRead, err)
 	}
+
+	d.SetId(resource.UniqueId())
 
 	return nil
 }
 
-func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles, d *schema.ResourceData) error {
-	return nil
+func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
+
+	if len(roles.AWSIAMRoles) == 0 {
+		return
+	}
+
+	list = make([]map[string]interface{}, 0, len(roles.AWSIAMRoles))
+
+	for _, role := range roles.AWSIAMRoles {
+		list = append(list, roleToSchema(role))
+	}
+
+	return list
+}
+
+func roleToSchema(role matlas.AWSIAMRole) map[string]interface{} {
+	out := map[string]interface{}{
+		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+		"authorized_date":                role.AuthorizedDate,
+		"created_date":                   role.CreatedDate,
+		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
+		"provider_name":                  role.ProviderName,
+		"role_id":                        role.RoleID,
+	}
+
+	if len(role.FeatureUsages) > 0 {
+
+		features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+
+		for _, featureUsage := range role.FeatureUsages {
+			features = append(features, featureToSchema(featureUsage))
+		}
+
+		out["feature_usages"] = features
+
+	}
+
+	return out
+}
+
+func featureToSchema(feature *matlas.FeatureUsage) map[string]interface{} {
+	return map[string]interface{}{
+		"feature_type": feature.FeatureType,
+		"feature_id":   feature.FeatureID,
+	}
 }
