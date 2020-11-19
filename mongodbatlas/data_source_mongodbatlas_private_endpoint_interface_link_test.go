@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateEndpointLinkDeprecated_basic(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
 	SkipTestExtCred(t)
-	resourceName := "data.mongodbatlas_private_endpoint_interface_link_deprecated.test"
+	resourceName := "data.mongodbatlas_private_endpoint_interface_link.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -28,7 +28,7 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointLinkDeprecated_basic(t *testing
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkDeprecatedDataSourceConfig(
+				Config: testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -42,7 +42,7 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointLinkDeprecated_basic(t *testing
 	})
 }
 
-func testAccMongoDBAtlasPrivateEndpointLinkDeprecatedDataSourceConfig(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "us-east-1"
@@ -64,16 +64,16 @@ func testAccMongoDBAtlasPrivateEndpointLinkDeprecatedDataSourceConfig(awsAccessK
 			security_group_ids = ["%s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_interface_link_deprecated" "test" {
+		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
 			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
 			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
 		}
 
-		data "mongodbatlas_private_endpoint_interface_link_deprecated" "test" {
-			project_id            = "${mongodbatlas_private_endpoint_interface_link_deprecated.test.project_id}"
-			private_link_id       = "${mongodbatlas_private_endpoint_interface_link_deprecated.test.private_link_id}"
-			interface_endpoint_id = "${mongodbatlas_private_endpoint_interface_link_deprecated.test.interface_endpoint_id}"
+		data "mongodbatlas_private_endpoint_interface_link" "test" {
+			project_id            = "${mongodbatlas_private_endpoint_interface_link.test.project_id}"
+			private_link_id       = "${mongodbatlas_private_endpoint_interface_link.test.private_link_id}"
+			interface_endpoint_id = "${mongodbatlas_private_endpoint_interface_link.test.interface_endpoint_id}"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
 }

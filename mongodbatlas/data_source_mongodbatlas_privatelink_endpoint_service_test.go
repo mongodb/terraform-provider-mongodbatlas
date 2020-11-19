@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateEndpointLinkAWS_basic(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
 	SkipTestExtCred(t)
-	resourceName := "data.mongodbatlas_private_endpoint_service_link.test"
+	resourceName := "data.mongodbatlas_privatelink_endpoint_service.test"
 
 	awsAccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -28,11 +28,11 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointLinkAWS_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(
+				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceDataSourceConfig(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
+					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
@@ -42,7 +42,7 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointLinkAWS_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasPrivateLinkEndpointServiceDataSourceConfig(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "us-east-1"
@@ -50,7 +50,7 @@ func testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(awsAccessKey, awsSec
 			secret_key = "%s"
 		}
 
-		resource "mongodbatlas_private_endpoint" "test" {
+		resource "mongodbatlas_privatelink_endpoint" "test" {
 			project_id    = "%s"
 			provider_name = "%s"
 			region        = "%s"
@@ -58,22 +58,22 @@ func testAccMongoDBAtlasPrivateEndpointLinkDataSourceConfig(awsAccessKey, awsSec
 
 		resource "aws_vpc_endpoint" "ptfe_service" {
 			vpc_id             = "%s"
-			service_name       = "${mongodbatlas_private_endpoint.test.endpoint_service_name}"
+			service_name       = "${mongodbatlas_privatelink_endpoint.test.endpoint_service_name}"
 			vpc_endpoint_type  = "Interface"
 			subnet_ids         = ["%s"]
 			security_group_ids = ["%s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_service_link" "test" {
-			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
-			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
+		resource "mongodbatlas_privatelink_endpoint_service" "test" {
+			project_id            = "${mongodbatlas_privatelink_endpoint.test.project_id}"
+			private_link_id       = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
 			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
 		}
 
-		data "mongodbatlas_private_endpoint_service_link" "test" {
-			project_id            = "${mongodbatlas_private_endpoint_service_link.test.project_id}"
-			private_link_id       = "${mongodbatlas_private_endpoint_service_link.test.private_link_id}"
-			interface_endpoint_id = "${mongodbatlas_private_endpoint_service_link.test.interface_endpoint_id}"
+		data "mongodbatlas_privatelink_endpoint_service" "test" {
+			project_id            = "${mongodbatlas_privatelink_endpoint_service.test.project_id}"
+			private_link_id       = "${mongodbatlas_privatelink_endpoint_service.test.private_link_id}"
+			interface_endpoint_id = "${mongodbatlas_privatelink_endpoint_service.test.interface_endpoint_id}"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
 }

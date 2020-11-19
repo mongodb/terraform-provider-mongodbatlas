@@ -21,13 +21,13 @@ const (
 	errorInterfaceEndpointSetting = "error setting `%s` for MongoDB Interface Endpoints Connection(%s): %s"
 )
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecated() *schema.Resource {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedCreate,
-		Read:   resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedRead,
-		Delete: resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedDelete,
+		Create: resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate,
+		Read:   resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead,
+		Delete: resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedImportState,
+			State: resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -58,11 +58,11 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecated() *schema.Resour
 				Computed: true,
 			},
 		},
-		DeprecationMessage: "use mongodbatlas_private_endpoint_service_link resource instead",
+		DeprecationMessage: "use mongodbatlas_privatelink_endpoint_service resource instead",
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	privateLinkID := d.Get("private_link_id").(string)
@@ -93,10 +93,10 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedCreate(d *schema.
 		"interface_endpoint_id": interfaceEndpointConn.ID,
 	}))
 
-	return resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedRead(d, meta)
+	return resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
@@ -124,7 +124,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedRead(d *schema.Re
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
 	ids := decodeStateID(d.Id())
@@ -157,7 +157,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedDelete(d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
 	parts := strings.SplitN(d.Id(), "-", 4)

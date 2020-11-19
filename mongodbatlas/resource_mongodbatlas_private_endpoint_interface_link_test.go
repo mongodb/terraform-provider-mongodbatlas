@@ -11,10 +11,10 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpointLink_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName        = "mongodbatlas_private_endpoint_interface_link_deprecated.test"
+		resourceName        = "mongodbatlas_private_endpoint_interface_link.test"
 		projectID           = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		privateLinkID       = os.Getenv("MONGODB_PRIVATE_LINK_ID")
 		interfaceEndpointID = os.Getenv("AWS_INTERFACE_ENDPOINT_ID")
@@ -31,12 +31,12 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_basic(t *testing.T
 			}()
 		},
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigBasic(projectID, privateLinkID, interfaceEndpointID),
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigBasic(projectID, privateLinkID, interfaceEndpointID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedExists(resourceName),
+					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
@@ -46,10 +46,10 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_basic(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_Complete(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpointLink_Complete(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_private_endpoint_interface_link_deprecated.test"
+		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -65,14 +65,14 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_Complete(t *testin
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigComplete(
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedExists(resourceName),
+					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
@@ -82,10 +82,10 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_Complete(t *testin
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_import(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpointLink_import(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_private_endpoint_interface_link_deprecated.test"
+		resourceName = "mongodbatlas_private_endpoint_interface_link.test"
 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -101,14 +101,14 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_import(t *testing.
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigComplete(
+				Config: testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(
 					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
 				),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedExists(resourceName),
+					testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
@@ -116,7 +116,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_import(t *testing.
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedImportStateIDFunc(resourceName),
+				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivateEndpointLinkImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -124,7 +124,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointLinkDeprecated_import(t *testing.
 	})
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccCheckMongoDBAtlasPrivateEndpointLinkImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -137,7 +137,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedImportStateIDFunc(reso
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
 
@@ -161,11 +161,11 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedExists(resourceName st
 	}
 }
 
-func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedDestroy(s *terraform.State) error {
+func testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_private_endpoint_interface_link_deprecated" {
+		if rs.Type != "mongodbatlas_private_endpoint_interface_link" {
 			continue
 		}
 
@@ -179,7 +179,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDeprecatedDestroy(s *terraform.S
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigComplete(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasPrivateEndpointLinkConfigComplete(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region     = "us-east-1"
@@ -201,7 +201,7 @@ func testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigComplete(awsAccessKey
 			security_group_ids = ["%s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_interface_link_deprecated" "test" {
+		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
 			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
 			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
@@ -209,9 +209,9 @@ func testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigComplete(awsAccessKey
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
 }
 
-func testAccMongoDBAtlasPrivateEndpointLinkDeprecatedConfigBasic(projectID, privateLinkID, interfaceEndpointID string) string {
+func testAccMongoDBAtlasPrivateEndpointLinkConfigBasic(projectID, privateLinkID, interfaceEndpointID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_private_endpoint_interface_link_deprecated" "test" {
+		resource "mongodbatlas_private_endpoint_interface_link" "test" {
 			project_id            = "%s"
 			private_link_id       = "%s"
 			interface_endpoint_id = "%s"

@@ -10,8 +10,6 @@ description: |-
 
 `mongodbatlas_private_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
 
-!> **WARNING:** This datasource is deprecated and will be removed in the next major version
-
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
@@ -26,13 +24,15 @@ resource "mongodbatlas_private_endpoint" "test" {
 data "mongodbatlas_private_endpoint" "test" {
 	project_id      = "${mongodbatlas_private_endpoint.test.project_id}"
 	private_link_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
+    provider_name = "AWS"
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the AWS PrivateLink connection.
+* `private_link_id` - (Required) Unique identifier of the private endpoint service that you want to retrieve.
+* `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint service. Atlas accepts `AWS` or `AZURE`.
 
 
 ## Attributes Reference
@@ -45,9 +45,10 @@ In addition to all arguments above, the following attributes are exported:
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
 * `status` - Status of the AWS PrivateLink connection.
   Returns one of the following values:
+  * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
   * `INITIATING` 	Atlas is creating the network load balancer and VPC endpoint service.
   * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
   * `FAILED` 	A system failure has occurred.
-  * `DELETING` 	The AWS PrivateLink connection is being deleted.
+  * `DELETING` 	The Private Link service is being deleted.
 
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoint-get-one-private-endpoint-connection/) Documentation for more information.
+See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) Documentation for more information.

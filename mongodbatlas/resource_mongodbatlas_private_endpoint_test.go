@@ -11,11 +11,12 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasPrivateEndpointAWS_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_private_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		region       = "us-east-1"
+		region       = os.Getenv("AWS_REGION")
 		providerName = "AWS"
 	)
 
@@ -41,82 +42,17 @@ func TestAccResourceMongoDBAtlasPrivateEndpointAWS_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateEndpointAWS_import(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpoint_import(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_private_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		region       = "us-east-1"
+		region       = os.Getenv("AWS_REGION")
 		providerName = "AWS"
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasPrivateEndpointConfigBasic(projectID, providerName, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateEndpointImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"provider_name", "region"},
-			},
-		},
-	})
-}
-func TestAccResourceMongoDBAtlasPrivateEndpointAzure_basic(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_private_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		region       = "US_EAST_2"
-		providerName = "AZURE"
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasPrivateEndpointConfigBasic(projectID, providerName, region),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-				),
-			},
-		},
-	})
-}
-
-func TestAccResourceMongoDBAtlasPrivateEndpointAzure_import(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_private_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		region       = "US_EAST_2"
-		providerName = "AZURE"
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -153,7 +89,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointImportStateIDFunc(resourceName strin
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["private_link_id"], ids["provider_name"]), nil
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["private_link_id"]), nil
 	}
 }
 
@@ -172,7 +108,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointExists(resourceName string) resource
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		if _, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"]); err == nil {
+		if _, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), ids["project_id"], ids["private_link_id"]); err == nil {
 			return nil
 		}
 
@@ -189,7 +125,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointDestroy(s *terraform.State) error {
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"])
+		_, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), ids["project_id"], ids["private_link_id"])
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["private_link_id"])
 		}

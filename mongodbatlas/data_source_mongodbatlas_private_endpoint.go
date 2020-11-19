@@ -11,7 +11,7 @@ import (
 
 func dataSourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasPrivateEndpointRead,
+		Read: dataSourceMongoDBAtlasPrivateEndpointrRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -19,11 +19,6 @@ func dataSourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 				ForceNew: true,
 			},
 			"private_link_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"provider_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -43,38 +38,23 @@ func dataSourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"private_endpoints": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"private_link_service_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"private_link_service_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "use mongodbatlas_privatelink_endpoint datasource instead",
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasPrivateEndpointrRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := d.Get("private_link_id").(string)
-	providerName := d.Get("provider_name").(string)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		return fmt.Errorf(errorPrivateEndpointsRead, privateLinkID, err)
 	}
@@ -95,18 +75,6 @@ func dataSourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
 	}
 
-	if err := d.Set("private_endpoints", privateEndpoint.PrivateEndpoints); err != nil {
-		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
-	}
-
-	if err := d.Set("private_link_service_name", privateEndpoint.PrivateLinkServiceName); err != nil {
-		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
-	}
-
-	if err := d.Set("private_link_service_resource_id", privateEndpoint.PrivateLinkServiceResourceID); err != nil {
-		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
-	}
-
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "status", privateLinkID, err)
 	}
@@ -114,7 +82,6 @@ func dataSourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta inte
 	d.SetId(encodeStateID(map[string]string{
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
-		"provider_name":   providerName,
 	}))
 
 	return nil

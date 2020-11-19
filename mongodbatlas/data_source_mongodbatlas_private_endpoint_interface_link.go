@@ -10,9 +10,9 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecated() *schema.Resource {
+func dataSourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedRead,
+		Read: dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -42,11 +42,11 @@ func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecated() *schema.Reso
 				Computed: true,
 			},
 		},
-		DeprecationMessage: "use mongodbatlas_private_endpoint_service_link datasource instead",
+		DeprecationMessage: "use mongodbatlas_privatelink_endpoint_service datasource instead",
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkDeprecatedRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
 	conn := meta.(*matlas.Client)
 

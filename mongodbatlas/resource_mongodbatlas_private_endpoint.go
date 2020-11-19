@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	errorPrivateEndpointsCreate  = "error creating MongoDB Private Endpoints Connection: %s"
-	errorPrivateEndpointsRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
-	errorPrivateEndpointsDelete  = "error deleting MongoDB Private Endpoints Connection(%s): %s"
-	errorPrivateEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
+	errorPrivateEndpointsCreate  = "error creating MongoDB Private Endpoints  Connection: %s"
+	errorPrivateEndpointsRead    = "error reading MongoDB Private Endpoints  Connection(%s): %s"
+	errorPrivateEndpointsDelete  = "error deleting MongoDB Private Endpoints  Connection(%s): %s"
+	errorPrivateEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints  Connection(%s): %s"
 )
 
 func resourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
@@ -40,7 +40,7 @@ func resourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
 			},
 			"region": {
 				Type:     schema.TypeString,
@@ -66,48 +66,33 @@ func resourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"private_endpoints": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"private_link_service_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"private_link_service_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "use mongodbatlas_privatelink_endpoint resource instead",
 	}
 }
 
 func resourceMongoDBAtlasPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	providerName := d.Get("provider_name").(string)
 
-	request := &matlas.PrivateEndpointConnection{
-		ProviderName: providerName,
+	request := &matlas.PrivateEndpointConnectionDeprecated{
+		ProviderName: d.Get("provider_name").(string),
 		Region:       d.Get("region").(string),
 	}
 
-	privateEndpointConn, _, err := conn.PrivateEndpoints.Create(context.Background(), projectID, request)
+	privateEndpointConn, _, err := conn.PrivateEndpointsDeprecated.Create(context.Background(), projectID, request)
 	if err != nil {
 		return fmt.Errorf(errorPrivateEndpointsCreate, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "DELETING"},
-		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    resourcePrivateEndpointRefreshFunc(conn, projectID, providerName, privateEndpointConn.ID),
+		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED"},
+		Refresh:    resourcePrivateEndpointRefreshFunc(conn, projectID, privateEndpointConn.ID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -122,7 +107,6 @@ func resourceMongoDBAtlasPrivateEndpointCreate(d *schema.ResourceData, meta inte
 	d.SetId(encodeStateID(map[string]string{
 		"private_link_id": privateEndpointConn.ID,
 		"project_id":      projectID,
-		"provider_name":   providerName,
 	}))
 
 	return resourceMongoDBAtlasPrivateEndpointRead(d, meta)
@@ -134,9 +118,8 @@ func resourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interf
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
-	providerName := ids["provider_name"]
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		return fmt.Errorf(errorPrivateEndpointsRead, privateLinkID, err)
 	}
@@ -157,18 +140,6 @@ func resourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
 	}
 
-	if err := d.Set("private_endpoints", privateEndpoint.PrivateEndpoints); err != nil {
-		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
-	}
-
-	if err := d.Set("private_link_service_name", privateEndpoint.PrivateLinkServiceName); err != nil {
-		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
-	}
-
-	if err := d.Set("private_link_service_resource_id", privateEndpoint.PrivateLinkServiceResourceID); err != nil {
-		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoints", privateLinkID, err)
-	}
-
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "status", privateLinkID, err)
 	}
@@ -182,9 +153,8 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 	ids := decodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
 	projectID := ids["project_id"]
-	providerName := ids["provider_name"]
 
-	resp, err := conn.PrivateEndpoints.Delete(context.Background(), projectID, providerName, privateLinkID)
+	resp, err := conn.PrivateEndpointsDeprecated.Delete(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		if resp.Response.StatusCode == 404 {
 			return nil
@@ -193,12 +163,12 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf(errorPrivateEndpointsDelete, privateLinkID, err)
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
+	log.Println("[INFO] Waiting for MongoDB Private Endpoints  Connection to be destroyed")
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
-		Refresh:    resourcePrivateEndpointRefreshFunc(conn, projectID, providerName, privateLinkID),
+		Refresh:    resourcePrivateEndpointRefreshFunc(conn, projectID, privateLinkID),
 		Timeout:    10 * time.Minute,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -215,18 +185,17 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 func resourceMongoDBAtlasPrivateEndpointImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{provider_name}")
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}")
 	}
 
 	projectID := parts[0]
 	privateLinkID := parts[1]
-	providerName := parts[2]
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import peer %s in project %s with cloud provider name %s, error: %s", privateLinkID, projectID, providerName, err)
+		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", privateLinkID, projectID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
@@ -236,15 +205,14 @@ func resourceMongoDBAtlasPrivateEndpointImportState(d *schema.ResourceData, meta
 	d.SetId(encodeStateID(map[string]string{
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
-		"provider_name":   providerName,
 	}))
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourcePrivateEndpointRefreshFunc(client *matlas.Client, projectID, providerName, privateLinkID string) resource.StateRefreshFunc {
+func resourcePrivateEndpointRefreshFunc(client *matlas.Client, projectID, privateLinkID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		p, resp, err := client.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+		p, resp, err := client.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil

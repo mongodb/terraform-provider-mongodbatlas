@@ -16,7 +16,7 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
 	providerName := "AWS"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -40,9 +40,8 @@ func testAccMongoDBAtlasPrivateEndpointDataSourceConfig(projectID, providerName,
 		}
 
 		data "mongodbatlas_private_endpoint" "test" {
-			project_id      = mongodbatlas_private_endpoint.test.project_id
-			private_link_id = mongodbatlas_private_endpoint.test.private_link_id
-			provider_name = "%[2]s"
+			project_id      = "${mongodbatlas_private_endpoint.test.project_id}"
+			private_link_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
 		}
 	`, projectID, providerName, region)
 }
