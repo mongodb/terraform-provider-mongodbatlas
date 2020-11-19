@@ -35,7 +35,7 @@ func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceAWS_basic(t *testing
 					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "interface_endpoint_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
 				),
 			},
 		},
@@ -58,22 +58,24 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceDataSourceConfig(awsAccessKey,
 
 		resource "aws_vpc_endpoint" "ptfe_service" {
 			vpc_id             = "%s"
-			service_name       = "${mongodbatlas_privatelink_endpoint.test.endpoint_service_name}"
+			service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
 			vpc_endpoint_type  = "Interface"
 			subnet_ids         = ["%s"]
 			security_group_ids = ["%s"]
 		}
 
 		resource "mongodbatlas_privatelink_endpoint_service" "test" {
-			project_id            = "${mongodbatlas_privatelink_endpoint.test.project_id}"
-			private_link_id       = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
-			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
+			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			private_link_id       =  aws_vpc_endpoint.ptfe_service.id
+			endpoint_service_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+			provider_name = "%[4]s"
 		}
 
 		data "mongodbatlas_privatelink_endpoint_service" "test" {
-			project_id            = "${mongodbatlas_privatelink_endpoint_service.test.project_id}"
-			private_link_id       = "${mongodbatlas_privatelink_endpoint_service.test.private_link_id}"
-			interface_endpoint_id = "${mongodbatlas_privatelink_endpoint_service.test.interface_endpoint_id}"
+			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			private_link_id       =  mongodbatlas_privatelink_endpoint_service.test.private_link_id
+			endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+			provider_name = "%[4]s"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
 }

@@ -73,7 +73,7 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData
 	projectID := d.Get("project_id").(string)
 	privateLinkID := d.Get("private_link_id").(string)
 	endpointServiceID := d.Get("endpoint_service_id").(string)
-	providerName := d.Get("interface_endpoint_id").(string)
+	providerName := d.Get("provider_name").(string)
 
 	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
 	if err != nil {
