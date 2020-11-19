@@ -83,8 +83,9 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"id":         role.RoleID,
-		"project_id": projectID,
+		"id":            role.RoleID,
+		"project_id":    projectID,
+		"provider_name": role.ProviderName,
 	}))
 
 	return nil
