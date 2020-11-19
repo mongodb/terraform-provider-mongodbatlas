@@ -90,6 +90,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_snapshot_backup_policy": resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
 			"mongodbatlas_third_party_integration":               resourceMongoDBAtlasThirdPartyIntegration(),
 			"mongodbatlas_project_ip_access_list":                resourceMongoDBAtlasProjectIPAccessList(),
+			"mongodbatlas_cloud_provider_access":                 resourceMongoDBAtlasCloudProviderAccess(),
 		},
 
 		ConfigureFunc: providerConfigure,
