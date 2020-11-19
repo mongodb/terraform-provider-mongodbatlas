@@ -6,9 +6,9 @@ description: |-
     Provides a Private Endpoint Link resource.
 ---
 
-# mongodbatlas_private_endpoint_service_link
+# mongodbatlas_privatelink_endpoint_service
 
-`mongodbatlas_private_endpoint_service_link` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
+`mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
@@ -20,7 +20,7 @@ description: |-
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_private_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT_ID>"
   provider_name = "AWS"
   region        = "us-east-1"
@@ -28,15 +28,15 @@ resource "mongodbatlas_private_endpoint" "test" {
 
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id             = "vpc-7fc0a543"
-  service_name       = "${mongodbatlas_private_endpoint.test.endpoint_service_name}"
+  service_name       = "${mongodbatlas_privatelink_endpoint.test.endpoint_service_name}"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = ["subnet-de0406d2"]
   security_group_ids = ["sg-3f238186"]
 }
 
-resource "mongodbatlas_private_endpoint_service_link" "test" {
-  project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
-  private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
+resource "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id            = "${mongodbatlas_privatelink_endpoint.test.project_id}"
+  private_link_id       = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
   endpoint_service_id = "${aws_vpc_endpoint.ptfe_service.id}"
   provider_name = "AWS"
 }
@@ -45,7 +45,7 @@ resource "mongodbatlas_private_endpoint_service_link" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the AWS PrivateLink connection which is created by `mongodbatlas_private_endpoint` resource.
+* `private_link_id` - (Required) Unique identifier of the AWS PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
 * `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the AWS resource.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS` or `AZURE`.
 * `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface you created in your Azure VNet. Only for `AZURE`.
@@ -76,7 +76,7 @@ In addition to all arguments above, the following attributes are exported:
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_private_endpoint_service_link.test 1112222b3bf99403840e8934--3242342343112--vpce--4242342343-aws
+$ terraform import mongodbatlas_privatelink_endpoint_service.test 1112222b3bf99403840e8934--vpce-4242342343--3242342343112--AWS
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Private Endpoint Link Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/)

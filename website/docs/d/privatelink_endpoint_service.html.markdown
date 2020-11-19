@@ -6,16 +6,16 @@ description: |-
     Describes a Private Endpoint Link.
 ---
 
-# mongodbatlas_private_endpoint_service_link
+# mongodbatlas_privatelink_endpoint_service
 
-`mongodbatlas_private_endpoint_service_link` describe a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
+`mongodbatlas_privatelink_endpoint_service` describe a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_private_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT_ID>"
   provider_name = "AWS"
   region        = "us-east-1"
@@ -23,22 +23,22 @@ resource "mongodbatlas_private_endpoint" "test" {
 
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id             = "vpc-7fc0a543"
-  service_name       = "${mongodbatlas_private_endpoint.test.endpoint_service_name}"
+  service_name       = "${mongodbatlas_privatelink_endpoint.test.endpoint_service_name}"
   vpc_endpoint_type  = "Interface"
   subnet_ids         = ["subnet-de0406d2"]
   security_group_ids = ["sg-3f238186"]
 }
 
-resource "mongodbatlas_private_endpoint_service_link" "test" {
-  project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
-  private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
+resource "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id            = "${mongodbatlas_privatelink_endpoint.test.project_id}"
+  private_link_id       = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
   interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
 }
 
-data "mongodbatlas_private_endpoint_service_link" "test" {
-  project_id            = "${mongodbatlas_private_endpoint_service_link.test.project_id}"
-  private_link_id       = "${mongodbatlas_private_endpoint_service_link.test.private_link_id}"
-  interface_endpoint_id = "${mongodbatlas_private_endpoint_service_link.test.interface_endpoint_id}"
+data "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id            = "${mongodbatlas_privatelink_endpoint_service.test.project_id}"
+  private_link_id       = "${mongodbatlas_privatelink_endpoint_service.test.private_link_id}"
+  interface_endpoint_id = "${mongodbatlas_privatelink_endpoint_service.test.interface_endpoint_id}"
 }
 ```
 

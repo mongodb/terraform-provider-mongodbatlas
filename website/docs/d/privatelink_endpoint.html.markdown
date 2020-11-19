@@ -6,24 +6,24 @@ description: |-
     Describes a Private Endpoint.
 ---
 
-# mongodbatlas_private_endpoint
+# mongodbatlas_privatelink_endpoint
 
-`mongodbatlas_private_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
+`mongodbatlas_privatelink_endpoint` describe a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_private_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT-ID>"
   provider_name = "AWS"
   region        = "us-east-1"
 }
 
-data "mongodbatlas_private_endpoint" "test" {
-	project_id      = "${mongodbatlas_private_endpoint.test.project_id}"
-	private_link_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
+data "mongodbatlas_privatelink_endpoint" "test" {
+	project_id      = "${mongodbatlas_privatelink_endpoint.test.project_id}"
+	private_link_id = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
     provider_name = "AWS"
 }
 ```

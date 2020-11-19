@@ -118,7 +118,7 @@ In addition to all arguments above, the following attributes are exported:
 Private Endpoint Service can be imported using project ID and username, in the format `{project_id}-{private_link_id}-{provider_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_privatelink_endpoint.test 1112222b3bf99403840e8934-3242342343112-aws
+$ terraform import mongodbatlas_privatelink_endpoint.test 1112222b3bf99403840e8934-3242342343112-AWS
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Private Endpoint Service](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-create-one//)
