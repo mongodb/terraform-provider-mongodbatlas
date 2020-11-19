@@ -27,8 +27,8 @@ resource "azurerm_subnet" "test" {
   enforce_private_link_endpoint_network_policies = true
 }
 
-resource "mongodbatlas_private_endpoint" "test" {
-  project_id    = "5cf5a45a9ccf6400e60981b6"
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id    = var.project_id
   provider_name = "AZURE"
   region        = "eastus2"
 }
@@ -39,18 +39,18 @@ resource "azurerm_private_endpoint" "test" {
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.test.id
   private_service_connection {
-    name                           = mongodbatlas_private_endpoint.test.private_link_service_name
-    private_connection_resource_id = mongodbatlas_private_endpoint.test.private_link_service_resource_id
+    name                           = mongodbatlas_privatelink_endpoint.test.private_link_service_name
+    private_connection_resource_id = mongodbatlas_privatelink_endpoint.test.private_link_service_resource_id
     is_manual_connection           = true
     request_message = "Azure Private Link test"
   }
         
 }
 
-resource "mongodbatlas_private_endpoint_service_link" "test" {
-  project_id            = mongodbatlas_private_endpoint.test.project_id
+resource "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id            = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id       =  azurerm_private_endpoint.test.id
-  endpoint_service_id = mongodbatlas_private_endpoint.test.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint.test.private_link_id
   private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
   provider_name = "AZURE"
 }
