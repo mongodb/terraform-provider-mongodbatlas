@@ -16,6 +16,7 @@ const (
 func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasCloudProviderAccessCreate,
+		Read:   resourceMongoDBAtlasCloudProviderAccessRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -87,6 +88,43 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
 	}))
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta interface{}) error {
+	// sadly there is no just get API
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+
+	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+
+	if err != nil {
+		return fmt.Errorf(errorGetRead, err)
+	}
+
+	var targetRole matlas.AWSIAMRole
+
+	// searching in roles
+	for _, role := range roles.AWSIAMRoles {
+		if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
+			targetRole = role
+		}
+	}
+
+	// Not Found
+	if targetRole.RoleID == "" && !d.IsNewResource() {
+		d.SetId("")
+	}
+
+	schema := roleToSchema(targetRole)
+
+	for key, val := range schema {
+		if err := d.Set(key, val); err != nil {
+			return fmt.Errorf(errorGetRead, err)
+		}
+	}
 
 	return nil
 }
