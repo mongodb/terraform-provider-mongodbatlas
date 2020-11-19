@@ -105,21 +105,21 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta 
 }
 
 func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
-
 	if len(roles.AWSIAMRoles) == 0 {
 		return
 	}
 
 	list = make([]map[string]interface{}, 0, len(roles.AWSIAMRoles))
 
-	for _, role := range roles.AWSIAMRoles {
+	for i := range roles.AWSIAMRoles {
+		role := &(roles.AWSIAMRoles[i])
 		list = append(list, roleToSchema(role))
 	}
 
 	return list
 }
 
-func roleToSchema(role matlas.AWSIAMRole) map[string]interface{} {
+func roleToSchema(role *matlas.AWSIAMRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
@@ -131,7 +131,6 @@ func roleToSchema(role matlas.AWSIAMRole) map[string]interface{} {
 	}
 
 	if len(role.FeatureUsages) > 0 {
-
 		features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
 
 		for _, featureUsage := range role.FeatureUsages {
@@ -139,7 +138,6 @@ func roleToSchema(role matlas.AWSIAMRole) map[string]interface{} {
 		}
 
 		out["feature_usages"] = features
-
 	}
 
 	return out

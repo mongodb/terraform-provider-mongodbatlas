@@ -75,9 +75,9 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf(errorCloudProviderAccessCreate, err)
 	}
 
-	schema := roleToSchema(*role)
+	roleSchema := roleToSchema(role)
 
-	for key, val := range schema {
+	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
 			return fmt.Errorf(errorCloudProviderAccessCreate, err)
 		}
@@ -107,9 +107,11 @@ func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta in
 	var targetRole matlas.AWSIAMRole
 
 	// searching in roles
-	for _, role := range roles.AWSIAMRoles {
+	for i := range roles.AWSIAMRoles {
+		role := &(roles.AWSIAMRoles[i])
+
 		if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
-			targetRole = role
+			targetRole = *role
 		}
 	}
 
@@ -118,9 +120,9 @@ func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta in
 		d.SetId("")
 	}
 
-	schema := roleToSchema(targetRole)
+	roleSchema := roleToSchema(&targetRole)
 
-	for key, val := range schema {
+	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
 			return fmt.Errorf(errorGetRead, err)
 		}
