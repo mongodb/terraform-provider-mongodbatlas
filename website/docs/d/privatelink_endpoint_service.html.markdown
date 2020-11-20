@@ -45,8 +45,8 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the AWS PrivateLink connection.
-* `endpoint_service_id` - (Required) Unique identifier of the private endpoint service for which you want to create a private endpoint.
+* `private_link_id` - (Required) Unique identifier of the `AWS` or `AZURE` PrivateLink connection.
+* `endpoint_service_id` - (Required) Unique identifier of the private endpoint service for which you want to create a private endpoint service.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS` or `AZURE`.
 
 ## Attributes Reference

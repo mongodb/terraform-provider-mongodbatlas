@@ -44,6 +44,9 @@ In addition to all arguments above, the following attributes are exported:
 * `error_message` - Error message pertaining to the AWS PrivateLink connection. Returns null if there are no errors.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
 * `status` - Status of the AWS PrivateLink connection.
+* `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
+* `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
+* `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
   Returns one of the following values:
   * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
   * `INITIATING` 	Atlas is creating the network load balancer and VPC endpoint service.

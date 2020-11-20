@@ -45,8 +45,8 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the AWS PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the AWS resource.
+* `private_link_id` - (Required) Unique identifier of the `AWS` or `AZURE` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS` or `AZURE` resource.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS` or `AZURE`.
 * `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface you created in your Azure VNet. Only for `AZURE`.
 

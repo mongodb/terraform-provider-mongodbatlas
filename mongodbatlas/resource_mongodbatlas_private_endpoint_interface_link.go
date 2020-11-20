@@ -58,7 +58,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 				Computed: true,
 			},
 		},
-		DeprecationMessage: "use mongodbatlas_privatelink_endpoint_service resource instead",
+		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint_service",
 	}
 }
 
