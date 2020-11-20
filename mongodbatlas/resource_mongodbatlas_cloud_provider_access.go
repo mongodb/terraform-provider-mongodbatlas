@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -10,13 +11,21 @@ import (
 )
 
 const (
-	errorCloudProviderAccessCreate = "error creating cloud provider access %s"
+	errorCloudProviderAccessCreate   = "error creating cloud provider access %s"
+	errorCloudProviderAccessUpdate   = "error update cloud provider access %s"
+	errorCloudProviderAccessDelete   = "error delete cloud provider access %s"
+	errorCloudProviderAccessImporter = "error in import for cloud provider access %s"
 )
 
 func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasCloudProviderAccessCreate,
 		Read:   resourceMongoDBAtlasCloudProviderAccessRead,
+		Update: resourceMongoDBAtlasCloudProviderAccessUpdate,
+		Delete: resourceMongoDBAtlasCloudProviderAccessDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasCloudProviderAccessImportState,
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -118,6 +127,7 @@ func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta in
 	// Not Found
 	if targetRole.RoleID == "" && !d.IsNewResource() {
 		d.SetId("")
+		return nil
 	}
 
 	roleSchema := roleToSchema(&targetRole)
@@ -129,4 +139,93 @@ func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+
+	projectID := ids["project_id"]
+	roleID := ids["id"]
+
+	if d.HasChanges("provider_name", "iam_assumed_role_arn") {
+		req := &matlas.CloudProviderAuthorizationRequest{
+			ProviderName:      d.Get("provider_name").(string),
+			IAMAssumedRoleARN: d.Get("iam_assumed_role_arn").(string),
+		}
+
+		role, _, err := conn.CloudProviderAccess.AuthorizeRole(context.Background(), projectID, roleID, req)
+		if err != nil {
+			return fmt.Errorf(errorCloudProviderAccessUpdate, err)
+		}
+
+		roleSchema := roleToSchema(role)
+
+		for key, val := range roleSchema {
+			if err := d.Set(key, val); err != nil {
+				return fmt.Errorf(errorGetRead, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessDelete(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+
+	projectID := ids["project_id"]
+	roleID := ids["id"]
+	// providerName := ids["provider_name"] not used right now
+
+	_, err := conn.CloudProviderAccess.DeauthorizeRole(context.Background(), projectID, roleID)
+
+	if err != nil {
+		return fmt.Errorf(errorCloudProviderAccessDelete, err)
+	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
+
+	if err != nil {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+	}
+
+	// searching id in internal format
+	d.SetId(encodeStateID(map[string]string{
+		"id":            roleID,
+		"project_id":    projectID,
+		"provider_name": providerName,
+	}))
+
+	err = resourceMongoDBAtlasCloudProviderAccessRead(d, meta)
+
+	if err != nil {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+	}
+
+	// case of not found
+	if d.Id() == "" {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, " Resource not found at the cloud please check your id")
+	}
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func splitCloudProviderAccessID(id string) (projectID, providerName, roleID string, err error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-(.*)$`)
+	parts := re.FindStringSubmatch(id)
+
+	if len(parts) != 4 {
+		err = fmt.Errorf(errorCloudProviderAccessImporter, "format please use {project_id}-{provider-name}-{role-id}")
+		return
+	}
+
+	projectID, providerName, roleID = parts[1], parts[2], parts[3]
+
+	return
 }
