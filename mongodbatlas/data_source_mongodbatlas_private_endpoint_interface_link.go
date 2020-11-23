@@ -42,6 +42,7 @@ func dataSourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "this data source is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint_service",
 	}
 }
 
@@ -53,21 +54,21 @@ func dataSourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceDa
 	privateLinkID := d.Get("private_link_id").(string)
 	interfaceEndpointID := d.Get("interface_endpoint_id").(string)
 
-	interfaceEndpoint, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	interfaceEndpoint, _, err := conn.PrivateEndpointsDeprecated.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 	if err != nil {
-		return fmt.Errorf(errorInterfaceEndpointRead, interfaceEndpointID, err)
+		return fmt.Errorf(errorServiceEndpointRead, interfaceEndpointID, err)
 	}
 
 	if err := d.Set("delete_requested", cast.ToBool(interfaceEndpoint.DeleteRequested)); err != nil {
-		return fmt.Errorf(errorInterfaceEndpointSetting, "delete_requested", interfaceEndpointID, err)
+		return fmt.Errorf(errorEndpointSetting, "delete_requested", interfaceEndpointID, err)
 	}
 
 	if err := d.Set("error_message", interfaceEndpoint.ErrorMessage); err != nil {
-		return fmt.Errorf(errorInterfaceEndpointSetting, "error_message", interfaceEndpointID, err)
+		return fmt.Errorf(errorEndpointSetting, "error_message", interfaceEndpointID, err)
 	}
 
 	if err := d.Set("connection_status", interfaceEndpoint.ConnectionStatus); err != nil {
-		return fmt.Errorf(errorInterfaceEndpointSetting, "connection_status", interfaceEndpointID, err)
+		return fmt.Errorf(errorEndpointSetting, "connection_status", interfaceEndpointID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{

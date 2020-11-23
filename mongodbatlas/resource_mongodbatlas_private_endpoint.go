@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	errorPrivateEndpointsCreate  = "error creating MongoDB Private Endpoints Connection: %s"
-	errorPrivateEndpointsRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
-	errorPrivateEndpointsDelete  = "error deleting MongoDB Private Endpoints Connection(%s): %s"
-	errorPrivateEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
+	errorPrivateEndpointsCreate  = "error creating MongoDB Private Endpoints  Connection: %s"
+	errorPrivateEndpointsRead    = "error reading MongoDB Private Endpoints  Connection(%s): %s"
+	errorPrivateEndpointsDelete  = "error deleting MongoDB Private Endpoints  Connection(%s): %s"
+	errorPrivateEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints  Connection(%s): %s"
 )
 
 func resourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
@@ -71,6 +71,7 @@ func resourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint",
 	}
 }
 
@@ -78,12 +79,12 @@ func resourceMongoDBAtlasPrivateEndpointCreate(d *schema.ResourceData, meta inte
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 
-	request := &matlas.PrivateEndpointConnection{
+	request := &matlas.PrivateEndpointConnectionDeprecated{
 		ProviderName: d.Get("provider_name").(string),
 		Region:       d.Get("region").(string),
 	}
 
-	privateEndpointConn, _, err := conn.PrivateEndpoints.Create(context.Background(), projectID, request)
+	privateEndpointConn, _, err := conn.PrivateEndpointsDeprecated.Create(context.Background(), projectID, request)
 	if err != nil {
 		return fmt.Errorf(errorPrivateEndpointsCreate, err)
 	}
@@ -118,7 +119,7 @@ func resourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interf
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		return fmt.Errorf(errorPrivateEndpointsRead, privateLinkID, err)
 	}
@@ -153,7 +154,7 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 	privateLinkID := ids["private_link_id"]
 	projectID := ids["project_id"]
 
-	resp, err := conn.PrivateEndpoints.Delete(context.Background(), projectID, privateLinkID)
+	resp, err := conn.PrivateEndpointsDeprecated.Delete(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		if resp.Response.StatusCode == 404 {
 			return nil
@@ -162,7 +163,7 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf(errorPrivateEndpointsDelete, privateLinkID, err)
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
+	log.Println("[INFO] Waiting for MongoDB Private Endpoints  Connection to be destroyed")
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"DELETING"},
@@ -192,7 +193,7 @@ func resourceMongoDBAtlasPrivateEndpointImportState(d *schema.ResourceData, meta
 	projectID := parts[0]
 	privateLinkID := parts[1]
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", privateLinkID, projectID, err)
 	}
@@ -211,7 +212,7 @@ func resourceMongoDBAtlasPrivateEndpointImportState(d *schema.ResourceData, meta
 
 func resourcePrivateEndpointRefreshFunc(client *matlas.Client, projectID, privateLinkID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		p, resp, err := client.PrivateEndpoints.Get(context.Background(), projectID, privateLinkID)
+		p, resp, err := client.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil

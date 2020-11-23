@@ -43,6 +43,7 @@ func dataSourceMongoDBAtlasPrivateEndpoint() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "this data source is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint",
 	}
 }
 
@@ -53,7 +54,7 @@ func dataSourceMongoDBAtlasPrivateEndpointrRead(d *schema.ResourceData, meta int
 	projectID := d.Get("project_id").(string)
 	privateLinkID := d.Get("private_link_id").(string)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
 		return fmt.Errorf(errorPrivateEndpointsRead, privateLinkID, err)
 	}

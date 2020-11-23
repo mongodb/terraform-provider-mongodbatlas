@@ -152,7 +152,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkExists(resourceName string) reso
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
+		_, _, err := conn.PrivateEndpointsDeprecated.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
 		if err == nil {
 			return nil
 		}
@@ -165,12 +165,12 @@ func testAccCheckMongoDBAtlasPrivateEndpointLinkDestroy(s *terraform.State) erro
 	conn := testAccProvider.Meta().(*matlas.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_private_endpoint" {
+		if rs.Type != "mongodbatlas_private_endpoint_interface_link" {
 			continue
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
+		_, _, err := conn.PrivateEndpointsDeprecated.GetOneInterfaceEndpoint(context.Background(), ids["project_id"], ids["private_link_id"], ids["interface_endpoint_id"])
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["interface_endpoint_id"])
 		}
