@@ -177,9 +177,15 @@ func resourceMongoDBAtlasCloudProviderAccessDelete(d *schema.ResourceData, meta 
 
 	projectID := ids["project_id"]
 	roleID := ids["id"]
-	// providerName := ids["provider_name"] not used right now
+	providerName := ids["provider_name"]
 
-	_, err := conn.CloudProviderAccess.DeauthorizeRole(context.Background(), projectID, roleID)
+	req := &matlas.CloudProviderDeauthorizationRequest{
+		ProviderName: providerName,
+		RoleID:       roleID,
+		GroupID:      projectID,
+	}
+
+	_, err := conn.CloudProviderAccess.DeauthorizeRole(context.Background(), req)
 
 	if err != nil {
 		return fmt.Errorf(errorCloudProviderAccessDelete, err)
