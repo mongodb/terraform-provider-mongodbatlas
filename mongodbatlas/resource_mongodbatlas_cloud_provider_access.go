@@ -93,7 +93,6 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 	}))
 
 	for key, val := range roleSchema {
-
 		if err := d.Set(key, val); err != nil {
 			return fmt.Errorf(errorCloudProviderAccessCreate, err)
 		}
