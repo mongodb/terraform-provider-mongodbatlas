@@ -24,7 +24,8 @@ const (
 
 func TestAccResourceMongoDBAtlasCloudProviderAccess_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_provider_access.test_basic_" + acctest.RandString(10)
+		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+		resourceName = "mongodbatlas_cloud_provider_access." + name
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		targetRole   = matlas.AWSIAMRole{}
 	)
@@ -35,11 +36,11 @@ func TestAccResourceMongoDBAtlasCloudProviderAccess_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessRole, resourceName, projectID, "AWS"),
+				Config: fmt.Sprintf(createProviderAccessRole, name, projectID, "AWS"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
-					resource.TestCheckResourceAttr(resourceName, "atlas_assumed_role_external_id", targetRole.AtlasAssumedRoleExternalID),
-					resource.TestCheckResourceAttr(resourceName, "atlas_aws_account_arn", targetRole.AtlasAWSAccountARN),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_aws_account_arn"),
 				),
 			},
 		},
@@ -105,10 +106,8 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 
 		// searching in roles
 		for i := range roles.AWSIAMRoles {
-			role := &(roles.AWSIAMRoles[i])
-
-			if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
-				*targetRole = *role
+			if roles.AWSIAMRoles[i].RoleID == ids["id"] && roles.AWSIAMRoles[i].ProviderName == ids["provider_name"] {
+				*targetRole = roles.AWSIAMRoles[i]
 				return nil
 			}
 		}

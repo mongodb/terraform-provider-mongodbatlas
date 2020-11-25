@@ -86,17 +86,18 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 
 	roleSchema := roleToSchema(role)
 
-	for key, val := range roleSchema {
-		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf(errorCloudProviderAccessCreate, err)
-		}
-	}
-
 	d.SetId(encodeStateID(map[string]string{
 		"id":            role.RoleID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
 	}))
+
+	for key, val := range roleSchema {
+
+		if err := d.Set(key, val); err != nil {
+			return fmt.Errorf(errorCloudProviderAccessCreate, err)
+		}
+	}
 
 	return nil
 }

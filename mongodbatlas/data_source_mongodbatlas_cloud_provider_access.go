@@ -130,15 +130,13 @@ func roleToSchema(role *matlas.AWSIAMRole) map[string]interface{} {
 		"role_id":                        role.RoleID,
 	}
 
-	if len(role.FeatureUsages) > 0 {
-		features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
 
-		for _, featureUsage := range role.FeatureUsages {
-			features = append(features, featureToSchema(featureUsage))
-		}
-
-		out["feature_usages"] = features
+	for _, featureUsage := range role.FeatureUsages {
+		features = append(features, featureToSchema(featureUsage))
 	}
+
+	out["feature_usages"] = features
 
 	return out
 }
