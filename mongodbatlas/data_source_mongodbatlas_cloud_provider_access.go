@@ -105,10 +105,6 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta 
 }
 
 func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
-	if len(roles.AWSIAMRoles) == 0 {
-		return
-	}
-
 	list = make([]map[string]interface{}, 0, len(roles.AWSIAMRoles))
 
 	for i := range roles.AWSIAMRoles {
