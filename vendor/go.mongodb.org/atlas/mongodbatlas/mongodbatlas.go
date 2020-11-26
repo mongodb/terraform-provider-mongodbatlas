@@ -86,6 +86,7 @@ type Client struct {
 	Auditing                            AuditingsService
 	AlertConfigurations                 AlertConfigurationsService
 	PrivateEndpoints                    PrivateEndpointsService
+	PrivateEndpointsDeprecated          PrivateEndpointsServiceDeprecated
 	X509AuthDBUsers                     X509AuthDBUsersService
 	ContinuousSnapshots                 ContinuousSnapshotsService
 	ContinuousRestoreJobs               ContinuousRestoreJobsService
@@ -108,6 +109,7 @@ type Client struct {
 	Integrations                        IntegrationsService
 	LDAPConfigurations                  LDAPConfigurationsService
 	PerformanceAdvisor                  PerformanceAdvisorService
+	CloudProviderAccess                 CloudProviderAccessService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -226,6 +228,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Auditing = &AuditingsServiceOp{Client: c}
 	c.AlertConfigurations = &AlertConfigurationsServiceOp{Client: c}
 	c.PrivateEndpoints = &PrivateEndpointsServiceOp{Client: c}
+	c.PrivateEndpointsDeprecated = &PrivateEndpointsServiceOpDeprecated{Client: c}
 	c.X509AuthDBUsers = &X509AuthDBUsersServiceOp{Client: c}
 	c.ContinuousRestoreJobs = &ContinuousRestoreJobsServiceOp{Client: c}
 	c.Checkpoints = &CheckpointsServiceOp{Client: c}
@@ -247,6 +250,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Integrations = &IntegrationsServiceOp{Client: c}
 	c.LDAPConfigurations = &LDAPConfigurationsServiceOp{Client: c}
 	c.PerformanceAdvisor = &PerformanceAdvisorServiceOp{Client: c}
+	c.CloudProviderAccess = &CloudProviderAccessServiceOp{Client: c}
 
 	return c
 }

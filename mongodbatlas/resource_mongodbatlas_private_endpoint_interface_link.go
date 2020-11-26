@@ -58,6 +58,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLink() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint_service",
 	}
 }
 
@@ -67,7 +68,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkCreate(d *schema.ResourceDa
 	privateLinkID := d.Get("private_link_id").(string)
 	interfaceEndpointID := d.Get("interface_endpoint_id").(string)
 
-	interfaceEndpointConn, _, err := conn.PrivateEndpoints.AddOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	interfaceEndpointConn, _, err := conn.PrivateEndpointsDeprecated.AddOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 	if err != nil {
 		return fmt.Errorf(errorInterfaceEndpointAdd, interfaceEndpointID, privateLinkID, err)
 	}
@@ -103,7 +104,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData
 	privateLinkID := ids["private_link_id"]
 	interfaceEndpointID := ids["interface_endpoint_id"]
 
-	interfaceEndpoint, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	interfaceEndpoint, _, err := conn.PrivateEndpointsDeprecated.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 	if err != nil {
 		return fmt.Errorf(errorInterfaceEndpointRead, interfaceEndpointID, err)
 	}
@@ -132,7 +133,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkDelete(d *schema.ResourceDa
 	interfaceEndpointID := ids["interface_endpoint_id"]
 
 	if interfaceEndpointID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+		_, err := conn.PrivateEndpointsDeprecated.DeleteOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 		if err != nil {
 			return fmt.Errorf(errorInterfaceEndpointDelete, interfaceEndpointID, err)
 		}
@@ -168,7 +169,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.Resou
 	privateLinkID := parts[1]
 	interfaceEndpointID := parts[2] + "-" + parts[3]
 
-	_, _, err := conn.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+	_, _, err := conn.PrivateEndpointsDeprecated.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 	if err != nil {
 		return nil, fmt.Errorf(errorInterfaceEndpointRead, interfaceEndpointID, err)
 	}
@@ -196,7 +197,7 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkImportState(d *schema.Resou
 
 func resourceInterfaceEndpointRefreshFunc(client *matlas.Client, projectID, privateLinkID, interfaceEndpointID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		i, resp, err := client.PrivateEndpoints.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
+		i, resp, err := client.PrivateEndpointsDeprecated.GetOneInterfaceEndpoint(context.Background(), projectID, privateLinkID, interfaceEndpointID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil

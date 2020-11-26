@@ -6,12 +6,9 @@ description: |-
     Provides a Private Endpoint resource.
 ---
 
-# mongodbatlas_private_endpoint
+# mongodbatlas_privatelink_endpoint
 
-`mongodbatlas_private_endpoint` provides a Private Endpoint resource. This represents a Private Endpoint Connection that can be created in an Atlas project.
-
-!> **WARNING:** This resource is deprecated and will be removed in the next major version
-                Please transition to privatelink_endpoint as soon as possible. [PrivateLink Endpoints] (https://docs.atlas.mongodb.com/reference/api/private-endpoints/)
+`mongodbatlas_privatelink_endpoint` provides a Private Endpoint resource. This represents a Private Endpoint Service that can be created in an Atlas project.
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
@@ -25,9 +22,9 @@ description: |-
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_private_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT-ID>"
-  provider_name = "AWS"
+  provider_name = "AWS/AZURE"
   region        = "us-east-1"
 }
 ```
@@ -35,9 +32,11 @@ resource "mongodbatlas_private_endpoint" "test" {
 ## Argument Reference
 
 * `project_id` - Required 	Unique identifier for the project.
-* `providerName` - (Required) Name of the cloud provider you want to create the private endpoint connection for. Must be AWS.
+* `providerName` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS` or `AZURE`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
-Accepted values are:
+Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws) and [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
+  
+  AWS:
   * `us-east-1`
   * `us-east-2`
   * `us-west-1`
@@ -57,6 +56,43 @@ Accepted values are:
   * `ap-southeast-2`
   * `ap-east-1`
 
+AZURE:
+  * `centralus`
+  * `eastus`
+  * `eastus2`
+  * `northcentralus`
+  * `westus`
+  * `southcentralus`
+  * `westus2`
+  * `westcentralus`
+  * `brazilsouth`
+  * `canadaeast`
+  * `canadacentral`
+  * `northeurope`
+  * `westeurope`
+  * `uksouth`
+  * `ukwest`
+  * `francecentral`
+  * `germanywestcentral`
+  * `germanynorth`
+  * `switzerlandnorth`
+  * `switzerlandwest`
+  * `norwayeast`
+  * `eastasia`
+  * `southeastasia`
+  * `australiaeast`
+  * `australiasoutheast`
+  * `centralindia`
+  * `southindia`
+  * `westindia`
+  * `japaneast`
+  * `japanwest`
+  * `koreacentral`
+  * `koreasouth`
+  * `southafricanorth`
+  * `uaenorth`
+  * `uaecentral`
+
 
 ## Attributes Reference
 
@@ -67,18 +103,22 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
 * `error_message` - Error message pertaining to the AWS PrivateLink connection. Returns null if there are no errors.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
-* `status` - Status of the AWS PrivateLink connection.
+* `status` - Status of the Private Link Service.
+* `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
+* `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
+* `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
   Returns one of the following values:
+  * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
   * `INITIATING` 	Atlas is creating the network load balancer and VPC endpoint service.
   * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
   * `FAILED` 	A system failure has occurred.
-  * `DELETING` 	The AWS PrivateLink connection is being deleted.
+  * `DELETING` 	The Private Link service is being deleted.
 
 ## Import
-Private Endpoint Connection can be imported using project ID and username, in the format `{project_id}-{private_link_id}`, e.g.
+Private Endpoint Service can be imported using project ID and username, in the format `{project_id}-{private_link_id}-{provider_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_private_endpoint.test 1112222b3bf99403840e8934-3242342343112
+$ terraform import mongodbatlas_privatelink_endpoint.test 1112222b3bf99403840e8934-3242342343112-AWS
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Private Endpoint Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoint-create-one-private-endpoint-connection/)
+See detailed information for arguments and attributes: [MongoDB API Private Endpoint Service](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-create-one//)

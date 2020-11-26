@@ -21,7 +21,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpoint_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -108,7 +108,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointExists(resourceName string) resource
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		if _, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["private_link_id"]); err == nil {
+		if _, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), ids["project_id"], ids["private_link_id"]); err == nil {
 			return nil
 		}
 
@@ -125,7 +125,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointDestroy(s *terraform.State) error {
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.PrivateEndpoints.Get(context.Background(), ids["project_id"], ids["private_link_id"])
+		_, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), ids["project_id"], ids["private_link_id"])
 		if err == nil {
 			return fmt.Errorf("the MongoDB Private Endpoint(%s) still exists", ids["private_link_id"])
 		}

@@ -615,6 +615,10 @@ go.mongodb.org/atlas v0.4.1-0.20200916170654-ac3833accfa2 h1:qjEP4bC8yTi57jBYHtS
 go.mongodb.org/atlas v0.4.1-0.20200916170654-ac3833accfa2/go.mod h1:CIaBeO8GLHhtYLw7xSSXsw7N90Z4MFY87Oy9qcPyuEs=
 go.mongodb.org/atlas v0.5.1-0.20201007214134-b315fe7503d2 h1:b4Ng7d2sCSgYKwLMOetbwLcPE732SiBnJqH5rQrhZOs=
 go.mongodb.org/atlas v0.5.1-0.20201007214134-b315fe7503d2/go.mod h1:CIaBeO8GLHhtYLw7xSSXsw7N90Z4MFY87Oy9qcPyuEs=
+go.mongodb.org/atlas v0.5.1-0.20201106143903-ab022d8c43b5 h1:/U1ze48A0J3td+rItu+/jpNCLQxdNKtkIkpnuy2ZKHc=
+go.mongodb.org/atlas v0.5.1-0.20201106143903-ab022d8c43b5/go.mod h1:CIaBeO8GLHhtYLw7xSSXsw7N90Z4MFY87Oy9qcPyuEs=
+go.mongodb.org/atlas v0.5.1-0.20201117180402-049456a13b6e h1:mAoOV+XVJ1bwVIojwXRe3oDTpycfN+zraR6oEqkroic=
+go.mongodb.org/atlas v0.5.1-0.20201117180402-049456a13b6e/go.mod h1:CIaBeO8GLHhtYLw7xSSXsw7N90Z4MFY87Oy9qcPyuEs=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
