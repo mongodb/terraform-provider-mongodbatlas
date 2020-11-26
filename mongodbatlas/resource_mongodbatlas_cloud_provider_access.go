@@ -54,7 +54,7 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 			},
 			"iam_assumed_role_arn": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,
