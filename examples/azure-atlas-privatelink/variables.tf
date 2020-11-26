@@ -4,7 +4,7 @@ variable "project_id" {
 }
 
 variable "subscription_id" {
-  default = "AZURE SUSCRIPTION ID"
+  default = "AZURE SUBSCRIPTION ID"
 }
 variable "client_id" {
   default = "AZURE CLIENT ID"

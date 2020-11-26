@@ -147,7 +147,7 @@ func (s *CloudProviderAccessServiceOp) DeauthorizeRole(ctx context.Context, requ
 
 	basePath := fmt.Sprintf(cloudProviderAccessPath, request.GroupID)
 	path := fmt.Sprintf("%s/%s/%s", basePath, request.ProviderName, request.RoleID)
-
+  
 	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return nil, err
