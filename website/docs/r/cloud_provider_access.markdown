@@ -43,4 +43,26 @@ resource "mongodbatlas_cloud_provider_access" "test_role" {
 * `provider_name`                  - Name of the cloud provider. Currently limited to AWS.
 * `role_id`                        - Unique ID of this role.
 
+## Authorize role
+
+Once the resource is created add the field `iam_assumed_role_arn` see [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access) , and execute a new `terraform apply` this will create a PATCH request.
+
+```hcl
+
+resource "mongodbatlas_cloud_provider_access" "test_role" {
+   project_id = "<PROJECT-ID>"
+   provider_name = "AWS"
+   iam_assumed_role_arn = "arn:aws:iam::520983883852:role/mongodb_ec2_s3"
+}
+
+```
+
+## Import
+
+The Cloud Provider Access resource can be imported using project ID and the provider name and mongodbatlas role id, in the format `project_id`-`provider_name`-`role_id`, e.g.
+
+```
+$ terraform import mongodbatlas_cloud_provider_access.my_role 1112222b3bf99403840e8934-AWS-5fc17d476f7a33224f5b224e
+```
+
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-create-one-role/) Documentation for more information.
