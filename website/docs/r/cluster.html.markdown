@@ -28,9 +28,15 @@ description: |-
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
-  num_shards   = 1
-
-  replication_factor           = 3
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
@@ -42,7 +48,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
   provider_volume_type        = "STANDARD"
   provider_encrypt_ebs_volume = true
   provider_instance_size_name = "M40"
-  provider_region_name        = "US_EAST_1"
 }
 ```
 
@@ -52,9 +57,15 @@ resource "mongodbatlas_cluster" "cluster-test" {
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
-  num_shards   = 1
-
-  replication_factor           = 3
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
@@ -63,7 +74,6 @@ resource "mongodbatlas_cluster" "test" {
   provider_name               = "AZURE"
   provider_disk_type_name     = "P6"
   provider_instance_size_name = "M30"
-  provider_region_name        = "US_EAST_2"
 }
 ```
 
@@ -73,9 +83,15 @@ resource "mongodbatlas_cluster" "test" {
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
-  num_shards   = 1
-
-  replication_factor           = 3
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
@@ -84,7 +100,6 @@ resource "mongodbatlas_cluster" "test" {
   provider_name               = "GCP"
   disk_size_gb                = 40
   provider_instance_size_name = "M30"
-  provider_region_name        = "US_EAST_4"
 }
 ```
 
@@ -283,11 +298,11 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 * `provider_region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
     Do not specify this field when creating a multi-region cluster using the replicationSpec document or a Global Cluster with the replicationSpecs array.
 * `provider_volume_type` - (AWS - Optional) The type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.  `PROVISIONED` required if setting IOPS higher than the default instance IOPS.
-* `replication_factor` - (Optional) Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
+* `replication_factor` - (Deprecated) Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
 * `provider_auto_scaling_compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (e.g., M10). Required if `autoScaling.compute.scaleDownEnabled` is `true`.
 * `provider_auto_scaling_compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (e.g., M40). Required if `autoScaling.compute.enabled` is `true`.
 
-* `replication_specs` - (Optional) Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
+* `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
 
 ### Multi-Region Cluster 
 

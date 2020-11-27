@@ -23,9 +23,15 @@ resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
   disk_size_gb = 100
-  num_shards   = 1
-
-  replication_factor           = 3
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
 
@@ -35,7 +41,6 @@ resource "mongodbatlas_cluster" "test" {
   provider_volume_type        = "STANDARD"
   provider_encrypt_ebs_volume = true
   provider_instance_size_name = "M40"
-  provider_region_name        = "US_EAST_1"
 }
 
 data "mongodbatlas_clusters" "test" {
@@ -103,7 +108,7 @@ In addition to all arguments above, the following attributes are exported:
 * `provider_volume_type` - Indicates the type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.
 * `provider_auto_scaling_compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale.
 * `provider_auto_scaling_compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale.
-* `replication_factor` - Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
+* `replication_factor` - (Deprecated) Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
 
 * `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
 
