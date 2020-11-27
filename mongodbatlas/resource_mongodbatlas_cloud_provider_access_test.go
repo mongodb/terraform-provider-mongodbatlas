@@ -48,6 +48,51 @@ func TestAccResourceMongoDBAtlasCloudProviderAccess_basic(t *testing.T) {
 	)
 }
 
+func TestAccResourceMongoDBAtlasCloudProviderAccess_importBasic(t *testing.T) {
+	var (
+		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+		resourceName = "mongodbatlas_cloud_provider_access." + name
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		targetRole   = matlas.AWSIAMRole{}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(createProviderAccessRole, name, projectID, "AWS"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_aws_account_arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	},
+	)
+}
+
+func testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["provider_name"], ids["id"]), nil
+	}
+}
+
 func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*matlas.Client)
 	for _, rs := range s.RootModule().Resources {

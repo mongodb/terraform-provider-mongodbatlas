@@ -219,9 +219,15 @@ func resourceMongoDBAtlasCloudProviderAccessImportState(d *schema.ResourceData, 
 		return nil, fmt.Errorf(errorCloudProviderAccessImporter, " Resource not found at the cloud please check your id")
 	}
 
+	// params syncing
+	if err = d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+	}
+
 	return []*schema.ResourceData{d}, nil
 }
 
+// format  {project_id}-{provider-name}-{role-id}
 func splitCloudProviderAccessID(id string) (projectID, providerName, roleID string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-(.*)$`)
 	parts := re.FindStringSubmatch(id)
