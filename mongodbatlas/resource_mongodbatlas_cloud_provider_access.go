@@ -12,9 +12,9 @@ import (
 
 const (
 	errorCloudProviderAccessCreate   = "error creating cloud provider access %s"
-	errorCloudProviderAccessUpdate   = "error update cloud provider access %s"
-	errorCloudProviderAccessDelete   = "error delete cloud provider access %s"
-	errorCloudProviderAccessImporter = "error in import for cloud provider access %s"
+	errorCloudProviderAccessUpdate   = "error updating cloud provider access %s"
+	errorCloudProviderAccessDelete   = "error deleting cloud provider access %s"
+	errorCloudProviderAccessImporter = "error importing cloud provider access %s"
 )
 
 func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
