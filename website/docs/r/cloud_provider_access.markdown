@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: mongodbatlas_cloud_provider_access"
 sidebar_current: "docs-mongodbatlas-datasource-cloud-provider-access"
 description: |-
-    Provides a Cloud Provider Access settings resource register, authorization, and deauthorization
+    Provides a Cloud Provider Access settings resource for registration, authorization, and deauthorization
 ---
 
 # mongodbatlas_cloud_provider_access
