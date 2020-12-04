@@ -779,12 +779,16 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	// If at least one of the provider settings argument has changed, expand all provider settings
-	if d.HasChange("provider_disk_iops") || d.HasChange("provider_encrypt_ebs_volume") ||
-		d.HasChange("backing_provider_name") || d.HasChange("provider_disk_type_name") ||
-		d.HasChange("provider_instance_size_name") || d.HasChange("provider_instance_size_name") ||
-		d.HasChange("provider_instance_size_name") || d.HasChange("provider_name") ||
-		d.HasChange("provider_region_name") || d.HasChange("provider_volume_type") ||
-		d.HasChange("provider_auto_scaling_compute_min_instance_size") || d.HasChange("provider_auto_scaling_compute_max_instance_size") {
+	if d.HasChange("provider_disk_iops") ||
+		d.HasChange("provider_encrypt_ebs_volume") ||
+		d.HasChange("backing_provider_name") ||
+		d.HasChange("provider_disk_type_name") ||
+		d.HasChange("provider_instance_size_name") ||
+		d.HasChange("provider_name") ||
+		d.HasChange("provider_region_name") ||
+		d.HasChange("provider_volume_type") ||
+		d.HasChange("provider_auto_scaling_compute_min_instance_size") ||
+		d.HasChange("provider_auto_scaling_compute_max_instance_size") {
 		var err error
 		cluster.ProviderSettings, err = expandProviderSetting(d)
 		if err != nil {
