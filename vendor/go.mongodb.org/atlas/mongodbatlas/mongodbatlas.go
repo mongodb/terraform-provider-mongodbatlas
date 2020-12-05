@@ -127,6 +127,9 @@ type Response struct {
 
 	// Links that were returned with the response.
 	Links []*Link `json:"links"`
+
+	// Raw data from server response
+	Raw []byte `json:"-"`
 }
 
 // ListOptions specifies the optional parameters to List methods that
