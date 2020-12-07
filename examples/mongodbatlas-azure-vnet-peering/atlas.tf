@@ -5,8 +5,9 @@ provider "mongodbatlas" {
 }
 # Create the mongodb atlas Azure cluster
 resource "mongodbatlas_cluster" "azure-cluster" {
-  project_id = var.project_id
-  name       = var.name
+  project_id   = var.project_id
+  name         = var.name
+  cluster_type = "REPLICASET"
   replication_specs {
     num_shards = 1
     regions_config {

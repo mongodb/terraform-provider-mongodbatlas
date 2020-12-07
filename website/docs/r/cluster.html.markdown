@@ -28,6 +28,7 @@ description: |-
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
+  cluster_type = "REPLICASET"
   replication_specs {
     num_shards = 1
     regions_config {
@@ -57,6 +58,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
+  cluster_type = "REPLICASET"
   replication_specs {
     num_shards = 1
     regions_config {
@@ -83,6 +85,7 @@ resource "mongodbatlas_cluster" "test" {
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
+  cluster_type = "REPLICASET"
   replication_specs {
     num_shards = 1
     regions_config {

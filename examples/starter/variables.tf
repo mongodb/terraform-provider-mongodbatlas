@@ -7,7 +7,7 @@ variable "private_key" {
 variable "dbuser" {
   description = "MongoDB Atlas Database User"
 }
-variable "dbuser_password" { 
+variable "dbuser_password" {
   description = "MongoDB Atlas Database User Password"
 }
 variable "database_name" {

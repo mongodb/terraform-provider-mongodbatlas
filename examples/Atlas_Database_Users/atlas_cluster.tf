@@ -2,6 +2,7 @@ resource "mongodbatlas_cluster" "cluster" {
   project_id             = mongodbatlas_project.project1.id
   name                   = "MongoDB_Atlas"
   mongo_db_major_version = "4.4"
+  cluster_type           = "REPLICASET"
   replication_specs {
     num_shards = 1
     regions_config {

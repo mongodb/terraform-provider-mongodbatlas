@@ -4,6 +4,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
+  cluster_type                 = "REPLICASET"
   replication_specs {
     num_shards = 1
     regions_config {
