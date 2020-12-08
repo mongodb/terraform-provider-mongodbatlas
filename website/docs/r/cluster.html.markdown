@@ -258,7 +258,7 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
     * The default value is false.  M10 and above only.
 
 * `bi_connector` - (Optional) Specifies BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
-* `cluster_type` - (Optional) Specifies the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
+* `cluster_type` - (Required) Specifies the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
 
     -> **WHEN SHOULD YOU USE CLUSTERTYPE?**
       When you set replication_specs, when you are deploying Global Clusters or when you are deploying non-Global replica sets and sharded clusters.
