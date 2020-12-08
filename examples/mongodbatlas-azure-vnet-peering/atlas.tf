@@ -5,11 +5,18 @@ provider "mongodbatlas" {
 }
 # Create the mongodb atlas Azure cluster
 resource "mongodbatlas_cluster" "azure-cluster" {
-  project_id = var.project_id
-  name       = var.name
-  num_shards = 1
-
-  replication_factor           = 3
+  project_id   = var.project_id
+  name         = var.name
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = var.provider_region_name
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
   backup_enabled               = false
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
@@ -18,7 +25,6 @@ resource "mongodbatlas_cluster" "azure-cluster" {
   provider_name               = "AZURE"
   provider_disk_type_name     = var.provider_disk_type_name
   provider_instance_size_name = var.provider_instance_size_name
-  provider_region_name        = var.provider_region_name
 }
 
 # Create the peering connection request
