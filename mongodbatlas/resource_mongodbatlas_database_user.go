@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
@@ -147,6 +148,15 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 
 	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
 	if err != nil {
+		// case 404
+		// deleted in the backend case
+		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+
+		if reset {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("error getting database user information: %s", err)
 	}
 
