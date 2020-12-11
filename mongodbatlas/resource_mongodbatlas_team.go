@@ -133,31 +133,69 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 		// First, we need to remove the current users of the team and later add the new users
 		// Get the current team's users
 		users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, teamID)
+
 		if err != nil {
 			return fmt.Errorf(errorTeamRead, err)
 		}
 
-		// Removing each user
+		// Removing each user - Let's not modify the state before making sure we can continue
+
+		// existig users
+		index := make(map[string]matlas.AtlasUser)
 		for i := range users {
-			_, err := conn.Teams.RemoveUserToTeam(context.Background(), orgID, teamID, users[i].ID)
-			if err != nil {
-				return fmt.Errorf("error deleting Atlas User (%s) information: %s", teamID, err)
-			}
+			index[users[i].Username] = users[i]
 		}
+
+		cleanUsers := func() error {
+			for i := range users {
+				_, err := conn.Teams.RemoveUserToTeam(context.Background(), orgID, teamID, users[i].ID)
+				if err != nil {
+					return fmt.Errorf("error deleting Atlas User (%s) information: %s", teamID, err)
+				}
+			}
+			return nil
+		}
+
+		// existing users
 
 		// Verify if the gave users exists
 		var newUsers []string
 
 		for _, username := range d.Get("usernames").(*schema.Set).List() {
 			user, _, err := conn.AtlasUsers.GetByName(context.Background(), username.(string))
+
+			updatedUserData := user
+
 			if err != nil {
-				return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
+				// this must be handle as a soft error
+				if !strings.Contains(err.Error(), "401") {
+					// In this case is a hard error doing a rollback from the initial operation
+					return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
+				}
+
+				log.Printf("[WARN] error fetching information user for (%s): %s\n", username, err)
+				if user == nil {
+					log.Printf("[WARN] there is no runtime information to fetch, checking in the existing users")
+
+					cached, ok := index[username.(string)]
+
+					if !ok {
+						log.Printf("[WARN] no information in cached for (%s)", username)
+						return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
+					}
+					updatedUserData = &cached
+				}
 			}
 			// if the user exists, we will storage its teamID
-			newUsers = append(newUsers, user.ID)
+			newUsers = append(newUsers, updatedUserData.ID)
 		}
 
-		// Adding the new existing users by teamID
+		// Update the users, remove the old ones, add the new ones
+		err = cleanUsers()
+		if err != nil {
+			return err
+		}
+
 		_, _, err = conn.Teams.AddUsersToTeam(context.Background(), orgID, teamID, newUsers)
 		if err != nil {
 			return fmt.Errorf(errorTeamAddUsers, err)
