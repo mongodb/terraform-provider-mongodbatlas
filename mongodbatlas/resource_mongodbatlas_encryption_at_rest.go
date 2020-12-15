@@ -52,6 +52,10 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"role_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -212,6 +216,7 @@ func expandAwsKms(awsKms map[string]interface{}) matlas.AwsKms {
 		SecretAccessKey:     cast.ToString(awsKms["secret_access_key"]),
 		CustomerMasterKeyID: cast.ToString(awsKms["customer_master_key_id"]),
 		Region:              awsRegion,
+		RoleID:              cast.ToString(awsKms["role_id"]),
 	}
 }
 
