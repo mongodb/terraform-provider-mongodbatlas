@@ -176,15 +176,15 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 	}
 
 	if err := d.Set("aws_kms", flattenAWSKMS(&resp.AwsKms)); err != nil {
-		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err)
 	}
 
 	if err := d.Set("azure_key_vault", flattenAzureVault(&resp.AzureKeyVault)); err != nil {
-		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault", d.Id(), err)
 	}
 
 	if err := d.Set("google_cloud_kms", flattenGCPKms(&resp.GoogleCloudKms)); err != nil {
-		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err)
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"os"
 	"testing"
 
@@ -11,6 +12,88 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+)
+
+const (
+	initialConfigEncryptionRestRoleAWS = `
+provider "aws" {
+	region     = lower(replace("%[1]s", "_", "-"))
+	access_key = "%[2]s"
+	secret_key = "%[3]s"
+}
+
+%[7]s
+
+resource "mongodbatlas_cloud_provider_access" "test" {
+	project_id = "%[4]s"
+	provider_name = "AWS"
+	%[8]s
+		
+}
+
+resource "aws_iam_role_policy" "test_policy" {
+  name = "%[5]s"
+  role = aws_iam_role.test_role.id
+
+  policy = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+		"Action": "*",
+		"Resource": "*"
+      }
+    ]
+  }
+  EOF
+}
+
+resource "aws_iam_role" "test_role" {
+ name = "%[6]s"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${mongodbatlas_cloud_provider_access.test.atlas_aws_account_arn}"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "${mongodbatlas_cloud_provider_access.test.atlas_assumed_role_external_id}"
+        }
+      }
+    }
+  ]
+}
+EOF
+
+}
+
+%[9]s
+
+`
+	configEncryptionRest = `
+resource "mongodbatlas_encryption_at_rest" "test" {
+	project_id = "%s"
+
+	aws_kms = {
+		enabled                = %t
+		customer_master_key_id = "%s"
+		region                 = "%s"
+		role_id = mongodbatlas_cloud_provider_access.test.role_id
+	}
+}`
+	dataAWSARNConfig = `
+data "aws_iam_role" "test" {
+  name = "%s"
+}
+
+`
 )
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
@@ -189,6 +272,46 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
+	SkipTest(t) //For now it will skipped because of aws errors reasons, already made another test using terratest.
+	SkipTestExtCred(t)
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = "5fd8ef79c08b2f2086969da8" //os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
+		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		policyName   = acctest.RandomWithPrefix("test-aws-policy")
+		roleName     = acctest.RandomWithPrefix("test-aws-role")
+
+		awsKms = matlas.AwsKms{
+			Enabled:             pointy.Bool(true),
+			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
+			Region:              os.Getenv("AWS_REGION"),
+		}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.Region, accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
+			},
+			{
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.Region, accessKeyID, secretKey, projectID, policyName, roleName, true, &awsKms),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.enabled", cast.ToString(awsKms.Enabled)),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.customer_master_key_id", awsKms.CustomerMasterKeyID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms.region", awsKms.Region),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
@@ -280,4 +403,15 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 			}
 		}
 	`, projectID, *google.Enabled, google.ServiceAccountKey, google.KeyVersionResourceID)
+}
+
+func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName string, isUpdate bool, aws *matlas.AwsKms) string {
+	config := fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, "", "", "")
+	if isUpdate {
+		configEncrypt := fmt.Sprintf(configEncryptionRest, projectID, *aws.Enabled, aws.CustomerMasterKeyID, aws.Region)
+		dataAWSARN := fmt.Sprintf(dataAWSARNConfig, awsRoleName)
+		dataARN := `iam_assumed_role_arn = data.aws_iam_role.test.arn`
+		config = fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, dataAWSARN, dataARN, configEncrypt)
+	}
+	return config
 }
