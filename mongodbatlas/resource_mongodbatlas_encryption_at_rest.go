@@ -65,10 +65,6 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"role_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 					},
 				},
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
