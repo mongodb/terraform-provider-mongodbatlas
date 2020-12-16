@@ -11,6 +11,15 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	errorCreateEncryptionAtRest       = "error creating Encryption At Rest: %s"
+	errorReadEncryptionAtRest         = "error getting Encryption At Rest: %s"
+	errorDeleteEncryptionAtRest       = "error deleting Encryption At Rest: (%s): %s"
+	errorUpdateEncryptionAtRest       = "error updating Encryption At Rest: %s"
+	errorAlertEncryptionAtRestSetting = "error setting `%s` for Encryption At Rest (%s): %s"
+	errorImportEncryptionAtRest       = "couldn't import Encryption At Rest (%s) in project %s, error: %s"
+)
+
 func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 	return &schema.Resource{
 		Create:   resourceMongoDBAtlasEncryptionAtRestCreate,
@@ -146,7 +155,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 
 	_, _, err := conn.EncryptionsAtRest.Create(context.Background(), encryptionAtRestReq)
 	if err != nil {
-		return fmt.Errorf("error creating Encryption at Rest: %s", err)
+		return fmt.Errorf(errorCreateEncryptionAtRest, err)
 	}
 
 	d.SetId(d.Get("project_id").(string))
@@ -157,9 +166,25 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 
-	_, _, err := conn.EncryptionsAtRest.Get(context.Background(), d.Id())
+	resp, _, err := conn.EncryptionsAtRest.Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("error getting Encryption at Rest information: %s", err)
+		return fmt.Errorf(errorReadEncryptionAtRest, err)
+	}
+
+	if err := d.Set("project_id", resp.GroupID); err != nil {
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+	}
+
+	if err := d.Set("aws_kms", flattenAWSKMS(&resp.AwsKms)); err != nil {
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+	}
+
+	if err := d.Set("azure_key_vault", flattenAzureVault(&resp.AzureKeyVault)); err != nil {
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+	}
+
+	if err := d.Set("google_cloud_kms", flattenGCPKms(&resp.GoogleCloudKms)); err != nil {
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
 	}
 
 	return nil
@@ -171,7 +196,7 @@ func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta int
 
 	encrypt, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
 	if err != nil {
-		return fmt.Errorf("error getting encryption at rest information: %s", err)
+		return fmt.Errorf(errorUpdateEncryptionAtRest, err)
 	}
 
 	encrypt.GroupID = projectID
@@ -201,7 +226,7 @@ func resourceMongoDBAtlasEncryptionAtRestDelete(d *schema.ResourceData, meta int
 
 	_, err := conn.EncryptionsAtRest.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("error removing encryption at rest (%s): %s", d.Id(), err)
+		return fmt.Errorf(errorDeleteEncryptionAtRest, d.Id(), err)
 	}
 
 	return nil
@@ -240,4 +265,49 @@ func expandGCPKms(gcpKms map[string]interface{}) matlas.GoogleCloudKms {
 		ServiceAccountKey:    cast.ToString(gcpKms["service_account_key"]),
 		KeyVersionResourceID: cast.ToString(gcpKms["key_version_resource_id"]),
 	}
+}
+
+func flattenAWSKMS(m *matlas.AwsKms) map[string]interface{} {
+	if m != nil {
+		return map[string]interface{}{
+			"enabled":                cast.ToString(m.Enabled),
+			"access_key_id":          m.AccessKeyID,
+			"secret_access_key":      m.SecretAccessKey,
+			"customer_master_key_id": m.CustomerMasterKeyID,
+			"region":                 m.Region,
+			"role_id":                m.RoleID,
+		}
+	}
+
+	return map[string]interface{}{}
+}
+
+func flattenAzureVault(m *matlas.AzureKeyVault) map[string]interface{} {
+	if m != nil {
+		return map[string]interface{}{
+			"enabled":             cast.ToString(m.Enabled),
+			"client_id":           m.ClientID,
+			"azure_environment":   m.AzureEnvironment,
+			"subscription_id":     m.SubscriptionID,
+			"resource_group_name": m.ResourceGroupName,
+			"key_vault_name":      m.KeyVaultName,
+			"key_identifier":      m.KeyIdentifier,
+			"secret":              m.Secret,
+			"tenant_id":           m.TenantID,
+		}
+	}
+
+	return map[string]interface{}{}
+}
+
+func flattenGCPKms(m *matlas.GoogleCloudKms) map[string]interface{} {
+	if m != nil {
+		return map[string]interface{}{
+			"enabled":                 cast.ToString(m.Enabled),
+			"service_account_key":     m.ServiceAccountKey,
+			"key_version_resource_id": m.KeyVersionResourceID,
+		}
+	}
+
+	return map[string]interface{}{}
 }
