@@ -8,3 +8,4 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     role_id = var.cpa_role_id
   }
 }
+
