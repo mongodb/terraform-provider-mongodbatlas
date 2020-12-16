@@ -3,13 +3,10 @@ terraform {
     aws = {
       source = "hashicorp/aws"
     }
-  }
-  required_version = ">= 0.13"
-
-  provider_installation {
-    filesystem_mirror {
-      path    = "../"
-      include = ["terraform-providers/mongodbatlas"]
+    mongodbatlas = {
+      source = "mongodb/mongodbatlas"
+      version = "0.7-dev"
     }
   }
+  required_version = ">= 0.13"
 }

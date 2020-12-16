@@ -4,10 +4,17 @@ import (
 	"fmt"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"os"
+	"strings"
 	"testing"
 )
 
+func SkipTestExtCred(t *testing.T) {
+	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
+		t.Skip()
+	}
+}
 func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
+	SkipTestExtCred(t)
 	t.Parallel()
 
 	var (
