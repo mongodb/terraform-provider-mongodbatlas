@@ -3,9 +3,10 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -273,11 +274,11 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	SkipTest(t) //For now it will skipped because of aws errors reasons, already made another test using terratest.
+	SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = "5fd8ef79c08b2f2086969da8" //os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
 		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
 		policyName   = acctest.RandomWithPrefix("test-aws-policy")

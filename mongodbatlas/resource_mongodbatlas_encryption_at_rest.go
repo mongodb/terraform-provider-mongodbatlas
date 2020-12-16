@@ -17,7 +17,6 @@ const (
 	errorDeleteEncryptionAtRest       = "error deleting Encryption At Rest: (%s): %s"
 	errorUpdateEncryptionAtRest       = "error updating Encryption At Rest: %s"
 	errorAlertEncryptionAtRestSetting = "error setting `%s` for Encryption At Rest (%s): %s"
-	errorImportEncryptionAtRest       = "couldn't import Encryption At Rest (%s) in project %s, error: %s"
 )
 
 func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
