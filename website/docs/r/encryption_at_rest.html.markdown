@@ -73,7 +73,6 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 * `region` - The AWS region in which the AWS customer master key exists: CA_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2, SA_EAST_1
 * `role_id` - ID of an AWS IAM role authorized to manage an AWS customer master key. To find the ID for an existing IAM role check the `role_id` attribute of the `mongodbatlas_cloud_provider_access` resource.
 
-
 ### azure_key_vault
 * `enabled` - Specifies whether Encryption at Rest is enabled for an Atlas project. To disable Encryption at Rest, pass only this parameter with a value of false. When you disable Encryption at Rest, Atlas also removes the configuration details.
 * `client_id` - The client ID, also known as the application ID, for an Azure application associated with the Azure AD tenant.
