@@ -18,7 +18,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 	t.Parallel()
 
 	var (
-		projectID   = "5fd8ef79c08b2f2086969da8" //os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID   = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		accessKey   = os.Getenv("AWS_ACCESS_KEY_ID")
 		secretKey   = os.Getenv("AWS_SECRET_ACCESS_KEY")
 		customerKey = os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")
