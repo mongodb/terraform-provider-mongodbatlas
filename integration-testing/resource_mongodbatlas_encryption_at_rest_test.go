@@ -10,7 +10,7 @@ import (
 
 func SkipTestExtCred(t *testing.T) {
 	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
-		t.Skip()
+		t.SkipNow()
 	}
 }
 func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
