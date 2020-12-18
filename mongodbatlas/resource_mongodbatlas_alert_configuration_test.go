@@ -261,6 +261,33 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_importConfigNotifications(t *
 	})
 }
 
+func TestAccResourceMongoDBAtlasAlertConfiguration_DataDog(t *testing.T) {
+	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
+	SkipTest(t)        // Will force skip if enabled
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		ddAPIKey     = os.Getenv("DD_API_KEY")
+		ddRegion     = "US"
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(projectID, ddAPIKey, ddRegion, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *matlas.AlertConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
@@ -504,4 +531,50 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID s
 			}
 		}
 	`, projectID, enabled, threshold)
+}
+
+func testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_third_party_integration" "atlas_datadog" {
+  project_id = "%[1]s"
+  type = "DATADOG"
+  api_key = "%[3]s"
+  region = "%[4]s"
+}
+
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = "%[1]s"
+  event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+  enabled    = %t
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = false
+    email_enabled = true
+    roles         = ["GROUP_OWNER"]
+  }
+
+  notification {
+    type_name = "DATADOG"
+    datadog_api_key = mongodbatlas_third_party_integration.atlas_datadog.api_key
+    datadog_region = mongodbatlas_third_party_integration.atlas_datadog.region
+    interval_min  = 5
+    delay_min     = 0
+  }
+
+  matcher {
+    field_name = "HOSTNAME_AND_PORT"
+    operator   = "EQUALS"
+    value      = "SECONDARY"
+  }
+
+  threshold = {
+    operator    = "LESS_THAN"
+    threshold   = 72
+    units       = "HOURS"
+  }
+}
+	`, projectID, enabled, dataDogAPIKey, dataDogRegion)
 }
