@@ -82,9 +82,7 @@ resource "mongodbatlas_database_user" "test" {
 * `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.
 Accepted values include:
   * `admin` if `x509_type` and `aws_iam_type` are omitted or NONE.
-  * `$external` if:
-    * `x509_type` is MANAGED or CUSTOMER, or
-    * `aws_iam_type` is USER or ROLE.
+  * `$external` if `x509_type` is MANAGED or CUSTOMER or `aws_iam_type` is USER or ROLE.
 * `project_id` - (Required) The unique ID for the project to create the database user.
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB.
