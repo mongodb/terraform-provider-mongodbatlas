@@ -476,7 +476,7 @@ github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/set
 # github.com/zclconf/go-cty-yaml v1.0.1
 github.com/zclconf/go-cty-yaml
-# go.mongodb.org/atlas v0.5.1-0.20201208195148-2ef1965cb1ef
+# go.mongodb.org/atlas v0.6.1-0.20210106014125-8dd299fe028a => ../go-client-mongodb-atlas
 ## explicit
 go.mongodb.org/atlas/mongodbatlas
 # go.opencensus.io v0.22.3
@@ -729,3 +729,4 @@ honnef.co/go/tools/staticcheck
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
+# go.mongodb.org/atlas => ../go-client-mongodb-atlas

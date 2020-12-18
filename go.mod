@@ -2,6 +2,8 @@ module github.com/mongodb/terraform-provider-mongodbatlas
 
 go 1.14
 
+replace go.mongodb.org/atlas => ../go-client-mongodb-atlas
+
 require (
 	github.com/client9/misspell v0.3.4
 	github.com/go-test/deep v1.0.7
@@ -11,5 +13,5 @@ require (
 	github.com/spf13/cast v1.3.1
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20200518153306-40099de47e37
 	github.com/terraform-providers/terraform-provider-google v1.20.1-0.20200518165017-1dd21651c496
-	go.mongodb.org/atlas v0.5.1-0.20201208195148-2ef1965cb1ef
+	go.mongodb.org/atlas v0.6.1-0.20210106014125-8dd299fe028a
 )

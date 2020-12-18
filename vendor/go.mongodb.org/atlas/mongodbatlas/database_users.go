@@ -53,7 +53,7 @@ type DatabaseUser struct {
 	AWSIAMType      string  `json:"awsIAMType,omitempty"`
 	GroupID         string  `json:"groupId,omitempty"`
 	Roles           []Role  `json:"roles,omitempty"`
-	Scopes          []Scope `json:"scopes,omitempty"`
+	Scopes          []Scope `json:"scopes"`
 	Password        string  `json:"password,omitempty"`
 	Username        string  `json:"username,omitempty"`
 }
