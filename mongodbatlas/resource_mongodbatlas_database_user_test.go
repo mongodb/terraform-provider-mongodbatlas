@@ -353,6 +353,63 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withScopes(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasDatabaseUser_withScopesAndEmpty(t *testing.T) {
+	var (
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc-user-")
+		password     = acctest.RandomWithPrefix("test-acc-pass-")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc-cluster")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+					[]*matlas.Scope{
+						{
+							Name: "test-acc-nurk4llu2z",
+							Type: "CLUSTER",
+						},
+						{
+							Name: "test-acc-nurk4llu2z",
+							Type: "DATA_LAKE",
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
+					[]*matlas.Scope{},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", password),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	var (
 		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
