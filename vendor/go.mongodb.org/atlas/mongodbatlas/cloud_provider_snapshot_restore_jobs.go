@@ -12,7 +12,7 @@ const (
 
 // CloudProviderSnapshotRestoreJobsService is an interface for interfacing with the CloudProviderSnapshotRestoreJobs
 // endpoints of the MongoDB Atlas API.
-// See more: https://docs.atlas.mongodb.com/reference/api/cloudProviderSnapshotRestoreJobs/
+// See more: https://docs.atlas.mongodb.com/reference/api/cloud-provider-snapshot-restore-jobs/
 type CloudProviderSnapshotRestoreJobsService interface {
 	List(context.Context, *SnapshotReqPathParameters, *ListOptions) (*CloudProviderSnapshotRestoreJobs, *Response, error)
 	Get(context.Context, *SnapshotReqPathParameters) (*CloudProviderSnapshotRestoreJob, *Response, error)
