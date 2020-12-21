@@ -71,7 +71,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 * `secret_access_key` - The IAM secret access key with permissions to access the customer master key specified by customerMasterKeyID.
 * `customer_master_key_id` - The AWS customer master key used to encrypt and decrypt the MongoDB master keys.
 * `region` - The AWS region in which the AWS customer master key exists: CA_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2, SA_EAST_1
-* `role_id` - ID of an AWS IAM role authorized to manage an AWS customer master key.
+* `role_id` - ID of an AWS IAM role authorized to manage an AWS customer master key. To find the ID for an existing IAM role check the `role_id` attribute of the `mongodbatlas_cloud_provider_access` resource.
 
 
 ### azure_key_vault
