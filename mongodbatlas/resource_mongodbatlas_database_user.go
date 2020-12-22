@@ -65,8 +65,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 			},
 			"roles": {
 				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"role_name": {
