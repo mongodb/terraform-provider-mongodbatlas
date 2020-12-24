@@ -27,7 +27,6 @@ func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
 			},
 			"port": {
 				Type:     schema.TypeInt,
-				Default:  636,
 				Computed: true,
 			},
 			"bind_username": {

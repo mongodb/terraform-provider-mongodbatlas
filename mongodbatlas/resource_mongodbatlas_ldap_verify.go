@@ -28,33 +28,39 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"hostname": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"port": {
 				Type:     schema.TypeInt,
-				Default:  636,
 				Required: true,
+				ForceNew: true,
 			},
 			"bind_username": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"bind_password": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"ca_certificate": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"authz_query_template": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"links": {
 				Type:     schema.TypeSet,

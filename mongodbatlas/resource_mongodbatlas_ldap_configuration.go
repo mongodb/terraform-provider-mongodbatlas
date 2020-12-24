@@ -52,7 +52,6 @@ func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 						},
 						"port": {
 							Type:     schema.TypeInt,
-							Default:  636,
 							Required: true,
 						},
 						"bind_username": {
