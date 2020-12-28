@@ -17,7 +17,7 @@ variable "atlas_region" {
 
 variable "cpa_role_id" {
   description = "AWS IAM ROLE ARN"
-  default = ""
+  default     = ""
 }
 variable "access_key" {
   description = "The access key for AWS Account"

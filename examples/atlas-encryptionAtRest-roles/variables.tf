@@ -26,5 +26,5 @@ variable "aws_region" {
 }
 variable "aws_iam_role_arn" {
   description = "AWS IAM ROLE ARN"
-  default = ""
+  default     = ""
 }

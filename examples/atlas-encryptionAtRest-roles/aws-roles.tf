@@ -1,7 +1,7 @@
 
 resource "mongodbatlas_cloud_provider_access" "test" {
-  project_id = var.project_id
-  provider_name = "AWS"
+  project_id           = var.project_id
+  provider_name        = "AWS"
   iam_assumed_role_arn = var.aws_iam_role_arn
 }
 
