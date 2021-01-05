@@ -146,8 +146,12 @@ type ListOptions struct {
 type ErrorResponse struct {
 	// HTTP response that caused this error
 	Response *http.Response
-	// The error code, which is simply the HTTP status code.
-	ErrorCode int `json:"Error"`
+
+	// The error code as specified in https://docs.atlas.mongodb.com/reference/api/api-errors/
+	ErrorCode string `json:"errorCode"`
+
+	// HTTP status code.
+	HTTPCode int `json:"error"`
 
 	// A short description of the error, which is simply the HTTP status phrase.
 	Reason string `json:"reason"`
@@ -387,9 +391,18 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 	}
 
 	defer func() {
-		if rerr := resp.Body.Close(); err == nil {
-			err = rerr
+		// Ensure the response body is fully read and closed
+		// before we reconnect, so that we reuse the same TCP connection.
+		// Close the previous response's body. But read at least some of
+		// the body so if it's small the underlying TCP connection will be
+		// re-used. No need to check for errors: if it fails, the Transport
+		// won't reuse it anyway.
+		const maxBodySlurpSize = 2 << 10
+		if resp.ContentLength == -1 || resp.ContentLength <= maxBodySlurpSize {
+			_, _ = io.CopyN(ioutil.Discard, resp.Body, maxBodySlurpSize)
 		}
+
+		resp.Body.Close()
 	}()
 
 	response := &Response{Response: resp}
@@ -421,7 +434,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 
 func (r *ErrorResponse) Error() string {
 	return fmt.Sprintf("%v %v: %d (request %q) %v",
-		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Reason, r.Detail)
+		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.ErrorCode, r.Detail)
 }
 
 // CheckResponse checks the API response for errors, and returns them if present. A response is considered an

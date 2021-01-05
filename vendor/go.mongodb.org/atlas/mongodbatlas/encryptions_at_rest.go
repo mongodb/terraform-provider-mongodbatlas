@@ -82,6 +82,8 @@ type AwsKms struct {
 	SecretAccessKey     string `json:"secretAccessKey,omitempty"`     // The IAM secret access key with permissions to access the customer master key specified by customerMasterKeyID.
 	CustomerMasterKeyID string `json:"customerMasterKeyID,omitempty"` // The AWS customer master key used to encrypt and decrypt the MongoDB master keys.
 	Region              string `json:"region,omitempty"`              // The AWS region in which the AWS customer master key exists: CA_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2, SA_EAST_1
+	RoleID              string `json:"roleId,omitempty"`              // ID of an AWS IAM role authorized to manage an AWS customer master key.
+	Valid               *bool  `json:"valid,omitempty"`               // Specifies whether the encryption key set for the provider is valid and may be used to encrypt and decrypt data.
 }
 
 // AzureKeyVault specifies Azure Key Vault configuration details and whether Encryption at Rest is enabled for an Atlas project.
