@@ -593,7 +593,7 @@ func flattenAlertConfigurationNotifications(notifications []matlas.Notification)
 		nts[i] = map[string]interface{}{
 			"api_token":              notifications[i].APIToken,
 			"channel_name":           notifications[i].ChannelName,
-			"datadog_api_key":        notifications[i].DatadogRegion,
+			"datadog_api_key":        notifications[i].DatadogAPIKey,
 			"datadog_region":         notifications[i].DatadogRegion,
 			"delay_min":              notifications[i].DelayMin,
 			"email_address":          notifications[i].EmailAddress,
