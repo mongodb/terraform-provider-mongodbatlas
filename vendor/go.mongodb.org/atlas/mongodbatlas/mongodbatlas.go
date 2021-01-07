@@ -25,7 +25,7 @@ const (
 	gzipMediaType  = "application/gzip"
 	libraryName    = "go-mongodbatlas"
 	// Version the version of the current API client
-	Version = "0.6.0" // Should be set to the next version planned to be released
+	Version = "0.7.0" // Should be set to the next version planned to be released
 )
 
 var (
@@ -78,6 +78,7 @@ type Client struct {
 	Containers                          ContainersService
 	EncryptionsAtRest                   EncryptionsAtRestService
 	WhitelistAPIKeys                    WhitelistAPIKeysService
+	AccessListAPIKeys                   AccessListAPIKeysService
 	PrivateIPMode                       PrivateIPModeService
 	MaintenanceWindows                  MaintenanceWindowsService
 	Teams                               TeamsService
@@ -227,6 +228,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.ProjectIPWhitelist = &ProjectIPWhitelistServiceOp{Client: c}
 	c.ProjectIPAccessList = &ProjectIPAccessListServiceOp{Client: c}
 	c.WhitelistAPIKeys = &WhitelistAPIKeysServiceOp{Client: c}
+	c.AccessListAPIKeys = &AccessListAPIKeysServiceOp{Client: c}
 	c.PrivateIPMode = &PrivateIPModeServiceOp{Client: c}
 	c.MaintenanceWindows = &MaintenanceWindowsServiceOp{Client: c}
 	c.Teams = &TeamsServiceOp{Client: c}
