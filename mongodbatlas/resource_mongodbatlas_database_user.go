@@ -308,7 +308,9 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 		return nil, err
 	}
 
-	u, _, err := conn.DatabaseUsers.Get(context.Background(), *authDatabaseName, *projectID, *username)
+	usernameEscaped := url.PathEscape(*username)
+
+	u, _, err := conn.DatabaseUsers.Get(context.Background(), *authDatabaseName, *projectID, usernameEscaped)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import user(%s) in project(%s), error: %s", *username, *projectID, err)
 	}
