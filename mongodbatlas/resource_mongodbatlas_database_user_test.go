@@ -410,6 +410,36 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasDatabaseUser_withLDAPAuthType(t *testing.T) {
+	var (
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	var (
 		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
@@ -467,6 +497,43 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importX509TypeCustomer(t *testing.T
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasDatabaseUser_importLDAPAuthType(t *testing.T) {
+	var (
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = "CN=david@example.com,OU=users,DC=example,DC=com"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
@@ -762,4 +829,30 @@ func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, 
 
 		}
 	`, projectName, orgID, clusterName, username, password, roleName, scopes)
+}
+
+func testAccMongoDBAtlasDatabaseUserWithLDAPAuthTypeConfig(projectName, orgID, roleName, username, keyLabel, valueLabel string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
+		resource "mongodbatlas_database_user" "test" {
+			username           = "%[4]s"
+			ldap_auth_type     = "USER"
+			project_id         = "${mongodbatlas_project.test.id}"
+			auth_database_name = "$external"
+
+			roles {
+				role_name     = "%[3]s"
+				database_name = "admin"
+			}
+
+			labels {
+				key   = "%s"
+				value = "%s"
+			}
+		}
+	`, projectName, orgID, roleName, username, keyLabel, valueLabel)
 }
