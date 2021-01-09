@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -94,6 +97,14 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 					},
 				},
 			},
+			"request_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -128,6 +139,21 @@ func resourceMongoDBAtlasLDAPVerifyCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf(errorLDAPVerifyCreate, projectID, err)
 	}
 
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"PENDING"},
+		Target:     []string{"SUCCESS", "FAILED"},
+		Refresh:    resourceLDAPGetStatusRefreshFunc(projectID, ldap.RequestID, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 1 * time.Minute,
+		Delay:      3 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(errorLDAPVerifyCreate, projectID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"request_id": ldap.RequestID,
@@ -144,33 +170,30 @@ func resourceMongoDBAtlasLDAPVerifyRead(d *schema.ResourceData, meta interface{}
 	requestID := ids["request_id"]
 
 	ldapResp, _, err := conn.LDAPConfigurations.GetStatus(context.Background(), projectID, requestID)
-	if err != nil {
+	if err != nil || ldapResp == nil {
 		return fmt.Errorf(errorLDAPVerifyRead, d.Id(), err)
 	}
 
-	if err := d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
+	if err := d.Set("hostname", ldapResp.Request.Hostname); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "hostname", d.Id(), err)
 	}
-	if err := d.Set("port", ldapResp.LDAP.Port); err != nil {
+	if err := d.Set("port", ldapResp.Request.Port); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "port", d.Id(), err)
 	}
-	if err := d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
+	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "bind_username", d.Id(), err)
-	}
-	if err := d.Set("bind_password", ldapResp.LDAP.BindPassword); err != nil {
-		return fmt.Errorf(errorLDAPVerifySetting, "bind_password", d.Id(), err)
-	}
-	if err := d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
-		return fmt.Errorf(errorLDAPVerifySetting, "ca_certificate", d.Id(), err)
-	}
-	if err := d.Set("authz_query_template", ldapResp.LDAP.AuthzQueryTemplate); err != nil {
-		return fmt.Errorf(errorLDAPVerifySetting, "authz_query_template", d.Id(), err)
 	}
 	if err := d.Set("links", flattenLinks(ldapResp.Links)); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "links", d.Id(), err)
 	}
 	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "validations", d.Id(), err)
+	}
+	if err := d.Set("request_id", ldapResp.RequestID); err != nil {
+		return fmt.Errorf(errorLDAPVerifySetting, "request_id", d.Id(), err)
+	}
+	if err := d.Set("status", ldapResp.Status); err != nil {
+		return fmt.Errorf(errorLDAPVerifySetting, "status", d.Id(), err)
 	}
 
 	return nil
@@ -236,4 +259,19 @@ func resourceMongoDBAtlasLDAPVerifyImportState(d *schema.ResourceData, meta inte
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func resourceLDAPGetStatusRefreshFunc(projectID, requestID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		p, resp, err := client.LDAPConfigurations.GetStatus(context.Background(), projectID, requestID)
+		if err != nil {
+			if resp.Response.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+
+			return nil, "", err
+		}
+
+		return p, p.Status, nil
+	}
 }

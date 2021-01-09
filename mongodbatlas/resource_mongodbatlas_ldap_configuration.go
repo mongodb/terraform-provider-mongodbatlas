@@ -45,15 +45,17 @@ func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 			},
 			"port": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
+				Default:  636,
 			},
 			"bind_username": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"bind_password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"ca_certificate": {
 				Type:     schema.TypeString,
@@ -171,9 +173,6 @@ func resourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta inte
 	}
 	if err = d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
 		return fmt.Errorf(errorLDAPConfigurationSetting, "bind_username", d.Id(), err)
-	}
-	if err = d.Set("bind_password", ldapResp.LDAP.BindPassword); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "bind_password", d.Id(), err)
 	}
 	if err = d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
 		return fmt.Errorf(errorLDAPConfigurationSetting, "ca_certificate", d.Id(), err)

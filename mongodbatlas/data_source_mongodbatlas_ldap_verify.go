@@ -33,15 +33,7 @@ func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"bind_password": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ca_certificate": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"authz_query_template": {
+			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -94,26 +86,23 @@ func dataSourceMongoDBAtlasLDAPVerifyRead(d *schema.ResourceData, meta interface
 	if err := d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "hostname", d.Id(), err)
 	}
-	if err := d.Set("port", ldapResp.LDAP.Port); err != nil {
+	if err := d.Set("port", ldapResp.Request.Port); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "port", d.Id(), err)
 	}
-	if err := d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
+	if err := d.Set("bind_username", ldapResp.Request.BindUsername); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "bind_username", d.Id(), err)
-	}
-	if err := d.Set("bind_password", ldapResp.LDAP.BindPassword); err != nil {
-		return fmt.Errorf(errorLDAPVerifySetting, "bind_password", d.Id(), err)
-	}
-	if err := d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
-		return fmt.Errorf(errorLDAPVerifySetting, "ca_certificate", d.Id(), err)
-	}
-	if err := d.Set("authz_query_template", ldapResp.LDAP.AuthzQueryTemplate); err != nil {
-		return fmt.Errorf(errorLDAPVerifySetting, "authz_query_template", d.Id(), err)
 	}
 	if err := d.Set("links", flattenLinks(ldapResp.Links)); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "links", d.Id(), err)
 	}
 	if err := d.Set("validations", flattenValidations(ldapResp.Validations)); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "validations", d.Id(), err)
+	}
+	if err := d.Set("request_id", ldapResp.RequestID); err != nil {
+		return fmt.Errorf(errorLDAPVerifySetting, "request_id", d.Id(), err)
+	}
+	if err := d.Set("status", ldapResp.Status); err != nil {
+		return fmt.Errorf(errorLDAPVerifySetting, "status", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
