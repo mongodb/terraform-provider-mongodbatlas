@@ -38,7 +38,7 @@ func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
 				Computed: true,
 			},
 			"links": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -54,7 +54,7 @@ func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
 				},
 			},
 			"validations": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -83,7 +83,7 @@ func dataSourceMongoDBAtlasLDAPVerifyRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf(errorLDAPVerifyRead, projectID, err)
 	}
 
-	if err := d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
+	if err := d.Set("hostname", ldapResp.Request.Hostname); err != nil {
 		return fmt.Errorf(errorLDAPVerifySetting, "hostname", d.Id(), err)
 	}
 	if err := d.Set("port", ldapResp.Request.Port); err != nil {

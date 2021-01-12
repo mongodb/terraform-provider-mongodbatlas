@@ -66,7 +66,7 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 				ForceNew: true,
 			},
 			"links": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -82,7 +82,7 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 				},
 			},
 			"validations": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

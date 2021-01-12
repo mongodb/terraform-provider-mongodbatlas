@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/spf13/cast"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,25 +16,26 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasLDAPConfiguration_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
 		resourceName      = "mongodbatlas_ldap_configuration.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName       = acctest.RandomWithPrefix("test-acc")
-		hostname          = "3.138.245.82"
-		username          = "cn=admin,dc=space,dc=intern"
-		password          = "neuewelt32"
+		hostname          = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username          = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password          = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
 		authEnabled       = true
-		port              = 7001
+		port              = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, port),
+				Config: testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, username, password, authEnabled, cast.ToInt(port)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName, &ldapConfiguration),
 
@@ -48,6 +51,7 @@ func TestAccResourceMongoDBAtlasLDAPConfiguration_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasLDAPConfiguration_importBasic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		ldapConf     = matlas.LDAPConfiguration{}
 		resourceName = "mongodbatlas_ldap_configuration.test"
@@ -61,7 +65,7 @@ func TestAccResourceMongoDBAtlasLDAPConfiguration_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -148,11 +152,11 @@ func testAccMongoDBAtlasLDAPConfigurationConfig(projectName, orgID, hostname, us
 		}
 
 		resource "mongodbatlas_ldap_configuration" "test" {
-			project_id                  = mongodbatlas_project.test.id
-			authentication_enabled                = %[6]t
-			hostname = "%[3]s"
-			port                     = %[7]d
-			bind_username                     = "%[4]s"
-			bind_password                     = "%[5]s"
+			project_id                  =  mongodbatlas_project.test.id
+			authentication_enabled      =  %[6]t
+			hostname					= "%[3]s"
+			port                     	=  %[7]d
+			bind_username               = "%[4]s"
+			bind_password               = "%[5]s"
 		}`, projectName, orgID, hostname, username, password, authEnabled, port)
 }
