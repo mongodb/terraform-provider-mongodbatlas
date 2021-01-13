@@ -10,7 +10,13 @@ const whitelistAPIKeysPath = "orgs/%s/apiKeys/%s/whitelist"
 
 // WhitelistAPIKeysService is an interface for interfacing with the Whitelist API Keys
 // endpoints of the MongoDB Atlas API.
+//
 // See more: https://docs.atlas.mongodb.com/reference/api/apiKeys/#organization-api-key-endpoints
+//
+// Deprecated: AccessListAPIKeysService replaces WhitelistAPIKeysService.
+// Atlas now refers to programmatic API key whitelists as access lists.
+// Atlas has deprecated the whitelist method and will disable it in June 2021.
+// Please update any dependent work to use WhitelistAPIKeysService
 type WhitelistAPIKeysService interface {
 	List(context.Context, string, string, *ListOptions) (*WhitelistAPIKeys, *Response, error)
 	Get(context.Context, string, string, string) (*WhitelistAPIKey, *Response, error)
