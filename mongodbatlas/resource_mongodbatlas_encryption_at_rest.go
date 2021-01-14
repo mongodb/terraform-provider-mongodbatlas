@@ -39,26 +39,26 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 						"access_key_id": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 						"secret_access_key": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 						"customer_master_key_id": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 						"region": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"role_id": {
 							Type:     schema.TypeString,
@@ -170,10 +170,6 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf(errorReadEncryptionAtRest, err)
 	}
 
-	if err := d.Set("project_id", resp.GroupID); err != nil {
-		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
-	}
-
 	if err := d.Set("aws_kms", flattenAWSKMS(&resp.AwsKms)); err != nil {
 		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err)
 	}
@@ -271,10 +267,8 @@ func flattenAWSKMS(m *matlas.AwsKms) map[string]interface{} {
 		return map[string]interface{}{
 			"enabled":                cast.ToString(m.Enabled),
 			"access_key_id":          m.AccessKeyID,
-			"secret_access_key":      m.SecretAccessKey,
 			"customer_master_key_id": m.CustomerMasterKeyID,
 			"region":                 m.Region,
-			"role_id":                m.RoleID,
 		}
 	}
 
