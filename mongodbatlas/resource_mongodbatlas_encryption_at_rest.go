@@ -39,32 +39,46 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 						"access_key_id": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 						"secret_access_key": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 						"customer_master_key_id": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 						},
 						"region": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"role_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 					},
+				},
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(map[string]interface{})
+
+					_, akOk := v["access_key_id"]
+					_, saOk := v["secret_access_key"]
+					_, rOk := v["role_id"]
+
+					if (akOk && saOk && rOk) || (akOk && rOk) || (saOk && rOk) {
+						errs = append(errs, fmt.Errorf("%q For credentials: `access_key_id` and `secret_access_key` are allowed but not `role_id`."+
+							" For roles: `access_key_id` and `secret_access_key` are not allowed but `role_id` is allowed", key))
+					}
+
+					return
 				},
 			},
 			"azure_key_vault": {
@@ -170,10 +184,6 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf(errorReadEncryptionAtRest, err)
 	}
 
-	if err := d.Set("project_id", resp.GroupID); err != nil {
-		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
-	}
-
 	if err := d.Set("aws_kms", flattenAWSKMS(&resp.AwsKms)); err != nil {
 		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err)
 	}
@@ -271,7 +281,6 @@ func flattenAWSKMS(m *matlas.AwsKms) map[string]interface{} {
 		return map[string]interface{}{
 			"enabled":                cast.ToString(m.Enabled),
 			"access_key_id":          m.AccessKeyID,
-			"secret_access_key":      m.SecretAccessKey,
 			"customer_master_key_id": m.CustomerMasterKeyID,
 			"region":                 m.Region,
 			"role_id":                m.RoleID,
