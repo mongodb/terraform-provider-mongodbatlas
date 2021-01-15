@@ -66,6 +66,20 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 						},
 					},
 				},
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(map[string]interface{})
+
+					_, akOk := v["access_key_id"]
+					_, saOk := v["secret_access_key"]
+					_, rOk := v["role_id"]
+
+					if (akOk && saOk && rOk) || (akOk && rOk) || (saOk && rOk) {
+						errs = append(errs, fmt.Errorf("%q For credentials: `access_key_id` and `secret_access_key` are allowed but not `role_id`."+
+							" For roles: `access_key_id` and `secret_access_key` are not allowed but `role_id` is allowed", key))
+					}
+
+					return
+				},
 			},
 			"azure_key_vault": {
 				Type:     schema.TypeMap,
@@ -269,6 +283,7 @@ func flattenAWSKMS(m *matlas.AwsKms) map[string]interface{} {
 			"access_key_id":          m.AccessKeyID,
 			"customer_master_key_id": m.CustomerMasterKeyID,
 			"region":                 m.Region,
+			"role_id":                m.RoleID,
 		}
 	}
 
