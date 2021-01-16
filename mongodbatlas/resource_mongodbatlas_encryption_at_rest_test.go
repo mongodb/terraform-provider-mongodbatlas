@@ -97,7 +97,7 @@ data "aws_iam_role" "test" {
 )
 
 func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
-	//SkipTestExtCred(t)
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
