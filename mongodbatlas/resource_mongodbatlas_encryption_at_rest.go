@@ -50,7 +50,6 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 						"secret_access_key": {
 							Type:      schema.TypeString,
 							Optional:  true,
-							Computed:  true,
 							Sensitive: true,
 						},
 						"customer_master_key_id": {
@@ -204,6 +203,17 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 		if awsOk {
 			aws2 := aws.(map[string]interface{})
 			values["secret_access_key"] = cast.ToString(aws2["secret_access_key"])
+			if v, sa := values["role_id"]; sa {
+				if v.(string) == "" {
+					delete(values, "role_id")
+				}
+			}
+			if v, sa := values["access_key_id"]; sa {
+				if v.(string) == "" {
+					delete(values, "access_key_id")
+					delete(values, "secret_access_key")
+				}
+			}
 		}
 
 		if err = d.Set("aws_kms", values); err != nil {
@@ -311,7 +321,7 @@ func flattenAWSKMS(m *matlas.AwsKms) map[string]interface{} {
 		"access_key_id":          m.AccessKeyID,
 		"customer_master_key_id": m.CustomerMasterKeyID,
 		"region":                 m.Region,
-		//"role_id":                m.RoleID,
+		"role_id":                m.RoleID,
 	}
 }
 
