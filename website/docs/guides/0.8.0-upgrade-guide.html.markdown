@@ -25,6 +25,7 @@ Configuring cloud provider access with Terraform is a multi step process:
 2) modify your AWS IAM role trust policy with AWS
 3) Add the IAM Assumed Role ARN to your Atlas resource definition
 4) Apply again to authorize.
+
 After this process you can then configure or update encryption at rest for your project.  For example:
 
 Example 1st Terraform Apply
@@ -130,9 +131,14 @@ In order to transition from the deprecated resources to the new without disablin
 
 1) [Remove](https://www.terraform.io/docs/commands/state/rm.html) any currently managed private_endpoint and private_endpoint_interface_link resources from your Terraform state.  We suggest saving the state information before making any changes both in case of mistake and to use for the next steps.
 2) Create a new resource in your Terraform configuration file using the documentation as a guide: [privatelink_endpoint](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) and [privatelink_endpoint_service](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service)
-3) Then [import](https://www.terraform.io/docs/commands/import.html) the privatelink information into the new resources, e.g: 
+3) Then [import](https://www.terraform.io/docs/commands/import.html) the privatelink information into the new resources, e.g:
+
+```hcl
 terraform import mongodbatlas_privatelink_endpoint.test {project_id}-{private_link_id}-{provider_name}
-Mongodbatlas_privatelink_endpoint_service.test {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}
+
+mongodbatlas_privatelink_endpoint_service.test {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}
+```
+
 NOTE: Provider name for both resources are case sensitive.
 
 ### Helpful Links
