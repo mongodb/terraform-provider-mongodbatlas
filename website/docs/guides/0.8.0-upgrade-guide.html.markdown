@@ -136,7 +136,7 @@ In order to transition from the deprecated resources to the new without disablin
 ```hcl
 terraform import mongodbatlas_privatelink_endpoint.test {project_id}-{private_link_id}-{provider_name}
 
-mongodbatlas_privatelink_endpoint_service.test {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}
+terraform import mongodbatlas_privatelink_endpoint_service.test {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}
 ```
 
 NOTE: Provider name for both resources are case sensitive.
