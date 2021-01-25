@@ -15,7 +15,6 @@ func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 
 // https://docs.atlas.mongodb.com/reference/api/online-archive-create-one
 func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
-
 	criteriaValidator := func(val interface{}, key string) (warns []string, errs []error) {
 		in := val.(map[string]interface{})
 
@@ -130,5 +129,4 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
-
 }
