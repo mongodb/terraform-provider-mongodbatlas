@@ -93,10 +93,11 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta 
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
+	region := d.Get("region").(string)
 
 	request := &matlas.PrivateEndpointConnection{
 		ProviderName: providerName,
-		Region:       d.Get("region").(string),
+		Region:       region,
 	}
 
 	privateEndpointConn, _, err := conn.PrivateEndpoints.Create(context.Background(), projectID, request)
@@ -123,6 +124,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta 
 		"private_link_id": privateEndpointConn.ID,
 		"project_id":      projectID,
 		"provider_name":   providerName,
+		"region":          region,
 	}))
 
 	return resourceMongoDBAtlasPrivateLinkEndpointRead(d, meta)
@@ -135,6 +137,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta in
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
 	providerName := ids["provider_name"]
+	region := ids["region"]
 
 	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
 	if err != nil {
@@ -171,6 +174,14 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta in
 
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", privateLinkID, err)
+	}
+
+	if err := d.Set("provider_name", providerName); err != nil {
+		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "provider_name", privateLinkID, err)
+	}
+
+	if err := d.Set("region", region); err != nil {
+		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "region", privateLinkID, err)
 	}
 
 	return nil
@@ -215,14 +226,18 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(d *schema.ResourceData, meta 
 func resourceMongoDBAtlasPrivateLinkEndpointImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{provider_name}")
+	parts := strings.Split(d.Id(), "-")
+	if len(parts) != 6 && len(parts) != 4 {
+		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{provider_name}-{region}")
 	}
 
 	projectID := parts[0]
 	privateLinkID := parts[1]
 	providerName := parts[2]
+	region := parts[3] // If region it's azure or Atlas format like US_EAST_1
+	if len(parts) == 6 {
+		region = fmt.Sprintf("%s-%s-%s", parts[3], parts[4], parts[5])
+	}
 
 	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
 	if err != nil {
@@ -237,6 +252,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(d *schema.ResourceData, 
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
 		"provider_name":   providerName,
+		"region":          region,
 	}))
 
 	return []*schema.ResourceData{d}, nil

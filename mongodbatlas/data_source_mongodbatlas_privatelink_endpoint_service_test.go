@@ -24,7 +24,7 @@ func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceAWS_basic(t *testing
 	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
+		PreCheck:  func() { testAccPreCheck(t); checkAwsEnv(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -66,8 +66,8 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceDataSourceConfig(awsAccessKey,
 
 		resource "mongodbatlas_privatelink_endpoint_service" "test" {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-			private_link_id       =  aws_vpc_endpoint.ptfe_service.id
-			endpoint_service_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+			endpoint_service_id       =  aws_vpc_endpoint.ptfe_service.id
+			private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
 			provider_name = "%[4]s"
 		}
 

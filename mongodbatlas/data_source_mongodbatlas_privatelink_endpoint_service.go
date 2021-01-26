@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/spf13/cast"
@@ -74,8 +75,9 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData
 	privateLinkID := d.Get("private_link_id").(string)
 	endpointServiceID := d.Get("endpoint_service_id").(string)
 	providerName := d.Get("provider_name").(string)
+	encodedEndpointID := url.PathEscape(endpointServiceID)
 
-	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
+	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -95,7 +97,7 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
-		"endpoint_service_id": serviceEndpoint.ID,
+		"endpoint_service_id": endpointServiceID,
 		"provider_name":       providerName,
 	}))
 

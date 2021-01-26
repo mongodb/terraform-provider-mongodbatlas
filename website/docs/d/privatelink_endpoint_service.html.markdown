@@ -32,7 +32,8 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id            = "${mongodbatlas_privatelink_endpoint.test.project_id}"
   private_link_id       = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
-  interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
+  endpoint_service_id   = "${aws_vpc_endpoint.ptfe_service.id}"
+  provider_name         ="AWS"
 }
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
@@ -45,8 +46,8 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the `AWS` or `AZURE` PrivateLink connection.
-* `endpoint_service_id` - (Required) Unique identifier of the private endpoint service for which you want to create a private endpoint service.
+* `private_link_id` - (Required) Unique identifier of the private endpoint service for which you want to retrieve a private endpoint.
+* `endpoint_service_id` - (Required) Unique identifier of the `AWS` or `AZURE` resource.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS` or `AZURE`.
 
 ## Attributes Reference

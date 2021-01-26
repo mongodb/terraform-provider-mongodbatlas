@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"testing"
 
@@ -28,7 +29,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testin
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
+		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
@@ -117,7 +118,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName strin
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["endpoint_service_id"], ids["private_link_id"])
+		_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), ids["project_id"], ids["provider_name"], ids["private_link_id"], url.QueryEscape(ids["endpoint_service_id"]))
 		if err == nil {
 			return nil
 		}
@@ -169,8 +170,8 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey
 
 		resource "mongodbatlas_privatelink_endpoint_service" "test" {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-			private_link_id       =  aws_vpc_endpoint.ptfe_service.id
-			endpoint_service_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+			endpoint_service_id       =  aws_vpc_endpoint.ptfe_service.id
+			private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
 			provider_name = "%[4]s"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)

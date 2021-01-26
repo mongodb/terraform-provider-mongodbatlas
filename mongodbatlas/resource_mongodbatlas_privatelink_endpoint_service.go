@@ -95,11 +95,11 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 	endpointServiceID := d.Get("endpoint_service_id").(string)
 
 	request := &matlas.InterfaceEndpointConnection{
-		ID:                       privateLinkID,
+		ID:                       endpointServiceID,
 		PrivateEndpointIPAddress: d.Get("private_endpoint_ip_address").(string),
 	}
 
-	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, request)
+	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, request)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err)
 	}
@@ -136,9 +136,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
-	encodedPrivateLinkID := url.PathEscape(privateLinkID)
+	encodedEndpointID := url.PathEscape(endpointServiceID)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPrivateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -175,6 +175,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 		return fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err)
 	}
 
+	if err := d.Set("private_link_id", privateLinkID); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "private_link_id", endpointServiceID, err)
+	}
+
 	return nil
 }
 
@@ -186,10 +190,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
-	encodedPrivateLinkID := url.PathEscape(privateLinkID)
+	encodedEndpointID := url.PathEscape(endpointServiceID)
 
 	if endpointServiceID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPrivateLinkID)
+		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
 		if err != nil {
 			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
 		}
@@ -225,9 +229,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
-	encodedPrivateLinkID := url.PathEscape(privateLinkID)
+	encodedEndpointID := url.PathEscape(endpointServiceID)
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, encodedPrivateLinkID)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -260,7 +264,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 
 func resourceServiceEndpointRefreshFunc(client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, endpointServiceID, privateLinkID)
+		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil

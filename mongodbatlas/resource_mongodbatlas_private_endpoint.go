@@ -118,6 +118,8 @@ func resourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interf
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
+	providerName := ids["provider_name"]
+	region := ids["region"]
 
 	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
@@ -142,6 +144,14 @@ func resourceMongoDBAtlasPrivateEndpointRead(d *schema.ResourceData, meta interf
 
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return fmt.Errorf(errorPrivateEndpointsSetting, "status", privateLinkID, err)
+	}
+
+	if err := d.Set("provider_name", providerName); err != nil {
+		return fmt.Errorf(errorPrivateEndpointsSetting, "provider_name", privateLinkID, err)
+	}
+
+	if err := d.Set("region", region); err != nil {
+		return fmt.Errorf(errorPrivateEndpointsSetting, "provider_name", privateLinkID, err)
 	}
 
 	return nil
@@ -185,13 +195,15 @@ func resourceMongoDBAtlasPrivateEndpointDelete(d *schema.ResourceData, meta inte
 func resourceMongoDBAtlasPrivateEndpointImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 2)
-	if len(parts) != 2 {
-		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}")
+	parts := strings.Split(d.Id(), "-")
+	if len(parts) != 6 {
+		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}-{private_link_id}-{provider_name}-{region} ")
 	}
 
 	projectID := parts[0]
 	privateLinkID := parts[1]
+	providerName := parts[2]
+	region := fmt.Sprintf("%s-%s-%s", parts[3], parts[4], parts[5])
 
 	privateEndpoint, _, err := conn.PrivateEndpointsDeprecated.Get(context.Background(), projectID, privateLinkID)
 	if err != nil {
@@ -205,6 +217,8 @@ func resourceMongoDBAtlasPrivateEndpointImportState(d *schema.ResourceData, meta
 	d.SetId(encodeStateID(map[string]string{
 		"private_link_id": privateEndpoint.ID,
 		"project_id":      projectID,
+		"provider_name":   providerName,
+		"region":          region,
 	}))
 
 	return []*schema.ResourceData{d}, nil
