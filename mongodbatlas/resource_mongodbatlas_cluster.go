@@ -107,82 +107,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"connection_strings": {
-				Type:     schema.TypeList,
-				MinItems: 1,
-				MaxItems: 1,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"standard": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"standard_srv": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"aws_private_link": {
-							Type:       schema.TypeMap,
-							Computed:   true,
-							Deprecated: "This field is deprecated. Use connection_strings.private_endpoint[n].connection_string instead",
-						},
-						"aws_private_link_srv": {
-							Type:       schema.TypeMap,
-							Computed:   true,
-							Deprecated: "This field is deprecated. Use connection_strings.private_endpoint[n].srv_connection_string instead",
-						},
-						"private": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_srv": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_endpoint": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"connection_string": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"endpoints": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"endpoint_id": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"provider_name": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"region": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-									"srv_connection_string": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"type": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"connection_strings": clusterConnectionStringsSchema(),
 			"disk_size_gb": {
 				Type:     schema.TypeFloat,
 				Optional: true,
@@ -1392,4 +1317,83 @@ func getContainerID(containers []matlas.Container, cluster *matlas.Cluster) stri
 	}
 
 	return ""
+}
+
+func clusterConnectionStringsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		MinItems: 1,
+		MaxItems: 1,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"standard": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"standard_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"aws_private_link": {
+					Type:       schema.TypeMap,
+					Computed:   true,
+					Deprecated: "This field is deprecated. Use connection_strings.private_endpoint[n].connection_string instead",
+				},
+				"aws_private_link_srv": {
+					Type:       schema.TypeMap,
+					Computed:   true,
+					Deprecated: "This field is deprecated. Use connection_strings.private_endpoint[n].srv_connection_string instead",
+				},
+				"private": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_endpoint": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"endpoints": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"endpoint_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"provider_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"region": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
+							"srv_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }
