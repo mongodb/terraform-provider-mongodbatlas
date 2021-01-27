@@ -1,3 +1,17 @@
+// Copyright 2021 MongoDB Inc
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package mongodbatlas // import "go.mongodb.org/atlas/mongodbatlas"
 
 import (
@@ -20,12 +34,15 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://cloud.mongodb.com/api/atlas/v1.0/"
-	jsonMediaType  = "application/json"
-	gzipMediaType  = "application/gzip"
-	libraryName    = "go-mongodbatlas"
-	// Version the version of the current API client
-	Version = "0.7.0" // Should be set to the next version planned to be released
+	CloudURL        = "https://cloud.mongodb.com/"
+	defaultBaseURL  = CloudURL + APIPublicV1Path
+	APIPublicV1Path = "api/atlas/v1.0/" // APIPublicV1Path specifies the v1 api path
+	jsonMediaType   = "application/json"
+	plainMediaType  = "text/plain"
+	gzipMediaType   = "application/gzip"
+	libraryName     = "go-mongodbatlas"
+	// Version the version of the current API client. Should be set to the next version planned to be released
+	Version = "0.7.1"
 )
 
 var (
@@ -54,6 +71,13 @@ type GZipRequestDoer interface {
 	Doer
 	Completer
 	NewGZipRequest(context.Context, string, string) (*http.Request, error)
+}
+
+// PlainRequestDoer minimum interface for any service of the client that should handle plain text
+type PlainRequestDoer interface {
+	Doer
+	Completer
+	NewPlainRequest(context.Context, string, string) (*http.Request, error)
 }
 
 // Client manages communication with MongoDBAtlas v1.0 API
@@ -111,6 +135,7 @@ type Client struct {
 	LDAPConfigurations                  LDAPConfigurationsService
 	PerformanceAdvisor                  PerformanceAdvisorService
 	CloudProviderAccess                 CloudProviderAccessService
+	DefaultMongoDBMajorVersion          DefaultMongoDBMajorVersionService
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -260,12 +285,25 @@ func NewClient(httpClient *http.Client) *Client {
 	c.LDAPConfigurations = &LDAPConfigurationsServiceOp{Client: c}
 	c.PerformanceAdvisor = &PerformanceAdvisorServiceOp{Client: c}
 	c.CloudProviderAccess = &CloudProviderAccessServiceOp{Client: c}
+	c.DefaultMongoDBMajorVersion = &DefaultMongoDBMajorVersionServiceOp{Client: c}
 
 	return c
 }
 
-// ClientOpt are options for New.
+// ClientOpt configures a Client.
 type ClientOpt func(*Client) error
+
+// Options turns a list of ClientOpt instances into a ClientOpt.
+func Options(opts ...ClientOpt) ClientOpt {
+	return func(c *Client) error {
+		for _, opt := range opts {
+			if err := opt(c); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
 
 // New returns a new MongoDBAtlas API client instance.
 func New(httpClient *http.Client, opts ...ClientOpt) (*Client, error) {
@@ -342,9 +380,33 @@ func (c *Client) newEncodedBody(body interface{}) (io.Reader, error) {
 	return buf, err
 }
 
-// NewGZipRequest creates an API request that accepts gzip. A relative URL can be provided in urlStr, which will be resolved to the
+// NewGZipRequest creates an API request that accepts gzip.
+// A relative URL can be provided in urlStr, which will be resolved to the
 // BaseURL of the Client. Relative URLS should always be specified without a preceding slash.
 func (c *Client) NewGZipRequest(ctx context.Context, method, urlStr string) (*http.Request, error) {
+	req, err := c.newRequest(urlStr, method)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Accept", gzipMediaType)
+
+	return req, nil
+}
+
+// NewPlainRequest creates an API request that accepts plain text.
+// A relative URL can be provided in urlStr, which will be resolved to the
+// BaseURL of the Client. Relative URLS should always be specified without a preceding slash.
+func (c *Client) NewPlainRequest(ctx context.Context, method, urlStr string) (*http.Request, error) {
+	req, err := c.newRequest(urlStr, method)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Accept", plainMediaType)
+
+	return req, nil
+}
+
+func (c *Client) newRequest(urlStr, method string) (*http.Request, error) {
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
 		return nil, fmt.Errorf("base URL must have a trailing slash, but %q does not", c.BaseURL)
 	}
@@ -359,8 +421,6 @@ func (c *Client) NewGZipRequest(ctx context.Context, method, urlStr string) (*ht
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Accept", gzipMediaType)
 	if c.UserAgent != "" {
 		req.Header.Set("User-Agent", c.UserAgent)
 	}

@@ -1,12 +1,30 @@
+// Copyright 2021 MongoDB Inc
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package mongodbatlas
 
 import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
-const privateEndpointsPath = "groups/%s/privateEndpoint"
+const (
+	privateEndpointsPath = "groups/%s/privateEndpoint"
+	regionalModePath     = privateEndpointsPath + "/regionalMode"
+)
 
 // PrivateEndpointsService is an interface for interfacing with the Private Endpoints
 // of the MongoDB Atlas API.
@@ -20,6 +38,8 @@ type PrivateEndpointsService interface {
 	AddOnePrivateEndpoint(context.Context, string, string, string, *InterfaceEndpointConnection) (*InterfaceEndpointConnection, *Response, error)
 	GetOnePrivateEndpoint(context.Context, string, string, string, string) (*InterfaceEndpointConnection, *Response, error)
 	DeleteOnePrivateEndpoint(context.Context, string, string, string, string) (*Response, error)
+	UpdateRegionalizedPrivateEndpointSetting(context.Context, string, bool) (*RegionalizedPrivateEndpointSetting, *Response, error)
+	GetRegionalizedPrivateEndpointSetting(context.Context, string) (*RegionalizedPrivateEndpointSetting, *Response, error)
 }
 
 // PrivateEndpointsServiceOp handles communication with the PrivateEndpoints related methods
@@ -52,6 +72,11 @@ type InterfaceEndpointConnection struct {
 	DeleteRequested               *bool  `json:"deleteRequested,omitempty"`               // Indicates if Atlas received a request to remove the interface endpoint from the private endpoint connection.
 	ErrorMessage                  string `json:"errorMessage,omitempty"`                  // Error message pertaining to the interface endpoint. Returns null if there are no errors.
 	ConnectionStatus              string `json:"connectionStatus,omitempty"`              // Status of the interface endpoint: NONE, PENDING_ACCEPTANCE, PENDING, AVAILABLE, REJECTED, DELETING.
+}
+
+// RegionalizedPrivateEndpointSetting represents MongoDB Regionalized private Endpoint Setting.
+type RegionalizedPrivateEndpointSetting struct {
+	Enabled bool `json:"enabled"` // Flag that indicates whether the regionalized private endpoint setting is enabled for one Atlas project.
 }
 
 // Create one private endpoint service for AWS or Azure in an Atlas project.
@@ -224,7 +249,7 @@ func (s *PrivateEndpointsServiceOp) GetOnePrivateEndpoint(ctx context.Context, g
 	}
 
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
-	path := fmt.Sprintf("%s/%s/endpointService/%s/endpoint/%s", basePath, cloudProvider, endpointServiceID, privateEndpointID)
+	path := fmt.Sprintf("%s/%s/endpointService/%s/endpoint/%s", basePath, cloudProvider, endpointServiceID, url.PathEscape(privateEndpointID))
 
 	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
@@ -258,7 +283,7 @@ func (s *PrivateEndpointsServiceOp) DeleteOnePrivateEndpoint(ctx context.Context
 	}
 
 	basePath := fmt.Sprintf(privateEndpointsPath, groupID)
-	path := fmt.Sprintf("%s/%s/endpointService/%s/endpoint/%s", basePath, cloudProvider, endpointServiceID, privateEndpointID)
+	path := fmt.Sprintf("%s/%s/endpointService/%s/endpoint/%s", basePath, cloudProvider, endpointServiceID, url.PathEscape(privateEndpointID))
 
 	req, err := s.Client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
@@ -266,4 +291,50 @@ func (s *PrivateEndpointsServiceOp) DeleteOnePrivateEndpoint(ctx context.Context
 	}
 
 	return s.Client.Do(ctx, req, nil)
+}
+
+// UpdateRegionalizedPrivateEndpointSetting updates the regionalized private endpoint setting for one Atlas project.
+//
+// See more: https://docs.atlas.mongodb.com/reference/api/private-endpoints-update-regional-mode
+func (s *PrivateEndpointsServiceOp) UpdateRegionalizedPrivateEndpointSetting(ctx context.Context, groupID string, enabled bool) (*RegionalizedPrivateEndpointSetting, *Response, error) {
+	if groupID == "" {
+		return nil, nil, NewArgError("groupID", "must be set")
+	}
+
+	path := fmt.Sprintf(regionalModePath, groupID)
+	req, err := s.Client.NewRequest(ctx, http.MethodPatch, path, enabled)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(RegionalizedPrivateEndpointSetting)
+	resp, err := s.Client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
+}
+
+// GetRegionalizedPrivateEndpointSetting updates the regionalized private endpoint setting for one Atlas project.
+//
+// See more: https://docs.atlas.mongodb.com/reference/api/private-endpoints-get-regional-mode
+func (s *PrivateEndpointsServiceOp) GetRegionalizedPrivateEndpointSetting(ctx context.Context, groupID string) (*RegionalizedPrivateEndpointSetting, *Response, error) {
+	if groupID == "" {
+		return nil, nil, NewArgError("groupID", "must be set")
+	}
+
+	path := fmt.Sprintf(regionalModePath, groupID)
+	req, err := s.Client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(RegionalizedPrivateEndpointSetting)
+	resp, err := s.Client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root, resp, err
 }
