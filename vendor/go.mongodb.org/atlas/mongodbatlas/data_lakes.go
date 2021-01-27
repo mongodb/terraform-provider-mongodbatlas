@@ -27,7 +27,10 @@ type DataLakeServiceOp service
 
 // AwsCloudProviderConfig is the data lake configuration for AWS
 type AwsCloudProviderConfig struct {
+	ExternalID        string `json:"externalId,omitempty"`
 	IAMAssumedRoleARN string `json:"iamAssumedRoleARN,omitempty"`
+	IAMUserARN        string `json:"iamUserARN,omitempty"`
+	RoleID            string `json:"roleId,omitempty"`
 	TestS3Bucket      string `json:"testS3Bucket,omitempty"`
 }
 
@@ -105,7 +108,8 @@ type DataLakeUpdateRequest struct {
 
 // DataLakeCreateRequest represents the required fields to create a new data lake
 type DataLakeCreateRequest struct {
-	Name string `json:"name,omitempty"`
+	Name                string               `json:"name,omitempty"`
+	CloudProviderConfig *CloudProviderConfig `json:"cloudProviderConfig,omitempty"`
 }
 
 // List gets all data lakes for the specified group.
