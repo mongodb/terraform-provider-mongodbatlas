@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -136,9 +135,8 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
-	encodedEndpointID := url.PathEscape(endpointServiceID)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
+	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 	if err != nil {
 		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -190,10 +188,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 	privateLinkID := ids["private_link_id"]
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
-	encodedEndpointID := url.PathEscape(endpointServiceID)
 
 	if endpointServiceID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
+		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
 			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
 		}
@@ -229,9 +226,8 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
-	encodedEndpointID := url.PathEscape(endpointServiceID)
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, encodedEndpointID)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
