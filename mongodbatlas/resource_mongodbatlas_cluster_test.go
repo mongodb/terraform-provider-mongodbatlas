@@ -1225,7 +1225,7 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 			secret_key = "%[2]s"
 		}
 
-		resource "mongodbatlas_private_endpoint" "test" {
+		resource "mongodbatlas_privatelink_endpoint" "test" {
 			project_id    = "%[3]s"
 			provider_name = "%[4]s"
 			region        = "%[5]s"
@@ -1233,16 +1233,17 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 
 		resource "aws_vpc_endpoint" "ptfe_service" {
 			vpc_id             = "%[6]s"
-			service_name       = "${mongodbatlas_private_endpoint.test.endpoint_service_name}"
+			service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
 			vpc_endpoint_type  = "Interface"
 			subnet_ids         = ["%[7]s"]
 			security_group_ids = ["%[8]s"]
 		}
 
-		resource "mongodbatlas_private_endpoint_interface_link" "test" {
-			project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
-			private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
-			interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
+		resource "mongodbatlas_privatelink_endpoint_service" "test" {
+			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			private_link_id       = mongodbatlas_privatelink_endpoint.test.private_link_id
+			endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
+			provider_name = "%[4]s"
 		}
 
 		resource "mongodbatlas_cluster" "with_endpoint_link" {
@@ -1256,8 +1257,8 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 		  provider_instance_size_name = "M10"
 		  provider_backup_enabled     = true // enable cloud provider snapshots
 		  provider_disk_iops          = 100
-		  provider_encrypt_ebs_volume = false
-		  depends_on = ["mongodbatlas_private_endpoint_interface_link.test"]
+		  provider_encrypt_ebs_volume = true
+		  depends_on = ["mongodbatlas_privatelink_endpoint_service.test"]
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName)
 }
