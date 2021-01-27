@@ -2,7 +2,7 @@ package integration_testing
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/terratest/modules/terraform"
+	//"github.com/gruntwork-io/terratest/modules/terraform"
 	"os"
 	"strings"
 	"testing"
