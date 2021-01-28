@@ -1,8 +1,29 @@
 # Changelog
 
-## [v0.8.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/HEAD)
+## [v0.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v0.8.1)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.7.0...HEAD)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.8.0...v0.8.1)
+
+**Fixed bugs:**
+
+- Removal of user scopes is not detected by the provider [\#363](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/363)
+
+**Closed issues:**
+
+- Parameter mismatch in mongodbatlas\_privatelink\_endpoint\_service [\#391](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/391)
+- Can't add a team to a project [\#389](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/389)
+- failed to create policy items while using mongodbatlas\_cloud\_provider\_snapshot\_backup\_policy [\#386](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/386)
+- Unable to import resources with "terraform import" - 401 \(request "Unauthorized"\) [\#385](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/385)
+
+**Merged pull requests:**
+
+- INTMDB-158: Added private endpoint in connection strings [\#392](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/392) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-163: Wrong order for PrivateLink Endpoint Service and detects unnecessary changes [\#388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/388) ([coderGo93](https://github.com/coderGo93))
+
+
+## [v0.8.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v0.8.0)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.7.0...v0.8.0)
 
 **Fixed bugs:**
 
