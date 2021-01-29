@@ -78,7 +78,11 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"connection_status": {
+			"aws_connection_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"azure_status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -104,8 +108,8 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER"},
-		Target:     []string{"AVAILABLE", "REJECTED", "DELETED"},
+		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER"},
+		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
@@ -149,8 +153,12 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 		return fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err)
 	}
 
-	if err := d.Set("connection_status", privateEndpoint.ConnectionStatus); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	if err := d.Set("aws_connection_status", privateEndpoint.AWSConnectionStatus); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("azure_status", privateEndpoint.AzureStatus); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err)
 	}
 
 	if err := d.Set("interface_endpoint_id", privateEndpoint.InterfaceEndpointID); err != nil {
@@ -196,8 +204,8 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 		}
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER"},
-			Target:     []string{"REJECTED", "DELETED"},
+			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER", "INITIATING"},
+			Target:     []string{"REJECTED", "DELETED", "FAILED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    1 * time.Hour,
 			MinTimeout: 5 * time.Second,
@@ -269,10 +277,16 @@ func resourceServiceEndpointRefreshFunc(client *matlas.Client, projectID, provid
 			return nil, "", err
 		}
 
-		if i.ConnectionStatus != "AVAILABLE" {
-			return "", i.ConnectionStatus, nil
+		if strings.EqualFold(providerName, "azure") {
+			if i.AzureStatus != "AVAILABLE" {
+				return "", i.AzureStatus, nil
+			}
+			return i, i.AzureStatus, nil
+		}
+		if i.AWSConnectionStatus != "AVAILABLE" {
+			return "", i.AWSConnectionStatus, nil
 		}
 
-		return i, i.ConnectionStatus, nil
+		return i, i.AWSConnectionStatus, nil
 	}
 }
