@@ -103,16 +103,20 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
 * `error_message` - Error message pertaining to the AWS PrivateLink connection. Returns null if there are no errors.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
-* `status` - Status of the Private Link Service.
 * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
 * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
 * `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
-  Returns one of the following values:
-  * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
-  * `INITIATING` 	Atlas is creating the network load balancer and VPC endpoint service.
-  * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
-  * `FAILED` 	A system failure has occurred.
-  * `DELETING` 	The Private Link service is being deleted.
+* `status` - Status of the AWS PrivateLink connection or Status of the Azure Private Link Service. Atlas returns one of the following values:
+  AWS:
+    * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.
+    * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
+    * `FAILED` 	A system failure has occurred.
+    * `DELETING` 	The AWS PrivateLink connection is being deleted.
+  AZURE:
+    * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
+    * `INITIATING` 	Atlas is creating the load balancer and the Private Link Service.
+    * `FAILED` 	Atlas failed to create the load balancer and the Private Link service.
+    * `DELETING` 	Atlas is deleting the Private Link service.
 
 ## Import
 Private Endpoint Service can be imported using project ID, private link ID, provider name and region, in the format `{project_id}-{private_link_id}-{provider_name}-{region}`, e.g.
