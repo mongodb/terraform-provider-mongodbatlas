@@ -108,7 +108,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER"},
+		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    1 * time.Hour,
@@ -204,7 +204,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 		}
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "WAITING_FOR_USER", "INITIATING"},
+			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    1 * time.Hour,
