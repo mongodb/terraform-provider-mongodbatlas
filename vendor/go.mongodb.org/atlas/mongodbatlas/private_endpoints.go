@@ -71,7 +71,8 @@ type InterfaceEndpointConnection struct {
 	PrivateEndpointResourceID     string `json:"privateEndpointResourceId,omitempty"`     // Unique identifier of the private endpoint.
 	DeleteRequested               *bool  `json:"deleteRequested,omitempty"`               // Indicates if Atlas received a request to remove the interface endpoint from the private endpoint connection.
 	ErrorMessage                  string `json:"errorMessage,omitempty"`                  // Error message pertaining to the interface endpoint. Returns null if there are no errors.
-	ConnectionStatus              string `json:"connectionStatus,omitempty"`              // Status of the interface endpoint: NONE, PENDING_ACCEPTANCE, PENDING, AVAILABLE, REJECTED, DELETING.
+	AWSConnectionStatus           string `json:"connectionStatus,omitempty"`              // Status of the interface endpoint: NONE, PENDING_ACCEPTANCE, PENDING, AVAILABLE, REJECTED, DELETING.
+	AzureStatus                   string `json:"status,omitempty"`                        // Status of the interface endpoint AZURE: INITIATING, AVAILABLE, FAILED, DELETING.
 }
 
 // RegionalizedPrivateEndpointSetting represents MongoDB Regionalized private Endpoint Setting.
