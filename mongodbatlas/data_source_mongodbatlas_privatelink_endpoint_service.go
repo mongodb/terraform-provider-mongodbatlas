@@ -58,7 +58,11 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"connection_status": {
+			"aws_connection_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"azure_status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -88,8 +92,12 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData
 		return fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err)
 	}
 
-	if err := d.Set("connection_status", serviceEndpoint.ConnectionStatus); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+	if err := d.Set("aws_connection_status", serviceEndpoint.AWSConnectionStatus); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err)
+	}
+
+	if err := d.Set("azure_status", serviceEndpoint.AzureStatus); err != nil {
+		return fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{

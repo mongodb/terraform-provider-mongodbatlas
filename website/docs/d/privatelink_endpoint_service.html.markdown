@@ -61,15 +61,19 @@ In addition to all arguments above, the following attributes are exported:
 * `private_endpoint_resource_id` - Unique identifier of the private endpoint.
 * `delete_requested` - Indicates if Atlas received a request to remove the interface endpoint from the private endpoint connection.
 * `error_message` - Error message pertaining to the interface endpoint. Returns null if there are no errors.
-* `connection_status` - Status of the interface endpoint.
+* `aws_connection_status` - Status of the interface endpoint for AWS.
   Returns one of the following values:
-    * `NONE` - Atlas created the network load balancer and VPC endpoint service, but AWS hasn’t yet created the VPC endpoint.
-    * `PENDING_ACCEPTANCE` - AWS has received the connection request from your VPC endpoint to the Atlas VPC endpoint service.
-    * `PENDING` - AWS is establishing the connection between your VPC endpoint and the Atlas VPC endpoint service.
-    * `AVAILABLE` - Atlas VPC resources are connected to the VPC endpoint in your VPC. You can connect to Atlas clusters in this region using AWS PrivateLink.
-    * `REJECTED` - AWS failed to establish a connection between Atlas VPC resources to the VPC endpoint in your VPC.
-    * `INITIATING` - Atlas has not yet accepted the connection to your private endpoint.
-    * `FAILED` - Atlas failed to accept the connection your private endpoint.
-    * `DELETING` - Atlas is removing the interface endpoint from the private endpoint connection.
+  * `NONE` - Atlas created the network load balancer and VPC endpoint service, but AWS hasn’t yet created the VPC endpoint.
+  * `PENDING_ACCEPTANCE` - AWS has received the connection request from your VPC endpoint to the Atlas VPC endpoint service.
+  * `PENDING` - AWS is establishing the connection between your VPC endpoint and the Atlas VPC endpoint service.
+  * `AVAILABLE` - Atlas VPC resources are connected to the VPC endpoint in your VPC. You can connect to Atlas clusters in this region using AWS PrivateLink.
+  * `REJECTED` - AWS failed to establish a connection between Atlas VPC resources to the VPC endpoint in your VPC.
+  * `DELETING` - Atlas is removing the interface endpoint from the private endpoint connection.
+* `azure_status` - Status of the interface endpoint for AZURE.
+  Returns one of the following values:
+  * `INITIATING` - Atlas has not yet accepted the connection to your private endpoint.
+  * `AVAILABLE` - Atlas approved the connection to your private endpoint.
+  * `FAILED` - Atlas failed to accept the connection your private endpoint.
+  * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-get-one/) Documentation for more information.
