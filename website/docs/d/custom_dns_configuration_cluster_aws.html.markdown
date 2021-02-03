@@ -34,6 +34,7 @@ data "mongodbatlas_custom_dns_configuration_cluster_aws" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - The project ID.
 * `enabled` - Indicates whether the project's clusters deployed to AWS use custom DNS.
 
 
