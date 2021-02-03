@@ -75,7 +75,7 @@ Possible values include:
 
 * `x509_type` - X.509 method by which the provided username is authenticated.
 * `aws_iam_type` - The new database user authenticates with AWS IAM credentials. Default is `NONE`, `USER` means user has AWS IAM user credentials, `ROLE` - means user has credentials associated with an AWS IAM role.
-* `ldap_auth_type` - Method by which the provided username is authenticated.
+* `ldap_auth_type` - Method by which the provided username is authenticated. Default is `NONE`. Other valid values are: `USER`, `GROUP`.
 * `scopes` - Array of clusters and Atlas Data Lakes that this user has access to.
     * `name` - Name of the cluster or Atlas Data Lake that the user has access to.
     * `type` - Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
