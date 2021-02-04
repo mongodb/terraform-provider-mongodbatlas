@@ -168,8 +168,13 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"provider_encrypt_ebs_volume": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: "All EBS volumes are now encrypted by default, no option to have encryption disabled",
+				Computed:   true,
+			},
+			"provider_encrypt_ebs_volume_flag": {
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 			"provider_region_name": {
@@ -408,10 +413,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	if providerName != "AWS" {
 		if _, ok := d.GetOk("provider_disk_iops"); ok {
 			return fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
-		}
-
-		if _, ok := d.GetOk("provider_encrypt_ebs_volume"); ok {
-			return fmt.Errorf("`provider_encrypt_ebs_volume` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
 
 		if _, ok := d.GetOk("provider_volume_type"); ok {
@@ -747,7 +748,6 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 
 	// If at least one of the provider settings argument has changed, expand all provider settings
 	if d.HasChange("provider_disk_iops") ||
-		d.HasChange("provider_encrypt_ebs_volume") ||
 		d.HasChange("backing_provider_name") ||
 		d.HasChange("provider_disk_type_name") ||
 		d.HasChange("provider_instance_size_name") ||
@@ -1044,11 +1044,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		if v, ok := d.GetOk("provider_disk_iops"); ok {
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
-
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
-		if encryptEBSVolume, ok := d.GetOkExists("provider_encrypt_ebs_volume"); ok {
-			providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(encryptEBSVolume))
-		}
 	}
 
 	return providerSettings, nil
@@ -1070,8 +1066,8 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 	}
 
 	if settings.EncryptEBSVolume != nil {
-		if err := d.Set("provider_encrypt_ebs_volume", *settings.EncryptEBSVolume); err != nil {
-			log.Printf(errorClusterSetting, "provider_encrypt_ebs_volume", clusterName, err)
+		if err := d.Set("provider_encrypt_ebs_volume_flag", *settings.EncryptEBSVolume); err != nil {
+			log.Printf(errorClusterSetting, "provider_encrypt_ebs_volume_flag", clusterName, err)
 		}
 	}
 
