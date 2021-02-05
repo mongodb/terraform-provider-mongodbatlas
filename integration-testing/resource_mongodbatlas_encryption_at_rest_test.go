@@ -2,10 +2,11 @@ package integration_testing
 
 import (
 	"fmt"
-	//"github.com/gruntwork-io/terratest/modules/terraform"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
 func SkipTestExtCred(t *testing.T) {
