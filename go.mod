@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/client9/misspell v0.3.4
 	github.com/go-test/deep v1.0.7
+	github.com/gruntwork-io/terratest v0.32.3
 	github.com/hashicorp/terraform-plugin-sdk v1.14.0
 	github.com/mongodb-forks/digest v1.0.1
 	github.com/mwielbut/pointy v1.1.0
