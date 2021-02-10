@@ -32,7 +32,7 @@ website/vendor
 !command/test-fixtures/**/.terraform/
 
 #exclude vendor
-!vendor/**
+vendor/
 
 # Keep windows files with windows line endings
 *.winfile eol=crlf
