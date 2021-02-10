@@ -89,7 +89,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
   provider_name               = "AWS"
   disk_size_gb                = 100
   provider_disk_iops          = 300
-  provider_encrypt_ebs_volume = false
   provider_instance_size_name = "M40"
   provider_region_name        = "US_EAST_1"
 }
