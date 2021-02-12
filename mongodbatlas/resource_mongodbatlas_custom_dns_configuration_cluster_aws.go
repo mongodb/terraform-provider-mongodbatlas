@@ -67,7 +67,11 @@ func resourceMongoDBAtlasCustomDNSConfigurationRead(d *schema.ResourceData, meta
 	}
 
 	if err = d.Set("enabled", dnsResp.Enabled); err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationSetting, "name", d.Id(), err)
+		return fmt.Errorf(errorCustomDNSConfigurationSetting, "enabled", d.Id(), err)
+	}
+
+	if err = d.Set("project_id", d.Id()); err != nil {
+		return fmt.Errorf(errorCustomDNSConfigurationSetting, "project_id", d.Id(), err)
 	}
 
 	return nil
