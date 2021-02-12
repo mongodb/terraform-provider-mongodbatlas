@@ -254,6 +254,9 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 			return fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err)
 		}
 	}
+	if err = d.Set("project_id", d.Id()); err != nil {
+		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+	}
 
 	return nil
 }
