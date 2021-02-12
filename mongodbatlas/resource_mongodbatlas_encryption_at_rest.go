@@ -223,6 +223,16 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 
 	values = flattenAzureVault(&resp.AzureKeyVault)
 	if !counterEmptyValues(values) {
+		azure, azureOk := d.GetOk("azure_key_vault")
+		if azureOk {
+			azure2 := azure.(map[string]interface{})
+			values["secret"] = cast.ToString(azure2["secret"])
+			if v, sa := values["secret"]; sa {
+				if v.(string) == "" {
+					delete(values, "secret")
+				}
+			}
+		}
 		if err = d.Set("azure_key_vault", values); err != nil {
 			return fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault", d.Id(), err)
 		}
@@ -230,6 +240,16 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 
 	values = flattenGCPKms(&resp.GoogleCloudKms)
 	if !counterEmptyValues(values) {
+		gcp, gcpOk := d.GetOk("google_cloud_kms")
+		if gcpOk {
+			gcp2 := gcp.(map[string]interface{})
+			values["service_account_key"] = cast.ToString(gcp2["service_account_key"])
+			if v, sa := values["service_account_key"]; sa {
+				if v.(string) == "" {
+					delete(values, "service_account_key")
+				}
+			}
+		}
 		if err = d.Set("google_cloud_kms", values); err != nil {
 			return fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err)
 		}
