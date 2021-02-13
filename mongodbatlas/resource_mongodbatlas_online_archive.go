@@ -24,6 +24,7 @@ func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 		Create: resourceMongoDBAtlasOnlineArchiveCreate,
 		Read:   resourceMongoDBAtlasOnlineArchiveRead,
 		Delete: resourceMongoDBAtlasOnlineArchiveDelete,
+		Update: resourceMongoDBAtlasOnlineArchiveUpdate,
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDBAtlasOnlineArchiveImportState,
 		},
@@ -143,6 +144,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 		},
 		"paused": {
 			Type:     schema.TypeBool,
+			Optional: true,
 			Computed: true,
 		},
 		"state": {
@@ -253,27 +255,7 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 		CollName:    d.Get("coll_name").(string),
 	}
 
-	criteria := d.Get("criteria").(map[string]interface{})
-
-	criteriaInput := &matlas.OnlineArchiveCriteria{
-		Type: criteria["type"].(string),
-	}
-
-	if criteriaInput.Type == "DATE" {
-		criteriaInput.DateField = criteria["date_field"].(string)
-		criteriaInput.ExpireAfterDays = criteria["expire_after_days"].(float64)
-		// optional
-		if dformat, ok := criteria["date_format"]; ok {
-			if len(dformat.(string)) > 0 {
-				criteriaInput.DateFormat = dformat.(string)
-			}
-		}
-	}
-
-	// Pending update client missing QUERY field
-	// if criteriaInput.Type == "CUSTOM" {}
-
-	requestInput.Criteria = criteriaInput
+	requestInput.Criteria = mapCriteria(d)
 
 	if partitions, ok := d.GetOk("partition_fields"); ok {
 		list := partitions.([]interface{})
@@ -296,6 +278,44 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	}
 
 	return requestInput
+}
+
+func resourceMongoDBAtlasOnlineArchiveUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+
+	ids := decodeStateID(d.Id())
+
+	atlasID := ids["atlas_id"]
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	// if the criteria or the paused is enable then perform an update
+	paused := d.HasChange("paused")
+	criteria := d.HasChange("criteria")
+
+	// nothing to do, let's go
+	if !paused && !criteria {
+		return nil
+	}
+
+	request := matlas.OnlineArchive{}
+
+	// reading current value
+	if paused {
+		request.Paused = pointy.Bool(d.Get("paused").(bool))
+	}
+
+	if criteria {
+		request.Criteria = mapCriteria(d)
+	}
+
+	_, _, err := conn.OnlineArchives.Update(context.Background(), projectID, clusterName, atlasID, &request)
+
+	if err != nil {
+		return fmt.Errorf("error updating Mongo Online Archive id: %s %s", atlasID, err.Error())
+	}
+
+	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
 }
 
 func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
@@ -348,12 +368,39 @@ func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
 	return nil
 }
 
+func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
+	criteria := d.Get("criteria").(map[string]interface{})
+
+	criteriaInput := &matlas.OnlineArchiveCriteria{
+		Type: criteria["type"].(string),
+	}
+
+	if criteriaInput.Type == "DATE" {
+		criteriaInput.DateField = criteria["date_field"].(string)
+		criteriaInput.ExpireAfterDays = criteria["expire_after_days"].(float64)
+		// optional
+		if dformat, ok := criteria["date_format"]; ok {
+			if len(dformat.(string)) > 0 {
+				criteriaInput.DateFormat = dformat.(string)
+			}
+		}
+	}
+
+	// Pending update client missing QUERY field
+	// if criteriaInput.Type == "CUSTOM" {}
+	return criteriaInput
+}
+
 func isEmpty(val interface{}) bool {
 	if val == nil {
 		return true
 	}
 
 	switch v := val.(type) {
+	case *bool:
+		if v == nil {
+			return true
+		}
 	case *float64:
 		if v == nil {
 			return true
