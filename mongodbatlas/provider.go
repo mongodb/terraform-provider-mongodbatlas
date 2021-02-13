@@ -67,6 +67,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_project_ip_access_list":                dataSourceMongoDBAtlasProjectIPAccessList(),
 			"mongodbatlas_cloud_provider_access":                 dataSourceMongoDBAtlasCloudProviderAccessList(),
 			"mongodbatlas_custom_dns_configuration_cluster_aws":  dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
+			"mongodbatlas_online_archive":                        dataSourceMongoDBAtlasOnlineArchive(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
