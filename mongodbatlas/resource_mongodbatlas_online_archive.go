@@ -2,7 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -23,6 +25,9 @@ func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 		Create: resourceMongoDBAtlasOnlineArchiveCreate,
 		Read:   resourceMongoDBAtlasOnlineArchiveRead,
 		Delete: resourceMongoDBAtlasOnlineArchiveDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasOnlineArchiveImportState,
+		},
 	}
 }
 
@@ -210,6 +215,36 @@ func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interf
 		return fmt.Errorf(errorOnlineArchivesDelete, err, atlasID)
 	}
 	return nil
+}
+
+func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+	parts := strings.Split(d.Id(), "-")
+
+	if len(parts) != 3 {
+		return nil, errors.New("import format error to import a Mongo Online Archive, use the format {project_id}-{cluste_rname}-{atlas_id} ")
+	}
+
+	projectID, clusterName, atlasID := parts[0], parts[1], parts[2]
+
+	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not import Online Archive %s in project %s, error %s", atlasID, projectID, err.Error())
+	}
+
+	// soft error, because after the import will be a read execution
+	if err := d.Set("project_id", projectID); err != nil {
+		log.Printf("error setting project id %s for Online Archive id: %s", err, atlasID)
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"atlas_id":     outOnlineArchive.ID,
+		"cluster_name": outOnlineArchive.ClusterName,
+		"project_id":   projectID,
+	}))
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
