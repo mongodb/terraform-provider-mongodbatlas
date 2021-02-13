@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,11 +14,15 @@ import (
 const (
 	errorOnlineArchivesCreate  = "error creating MongoDB Online Archive: %s"
 	errorOnlineMissingComputed = "error MongoDB Online Archive missing: %s"
+	errorOnlineArchivesDelete  = "error deleting MongoDB Online Archive: %s atlas_id (%s)"
 )
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 	return &schema.Resource{
 		Schema: getMongoDBAtlasOnlineArchiveSchema(),
+		Create: resourceMongoDBAtlasOnlineArchiveCreate,
+		Read:   resourceMongoDBAtlasOnlineArchiveRead,
+		Delete: resourceMongoDBAtlasOnlineArchiveDelete,
 	}
 }
 
@@ -155,16 +160,55 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf(errorOnlineArchivesCreate, err)
 	}
 
-	if err = syncSchema(d, &inputRequest, outputRequest); err != nil {
-		return fmt.Errorf(errorOnlineArchivesCreate, err)
-	}
-
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": inputRequest.ClusterName,
 		"atlas_id":     outputRequest.ID,
 	}))
 
+	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
+}
+
+func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interface{}) error {
+	// getting the atlas id
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+
+	atlasID := ids["atlas_id"]
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
+
+	if err != nil {
+		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+		if reset {
+			d.SetId("")
+			return nil
+		}
+	}
+
+	syncSchema(d, outOnlineArchive)
+	return nil
+}
+
+func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+	atlasID := ids["atlas_id"]
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	_, err := conn.OnlineArchives.Delete(context.Background(), projectID, clusterName, atlasID)
+
+	if err != nil {
+		alreadyDeleted := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+		if alreadyDeleted {
+			return nil
+		}
+
+		return fmt.Errorf(errorOnlineArchivesDelete, err, atlasID)
+	}
 	return nil
 }
 
@@ -222,19 +266,81 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	return requestInput
 }
 
-func syncSchema(d *schema.ResourceData, in, out *matlas.OnlineArchive) error {
+func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
+
 	// computed attribute
-	if err := d.Set("atlas_id", out.ID); err != nil {
-		return fmt.Errorf(errorOnlineMissingComputed, err)
+	schemaVals := map[string]interface{}{
+		"cluster_name": in.ClusterName,
+		"atlas_id":     in.ID,
+		"paused":       in.Paused,
+		"state":        in.State,
+		"coll_name":    in.CollName,
 	}
 
-	if err := d.Set("paused", out.Paused); err != nil {
-		return fmt.Errorf(errorOnlineMissingComputed, err)
+	// criteria
+	criteria := map[string]interface{}{
+		"type":              in.Criteria.Type,
+		"date_field":        in.Criteria.DateField,
+		"date_format":       in.Criteria.DateFormat,
+		"expire_after_days": in.Criteria.ExpireAfterDays,
+		// missing query check in client
 	}
 
-	if err := d.Set("state", out.State); err != nil {
-		return fmt.Errorf(errorOnlineMissingComputed, err)
+	// clean up criteria for empty values
+	for key, val := range criteria {
+		if isEmpty(val) {
+			delete(criteria, key)
+		}
+	}
+
+	schemaVals["criteria"] = criteria
+
+	// partitions fields
+	if len(in.PartitionFields) > 0 {
+		expected := make([]map[string]interface{}, 0, len(in.PartitionFields))
+		for _, partition := range in.PartitionFields {
+			if partition == nil {
+				continue
+			}
+
+			partition := map[string]interface{}{
+				"field_name": partition.FieldName,
+				"field_type": partition.FieldType,
+				"order":      partition.Order,
+			}
+
+			expected = append(expected, partition)
+
+		}
+		schemaVals["partition_fields"] = expected
 	}
 
 	return nil
+
+}
+
+func isEmpty(val interface{}) bool {
+	if val == nil {
+		return true
+	}
+
+	switch v := val.(type) {
+	case *float64:
+		if v == nil {
+			return true
+		}
+	case *int64:
+		if v == nil {
+			return true
+		}
+	case string:
+		return len(v) == 0
+	case *string:
+		if v == nil {
+			return true
+		}
+		return len(*v) == 0
+	}
+
+	return false
 }
