@@ -121,6 +121,14 @@ func resourceMongoDBAtlasPrivateEndpointInterfaceLinkRead(d *schema.ResourceData
 		return fmt.Errorf(errorInterfaceEndpointSetting, "connection_status", interfaceEndpointID, err)
 	}
 
+	if err := d.Set("private_link_id", privateLinkID); err != nil {
+		return fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
+	}
+
+	if err := d.Set("interface_endpoint_id", interfaceEndpointID); err != nil {
+		return fmt.Errorf(errorPrivateEndpointsSetting, "interface_endpoint_id", privateLinkID, err)
+	}
+
 	return nil
 }
 
