@@ -170,7 +170,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"provider_encrypt_ebs_volume": {
 				Type:       schema.TypeBool,
 				Optional:   true,
-				Deprecated: "All EBS volumes are now encrypted by default, no option to have encryption disabled",
+				Deprecated: "All EBS volumes are encrypted by default, the option to disable encryption has been removed",
 				Computed:   true,
 			},
 			"provider_encrypt_ebs_volume_flag": {
