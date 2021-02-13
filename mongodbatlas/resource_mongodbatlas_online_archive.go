@@ -192,9 +192,17 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
+		return fmt.Errorf("error MongoDBAtlas Online Archive with id %s, read error %s", atlasID, err.Error())
 	}
 
-	return syncSchema(d, outOnlineArchive)
+	newData := fromOnlineArchiveToMap(outOnlineArchive)
+
+	for key, val := range newData {
+		if err := d.Set(key, val); err != nil {
+			return fmt.Errorf("error MongoDBAtlas Online Archive with id %s, read error %s", atlasID, err.Error())
+		}
+	}
+	return nil
 }
 
 func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interface{}) error {
@@ -318,7 +326,7 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(d *schema.ResourceData, meta interf
 	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
 }
 
-func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
+func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	// computed attribute
 	schemaVals := map[string]interface{}{
 		"cluster_name": in.ClusterName,
@@ -365,7 +373,7 @@ func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
 		schemaVals["partition_fields"] = expected
 	}
 
-	return nil
+	return schemaVals
 }
 
 func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
