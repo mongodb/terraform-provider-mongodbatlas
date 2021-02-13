@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	errorOnlineArchivesCreate  = "error creating MongoDB Online Archive: %s"
-	errorOnlineMissingComputed = "error MongoDB Online Archive missing: %s"
-	errorOnlineArchivesDelete  = "error deleting MongoDB Online Archive: %s atlas_id (%s)"
+	errorOnlineArchivesCreate = "error creating MongoDB Online Archive: %s"
+	errorOnlineArchivesDelete = "error deleting MongoDB Online Archive: %s atlas_id (%s)"
 )
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
@@ -193,8 +192,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	syncSchema(d, outOnlineArchive)
-	return nil
+	return syncSchema(d, outOnlineArchive)
 }
 
 func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interface{}) error {
@@ -273,8 +271,7 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	}
 
 	// Pending update client missing QUERY field
-	if criteriaInput.Type == "CUSTOM" {
-	}
+	// if criteriaInput.Type == "CUSTOM" {}
 
 	requestInput.Criteria = criteriaInput
 
@@ -302,7 +299,6 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 }
 
 func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
-
 	// computed attribute
 	schemaVals := map[string]interface{}{
 		"cluster_name": in.ClusterName,
@@ -345,13 +341,11 @@ func syncSchema(d *schema.ResourceData, in *matlas.OnlineArchive) error {
 			}
 
 			expected = append(expected, partition)
-
 		}
 		schemaVals["partition_fields"] = expected
 	}
 
 	return nil
-
 }
 
 func isEmpty(val interface{}) bool {
@@ -369,12 +363,12 @@ func isEmpty(val interface{}) bool {
 			return true
 		}
 	case string:
-		return len(v) == 0
+		return v == ""
 	case *string:
 		if v == nil {
 			return true
 		}
-		return len(*v) == 0
+		return *v == ""
 	}
 
 	return false
