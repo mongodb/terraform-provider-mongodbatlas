@@ -14,6 +14,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasDataLake_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName        = "mongodbatlas_data_lake.basic_ds"
 		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -48,6 +49,7 @@ func TestAccResourceMongoDBAtlasDataLake_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasDataLake_importBasic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_data_lake.basic_ds"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
