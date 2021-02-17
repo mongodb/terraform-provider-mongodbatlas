@@ -54,6 +54,8 @@ resource "aws_iam_role" "test_role" {
 EOF
 }
 
+# The null resource updates the `mongodbatlas_cloud_provider_access` resource with the correct IAM role ARN using an API HTTP PATCH request.
+# sleep 10 - Waits ten seconds to make sure that all AWS servers are updated with the new IAM Role.
 resource "null_resource" "link_role_arn_to_cloud_provider_access" {
   provisioner "local-exec" {
       command = <<EOT
