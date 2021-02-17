@@ -60,7 +60,7 @@ resource "null_resource" "link_role_arn_to_cloud_provider_access" {
   provisioner "local-exec" {
       command = <<EOT
       sleep 10;
-      curl --user "${var.atlas_public_key}:${var.atlas_private_key}" -X PATCH --digest \
+      curl --user "${var.public_key}:${var.private_key}" -X PATCH --digest \
             --header "Accept: application/json" \
             --header "Content-Type: application/json" \
             "https://cloud.mongodb.com/api/atlas/v1.0/groups/${var.atlas_project_ID}/cloudProviderAccess/${mongodbatlas_cloud_provider_access.test.role_id}?pretty=true" \
