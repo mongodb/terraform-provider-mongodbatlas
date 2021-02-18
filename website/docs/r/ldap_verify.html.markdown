@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_ldap_verify
 
-`mongodbatlas_ldap_verify` provides an LDAP Verify resource. This allows ldap verify to be created.
+`mongodbatlas_ldap_verify` provides an LDAP Verify resource. This allows a a verification of an LDAP configuration over TLS for an Atlas project. Atlas retains only the most recent request for each project.
 
 ## Example Usage
 
@@ -51,8 +51,6 @@ resource "mongodbatlas_ldap_verify" "test" {
 * `bind_password` - (Required) The password used to authenticate the `bind_username`.
 * `ca_certificate` - (Optional) CA certificate used to verify the identify of the LDAP server. Self-signed certificates are allowed.
 * `authz_query_template` - (Optional) An LDAP query template that Atlas executes to obtain the LDAP groups to which the authenticated user belongs. Used only for user authorization. Use the {USER} placeholder in the URL to substitute the authenticated username. The query is relative to the host specified with hostname. The formatting for the query must conform to RFC4515 and RFC 4516. If you do not provide a query template, Atlas attempts to use the default value: `{USER}?memberOf?base`.
-
-~> **NOTE:** LDAP Configuration created by API Keys must belong to an existing organization.
 
 ## Attributes Reference
 

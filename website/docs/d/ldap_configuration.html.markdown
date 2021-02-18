@@ -46,15 +46,15 @@ In addition to all arguments above, the following attributes are exported:
 * `authentication_enabled` - Specifies whether user authentication with LDAP is enabled.
 * `authorization_enabled` - Specifies whether user authorization with LDAP is enabled.
 * `hostname` - (Required) The hostname or IP address of the LDAP server.
-* `port` - LDAP ConfigurationThe port to which the LDAP server listens for client connections.
+* `port` - The port to which the LDAP server listens for client connections.
 * `bind_username` - The user DN that Atlas uses to connect to the LDAP server.
 * `bind_password` - The password used to authenticate the `bind_username`.
-* `ca_certificate` - LDAP ConfigurationCA certificate used to verify the identify of the LDAP server.
-* `authz_query_template` - LDAP ConfigurationAn LDAP query template that Atlas executes to obtain the LDAP groups to which the authenticated user belongs.
-* `user_to_dn_mapping` - LDAP ConfigurationMaps an LDAP username for authentication to an LDAP Distinguished Name (DN).
-* `user_to_dn_mapping.0.match` - LDAP ConfigurationA regular expression to match against a provided LDAP username.
-* `user_to_dn_mapping.0.substitution` - LDAP ConfigurationAn LDAP Distinguished Name (DN) formatting template that converts the LDAP name matched by the `match` regular expression into an LDAP Distinguished Name.
-* `user_to_dn_mapping.0.ldap_query` - LDAP ConfigurationAn LDAP query formatting template that inserts the LDAP name matched by the `match` regular expression into an LDAP query URI as specified by RFC 4515 and RFC 4516.
+* `ca_certificate` - CA certificate used to verify the identify of the LDAP server.
+* `authz_query_template` - An LDAP query template that Atlas executes to obtain the LDAP groups to which the authenticated user belongs.
+* `user_to_dn_mapping` - Maps an LDAP username for authentication to an LDAP Distinguished Name (DN).
+* `user_to_dn_mapping.0.match` - A regular expression to match against a provided LDAP username.
+* `user_to_dn_mapping.0.substitution` - An LDAP Distinguished Name (DN) formatting template that converts the LDAP name matched by the `match` regular expression into an LDAP Distinguished Name.
+* `user_to_dn_mapping.0.ldap_query` - An LDAP query formatting template that inserts the LDAP name matched by the `match` regular expression into an LDAP query URI as specified by RFC 4515 and RFC 4516.
 
 
 See detailed information for arguments and attributes: [MongoDB API LDAP Configuration](https://docs.atlas.mongodb.com/reference/api/ldaps-configuration-get-current)
