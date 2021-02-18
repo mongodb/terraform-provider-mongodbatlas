@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -50,19 +51,26 @@ func TestAccResourceMongoDBAtlasLDAPVerify_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasLDAPVerifyWithConfiguration_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasLDAPVerifyWithConfiguration_CACertificate(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		ldapVerify   matlas.LDAPConfiguration
-		resourceName = "mongodbatlas_ldap_verify.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = acctest.RandomWithPrefix("test-acc")
-		hostname     = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username     = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password     = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port         = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		ldapVerify            matlas.LDAPConfiguration
+		resourceName          = "mongodbatlas_ldap_verify.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		clusterName           = acctest.RandomWithPrefix("test-acc")
+		hostname              = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username              = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password              = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port                  = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		caCertificateFilePath = os.Getenv("MONGODB_ATLAS_LDAP_CA_FILEPATH")
+		caCertificate         string
 	)
+	fileContents, err := ioutil.ReadFile(caCertificateFilePath)
+	if err != nil {
+		fmt.Println(err)
+	}
+	caCertificate = string(fileContents)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
@@ -70,7 +78,7 @@ func TestAccResourceMongoDBAtlasLDAPVerifyWithConfiguration_basic(t *testing.T) 
 		CheckDestroy: testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port), true),
+				Config: testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName, &ldapVerify),
 
@@ -79,6 +87,13 @@ func TestAccResourceMongoDBAtlasLDAPVerifyWithConfiguration_basic(t *testing.T) 
 					resource.TestCheckResourceAttrSet(resourceName, "bind_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "request_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttr(resourceName, "status", "SUCCESS"),
+					resource.TestCheckResourceAttr(resourceName, "validations.0.validation_type", "SERVER_SPECIFIED"),
+					resource.TestCheckResourceAttr(resourceName, "validations.0.status", "OK"),
+					resource.TestCheckResourceAttr(resourceName, "validations.1.validation_type", "CONNECT"),
+					resource.TestCheckResourceAttr(resourceName, "validations.1.status", "OK"),
+					resource.TestCheckResourceAttr(resourceName, "validations.2.validation_type", "AUTHENTICATE"),
+					resource.TestCheckResourceAttr(resourceName, "validations.2.status", "OK"),
 				),
 			},
 		},
@@ -210,7 +225,7 @@ func testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostna
 		}`, projectName, orgID, clusterName, hostname, username, password, port)
 }
 
-func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password string, port int, authEnabled bool) string {
+func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate string, port int, authEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%[1]s"
@@ -228,18 +243,6 @@ func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, cl
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
 			provider_disk_iops          = 100
-			provider_encrypt_ebs_volume = false
-		}
-
-		resource "mongodbatlas_ldap_configuration" "test" {
-			project_id                  = mongodbatlas_project.test.id
-			authentication_enabled                = %[8]t
-			authorization_enabled                = %[8]t
-			hostname = "%[4]s"
-			port                     = %[7]d
-			bind_username                     = "%[5]s"
-			bind_password                     = "%[6]s"
-			depends_on = ["mongodbatlas_cluster.test"]
 		}
 
 		resource "mongodbatlas_ldap_verify" "test" {
@@ -248,6 +251,23 @@ func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, cl
 			port                     = %[7]d
 			bind_username                     = "%[5]s"
 			bind_password                     = "%[6]s"
-			depends_on = ["mongodbatlas_ldap_configuration.test"]
-		}`, projectName, orgID, clusterName, hostname, username, password, port, authEnabled)
+			ca_certificate = <<-EOF
+%[9]s
+			EOF
+			depends_on = [mongodbatlas_cluster.test]
+		}
+
+		resource "mongodbatlas_ldap_configuration" "test" {
+			project_id                  = mongodbatlas_project.test.id
+			authentication_enabled                = %[8]t
+			authorization_enabled                = false
+			hostname = "%[4]s"
+			port                     = %[7]d
+			bind_username                     = "%[5]s"
+			bind_password                     = "%[6]s"
+			ca_certificate = <<-EOF
+%[9]s
+			EOF
+			depends_on = [mongodbatlas_ldap_verify.test]
+		}`, projectName, orgID, clusterName, hostname, username, password, port, authEnabled, caCertificate)
 }
