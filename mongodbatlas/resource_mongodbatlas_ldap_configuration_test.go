@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -54,24 +53,18 @@ func TestAccResourceMongoDBAtlasLDAPConfiguration_basic(t *testing.T) {
 func TestAccResourceMongoDBAtlasLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		ldapConfiguration     matlas.LDAPConfiguration
-		resourceName          = "mongodbatlas_ldap_configuration.test"
-		resourceVerifyName    = "mongodbatlas_ldap_verify.test"
-		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName           = acctest.RandomWithPrefix("test-acc")
-		clusterName           = acctest.RandomWithPrefix("test-acc")
-		hostname              = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
-		username              = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
-		password              = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
-		port                  = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
-		caCertificateFilePath = os.Getenv("MONGODB_ATLAS_LDAP_CA_FILEPATH")
-		caCertificate         string
+		ldapConfiguration  matlas.LDAPConfiguration
+		resourceName       = "mongodbatlas_ldap_configuration.test"
+		resourceVerifyName = "mongodbatlas_ldap_verify.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acctest.RandomWithPrefix("test-acc")
+		clusterName        = acctest.RandomWithPrefix("test-acc")
+		hostname           = os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME")
+		username           = os.Getenv("MONGODB_ATLAS_LDAP_USERNAME")
+		password           = os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD")
+		port               = os.Getenv("MONGODB_ATLAS_LDAP_PORT")
+		caCertificate      = os.Getenv("MONGODB_ATLAS_LDAP_CA_CERTIFICATE")
 	)
-	fileContents, err := ioutil.ReadFile(caCertificateFilePath)
-	if err != nil {
-		fmt.Println(err)
-	}
-	caCertificate = string(fileContents)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
