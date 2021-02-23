@@ -167,3 +167,12 @@ func SkipTest(t *testing.T) {
 		t.Skip()
 	}
 }
+
+func checkLDAP(t *testing.T) {
+	if os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME") == "" ||
+		os.Getenv("MONGODB_ATLAS_LDAP_USERNAME") == "" ||
+		os.Getenv("MONGODB_ATLAS_LDAP_PASSWORD") == "" ||
+		os.Getenv("MONGODB_ATLAS_LDAP_PORT") == "" {
+		t.Fatal("`MONGODB_ATLAS_LDAP_HOSTNAME`, `MONGODB_ATLAS_LDAP_USERNAME`, `MONGODB_ATLAS_LDAP_PASSWORD` and `MONGODB_ATLAS_LDAP_PORT` must be set for ldap configuration/verify acceptance testing")
+	}
+}
