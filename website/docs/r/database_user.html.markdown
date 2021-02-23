@@ -98,6 +98,11 @@ Accepted values include:
   * `USER` - New database user has AWS IAM user credentials.
   * `ROLE` -  New database user has credentials associated with an AWS IAM role.
 
+* `ldap_auth_type` - (Optional) Method by which the provided `username` is authenticated. If no value is given, Atlas uses the default value of `NONE`.
+  * `NONE` -	Atlas authenticates this user through [SCRAM-SHA](https://docs.mongodb.com/manual/core/security-scram/), not LDAP.
+  * `USER` - LDAP server authenticates this user through the user's LDAP user. `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
+  * `GROUP` - LDAP server authenticates this user using their LDAP user and authorizes this user using their LDAP group. To learn more about LDAP security, see [Set up User Authentication and Authorization with LDAP](https://docs.atlas.mongodb.com/security-ldaps). `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
+
 ### Roles
 
 Block mapping a user's role to a database / collection. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well.
