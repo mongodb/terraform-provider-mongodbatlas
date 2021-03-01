@@ -85,7 +85,14 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 	teamID := ids["id"]
 
 	team, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
+
 	if err != nil {
+		// new resource missing
+		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+		if reset {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf(errorTeamRead, err)
 	}
 
