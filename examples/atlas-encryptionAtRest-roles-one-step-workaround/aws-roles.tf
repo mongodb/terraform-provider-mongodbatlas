@@ -1,4 +1,3 @@
-
 resource "mongodbatlas_cloud_provider_access" "test" {
   project_id           = var.project_id
   provider_name        = "AWS"
