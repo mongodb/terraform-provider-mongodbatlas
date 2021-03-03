@@ -1,9 +1,9 @@
-
 resource "mongodbatlas_cloud_provider_access" "test" {
-  project_id           = var.project_id
-  provider_name        = "AWS"
-  iam_assumed_role_arn = var.aws_iam_role_arn
-}
+        project_id = mongodbatlas_project.my_project.id
+        provider_name = "AWS"
+        #after first apply, add the following line:
+        #iam_assumed_role_arn = aws_iam_role.test_role.arn
+    }
 
 resource "aws_iam_role_policy" "test_policy" {
   name = "test_policy"
@@ -45,13 +45,9 @@ resource "aws_iam_role" "test_role" {
   ]
 }
 EOF
-
-
 }
 
-output "aws_iam_role_arn" {
-  value = aws_iam_role.test_role.arn
-}
+
 output "cpa_role_id" {
   value = mongodbatlas_cloud_provider_access.test.role_id
 }
