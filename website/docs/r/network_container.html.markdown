@@ -40,6 +40,7 @@ resource "mongodbatlas_network_container" "test" {
   project_id       = "<YOUR-PROJECT-ID>"
   atlas_cidr_block = "10.8.0.0/21"
   provider_name    = "GCP"
+  regions = ["US_EAST_4", "US_WEST_3"]
 }
 ```
 
@@ -69,6 +70,7 @@ resource "mongodbatlas_network_container" "test" {
 * `provider_name`  - (Required GCP and AZURE, Optional but recommended for AWS) Cloud provider for this Network Peering connection.  Accepted values are GCP, AWS, AZURE. If omitted, Atlas sets this parameter to AWS.
 * `region_name` - (Required AWS only) The Atlas AWS region name for where this container will exist, see the reference list for Atlas AWS region names [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/).
 * `region` - (Required AZURE only) Atlas region where the container resides, see the reference list for Atlas Azure region names [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
+* `regions` - (Optional GCP only) Atlas regions where the container resides. Provide this field only if you provide an `atlas_cidr_block` smaller than `/18`. [GCP Regions values](https://docs.atlas.mongodb.com/reference/api/vpc-create-container/#request-body-parameters).
 
 
 
