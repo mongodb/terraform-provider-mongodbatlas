@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cast"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -86,6 +88,13 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"regions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -117,6 +126,13 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 		}
 
 		containerRequest.Region = region
+	}
+
+	if providerName == "GCP" {
+		regions, ok := d.GetOk("regions")
+		if ok {
+			containerRequest.Regions = cast.ToStringSlice(regions)
+		}
 	}
 
 	container, _, err := conn.Containers.Create(context.Background(), projectID, containerRequest)
@@ -186,6 +202,10 @@ func resourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta inter
 
 	if err = d.Set("container_id", container.ID); err != nil {
 		return fmt.Errorf("error setting `container_id` for Network Container (%s): %s", containerID, err)
+	}
+
+	if err = d.Set("regions", container.Regions); err != nil {
+		return fmt.Errorf("error setting `regions` for Network Container (%s): %s", containerID, err)
 	}
 
 	return nil

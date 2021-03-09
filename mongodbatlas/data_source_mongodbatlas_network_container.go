@@ -61,6 +61,13 @@ func dataSourceMongoDBAtlasNetworkContainer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"regions": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -122,6 +129,10 @@ func dataSourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta int
 
 	if err = d.Set("vnet_name", container.VNetName); err != nil {
 		return fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", d.Id(), err)
+	}
+
+	if err = d.Set("regions", container.Regions); err != nil {
+		return fmt.Errorf("error setting `regions` for Network Container (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(container.ID)
