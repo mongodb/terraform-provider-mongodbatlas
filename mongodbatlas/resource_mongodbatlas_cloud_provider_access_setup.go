@@ -86,7 +86,6 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, me
 				return fmt.Errorf(errorGetRead, err)
 			}
 		}
-
 	} else {
 		// planning for the future multiple providers
 		return fmt.Errorf(errorGetRead,
