@@ -19,12 +19,18 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
 		Read:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
 		Create: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
+		Update: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
 		Delete: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasCloudProviderAccessSetupImportState,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			// Note: when new providers will be added, this will trigger a recreate
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -171,4 +177,37 @@ func roleToSchemaSetup(role *matlas.AWSIAMRole) map[string]interface{} {
 	}
 
 	return out
+}
+
+func resourceMongoDBAtlasCloudProviderAccessSetupImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
+
+	if err != nil {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+	}
+
+	// searching id in internal format
+	d.SetId(encodeStateID(map[string]string{
+		"id":            roleID,
+		"project_id":    projectID,
+		"provider_name": providerName,
+	}))
+
+	err = resourceMongoDBAtlasCloudProviderAccessSetupRead(d, meta)
+
+	if err != nil {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+	}
+
+	// case of not found
+	if d.Id() == "" {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, " Resource not found at the cloud please check your id")
+	}
+
+	// params syncing
+	if err = d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
