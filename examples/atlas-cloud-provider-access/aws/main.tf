@@ -1,8 +1,3 @@
-resource "mongodbatlas_cloud_provider_access" "single_access" {
-   project_id = var.project_id
-   provider_name = var.cloud_provider_access_name
-}
-
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
    project_id = var.project_id
    provider_name = var.cloud_provider_access_name
