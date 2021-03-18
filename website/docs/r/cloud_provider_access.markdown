@@ -6,7 +6,17 @@ description: |-
     Provides a Cloud Provider Access settings resource for registration, authorization, and deauthorization
 ---
 
-# mongodbatlas_cloud_provider_access
+# Cloud Provider Access Configuration Paths
+
+The mongodbatlas provider offers two paths to perform an authorization for a provider role.
+* Single resource using the `mongodbatlas_cloud_provider_access` that at provision time setups all the required configuration for a given provider,
+then with a subsequent update it can perform the authorize of the role.
+
+* Multi resource `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` the first resource only generates
+the initial configuration (create, delete operations), the second resource helps to perform the authorization using the role_id of the first resource.
+This path is helpful in a multi-provider terraform file, to have a single and decouple apply
+
+## mongodbatlas_cloud_provider_access
 
 `mongodbatlas_cloud_provider_access` Allows you to register and authorize AWS IAM roles in Atlas.
 
