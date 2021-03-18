@@ -3,7 +3,10 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -45,6 +48,10 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 			"feature_usages": {
 				Type:     schema.TypeList,
 				Elem:     featureUsagesSchema(),
+				Computed: true,
+			},
+			"authorized_date": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -117,12 +124,31 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(d *schema.Resour
 		IAMAssumedRoleARN: iamRole.(string),
 	}
 
-	role, _, err := conn.CloudProviderAccess.AuthorizeRole(context.Background(), projectID, roleID, req)
+	var role *matlas.AWSIAMRole
+
+	// aws takes time to update , in case of single path
+	for i := 0; i < 3; i++ {
+		role, _, err = conn.CloudProviderAccess.AuthorizeRole(context.Background(), projectID, roleID, req)
+		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") {
+			log.Printf("warning issue performing authorize: %s \n", err.Error())
+			log.Println("retrying ")
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		return fmt.Errorf(errorCloudProviderAccessUpdate, err)
 	}
 
 	authSchema := roleToSchemaAuthorization(role)
+
+	// role id
+	d.SetId(encodeStateID(map[string]string{
+		"id":         role.RoleID,
+		"project_id": projectID,
+	}))
 
 	for key, val := range authSchema {
 		if err := d.Set(key, val); err != nil {
@@ -171,7 +197,7 @@ func FindRole(conn *matlas.Client, projectID, roleID string) (targetRole *matlas
 	index := sort.Search(len(roles.AWSIAMRoles), func(i int) bool { return roles.AWSIAMRoles[i].RoleID >= roleID })
 
 	if index < len(roles.AWSIAMRoles) && roles.AWSIAMRoles[index].RoleID == roleID {
-		*targetRole = roles.AWSIAMRoles[index]
+		targetRole = &(roles.AWSIAMRoles[index])
 	}
 
 	return
