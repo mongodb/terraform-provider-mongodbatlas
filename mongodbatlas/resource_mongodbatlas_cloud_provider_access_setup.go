@@ -9,9 +9,17 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+/*
+	mongodb_atlas_cloud_provider_access_setup
+	-> Creates the the information from the mongodbatlas side
+	-> The delete deletes and deauthorize the role
+*/
+
 func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
-		Read: resourceMongoDBAtlasCloudProviderAccessSetupRead,
+		Read:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
+		Create: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
+		Delete: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -90,6 +98,62 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, me
 		// planning for the future multiple providers
 		return fmt.Errorf(errorGetRead,
 			fmt.Sprintf("unsopported provider type %s", providerName))
+	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessSetupCreate(d *schema.ResourceData, meta interface{}) error {
+	projectID := d.Get("project_id").(string)
+
+	conn := meta.(*matlas.Client)
+
+	requestParameters := &matlas.CloudProviderAccessRoleRequest{
+		ProviderName: d.Get("provider_name").(string),
+	}
+
+	role, _, err := conn.CloudProviderAccess.CreateRole(context.Background(), projectID, requestParameters)
+
+	if err != nil {
+		return fmt.Errorf(errorCloudProviderAccessCreate, err)
+	}
+
+	// once multiple providers enable here do a switch, select for provider type
+	roleSchema := roleToSchemaSetup(role)
+
+	d.SetId(encodeStateID(map[string]string{
+		"id":            role.RoleID,
+		"project_id":    projectID,
+		"provider_name": role.ProviderName,
+	}))
+
+	for key, val := range roleSchema {
+		if err := d.Set(key, val); err != nil {
+			return fmt.Errorf(errorCloudProviderAccessCreate, err)
+		}
+	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessSetupDelete(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+
+	projectID := ids["project_id"]
+	roleID := ids["id"]
+	providerName := ids["provider_name"]
+
+	req := &matlas.CloudProviderDeauthorizationRequest{
+		ProviderName: providerName,
+		RoleID:       roleID,
+		GroupID:      projectID,
+	}
+
+	_, err := conn.CloudProviderAccess.DeauthorizeRole(context.Background(), req)
+
+	if err != nil {
+		return fmt.Errorf(errorCloudProviderAccessDelete, err)
 	}
 
 	return nil

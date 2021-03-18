@@ -9,9 +9,17 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+/*
+	A cloud provider access authorization
+*/
+
 func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 	return &schema.Resource{
-		Read: resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
+		Read:   resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
+		Create: resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate,
+		Update: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
+		Delete: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
+
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -28,6 +36,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"iam_assumed_role_arn": {
 							Type:     schema.TypeString,
+							ForceNew: true,
 							Required: true,
 						},
 					},
@@ -50,37 +59,81 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(d *schema.Resource
 	roleID := ids["id"] // atlas ID
 	projectID := ids["project_id"]
 
-	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+	targetRole, err := FindRole(conn, projectID, roleID)
 
 	if err != nil {
-		return fmt.Errorf(errorGetRead, err)
+		return err
 	}
 
-	// for future implementations is aws?
-	var targetRole matlas.AWSIAMRole
+	if targetRole == nil {
+		return fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first")
+	}
 
-	sort.Slice(roles.AWSIAMRoles,
-		func(i, j int) bool { return roles.AWSIAMRoles[i].RoleID < roles.AWSIAMRoles[j].RoleID })
+	roleSchema := roleToSchemaAuthorization(targetRole)
 
-	index := sort.Search(len(roles.AWSIAMRoles), func(i int) bool { return roles.AWSIAMRoles[i].RoleID >= roleID })
-
-	if index < len(roles.AWSIAMRoles) && roles.AWSIAMRoles[index].RoleID == roleID {
-		targetRole = roles.AWSIAMRoles[index]
-		roleSchema := roleToSchemaAuthorization(&targetRole)
-
-		for key, val := range roleSchema {
-			if err := d.Set(key, val); err != nil {
-				return fmt.Errorf(errorGetRead, err)
-			}
+	for key, val := range roleSchema {
+		if err := d.Set(key, val); err != nil {
+			return fmt.Errorf(errorGetRead, err)
 		}
 	}
 
-	// Not Found when more providers added this must be an interface
-	if targetRole.RoleID == "" && !d.IsNewResource() {
+	// If not authorize , then request the authorization
+	if targetRole.AuthorizedDate == "" && !d.IsNewResource() {
 		d.SetId("")
 		return nil
 	}
 
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+
+	projectID := d.Get("project_id").(string)
+	roleID := d.Get("role_id").(string)
+
+	// validation
+	targetRole, err := FindRole(conn, projectID, roleID)
+
+	if err != nil {
+		return err
+	}
+
+	if targetRole == nil {
+		return fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first")
+	}
+
+	// once multiple providers added, modify this section
+	roleAWS, ok := d.GetOk("aws")
+
+	if !ok {
+		return fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn")
+	}
+
+	iamRole := (roleAWS.(map[string]interface{}))["iam_assumed_role_arn"]
+
+	req := &matlas.CloudProviderAuthorizationRequest{
+		ProviderName:      targetRole.ProviderName,
+		IAMAssumedRoleARN: iamRole.(string),
+	}
+
+	role, _, err := conn.CloudProviderAccess.AuthorizeRole(context.Background(), projectID, roleID, req)
+	if err != nil {
+		return fmt.Errorf(errorCloudProviderAccessUpdate, err)
+	}
+
+	authSchema := roleToSchemaAuthorization(role)
+
+	for key, val := range authSchema {
+		if err := d.Set(key, val); err != nil {
+			return fmt.Errorf(errorCloudProviderAccessCreate, err)
+		}
+	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
@@ -103,4 +156,23 @@ func roleToSchemaAuthorization(role *matlas.AWSIAMRole) map[string]interface{} {
 	out["feature_usages"] = features
 
 	return out
+}
+
+func FindRole(conn *matlas.Client, projectID, roleID string) (targetRole *matlas.AWSIAMRole, err error) {
+	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+
+	if err != nil {
+		return nil, fmt.Errorf(errorGetRead, err)
+	}
+
+	sort.Slice(roles.AWSIAMRoles,
+		func(i, j int) bool { return roles.AWSIAMRoles[i].RoleID < roles.AWSIAMRoles[j].RoleID })
+
+	index := sort.Search(len(roles.AWSIAMRoles), func(i int) bool { return roles.AWSIAMRoles[i].RoleID >= roleID })
+
+	if index < len(roles.AWSIAMRoles) && roles.AWSIAMRoles[index].RoleID == roleID {
+		*targetRole = roles.AWSIAMRoles[index]
+	}
+
+	return
 }
