@@ -54,7 +54,7 @@ resource "mongodbatlas_project" "test" {
 }
 
 data "mongodbatlas_project" "test" {
-  name = "${mongodbatlas_project.test.name}"
+  name = mongodbatlas_project.test.name
 }
 ```
 

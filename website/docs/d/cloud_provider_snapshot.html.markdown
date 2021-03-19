@@ -24,8 +24,8 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 
 data "mongodbatlas_cloud_provider_snapshot" "test" {
   snapshot_id  = "5d1285acd5ec13b6c2d1726a"
-  group_id     = "${mongodbatlas_cloud_provider_snapshot.test.group_id}"
-  cluster_name = "${mongodbatlas_cloud_provider_snapshot.test.cluster_name}"
+  group_id     = mongodbatlas_cloud_provider_snapshot.test.group_id
+  cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 }
 ```
 

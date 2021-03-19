@@ -53,7 +53,7 @@ description: |-
       target_cluster_name = "MyCluster"
       target_project_id   = "5cf5a45a9ccf6400e60981b6"
     }
-    depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
+    depends_on = [mongodbatlas_cloud_provider_snapshot.test]
   }
 ```
 

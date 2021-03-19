@@ -35,9 +35,9 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 }
 
 data "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-  project_id     = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id}"
-  cluster_name = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name}"
-  job_id       = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.id}"
+  project_id     = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
+  cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
+  job_id       = mongodbatlas_cloud_provider_snapshot_restore_job.test.id
 }
 ```
 

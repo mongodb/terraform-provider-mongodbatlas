@@ -39,8 +39,8 @@ resource "mongodbatlas_database_user" "user" {
 }
 
 resource "mongodbatlas_x509_authentication_database_user" "test" {
-  project_id              = "${mongodbatlas_database_user.user.project_id}"
-  username                = "${mongodbatlas_database_user.user.username}"
+  project_id              = mongodbatlas_database_user.user.project_id
+  username                = mongodbatlas_database_user.user.username
   months_until_expiration = 2
 }
 ```

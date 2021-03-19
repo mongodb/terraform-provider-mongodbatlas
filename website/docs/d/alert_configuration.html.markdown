@@ -46,8 +46,8 @@ resource "mongodbatlas_alert_configuration" "test" {
 
 
 data "mongodbatlas_alert_configuration" "test" {
-	project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-	alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"
+	project_id             = mongodbatlas_alert_configuration.test.project_id
+	alert_configuration_id = mongodbatlas_alert_configuration.test.alert_configuration_id
 }
 ```
 
@@ -82,8 +82,8 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 
 data "mongodbatlas_alert_configuration" "test" {
-	project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-	alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"
+	project_id             = mongodbatlas_alert_configuration.test.project_id
+	alert_configuration_id = mongodbatlas_alert_configuration.test.alert_configuration_id
 }
 ```
 
