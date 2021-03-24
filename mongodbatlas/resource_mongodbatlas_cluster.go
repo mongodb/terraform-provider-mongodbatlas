@@ -487,16 +487,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	biConnector, err := expandBiConnector(d)
-	if err != nil {
-		return fmt.Errorf(errorClusterCreate, err)
-	}
-
-	biConnector, err = expandBiConnectorConfig(d)
-	if err != nil {
-		return fmt.Errorf(errorClusterCreate, err)
-	}
-
 	providerSettings, err := expandProviderSetting(d)
 	if err != nil {
 		return fmt.Errorf(errorClusterCreate, err)
@@ -515,9 +505,24 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
-		BiConnector:              biConnector,
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+	}
+
+	if _, ok := d.GetOk("bi_connector"); ok {
+		biConnector, err := expandBiConnector(d)
+		if err != nil {
+			return fmt.Errorf(errorClusterCreate, err)
+		}
+		clusterRequest.BiConnector = biConnector
+	}
+
+	if _, ok := d.GetOk("bi_connector_config"); ok {
+		biConnector, err := expandBiConnector(d)
+		if err != nil {
+			return fmt.Errorf(errorClusterCreate, err)
+		}
+		clusterRequest.BiConnector = biConnector
 	}
 
 	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
@@ -991,7 +996,7 @@ func splitSClusterImportID(id string) (projectID, clusterName *string, err error
 	return
 }
 
-// Deprecated, will be deleted later
+// Deprecated: will be deleted later
 func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	var biConnector matlas.BiConnector
 
@@ -1029,7 +1034,7 @@ func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	return &biConnector, nil
 }
 
-// Deprecated, will be deleted later
+// Deprecated: will be deleted later
 func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} {
 	biConnectorMap := make(map[string]interface{})
 
