@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+// covers both resource creation and datasource creation for setup
+
 const (
 	dataSourceCPASProviderConfig = `
 	resource "mongodbatlas_cloud_provider_access_setup" "%[1]s" {
