@@ -46,12 +46,30 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Computed: true,
 						},
 						"bi_connector": {
-							Type:     schema.TypeMap,
-							Computed: true,
+							Type:       schema.TypeMap,
+							Computed:   true,
+							Deprecated: "use bi_connector_config instead",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeString, // Convert to Bool
+										Computed: true,
+									},
+									"read_preference": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"bi_connector_config": {
+							Type:     schema.TypeList,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
 										Computed: true,
 									},
 									"read_preference": {
@@ -370,6 +388,7 @@ func flattenClusters(d *schema.ResourceData, conn *matlas.Client, clusters []mat
 			"provider_name":                clusters[i].ProviderSettings.ProviderName,
 			"provider_region_name":         clusters[i].ProviderSettings.RegionName,
 			"bi_connector":                 flattenBiConnector(clusters[i].BiConnector),
+			"bi_connector_config":          flattenBiConnectorConfig(clusters[i].BiConnector),
 			"replication_specs":            flattenReplicationSpecs(clusters[i].ReplicationSpecs),
 			"labels":                       flattenLabels(clusters[i].Labels),
 			"snapshot_backup_policy":       snapshotBackupPolicy,

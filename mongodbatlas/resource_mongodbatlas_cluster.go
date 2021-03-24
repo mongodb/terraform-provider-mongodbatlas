@@ -84,13 +84,33 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Default:  false,
 			},
 			"bi_connector": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Deprecated:    "use bi_connector_config instead",
+				ConflictsWith: []string{"bi_connector_config"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"read_preference": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"bi_connector_config": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"bi_connector"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
 						},
@@ -472,6 +492,11 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorClusterCreate, err)
 	}
 
+	biConnector, err = expandBiConnectorConfig(d)
+	if err != nil {
+		return fmt.Errorf(errorClusterCreate, err)
+	}
+
 	providerSettings, err := expandProviderSetting(d)
 	if err != nil {
 		return fmt.Errorf(errorClusterCreate, err)
@@ -676,8 +701,14 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "state_name", clusterName, err)
 	}
 
-	if err := d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
-		return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
+	if _, ok := d.GetOk("bi_connector"); ok {
+		if err = d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
+			return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
+		}
+	}
+
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "bi_connector_config", clusterName, err)
 	}
 
 	if cluster.ProviderSettings != nil {
@@ -744,6 +775,10 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 
 	if d.HasChange("bi_connector") {
 		cluster.BiConnector, _ = expandBiConnector(d)
+	}
+
+	if d.HasChange("bi_connector_config") {
+		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
 
 	// If at least one of the provider settings argument has changed, expand all provider settings
@@ -956,6 +991,7 @@ func splitSClusterImportID(id string) (projectID, clusterName *string, err error
 	return
 }
 
+// Deprecated, will be deleted later
 func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	var biConnector matlas.BiConnector
 
@@ -973,6 +1009,27 @@ func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	return &biConnector, nil
 }
 
+func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error) {
+	var biConnector matlas.BiConnector
+
+	if v, ok := d.GetOk("bi_connector_config"); ok {
+		biConn := v.([]interface{})
+		if len(biConn) > 0 {
+			biConnMap := biConn[0].(map[string]interface{})
+
+			enabled := cast.ToBool(biConnMap["enabled"])
+
+			biConnector = matlas.BiConnector{
+				Enabled:        &enabled,
+				ReadPreference: cast.ToString(biConnMap["read_preference"]),
+			}
+		}
+	}
+
+	return &biConnector, nil
+}
+
+// Deprecated, will be deleted later
 func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} {
 	biConnectorMap := make(map[string]interface{})
 
@@ -985,6 +1042,15 @@ func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} 
 	}
 
 	return biConnectorMap
+}
+
+func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":         *biConnector.Enabled,
+			"read_preference": biConnector.ReadPreference,
+		},
+	}
 }
 
 func getInstanceSizeToInt(instanceSize string) int {
