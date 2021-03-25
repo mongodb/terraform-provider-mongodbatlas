@@ -26,22 +26,22 @@ resource "mongodbatlas_private_endpoint" "test" {
 
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id             = "vpc-7fc0a543"
-  service_name       = "${mongodbatlas_private_endpoint.test.endpoint_service_name}"
+  service_name       = mongodbatlas_private_endpoint.test.endpoint_service_name
   vpc_endpoint_type  = "Interface"
   subnet_ids         = ["subnet-de0406d2"]
   security_group_ids = ["sg-3f238186"]
 }
 
 resource "mongodbatlas_private_endpoint_interface_link" "test" {
-  project_id            = "${mongodbatlas_private_endpoint.test.project_id}"
-  private_link_id       = "${mongodbatlas_private_endpoint.test.private_link_id}"
-  interface_endpoint_id = "${aws_vpc_endpoint.ptfe_service.id}"
+  project_id            = mongodbatlas_private_endpoint.test.project_id
+  private_link_id       = mongodbatlas_private_endpoint.test.private_link_id
+  interface_endpoint_id = aws_vpc_endpoint.ptfe_service.id
 }
 
 data "mongodbatlas_private_endpoint_interface_link" "test" {
-  project_id            = "${mongodbatlas_private_endpoint_link.test.project_id}"
-  private_link_id       = "${mongodbatlas_private_endpoint_link.test.private_link_id}"
-  interface_endpoint_id = "${mongodbatlas_private_endpoint_link.test.interface_endpoint_id}"
+  project_id            = mongodbatlas_private_endpoint_link.test.project_id
+  private_link_id       = mongodbatlas_private_endpoint_link.test.private_link_id
+  interface_endpoint_id = mongodbatlas_private_endpoint_link.test.interface_endpoint_id
 }
 ```
 

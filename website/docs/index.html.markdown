@@ -19,8 +19,8 @@ You may want to consider pinning the [provider version](https://www.terraform.io
 ```hcl
 # Configure the MongoDB Atlas Provider
 provider "mongodbatlas" {
-  public_key = "${var.mongodbatlas_public_key}"
-  private_key  = "${var.mongodbatlas_private_key}"
+  public_key = var.mongodbatlas_public_key
+  private_key  = var.mongodbatlas_private_key
 }
 
 #Create the resources

@@ -28,16 +28,16 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id             = "vpc-7fc0a543"
-  service_name       = "${mongodbatlas_privatelink_endpoint.test.endpoint_service_name}"
+  service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
   vpc_endpoint_type  = "Interface"
   subnet_ids         = ["subnet-de0406d2"]
   security_group_ids = ["sg-3f238186"]
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = "${mongodbatlas_privatelink_endpoint.test.project_id}"
-  private_link_id       = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
-  endpoint_service_id = "${aws_vpc_endpoint.ptfe_service.id}"
+  project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id       = mongodbatlas_privatelink_endpoint.test.private_link_id
+  endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
   provider_name = "AWS"
 }
 ```

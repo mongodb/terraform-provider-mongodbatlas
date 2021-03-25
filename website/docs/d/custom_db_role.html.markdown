@@ -36,8 +36,8 @@ resource "mongodbatlas_custom_db_role" "test_role" {
 }
 
 data "mongodbatlas_custom_db_role" "test" {
-  project_id = "${mongodbatlas_custom_db_role.test_role.project_id}"
-  role_name  = "${mongodbatlas_custom_db_role.test_role.role_name}"
+  project_id = mongodbatlas_custom_db_role.test_role.project_id
+  role_name  = mongodbatlas_custom_db_role.test_role.role_name
 }
 ```
 

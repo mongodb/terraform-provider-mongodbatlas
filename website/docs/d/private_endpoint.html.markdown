@@ -25,8 +25,8 @@ resource "mongodbatlas_private_endpoint" "test" {
 }
 
 data "mongodbatlas_private_endpoint" "test" {
-	project_id      = "${mongodbatlas_private_endpoint.test.project_id}"
-	private_link_id = "${mongodbatlas_private_endpoint.test.private_link_id}"
+	project_id      = mongodbatlas_private_endpoint.test.project_id
+	private_link_id = mongodbatlas_private_endpoint.test.private_link_id
 }
 ```
 

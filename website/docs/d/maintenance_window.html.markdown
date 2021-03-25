@@ -22,7 +22,7 @@ resource "mongodbatlas_maintenance_window" "test" {
 }
 
 data "mongodbatlas_maintenance_window" "test" {
-  project_id = "${mongodbatlas_maintenance_window.test.id}"
+  project_id = mongodbatlas_maintenance_window.test.id
 }
 ```
 
@@ -34,7 +34,7 @@ resource "mongodbatlas_maintenance_window" "test" {
 }
 
 data "mongodbatlas_maintenance_window" "test" {
-  project_id = "${mongodbatlas_maintenance_window.test.id}"
+  project_id = mongodbatlas_maintenance_window.test.id
 }
 ```
 

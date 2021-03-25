@@ -38,7 +38,7 @@ resource "mongodbatlas_ldap_verify" "test" {
     port                     = 636
     bind_username                     = "USERNAME"
     bind_password                     = "PASSWORD"
-    depends_on = ["mongodbatlas_cluster.test"]
+    depends_on = [mongodbatlas_cluster.test]
 }
 ```
 

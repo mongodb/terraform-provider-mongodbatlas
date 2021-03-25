@@ -26,7 +26,7 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
   project_id     = "5cf5a45a9ccf6400e60981b6"
   cluster_name = "MyCluster"
-  snapshot_id  = "${mongodbatlas_cloud_provider_snapshot.test.id}"
+  snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
   delivery_type = {
     automated = true
     target_cluster_name = "MyCluster"
@@ -35,8 +35,8 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 }
 
 data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
-  project_id     = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id}"
-  cluster_name = "${mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name}"
+  project_id     = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
+  cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
   page_num = 1
   items_per_page = 5
 }

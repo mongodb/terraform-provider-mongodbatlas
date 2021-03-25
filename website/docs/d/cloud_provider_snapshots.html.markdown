@@ -23,8 +23,8 @@ resource "mongodbatlas_cloud_provider_snapshots" "test" {
 }
 
 data "mongodbatlas_cloud_provider_snapshots" "test" {
-  group_id     = "${mongodbatlas_cloud_provider_snapshots.test.group_id}"
-  cluster_name = "${mongodbatlas_cloud_provider_snapshots.test.cluster_name}"
+  group_id     = mongodbatlas_cloud_provider_snapshots.test.group_id
+  cluster_name = mongodbatlas_cloud_provider_snapshots.test.cluster_name
   page_num = 1
   items_per_page = 5
 }
