@@ -102,6 +102,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_custom_dns_configuration_cluster_aws":  resourceMongoDBAtlasCustomDNSConfiguration(),
 			"mongodbatlas_ldap_configuration":                    resourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
+			"mongodbaltas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
 		},
 
 		ConfigureFunc: providerConfigure,
