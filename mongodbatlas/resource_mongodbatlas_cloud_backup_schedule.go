@@ -19,6 +19,10 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 		Create: resourceMongoDBAtlasCloudBackupScheduleCreate,
 		Read:   resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
 		Update: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate, // To review
+		Delete: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState,
+		},
 		// delete is pending to check
 		// Delete: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete,
 
