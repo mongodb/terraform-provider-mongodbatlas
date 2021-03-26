@@ -79,9 +79,10 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"backup_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Clusters running MongoDB FCV 4.2 or later and any new Atlas clusters of any type do not support this parameter",
 			},
 			"bi_connector": {
 				Type:     schema.TypeMap,
@@ -134,9 +135,16 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Default:  1,
 			},
 			"provider_backup_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Default:    false,
+				Deprecated: "This field is deprecated,please use cloud_backup instead",
+			},
+			"cloud_backup": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"provider_backup_enabled", "backup_enabled"},
 			},
 			"provider_instance_size_name": {
 				Type:     schema.TypeString,
@@ -487,7 +495,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              cast.ToString(d.Get("cluster_type")),
 		BackupEnabled:            pointy.Bool(d.Get("backup_enabled").(bool)),
-		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
+		ProviderBackupEnabled:    pointy.Bool(d.Get("cloud_backup").(bool)),
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		BiConnector:              biConnector,
@@ -613,8 +621,8 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err)
 	}
 
-	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-		return fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err)
+	if err := d.Set("cloud_backup", cluster.ProviderBackupEnabled); err != nil {
+		return fmt.Errorf(errorClusterSetting, "cloud_backup", clusterName, err)
 	}
 
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
@@ -806,8 +814,8 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
 	}
 
-	if d.HasChange("provider_backup_enabled") {
-		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
+	if d.HasChange("cloud_backup") {
+		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("cloud_backup").(bool))
 	}
 
 	if d.HasChange("pit_enabled") {
@@ -832,7 +840,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 
 	// when Provider instance type changes this argument must be passed explicitly in patch request
 	if d.HasChange("provider_instance_size_name") {
-		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
+		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("cloud_backup").(bool))
 	}
 
 	// Has changes
