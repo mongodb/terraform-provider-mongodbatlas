@@ -84,7 +84,8 @@ In addition to all arguments above, the following attributes are exported:
 * `auto_scaling_compute_enabled` - (Optional) Specifies whether cluster tier auto-scaling is enabled. The default is false.
 * `auto_scaling_compute_scale_down_enabled` - (Optional) Set to `true` to enable the cluster tier to scale down.
 * `backup_enabled` - Legacy Option, Indicates whether Atlas continuous backups are enabled for the cluster.
-* `bi_connector` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
+* `bi_connector` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details. **DEPRECATED** Use `bi_connector_config` instead.
+* `bi_connector_config` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.
 * `cluster_type` - Indicates the type of the cluster that you want to modify. You cannot convert a sharded cluster deployment to a replica set deployment.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More info in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
     - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
