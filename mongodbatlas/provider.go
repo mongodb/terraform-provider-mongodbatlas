@@ -114,6 +114,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
 			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
+			"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
 		},
 
 		ConfigureFunc: providerConfigure,
