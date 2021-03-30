@@ -225,7 +225,8 @@ func compareInt64(a, b *int64) bool {
 	return false
 }
 
-func buildRequestCloudBackupSchedule(d *schema.ResourceData, backupPolicy *matlas.CloudProviderSnapshotBackupPolicy, policies []matlas.Policy, performUpdate bool) (*matlas.CloudProviderSnapshotBackupPolicy, bool) {
+func buildRequestCloudBackupSchedule(d *schema.ResourceData, backupPolicy *matlas.CloudProviderSnapshotBackupPolicy,
+	policies []matlas.Policy, performUpdate bool) (*matlas.CloudProviderSnapshotBackupPolicy, bool) {
 	// tenative request
 	req := &matlas.CloudProviderSnapshotBackupPolicy{
 		Policies: policies,
