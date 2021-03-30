@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/spf13/cast"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mwielbut/pointy"
@@ -19,7 +21,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 		Create: resourceMongoDBAtlasCloudBackupScheduleCreate,
 		Read:   resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
 		Update: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate, // To review
-		Delete: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete,
+		Delete: resourceMongoDBAtlasCloudBackupScheduleDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState,
 		},
@@ -161,57 +163,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 		performUpdate = true
 	}
 
-	// tenative request
-	req := &matlas.CloudProviderSnapshotBackupPolicy{
-		Policies: config,
-	}
-
-	// Refactor all of this into a function this is ugly
-	hourDay, ok := d.GetOk("reference_hour_of_day")
-
-	if ok {
-		value := pointy.Int64(hourDay.(int64))
-		if compareInt64(value, backupPolicy.ReferenceHourOfDay) {
-			performUpdate = true
-			req.ReferenceHourOfDay = value
-		}
-	}
-
-	minHour, ok := d.GetOk("reference_minute_of_hour")
-
-	if ok {
-		value := pointy.Int64(minHour.(int64))
-		if compareInt64(value, backupPolicy.ReferenceMinuteOfHour) {
-			performUpdate = true
-			req.ReferenceMinuteOfHour = value
-		}
-	}
-
-	winDays, ok := d.GetOk("restore_window_days")
-
-	if ok {
-		value := pointy.Int64(winDays.(int64))
-		if compareInt64(value, backupPolicy.RestoreWindowDays) {
-			performUpdate = true
-			req.RestoreWindowDays = value
-		}
-	}
-
-	updateSnap, ok := d.GetOk("update_snapshots")
-
-	if ok {
-		value := pointy.Bool(updateSnap.(bool))
-		if backupPolicy.UpdateSnapshots != nil {
-			// just when true sending back
-			if *value {
-				performUpdate = true
-				req.UpdateSnapshots = value
-			}
-		} else if *backupPolicy.UpdateSnapshots != *value {
-			performUpdate = true
-			req.UpdateSnapshots = value
-		}
-	}
+	req, performUpdate := buildRequestCloudBackupSchedule(d, backupPolicy, config, performUpdate)
 
 	if performUpdate {
 		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
@@ -220,8 +172,18 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 		}
 	}
 
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":   projectID,
+		"cluster_name": clusterName,
+	}))
+
 	// otherwise set read config
 	return resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d, meta)
+}
+
+func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+	// There is no resource to delete a backup policy, it can only be updated.
+	return nil
 }
 
 func needsUpdate(a, b []matlas.Policy) bool {
@@ -261,4 +223,52 @@ func compareInt64(a, b *int64) bool {
 		return true
 	}
 	return false
+}
+
+func buildRequestCloudBackupSchedule(d *schema.ResourceData, backupPolicy *matlas.CloudProviderSnapshotBackupPolicy, policies []matlas.Policy, performUpdate bool) (*matlas.CloudProviderSnapshotBackupPolicy, bool) {
+	// tenative request
+	req := &matlas.CloudProviderSnapshotBackupPolicy{
+		Policies: policies,
+	}
+
+	hourDay, ok := d.GetOk("reference_hour_of_day")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(hourDay))
+		if compareInt64(value, backupPolicy.ReferenceHourOfDay) {
+			performUpdate = true
+			req.ReferenceHourOfDay = value
+		}
+	}
+	minHour, ok := d.GetOk("reference_minute_of_hour")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(minHour))
+		if compareInt64(value, backupPolicy.ReferenceMinuteOfHour) {
+			performUpdate = true
+			req.ReferenceMinuteOfHour = value
+		}
+	}
+	winDays, ok := d.GetOk("restore_window_days")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(winDays))
+		if compareInt64(value, backupPolicy.RestoreWindowDays) {
+			performUpdate = true
+			req.RestoreWindowDays = value
+		}
+	}
+	updateSnap, ok := d.GetOk("update_snapshots")
+	if ok {
+		value := pointy.Bool(updateSnap.(bool))
+		if backupPolicy.UpdateSnapshots != nil {
+			// just when true sending back
+			if *value {
+				performUpdate = true
+				req.UpdateSnapshots = value
+			}
+		} else if *backupPolicy.UpdateSnapshots != *value {
+			performUpdate = true
+			req.UpdateSnapshots = value
+		}
+	}
+
+	return req, performUpdate
 }
