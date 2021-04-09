@@ -77,6 +77,30 @@ resource "mongodbatlas_database_user" "test" {
 }
 ```
 
+```hcl
+resource "mongodbatlas_database_user" "test" {
+  username           = aws_iam_role.test.arn
+  project_id         = "<PROJECT-ID>"
+  auth_database_name = "$external"
+  aws_iam_type       = "ROLE"
+
+  roles {
+    role_name     = "readAnyDatabase"
+    database_name = "admin"
+  }
+
+  labels {
+    key   = "%s"
+    value = "%s"
+  }
+
+  scopes {
+    name   = "My cluster name"
+    type = "CLUSTER"
+  }
+}
+```
+
 ## Argument Reference
 
 * `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.
@@ -85,7 +109,7 @@ Accepted values include:
   * `$external` if `x509_type` is MANAGED or CUSTOMER or `aws_iam_type` is USER or ROLE.
 * `project_id` - (Required) The unique ID for the project to create the database user.
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
-* `username` - (Required) Username for authenticating to MongoDB.
+* `username` - (Required) Username for authenticating to MongoDB. USER_ARN or ROLE_ARN if `aws_iam_type` is USER or ROLE.
 * `password` - (Required) User's initial password. A value is required to create the database user, however the argument but may be removed from your Terraform configuration after user creation without impacting the user, password or Terraform management. IMPORTANT --- Passwords may show up in Terraform related logs and it will be stored in the Terraform state file as plain-text. Password can be changed after creation using your preferred method, e.g. via the MongoDB Atlas UI, to ensure security.  If you do change management of the password to outside of Terraform be sure to remove the argument from the Terraform configuration so it is not inadvertently updated to the original password.
 
 * `x509_type` - (Optional) X.509 method by which the provided username is authenticated. If no value is given, Atlas uses the default value of NONE. The accepted types are:
