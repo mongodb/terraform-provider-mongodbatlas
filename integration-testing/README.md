@@ -1,7 +1,7 @@
 ### Integration tests
 
-The integration tests required extra credentials, like aws, azure. 
-In order to execute the complete terra cycle (init, apply, destroy)
+Integration tests required extra credentials, such as for aws and azure,
+in order to execute the complete terraform cycle (init, apply, destroy)
 
 For all the testing it needs the common environment variables 
 ```

@@ -205,3 +205,12 @@ $ make testacc
 Thanks
 ---------------------------
 We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
+
+# Running the integration tests
+
+The integration tests helps the validation for resources interacting with third party providers (aws, azure or gcp) using terratest [environment setup details](integration-testing/README.md)
+
+```
+  cd integration-testing
+  go test -tags=integration
+```

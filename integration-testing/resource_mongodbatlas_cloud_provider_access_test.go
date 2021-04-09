@@ -1,3 +1,5 @@
+// +build integration
+
 package integration_testing
 
 import (
@@ -12,7 +14,6 @@ const (
 )
 
 func TestTerraformResourceMongoDBAtlasCloudProviderAccess_basicAWS(t *testing.T) {
-	SkipTestExtCred(t)
 	t.Parallel()
 
 	mongoSecrets := GetCredentialsFromEnv()

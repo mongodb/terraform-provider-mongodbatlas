@@ -1,21 +1,15 @@
+// +build integration
+
 package integration_testing
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func SkipTestExtCred(t *testing.T) {
-	if strings.EqualFold(os.Getenv("SKIP_TEST_EXTERNAL_CREDENTIALS"), "true") {
-		t.SkipNow()
-	}
-}
 func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	SkipTestExtCred(t)
 	t.Parallel()
 
 	mongoSecrets := GetCredentialsFromEnv()

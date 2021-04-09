@@ -8,17 +8,16 @@ description: |-
 
 # Cloud Provider Access Configuration Paths
 
-The mongodbatlas provider offers two paths to perform an authorization for a provider role.
-* Single resource using the `mongodbatlas_cloud_provider_access` that at provision time setups all the required configuration for a given provider,
-then with a subsequent update it can perform the authorize of the role.
+The MongoDB Atlas provider offers two paths to perform an authorization for a cloud provider role.
 
-* Multi resource `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` the first resource only generates
-the initial configuration (create, delete operations), the second resource helps to perform the authorization using the role_id of the first resource.
-This path is helpful in a multi-provider terraform file, to have a single and decouple apply
+* A single resource path using the `mongodbatlas_cloud_provider_access` that at provision time sets up all the required configuration for a given provider, then with a subsequent update it can perform the authorize of the role.
+
+* A two resource path, consisting of `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`. The first resource, mongodbatlas_cloud_provider_access_setup, only generates
+the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows a single and decoupled apply.
 
 ## mongodbatlas_cloud_provider_access
 
-`mongodbatlas_cloud_provider_access` Allows you to register and authorize AWS IAM roles in Atlas.
+`mongodbatlas_cloud_provider_access` Allows you to register and authorize AWS IAM roles in Atlas. This is the resource to use for the single resource path described above.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -77,7 +76,7 @@ $ terraform import mongodbatlas_cloud_provider_access.my_role 1112222b3bf9940384
 
 ## mongodbatlas_cloud_provider_access (optional)
 
-This is the first resource in the multi-resource path
+This is the first resource in the two-resource path as described above.
 
 `mongodbatlas_cloud_provider_access_setup` Allows you to only register AWS IAM roles in Atlas.
 
@@ -120,9 +119,8 @@ $ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf9
 
 ## mongodbatlas_cloud_provider_authorization (optional)
 
-This is the second resource in the multi-resource path
-
-`mongodbatlas_cloud_provider_access_authorization` Allows you to only authorize an AWS IAM roles in Atlas.
+This is the second resource in the two-resource path as described above.
+`mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS IAM roles in Atlas.
 
 ## Example Usage
 ```hcl
