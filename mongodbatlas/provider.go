@@ -66,6 +66,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_third_party_integration":               dataSourceMongoDBAtlasThirdPartyIntegration(),
 			"mongodbatlas_project_ip_access_list":                dataSourceMongoDBAtlasProjectIPAccessList(),
 			"mongodbatlas_cloud_provider_access":                 dataSourceMongoDBAtlasCloudProviderAccessList(),
+			"mongodbatlas_cloud_provider_access_setup":           dataSourceMongoDBAtlasCloudProviderAccessSetup(),
 			"mongodbatlas_custom_dns_configuration_cluster_aws":  dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
 			"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
@@ -101,6 +102,8 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_custom_dns_configuration_cluster_aws":  resourceMongoDBAtlasCustomDNSConfiguration(),
 			"mongodbatlas_ldap_configuration":                    resourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
+			"mongodbatlas_cloud_provider_access_setup":           resourceMongoDBAtlasCloudProviderAccessSetup(),
+			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
 		},
 
 		ConfigureFunc: providerConfigure,
