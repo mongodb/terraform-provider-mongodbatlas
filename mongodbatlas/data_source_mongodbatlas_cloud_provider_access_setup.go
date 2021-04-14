@@ -89,7 +89,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, 
 	} else {
 		// planning for the future multiple providers
 		return fmt.Errorf(errorGetRead,
-			fmt.Sprintf("unsopported provider type %s", providerName))
+			fmt.Sprintf("unsupported provider type %s", providerName))
 	}
 
 	d.SetId(resource.UniqueId())
