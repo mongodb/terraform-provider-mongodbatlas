@@ -152,10 +152,14 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType_import(t *testing.T)
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+		username     = os.Getenv("TEST_DB_USER_IAM_ARN")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
+
+	if username == "" {
+		username = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
