@@ -140,6 +140,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"name": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"mongo_db_major_version": {
