@@ -1166,11 +1166,11 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 		for _, s := range v.(*schema.Set).List() {
 			spec := s.(map[string]interface{})
 			id := cast.ToString(spec["id"])
-			//Check if has changes
+			// Check if has changes
 			if d.HasChange("replication_specs") && cast.ToString(d.Get("cluster_type")) == "GEOSHARDED" {
-				//Get original and new object
+				// Get original and new object
 				original, _ := d.GetChange("replication_specs")
-				isSame, oldID := hasSameData(original, spec)
+				isSame, oldID := compareReplicationSpecs(original, spec)
 				if isSame {
 					id = oldID
 				}
@@ -1474,7 +1474,7 @@ func clusterConnectionStringsSchema() *schema.Schema {
 	}
 }
 
-func hasSameData(oldObject interface{}, newValues map[string]interface{}) (bool, string) {
+func compareReplicationSpecs(oldObject interface{}, newValues map[string]interface{}) (flag bool, idSpec string) {
 	for _, s := range oldObject.(*schema.Set).List() {
 		spec := s.(map[string]interface{})
 		if cast.ToString(spec["zone_name"]) == cast.ToString(newValues["zone_name"]) {
