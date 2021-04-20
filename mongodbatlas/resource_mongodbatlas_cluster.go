@@ -1165,14 +1165,23 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	if v, ok := d.GetOk("replication_specs"); ok {
 		for _, s := range v.([]interface{}) {
 			spec := s.(map[string]interface{})
-
+			id := cast.ToString(spec["id"])
+			// Check if has changes
+			if d.HasChange("replication_specs") && cast.ToString(d.Get("cluster_type")) == "GEOSHARDED" {
+				// Get original and new object
+				original, _ := d.GetChange("replication_specs")
+				isSame, oldID := compareReplicationSpecs(original, spec)
+				if isSame {
+					id = oldID
+				}
+			}
 			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List())
 			if err != nil {
 				return rSpecs, err
 			}
 
 			rSpec := matlas.ReplicationSpec{
-				ID:            cast.ToString(spec["id"]),
+				ID:            id,
 				NumShards:     pointy.Int64(cast.ToInt64(spec["num_shards"])),
 				ZoneName:      cast.ToString(spec["zone_name"]),
 				RegionsConfig: regionsConfig,
@@ -1463,4 +1472,14 @@ func clusterConnectionStringsSchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+func compareReplicationSpecs(oldObject interface{}, newValues map[string]interface{}) (flag bool, idSpec string) {
+	for _, s := range oldObject.([]interface{}) {
+		spec := s.(map[string]interface{})
+		if cast.ToString(spec["zone_name"]) == cast.ToString(newValues["zone_name"]) {
+			return true, cast.ToString(spec["id"])
+		}
+	}
+	return false, ""
 }
