@@ -1,9 +1,13 @@
 package integration_testing
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
+
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -28,7 +32,7 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	// retryable errors in terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: "../examples/test-upgrade/network-container/old",
+		TerraformDir: "../examples/test-upgrade/v090/network-container/v082",
 		Vars: map[string]interface{}{
 			"project_id":       projectID,
 			"org_id":           orgID,
@@ -49,7 +53,7 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: "../examples/test-upgrade/network-container/updated",
+		TerraformDir: "../examples/test-upgrade/v090/network-container/v090",
 		Vars: map[string]interface{}{
 			"project_id":       projectID,
 			"org_id":           orgID,
@@ -85,7 +89,7 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 	// retryable errors in terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: "../examples/test-upgrade/database-user/old",
+		TerraformDir: "../examples/test-upgrade/v090/database-user/v082",
 		Vars: map[string]interface{}{
 			"project_name": projectName,
 			"org_id":       orgID,
@@ -106,7 +110,7 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 	userName := terraform.Output(t, terraformOptions, "username")
 	authDatabaseName := terraform.Output(t, terraformOptions, "auth_database_name")
 
-	tempTestFolder := CleanUpState(t, "examples/test-upgrade/database-user/updated")
+	tempTestFolder := CleanUpState(t, "examples/test-upgrade/v090/database-user/v090")
 
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
@@ -130,27 +134,36 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 
 }
 
+func testAccGetMongoDBAtlasMajorVersion() string {
+	conn, _ := matlas.New(http.DefaultClient, matlas.SetBaseURL(matlas.CloudURL))
+	majorVersion, _, _ := conn.DefaultMongoDBMajorVersion.Get(context.Background())
+
+	return majorVersion
+}
+
 func TestUpgradeClusterDeprecationEBSVolume(t *testing.T) {
 	t.Parallel()
 
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
-		clusterName = acctest.RandomWithPrefix("test-acc")
-		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
-		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc")
+		publicKey    = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
+		privateKey   = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		majorVersion = testAccGetMongoDBAtlasMajorVersion()
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: "../examples/test-upgrade/cluster/old",
+		TerraformDir: "../examples/test-upgrade/v090/cluster/v082",
 		Vars: map[string]interface{}{
-			"project_name": projectName,
-			"org_id":       orgID,
-			"cluster_name": clusterName,
-			"public_key":   publicKey,
-			"private_key":  privateKey,
+			"project_name":          projectName,
+			"org_id":                orgID,
+			"cluster_name":          clusterName,
+			"public_key":            publicKey,
+			"private_key":           privateKey,
+			"mongodb_major_version": majorVersion,
 		},
 	})
 
@@ -163,17 +176,18 @@ func TestUpgradeClusterDeprecationEBSVolume(t *testing.T) {
 	projectID := terraform.Output(t, terraformOptions, "project_id")
 	clusterNameOutput := terraform.Output(t, terraformOptions, "cluster_name")
 
-	tempTestFolder := CleanUpState(t, "examples/test-upgrade/cluster/updated")
+	tempTestFolder := CleanUpState(t, "examples/test-upgrade/v090/cluster/v090")
 
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: tempTestFolder,
 		Vars: map[string]interface{}{
-			"project_name": projectName,
-			"org_id":       orgID,
-			"cluster_name": clusterName,
-			"public_key":   publicKey,
-			"private_key":  privateKey,
+			"project_name":          projectName,
+			"org_id":                orgID,
+			"cluster_name":          clusterName,
+			"public_key":            publicKey,
+			"private_key":           privateKey,
+			"mongodb_major_version": majorVersion,
 		},
 	})
 

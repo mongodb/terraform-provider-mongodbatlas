@@ -12,7 +12,7 @@ resource "mongodbatlas_cluster" "test" {
   provider_backup_enabled      = true
   pit_enabled                  = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.0"
+  mongo_db_major_version       = var.mongodb_major_version
 
   // Provider Settings "block"
   provider_name               = "AWS"

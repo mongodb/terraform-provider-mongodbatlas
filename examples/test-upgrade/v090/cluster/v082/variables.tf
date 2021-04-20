@@ -18,3 +18,7 @@ variable "cluster_name" {
   description = "Cluster name"
   default = ""
 }
+variable "mongodb_major_version" {
+  description = "MongoDB major version"
+  default = ""
+}
