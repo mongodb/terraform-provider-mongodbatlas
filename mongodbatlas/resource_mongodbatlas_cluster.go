@@ -223,7 +223,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"replication_specs": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -1163,7 +1163,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	rSpecs := make([]matlas.ReplicationSpec, 0)
 
 	if v, ok := d.GetOk("replication_specs"); ok {
-		for _, s := range v.(*schema.Set).List() {
+		for _, s := range v.([]interface{}) {
 			spec := s.(map[string]interface{})
 			id := cast.ToString(spec["id"])
 			// Check if has changes
@@ -1475,7 +1475,7 @@ func clusterConnectionStringsSchema() *schema.Schema {
 }
 
 func compareReplicationSpecs(oldObject interface{}, newValues map[string]interface{}) (flag bool, idSpec string) {
-	for _, s := range oldObject.(*schema.Set).List() {
+	for _, s := range oldObject.([]interface{}) {
 		spec := s.(map[string]interface{})
 		if cast.ToString(spec["zone_name"]) == cast.ToString(newValues["zone_name"]) {
 			return true, cast.ToString(spec["id"])
