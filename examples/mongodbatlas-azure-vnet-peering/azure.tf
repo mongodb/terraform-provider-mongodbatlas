@@ -30,7 +30,7 @@ resource "azuread_service_principal" "sp" {
 }
 resource "azurerm_role_definition" "rd" {
   name  = "my-custom-role-definition"
-  scope = "/subscriptions/${var.application_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${var.vnet_name}"
+  scope = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${var.vnet_name}"
 
   permissions {
     actions = ["Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read",
@@ -41,11 +41,11 @@ resource "azurerm_role_definition" "rd" {
   }
 
   assignable_scopes = [
-    "/subscriptions/${var.application_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${var.vnet_name}",
+    "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${var.vnet_name}",
   ]
 }
 resource "azurerm_role_assignment" "ra" {
-  scope              = "/subscriptions/${var.application_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${var.vnet_name}"
+  scope              = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${var.vnet_name}"
   role_definition_id = azurerm_role_definition.rd.role_definition_resource_id
   principal_id       = azuread_service_principal.sp.id
 }
