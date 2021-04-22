@@ -32,10 +32,9 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 
   aws_kms = {
     enabled                = true
-    access_key_id          = "AKIAIOSFODNN7EXAMPLE"
-    secret_access_key      = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-    customer_master_key_id = "030gce02-586d-48d2-a966-05ea954fde0g"
+    customer_master_key_id = "5ce83906-6563-46b7-8045-11c20e3a5766"
     region                 = "US_EAST_1"
+    role_id                = "60815e2fe01a49138a928ebb"
   }
 
   azure_key_vault = {
@@ -66,9 +65,8 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 * `google_cloud_kms` - (Required) Specifies GCP KMS configuration details and whether Encryption at Rest is enabled for an Atlas project.
 
 ### aws_kms
+Refer to the example in the [official github repository](https://github.com/nikhil-mongo/terraform-provider-mongodbatlas/tree/master/examples) to implement Encryption at Rest
 * `enabled` - Specifies whether Encryption at Rest is enabled for an Atlas project, To disable Encryption at Rest, pass only this parameter with a value of false, When you disable Encryption at Rest, Atlas also removes the configuration details.
-* `access_key_id` - The IAM access key ID with permissions to access the customer master key specified by customerMasterKeyID.
-* `secret_access_key` - The IAM secret access key with permissions to access the customer master key specified by customerMasterKeyID.
 * `customer_master_key_id` - The AWS customer master key used to encrypt and decrypt the MongoDB master keys.
 * `region` - The AWS region in which the AWS customer master key exists: CA_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2, SA_EAST_1
 * `role_id` - ID of an AWS IAM role authorized to manage an AWS customer master key. To find the ID for an existing IAM role check the `role_id` attribute of the `mongodbatlas_cloud_provider_access` resource.
