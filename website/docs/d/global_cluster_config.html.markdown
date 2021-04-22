@@ -26,7 +26,6 @@ description: |-
 
 		//Provider Settings "block"
 		provider_name               = "AWS"
-		provider_disk_iops          = 240
 		provider_instance_size_name = "M30"
 
 		replication_specs {
