@@ -88,7 +88,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   //Provider Settings "block"
   provider_name               = "AWS"
   disk_size_gb                = 100
-  provider_disk_iops          = 300
+  provider_disk_iops          = 3000
   provider_instance_size_name = "M40"
   provider_region_name        = "US_EAST_1"
 }
