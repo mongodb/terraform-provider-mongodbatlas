@@ -65,7 +65,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 * `google_cloud_kms` - (Required) Specifies GCP KMS configuration details and whether Encryption at Rest is enabled for an Atlas project.
 
 ### aws_kms
-Refer to the example in the [official github repository](https://github.com/nikhil-mongo/terraform-provider-mongodbatlas/tree/master/examples) to implement Encryption at Rest
+Refer to the example in the [official github repository](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples) to implement Encryption at Rest
 * `enabled` - Specifies whether Encryption at Rest is enabled for an Atlas project, To disable Encryption at Rest, pass only this parameter with a value of false, When you disable Encryption at Rest, Atlas also removes the configuration details.
 * `customer_master_key_id` - The AWS customer master key used to encrypt and decrypt the MongoDB master keys.
 * `region` - The AWS region in which the AWS customer master key exists: CA_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2, SA_EAST_1
