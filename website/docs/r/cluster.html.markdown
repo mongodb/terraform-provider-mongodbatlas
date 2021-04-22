@@ -45,7 +45,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   //Provider Settings "block"
   provider_name               = "AWS"
   disk_size_gb                = 100
-  provider_disk_iops          = 300
+  provider_disk_iops         ops          = 300
   provider_volume_type        = "STANDARD"
   provider_instance_size_name = "M40"
 }
@@ -118,7 +118,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
   //Provider Settings "block"
   provider_name               = "AWS"
-  provider_disk_iops          = 300
+  provider_disk_iops          = 3000
   provider_volume_type        = "STANDARD"
   provider_instance_size_name = "M10"
 
@@ -159,7 +159,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
   //Provider Settings "block"
   provider_name               = "AWS"
-  provider_disk_iops          = 240
+  provider_disk_iops          = 3000
   provider_volume_type        = "STANDARD"
   provider_instance_size_name = "M30"
 
