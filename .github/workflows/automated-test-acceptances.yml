@@ -71,4 +71,5 @@ jobs:
           GCP_REGION_NAME: ${{ secrets.GCP_REGION_NAME }}
           GOOGLE_CLOUD_KEYFILE_JSON: ${{ secrets.GOOGLE_CLOUD_KEYFILE_JSON }}
           GCP_KEY_VERSION_RESOURCE_ID: ${{ secrets.GCP_KEY_VERSION_RESOURCE_ID }}
+          CA_CERT: ${{ secrets.CA_CERT }}
         run: make testacc
