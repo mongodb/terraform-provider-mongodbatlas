@@ -17,7 +17,6 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   //Provider settings
   provider_name               = "AWS"
   disk_size_gb                = 10
-  provider_disk_iops          = 100
   provider_volume_type        = "STANDARD"
   provider_encrypt_ebs_volume = true
   provider_instance_size_name = "M10"
