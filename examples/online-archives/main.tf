@@ -4,9 +4,9 @@ resource "mongodbatlas_online_archive" "users_archive" {
     coll_name = var.collection_name
     db_name = var.database_name
 
-    criteria = {
+    criteria {
         type = "DATE"
-        date_field = "created"
+        date_field = "date"
         date_format = "ISODATE"
         expire_after_days = 2
     }

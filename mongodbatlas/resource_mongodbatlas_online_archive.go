@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -34,48 +33,6 @@ func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 
 // https://docs.atlas.mongodb.com/reference/api/online-archive-create-one
 func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
-	criteriaValidator := func(val interface{}, key string) (warns []string, errs []error) {
-		in := val.(map[string]interface{})
-
-		_type, ok := in["type"]
-		_, dateFieldOk := in["date_field"]
-		val, expiredOk := in["expire_after_days"]
-		_, queryOk := in["query"]
-
-		if !ok {
-			return
-		}
-
-		if expiredOk {
-			conversion := val.(string)
-			validInt, err := strconv.Atoi(conversion)
-
-			if err != nil {
-				errs = append(errs, fmt.Errorf("error: expired_after_days invalid type %w", err))
-			}
-
-			in["expired_after_days"] = validInt
-		}
-
-		if _type == "DATE" {
-			if !dateFieldOk {
-				errs = append(errs, fmt.Errorf("error: criteria.date_field is required for DATE type"))
-			}
-
-			if !expiredOk {
-				errs = append(errs, fmt.Errorf("error: criteria.expire_after_days is required for DATE type"))
-			}
-		}
-
-		if _type == "CUSTOM" {
-			if !queryOk {
-				errs = append(errs, fmt.Errorf("error: criteria.query is required for CUSTOM type"))
-			}
-		}
-
-		return
-	}
-
 	return map[string]*schema.Schema{
 		// argument values
 		"project_id": {
@@ -97,14 +54,15 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"criteria": {
-			Type:     schema.TypeMap,
+			Type:     schema.TypeList,
+			MaxItems: 1,
 			Required: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"type": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"DATE, CUSTOM"}, false),
+						ValidateFunc: validation.StringInSlice([]string{"DATE", "CUSTOM"}, false),
 					},
 					"date_field": {
 						Type:     schema.TypeString,
@@ -126,7 +84,6 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					},
 				},
 			},
-			ValidateFunc: criteriaValidator,
 		},
 		"partition_fields": {
 			Type:     schema.TypeList,
@@ -355,7 +312,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		"type":              in.Criteria.Type,
 		"date_field":        in.Criteria.DateField,
 		"date_format":       in.Criteria.DateFormat,
-		"expire_after_days": strconv.FormatInt(int64(in.Criteria.ExpireAfterDays), 10),
+		"expire_after_days": int(in.Criteria.ExpireAfterDays),
 		// missing query check in client
 	}
 
@@ -392,12 +349,17 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 
 func fromOnlineArchiveToMapInCreate(in *matlas.OnlineArchive) map[string]interface{} {
 	localSchema := fromOnlineArchiveToMap(in)
+	criteria := localSchema["criteria"]
+	localSchema["criteria"] = []interface{}{criteria}
+
 	delete(localSchema, "partition_fields")
 	return localSchema
 }
 
 func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
-	criteria := d.Get("criteria").(map[string]interface{})
+	criteriaList := d.Get("criteria").([]interface{})
+
+	criteria := criteriaList[0].(map[string]interface{})
 
 	criteriaInput := &matlas.OnlineArchiveCriteria{
 		Type: criteria["type"].(string),
@@ -406,10 +368,9 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 	if criteriaInput.Type == "DATE" {
 		criteriaInput.DateField = criteria["date_field"].(string)
 
-		conversion := criteria["expire_after_days"].(string)
-		validInt, _ := strconv.Atoi(conversion)
+		conversion := criteria["expire_after_days"].(int)
 
-		criteriaInput.ExpireAfterDays = float64(validInt)
+		criteriaInput.ExpireAfterDays = float64(conversion)
 		// optional
 		if dformat, ok := criteria["date_format"]; ok {
 			if len(dformat.(string)) > 0 {
