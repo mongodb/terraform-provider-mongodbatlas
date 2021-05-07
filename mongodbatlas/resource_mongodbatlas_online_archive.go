@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -38,11 +39,22 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 
 		_type, ok := in["type"]
 		_, dateFieldOk := in["date_field"]
-		_, expiredOk := in["expire_after_days"]
+		val, expiredOk := in["expire_after_days"]
 		_, queryOk := in["query"]
 
 		if !ok {
 			return
+		}
+
+		if expiredOk {
+			conversion := val.(string)
+			validInt, err := strconv.Atoi(conversion)
+
+			if err != nil {
+				errs = append(errs, fmt.Errorf("error: expired_after_days invalid type %w", err))
+			}
+
+			in["expired_after_days"] = validInt
 		}
 
 		if _type == "DATE" {
@@ -105,7 +117,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 						ValidateFunc: validation.StringInSlice([]string{"ISODATE", "EPOCH_SECONDS", "EPOCH_MILLIS", "EPOCH_NANOSECONDS"}, false),
 					},
 					"expire_after_days": {
-						Type:     schema.TypeFloat,
+						Type:     schema.TypeInt,
 						Optional: true,
 					},
 					"query": {
@@ -119,6 +131,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 		"partition_fields": {
 			Type:     schema.TypeList,
 			Optional: true,
+			Computed: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"field_name": {
@@ -126,9 +139,9 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 						Required: true,
 					},
 					"order": {
-						Type:         schema.TypeFloat,
+						Type:         schema.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.FloatAtLeast(0.0),
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 					"field_type": {
 						Type:     schema.TypeString,
@@ -158,9 +171,10 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 	// Get client connection
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
+	clusterName := d.Get("cluster_name").(string)
 
 	inputRequest := mapToArchivePayload(d)
-	outputRequest, _, err := conn.OnlineArchives.Create(context.Background(), projectID, inputRequest.ClusterName, &inputRequest)
+	outputRequest, _, err := conn.OnlineArchives.Create(context.Background(), projectID, clusterName, &inputRequest)
 
 	if err != nil {
 		return fmt.Errorf(errorOnlineArchivesCreate, err)
@@ -168,7 +182,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
-		"cluster_name": inputRequest.ClusterName,
+		"cluster_name": outputRequest.ClusterName,
 		"atlas_id":     outputRequest.ID,
 	}))
 
@@ -195,7 +209,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error MongoDBAtlas Online Archive with id %s, read error %s", atlasID, err.Error())
 	}
 
-	newData := fromOnlineArchiveToMap(outOnlineArchive)
+	newData := fromOnlineArchiveToMapInCreate(outOnlineArchive)
 
 	for key, val := range newData {
 		if err := d.Set(key, val); err != nil {
@@ -258,9 +272,8 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	// shared input
 	requestInput := matlas.OnlineArchive{
-		ClusterName: d.Get("cluster_name").(string),
-		DBName:      d.Get("db_name").(string),
-		CollName:    d.Get("coll_name").(string),
+		DBName:   d.Get("db_name").(string),
+		CollName: d.Get("coll_name").(string),
 	}
 
 	requestInput.Criteria = mapCriteria(d)
@@ -272,11 +285,12 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 			partitionList := make([]*matlas.PartitionFields, 0, len(list))
 			for _, partition := range list {
 				item := partition.(map[string]interface{})
-
+				localOrder := item["order"].(int)
+				localOrderFloat := float64(localOrder)
 				partitionList = append(partitionList,
 					&matlas.PartitionFields{
 						FieldName: item["field_name"].(string),
-						Order:     pointy.Float64(item["order"].(float64)),
+						Order:     pointy.Float64(localOrderFloat),
 					},
 				)
 			}
@@ -341,7 +355,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		"type":              in.Criteria.Type,
 		"date_field":        in.Criteria.DateField,
 		"date_format":       in.Criteria.DateFormat,
-		"expire_after_days": in.Criteria.ExpireAfterDays,
+		"expire_after_days": strconv.FormatInt(int64(in.Criteria.ExpireAfterDays), 10),
 		// missing query check in client
 	}
 
@@ -376,6 +390,12 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	return schemaVals
 }
 
+func fromOnlineArchiveToMapInCreate(in *matlas.OnlineArchive) map[string]interface{} {
+	localSchema := fromOnlineArchiveToMap(in)
+	delete(localSchema, "partition_fields")
+	return localSchema
+}
+
 func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 	criteria := d.Get("criteria").(map[string]interface{})
 
@@ -385,7 +405,11 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 
 	if criteriaInput.Type == "DATE" {
 		criteriaInput.DateField = criteria["date_field"].(string)
-		criteriaInput.ExpireAfterDays = criteria["expire_after_days"].(float64)
+
+		conversion := criteria["expire_after_days"].(string)
+		validInt, _ := strconv.Atoi(conversion)
+
+		criteriaInput.ExpireAfterDays = float64(validInt)
 		// optional
 		if dformat, ok := criteria["date_format"]; ok {
 			if len(dformat.(string)) > 0 {
@@ -395,7 +419,6 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 	}
 
 	// Pending update client missing QUERY field
-	// if criteriaInput.Type == "CUSTOM" {}
 	return criteriaInput
 }
 

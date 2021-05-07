@@ -104,7 +104,7 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 						Computed: true, // api will set the default
 					},
 					"expire_after_days": {
-						Type:     schema.TypeFloat,
+						Type:     schema.TypeInt,
 						Computed: true,
 					},
 					"query": {
@@ -124,7 +124,7 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 						Computed: true,
 					},
 					"order": {
-						Type:     schema.TypeFloat,
+						Type:     schema.TypeInt,
 						Computed: true,
 					},
 					"field_type": {
