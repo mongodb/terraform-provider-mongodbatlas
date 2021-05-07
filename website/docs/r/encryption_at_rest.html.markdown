@@ -57,6 +57,15 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 }
 ```
 
+**NOTE** in case using the `cloud_provider_access_setup` and `cloud_provider_access_authorization`, could be a use case where it needs to define the `depends_on` statement for these two resources, because terraform is not able to infer. 
+
+```hcl
+resource "mongodbatlas_encryption_at_rest" "default" {
+  (...)
+  depends_on = [mongodbatlas_cloud_provider_access_setup.<resource_name>, mongodbatlas_cloud_provider_access_authorization.<resource_name>]
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier for the project.
