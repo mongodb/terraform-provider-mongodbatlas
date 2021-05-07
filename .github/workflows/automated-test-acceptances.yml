@@ -40,6 +40,11 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
+          MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
+          MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
+          MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
+          MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
+          MONGODB_ATLAS_LDAP_PORT: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
           AWS_VPC_CIDR_BLOCK: ${{ secrets.AWS_VPC_CIDR_BLOCK }}
@@ -66,4 +71,5 @@ jobs:
           GCP_REGION_NAME: ${{ secrets.GCP_REGION_NAME }}
           GOOGLE_CLOUD_KEYFILE_JSON: ${{ secrets.GOOGLE_CLOUD_KEYFILE_JSON }}
           GCP_KEY_VERSION_RESOURCE_ID: ${{ secrets.GCP_KEY_VERSION_RESOURCE_ID }}
+          CA_CERT: ${{ secrets.CA_CERT }}
         run: make testacc

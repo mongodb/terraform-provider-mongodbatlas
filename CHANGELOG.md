@@ -1,5 +1,55 @@
 # Changelog
 
+## [v0.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v0.9.0) (2021-04-22)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.9.0-pre.1...v0.9.0)
+
+**Merged pull requests:**
+
+- Remove IOPS and adjust parameter description [\#443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/443) ([themantissa](https://github.com/themantissa))
+- remove unnecessary variables and use roles instead of keys for AWS Encryption-AtRest [\#441](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/441) ([nikhil-mongo](https://github.com/nikhil-mongo))
+
+## [v0.9.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v0.9.0-pre.1)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.8.2...v0.9.0-pre.1)
+
+**Implemented enhancements:**
+
+- Test or TestAccResourceMongoDBAtlasDatabaseUser\_withAWSIAMType with [\#432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/432) ([pitakill](https://github.com/pitakill))
+- INTMDB 186 - Added authorization resource to split the cloud access provider config [\#420](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/420) ([leofigy](https://github.com/leofigy))
+
+**Closed issues:**
+
+- TF support for creating api keys [\#433](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/433)
+- Apple Silicon \(darwin/arm64\) support [\#430](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/430)
+- Tenant Provider Acceptance tests are failing [\#419](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/419)
+- 500 \(request "UNEXPECTED\_ERROR"\) [\#411](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/411)
+- Error Creating cluster GCP - 500 UNEXPECTED\_ERROR [\#410](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/410)
+- r/mongodbatlas\_third\_party\_integration fails on read after create [\#354](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/354)
+
+**Merged pull requests:**
+
+- Update release.yml [\#436](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/436) ([leofigy](https://github.com/leofigy))
+- INTMDB-199: Fixes the error when updating an replication specs after removed one zone [\#434](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/434) ([coderGo93](https://github.com/coderGo93))
+- Examples of terratest upgrade [\#431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/431) ([coderGo93](https://github.com/coderGo93))
+- Fix: small doc error [\#428](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/428) ([lescactus](https://github.com/lescactus))
+- INTMDB-194: Added func to get db major version for testing [\#427](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/427) ([coderGo93](https://github.com/coderGo93))
+- Add  examples creating user with aws\_iam\_type [\#426](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/426) ([alexsergeyev](https://github.com/alexsergeyev))
+- INTMDB-155: Fixes a bug related to bi\_connector cluster by deprecating [\#423](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/423) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-168: updated docs the format of using dependencies [\#421](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/421) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-185: Added parameter regions for GCP network container [\#418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/418) ([coderGo93](https://github.com/coderGo93))
+- TeamsUpdate - fixing small bug, again missing update [\#417](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/417) ([leofigy](https://github.com/leofigy))
+- Fixes test about ca certificate x509 [\#416](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/416) ([coderGo93](https://github.com/coderGo93))
+- Working example for Atlas-encryptionAtRest-roles with a single tf apply [\#415](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/415) ([zohar-mongo](https://github.com/zohar-mongo))
+- INTMDB-181: Detects unnecessary changes changes for azure/gcp encryption at rest [\#412](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/412) ([coderGo93](https://github.com/coderGo93))
+- corrected the title by making the variable name plural [\#404](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/404) ([crosbymichael1](https://github.com/crosbymichael1))
+- INTMDB-154: Deprecation for provider\_encrypt\_ebs\_volume  [\#403](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/403) ([leofigy](https://github.com/leofigy))
+- INTMDB-133: Vendor removal to include terratest samples [\#395](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/395) ([leofigy](https://github.com/leofigy))
+- INTMDB-114/115: Added resource, datasource and tests for LDAP configuration and verify [\#379](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/379) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-116: Added parameter ldap auth type for resource and datasource\(s\) of database user [\#376](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/376) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-16: Added resource and datasource for Custom DNS Configuration for Atlas Clusters on AWS [\#370](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/370) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-133: Examples for encryption at rest with roles  [\#369](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/369) ([coderGo93](https://github.com/coderGo93))
+
+
 ## [v0.8.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v0.8.2)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.8.1...v0.8.2)

@@ -17,8 +17,6 @@ resource "mongodbatlas_cluster" "cluster" {
   auto_scaling_disk_gb_enabled = true
   provider_name                = "AWS"
   disk_size_gb                 = 10
-  provider_disk_iops           = 100
-  provider_volume_type         = "STANDARD"
   provider_instance_size_name  = "M10"
   provider_encrypt_ebs_volume  = true
 }

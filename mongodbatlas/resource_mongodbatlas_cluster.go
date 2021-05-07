@@ -84,13 +84,33 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Default:  false,
 			},
 			"bi_connector": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Deprecated:    "use bi_connector_config instead",
+				ConflictsWith: []string{"bi_connector_config"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"read_preference": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"bi_connector_config": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"bi_connector"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
 						},
@@ -168,8 +188,13 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"provider_encrypt_ebs_volume": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: "All EBS volumes are encrypted by default, the option to disable encryption has been removed",
+				Computed:   true,
+			},
+			"provider_encrypt_ebs_volume_flag": {
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 			"provider_region_name": {
@@ -410,10 +435,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
 
-		if _, ok := d.GetOk("provider_encrypt_ebs_volume"); ok {
-			return fmt.Errorf("`provider_encrypt_ebs_volume` shouldn't be set when provider name is `GCP` or `AZURE`")
-		}
-
 		if _, ok := d.GetOk("provider_volume_type"); ok {
 			return fmt.Errorf("`provider_volume_type` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
@@ -466,11 +487,6 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	biConnector, err := expandBiConnector(d)
-	if err != nil {
-		return fmt.Errorf(errorClusterCreate, err)
-	}
-
 	providerSettings, err := expandProviderSetting(d)
 	if err != nil {
 		return fmt.Errorf(errorClusterCreate, err)
@@ -489,9 +505,24 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 		ProviderBackupEnabled:    pointy.Bool(d.Get("provider_backup_enabled").(bool)),
 		PitEnabled:               pointy.Bool(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
-		BiConnector:              biConnector,
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+	}
+
+	if _, ok := d.GetOk("bi_connector"); ok {
+		biConnector, err := expandBiConnector(d)
+		if err != nil {
+			return fmt.Errorf(errorClusterCreate, err)
+		}
+		clusterRequest.BiConnector = biConnector
+	}
+
+	if _, ok := d.GetOk("bi_connector_config"); ok {
+		biConnector, err := expandBiConnector(d)
+		if err != nil {
+			return fmt.Errorf(errorClusterCreate, err)
+		}
+		clusterRequest.BiConnector = biConnector
 	}
 
 	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
@@ -675,8 +706,14 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(errorClusterSetting, "state_name", clusterName, err)
 	}
 
-	if err := d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
-		return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
+	if _, ok := d.GetOk("bi_connector"); ok {
+		if err = d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
+			return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
+		}
+	}
+
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "bi_connector_config", clusterName, err)
 	}
 
 	if cluster.ProviderSettings != nil {
@@ -745,9 +782,12 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.BiConnector, _ = expandBiConnector(d)
 	}
 
+	if d.HasChange("bi_connector_config") {
+		cluster.BiConnector, _ = expandBiConnectorConfig(d)
+	}
+
 	// If at least one of the provider settings argument has changed, expand all provider settings
 	if d.HasChange("provider_disk_iops") ||
-		d.HasChange("provider_encrypt_ebs_volume") ||
 		d.HasChange("backing_provider_name") ||
 		d.HasChange("provider_disk_type_name") ||
 		d.HasChange("provider_instance_size_name") ||
@@ -956,6 +996,7 @@ func splitSClusterImportID(id string) (projectID, clusterName *string, err error
 	return
 }
 
+// Deprecated: will be deleted later
 func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	var biConnector matlas.BiConnector
 
@@ -973,6 +1014,27 @@ func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	return &biConnector, nil
 }
 
+func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error) {
+	var biConnector matlas.BiConnector
+
+	if v, ok := d.GetOk("bi_connector_config"); ok {
+		biConn := v.([]interface{})
+		if len(biConn) > 0 {
+			biConnMap := biConn[0].(map[string]interface{})
+
+			enabled := cast.ToBool(biConnMap["enabled"])
+
+			biConnector = matlas.BiConnector{
+				Enabled:        &enabled,
+				ReadPreference: cast.ToString(biConnMap["read_preference"]),
+			}
+		}
+	}
+
+	return &biConnector, nil
+}
+
+// Deprecated: will be deleted later
 func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} {
 	biConnectorMap := make(map[string]interface{})
 
@@ -985,6 +1047,15 @@ func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} 
 	}
 
 	return biConnectorMap
+}
+
+func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":         *biConnector.Enabled,
+			"read_preference": biConnector.ReadPreference,
+		},
+	}
 }
 
 func getInstanceSizeToInt(instanceSize string) int {
@@ -1044,11 +1115,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		if v, ok := d.GetOk("provider_disk_iops"); ok {
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
-
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
-		if encryptEBSVolume, ok := d.GetOkExists("provider_encrypt_ebs_volume"); ok {
-			providerSettings.EncryptEBSVolume = pointy.Bool(cast.ToBool(encryptEBSVolume))
-		}
 	}
 
 	return providerSettings, nil
@@ -1070,8 +1137,8 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 	}
 
 	if settings.EncryptEBSVolume != nil {
-		if err := d.Set("provider_encrypt_ebs_volume", *settings.EncryptEBSVolume); err != nil {
-			log.Printf(errorClusterSetting, "provider_encrypt_ebs_volume", clusterName, err)
+		if err := d.Set("provider_encrypt_ebs_volume_flag", *settings.EncryptEBSVolume); err != nil {
+			log.Printf(errorClusterSetting, "provider_encrypt_ebs_volume_flag", clusterName, err)
 		}
 	}
 
@@ -1098,14 +1165,23 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	if v, ok := d.GetOk("replication_specs"); ok {
 		for _, s := range v.([]interface{}) {
 			spec := s.(map[string]interface{})
-
+			id := cast.ToString(spec["id"])
+			// Check if has changes
+			if d.HasChange("replication_specs") && cast.ToString(d.Get("cluster_type")) == "GEOSHARDED" {
+				// Get original and new object
+				original, _ := d.GetChange("replication_specs")
+				isSame, oldID := compareReplicationSpecs(original, spec)
+				if isSame {
+					id = oldID
+				}
+			}
 			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List())
 			if err != nil {
 				return rSpecs, err
 			}
 
 			rSpec := matlas.ReplicationSpec{
-				ID:            cast.ToString(spec["id"]),
+				ID:            id,
 				NumShards:     pointy.Int64(cast.ToInt64(spec["num_shards"])),
 				ZoneName:      cast.ToString(spec["zone_name"]),
 				RegionsConfig: regionsConfig,
@@ -1396,4 +1472,14 @@ func clusterConnectionStringsSchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+func compareReplicationSpecs(oldObject interface{}, newValues map[string]interface{}) (flag bool, idSpec string) {
+	for _, s := range oldObject.([]interface{}) {
+		spec := s.(map[string]interface{})
+		if cast.ToString(spec["zone_name"]) == cast.ToString(newValues["zone_name"]) {
+			return true, cast.ToString(spec["id"])
+		}
+	}
+	return false, ""
 }

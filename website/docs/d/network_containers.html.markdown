@@ -58,6 +58,7 @@ In addition to all arguments above, the following attributes are exported:
 * `network_name` - Name of the Network Peering connection in the Atlas project.
 * `vpc_id` - Unique identifier of the project’s VPC.
 * `vnet_name` - 	The name of the Azure VNet. This value is null until you provision an Azure VNet in the container.
+* `regions` - Atlas GCP regions where the container resides.
 
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://docs.atlas.mongodb.com/reference/api/vpc-get-containers-list/)

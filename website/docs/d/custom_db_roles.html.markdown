@@ -33,7 +33,7 @@ resource "mongodbatlas_database_user" "test" {
 }
 
 data "mongodbatlas_custom_db_roles" "test" {
-  project_id = "${mongodbatlas_custom_db_role.test.project_id}"
+  project_id = mongodbatlas_custom_db_role.test.project_id
 }
 ```
 

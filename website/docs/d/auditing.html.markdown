@@ -24,7 +24,7 @@ resource "mongodbatlas_auditing" "test" {
 }
 
 data "mongodbatlas_auditing" "test" {
-			project_id = "${mongodbatlas_auditing.test.id}"
+			project_id = mongodbatlas_auditing.test.id
 		}
 ```
 

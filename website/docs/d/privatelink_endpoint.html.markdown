@@ -22,8 +22,8 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 }
 
 data "mongodbatlas_privatelink_endpoint" "test" {
-	project_id      = "${mongodbatlas_privatelink_endpoint.test.project_id}"
-	private_link_id = "${mongodbatlas_privatelink_endpoint.test.private_link_id}"
+	project_id      = mongodbatlas_privatelink_endpoint.test.project_id
+	private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
     provider_name = "AWS"
 }
 ```

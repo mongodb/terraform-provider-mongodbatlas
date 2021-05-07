@@ -70,7 +70,7 @@ resource "mongodbatlas_network_peering" "test" {
 # the following assumes an AWS provider is configured
 # Accept the peering connection request
 resource "aws_vpc_peering_connection_accepter" "peer" {
-  vpc_peering_connection_id = "${mongodbatlas_network_peering.test.connection_id}"
+  vpc_peering_connection_id = mongodbatlas_network_peering.test.connection_id
   auto_accept = true
 }
 
@@ -381,7 +381,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Clusters can be imported using project ID and network peering peering id, in the format `PROJECTID-PEERID-PROVIDERNAME`, e.g.
+Clusters can be imported using project ID and network peering id, in the format `PROJECTID-PEERID-PROVIDERNAME`, e.g.
 
 ```
 $ terraform import mongodbatlas_network_peering.my_peering 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a-AWS

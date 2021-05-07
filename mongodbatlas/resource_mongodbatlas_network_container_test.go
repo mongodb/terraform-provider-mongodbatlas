@@ -32,7 +32,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAWS(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
 					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
@@ -42,7 +42,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAWS(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlockUpdated, providerName),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlockUpdated, providerName, "US_WEST_2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
 					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
@@ -61,8 +61,8 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAzure(t *testing.T) {
 		randInt          = acctest.RandIntRange(0, 255)
 		randIntUpdated   = acctest.RandIntRange(0, 255)
 		resourceName     = "mongodbatlas_network_container.test"
-		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
-		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
+		cidrBlock        = fmt.Sprintf("192.168.%d.0/24", randInt)
+		cidrBlockUpdated = fmt.Sprintf("192.168.%d.0/24", randIntUpdated)
 		providerName     = "AZURE"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName      = acctest.RandomWithPrefix("test-acc")
@@ -139,6 +139,36 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasNetworkContainer_WithRegionsGCP(t *testing.T) {
+	var (
+		container    matlas.Container
+		randInt      = acctest.RandIntRange(0, 255)
+		resourceName = "mongodbatlas_network_container.test"
+		cidrBlock    = fmt.Sprintf("10.%d.0.0/21", randInt)
+		providerName = "GCP"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasNetworkContainerConfigGCPWithRegions(projectName, orgID, cidrBlock, providerName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasNetworkContainerExists(resourceName, &container),
+					testAccCheckMongoDBAtlasNetworkContainerAttributes(&container, providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttrSet(resourceName, "provisioned"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
 	var (
 		randInt      = acctest.RandIntRange(0, 255)
@@ -155,7 +185,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName),
+				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -232,7 +262,7 @@ func testAccCheckMongoDBAtlasNetworkContainerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName string) string {
+func testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = "%s"
@@ -243,9 +273,9 @@ func testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock,
 			project_id   		 = "${mongodbatlas_project.test.id}"
 			atlas_cidr_block = "%s"
 			provider_name		 = "%s"
-			region_name			 = "US_EAST_1"
+			region_name			 = "%s"
 		}
-	`, projectName, orgID, cidrBlock, providerName)
+	`, projectName, orgID, cidrBlock, providerName, region)
 }
 
 func testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBlock, providerName string) string {
@@ -275,6 +305,22 @@ func testAccMongoDBAtlasNetworkContainerConfigGCP(projectName, orgID, cidrBlock,
 			project_id   		 = "${mongodbatlas_project.test.id}"
 			atlas_cidr_block = "%s"
 			provider_name		 = "%s"
+		}
+	`, projectName, orgID, cidrBlock, providerName)
+}
+
+func testAccMongoDBAtlasNetworkContainerConfigGCPWithRegions(projectName, orgID, cidrBlock, providerName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = "%s"
+			org_id = "%s"
+		}
+
+		resource "mongodbatlas_network_container" "test" {
+			project_id   		 = mongodbatlas_project.test.id
+			atlas_cidr_block = "%s"
+			provider_name		 = "%s"
+			regions = ["US_EAST_4", "US_WEST_3"]
 		}
 	`, projectName, orgID, cidrBlock, providerName)
 }

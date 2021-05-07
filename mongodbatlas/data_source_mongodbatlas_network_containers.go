@@ -70,6 +70,13 @@ func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"regions": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -118,6 +125,7 @@ func flattenNetworkContainers(containers []matlas.Container) []map[string]interf
 				"network_name":          containers[i].NetworkName,
 				"vpc_id":                containers[i].VPCID,
 				"vnet_name":             containers[i].VNetName,
+				"regions":               containers[i].Regions,
 			}
 		}
 	}

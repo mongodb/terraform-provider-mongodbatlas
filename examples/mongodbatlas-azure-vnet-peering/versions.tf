@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     mongodbatlas = {
-      source = "terraform-providers/mongodbatlas"
+      source = "mongodb/mongodbatlas"
     }
     azuread = {
       source = "hashicorp/azuread"

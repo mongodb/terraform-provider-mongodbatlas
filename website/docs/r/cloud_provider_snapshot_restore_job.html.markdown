@@ -34,8 +34,6 @@ description: |-
     provider_region_name        = "EU_WEST_2"
     provider_instance_size_name = "M10"
     provider_backup_enabled     = true   // enable cloud backup snapshots
-    provider_disk_iops          = 100
-    provider_encrypt_ebs_volume = false
   }
 
   resource "mongodbatlas_cloud_provider_snapshot" "test" {
@@ -54,7 +52,7 @@ description: |-
       target_cluster_name = "MyCluster"
       target_project_id   = "5cf5a45a9ccf6400e60981b6"
     }
-    depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
+    depends_on = [mongodbatlas_cloud_provider_snapshot.test]
   }
 ```
 
@@ -71,8 +69,6 @@ description: |-
     provider_region_name        = "EU_WEST_2"
     provider_instance_size_name = "M10"
     provider_backup_enabled     = true   // enable cloud backup snapshots
-    provider_disk_iops          = 100
-    provider_encrypt_ebs_volume = false
   }
 
   resource "mongodbatlas_cloud_provider_snapshot" "test" {

@@ -49,13 +49,19 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				ConflictsWith: []string{"x509_type"},
+				ConflictsWith: []string{"x509_type", "ldap_auth_type", "aws_iam_type"},
 			},
 			"x509_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "NONE",
 				ValidateFunc: validation.StringInSlice([]string{"NONE", "MANAGED", "CUSTOMER"}, false),
+			},
+			"ldap_auth_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice([]string{"NONE", "USER", "GROUP"}, false),
 			},
 			"aws_iam_type": {
 				Type:         schema.TypeString,
@@ -178,6 +184,10 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("ldap_auth_type", dbUser.LDAPAuthType); err != nil {
+		return fmt.Errorf("error setting `ldap_auth_type` for database user (%s): %s", d.Id(), err)
+	}
+
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
 		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
 	}
@@ -224,6 +234,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		Password:     d.Get("password").(string),
 		X509Type:     d.Get("x509_type").(string),
 		AWSIAMType:   d.Get("aws_iam_type").(string),
+		LDAPAuthType: d.Get("ldap_auth_type").(string),
 		DatabaseName: authDatabaseName,
 		Labels:       expandLabelSliceFromSetSchema(d),
 		Scopes:       expandScopes(d),
