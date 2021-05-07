@@ -21,3 +21,14 @@ resource "mongodbatlas_online_archive" "users_archive" {
         order = 1
     }
 }
+
+data "mongodbatlas_online_archive" "read_archive" {
+    project_id =  mongodbatlas_online_archive.users_archive.project_id
+    cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+    atlas_id = mongodbatlas_online_archive.users_archive.atlas_id
+}
+
+data "mongodbatlas_online_archives" "all" {
+    project_id =  mongodbatlas_online_archive.users_archive.project_id
+    cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+}

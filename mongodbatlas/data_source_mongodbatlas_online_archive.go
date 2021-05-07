@@ -87,7 +87,8 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"criteria": {
-			Type:     schema.TypeMap,
+			Type:     schema.TypeList,
+			MaxItems: 1,
 			Computed: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -158,6 +159,8 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 	}
 
 	newData := fromOnlineArchiveToMap(outOnlineArchive)
+	criteria := newData["criteria"]
+	newData["criteria"] = []interface{}{criteria}
 
 	for key, val := range newData {
 		if err := d.Set(key, val); err != nil {
@@ -188,6 +191,9 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(d *schema.ResourceData, meta inter
 
 	for _, archive := range archives.Results {
 		archiveData := fromOnlineArchiveToMap(archive)
+		criteria := archiveData["criteria"]
+		archiveData["criteria"] = []interface{}{criteria}
+
 		archiveData["project_id"] = projectID
 		results = append(results, archiveData)
 	}
