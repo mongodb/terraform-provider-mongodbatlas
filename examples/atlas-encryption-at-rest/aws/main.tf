@@ -23,3 +23,4 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   }
 
 }
+

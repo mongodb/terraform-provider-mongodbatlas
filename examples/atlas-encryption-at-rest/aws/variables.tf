@@ -34,3 +34,4 @@ variable "atlas_region" {
   default     = "US_EAST_1"
   description = "Atlas Region"
 }
+
