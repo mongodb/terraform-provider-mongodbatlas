@@ -60,7 +60,7 @@ func testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, backupEnabled 
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 100
+			provider_disk_iops          = 3000
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M10"
 			provider_region_name        = "US_EAST_2"

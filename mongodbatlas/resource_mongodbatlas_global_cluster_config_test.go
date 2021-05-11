@@ -188,7 +188,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 240
+			provider_disk_iops          = 3000
 			provider_instance_size_name = "M30"
 
 			replication_specs {
@@ -246,7 +246,7 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops 			    = 300
+			provider_disk_iops 			    = 3000
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "M30"
 			provider_region_name        = "US_EAST_1"

@@ -71,7 +71,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, cluste
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_disk_iops          = 100
+			provider_disk_iops          = 3000
 			provider_encrypt_ebs_volume = false
 		}
 
@@ -101,7 +101,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfigWithPagination(pro
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_disk_iops          = 100
+			provider_disk_iops          = 3000
 			provider_encrypt_ebs_volume = false
 		}
 
