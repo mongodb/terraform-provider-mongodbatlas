@@ -992,7 +992,6 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 3000
 			provider_instance_size_name = "M30"
 			provider_region_name        = "EU_CENTRAL_1"
 		}
@@ -1013,7 +1012,6 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnab
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops 		    = 300
 			provider_encrypt_ebs_volume = false
 			provider_volume_type        = "PROVISIONED"
 			provider_instance_size_name = "M40_NVME"
@@ -1035,7 +1033,6 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, autoscalingEn
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 3000
 			provider_instance_size_name = "M10"
 			provider_region_name        = "EU_CENTRAL_1"
 
@@ -1067,7 +1064,6 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, name, autosc
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 3000
 			provider_instance_size_name = "M10"
 			provider_region_name        = "EU_CENTRAL_1"
 
@@ -1156,7 +1152,6 @@ func testAccMongoDBAtlasClusterConfigMultiRegion(projectID, name, backupEnabled 
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 3000
 			provider_instance_size_name = "M10"
 
 			replication_specs {
@@ -1198,7 +1193,6 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 3000
 			provider_instance_size_name = "M30"
 
 			replication_specs {
@@ -1257,7 +1251,6 @@ func testAccMongoDBAtlasClusterConfigTenantUpdated(projectID, name string) strin
 
 		provider_instance_size_name  = "M10"
 		disk_size_gb                 = 10
-		provider_disk_iops           = 3000
 		auto_scaling_disk_gb_enabled = true
 	  }
 	`, projectID, name)
@@ -1287,7 +1280,6 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_disk_iops          = 3000
 			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "%s"
 			provider_region_name        = "%s"
@@ -1335,7 +1327,6 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 		  provider_region_name        = "${upper(replace("%[5]s", "-", "_"))}"
 		  provider_instance_size_name = "M10"
 		  provider_backup_enabled     = true // enable cloud provider snapshots
-		  provider_disk_iops          = 3000
 		  provider_encrypt_ebs_volume = true
 		  depends_on = ["mongodbatlas_privatelink_endpoint_service.test"]
 		}
@@ -1571,7 +1562,6 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 
 		//Provider Settings "block"
 		provider_name                                   = "AWS"
-		provider_disk_iops                              = 3000
 		provider_encrypt_ebs_volume                     = false
 		provider_instance_size_name                     = "%[8]s"
 		provider_region_name                            = "EU_CENTRAL_1"
