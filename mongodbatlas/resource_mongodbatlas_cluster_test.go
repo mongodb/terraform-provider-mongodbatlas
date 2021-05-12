@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -902,6 +904,104 @@ func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
 			},
 		},
 	})
+}
+
+// Test helper functions
+func Test_expandProviderSetting(t *testing.T) {
+	original, expected := "US_WEAST_2", "WESTERN_US"
+
+	r := &schema.Resource{
+		Update: func(d *schema.ResourceData, m interface{}) error {
+			_, err := expandProviderSetting(d)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		Schema: map[string]*schema.Schema{
+			"provider_region_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"provider_disk_iops": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+			"provider_disk_type_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"provider_volume_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"provider_instance_size_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"provider_name": {
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Required: true,
+			},
+			"backing_provider_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"provider_auto_scaling_compute_min_instance_size": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"provider_auto_scaling_compute_max_instance_size": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"auto_scaling_compute_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+		},
+	}
+
+	s := &terraform.InstanceState{
+		ID: "provider_region_name",
+		Attributes: map[string]string{
+			"provider_region_name": original,
+		},
+	}
+	d := &terraform.InstanceDiff{
+		Attributes: map[string]*terraform.ResourceAttrDiff{
+			"provider_region_name": {
+				New: expected,
+			},
+		},
+	}
+
+	actual, err := r.Apply(s, d, nil)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	wanted := &terraform.InstanceState{
+		ID: "provider_region_name",
+		Attributes: map[string]string{
+			"id":                   "provider_region_name",
+			"provider_region_name": expected,
+		},
+	}
+
+	if !reflect.DeepEqual(actual, wanted) {
+		t.Fatalf("got: %#v, but wanted: %#v", actual, wanted)
+	}
+
 }
 
 func testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {

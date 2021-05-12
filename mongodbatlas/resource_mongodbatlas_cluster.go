@@ -1067,13 +1067,17 @@ func getInstanceSizeToInt(instanceSize string) int {
 
 func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, error) {
 	var (
-		region, _          = valRegion(d.Get("provider_region_name"))
 		minInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_min_instance_size").(string))
 		maxInstanceSize    = getInstanceSizeToInt(d.Get("provider_auto_scaling_compute_max_instance_size").(string))
 		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
 		compute            *matlas.Compute
 		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
 	)
+
+	region, err := valRegion(d.Get("provider_region_name"))
+	if err != nil {
+		return nil, err
+	}
 
 	if minInstanceSize != 0 && autoScalingEnabled {
 		if instanceSize < minInstanceSize {
