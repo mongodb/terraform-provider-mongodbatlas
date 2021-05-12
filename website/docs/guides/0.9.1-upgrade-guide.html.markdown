@@ -85,7 +85,7 @@ $ terraform state rm mongodbatlas_private_endpoint.test
 $ terraform state rm mongodbatlas_private_endpoint_interface_link.test
 ```
 
-2. Change the version of provider to the newest version
+2. Change the version of provider to the v0.9.1
 
 3. Perform an import from your existing `mongodbatlas_private_endpoint` and `mongodbatlas_private_endpoint_interface_link`
 ```bash
