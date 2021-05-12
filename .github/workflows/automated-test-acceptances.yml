@@ -10,6 +10,7 @@ on:
   pull_request:
     types: [ labeled ]
     paths:
+      - 'integration-testing/**' ##testing only
       - 'mongodbatlas/**'
       - '!website/docs/**'
 
