@@ -72,6 +72,55 @@ configuration and real physical resources that exist. As a result, no
 actions need to be performed.
 ```
 
+## Upgrading private endpoint and private endpoint interface link
+
+To upgrade from v0.8.0 to v0.9.1 with the existing resources `mongodbatlas_private_endpoint` and `mongodbatlas_private_endpoint_interface_link`
+perform the following steps
+
+1. Remove your existing `mongodbatlas_private_endpoint` and `mongodbatlas_private_endpoint_interface_link` resources from terraform state
+   **NOTE** before doing any terraform state change please do a backup
+
+```bash
+$ terraform state rm mongodbatlas_private_endpoint.test
+$ terraform state rm mongodbatlas_private_endpoint_interface_link.test
+```
+
+2. Change the version of provider to the newest version
+
+3. Perform an import from your existing `mongodbatlas_private_endpoint` and `mongodbatlas_private_endpoint_interface_link`
+```bash
+    terraform import mongodbatlas_private_endpoint.test <project_id>-<private_link_id>-<provider_name>-<region>
+    terraform import mongodbatlas_private_endpoint_interface_link.test <project_id>-<private_link_id>-<interface_endpoint_id>
+```
+
+4. Do a terraform plan (no changes detected)
+
+```bash
+terraform plan
+
+(...)
+
+
+No changes. Infrastructure is up-to-date.
+
+This means that Terraform did not detect any differences between your
+configuration and real physical resources that exist. As a result, no
+actions need to be performed.
+
+Warning: this resource is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint
+
+  on main.tf line 12, in resource "mongodbatlas_private_endpoint" "test":
+  12: resource "mongodbatlas_private_endpoint" "test" {
+
+
+
+Warning: this resource is deprecated, please transition as soon as possible to mongodbatlas_privatelink_endpoint_service
+
+  on main.tf line 26, in resource "mongodbatlas_private_endpoint_interface_link" "test":
+  26: resource "mongodbatlas_private_endpoint_interface_link" "test" {
+
+```
+
 ### Helpful Links
 
 * [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
