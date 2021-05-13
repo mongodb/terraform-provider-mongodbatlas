@@ -4,8 +4,14 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'mongodbatlas/**'
+      - '!website/docs/**'
   pull_request:
     types: [ labeled ]
+    paths:
+      - 'mongodbatlas/**'
+      - '!website/docs/**'
 
 jobs:
   authorize:
