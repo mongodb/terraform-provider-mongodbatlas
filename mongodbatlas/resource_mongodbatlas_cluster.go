@@ -1235,6 +1235,9 @@ func expandRegionsConfig(regions []interface{}, replaceRegion string) (map[strin
 		if replaceRegion != "" {
 			r, err = valRegion(replaceRegion)
 		}
+		if err != nil {
+			return regionsConfig, err
+		}
 
 		regionsConfig[r] = matlas.RegionsConfig{
 			AnalyticsNodes: pointy.Int64(cast.ToInt64(region["analytics_nodes"])),
