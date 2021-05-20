@@ -1162,8 +1162,11 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
 	rSpecs := make([]matlas.ReplicationSpec, 0)
 
-	if v, ok := d.GetOk("replication_specs"); ok {
-		for _, s := range v.([]interface{}) {
+	vRSpecs, okRSpecs := d.GetOk("replication_specs")
+	vPRName, okPRName := d.GetOk("provider_region_name")
+
+	if okRSpecs {
+		for _, s := range vRSpecs.([]interface{}) {
 			spec := s.(map[string]interface{})
 			id := cast.ToString(spec["id"])
 			// Check if has changes
@@ -1175,7 +1178,16 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 					id = oldID
 				}
 			}
-			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List())
+
+			replaceRegion := ""
+
+			if okPRName && d.Get("provider_name").(string) == "GCP" {
+				if d.HasChange("provider_region_name") {
+					replaceRegion = vPRName.(string)
+				}
+			}
+
+			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), replaceRegion)
 			if err != nil {
 				return rSpecs, err
 			}
@@ -1209,7 +1221,7 @@ func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]inter
 	return specs
 }
 
-func expandRegionsConfig(regions []interface{}) (map[string]matlas.RegionsConfig, error) {
+func expandRegionsConfig(regions []interface{}, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, r := range regions {
@@ -1218,6 +1230,10 @@ func expandRegionsConfig(regions []interface{}) (map[string]matlas.RegionsConfig
 		r, err := valRegion(region["region_name"])
 		if err != nil {
 			return regionsConfig, err
+		}
+
+		if replaceRegion != "" {
+			r, err = valRegion(replaceRegion)
 		}
 
 		regionsConfig[r] = matlas.RegionsConfig{

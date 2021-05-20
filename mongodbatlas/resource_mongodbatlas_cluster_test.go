@@ -876,6 +876,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 		},
 	})
 }
+
 func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
 	var cluster matlas.Cluster
 
@@ -898,6 +899,40 @@ func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasCluster_basicGCPRegionName(t *testing.T) {
+	var (
+		resourceName      = "mongodbatlas_cluster.test"
+		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName       = acctest.RandomWithPrefix("test-acc")
+		regionName        = "US_WEST_2"
+		regionNameUpdated = "WESTERN_US"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigGCPRegionName(projectID, clusterName, regionName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionName),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigGCPRegionName(projectID, clusterName, regionNameUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionNameUpdated),
 				),
 			},
 		},
@@ -1573,4 +1608,21 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 		}
 	}
 	`, projectID, name, backupEnabled, autoDiskEnabled, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, instanceSizeName)
+}
+
+func testAccMongoDBAtlasClusterConfigGCPRegionName(
+	projectID, name, regionName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_cluster" "test" {
+  project_id                   = %[1]q
+  name                         = %[2]q
+  auto_scaling_disk_gb_enabled = true
+  mongo_db_major_version       = "4.4"
+  provider_name                = "GCP"
+  disk_size_gb                 = 10
+  provider_instance_size_name  = "M10"
+  num_shards                   = 1
+  provider_region_name         = %[3]q
+}
+	`, projectID, name, regionName)
 }
