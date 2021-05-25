@@ -29,7 +29,6 @@ description: |-
 
 		//Provider Settings "block"
 		provider_name               = "AWS"
-		provider_disk_iops          = 240
 		provider_instance_size_name = "M30"
 
 		replication_specs {
@@ -88,7 +87,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
   //Provider Settings "block"
   provider_name               = "AWS"
   disk_size_gb                = 100
-  provider_disk_iops          = 300
   provider_instance_size_name = "M40"
   provider_region_name        = "US_EAST_1"
 }
@@ -114,7 +112,7 @@ resource "mongodbatlas_global_cluster_config" "config" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
-* `cluster_name - (Required) The name of the Global Cluster.
+* `cluster_name` - (Required) The name of the Global Cluster.
 *  `managed_namespaces` - (Optional) Add a managed namespaces to a Global Cluster. For more information about managed namespaces, see [Global Clusters](https://docs.atlas.mongodb.com/reference/api/global-clusters/). See [Managed Namespace](#managed-namespace) below for more details.
 *  `custom_zone_mappings` - (Optional) Each element in the list maps one ISO location code to a zone in your Global Cluster. See [Custom Zone Mapping](#custom-zone-mapping) below for more details.
 

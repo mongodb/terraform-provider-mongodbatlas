@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"testing"
 
@@ -143,6 +142,47 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType_import(t *testing.T) {
+	var (
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = os.Getenv("TEST_DB_USER_IAM_ARN")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	if username == "" {
+		username = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
 			},
 		},
 	})
@@ -578,9 +618,7 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		ids := decodeStateID(rs.Primary.ID)
 		username := ids["username"]
 
-		dbUsername := url.PathEscape(username)
-
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], dbUsername); err == nil {
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], username); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -810,7 +848,6 @@ func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, 
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
 

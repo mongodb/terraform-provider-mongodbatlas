@@ -13,7 +13,7 @@ description: |-
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
-```
+```hcl
 resource "mongodbatlas_cloud_provider_access" "test_role" {
    project_id = "<PROJECT-ID>"
    provider_name = "AWS"

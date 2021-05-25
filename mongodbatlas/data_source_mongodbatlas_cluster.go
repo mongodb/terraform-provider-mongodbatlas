@@ -39,12 +39,30 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"bi_connector": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Type:       schema.TypeMap,
+				Computed:   true,
+				Deprecated: "use bi_connector_config instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeString, // Convert to Bool
+							Computed: true,
+						},
+						"read_preference": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"bi_connector_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 						"read_preference": {
@@ -389,6 +407,10 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 
 	if err := d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
 		return fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err)
+	}
+
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+		return fmt.Errorf(errorClusterSetting, "bi_connector_config", clusterName, err)
 	}
 
 	if cluster.ProviderSettings != nil {

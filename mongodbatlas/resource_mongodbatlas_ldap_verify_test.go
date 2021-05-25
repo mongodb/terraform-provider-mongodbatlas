@@ -204,7 +204,6 @@ func testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostna
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
 
@@ -235,7 +234,6 @@ func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, cl
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_disk_iops          = 100
 		}
 
 		resource "mongodbatlas_ldap_verify" "test" {

@@ -23,11 +23,3 @@ variable "cpa_role_id" {
   description = "AWS IAM ROLE ARN"
   default     = ""
 }
-variable "access_key" {
-  description = "The access key for AWS Account"
-  default     = ""
-}
-variable "secret_key" {
-  description = "The secret key for AWS Account"
-  default     = ""
-}

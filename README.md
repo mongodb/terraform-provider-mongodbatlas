@@ -16,7 +16,7 @@ Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-
 
 # Requirements
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
-- [Go](https://golang.org/doc/install) 1.14 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.16 (to build the provider plugin)
 
 # Developing the Provider
 If you wish to work on the provider, you'll first need [Go](https://golang.org/doc/install) installed on your machine (please check the [requirements](#Requirements) before proceeding).
@@ -205,3 +205,12 @@ $ make testacc
 Thanks
 ---------------------------
 We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
+
+# Running the integration tests
+
+The integration tests helps the validation for resources interacting with third party providers (aws, azure or gcp) using terratest [environment setup details](integration-testing/README.md)
+
+```
+  cd integration-testing
+  go test -tags=integration
+```

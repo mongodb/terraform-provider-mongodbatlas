@@ -30,3 +30,4 @@ variable "address_space" {
 variable "application_id" {
   default = "e90a1407-55c3-432d-9cb1-3638900a9d22"
 }
+

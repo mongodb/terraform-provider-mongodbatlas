@@ -26,7 +26,6 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
     provider_region_name        = "EU_WEST_2"
     provider_instance_size_name = "M10"
     provider_backup_enabled     = true   // enable cloud backup snapshots
-    provider_disk_iops          = 100
   }
 
   resource "mongodbatlas_cloud_provider_snapshot" "test" {
