@@ -31,6 +31,7 @@ func TestTerraformResourceMongoDBAtlasCloudProviderAccess_basicAWS(t *testing.T)
 			"cloud_provider_access_name": "AWS",
 			"public_key":                 mongoSecrets.PublicKey,
 			"private_key":                mongoSecrets.PrivateKey,
+			"base_url":                   mongoSecrets.BaseURL,
 			"access_key":                 awsSecrets.AccessKey,
 			"secret_key":                 awsSecrets.SecretKey,
 			"aws_region":                 awsSecrets.AwsRegion,

@@ -32,7 +32,7 @@ func Provider() terraform.ResourceProvider {
 			},
 			"base_url": {
 				Type:        schema.TypeString,
-				Required:    false,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_BASE_URL", ""),
 				Description: "MongoDB Atlas Base URL",
 			},
@@ -122,8 +122,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		PrivateKey: d.Get("private_key").(string),
 	}
 
-	if baseUrl := d.Get("base_url"); baseUrl != nil {
-		config.BaseURL = baseUrl.(string)
+	if baseURL := d.Get("base_url"); baseURL != nil {
+		config.BaseURL = baseURL.(string)
 	}
 
 	return config.NewClient(), nil
