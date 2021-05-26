@@ -10,6 +10,7 @@ import (
 type Config struct {
 	PublicKey  string
 	PrivateKey string
+	BaseUrl	   string
 }
 
 // NewClient func...
@@ -25,9 +26,16 @@ func (c *Config) NewClient() interface{} {
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
+	opts := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
+	if c.BaseUrl != ""{
+		opts = append(opts,matlasClient.SetBaseURL(c.BaseUrl))
+	}
+
 	// Initialize the MongoDB Atlas API Client.
-	atlasClient := matlasClient.NewClient(client)
-	atlasClient.UserAgent = "terraform-provider-mongodbatlas/" + ProviderVersion
+	atlasClient, err := matlasClient.New(client, opts...)
+	if err != nil {
+		return err
+	}
 
 	return atlasClient
 }
