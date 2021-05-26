@@ -94,7 +94,7 @@ func testAccCheckMongoDBAtlasDataLakeImportStateIDFunc(resourceName string) reso
 	}
 }
 
-func testAccCheckMongoDBAtlasDataLakeExists(resourceName string, dbUser *matlas.DataLake) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasDataLakeExists(resourceName string, dataLake *matlas.DataLake) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*matlas.Client)
 
@@ -109,8 +109,8 @@ func testAccCheckMongoDBAtlasDataLakeExists(resourceName string, dbUser *matlas.
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		if dbUserResp, _, err := conn.DataLakes.Get(context.Background(), ids["project_id"], ids["name"]); err == nil {
-			*dbUser = *dbUserResp
+		if dataLakeResp, _, err := conn.DataLakes.Get(context.Background(), ids["project_id"], ids["name"]); err == nil {
+			*dataLake = *dataLakeResp
 			return nil
 		}
 
@@ -154,17 +154,26 @@ func testAccMongoDBAtlasDataLakeConfig(projectName, orgID, name, roleID, testS3B
 			name   = "%s"
 			org_id = "%s"
 		}
-		resource "mongodbatlas_cloud_provider_access" "test" {
-			project_id = mongodbatlas_project.test.id
-			provider_name = "AWS"
-			iam_assumed_role_arn = "%s"
+
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+		   project_id = mongodbatlas_project.test.id
+		   provider_name = "AWS"
+		}
+		
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+		   project_id = mongodbatlas_project.test.id
+		   role_id =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+		
+		   aws = {
+			  iam_assumed_role_arn = "%s"
+		   }
 		}
 
 		resource "mongodbatlas_data_lake" "basic_ds" {
 			project_id         = mongodbatlas_project.test.id
 			name = "%s"
 			aws{
-				role_id = mongodbatlas_cloud_provider_access.test.role_id
+				role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 				test_s3_bucket = "%s"
 			}
 		}

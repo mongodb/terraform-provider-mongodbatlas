@@ -1,6 +1,7 @@
 package integration_testing
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -10,87 +11,79 @@ import (
 )
 
 func TestTerraformResourceMongoDBAtlasDataLake_basicAWS(t *testing.T) {
-	SkipTestExtCred(t)
 	t.Parallel()
 
 	var (
-		accessKey    = os.Getenv("AWS_ACCESS_KEY_ID")
-		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		awsRegion    = os.Getenv("AWS_REGION")
-		publicKey    = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
-		privateKey   = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc-project")
 		dataLakeName = acctest.RandomWithPrefix("test-acc-data-lake")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
+		pluginPath   = os.Getenv("TERRATEST_PLUGIN_PATH")
 	)
+	mongoSecrets := GetCredentialsFromEnv()
+	awsSecrets := GetAWSCredentialsFromEnv()
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/atlas-dataLake-roles",
 		Vars: map[string]interface{}{
-			"access_key":   accessKey,
-			"secret_key":   secretKey,
-			"atlas_region": awsRegion,
-			"public_key":   publicKey,
-			"private_key":  privateKey,
-			"project_name": projectName,
-			"org_id":       orgID,
+			"public_key":     mongoSecrets.PublicKey,
+			"private_key":    mongoSecrets.PrivateKey,
+			"access_key":     awsSecrets.AccessKey,
+			"secret_key":     awsSecrets.SecretKey,
+			"aws_region":     awsSecrets.AwsRegion,
+			"project_name":   projectName,
+			"org_id":         orgID,
+			"data_lake_name": dataLakeName,
+			"test_s3_bucket": testS3Bucket,
 		},
 	})
 
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
 	defer terraform.Destroy(t, terraformOptions)
 
-	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
-	terraform.InitAndApply(t, terraformOptions)
+	if pluginPath != "" {
+		terraform.RunTerraformCommand(t, terraformOptions, "init", fmt.Sprintf("--plugin-dir=%s", pluginPath))
+		terraform.Apply(t, terraformOptions)
+	} else {
+		terraform.InitAndApply(t, terraformOptions)
+	}
 
-	// To run a local plugin with --plugin-dir
-	//terraform.RunTerraformCommand(t, terraformOptions, terraform.FormatArgs(terraformOptions, "init",
-	//	fmt.Sprintf("--plugin-dir=%s", "PLUGIN PATH"))...)
-	terraform.Apply(t, terraformOptions)
-	// Run `terraform output` to get the IP of the instance
-	awsRoleARN := terraform.Output(t, terraformOptions, "aws_iam_role_arn")
-	cpaRoleID := terraform.Output(t, terraformOptions, "cpa_role_id")
+	terraform.Plan(t, terraformOptions)
+
 	projectID := terraform.Output(t, terraformOptions, "project_id")
+	roleID := terraform.Output(t, terraformOptions, "role_id")
+	roleName := terraform.Output(t, terraformOptions, "role_name")
+	policyName := terraform.Output(t, terraformOptions, "policy_name")
+	lakeName := terraform.Output(t, terraformOptions, "data_lake_name")
+	s3Bucket := terraform.Output(t, terraformOptions, "s3_bucket")
 
-	terraformOptionsUpdated := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		// The path to where our Terraform code is located
-		TerraformDir: "../examples/atlas-dataLake-roles",
-		Vars: map[string]interface{}{
-			"access_key":       accessKey,
-			"secret_key":       secretKey,
-			"atlas_region":     awsRegion,
-			"org_id":           orgID,
-			"project_name":     projectName,
-			"public_key":       publicKey,
-			"private_key":      privateKey,
-			"aws_iam_role_arn": awsRoleARN,
-		},
-	})
-
-	terraform.Apply(t, terraformOptionsUpdated)
+	tempTestFolder := CleanUpState(t, "examples/atlas-dataLake-roles/import")
 
 	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: "../examples/atlas-dataLake-roles/second_step",
+		TerraformDir: tempTestFolder,
 		Vars: map[string]interface{}{
-			"project_id":     projectID,
-			"public_key":     publicKey,
-			"private_key":    privateKey,
-			"cpa_role_id":    cpaRoleID,
-			"data_lake_name": dataLakeName,
-			"test_s3_bucket": testS3Bucket,
+			"public_key":  mongoSecrets.PublicKey,
+			"private_key": mongoSecrets.PrivateKey,
+			"access_key":  awsSecrets.AccessKey,
+			"secret_key":  awsSecrets.SecretKey,
 		},
 	})
-	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
-	defer terraform.Destroy(t, terraformOptionsSecond)
 
-	// Run `terraform apply`. Fail the test if there are any errors.
-	terraform.InitAndApply(t, terraformOptions)
-	// To run a local plugin with --plugin-dir
-	//terraform.RunTerraformCommand(t, terraformOptions, terraform.FormatArgs(terraformOptions, "init",
-	//	fmt.Sprintf("--plugin-dir=%s", "PLUGIN PATH"))...)
-	terraform.Apply(t, terraformOptionsSecond)
+	if pluginPath != "" {
+		terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", pluginPath))
+	} else {
+		terraform.Init(t, terraformOptionsSecond)
+	}
+
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_iam_role_policy.test_policy", fmt.Sprintf("%s:%s", roleName, policyName))
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_iam_role.test_role", roleName)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cloud_provider_access_setup.setup_only", fmt.Sprintf("%s-%s-%s", projectID, "AWS", roleID))
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_data_lake.test", fmt.Sprintf("%s--%s--%s", projectID, lakeName, s3Bucket))
+
+	terraform.Plan(t, terraformOptionsSecond)
+
 }

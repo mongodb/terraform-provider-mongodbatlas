@@ -94,7 +94,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Data Lake can be imported using project ID, name of data lake and aws s3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
+Data Lake can be imported using project ID, name of the data lake and name of the AWS s3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
 
 ```
 $ terraform import mongodbatlas_data_lake.example 1112222b3bf99403840e8934--test-data-lake--s3-test

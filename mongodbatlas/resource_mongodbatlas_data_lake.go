@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	errorDataLakeCreate  = "error creating MongoDB DataLake: %s"
-	errorDataLakeRead    = "error reading MongoDB DataLake (%s): %s"
-	errorDataLakeDelete  = "error deleting MongoDB DataLake (%s): %s"
-	errorDataLakeUpdate  = "error updating MongoDB DataLake (%s): %s"
-	errorDataLakeSetting = "error setting `%s` for MongoDB DataLake (%s): %s"
+	errorDataLakeCreate  = "error creating MongoDB Atlas DataLake: %s"
+	errorDataLakeRead    = "error reading MongoDB Atlas DataLake (%s): %s"
+	errorDataLakeDelete  = "error deleting MongoDB Atlas DataLake (%s): %s"
+	errorDataLakeUpdate  = "error updating MongoDB Atlas DataLake (%s): %s"
+	errorDataLakeSetting = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
 )
 
 func resourceMongoDBAtlasDataLake() *schema.Resource {
@@ -349,7 +349,7 @@ func resourceMongoDBAtlasDataLakeImportState(d *schema.ResourceData, meta interf
 
 	u, _, err := conn.DataLakes.Get(context.Background(), projectID, name)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import user(%s) in data lake(%s), error: %s", name, projectID, err)
+		return nil, fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err)
 	}
 
 	if err := d.Set("project_id", u.GroupID); err != nil {

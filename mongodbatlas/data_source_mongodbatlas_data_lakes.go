@@ -97,7 +97,7 @@ func dataSourceMongoDBAtlasDataLakesRead(d *schema.ResourceData, meta interface{
 
 	dataLakes, _, err := conn.DataLakes.List(context.Background(), projectID)
 	if err != nil {
-		return fmt.Errorf("error getting database users information: %s", err)
+		return fmt.Errorf("error getting MongoDB Atlas Data Lakes information: %s", err)
 	}
 
 	if err := d.Set("results", flattenDataLakes(dataLakes)); err != nil {
