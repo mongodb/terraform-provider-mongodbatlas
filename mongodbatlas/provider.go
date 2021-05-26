@@ -122,8 +122,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		PrivateKey: d.Get("private_key").(string),
 	}
 
-	if baseUrl := d.Get("base_url"); baseUrl != nil{
-		config.BaseUrl = baseUrl.(string)
+	if baseUrl := d.Get("base_url"); baseUrl != nil {
+		config.BaseURL = baseUrl.(string)
 	}
 
 	return config.NewClient(), nil
