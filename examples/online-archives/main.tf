@@ -6,7 +6,7 @@ resource "mongodbatlas_online_archive" "users_archive" {
 
     criteria {
         type = "DATE"
-        date_field = "date"
+        date_field = "created"
         date_format = "ISODATE"
         expire_after_days = 2
     }
@@ -25,7 +25,7 @@ resource "mongodbatlas_online_archive" "users_archive" {
 data "mongodbatlas_online_archive" "read_archive" {
     project_id =  mongodbatlas_online_archive.users_archive.project_id
     cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
-    atlas_id = mongodbatlas_online_archive.users_archive.atlas_id
+    archive_id = mongodbatlas_online_archive.users_archive.archive_id
 }
 
 data "mongodbatlas_online_archives" "all" {

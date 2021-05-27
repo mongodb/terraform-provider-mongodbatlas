@@ -199,11 +199,21 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 	conn := meta.(*matlas.Client)
 	parts := strings.Split(d.Id(), "-")
 
-	if len(parts) != 3 {
-		return nil, errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluste_rname}-{archive_id} ")
-	}
+	var projectID, clusterName, atlasID string
 
-	projectID, clusterName, atlasID := parts[0], parts[1], parts[2]
+	if len(parts) != 3 {
+
+		if len(parts) < 3 {
+			return nil, errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluster_name}-{archive_id}")
+		}
+
+		projectID = parts[0]
+		clusterName = strings.Join(parts[1:len(parts)-2], "")
+		atlasID = parts[len(parts)-1]
+
+	} else {
+		projectID, clusterName, atlasID = parts[0], parts[1], parts[2]
+	}
 
 	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
 

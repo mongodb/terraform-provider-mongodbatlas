@@ -11,7 +11,10 @@ description: |-
 `mongodbatlas_online_archive` resource provides access to create, edit, pause and resume an online archive for a collection. 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-~> **IMPORTANT:** The collection must exists before performing an online archive, otherwise the state of the archive is pending. 
+
+~> **IMPORTANT:** The collection must exists before performing an online archive.
+
+~> **IMPORTANT:** There are fields that are immutable after creation, i.e if `date_field` value does not exist in the collection, the online archive state will be pending forever, and this field cannot be updated, that means a destroy is required, known error `ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD`
 
 ## Example Usages
 ```hcl
@@ -101,7 +104,13 @@ By default, the date field specified in the criteria.dateField parameter is in t
 * `partitio_fields.field_type` - (Optional) type of the partition field
 
 ## Attributes Reference
-* `atlas_id` - ID of the online archive.
+* `archive_id` - ID of the online archive.
 * `state`    - Status of the online archive. Valid values are: Pending, Archiving, Idle, Pausing, Paused, Orphaned and Deleted
+
+## Import 
+
+```bash
+terraform import mongodbatlas_online_archive.users_archive <project_id>-<cluster_name>-<archive_id>
+```
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/online-archive-create-one/) Documentation for more information.
