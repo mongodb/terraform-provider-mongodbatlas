@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	errorOnlineArchivesCreate = "error creating MongoDB Online Archive: %s"
-	errorOnlineArchivesDelete = "error deleting MongoDB Online Archive: %s atlas_id (%s)"
+	errorOnlineArchivesCreate = "error creating MongoDB Atlas Online Archive:: %s"
+	errorOnlineArchivesDelete = "error deleting MongoDB Atlas Online Archive: %s archive_id (%s)"
 )
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
@@ -107,8 +107,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 				},
 			},
 		},
-		// mongodb_atlas id
-		"atlas_id": {
+		"archive_id": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -140,7 +139,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": outputRequest.ClusterName,
-		"atlas_id":     outputRequest.ID,
+		"archive_id":   outputRequest.ID,
 	}))
 
 	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
@@ -151,7 +150,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
 
-	atlasID := ids["atlas_id"]
+	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -163,14 +162,14 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error MongoDBAtlas Online Archive with id %s, read error %s", atlasID, err.Error())
+		return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
 	}
 
 	newData := fromOnlineArchiveToMapInCreate(outOnlineArchive)
 
 	for key, val := range newData {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf("error MongoDBAtlas Online Archive with id %s, read error %s", atlasID, err.Error())
+			return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
 		}
 	}
 	return nil
@@ -179,7 +178,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	ids := decodeStateID(d.Id())
-	atlasID := ids["atlas_id"]
+	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -201,7 +200,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 	parts := strings.Split(d.Id(), "-")
 
 	if len(parts) != 3 {
-		return nil, errors.New("import format error to import a Mongo Online Archive, use the format {project_id}-{cluste_rname}-{atlas_id} ")
+		return nil, errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluste_rname}-{archive_id} ")
 	}
 
 	projectID, clusterName, atlasID := parts[0], parts[1], parts[2]
@@ -218,7 +217,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"atlas_id":     outOnlineArchive.ID,
+		"archive_id":   outOnlineArchive.ID,
 		"cluster_name": outOnlineArchive.ClusterName,
 		"project_id":   projectID,
 	}))
@@ -244,12 +243,19 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 				item := partition.(map[string]interface{})
 				localOrder := item["order"].(int)
 				localOrderFloat := float64(localOrder)
-				partitionList = append(partitionList,
-					&matlas.PartitionFields{
-						FieldName: item["field_name"].(string),
-						Order:     pointy.Float64(localOrderFloat),
-					},
-				)
+
+				query := &matlas.PartitionFields{
+					FieldName: item["field_name"].(string),
+					Order:     pointy.Float64(localOrderFloat),
+				}
+
+				if dbType, ok := item["field_type"]; ok && dbType != nil {
+					if dbType.(string) != "" {
+						query.FieldType = dbType.(string)
+					}
+				}
+
+				partitionList = append(partitionList, query)
 			}
 
 			requestInput.PartitionFields = partitionList
@@ -264,7 +270,7 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(d *schema.ResourceData, meta interf
 
 	ids := decodeStateID(d.Id())
 
-	atlasID := ids["atlas_id"]
+	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
@@ -301,7 +307,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	// computed attribute
 	schemaVals := map[string]interface{}{
 		"cluster_name": in.ClusterName,
-		"atlas_id":     in.ID,
+		"archive_id":   in.ID,
 		"paused":       in.Paused,
 		"state":        in.State,
 		"coll_name":    in.CollName,

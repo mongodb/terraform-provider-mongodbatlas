@@ -23,7 +23,7 @@ func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
 		Computed: true,
 	}
 
-	singleElement["atlas_id"] = &schema.Schema{
+	singleElement["archive_id"] = &schema.Schema{
 		Type:     schema.TypeString,
 		Computed: true,
 	}
@@ -74,7 +74,7 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"atlas_id": {
+		"archive_id": {
 			Type:     schema.TypeString,
 			Required: true,
 		},
@@ -150,7 +150,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	atlasID := d.Get("atlas_id").(string)
+	atlasID := d.Get("archive_id").(string)
 
 	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
 
@@ -171,7 +171,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": outOnlineArchive.ClusterName,
-		"atlas_id":     outOnlineArchive.ID,
+		"archive_id":   outOnlineArchive.ID,
 	}))
 
 	return nil
