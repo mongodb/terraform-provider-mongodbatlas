@@ -1181,7 +1181,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			replaceRegion := ""
 
-			if okPRName && d.Get("provider_name").(string) == "GCP" {
+			if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 				if d.HasChange("provider_region_name") {
 					replaceRegion = vPRName.(string)
 				}
