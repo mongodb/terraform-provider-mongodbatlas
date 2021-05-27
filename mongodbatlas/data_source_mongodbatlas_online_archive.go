@@ -152,17 +152,17 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 	clusterName := d.Get("cluster_name").(string)
 	atlasID := d.Get("archive_id").(string)
 
-	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
+	archive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
 
 	if err != nil {
 		return fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error())
 	}
 
-	newData := fromOnlineArchiveToMap(outOnlineArchive)
-	criteria := newData["criteria"]
-	newData["criteria"] = []interface{}{criteria}
+	onlineArchiveMap := fromOnlineArchiveToMap(archive)
+	criteria := onlineArchiveMap["criteria"]
+	onlineArchiveMap["criteria"] = []interface{}{criteria}
 
-	for key, val := range newData {
+	for key, val := range onlineArchiveMap {
 		if err := d.Set(key, val); err != nil {
 			return fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error())
 		}
@@ -170,8 +170,8 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
-		"cluster_name": outOnlineArchive.ClusterName,
-		"archive_id":   outOnlineArchive.ID,
+		"cluster_name": archive.ClusterName,
+		"archive_id":   archive.ID,
 	}))
 
 	return nil

@@ -55,6 +55,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 		},
 		"criteria": {
 			Type:     schema.TypeList,
+			MinItems: 1,
 			MaxItems: 1,
 			Required: true,
 			Elem: &schema.Resource{
@@ -321,7 +322,6 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		"coll_name":    in.CollName,
 	}
 
-	// criteria
 	criteria := map[string]interface{}{
 		"type":              in.Criteria.Type,
 		"date_field":        in.Criteria.DateField,
@@ -340,23 +340,25 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	schemaVals["criteria"] = criteria
 
 	// partitions fields
-	if len(in.PartitionFields) > 0 {
-		expected := make([]map[string]interface{}, 0, len(in.PartitionFields))
-		for _, partition := range in.PartitionFields {
-			if partition == nil {
-				continue
-			}
-
-			partition := map[string]interface{}{
-				"field_name": partition.FieldName,
-				"field_type": partition.FieldType,
-				"order":      partition.Order,
-			}
-
-			expected = append(expected, partition)
-		}
-		schemaVals["partition_fields"] = expected
+	if len(in.PartitionFields) == 0 {
+		return schemaVals
 	}
+
+	partitionFieldsMap := make([]map[string]interface{}, 0, len(in.PartitionFields))
+	for _, field := range in.PartitionFields {
+		if field == nil {
+			continue
+		}
+
+		fieldMap := map[string]interface{}{
+			"field_name": field.FieldName,
+			"field_type": field.FieldType,
+			"order":      field.Order,
+		}
+
+		partitionFieldsMap = append(partitionFieldsMap, fieldMap)
+	}
+	schemaVals["partition_fields"] = partitionFieldsMap
 
 	return schemaVals
 }
@@ -403,15 +405,7 @@ func isEmpty(val interface{}) bool {
 	}
 
 	switch v := val.(type) {
-	case *bool:
-		if v == nil {
-			return true
-		}
-	case *float64:
-		if v == nil {
-			return true
-		}
-	case *int64:
+	case *bool, *float64, *int64:
 		if v == nil {
 			return true
 		}
