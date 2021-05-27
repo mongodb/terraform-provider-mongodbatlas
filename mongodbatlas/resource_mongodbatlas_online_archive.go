@@ -202,7 +202,6 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 	var projectID, clusterName, atlasID string
 
 	if len(parts) != 3 {
-
 		if len(parts) < 3 {
 			return nil, errors.New("import format error to import a MongoDB Atlas Online Archive, use the format {project_id}-{cluster_name}-{archive_id}")
 		}
@@ -210,7 +209,6 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 		projectID = parts[0]
 		clusterName = strings.Join(parts[1:len(parts)-2], "")
 		atlasID = parts[len(parts)-1]
-
 	} else {
 		projectID, clusterName, atlasID = parts[0], parts[1], parts[2]
 	}
