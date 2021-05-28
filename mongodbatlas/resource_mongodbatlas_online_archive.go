@@ -323,11 +323,15 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	}
 
 	criteria := map[string]interface{}{
-		"type":              in.Criteria.Type,
-		"date_field":        in.Criteria.DateField,
-		"date_format":       in.Criteria.DateFormat,
-		"expire_after_days": int(in.Criteria.ExpireAfterDays),
-		// missing query check in client
+		"type":        in.Criteria.Type,
+		"date_field":  in.Criteria.DateField,
+		"date_format": in.Criteria.DateFormat,
+		"query":       in.Criteria.Query,
+	}
+
+	// note: criteria is a conditional field, not required when type is equal to CUSTOM
+	if in.Criteria.ExpireAfterDays != nil {
+		criteria["expire_after_days"] = int(*in.Criteria.ExpireAfterDays)
 	}
 
 	// clean up criteria for empty values
@@ -386,7 +390,7 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 
 		conversion := criteria["expire_after_days"].(int)
 
-		criteriaInput.ExpireAfterDays = float64(conversion)
+		criteriaInput.ExpireAfterDays = pointy.Float64(float64(conversion))
 		// optional
 		if dformat, ok := criteria["date_format"]; ok {
 			if len(dformat.(string)) > 0 {
