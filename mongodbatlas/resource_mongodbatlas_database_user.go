@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"regexp"
 	"strings"
 
@@ -146,9 +145,8 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 			authDatabaseName = d.Get("auth_database_name").(string)
 		}
 	}
-	usernameEscaped := url.PathEscape(username)
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -262,9 +260,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	usernameEscaped := url.PathEscape(username)
-
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, usernameEscaped)
+	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error getting database user information to update it: %s", err)
 	}
@@ -285,7 +281,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 		dbUser.Scopes = expandScopes(d)
 	}
 
-	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, usernameEscaped, dbUser)
+	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
 	if err != nil {
 		return fmt.Errorf("error updating database user(%s): %s", username, err)
 	}
@@ -301,9 +297,7 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	usernameEscaped := url.PathEscape(username)
-
-	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, usernameEscaped)
+	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		return fmt.Errorf("error deleting database user (%s): %s", username, err)
 	}
@@ -319,9 +313,7 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 		return nil, err
 	}
 
-	usernameEscaped := url.PathEscape(*username)
-
-	u, _, err := conn.DatabaseUsers.Get(context.Background(), *authDatabaseName, *projectID, usernameEscaped)
+	u, _, err := conn.DatabaseUsers.Get(context.Background(), *authDatabaseName, *projectID, *username)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import user(%s) in project(%s), error: %s", *username, *projectID, err)
 	}

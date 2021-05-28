@@ -89,6 +89,9 @@ export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
 export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
 export MONGODB_ATLAS_PUBLIC_KEY=<YOUR_PUBLIC_KEY>
 export MONGODB_ATLAS_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+
+# This env variable is optional and allow you to run terraform with a custom server
+export MONGODB_ATLAS_BASE_URL=<CUSTOM_SERVER_URL>
 ```
 
 - For `Authentication database user` resource configuration:

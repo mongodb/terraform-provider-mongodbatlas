@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"testing"
 
@@ -619,9 +618,7 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		ids := decodeStateID(rs.Primary.ID)
 		username := ids["username"]
 
-		dbUsername := url.PathEscape(username)
-
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], dbUsername); err == nil {
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], username); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
@@ -851,7 +848,6 @@ func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, 
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_disk_iops          = 100
 			provider_encrypt_ebs_volume = false
 		}
 
