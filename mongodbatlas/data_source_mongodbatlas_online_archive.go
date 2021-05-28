@@ -159,8 +159,6 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 	}
 
 	onlineArchiveMap := fromOnlineArchiveToMap(archive)
-	criteria := onlineArchiveMap["criteria"]
-	onlineArchiveMap["criteria"] = []interface{}{criteria}
 
 	for key, val := range onlineArchiveMap {
 		if err := d.Set(key, val); err != nil {

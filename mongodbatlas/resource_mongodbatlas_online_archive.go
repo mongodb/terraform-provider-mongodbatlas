@@ -155,7 +155,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
+	onlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
 
 	if err != nil {
 		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -166,9 +166,9 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
 	}
 
-	newData := fromOnlineArchiveToMapInCreate(outOnlineArchive)
+	mapValues := fromOnlineArchiveToMapInCreate(onlineArchive)
 
-	for key, val := range newData {
+	for key, val := range mapValues {
 		if err := d.Set(key, val); err != nil {
 			return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
 		}
@@ -341,7 +341,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		}
 	}
 
-	schemaVals["criteria"] = criteria
+	schemaVals["criteria"] = []interface{}{criteria}
 
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
@@ -369,9 +369,6 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 
 func fromOnlineArchiveToMapInCreate(in *matlas.OnlineArchive) map[string]interface{} {
 	localSchema := fromOnlineArchiveToMap(in)
-	criteria := localSchema["criteria"]
-	localSchema["criteria"] = []interface{}{criteria}
-
 	delete(localSchema, "partition_fields")
 	return localSchema
 }
