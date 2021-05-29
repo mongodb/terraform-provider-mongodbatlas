@@ -396,6 +396,10 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 		}
 	}
 
+	if criteriaInput.Type == "CUSTOM" {
+		criteriaInput.Query = criteria["query"].(string)
+	}
+
 	// Pending update client missing QUERY field
 	return criteriaInput
 }

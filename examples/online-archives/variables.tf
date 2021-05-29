@@ -28,3 +28,4 @@ variable "partition_field_one" {
 variable "partition_field_two" {
     type = string
 }
+

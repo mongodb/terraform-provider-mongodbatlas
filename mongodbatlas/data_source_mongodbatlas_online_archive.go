@@ -189,9 +189,6 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(d *schema.ResourceData, meta inter
 
 	for _, archive := range archives.Results {
 		archiveData := fromOnlineArchiveToMap(archive)
-		criteria := archiveData["criteria"]
-		archiveData["criteria"] = []interface{}{criteria}
-
 		archiveData["project_id"] = projectID
 		results = append(results, archiveData)
 	}
