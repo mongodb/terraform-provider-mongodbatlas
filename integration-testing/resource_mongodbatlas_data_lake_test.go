@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestTerraformResourceMongoDBAtlasDataLake_basicAWS(t *testing.T) {
@@ -37,6 +36,7 @@ func TestTerraformResourceMongoDBAtlasDataLake_basicAWS(t *testing.T) {
 			"org_id":         orgID,
 			"data_lake_name": dataLakeName,
 			"test_s3_bucket": testS3Bucket,
+			"base_url":       mongoSecrets.BaseURL,
 		},
 	})
 
@@ -69,6 +69,7 @@ func TestTerraformResourceMongoDBAtlasDataLake_basicAWS(t *testing.T) {
 			"private_key": mongoSecrets.PrivateKey,
 			"access_key":  awsSecrets.AccessKey,
 			"secret_key":  awsSecrets.SecretKey,
+			"base_url":    mongoSecrets.BaseURL,
 		},
 	})
 

@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
