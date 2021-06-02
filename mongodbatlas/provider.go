@@ -30,6 +30,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_PRIVATE_KEY", ""),
 				Description: "MongoDB Atlas Programmatic Private Key",
 			},
+			"base_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_BASE_URL", ""),
+				Description: "MongoDB Atlas Base URL",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -68,6 +74,8 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_access":                 dataSourceMongoDBAtlasCloudProviderAccessList(),
 			"mongodbatlas_cloud_provider_access_setup":           dataSourceMongoDBAtlasCloudProviderAccessSetup(),
 			"mongodbatlas_custom_dns_configuration_cluster_aws":  dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
+			"mongodbatlas_online_archive":                        dataSourceMongoDBAtlasOnlineArchive(),
+			"mongodbatlas_online_archives":                       dataSourceMongoDBAtlasOnlineArchives(),
 			"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
 			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
@@ -101,6 +109,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_third_party_integration":               resourceMongoDBAtlasThirdPartyIntegration(),
 			"mongodbatlas_project_ip_access_list":                resourceMongoDBAtlasProjectIPAccessList(),
 			"mongodbatlas_cloud_provider_access":                 resourceMongoDBAtlasCloudProviderAccess(),
+			"mongodbatlas_online_archive":                        resourceMongoDBAtlasOnlineArchive(),
 			"mongodbatlas_custom_dns_configuration_cluster_aws":  resourceMongoDBAtlasCustomDNSConfiguration(),
 			"mongodbatlas_ldap_configuration":                    resourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
@@ -117,6 +126,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
+	}
+
+	if baseURL := d.Get("base_url"); baseURL != nil {
+		config.BaseURL = baseURL.(string)
 	}
 
 	return config.NewClient(), nil

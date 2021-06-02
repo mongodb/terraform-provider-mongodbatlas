@@ -208,6 +208,7 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 		projectName = acctest.RandomWithPrefix("test-acc")
 		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
 		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		baseURL     = os.Getenv("MONGODB_ATLAS_BASE_URL")
 		awsAccess   = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecret   = os.Getenv("AWS_SECRET_ACCESS_KEY")
 		awsVPC      = os.Getenv("AWS_VPC_ID")
@@ -224,6 +225,7 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 			"org_id":         orgID,
 			"public_key":     publicKey,
 			"private_key":    privateKey,
+			"base_url":       baseURL,
 			"aws_access_key": awsAccess,
 			"aws_secret_key": awsSecret,
 			"aws_vpc_id":     awsVPC,
@@ -254,6 +256,7 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 			"org_id":         orgID,
 			"public_key":     publicKey,
 			"private_key":    privateKey,
+			"base_url":       baseURL,
 			"aws_access_key": awsAccess,
 			"aws_secret_key": awsSecret,
 			"aws_vpc_id":     awsVPC,

@@ -6,6 +6,7 @@ type MongoDBCredentials struct {
 	ProjectID  string
 	PublicKey  string
 	PrivateKey string
+	BaseURL    string
 }
 
 type AWSCredentials struct {
@@ -20,6 +21,7 @@ func GetCredentialsFromEnv() MongoDBCredentials {
 		ProjectID:  os.Getenv("MONGODB_ATLAS_PROJECT_ID"),
 		PublicKey:  os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey: os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		BaseURL:    os.Getenv("MONGODB_ATLAS_BASE_URL"),
 	}
 }
 

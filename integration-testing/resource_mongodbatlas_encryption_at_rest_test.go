@@ -28,6 +28,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 			"project_id":          mongoSecrets.ProjectID,
 			"public_key":          mongoSecrets.PublicKey,
 			"private_key":         mongoSecrets.PrivateKey,
+			"base_url":            mongoSecrets.BaseURL,
 		},
 	})
 
@@ -55,6 +56,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 			"project_id":          mongoSecrets.ProjectID,
 			"public_key":          mongoSecrets.PublicKey,
 			"private_key":         mongoSecrets.PrivateKey,
+			"base_url":            mongoSecrets.BaseURL,
 			"aws_iam_role_arn":    awsRoleARN,
 		},
 	})
@@ -70,6 +72,7 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 			"project_id":          mongoSecrets.ProjectID,
 			"public_key":          mongoSecrets.PublicKey,
 			"private_key":         mongoSecrets.PrivateKey,
+			"base_url":            mongoSecrets.BaseURL,
 			"cpa_role_id":         cpaRoleID,
 		},
 	})
