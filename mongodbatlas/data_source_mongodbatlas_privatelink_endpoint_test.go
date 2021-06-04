@@ -41,7 +41,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointDataSourceConfig(projectID, providerN
 
 		data "mongodbatlas_privatelink_endpoint" "test" {
 			project_id      = mongodbatlas_privatelink_endpoint.test.project_id
-			private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+			private_link_id = mongodbatlas_privatelink_endpoint.test.id
 			provider_name = "%[2]s"
 		}
 	`, projectID, providerName, region)

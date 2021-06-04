@@ -257,3 +257,23 @@ func expandStringList(list []interface{}) (res []string) {
 
 	return
 }
+
+func getEncodedID(stateID, keyPosition string) string {
+	id := ""
+	if !hasMultipleValues(stateID) {
+		return stateID
+	} else {
+		decoded := decodeStateID(stateID)
+		id = decoded[keyPosition]
+	}
+
+	return id
+}
+
+func hasMultipleValues(value string) bool {
+	if strings.Contains(value, "-") && strings.Contains(value, ":") {
+		return true
+	}
+
+	return false
+}

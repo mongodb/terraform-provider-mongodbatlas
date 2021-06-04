@@ -87,7 +87,7 @@ func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 
 		data "mongodbatlas_alert_configuration" "test" {
 			project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-			alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"
+			alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
 		}
 	`, projectID)
 }
@@ -123,7 +123,7 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID string
 
 		data "mongodbatlas_alert_configuration" "test" {
 			project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
-			alert_configuration_id = "${mongodbatlas_alert_configuration.test.alert_configuration_id}"
+			alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
 		}
 	`, projectID, enabled, threshold)
 }

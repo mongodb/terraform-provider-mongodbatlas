@@ -75,8 +75,8 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData
 	conn := meta.(*matlas.Client)
 
 	projectID := d.Get("project_id").(string)
-	privateLinkID := d.Get("private_link_id").(string)
-	endpointServiceID := d.Get("endpoint_service_id").(string)
+	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
+	endpointServiceID := getEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 	providerName := d.Get("provider_name").(string)
 
 	serviceEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)

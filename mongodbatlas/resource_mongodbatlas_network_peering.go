@@ -58,7 +58,6 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -161,7 +160,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 
 	// Get the required ones
 	peerRequest := &matlas.Peer{
-		ContainerID:  d.Get("container_id").(string),
+		ContainerID:  getEncodedID(d.Get("container_id").(string), "container_id"),
 		ProviderName: providerName,
 	}
 
@@ -405,7 +404,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 	// All the request to update the peer require the ProviderName and ContainerID attribute.
 	peer := &matlas.Peer{
 		ProviderName: ids["provider_name"],
-		ContainerID:  d.Get("container_id").(string),
+		ContainerID:  getEncodedID(d.Get("container_id").(string), "container_id"),
 	}
 
 	// Depending of the Provider name the request will be set

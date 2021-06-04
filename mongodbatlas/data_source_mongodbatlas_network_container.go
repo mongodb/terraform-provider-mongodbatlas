@@ -76,7 +76,7 @@ func dataSourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta int
 	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	containerID := d.Get("container_id").(string)
+	containerID := getEncodedID(d.Get("container_id").(string), "container_id")
 
 	container, resp, err := conn.Containers.Get(context.Background(), projectID, containerID)
 	if err != nil {

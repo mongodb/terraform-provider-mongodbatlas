@@ -112,7 +112,7 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta inter
 	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	peerID := d.Get("peering_id").(string)
+	peerID := getEncodedID(d.Get("peering_id").(string), "peer_id")
 
 	peer, resp, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
@@ -213,7 +213,11 @@ func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("[WARN] Error setting provider_name for (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(peer.ID)
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":    projectID,
+		"peer_id":       peer.ID,
+		"provider_name": provider,
+	}))
 
 	return nil
 }
