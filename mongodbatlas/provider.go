@@ -262,10 +262,10 @@ func getEncodedID(stateID, keyPosition string) string {
 	id := ""
 	if !hasMultipleValues(stateID) {
 		return stateID
-	} else {
-		decoded := decodeStateID(stateID)
-		id = decoded[keyPosition]
 	}
+
+	decoded := decodeStateID(stateID)
+	id = decoded[keyPosition]
 
 	return id
 }
