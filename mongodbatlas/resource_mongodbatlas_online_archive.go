@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mwielbut/pointy"
@@ -121,6 +123,11 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"sync_creation": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 	}
 }
 
@@ -143,7 +150,52 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 		"archive_id":   outputRequest.ID,
 	}))
 
+	if d.Get("sync_creation").(bool) {
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
+			Target:     []string{"IDLE"},
+			Refresh:    resourceOnlineRefreshFunc(projectID, outputRequest.ClusterName, outputRequest.ID, conn),
+			Timeout:    3 * time.Hour,
+			MinTimeout: 1 * time.Minute,
+			Delay:      3 * time.Minute,
+		}
+
+		// Wait, catching any errors
+		_, err := stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("error updating the online archive status %s for cluster %s", outputRequest.ClusterName, outputRequest.ID)
+		}
+	}
+
 	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
+}
+
+func resourceOnlineRefreshFunc(projectID, clusterName, archiveID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		c, resp, err := client.OnlineArchives.Get(context.Background(), projectID, clusterName, archiveID)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		if c.State != "" {
+			log.Printf("[DEBUG] status for MongoDB archive_id: %s: %s", archiveID, c.State)
+		}
+
+		return c, c.State, nil
+	}
 }
 
 func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interface{}) error {
