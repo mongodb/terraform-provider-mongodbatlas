@@ -92,9 +92,8 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 		cluster                   matlas.Cluster
 		resourceName              = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		//dataSourceName = "data.mongodbatlas_clusters.online_archive_test"
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectID                 = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	initialConfig := fmt.Sprintf(clusterConfig, projectID, name, "false")
@@ -120,7 +119,6 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
@@ -154,8 +152,6 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 			return fmt.Errorf("cluster(%s:%s) loading sample data set error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 		}
 
-		//GetSampleDatasetStatus
-		// max 20 min
 		ticker := time.NewTicker(30 * time.Second)
 
 	JOB:
