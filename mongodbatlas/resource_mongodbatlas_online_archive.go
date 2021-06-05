@@ -152,8 +152,8 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 
 	if d.Get("sync_creation").(bool) {
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
-			Target:     []string{"IDLE"},
+			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING", "WORKING"},
+			Target:     []string{"IDLE", "COMPLETED"},
 			Refresh:    resourceOnlineRefreshFunc(projectID, outputRequest.ClusterName, outputRequest.ID, conn),
 			Timeout:    3 * time.Hour,
 			MinTimeout: 1 * time.Minute,
