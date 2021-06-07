@@ -50,17 +50,21 @@ data "mongodbatlas_data_lake" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
-* `aws_role_id` - Unique identifier of the role that Data Lake can use to access the data stores.
-* `aws_test_s3_bucket` - Name of the S3 data bucket that the provided role ID is authorized to access.
-* `data_process_region` - The cloud provider region to which Atlas Data Lake routes client connections for data processing.
-    * `data_process_region.cloud_provider` - Name of the cloud service provider. 
-    * `data_process_region.region` -Name of the region to which Data Lake routes client connections for data processing.
-* `aws_iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that Data Lake assumes when accessing S3 Bucket data stores.
+* `aws` - AWS provider of the cloud service where Data Lake can access the S3 Bucket.
+    * `aws.0.role_id` - Unique identifier of the role that Data Lake can use to access the data stores.
+    * `aws.0.test_s3_bucket` - Name of the S3 data bucket that the provided role ID is authorized to access.
+    * `aws.0.role_id` - Unique identifier of the role that Data Lake can use to access the data stores.
+    * `aws.0.test_s3_bucket` - Name of the S3 data bucket that the provided role ID is authorized to access.
+    * `aws.0.iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that Data Lake assumes when accessing S3 Bucket data stores.
 
   For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
 
 * `aws_iam_user_arn` - Amazon Resource Name (ARN) of the user that Data Lake assumes when accessing S3 Bucket data stores.
 * `aws_external_id` - Unique identifier associated with the IAM Role that Data Lake assumes when accessing the data stores.
+
+* `data_process_region` - The cloud provider region to which Atlas Data Lake routes client connections for data processing.
+    * `data_process_region.cloud_provider` - Name of the cloud service provider.
+    * `data_process_region.region` -Name of the region to which Data Lake routes client connections for data processing.
 * `hostnames` - The list of hostnames assigned to the Atlas Data Lake. Each string in the array is a hostname assigned to the Atlas Data Lake.
 * `state` - Current state of the Atlas Data Lake:
     * `ACTIVE` - The Data Lake is active and verified. You can query the data stores associated with the Atlas Data Lake.

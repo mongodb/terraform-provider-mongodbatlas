@@ -42,8 +42,9 @@ resource "mongodbatlas_data_lake" "basic_ds" {
 
 * `project_id` - (Required) The unique ID for the project to create a data lake.
 * `name` - (Required) Name of the Atlas Data Lake.
-* `aws_role_id` - (Required) Unique identifier of the role that Data Lake can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `aws_test_s3_bucket`.
-* `aws_test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `aws_role_id`.
+* `aws` - (Required) AWS provider of the cloud service where Data Lake can access the S3 Bucket.
+  * `aws.0.role_id` - (Required) Unique identifier of the role that Data Lake can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `aws.0.test_s3_bucket`.
+  * `aws.0.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `aws.0.role_id`.
 * `data_process_region` - (Optional) The cloud provider region to which Atlas Data Lake routes client connections for data processing. Set to `null` to direct Atlas Data Lake to route client connections to the region nearest to the client based on DNS resolution.
   * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Atlas Data Lake only supports AWS.
   * `data_process_region.region` - (Required). Name of the region to which Data Lake routes client connections for data processing. Atlas Data Lake only supports the following regions:
@@ -59,15 +60,15 @@ resource "mongodbatlas_data_lake" "basic_ds" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
-* `aws_iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that Data Lake assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
+* `aws.0.iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that Data Lake assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
   * `s3:GetObject`
   * `s3:ListBucket`
   * `s3:GetObjectVersion` 
     
   For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
 
-* `aws_iam_user_arn` - Amazon Resource Name (ARN) of the user that Data Lake assumes when accessing S3 Bucket data stores.
-* `aws_external_id` - Unique identifier associated with the IAM Role that Data Lake assumes when accessing the data stores.
+* `aws.0.iam_user_arn` - Amazon Resource Name (ARN) of the user that Data Lake assumes when accessing S3 Bucket data stores.
+* `aws.0.external_id` - Unique identifier associated with the IAM Role that Data Lake assumes when accessing the data stores.
 * `hostnames` - The list of hostnames assigned to the Atlas Data Lake. Each string in the array is a hostname assigned to the Atlas Data Lake.
 * `state` - Current state of the Atlas Data Lake:
   * `ACTIVE` - The Data Lake is active and verified. You can query the data stores associated with the Atlas Data Lake.

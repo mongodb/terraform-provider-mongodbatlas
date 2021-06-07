@@ -32,25 +32,34 @@ func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"aws_role_id": {
-							Type:     schema.TypeString,
+						"aws": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
 							Computed: true,
-						},
-						"aws_test_s3_bucket": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"aws_iam_assumed_role_arn": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"aws_iam_user_arn": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"aws_external_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"role_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"test_s3_bucket": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"iam_assumed_role_arn": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"iam_user_arn": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"external_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 						"data_process_region": {
 							Type:     schema.TypeMap,
@@ -116,17 +125,14 @@ func flattenDataLakes(dataLakes []matlas.DataLake) []map[string]interface{} {
 
 		for i := range dataLakes {
 			dataLakesMap[i] = map[string]interface{}{
-				"project_id":               dataLakes[i].GroupID,
-				"name":                     dataLakes[i].Name,
-				"aws_role_id":              dataLakes[i].CloudProviderConfig.AWSConfig.RoleID,
-				"aws_iam_assumed_role_arn": dataLakes[i].CloudProviderConfig.AWSConfig.IAMAssumedRoleARN,
-				"aws_iam_user_arn":         dataLakes[i].CloudProviderConfig.AWSConfig.IAMUserARN,
-				"aws_external_id":          dataLakes[i].CloudProviderConfig.AWSConfig.ExternalID,
-				"data_process_region":      flattenDataLakeProcessRegion(&dataLakes[i].DataProcessRegion),
-				"hostnames":                dataLakes[i].Hostnames,
-				"state":                    dataLakes[i].State,
-				"storage_databases":        flattenDataLakeStorageDatabases(dataLakes[i].Storage.Databases),
-				"storage_stores":           flattenDataLakeStorageStores(dataLakes[i].Storage.Stores),
+				"project_id":          dataLakes[i].GroupID,
+				"name":                dataLakes[i].Name,
+				"aws":                 flattenAWSBlock(&dataLakes[i].CloudProviderConfig),
+				"data_process_region": flattenDataLakeProcessRegion(&dataLakes[i].DataProcessRegion),
+				"hostnames":           dataLakes[i].Hostnames,
+				"state":               dataLakes[i].State,
+				"storage_databases":   flattenDataLakeStorageDatabases(dataLakes[i].Storage.Databases),
+				"storage_stores":      flattenDataLakeStorageStores(dataLakes[i].Storage.Stores),
 			}
 		}
 	}

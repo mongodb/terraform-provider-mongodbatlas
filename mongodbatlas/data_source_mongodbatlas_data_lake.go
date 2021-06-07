@@ -21,25 +21,34 @@ func dataSourceMongoDBAtlasDataLake() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"aws_role_id": {
-				Type:     schema.TypeString,
+			"aws": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Computed: true,
-			},
-			"aws_test_s3_bucket": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"aws_iam_assumed_role_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"aws_iam_user_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"aws_external_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"role_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"test_s3_bucket": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"iam_assumed_role_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"iam_user_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"external_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"data_process_region": {
 				Type:     schema.TypeMap,
@@ -90,20 +99,8 @@ func dataSourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf(errorDataLakeRead, name, err)
 	}
 
-	if err := d.Set("aws_role_id", dataLake.CloudProviderConfig.AWSConfig.RoleID); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_role_id", name, err)
-	}
-
-	if err := d.Set("aws_iam_assumed_role_arn", dataLake.CloudProviderConfig.AWSConfig.IAMAssumedRoleARN); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_iam_assumed_role_arn", name, err)
-	}
-
-	if err := d.Set("aws_iam_user_arn", dataLake.CloudProviderConfig.AWSConfig.IAMUserARN); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_iam_user_arn", name, err)
-	}
-
-	if err := d.Set("aws_external_id", dataLake.CloudProviderConfig.AWSConfig.ExternalID); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_external_id", name, err)
+	if err := d.Set("aws", flattenAWSBlock(&dataLake.CloudProviderConfig)); err != nil {
+		return fmt.Errorf(errorDataLakeSetting, "aws", name, err)
 	}
 
 	if err := d.Set("data_process_region", flattenDataLakeProcessRegion(&dataLake.DataProcessRegion)); err != nil {

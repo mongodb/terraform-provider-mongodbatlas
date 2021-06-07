@@ -228,8 +228,10 @@ func testAccMongoDBAtlasDataLakeConfigFirstStep(name, testS3Bucket string) strin
 resource "mongodbatlas_data_lake" "test" {
    project_id         = mongodbatlas_project.test.id
    name = %[1]q
-   aws_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-   aws_test_s3_bucket = %[2]q
+   aws {
+     role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+     test_s3_bucket = %[2]q
+   }
 }
 	`, name, testS3Bucket)
 }
@@ -238,8 +240,10 @@ func testAccMongoDBAtlasDataLakeConfigSecondStep(name, testS3Bucket, dataLakeReg
 resource "mongodbatlas_data_lake" "test" {
    project_id         = mongodbatlas_project.test.id
    name = %[1]q
-   aws_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-   aws_test_s3_bucket = %[2]q
+   aws {
+     role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+     test_s3_bucket = %[2]q
+   }
    data_process_region = {
       cloud_provider = "AWS"
       region = %[3]q

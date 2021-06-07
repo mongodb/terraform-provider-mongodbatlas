@@ -39,25 +39,34 @@ func resourceMongoDBAtlasDataLake() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"aws_role_id": {
-				Type:     schema.TypeString,
+			"aws": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Required: true,
-			},
-			"aws_test_s3_bucket": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"aws_iam_assumed_role_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"aws_iam_user_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"aws_external_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"role_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"test_s3_bucket": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"iam_assumed_role_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"iam_user_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"external_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"data_process_region": {
 				Type:     schema.TypeMap,
@@ -155,6 +164,10 @@ func schemaDataLakesDatabases() *schema.Schema {
 						},
 					},
 				},
+				"max_wildcard_collections": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -194,6 +207,11 @@ func schemaDataLakesStores() *schema.Schema {
 					Type:     schema.TypeBool,
 					Computed: true,
 				},
+				"additional_storage_classes": {
+					Type:     schema.TypeSet,
+					Computed: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
 			},
 		},
 	}
@@ -206,7 +224,7 @@ func resourceMongoDBAtlasDataLakeCreate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 
 	cloudConfig := &matlas.CloudProviderConfig{
-		AWSConfig: matlas.AwsCloudProviderConfig{RoleID: d.Get("aws_role_id").(string), TestS3Bucket: d.Get("aws_test_s3_bucket").(string)},
+		AWSConfig: expandDataLakeAwsBlock(d),
 	}
 
 	dataLakeReq := &matlas.DataLakeCreateRequest{
@@ -246,20 +264,21 @@ func resourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf(errorDataLakeRead, name, err)
 	}
 
-	if err := d.Set("aws_role_id", dataLake.CloudProviderConfig.AWSConfig.RoleID); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_role_id", name, err)
-	}
+	values := flattenAWSBlock(&dataLake.CloudProviderConfig)
+	if len(values) != 0 {
+		if !counterEmptyValues(values[0]) {
+			if value, ok := d.GetOk("aws"); ok {
+				v := value.([]interface{})
+				if len(v) != 0 {
+					v1 := v[0].(map[string]interface{})
+					values[0]["test_s3_bucket"] = cast.ToString(v1["test_s3_bucket"])
+				}
+			}
 
-	if err := d.Set("aws_iam_assumed_role_arn", dataLake.CloudProviderConfig.AWSConfig.IAMAssumedRoleARN); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_iam_assumed_role_arn", name, err)
-	}
-
-	if err := d.Set("aws_iam_user_arn", dataLake.CloudProviderConfig.AWSConfig.IAMUserARN); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_iam_user_arn", name, err)
-	}
-
-	if err := d.Set("aws_external_id", dataLake.CloudProviderConfig.AWSConfig.ExternalID); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "aws_external_id", name, err)
+			if err = d.Set("aws", values); err != nil {
+				return fmt.Errorf(errorDataLakeSetting, "aws", name, err)
+			}
+		}
 	}
 
 	if err := d.Set("data_process_region", flattenDataLakeProcessRegion(&dataLake.DataProcessRegion)); err != nil {
@@ -359,9 +378,14 @@ func resourceMongoDBAtlasDataLakeImportState(d *schema.ResourceData, meta interf
 	if err := d.Set("name", u.Name); err != nil {
 		return nil, fmt.Errorf("error setting `name` for data lakes (%s): %s", d.Id(), err)
 	}
+	mapAws := make([]map[string]interface{}, 0)
 
-	if err := d.Set("aws_test_s3_bucket", s3Bucket); err != nil {
-		return nil, fmt.Errorf("error setting `aws_test_s3_bucket` for data lakes (%s): %s", d.Id(), err)
+	mapAws = append(mapAws, map[string]interface{}{
+		"test_s3_bucket": s3Bucket,
+	})
+
+	if err := d.Set("aws", mapAws); err != nil {
+		return nil, fmt.Errorf("error setting `aws` for data lakes (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -387,6 +411,23 @@ func splitDataLakeImportID(id string) (projectID, name, s3Bucket string, err err
 	return
 }
 
+func flattenAWSBlock(aws *matlas.CloudProviderConfig) []map[string]interface{} {
+	if aws == nil {
+		return nil
+	}
+
+	database := make([]map[string]interface{}, 0)
+
+	database = append(database, map[string]interface{}{
+		"role_id":              aws.AWSConfig.RoleID,
+		"iam_assumed_role_arn": aws.AWSConfig.IAMAssumedRoleARN,
+		"iam_user_arn":         aws.AWSConfig.IAMUserARN,
+		"external_id":          aws.AWSConfig.ExternalID,
+	})
+
+	return database
+}
+
 func flattenDataLakeProcessRegion(processRegion *matlas.DataProcessRegion) map[string]interface{} {
 	if processRegion != nil && (processRegion.Region != "" || processRegion.CloudProvider != "") {
 		return map[string]interface{}{
@@ -403,9 +444,10 @@ func flattenDataLakeStorageDatabases(databases []matlas.DataLakeDatabase) []map[
 
 	for _, db := range databases {
 		database = append(database, map[string]interface{}{
-			"name":        db.Name,
-			"collections": flattenDataLakeStorageDatabaseCollections(db.Collections),
-			"views":       flattenDataLakeStorageDatabaseViews(db.Views),
+			"name":                     db.Name,
+			"collections":              flattenDataLakeStorageDatabaseCollections(db.Collections),
+			"views":                    flattenDataLakeStorageDatabaseViews(db.Views),
+			"max_wildcard_collections": db.MaxWildcardCollections,
 		})
 	}
 
@@ -456,19 +498,34 @@ func flattenDataLakeStorageDatabaseViews(views []matlas.DataLakeDatabaseView) []
 func flattenDataLakeStorageStores(stores []matlas.DataLakeStore) []map[string]interface{} {
 	store := make([]map[string]interface{}, 0)
 
-	for _, db := range stores {
+	for i := range stores {
 		store = append(store, map[string]interface{}{
-			"name":         db.Name,
-			"provider":     db.Provider,
-			"region":       db.Region,
-			"bucket":       db.Bucket,
-			"prefix":       db.Prefix,
-			"delimiter":    db.Delimiter,
-			"include_tags": db.IncludeTags,
+			"name":                       stores[i].Name,
+			"provider":                   stores[i].Provider,
+			"region":                     stores[i].Region,
+			"bucket":                     stores[i].Bucket,
+			"prefix":                     stores[i].Prefix,
+			"delimiter":                  stores[i].Delimiter,
+			"include_tags":               stores[i].IncludeTags,
+			"additional_storage_classes": stores[i].AdditionalStorageClasses,
 		})
 	}
 
 	return store
+}
+
+func expandDataLakeAwsBlock(d *schema.ResourceData) matlas.AwsCloudProviderConfig {
+	aws := matlas.AwsCloudProviderConfig{}
+	if value, ok := d.GetOk("aws"); ok {
+		v := value.([]interface{})
+		if len(v) != 0 {
+			v1 := v[0].(map[string]interface{})
+
+			aws.RoleID = cast.ToString(v1["role_id"])
+			aws.TestS3Bucket = cast.ToString(v1["test_s3_bucket"])
+		}
+	}
+	return aws
 }
 
 func expandDataLakeDataProcessRegion(d *schema.ResourceData) *matlas.DataProcessRegion {

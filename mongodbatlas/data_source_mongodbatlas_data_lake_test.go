@@ -108,8 +108,10 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 resource "mongodbatlas_data_lake" "test" {
    project_id         = mongodbatlas_project.test.id
    name = %[5]q
-   aws_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-   aws_test_s3_bucket = %[6]q
+   aws {
+     role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+     test_s3_bucket = %[6]q
+   }
 }
 
 data "mongodbatlas_data_lake" "test" {
