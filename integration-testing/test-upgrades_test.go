@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-const localPluginPath = "TERRAFORM PLUGINS PATH"
+var (
+	localPluginPath = os.Getenv("TERRATEST_PLUGIN_PATH")
+)
 
 func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	t.Parallel()
@@ -271,6 +273,65 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_private_endpoint.test", fmt.Sprintf("%s-%s-%s-%s", projectID, privateEndpoint, "AWS", "us-east-1"))
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_vpc_endpoint.ptfe_service", vpcEndpoint)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_private_endpoint_interface_link.test", fmt.Sprintf("%s-%s-%s", projectID, privateEndpoint, vpcEndpoint))
+	// Run `terraform apply`. Fail the test if there are any errors.
+	terraform.Plan(t, terraformOptionsSecond)
+
+}
+
+func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
+	t.Parallel()
+
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
+		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		ipAddress   = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		comment     = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	)
+	// Construct the terraform options with default retryable errors to handle the most common
+	// retryable errors in terraform testing.
+	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/ip-whitelist-accestList/v091",
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"ip_address":   ipAddress,
+			"public_key":   publicKey,
+			"private_key":  privateKey,
+			"comment":      comment,
+		},
+	})
+
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptions)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.InitAndApply(t, terraformOptions)
+
+	projectID := terraform.Output(t, terraformOptions, "project_id")
+	entry := terraform.Output(t, terraformOptions, "entry")
+
+	tempTestFolder := CleanUpState(t, "examples/test-upgrade/v100/ip-whitelist-accestList/v100")
+
+	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: tempTestFolder,
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"ip_address":   ipAddress,
+			"public_key":   publicKey,
+			"private_key":  privateKey,
+			"comment":      comment,
+		},
+	})
+
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	//Remove states
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project_ip_access_list.test", fmt.Sprintf("%s-%s", projectID, entry))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
 
