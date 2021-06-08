@@ -8,7 +8,7 @@ description: |-
 
 # MongoDB Atlas Provider 1.0.0: Upgrade and Information Guide
 
-## Deprecation of Project IP Whitelist and import with Project IP Access List
+## End of Life and removal of Project IP Whitelist and import with Project IP Access List
 
 To upgrade from v0.9.1 to v1.0.0 with the existing resources `mongodbatlas_project_ip_whitelist`
 perform the following steps
