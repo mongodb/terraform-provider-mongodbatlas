@@ -36,7 +36,8 @@ Enter the provider directory and run `make tools`. This will install the needed 
 $ make tools
 ```
 
-To compile the provider, run `make build`. This will build the provider and put the provider binary in the $GOPATH/bin directory.
+To compile the provider, run `make build`. This will build the provider and put the provider binary in the $GOPATH/bin directory 
+(**if you are using `go modules`, is not necessary to move the binary to `$GOPATH/bin**).
 
 ```
 $ make build
@@ -44,6 +45,25 @@ $ make build
 $ $GOPATH/bin/terraform-provider-mongodbatlas
 ...
 ```
+
+## Using development provider in Terraform 0.14+
+From terraform version 0.14, we can override provider use for development purposes.
+
+Just create a `.trfc` file to hold the configuration to override terraform local configuration
+```
+provider_installation {
+
+  dev_overrides {
+    "mongodb/mongodbatlas" = "[PATH THAT CONTAINS CUSTOM PLUGIN]"
+  }
+
+  direct {}
+}
+```
+and set the env var `TF_CLI_CONFIG_FILE` like this:
+`export TF_CLI_CONFIG_FILE=PATH/TO/dev.trfc`
+
+For more explained information about "plugin override" check [Development Overrides for Provider Developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
 
 # Using the Provider
 
