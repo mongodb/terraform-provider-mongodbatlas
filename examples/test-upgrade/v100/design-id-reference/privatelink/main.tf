@@ -24,7 +24,7 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id            = data.mongodbatlas_project.test.id
-  private_link_id       = mongodbatlas_privatelink_endpoint.test.private_link_id
+  private_link_id       = mongodbatlas_privatelink_endpoint.test.id
   endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
   provider_name = "AWS"
 }
@@ -37,7 +37,7 @@ data "mongodbatlas_privatelink_endpoint" "test" {
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id            = data.mongodbatlas_project.test.id
-  private_link_id       =  mongodbatlas_privatelink_endpoint_service.test.private_link_id
+  private_link_id       =  mongodbatlas_privatelink_endpoint_service.test.id
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
   provider_name = "AWS"
 }
