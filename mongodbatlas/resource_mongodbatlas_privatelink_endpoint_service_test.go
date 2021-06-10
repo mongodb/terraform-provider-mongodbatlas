@@ -80,10 +80,11 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_import(t *testing.
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"private_link_id"},
 			},
 		},
 	})
@@ -170,7 +171,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey
 		resource "mongodbatlas_privatelink_endpoint_service" "test" {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
 			endpoint_service_id       =  aws_vpc_endpoint.ptfe_service.id
-			private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+			private_link_id = mongodbatlas_privatelink_endpoint.test.id
 			provider_name = "%[4]s"
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)

@@ -94,7 +94,7 @@ func testAccMongoDBAtlasNetworkContainerDSConfig(projectName, orgID, cidrBlock s
 
 		data "mongodbatlas_network_container" "test_ds" {
 			project_id   		= mongodbatlas_network_container.test_ds.project_id
-			container_id		= mongodbatlas_network_container.test_ds.container_id
+			container_id		= mongodbatlas_network_container.test_ds.id
 		}
 	`, projectName, orgID, cidrBlock)
 }
@@ -115,7 +115,7 @@ func testAccMongoDBAtlasNetworkContainerDSWithGCPRegionsConfig(projectName, orgI
 
 		data "mongodbatlas_network_container" "test_ds" {
 			project_id   		= mongodbatlas_network_container.test_ds.project_id
-			container_id		= mongodbatlas_network_container.test_ds.container_id
+			container_id		= mongodbatlas_network_container.test_ds.id
 		}
 	`, projectName, orgID, cidrBlock)
 }

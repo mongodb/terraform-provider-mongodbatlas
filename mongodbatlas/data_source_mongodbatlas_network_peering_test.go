@@ -56,7 +56,7 @@ func testAccDSMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, v
 		}
 
 		resource "mongodbatlas_network_peering" "basic" {
-			accepter_region_name	= "us-east-1"
+			accepter_region_name	= lower(replace("%[5]s", "_", "-"))
 			project_id    			= "%[1]s"
 			container_id            = mongodbatlas_network_container.test.id
 			provider_name           = "AWS"
@@ -67,7 +67,7 @@ func testAccDSMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, v
 
 		data "mongodbatlas_network_peering" "test" {
 			project_id = "%[1]s"
-			peering_id = mongodbatlas_network_peering.basic.id
+			peering_id = mongodbatlas_network_peering.basic.peer_id
 		}
 	`, projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }

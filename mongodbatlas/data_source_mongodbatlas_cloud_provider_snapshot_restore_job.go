@@ -95,7 +95,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.Resourc
 	conn := meta.(*matlas.Client)
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
-		JobID:       d.Get("job_id").(string),
+		JobID:       getEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id"),
 		GroupID:     d.Get("project_id").(string),
 		ClusterName: d.Get("cluster_name").(string),
 	}

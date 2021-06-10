@@ -75,7 +75,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"retention_in_days"},
+				ImportStateVerifyIgnore: []string{"retention_in_days", "snapshot_id"},
 			},
 		},
 	})
@@ -209,7 +209,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
 			delivery_type   = {
 				automated           = true
 				target_cluster_name = "%s"
@@ -244,7 +244,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
 			delivery_type   = {
 				download = true
 			}
@@ -291,7 +291,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 		resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
 
 			delivery_type   = {
 				point_in_time       = true
