@@ -7,16 +7,16 @@ This project aims to provide a very straight-forward example of setting up Terra
 - Database User
 - IP Access List
 
-You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provier's region name.
+You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provider's region name.
 [Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
 [Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
 [Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
 
 ## Dependencies
 
-* Terraform v0.13
+* Terraform v0.13 or greater
 * A MongoDB Atlas account 
-* provider.mongodbatlas: version = "~> 0.7.0"
+* provider.mongodbatlas: version = "~> 0.9.1"
 
 ## Usage
 

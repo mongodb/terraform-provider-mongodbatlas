@@ -1,6 +1,6 @@
 resource "mongodbatlas_cluster" "cluster" {
   project_id             = mongodbatlas_project.project.id
-  name                   = "mongodb-atlas"
+  name                   = var.cluster_name
   mongo_db_major_version = var.mongodbversion
   cluster_type           = "REPLICASET"
   replication_specs {
@@ -15,10 +15,8 @@ resource "mongodbatlas_cluster" "cluster" {
   //Provider Settings "block"
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
-  provider_name                = "AWS"
-  disk_size_gb                 = 10
+  provider_name                = var.cloud_provider
   provider_instance_size_name  = "M10"
-  provider_encrypt_ebs_volume  = true
 }
 output "atlasclusterstring" {
   value = mongodbatlas_cluster.cluster.connection_strings
