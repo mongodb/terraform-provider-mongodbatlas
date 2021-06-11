@@ -25,7 +25,7 @@ test: fmtcheck
 
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 200m -cover -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 300m -cover -ldflags="$(LINKER_FLAGS)"
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
