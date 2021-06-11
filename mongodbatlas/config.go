@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	digest "github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/realm/realm"
 )
 
 // Config struct ...
@@ -11,6 +12,12 @@ type Config struct {
 	PublicKey  string
 	PrivateKey string
 	BaseURL    string
+}
+
+// MongoDBClient client
+type MongoDBClient struct {
+	Atlas *matlasClient.Client
+	Realm *realm.Client
 }
 
 // NewClient func...
@@ -26,16 +33,32 @@ func (c *Config) NewClient() interface{} {
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	opts := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
 	if c.BaseURL != "" {
-		opts = append(opts, matlasClient.SetBaseURL(c.BaseURL))
+		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
+	}
+
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
+	if c.BaseURL != "" {
+		optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
 	}
 
 	// Initialize the MongoDB Atlas API Client.
-	atlasClient, err := matlasClient.New(client, opts...)
+	atlasClient, err := matlasClient.New(client, optsAtlas...)
 	if err != nil {
 		return err
 	}
 
-	return atlasClient
+	// Initialize the MongoDB Realm API Client.
+	realmClient, err := realm.New(client, optsRealm...)
+	if err != nil {
+		return err
+	}
+
+	clients := &MongoDBClient{
+		Atlas: atlasClient,
+		Realm: realmClient,
+	}
+
+	return clients
 }
