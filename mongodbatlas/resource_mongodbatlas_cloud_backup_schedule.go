@@ -25,8 +25,6 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState,
 		},
-		// delete is pending to check
-		// Delete: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete,
 
 		Schema: map[string]*schema.Schema{
 			// Required
@@ -182,7 +180,17 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	// There is no resource to delete a backup policy, it can only be updated.
+	// Get client connection.
+	conn := meta.(*matlas.Client)
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
+	if err != nil {
+		return fmt.Errorf("error deleting MongoDB Cloud Provider Snapshot Backup Policy (%s): %s", clusterName, err)
+	}
+
 	return nil
 }
 
