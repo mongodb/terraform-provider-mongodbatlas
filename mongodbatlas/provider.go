@@ -77,6 +77,8 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_online_archives":                       dataSourceMongoDBAtlasOnlineArchives(),
 			"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
+			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
+			"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -111,6 +113,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
 			"mongodbatlas_cloud_provider_access_setup":           resourceMongoDBAtlasCloudProviderAccessSetup(),
 			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
+			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 		},
 
 		ConfigureFunc: providerConfigure,
