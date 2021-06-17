@@ -428,7 +428,6 @@ func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 		if res != nil {
 			return fmt.Errorf("event trigger (%s) still exists", ids["trigger_id"])
 		}
-
 	}
 
 	return nil

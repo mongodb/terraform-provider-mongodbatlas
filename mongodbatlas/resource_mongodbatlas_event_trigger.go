@@ -370,7 +370,6 @@ func resourceMongoDBAtlasEventTriggersUpdate(d *schema.ResourceData, meta interf
 	if typeTrigger == "AUTHENTICATION" {
 		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)
 		eventTriggerConfig.Providers = cast.ToStringSlice(d.Get("config_providers"))
-
 	}
 
 	if typeTrigger == "SCHEDULED" {
