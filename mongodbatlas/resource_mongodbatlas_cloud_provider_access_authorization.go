@@ -59,7 +59,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
 	// sadly there is no just get API
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	roleID := ids["id"] // atlas ID
@@ -93,7 +93,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(d *schema.Resource
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
@@ -160,7 +160,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(d *schema.Resour
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(d *schema.ResourceData, meta interface{}) error {
 	// sadly there is no just get API
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	roleID := ids["id"] // atlas ID

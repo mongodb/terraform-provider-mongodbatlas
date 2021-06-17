@@ -86,7 +86,7 @@ func featureUsagesSchema() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)

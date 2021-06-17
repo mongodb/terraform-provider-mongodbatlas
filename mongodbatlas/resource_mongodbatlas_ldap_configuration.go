@@ -96,7 +96,7 @@ func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 }
 
 func resourceMongoDBAtlasLDAPConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	ldap := &matlas.LDAP{}
@@ -152,7 +152,7 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(d *schema.ResourceData, meta in
 }
 
 func resourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ldapResp, _, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
 	if err != nil {
@@ -189,7 +189,7 @@ func resourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta inte
 
 func resourceMongoDBAtlasLDAPConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ldap := &matlas.LDAP{}
 
@@ -243,7 +243,7 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(d *schema.ResourceData, meta in
 
 func resourceMongoDBAtlasLDAPConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	_, _, err := conn.LDAPConfigurations.Delete(context.Background(), d.Id())
 	if err != nil {
 		return fmt.Errorf(errorLDAPConfigurationDelete, d.Id(), err)

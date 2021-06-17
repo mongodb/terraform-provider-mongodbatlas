@@ -129,7 +129,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -148,7 +148,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyCreate(d *schema.Resou
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -191,7 +191,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d *schema.Resourc
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -210,7 +210,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete(d *schema.Resou
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

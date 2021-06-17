@@ -154,7 +154,7 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 
 func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
@@ -270,7 +270,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 
 func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
@@ -396,7 +396,7 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 
 func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
@@ -464,7 +464,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 
 func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
@@ -495,7 +495,7 @@ func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta inter
 }
 
 func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {

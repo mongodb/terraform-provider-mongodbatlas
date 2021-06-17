@@ -160,7 +160,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 }
 
 func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
 		GroupID: d.Get("project_id").(string),
@@ -190,7 +190,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 }
 
 func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	resp, _, err := conn.EncryptionsAtRest.Get(context.Background(), d.Id())
 	if err != nil {
@@ -262,7 +262,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 }
 
 func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
 	encrypt, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
@@ -293,7 +293,7 @@ func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceMongoDBAtlasEncryptionAtRestDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	_, err := conn.EncryptionsAtRest.Delete(context.Background(), d.Id())
 	if err != nil {

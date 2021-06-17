@@ -52,7 +52,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	roleID := d.Get("role_id").(string)

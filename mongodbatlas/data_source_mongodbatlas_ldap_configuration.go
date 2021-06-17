@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
@@ -74,7 +72,7 @@ func dataSourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	ldap, _, err := conn.LDAPConfigurations.Get(context.Background(), projectID)

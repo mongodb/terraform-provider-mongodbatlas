@@ -95,7 +95,7 @@ func resourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 }
 
 func resourceMongoDBAtlasProjectIPAccessListCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	cidrBlock := d.Get("cidr_block").(string)
 	ipAddress := d.Get("ip_address").(string)
@@ -173,7 +173,7 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	return resource.Retry(2*time.Minute, func() *resource.RetryError {
@@ -217,7 +217,7 @@ func resourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta in
 
 func resourceMongoDBAtlasProjectIPAccessListDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
@@ -251,7 +251,7 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasIPAccessListImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

@@ -6,8 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/spf13/cast"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
@@ -40,7 +38,7 @@ func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 
 func dataSourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	maintenance, _, err := conn.MaintenanceWindows.Get(context.Background(), projectID)

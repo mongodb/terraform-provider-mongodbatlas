@@ -133,7 +133,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 
 func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -200,7 +200,7 @@ func resourceOnlineRefreshFunc(projectID, clusterName, archiveID string, client 
 
 func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interface{}) error {
 	// getting the atlas id
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	atlasID := ids["archive_id"]
@@ -229,7 +229,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
@@ -249,7 +249,7 @@ func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interf
 }
 
 func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	parts := strings.Split(d.Id(), "-")
 
 	var projectID, clusterName, atlasID string
@@ -327,7 +327,7 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 }
 
 func resourceMongoDBAtlasOnlineArchiveUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 

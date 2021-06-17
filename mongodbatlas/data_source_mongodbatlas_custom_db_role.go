@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
@@ -73,7 +72,7 @@ func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	roleName := d.Get("role_name").(string)
 

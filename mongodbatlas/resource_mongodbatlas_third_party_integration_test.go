@@ -145,7 +145,7 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_updateBasic(t *testing.T) 
 }
 
 func testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_third_party_integration" {
 			continue

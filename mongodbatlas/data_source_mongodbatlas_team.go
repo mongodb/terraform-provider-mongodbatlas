@@ -43,7 +43,7 @@ func dataSourceMongoDBAtlasTeam() *schema.Resource {
 
 func dataSourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) error {
 	var (
-		conn             = meta.(*matlas.Client)
+		conn             = meta.(*MongoDBClient).Atlas
 		orgID            = d.Get("org_id").(string)
 		teamID, teamIDOk = d.GetOk("team_id")
 		name, nameOk     = d.GetOk("name")

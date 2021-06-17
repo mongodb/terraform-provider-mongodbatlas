@@ -88,7 +88,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		GroupID:     d.Get("project_id").(string),

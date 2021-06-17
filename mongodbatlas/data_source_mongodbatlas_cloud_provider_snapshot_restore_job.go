@@ -92,7 +92,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       getEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id"),

@@ -66,7 +66,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, meta interface{}) error {
 	// sadly there is no just get API
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
@@ -112,7 +112,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, me
 func resourceMongoDBAtlasCloudProviderAccessSetupCreate(d *schema.ResourceData, meta interface{}) error {
 	projectID := d.Get("project_id").(string)
 
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.CloudProviderAccessRoleRequest{
 		ProviderName: d.Get("provider_name").(string),
@@ -143,7 +143,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(d *schema.ResourceData, 
 }
 
 func resourceMongoDBAtlasCloudProviderAccessSetupDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]

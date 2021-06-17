@@ -82,7 +82,7 @@ func dataSourceMongoDBAtlasCustomDBRoles() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCustomDBRolesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	customDBRoles, _, err := conn.CustomDBRoles.List(context.Background(), projectID, nil)

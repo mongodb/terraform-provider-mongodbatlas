@@ -86,7 +86,7 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 
 func resourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -141,7 +141,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, meta 
 
 func resourceMongoDBAtlasCloudProviderSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		GroupID:     d.Get("project_id").(string),
@@ -201,7 +201,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(d *schema.ResourceData, met
 
 func resourceMongoDBAtlasCloudProviderSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -240,7 +240,7 @@ func resourceCloudProviderSnapshotRefreshFunc(requestParameters *matlas.Snapshot
 }
 
 func resourceMongoDBAtlasCloudProviderSnapshotImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters, err := splitSnapshotImportID(d.Id())
 	if err != nil {

@@ -68,7 +68,7 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 
 func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectReq := &matlas.Project{
 		OrgID: d.Get("org_id").(string),
@@ -95,7 +95,7 @@ func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
 	projectRes, _, err := conn.Projects.GetOneProject(context.Background(), projectID)
@@ -132,7 +132,7 @@ func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
 	if d.HasChange("teams") {
@@ -176,7 +176,7 @@ func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
 	_, err := conn.Projects.Delete(context.Background(), projectID)

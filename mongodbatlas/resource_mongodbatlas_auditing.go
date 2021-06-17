@@ -54,7 +54,7 @@ func resourceMongoDBAtlasAuditing() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	auditingReq := &matlas.Auditing{}
@@ -82,7 +82,7 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	auditing, _, err := conn.Auditing.Get(context.Background(), d.Id())
 	if err != nil {
@@ -110,7 +110,7 @@ func resourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	auditingReq := &matlas.Auditing{}
 

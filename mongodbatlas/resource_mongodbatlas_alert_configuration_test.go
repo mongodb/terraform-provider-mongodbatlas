@@ -290,7 +290,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_DataDog(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *matlas.AlertConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -315,7 +315,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 }
 
 func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_alert_configuration" {
