@@ -1,9 +1,12 @@
 package mongodbatlas
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	digest "github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
+	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
 )
 
@@ -38,19 +41,28 @@ func (c *Config) NewClient() interface{} {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
-	if c.BaseURL != "" {
-		optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
-	}
-
 	// Initialize the MongoDB Atlas API Client.
 	atlasClient, err := matlasClient.New(client, optsAtlas...)
 	if err != nil {
 		return err
 	}
 
+	// Realm
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
+	if c.BaseURL != "" {
+		optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
+	}
+	authConfig := realmAuth.NewConfig(client)
+	token, err := authConfig.NewTokenFromCredentials(context.Background(), c.PublicKey, c.PrivateKey)
+	if err != nil {
+		return err
+	}
+
+	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
+	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+
 	// Initialize the MongoDB Realm API Client.
-	realmClient, err := realm.New(client, optsRealm...)
+	realmClient, err := realm.New(clientRealm, optsRealm...)
 	if err != nil {
 		return err
 	}
