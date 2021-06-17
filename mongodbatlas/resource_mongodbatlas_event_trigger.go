@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mwielbut/pointy"
@@ -103,11 +104,41 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					var j, j2 interface{}
+					if err := json.Unmarshal([]byte(old), &j); err != nil {
+						log.Printf("[ERROR] json.Unmarshal %v", err)
+					}
+					if err := json.Unmarshal([]byte(new), &j2); err != nil {
+						log.Printf("[ERROR] json.Unmarshal %v", err)
+					}
+					if diff := deep.Equal(&j, &j2); diff != nil {
+						log.Printf("[DEBUG] deep equal not passed: %v", diff)
+						return false
+					}
+
+					return true
+				},
 			},
 			"config_project": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					var j, j2 interface{}
+					if err := json.Unmarshal([]byte(old), &j); err != nil {
+						log.Printf("[ERROR] json.Unmarshal %v", err)
+					}
+					if err := json.Unmarshal([]byte(new), &j2); err != nil {
+						log.Printf("[ERROR] json.Unmarshal %v", err)
+					}
+					if diff := deep.Equal(&j, &j2); diff != nil {
+						log.Printf("[DEBUG] deep equal not passed: %v", diff)
+						return false
+					}
+
+					return true
+				},
 			},
 			"config_full_document": {
 				Type:     schema.TypeBool,

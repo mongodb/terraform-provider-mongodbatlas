@@ -25,7 +25,13 @@ resource "mongodbatlas_event_trigger" "test" {
   config_database = "DATABASE NAME"
   config_collection = "COLLECTION NAME"
   config_service_id = "SERVICE ID"
-  config_match = "{\"updateDescription.updatedFields\":{\"status\":\"blocked\"}}"
+  config_match = <<-EOF
+{
+  "updateDescription.updatedFields": {
+    "status": "blocked"
+  }
+}
+EOF
   config_project = "{\"updateDescription.updatedFields\":{\"status\":\"blocked\"}}"
   config_full_document = false
   config_full_document_before = false

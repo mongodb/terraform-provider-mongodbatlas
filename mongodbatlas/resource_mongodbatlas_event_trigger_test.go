@@ -457,8 +457,14 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, ope
 			config_database = %[8]q
 			config_collection = %[9]q
 			config_service_id = %[10]q
-			config_match = "{\"updateDescription.updatedFields\":{\"status\":\"blocked\"}}"
-		}
+			config_match = <<-EOF
+			{
+			  "updateDescription.updatedFields": {
+				"status": "blocked"
+			  }
+			}
+			EOF		
+}
 	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, operationTypes,
 		eventTrigger.Config.Database, eventTrigger.Config.Collection,
 		eventTrigger.Config.ServiceID)
