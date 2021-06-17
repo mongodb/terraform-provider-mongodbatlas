@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasEventTriggers_basic(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

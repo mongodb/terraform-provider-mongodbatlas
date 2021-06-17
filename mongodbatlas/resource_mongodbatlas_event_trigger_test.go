@@ -15,6 +15,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -82,6 +83,7 @@ func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEventTriggerDatabase_eventProccesor(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -151,6 +153,7 @@ func TestAccResourceMongoDBAtlasEventTriggerDatabase_eventProccesor(t *testing.T
 }
 
 func TestAccResourceMongoDBAtlasEventTriggerAuth_basic(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -209,6 +212,7 @@ func TestAccResourceMongoDBAtlasEventTriggerAuth_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEventTriggerAuth_eventProcessor(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -269,6 +273,7 @@ func TestAccResourceMongoDBAtlasEventTriggerAuth_eventProcessor(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEventTriggerSchedule_basic(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -324,6 +329,7 @@ func TestAccResourceMongoDBAtlasEventTriggerSchedule_basic(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasEventTriggerSchedule_eventProcessor(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
