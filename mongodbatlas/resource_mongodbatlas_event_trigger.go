@@ -2,8 +2,10 @@ package mongodbatlas
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -46,11 +48,12 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"DATABASE", "AUTHENTICATION"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"DATABASE", "AUTHENTICATION", "SCHEDULED"}, false),
 			},
 			"function_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"event_processors"},
 			},
 			"disabled": {
 				Type:     schema.TypeBool,
@@ -59,7 +62,8 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 			},
 			"config_operation_types": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{"INSERT", "UPDATE", "REPLACE", "DELETE"}, false),
@@ -67,54 +71,68 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 			},
 			"config_operation_type": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LOGIN", "CREATE", "DELETE"}, false),
 			},
 			"config_providers": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"anon-user", "local-userpass", "api-key", "custom-token", "custom-function", "oauth2-facebook", "oauth2-google", "oauth2-apple"}, false),
+				},
 			},
 			"config_database": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 			},
 			"config_collection": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 			},
 			"config_service_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 			},
 			"config_match": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
+				Type:     schema.TypeString,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"value": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
+				Computed: true,
+			},
+			"config_project": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"config_full_document": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
+			},
+			"config_full_document_before": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 			"config_schedule": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+			"config_schedule_type": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"event_processors": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"function_id"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"aws_eventbridge": {
@@ -154,9 +172,10 @@ func resourceMongoDBAtlasEventTriggersCreate(d *schema.ResourceData, meta interf
 
 	projectID := d.Get("project_id").(string)
 	appID := d.Get("app_id").(string)
+	typeTrigger := d.Get("type").(string)
 	eventTriggerReq := &realm.EventTriggerRequest{
 		Name:       d.Get("name").(string),
-		Type:       d.Get("type").(string),
+		Type:       typeTrigger,
 		FunctionID: d.Get("function_id").(string),
 	}
 
@@ -164,23 +183,61 @@ func resourceMongoDBAtlasEventTriggersCreate(d *schema.ResourceData, meta interf
 		eventTriggerReq.Disabled = pointy.Bool(v.(bool))
 	}
 
-	eventTriggerConfig := &realm.EventTriggerConfig{
-		OperationTypes: []interface{}{cast.ToStringSlice(d.Get("config_operation_types"))},
-		OperationType:  d.Get("config_operation_type").(string),
-		Providers:      d.Get("config_providers").(string),
-		Database:       d.Get("config_database").(string),
-		Collection:     d.Get("config_collection").(string),
-		ServiceID:      d.Get("config_service_id").(string),
+	eventTriggerConfig := &realm.EventTriggerConfig{}
+
+	cots, okCots := d.GetOk("config_operation_types")
+	cot, okCot := d.GetOk("config_operation_type")
+	pro, okP := d.GetOk("config_providers")
+	data, okD := d.GetOk("config_database")
+	coll, okC := d.GetOk("config_collection")
+	si, okSI := d.GetOk("config_service_id")
+	sche, oksch := d.GetOk("config_schedule")
+
+	if typeTrigger == "DATABASE" {
+		if !okCots || !okD || !okC || !okSI {
+			return fmt.Errorf("`config_operation_types`, `config_database`,`config_collection`,`config_service_id` must be provided if type is DATABASE")
+		}
+	}
+	if typeTrigger == "AUTHENTICATION" {
+		if !okCot || !okP {
+			return fmt.Errorf("`config_operation_type`, `config_providers` must be provided if type is AUTHENTICATION")
+		}
+	}
+	if typeTrigger == "SCHEDULED" {
+		if !oksch {
+			return fmt.Errorf("`config_schedule` must be provided if type is SCHEDULED")
+		}
 	}
 
+	if okCots {
+		eventTriggerConfig.OperationTypes = cast.ToStringSlice(cots)
+	}
+	if okCot {
+		eventTriggerConfig.OperationType = cot.(string)
+	}
+	if okP {
+		eventTriggerConfig.Providers = cast.ToStringSlice(pro)
+	}
+	if okD {
+		eventTriggerConfig.Database = data.(string)
+	}
+	if okC {
+		eventTriggerConfig.Collection = coll.(string)
+	}
+	if okSI {
+		eventTriggerConfig.ServiceID = si.(string)
+	}
 	if v, ok := d.GetOk("config_match"); ok {
-		eventTriggerConfig.Match = expandTriggerConfigMatch(v.([]interface{}))
+		eventTriggerConfig.Match = cast.ToStringMap(v)
+	}
+	if v, ok := d.GetOk("config_project"); ok {
+		eventTriggerConfig.Project = cast.ToStringMap(v)
 	}
 	if v, ok := d.GetOk("config_full_document"); ok {
 		eventTriggerConfig.FullDocument = pointy.Bool(v.(bool))
 	}
-	if v, ok := d.GetOk("config_schedule"); ok {
-		eventTriggerConfig.Schedule = v.(string)
+	if oksch {
+		eventTriggerConfig.Schedule = sche.(string)
 	}
 
 	if v, ok := d.GetOk("event_processors"); ok {
@@ -225,7 +282,11 @@ func resourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interfac
 	if err = d.Set("type", resp.Type); err != nil {
 		return fmt.Errorf(errorEventTriggersSetting, "type", projectID, appID, err)
 	}
-	if err = d.Set("function_id", resp.FunctionID); err != nil {
+	functionID := resp.FunctionID
+	if resp.FunctionID == "000000000000000000000000" {
+		functionID = ""
+	}
+	if err = d.Set("function_id", functionID); err != nil {
 		return fmt.Errorf(errorEventTriggersSetting, "function_id", projectID, appID, err)
 	}
 	if err = d.Set("function_name", resp.FunctionName); err != nil {
@@ -233,6 +294,45 @@ func resourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interfac
 	}
 	if err = d.Set("disabled", resp.Disabled); err != nil {
 		return fmt.Errorf(errorEventTriggersSetting, "disabled", projectID, appID, err)
+	}
+	if err = d.Set("config_operation_types", resp.Config.OperationTypes); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_operation_types", projectID, appID, err)
+	}
+	if err = d.Set("config_operation_type", resp.Config.OperationType); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_operation_type", projectID, appID, err)
+	}
+	if err = d.Set("config_providers", resp.Config.Providers); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_providers", projectID, appID, err)
+	}
+	if err = d.Set("config_database", resp.Config.Database); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_database", projectID, appID, err)
+	}
+	if err = d.Set("config_collection", resp.Config.Collection); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_collection", projectID, appID, err)
+	}
+	if err = d.Set("config_service_id", resp.Config.ServiceID); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_service_id", projectID, appID, err)
+	}
+	if err = d.Set("config_match", matchToString(resp.Config.Match)); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_match", projectID, appID, err)
+	}
+	if err = d.Set("config_project", matchToString(resp.Config.Project)); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_project", projectID, appID, err)
+	}
+	if err = d.Set("config_full_document", resp.Config.FullDocument); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err)
+	}
+	if err = d.Set("config_full_document_before", resp.Config.FullDocumentBeforeChange); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_full_document_before", projectID, appID, err)
+	}
+	if err = d.Set("config_schedule", resp.Config.Schedule); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_schedule", projectID, appID, err)
+	}
+	if err = d.Set("config_schedule_type", resp.Config.ScheduleType); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err)
+	}
+	if err = d.Set("event_processors", flattenTriggerEventProcessorAWSEventBridge(resp.EventProcessors)); err != nil {
+		return fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err)
 	}
 
 	return nil
@@ -246,52 +346,37 @@ func resourceMongoDBAtlasEventTriggersUpdate(d *schema.ResourceData, meta interf
 	projectID := ids["project_id"]
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
+	typeTrigger := d.Get("type").(string)
 
-	eventReq := &realm.EventTriggerRequest{}
+	eventReq := &realm.EventTriggerRequest{
+		Name:       d.Get("name").(string),
+		Type:       typeTrigger,
+		FunctionID: d.Get("function_id").(string),
+	}
 	eventTriggerConfig := &realm.EventTriggerConfig{}
 
-	if d.HasChange("name") {
-		eventReq.Name = d.Get("name").(string)
-	}
-	if d.HasChange("type") {
-		eventReq.Type = d.Get("type").(string)
-	}
-	if d.HasChange("function_id") {
-		eventReq.FunctionID = d.Get("function_id").(string)
-	}
 	if d.HasChange("disabled") {
 		eventReq.Disabled = pointy.Bool(d.Get("disabled").(bool))
 	}
-	if d.HasChange("config_operation_types") {
-		eventTriggerConfig.OperationTypes = []interface{}{cast.ToStringSlice(d.Get("config_operation_types"))}
-	}
-	if d.HasChange("config_operation_type") {
-		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)
-	}
-	if d.HasChange("config_providers") {
-		eventTriggerConfig.Providers = d.Get("config_providers").(string)
-	}
-	if d.HasChange("config_database") {
+	if typeTrigger == "DATABASE" {
+		eventTriggerConfig.OperationTypes = cast.ToStringSlice(d.Get("config_operation_types"))
 		eventTriggerConfig.Database = d.Get("config_database").(string)
-	}
-	if d.HasChange("config_collection") {
 		eventTriggerConfig.Collection = d.Get("config_collection").(string)
-	}
-	if d.HasChange("config_service_id") {
 		eventTriggerConfig.ServiceID = d.Get("config_service_id").(string)
-	}
-	if d.HasChange("config_match") {
-		eventTriggerConfig.Match = expandTriggerConfigMatch(d.Get("config_match").([]interface{}))
-	}
-	if d.HasChange("config_full_document") {
+		eventTriggerConfig.Match = cast.ToStringMap(d.Get("config_match").(string))
+		eventTriggerConfig.Project = cast.ToStringMap(d.Get("config_project").(string))
 		eventTriggerConfig.FullDocument = pointy.Bool(d.Get("config_full_document").(bool))
 	}
-	if d.HasChange("config_schedule") {
+	if typeTrigger == "AUTHENTICATION" {
+		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)
+		eventTriggerConfig.Providers = cast.ToStringSlice(d.Get("config_providers"))
+
+	}
+
+	if typeTrigger == "SCHEDULED" {
 		eventTriggerConfig.Schedule = d.Get("config_schedule").(string)
 	}
-	if d.HasChange("event_processors") {
-		eventReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(d.Get("event_processors").([]interface{}))
-	}
+	eventReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(d.Get("event_processors").([]interface{}))
 
 	eventReq.Config = eventTriggerConfig
 
@@ -320,19 +405,6 @@ func resourceMongoDBAtlasEventTriggersDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func expandTriggerConfigMatch(p []interface{}) map[string]interface{} {
-	if len(p) == 0 {
-		return nil
-	}
-	matchObj := make(map[string]interface{}, 1)
-
-	match := p[0].(map[string]interface{})
-
-	matchObj[match["key"].(string)] = match["value"].(string)
-
-	return matchObj
-}
-
 func expandTriggerEventProcessorAWSEventBridge(p []interface{}) map[string]interface{} {
 	if len(p) == 0 {
 		return nil
@@ -356,8 +428,28 @@ func expandTriggerEventProcessorAWSEventBridge(p []interface{}) map[string]inter
 	}
 }
 
+func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interface{}) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0)
+	if eventProcessor != nil {
+		event := eventProcessor["AWS_EVENTBRIDGE"].(map[string]interface{})
+		config := event["config"].(map[string]interface{})
+		mapEvent := map[string]interface{}{
+			"aws_eventbridge": []map[string]interface{}{
+				{
+					"config_account_id": config["account_id"].(string),
+					"config_region":     config["region"].(string),
+				},
+			},
+		}
+
+		results = append(results, mapEvent)
+	}
+
+	return results
+}
+
 func resourceMongoDBAtlasEventTriggerImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*realm.Client)
+	conn := meta.(*MongoDBClient).Realm
 
 	parts := strings.Split(d.Id(), "--")
 	if len(parts) != 3 {
@@ -373,6 +465,13 @@ func resourceMongoDBAtlasEventTriggerImportState(d *schema.ResourceData, meta in
 		return nil, fmt.Errorf("couldn't import event trigger %s in project %s, error: %s", triggerID, projectID, err)
 	}
 
+	if err := d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf(errorEventTriggersSetting, "project_id", projectID, appID, err)
+	}
+	if err := d.Set("app_id", appID); err != nil {
+		return nil, fmt.Errorf(errorEventTriggersSetting, "app_id", projectID, appID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"app_id":     appID,
@@ -380,4 +479,12 @@ func resourceMongoDBAtlasEventTriggerImportState(d *schema.ResourceData, meta in
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func matchToString(value interface{}) string {
+	b, err := json.Marshal(value)
+	if err != nil {
+		log.Printf("[ERROR] %v ", err)
+	}
+	return string(b)
 }

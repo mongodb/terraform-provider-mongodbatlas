@@ -14,69 +14,41 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestAccResourceMongoDBAtlasEventTrigger_basic(t *testing.T) {
+func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
-		awsRegion    = os.Getenv("AWS_REGION")
-		appID        = "testing-edgar-utlvf"
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp    = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
-		FunctionID: "1",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   pointy.Bool(false),
 		Config: &realm.EventTriggerConfig{
-			OperationTypes: []interface{}{"INSERT", "UPDATE"},
+			OperationTypes: []string{"INSERT", "UPDATE"},
 			OperationType:  "LOGIN",
-			Providers:      "anon-user",
-			Database:       "database",
-			Collection:     "collection",
-			ServiceID:      "1",
-			Match: map[string]interface{}{
-				"expr": "something",
-			},
-			FullDocument: pointy.Bool(false),
-			Schedule:     "*",
-		},
-		EventProcessors: map[string]interface{}{
-			"AWS_EVENTBRIDGE": map[string]interface{}{
-				"type": "AWS_EVENTBRIDGE",
-				"config": map[string]interface{}{
-					"account_id": awsAccountID,
-					"region":     awsRegion,
-				},
-			},
+			Providers:      []string{"anon-user", "local-userpass"},
+			Database:       "sample_airbnb",
+			Collection:     "listingsAndReviews",
+			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
+			FullDocument:   pointy.Bool(false),
 		},
 	}
 	eventUpdated := realm.EventTriggerRequest{
-		Name:       acctest.RandomWithPrefix("test-acc-updated"),
+		Name:       acctest.RandomWithPrefix("test-acc"),
 		Type:       "DATABASE",
-		FunctionID: "1",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
 		Disabled:   pointy.Bool(false),
 		Config: &realm.EventTriggerConfig{
-			OperationTypes: []interface{}{"INSERT", "UPDATE"},
+			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
 			OperationType:  "LOGIN",
-			Providers:      "anon-user",
-			Database:       "database",
-			Collection:     "collection",
-			ServiceID:      "1",
-			Match: map[string]interface{}{
-				"expr": "something",
-			},
-			FullDocument: pointy.Bool(false),
-			Schedule:     "*",
-		},
-		EventProcessors: map[string]interface{}{
-			"AWS_EVENTBRIDGE": map[string]interface{}{
-				"type": "AWS_EVENTBRIDGE",
-				"config": map[string]interface{}{
-					"account_id": awsAccountID,
-					"region":     awsRegion,
-				},
-			},
+			Providers:      []string{"anon-user", "local-userpass"},
+			Database:       "sample_airbnb",
+			Collection:     "listingsAndReviews",
+			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
+			FullDocument:   pointy.Bool(false),
 		},
 	}
 
@@ -86,18 +58,323 @@ func TestAccResourceMongoDBAtlasEventTrigger_basic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerConfig(projectID, appID, "expr", "something", awsAccountID, awsRegion, &event),
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE"`, &event),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerConfig(projectID, appID, "expr", "something", awsAccountID, awsRegion, &eventUpdated),
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasEventTriggerDatabase_eventProccesor(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
+		awsRegion    = os.Getenv("AWS_REGION")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "DATABASE",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			OperationTypes: []string{"INSERT", "UPDATE"},
+			OperationType:  "LOGIN",
+			Providers:      []string{"anon-user", "local-userpass"},
+			Database:       "sample_airbnb",
+			Collection:     "listingsAndReviews",
+			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
+			FullDocument:   pointy.Bool(false),
+		},
+	}
+	eventUpdated := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "DATABASE",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
+			OperationType:  "LOGIN",
+			Providers:      []string{"anon-user", "local-userpass"},
+			Database:       "sample_airbnb",
+			Collection:     "listingsAndReviews",
+			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
+			FullDocument:   pointy.Bool(false),
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasEventTriggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE"`, awsAccountID, awsRegion, &event),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, awsAccountID, awsRegion, &eventUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasEventTriggerAuth_basic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "AUTHENTICATION",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			OperationType: "LOGIN",
+			Providers:     []string{"anon-user", "local-userpass"},
+		},
+	}
+	eventUpdated := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "AUTHENTICATION",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
+			OperationType:  "LOGIN",
+			Providers:      []string{"anon-user", "local-userpass"},
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasEventTriggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, `"anon-user", "local-userpass"`, &event),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, `"anon-user", "local-userpass", "api-key"`, &eventUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasEventTriggerAuth_eventProcessor(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
+		awsRegion    = os.Getenv("AWS_REGION")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "AUTHENTICATION",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			OperationType: "LOGIN",
+			Providers:     []string{"anon-user", "local-userpass"},
+		},
+	}
+	eventUpdated := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "AUTHENTICATION",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			OperationTypes: []string{"INSERT", "UPDATE", "DELETE"},
+			OperationType:  "LOGIN",
+			Providers:      []string{"anon-user", "local-userpass"},
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasEventTriggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, `"anon-user", "local-userpass"`, awsAccountID, awsRegion, &event),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, `"anon-user", "local-userpass", "api-key"`, awsAccountID, awsRegion, &eventUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasEventTriggerSchedule_basic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "SCHEDULED",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			Schedule: "* * * * *",
+		},
+	}
+	eventUpdated := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "SCHEDULED",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			Schedule: "* * * * *",
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasEventTriggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID, &event),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID, &eventUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasEventTriggerSchedule_eventProcessor(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
+		awsRegion    = os.Getenv("AWS_REGION")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "SCHEDULED",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			Schedule: "* * * * *",
+		},
+	}
+	eventUpdated := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "SCHEDULED",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			Schedule: "* * * * *",
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasEventTriggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, awsAccountID, awsRegion, &event),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, awsAccountID, awsRegion, &eventUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -151,7 +428,18 @@ func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasEventTriggerConfig(projectID, appID, matchKey, matchValue, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+func testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s--%s--%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["app_id"], rs.Primary.Attributes["trigger_id"]), nil
+	}
+}
+
+func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -160,24 +448,111 @@ func testAccMongoDBAtlasEventTriggerConfig(projectID, appID, matchKey, matchValu
 			type = %[4]q
 			function_id = %[5]q
 			disabled = %[6]t
-			config_operation_types = ["INSERT", "UPDATE"]
-			config_operation_type = %[7]q
-			config_providers = %[8]q
-			config_database = %[9]q
-			config_collection = %[10]q
-			config_service_id = %[11]q
-			config_full_document = %[14]t
-			config_schedule = %[15]q
-			event_processors {
-				aws_eventbridge {
-					config_account_id = %[16]q
-					config_region = %[17]q
-				}
-			}
+			config_operation_types = [%s]
+			config_database = %[8]q
+			config_collection = %[9]q
+			config_service_id = %[10]q
+			config_match = "{\"updateDescription.updatedFields\":{\"status\":\"blocked\"}}"
+		}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, operationTypes,
+		eventTrigger.Config.Database, eventTrigger.Config.Collection,
+		eventTrigger.Config.ServiceID)
+}
 
+func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, operationTypes, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_event_trigger" "test" {
+			project_id = %[1]q
+			app_id = %[2]q
+			name = %[3]q
+			type = %[4]q
+			disabled = %[5]t
+			config_operation_types = [%[6]s]
+			config_database = %[7]q
+			config_collection = %[8]q
+			config_service_id = %[9]q
+			config_match = "{\"updateDescription.updatedFields\":{\"status\":\"blocked\"}}"
+			event_processors{
+				aws_eventbridge{
+					config_account_id = %[10]q
+					config_region = %[11]q
+				}
+
+			}
+		}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, *eventTrigger.Disabled, operationTypes,
+		eventTrigger.Config.Database, eventTrigger.Config.Collection,
+		eventTrigger.Config.ServiceID, awsAccID, awsRegion)
+}
+
+func testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, providers string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_event_trigger" "test" {
+			project_id = %[1]q
+			app_id = %[2]q
+			name = %[3]q
+			type = %[4]q
+			function_id = %[5]q
+			disabled = %[6]t
+			config_operation_type = %[7]q
+			config_providers = [%[8]s]
 		}
 	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled,
-		eventTrigger.Config.OperationType, eventTrigger.Config.Providers, eventTrigger.Config.Database, eventTrigger.Config.Collection,
-		eventTrigger.Config.ServiceID, matchKey, matchValue, *eventTrigger.Config.FullDocument, eventTrigger.Config.Schedule,
+		eventTrigger.Config.OperationType, providers)
+}
+
+func testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, providers, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_event_trigger" "test" {
+			project_id = %[1]q
+			app_id = %[2]q
+			name = %[3]q
+			type = %[4]q
+			disabled = %[5]t
+			config_operation_type = %[6]q
+			config_providers = [%[7]s]
+			event_processors{
+				aws_eventbridge{
+					config_account_id = %[8]q
+					config_region = %[9]q
+				}
+			}
+		}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, *eventTrigger.Disabled, eventTrigger.Config.OperationType, providers,
+		awsAccID, awsRegion)
+}
+
+func testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_event_trigger" "test" {
+			project_id = %[1]q
+			app_id = %[2]q
+			name = %[3]q
+			type = %[4]q
+			function_id = %[5]q
+			disabled = %[6]t
+			config_schedule = %[7]q
+		}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled,
+		eventTrigger.Config.Schedule)
+}
+
+func testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_event_trigger" "test" {
+			project_id = %[1]q
+			app_id = %[2]q
+			name = %[3]q
+			type = %[4]q
+			disabled = %[5]t
+			config_schedule = %[6]q
+			event_processors{
+				aws_eventbridge{
+					config_account_id = %[7]q
+					config_region = %[8]q
+				}
+			}
+		}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, *eventTrigger.Disabled, eventTrigger.Config.Schedule,
 		awsAccID, awsRegion)
 }
