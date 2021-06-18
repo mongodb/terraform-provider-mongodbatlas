@@ -782,6 +782,10 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 		cluster.BiConnector, _ = expandBiConnector(d)
 	}
 
+	if d.HasChange("name") {
+		cluster.Name, _ = d.Get("name").(string)
+	}
+
 	if d.HasChange("bi_connector_config") {
 		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
