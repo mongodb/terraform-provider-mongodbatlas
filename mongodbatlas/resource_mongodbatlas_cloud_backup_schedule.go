@@ -2,9 +2,11 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/spf13/cast"
 
@@ -14,20 +16,25 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
+	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
+	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
+)
+
 // https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/modify-one-schedule/
-// sasme as resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
+// same as resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
 func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasCloudBackupScheduleCreate,
-		Read:   resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
-		Update: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate, // To review
+		Read:   resourceMongoDBAtlasCloudBackupScheduleRead,
+		Update: resourceMongoDBAtlasCloudBackupScheduleUpdate, // To review
 		Delete: resourceMongoDBAtlasCloudBackupScheduleDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState,
+			State: resourceMongoDBAtlasCloudBackupScheduleImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
-			// Required
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -38,8 +45,6 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Required: true,
 			},
 			"policies": {
-				// remember we can import this , and of course it can
-				// return computed items as well
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -52,11 +57,13 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 						"policy_item": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
+										Computed: true,
 									},
 									"frequency_interval": {
 										Type:     schema.TypeInt,
@@ -150,7 +157,6 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 	_, ok := d.GetOk("policies")
 
 	if !ok {
-		// if there was no policies in config set what we get from response
 		config = backupPolicy.Policies
 	} else {
 		config = expandPolicies(d)
@@ -166,7 +172,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 	if performUpdate {
 		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
 		if err != nil {
-			return fmt.Errorf(errorSnapshotBackupPolicyUpdate, err)
+			return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
 		}
 	}
 
@@ -175,8 +181,90 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 		"cluster_name": clusterName,
 	}))
 
-	// otherwise set read config
-	return resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d, meta)
+	return resourceMongoDBAtlasCloudBackupScheduleRead(d, meta)
+}
+
+func resourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
+	// Get client connection.
+	conn := meta.(*matlas.Client)
+
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	if err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+	}
+
+	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
+	}
+
+	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
+	}
+
+	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
+	}
+
+	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
+	}
+
+	if err := d.Set("update_snapshots", backupPolicy.UpdateSnapshots); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "update_snapshots", clusterName, err)
+	}
+
+	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
+	}
+
+	if err := d.Set("policies", flattenPolicies(backupPolicy.Policies)); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policies", clusterName, err)
+	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*matlas.Client)
+
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	if err := snapshotScheduleUpdate(d, conn, projectID, clusterName); err != nil {
+		return err
+	}
+
+	if restoreWindowDays, ok := d.GetOk("restore_window_days"); ok {
+		if cast.ToInt64(restoreWindowDays) <= 0 {
+			return fmt.Errorf("`restore_window_days` cannot be <= 0")
+		}
+	}
+
+	req := &matlas.CloudProviderSnapshotBackupPolicy{
+		ReferenceHourOfDay:    pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day"))),
+		ReferenceMinuteOfHour: pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour"))),
+		UpdateSnapshots:       pointy.Bool(cast.ToBool(d.Get("update_snapshots").(bool))),
+	}
+
+	if rwd, ok := d.GetOk("restore_window_days"); ok {
+		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(rwd))
+	}
+
+	if d.HasChange("policies") {
+		req.Policies = expandPolicies(d)
+	}
+
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
+	if err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
+	}
+
+	return resourceMongoDBAtlasCloudBackupScheduleRead(d, meta)
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta interface{}) error {
@@ -188,7 +276,7 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta 
 
 	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf("error deleting MongoDB Cloud Provider Snapshot Backup Policy (%s): %s", clusterName, err)
+		return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
 	return nil
@@ -280,4 +368,36 @@ func buildRequestCloudBackupSchedule(d *schema.ResourceData, backupPolicy *matla
 	}
 
 	return req, performUpdate
+}
+
+func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*matlas.Client)
+
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a Cloud Backup Schedule use the format {project_id}-{cluster_name}")
+	}
+
+	projectID := parts[0]
+	clusterName := parts[1]
+
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	if err != nil {
+		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+	}
+
+	if err := d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf(errorSnapshotBackupScheduleSetting, "project_id", clusterName, err)
+	}
+
+	if err := d.Set("cluster_name", clusterName); err != nil {
+		return nil, fmt.Errorf(errorSnapshotBackupScheduleSetting, "cluster_name", clusterName, err)
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":   projectID,
+		"cluster_name": clusterName,
+	}))
+
+	return []*schema.ResourceData{d}, nil
 }
