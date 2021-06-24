@@ -1,3 +1,5 @@
+// This will Create a Project,  Cluster and Modify the 4 Default Policies Simultaneously
+
 resource "mongodbatlas_project" "test" {
   name   = var.project_name
   org_id = var.org_id

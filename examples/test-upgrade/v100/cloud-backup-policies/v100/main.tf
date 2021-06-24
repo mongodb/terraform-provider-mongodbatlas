@@ -1,3 +1,7 @@
+// This is the same as version v091 but for mongodbatlas_cloud_backup_schedule but
+// does nothing, it's only to confirm that it works for import from v091 and won't appear changes
+// for cloud backup schedule
+
 resource "mongodbatlas_project" "test" {
   name   = var.project_name
   org_id = var.org_id
