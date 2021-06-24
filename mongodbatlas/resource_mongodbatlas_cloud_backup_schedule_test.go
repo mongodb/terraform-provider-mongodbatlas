@@ -310,7 +310,6 @@ func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterNam
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
 
-
 			policies {
 				id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
 
