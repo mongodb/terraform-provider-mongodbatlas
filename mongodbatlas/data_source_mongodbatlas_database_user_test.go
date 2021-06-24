@@ -42,7 +42,7 @@ func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 
 func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, username string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_database_user" "test" {
+		resource "mongodbatlas_search_index" "test" {
 			username           = "%[3]s"
 			password           = "test-acc-password"
 			project_id         = "%[1]s"
@@ -63,7 +63,7 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, userna
 			}
 		}
 
-		data "mongodbatlas_database_user" "test" {
+		data "mongodbatlas_search_indexes" "test" {
 			username           = mongodbatlas_database_user.test.username
 			project_id         = mongodbatlas_database_user.test.project_id
 			auth_database_name = "admin"

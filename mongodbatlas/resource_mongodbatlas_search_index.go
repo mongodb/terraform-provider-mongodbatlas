@@ -39,10 +39,7 @@ func resourceMongoDBAtlasSearchIndex() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"analyzers": {
-				Type:     schema.TypeString, //TODO: change type
-				Required: true,
-			},
+			"analyzers": customAnalyzersSchema(),
 			"collectionName": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -317,3 +314,154 @@ func returnFlattenFields(fields []map[string]interface{}) []map[string]interface
 	return mapFields
 }
 */
+
+func customAnalyzersSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet, //TODO: change type
+		Required: false,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:     schema.TypeString,
+					Optional: false,
+				},
+				"charFilters": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"type": {
+								Type:     schema.TypeString,
+								Optional: false,
+							},
+							"ignoreTags": {
+								Type:     schema.TypeList,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+							"mappings": {
+								Type:     schema.TypeList,
+								Optional: true,
+								//TODO: how to implement map[string]string
+							},
+						},
+					},
+				},
+				"tokenizer": {
+					Type:     schema.TypeSet,
+					Optional: false,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"type": {
+								Type:     schema.TypeString,
+								Optional: false,
+							},
+							"maxTokenLength": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"minGram": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"maxGram": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"pattern": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"group": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+						},
+					},
+				},
+				"tokenFilters": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"type": {
+								Type:     schema.TypeString,
+								Optional: false,
+							},
+							"originalTokens": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"min": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"max": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"normalizationForm": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"minGram": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"maxGram": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"termsNotInBounds": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"minShingleSize": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"maxShingleSize": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+							"pattern": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"replacement": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"matches": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"stemmerName": {
+								Type:     schema.TypeString,
+								Optional: true,
+							},
+							"tokens": {
+								Type:     schema.TypeList,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+							"ignoreCase": {
+								Type:     schema.TypeBool,
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func expandCustomAnalyzers(d *schema.ResourceData) ([]*matlas.CustomAnalyzer, error) {
+
+}
