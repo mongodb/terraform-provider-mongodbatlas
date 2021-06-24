@@ -13,6 +13,24 @@ description: |-
 ## Example Usage
 
 ```hcl
+resource "mongodbatlas_event_trigger" "test" {
+  project_id = "PROJECT ID"
+  app_id = "APPLICATION ID"
+  name = "NAME OF THE TRIGGER"
+  type = "DATABASE"
+  function_id = "1"
+  disabled = false
+  config_operation_types = ["INSERT", "UPDATE"]
+  config_database = "DATABASE NAME"
+  config_collection = "COLLECTION NAME"
+  config_service_id = "1"
+  config_match {
+    key = "KEY",
+    value = "EXPRESSION"
+  }
+  config_full_document = false
+}
+
 data "mongodbatlas_event_triggers" "test" {
   project_id = mongodbatlas_event_trigger.test.project_id
   app_id = mongodbatlas_event_trigger.test.app_id

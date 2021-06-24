@@ -27,8 +27,6 @@ func TestAccDataSourceMongoDBAtlasEventTrigger_basic(t *testing.T) {
 		Disabled:   pointy.Bool(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
-			OperationType:  "LOGIN",
-			Providers:      []string{"anon-user", "local-userpass"},
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),

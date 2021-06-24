@@ -16,13 +16,11 @@ description: |-
 resource "mongodbatlas_event_trigger" "test" {
   project_id = "PROJECT ID"
   app_id = "APPLICATION ID"
-  name = "NAME OF THE TRINGGER"
+  name = "NAME OF THE TRIGGER"
   type = "DATABASE"
   function_id = "1"
   disabled = false
   config_operation_types = ["INSERT", "UPDATE"]
-  config_operation_type = "LOGIN"
-  config_providers = "anon-user"
   config_database = "DATABASE NAME"
   config_collection = "COLLECTION NAME"
   config_service_id = "1"
@@ -31,13 +29,6 @@ resource "mongodbatlas_event_trigger" "test" {
     value = "EXPRESSION"
   }
   config_full_document = false
-  config_schedule = "*"
-  event_processors {
-    aws_eventbridge {
-      config_account_id = "AWS ACCOUNT ID"
-      config_region = "AWS REGIOn"
-    }
-  }
 }
 
 data "mongodbatlas_event_trigger" "test" {
