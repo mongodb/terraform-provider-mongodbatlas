@@ -484,11 +484,11 @@ func datasourceClusterPrivateEndpointRefreshFunc(name, projectID string, client 
 
 		if cluster.ConnectionStrings != nil {
 			if cluster.ConnectionStrings.PrivateEndpoint == nil {
-				return cluster, "PRIVATE_ENDPOINTS_NIL", err
+				return cluster, "PRIVATE_ENDPOINTS_NIL", nil
 			} else if cluster.ConnectionStrings.PrivateEndpoint != nil && len(cluster.ConnectionStrings.PrivateEndpoint) == 0 {
-				return cluster, "PRIVATE_ENDPOINTS_EMPTY", err
+				return cluster, "PRIVATE_ENDPOINTS_EMPTY", nil
 			} else if cluster.ConnectionStrings.PrivateEndpoint != nil && len(cluster.ConnectionStrings.PrivateEndpoint) != 0 {
-				return cluster, "PRIVATE_ENDPOINTS_EXISTS", err
+				return cluster, "PRIVATE_ENDPOINTS_EXISTS", nil
 			}
 		}
 
