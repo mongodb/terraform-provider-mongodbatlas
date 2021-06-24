@@ -189,7 +189,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 	}
 
 	snapshotReq := &matlas.CloudProviderSnapshotRestoreJob{
-		SnapshotID:            d.Get("snapshot_id").(string),
+		SnapshotID:            getEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
 		DeliveryType:          deliveryType,
 		TargetClusterName:     d.Get("delivery_type.target_cluster_name").(string),
 		TargetGroupID:         d.Get("delivery_type.target_project_id").(string),

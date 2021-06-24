@@ -48,7 +48,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"accepter_region_name"},
+				ImportStateVerifyIgnore: []string{"accepter_region_name", "container_id"},
 			},
 		},
 	})
@@ -88,7 +88,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"atlas_cidr_block"},
+				ImportStateVerifyIgnore: []string{"atlas_cidr_block", "container_id"},
 			},
 		},
 	})
@@ -268,7 +268,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, 
 		resource "mongodbatlas_network_peering" "test" {
 			accepter_region_name	  = lower(replace("%[6]s", "_", "-"))
 			project_id    			    = "%[1]s"
-			container_id            = mongodbatlas_network_container.test.container_id
+			container_id            = mongodbatlas_network_container.test.id
 			provider_name           = "%[2]s"
 			route_table_cidr_block  = "%[5]s"
 			vpc_id					        = "%[3]s"

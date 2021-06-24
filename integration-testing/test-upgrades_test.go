@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-const localPluginPath = "TERRAFORM PLUGINS PATH"
+var (
+	localPluginPath = os.Getenv("TERRATEST_PLUGIN_PATH")
+)
 
 func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	t.Parallel()
@@ -274,6 +276,194 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
 
+}
+
+func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
+	t.Parallel()
+
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
+		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		ipAddress   = fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+		comment     = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	)
+	// Construct the terraform options with default retryable errors to handle the most common
+	// retryable errors in terraform testing.
+	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/ip-whitelist-accestList/v091",
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"ip_address":   ipAddress,
+			"public_key":   publicKey,
+			"private_key":  privateKey,
+			"comment":      comment,
+		},
+	})
+
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptions)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.InitAndApply(t, terraformOptions)
+
+	projectID := terraform.Output(t, terraformOptions, "project_id")
+	entry := terraform.Output(t, terraformOptions, "entry")
+
+	tempTestFolder := CleanUpState(t, "examples/test-upgrade/v100/ip-whitelist-accestList/v100")
+
+	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: tempTestFolder,
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"ip_address":   ipAddress,
+			"public_key":   publicKey,
+			"private_key":  privateKey,
+			"comment":      comment,
+		},
+	})
+
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	//Remove states
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project_ip_access_list.test", fmt.Sprintf("%s-%s", projectID, entry))
+	// Run `terraform apply`. Fail the test if there are any errors.
+	terraform.Plan(t, terraformOptionsSecond)
+
+}
+
+func TestUpgradeDesignIDState(t *testing.T) {
+	t.Parallel()
+	mongoSecrets := GetCredentialsFromEnv()
+	awsSecrets := GetAWSCredentialsFromEnv()
+
+	var (
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acctest.RandomWithPrefix("test-acc")
+		clusterName     = acctest.RandomWithPrefix("test-acc")
+		description     = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays = "1"
+		publicKey       = mongoSecrets.PublicKey
+		privateKey      = mongoSecrets.PrivateKey
+		awsAccess       = awsSecrets.AccessKey
+		awsSecret       = awsSecrets.SecretKey
+		awsVPC          = os.Getenv("AWS_VPC_ID")
+		awsSubnets      = os.Getenv("AWS_SUBNET_ID")
+		awsSG           = os.Getenv("AWS_SECURITY_GROUP_ID")
+		vpcCIDRBlock    = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID    = os.Getenv("AWS_ACCOUNT_ID")
+		awsRegion       = awsSecrets.AwsRegion
+	)
+	// Construct the terraform options with default retryable errors to handle the most common
+	// retryable errors in terraform testing.
+	terraformOptionsProject := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/project",
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"public_key":   publicKey,
+			"private_key":  privateKey,
+		},
+	})
+
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptionsProject)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.RunTerraformCommand(t, terraformOptionsProject, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	terraform.Apply(t, terraformOptionsProject)
+
+	terraform.Plan(t, terraformOptionsProject)
+
+	// Alert Configuration
+
+	terraformOptionsAlertConfiguration := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/alert-configuration",
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+		},
+	})
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptionsAlertConfiguration)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.RunTerraformCommand(t, terraformOptionsAlertConfiguration, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	terraform.Apply(t, terraformOptionsAlertConfiguration)
+
+	terraform.Plan(t, terraformOptionsAlertConfiguration)
+
+	// Network container/peering
+
+	terraformOptionsNetwork := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/network",
+		Vars: map[string]interface{}{
+			"project_name":           projectName,
+			"region_name":            awsRegion,
+			"route_table_cidr_block": vpcCIDRBlock,
+			"vpc_id":                 awsVPC,
+			"aws_account_id":         awsAccountID,
+		},
+	})
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptionsNetwork)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.RunTerraformCommand(t, terraformOptionsNetwork, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	terraform.Apply(t, terraformOptionsNetwork)
+
+	terraform.Plan(t, terraformOptionsNetwork)
+
+	// PrivateLink
+
+	terraformOptionsPrivateLink := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/privatelink",
+		Vars: map[string]interface{}{
+			"project_name":   projectName,
+			"aws_access_key": awsAccess,
+			"aws_secret_key": awsSecret,
+			"aws_vpc_id":     awsVPC,
+			"aws_subnet_ids": awsSubnets,
+			"aws_sg_ids":     awsSG,
+		},
+	})
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptionsPrivateLink)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.RunTerraformCommand(t, terraformOptionsPrivateLink, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	terraform.Apply(t, terraformOptionsPrivateLink)
+
+	terraform.Plan(t, terraformOptionsPrivateLink)
+
+	// Snapshot Restore
+
+	terraformOptionsSnapshotRestore := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/design-id-reference/snapshot-restore",
+		Vars: map[string]interface{}{
+			"project_name":      projectName,
+			"cluster_name":      clusterName,
+			"description":       description,
+			"retention_in_days": retentionInDays,
+		},
+	})
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptionsSnapshotRestore)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.RunTerraformCommand(t, terraformOptionsSnapshotRestore, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	terraform.Apply(t, terraformOptionsSnapshotRestore)
+
+	terraform.Plan(t, terraformOptionsSnapshotRestore)
 }
 
 // This func means that the terraform state will be always clean to avoid error about resource already used

@@ -1,0 +1,51 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas Provider 1.0.0: Upgrade and Information Guide"
+sidebar_current: "docs-mongodbatlas-guides-100-upgrade-guide"
+description: |-
+    MongoDB Atlas Provider 0.1.0: Upgrade and Information Guide
+---
+
+# MongoDB Atlas Provider 1.0.0: Upgrade and Information Guide
+
+## End of Life and removal of Project IP Whitelist and import with Project IP Access List
+
+To upgrade from v0.9.1 to v1.0.0 with the existing resources `mongodbatlas_project_ip_whitelist`
+perform the following steps
+
+1. Remove your existing `mongodbatlas_project_ip_whitelist` resources from terraform state
+   **NOTE** before doing any terraform state change please do a backup
+
+```bash
+$ terraform state rm mongodbatlas_project_ip_whitelist.test
+```
+
+2. Change the version of provider to the v1.0.0
+
+3. Perform an import from your existing `mongodbatlas_project_ip_whitelist` to `mongodbatlas_project_ip_access_list`
+```bash
+    terraform import mongodbatlas_project_ip_access_list.test <project_id>-<entry>
+```
+
+4. Do a terraform plan (no changes detected)
+
+```bash
+terraform plan
+
+(...)
+
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences,
+so no changes are needed.
+```
+**NOTE** Doc links for [mongodbatlas_project_ip_access_list](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_ip_access_list)
+
+### Helpful Links
+
+* [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
+
+* [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
+
+* [Contact Support](https://docs.atlas.mongodb.com/support/) covered by MongoDB Atlas support plans, Developer and above.

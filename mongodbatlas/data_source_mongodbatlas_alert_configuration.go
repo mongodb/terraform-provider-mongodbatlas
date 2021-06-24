@@ -221,7 +221,7 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta i
 	// Get client connection.
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	alertID := d.Get("alert_configuration_id").(string)
+	alertID := getEncodedID(d.Get("alert_configuration_id").(string), "id")
 
 	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), projectID, alertID)
 	if err != nil {

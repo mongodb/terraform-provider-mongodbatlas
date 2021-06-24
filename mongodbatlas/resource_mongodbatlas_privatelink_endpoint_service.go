@@ -93,7 +93,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*matlas.Client)
 	projectID := d.Get("project_id").(string)
-	privateLinkID := d.Get("private_link_id").(string)
+	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 	endpointServiceID := d.Get("endpoint_service_id").(string)
 
@@ -179,10 +179,6 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
 		return fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err)
-	}
-
-	if err := d.Set("private_link_id", privateLinkID); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "private_link_id", endpointServiceID, err)
 	}
 
 	return nil

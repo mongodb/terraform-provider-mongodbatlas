@@ -45,7 +45,6 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_database_users":                        dataSourceMongoDBAtlasDatabaseUsers(),
 			"mongodbatlas_project":                               dataSourceMongoDBAtlasProject(),
 			"mongodbatlas_projects":                              dataSourceMongoDBAtlasProjects(),
-			"mongodbatlas_project_ip_whitelist":                  dataSourceMongoDBAtlasProjectIPWhitelist(),
 			"mongodbatlas_cluster":                               dataSourceMongoDBAtlasCluster(),
 			"mongodbatlas_clusters":                              dataSourceMongoDBAtlasClusters(),
 			"mongodbatlas_cloud_provider_snapshot":               dataSourceMongoDBAtlasCloudProviderSnapshot(),
@@ -80,12 +79,13 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
 			"mongodbatlas_search_indexes":                        dataSourceMongoDBAtlasSearchIndexes(),
 			"mongodbatlas_search_analyzers":                      dataSourceMongoDBAtlasSearchAnalyzers(),
+			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
+			"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
 			"mongodbatlas_custom_db_role":                        resourceMongoDBAtlasCustomDBRole(),
 			"mongodbatlas_database_user":                         resourceMongoDBAtlasDatabaseUser(),
-			"mongodbatlas_project_ip_whitelist":                  resourceMongoDBAtlasProjectIPWhitelist(),
 			"mongodbatlas_project":                               resourceMongoDBAtlasProject(),
 			"mongodbatlas_cluster":                               resourceMongoDBAtlasCluster(),
 			"mongodbatlas_cloud_provider_snapshot":               resourceMongoDBAtlasCloudProviderSnapshot(),
@@ -117,6 +117,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
 			"mongodbatlas_search_index":                          resourceMongoDBAtlasSearchIndex(),
 			"mongodbatlas_search_analyzer":                       resourceMongoDBAtlasSearchIndex(),
+			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 		},
 
 		ConfigureFunc: providerConfigure,
@@ -260,4 +261,24 @@ func expandStringList(list []interface{}) (res []string) {
 	}
 
 	return
+}
+
+func getEncodedID(stateID, keyPosition string) string {
+	id := ""
+	if !hasMultipleValues(stateID) {
+		return stateID
+	}
+
+	decoded := decodeStateID(stateID)
+	id = decoded[keyPosition]
+
+	return id
+}
+
+func hasMultipleValues(value string) bool {
+	if strings.Contains(value, "-") && strings.Contains(value, ":") {
+		return true
+	}
+
+	return false
 }

@@ -78,7 +78,7 @@ func featureUsagesSchema() *schema.Resource {
 				Computed: true,
 			},
 			"feature_id": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeMap,
 				Computed: true,
 			},
 		},
