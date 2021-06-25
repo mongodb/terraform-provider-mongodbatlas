@@ -200,19 +200,48 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example - Return a Connection String
-AWS 
+AWS Private Endpoint
 ```hcl
 output "plstring" {
     value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, aws_vpc_endpoint.ptfe_service.id)
 }
 //Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
 ```
-Azure
+Azure Private Endpoint
 ```hcl
 output "plstring" {
     value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, azurerm_private_endpoint.test.id)
 }
 //Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
+```
+Standard
+```hcl
+output "standard_srv" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard
+}
+//Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
+```
+Standard srv
+```hcl
+output "standard_srv" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard_srv
+}
+//Example return string: standard_srv = "mongodb+srv://cluster-atlas.ygo1m.mongodb.net"
+```
+Private with Network peering and Custom DNS AWS enabled
+```hcl
+output "private" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].private
+}
+//Example return string: private = "mongodb://cluster-atlas-shard-00-00-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02-pri.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
+private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
+```
+Private srv with Network peering and Custom DNS AWS enabled
+```hcl
+output "private_srv" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].private_srv
+}
+//Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
 
 ## Argument Reference
