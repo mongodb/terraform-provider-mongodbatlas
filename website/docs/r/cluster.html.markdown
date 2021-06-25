@@ -216,7 +216,7 @@ output "plstring" {
 ```
 Standard
 ```hcl
-output "standard_srv" {
+output "standard" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard
 }
 //Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
@@ -234,7 +234,7 @@ output "private" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].private
 }
 //Example return string: private = "mongodb://cluster-atlas-shard-00-00-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02-pri.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
-private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
+private = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
 Private srv with Network peering and Custom DNS AWS enabled
 ```hcl
