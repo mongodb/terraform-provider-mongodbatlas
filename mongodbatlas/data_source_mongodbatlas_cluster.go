@@ -338,7 +338,8 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(errorClusterRead, clusterName, err)
 	}
 
-	if cluster.ProviderSettings != nil && cast.ToString(cluster.ProviderSettings.ProviderName) == "AWS" {
+	if cluster.ProviderSettings != nil && (cast.ToString(cluster.ProviderSettings.ProviderName) == "AWS" ||
+		cast.ToString(cluster.ProviderSettings.ProviderName) == "AZURE") {
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"PRIVATE_ENDPOINTS_NIL", "PRIVATE_ENDPOINTS_EMPTY"},
 			Target:     []string{"PRIVATE_ENDPOINTS_EXISTS", "NORMAL"},
