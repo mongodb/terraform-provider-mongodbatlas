@@ -1,4 +1,6 @@
 // This config will create aws endpoint, private endpoint and private endpoint interface
+// To verify that everything is working even after terraform plan and show not changes
+// and then do the import stuff in the folder for v100
 
 resource "mongodbatlas_project" "test" {
   name   = var.project_name

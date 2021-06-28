@@ -1,4 +1,3 @@
-// This example is the same with the recent name of resource but will do nothing
 // This is only for import stuff because it needs the resource names and set to
 // avoid changes when terraform plan
 
