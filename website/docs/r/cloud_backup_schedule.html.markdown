@@ -234,7 +234,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 #### Policy Item
 * `policies.#.policy_item` - (Optional) Array of backup policy items.
-* `policies.#.policy_item.#.id` - (Optional) Unique identifier of the backup policy item. `policies.#.policy_item.#.id` is a value obtained via the mongodbatlas_cluster resource. `cloud_backup` of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.policy_item.#.id . **NOTE** If not specified, it will create a policy item
+* `policies.#.policy_item.#.id` - (Optional) Unique identifier of the backup policy item. `policies.#.policy_item.#.id` is a value obtained via the mongodbatlas_cluster resource. `cloud_backup` of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.policy_item.#.id . **NOTE** If not specified, it might create a policy item if the policies items are empty.
 * `policies.#.policy_item.#.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
 * `policies.#.policy_item.#.frequency_type` - (Required) Frequency associated with the backup policy item. One of the following values: hourly, daily, weekly or monthly.
 * `policies.#.policy_item.#.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
