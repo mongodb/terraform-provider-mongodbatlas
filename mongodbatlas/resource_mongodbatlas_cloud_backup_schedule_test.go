@@ -15,7 +15,7 @@ import (
 
 func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.test"
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -65,7 +65,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.test"
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -115,7 +115,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.test"
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -216,7 +216,7 @@ func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterNa
 			provider_disk_iops          = 1000
 		}
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
@@ -242,7 +242,7 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 			provider_disk_iops          = 1000
 		}
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
@@ -302,7 +302,7 @@ func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterNam
 			provider_disk_iops          = 1000
 		}
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
@@ -340,7 +340,7 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(projectID, clusterN
 			provider_disk_iops          = 1000
 		}
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 

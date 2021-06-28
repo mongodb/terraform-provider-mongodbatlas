@@ -13,8 +13,8 @@ import (
 
 func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cloud_backup_schedule.test"
-		datasourceName = "data.mongodbatlas_cloud_backup_schedule.test"
+		resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
+		datasourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -47,8 +47,8 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 
 func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_withOnePolicy(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cloud_backup_schedule.test"
-		datasourceName = "data.mongodbatlas_cloud_backup_schedule.test"
+		resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
+		datasourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
@@ -94,7 +94,7 @@ func testAccDataSourceMongoDBAtlasCloudBackupScheduleConfig(projectID, clusterNa
 			provider_disk_iops          = 1000
 		}
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
@@ -103,9 +103,9 @@ func testAccDataSourceMongoDBAtlasCloudBackupScheduleConfig(projectID, clusterNa
 			restore_window_days      = %d
 		}
 	 
-		 data "mongodbatlas_cloud_backup_schedule" "test" {
-			project_id = mongodbatlas_cloud_backup_schedule.test.project_id
-			cluster_name = mongodbatlas_cloud_backup_schedule.test.cluster_name
+		 data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
 		 }	 
 
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
@@ -126,7 +126,7 @@ func testAccDataSourceMongoDBAtlasCloudBackupScheduleWithPoliciesConfig(projectI
 			provider_disk_iops          = 1000
 		}
 
-		resource "mongodbatlas_cloud_backup_schedule" "test" {
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
@@ -147,9 +147,9 @@ func testAccDataSourceMongoDBAtlasCloudBackupScheduleWithPoliciesConfig(projectI
 			}
 		}
 	 
-		 data "mongodbatlas_cloud_backup_schedule" "test" {
-			project_id = mongodbatlas_cloud_backup_schedule.test.project_id
-			cluster_name = mongodbatlas_cloud_backup_schedule.test.cluster_name
+		 data "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id = mongodbatlas_cloud_backup_schedule.schedule_test.project_id
+			cluster_name = mongodbatlas_cloud_backup_schedule.schedule_test.cluster_name
 		 }	 
 
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)

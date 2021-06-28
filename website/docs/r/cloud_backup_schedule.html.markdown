@@ -229,6 +229,10 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
 
 ### Policies
+
+**NOTE** - If no policies are provided the default ones will be imported.
+**NOTE** - If policies are provided the default ones will be overridden.
+
 * `policies` - (Optional) Contains a document for each backup policy item in the desired updated backup policy.
 * `policies.#.id` - (Optional) Unique identifier of the backup policy that you want to update. policies.#.id is a value obtained via the mongodbatlas_cluster resource. cloud_backup of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.id
 
