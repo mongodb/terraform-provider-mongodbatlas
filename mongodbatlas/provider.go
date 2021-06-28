@@ -77,6 +77,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_online_archives":                       dataSourceMongoDBAtlasOnlineArchives(),
 			"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
+			"mongodbatlas_search_index":                          dataSourceMongoDBAtlasSearchIndex(),
 			"mongodbatlas_search_indexes":                        dataSourceMongoDBAtlasSearchIndexes(),
 			"mongodbatlas_search_analyzers":                      dataSourceMongoDBAtlasSearchAnalyzers(),
 			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),

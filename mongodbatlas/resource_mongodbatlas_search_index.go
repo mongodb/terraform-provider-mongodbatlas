@@ -2,9 +2,12 @@ package mongodbatlas
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/openlyinc/pointy"
 	"log"
 	"strings"
 
@@ -21,73 +24,58 @@ func resourceMongoDBAtlasSearchIndex() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDBAtlasSearchIndexImportState,
 		},
-		Schema: map[string]*schema.Schema{
-			"project_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"cluster_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"indexID": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Required: false,
-			},
-			"analyzer": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"analyzers": customAnalyzersSchema(),
-			"collectionName": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"database": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"searchAnalyzer": {
-				Type:     schema.TypeString,
-				Required: false,
-			},
-			"mappings": {
-				Type:     schema.TypeSet,
-				Optional: false,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"dynamic": {
-							Type:     schema.TypeBool,
-							Optional: false,
-						},
-						"fields": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"field": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"status": {
-				Type:     schema.TypeString,
-				Required: false,
-			},
+		Schema: returnSearchIndexSchema(),
+	}
+}
+
+func returnSearchIndexSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"project_id": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"cluster_name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"index_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Required: false,
+		},
+		"analyzer": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"analyzers": customAnalyzersSchema(),
+		"collection_name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"database": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"search_analyzer": {
+			Type:     schema.TypeString,
+			Required: false,
+		},
+		"mappings_dynamic": {
+			Type:     schema.TypeBool,
+			Required: false,
+		},
+		"mappings_fields": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: validateSearchIndexMappingDiff,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Required: false,
 		},
 	}
 }
@@ -163,7 +151,11 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 		searchIndex.Analyzer = d.Get("analyzer").(string)
 	}
 
-	if d.HasChange("collectionName") {
+	if d.HasChange("analyzers") {
+		searchIndex.Analyzers = expandCustomAnalyzers(d.Get("analyzers").([]interface{}))
+	}
+
+	if d.HasChange("collection_name") {
 		searchIndex.CollectionName = d.Get("collectionName").(string)
 	}
 
@@ -175,15 +167,17 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 		searchIndex.Name = d.Get("name").(string)
 	}
 
-	if d.HasChange("searchAnalyzer") {
+	if d.HasChange("search_analyzer") {
 		searchIndex.SearchAnalyzer = d.Get("searchAnalyzer").(string)
 	}
 
-	/*
-		if d.HasChange("mappings") {
-			searchIndex.Mappings = d.Get("mappings")
-		}
-	*/
+	if d.HasChange("mappings_dynamic") {
+		searchIndex.Mappings.Dynamic = d.Get("mappings_dynamic").(bool)
+	}
+
+	if d.HasChange("mappings_fields") {
+		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+	}
 
 	_, _, err = conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
 	if err != nil {
@@ -214,12 +208,19 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 
 		return fmt.Errorf("error getting search index information: %s", err)
 	}
+	if err := d.Set("index_id", indexID); err != nil {
+		return fmt.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
+	}
 
 	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
 		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("collectionName", searchIndex.CollectionName); err != nil {
+	if err := d.Set("analyzers", flattenSearchIndexCustomAnalyzers(searchIndex.Analyzers)); err != nil {
+		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("collection_name", searchIndex.CollectionName); err != nil {
 		return fmt.Errorf("error setting `collectionName` for search index (%s): %s", d.Id(), err)
 	}
 
@@ -231,14 +232,17 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("searchAnalyzer", searchIndex.SearchAnalyzer); err != nil {
+	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
 		return fmt.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	/*if err := d.Set("mapping", flattenSearchIndexFields(*searchIndex.Mappings)); err != nil {
-		return fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err)
+	if err := d.Set("mapping_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+		return fmt.Errorf("error setting `mapping_dynamic` for search index (%s): %s", d.Id(), err)
 	}
-	*/
+
+	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(searchIndex.Mappings.Fields)); err != nil {
+		return fmt.Errorf("error setting `mapping_fields` for for search index (%s): %s", d.Id(), err)
+	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
@@ -246,6 +250,140 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		"index_id":     indexID,
 	}))
 
+	return nil
+}
+
+func marshallSearchIndexMappingFields(fields *map[string]matlas.IndexField) interface{} {
+	mappingFieldJson, err := json.Marshal(fields)
+	if err != nil {
+
+	}
+	return mappingFieldJson
+}
+
+func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map[string]interface{} {
+
+	if len(analyzers) > 0 {
+		mapAnalyzers := make([]map[string]interface{}, len(analyzers))
+
+		for i, analyzer := range analyzers {
+			mapAnalyzers[i] = map[string]interface{}{
+				"name":      analyzer.Name,
+				"tokenizer": *analyzer.Tokenizer,
+			}
+
+			if len(analyzer.CharFilters) > 0 {
+				mapAnalyzers[i]["char_filters"] = flattenSearchIndexCharFilters(analyzer.CharFilters)
+			}
+
+			if len(analyzer.TokenFilters) > 0 {
+				mapAnalyzers[i]["token_filters"] = flattenSearchIndexTokenFilters(analyzer.TokenFilters)
+			}
+
+		}
+		return mapAnalyzers
+	}
+	return nil
+}
+
+func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []map[string]interface{} {
+
+	if len(filters) > 0 {
+		mapCharFilters := make([]map[string]interface{}, len(filters))
+
+		for i, filter := range filters {
+			mapCharFilters[i] = map[string]interface{}{
+				"type": filter.Type,
+			}
+
+			if filter.OriginalTokens != "" {
+				mapCharFilters[i]["original_tokens"] = filter.OriginalTokens
+			}
+			//
+
+			if filter.Min != nil {
+				mapCharFilters[i]["min"] = *filter.Min
+			}
+
+			if filter.Max != nil {
+				mapCharFilters[i]["max"] = *filter.Max
+			}
+
+			if filter.NormalizationForm != "" {
+				mapCharFilters[i]["normalization_form"] = filter.NormalizationForm
+			}
+
+			if filter.MinGram != nil {
+				mapCharFilters[i]["min_gram"] = *filter.MinGram
+			}
+
+			if filter.MaxGram != nil {
+				mapCharFilters[i]["max_gram"] = *filter.MaxGram
+			}
+
+			if filter.TermsNotInBounds != "" {
+				mapCharFilters[i]["terms_not_in_bounds"] = filter.TermsNotInBounds
+			}
+
+			if filter.MinShingleSize != nil {
+				mapCharFilters[i]["min_shingle_size"] = *filter.MinShingleSize
+			}
+
+			if filter.MaxShingleSize != nil {
+				mapCharFilters[i]["max_shingle_size"] = *filter.MaxShingleSize
+			}
+
+			if filter.Pattern != "" {
+				mapCharFilters[i]["pattern"] = filter.Pattern
+			}
+
+			if filter.Replacement != "" {
+				mapCharFilters[i]["replacement"] = filter.Replacement
+			}
+
+			if filter.Matches != "" {
+				mapCharFilters[i]["matches"] = filter.Matches
+			}
+
+			if filter.StemmerName != "" {
+				mapCharFilters[i]["stemmer_name"] = filter.StemmerName
+			}
+
+			if len(filter.Tokens) > 0 {
+				mapCharFilters[i]["tokens"] = filter.Tokens
+			}
+
+			if filter.IgnoreCase != nil {
+				mapCharFilters[i]["ignore_case"] = *filter.IgnoreCase
+			}
+
+		}
+		return mapCharFilters
+	}
+	return nil
+}
+
+func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[string]interface{} {
+
+	if len(filters) > 0 {
+		mapCharFilters := make([]map[string]interface{}, len(filters))
+
+		for i, filter := range filters {
+			mapCharFilters[i] = map[string]interface{}{
+				"type": filter.Type,
+			}
+
+			if len(filter.IgnoreTags) > 0 {
+				mapCharFilters[i]["ignore_tags"] = filter.IgnoreTags
+			}
+
+			if filter.Mappings != nil {
+				mapCharFilters[i]["mappings"] = *filter.Mappings
+			}
+
+		}
+		return mapCharFilters
+	}
 	return nil
 }
 
@@ -257,13 +395,16 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 	clusterName := d.Get("cluster_name").(string)
 
 	searchIndexRequest := &matlas.SearchIndex{
-		Analyzer: d.Get("analyzer").(string),
-		//Analyzers:      d.Get("analyzers").(map[string]interface{}), //TODO: check if is correct type
-		CollectionName: d.Get("collectionName").(string),
+		Analyzer:       d.Get("analyzer").(string),
+		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").([]interface{})), //TODO: check if is correct type
+		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
-		Mappings:       d.Get("mappings").(*matlas.IndexMapping),
+		Mappings: &matlas.IndexMapping{
+			Dynamic: d.Get("mappings_dynamic").(bool),
+			Fields:  unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string)),
+		},
 		Name:           d.Get("name").(string),
-		SearchAnalyzer: d.Get("searchAnalyzer").(string),
+		SearchAnalyzer: d.Get("search_analyzer").(string),
 		Status:         d.Get("status").(string),
 	}
 
@@ -281,40 +422,6 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 	return resourceMongoDBAtlasSearchIndexRead(d, meta)
 }
 
-/*
-func flattenSearchIndexFields(l matlas.IndexMapping) []map[string]interface{} {
-	mapping := make([]map[string]interface{}, 1)
-
-	mapping[0]["dynamic"] = l.Dynamic
-
-	if !l.Dynamic {
-		mapping[0]["fields"] = make([]map[string]interface{}, len(*l.Fields))
-
-		for i, field := range *l.Fields {
-			scopes[i] = map[string]interface{}{
-				"name": v.Name,
-				"type": v.Type,
-			}
-		}
-	}
-
-	return scopes
-}
-
-func returnFlattenFields(fields []map[string]interface{}) []map[string]interface{} {
-	mapFields = make([]map[string]interface{}, len(fields))
-
-	for i, field := range fields {
-		scopes[i] = map[string]interface{}{
-			"name":  f,
-			"field": v.Type,
-		}
-	}
-
-	return mapFields
-}
-*/
-
 func customAnalyzersSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet, //TODO: change type
@@ -325,7 +432,7 @@ func customAnalyzersSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: false,
 				},
-				"charFilters": {
+				"char_filters": {
 					Type:     schema.TypeSet,
 					Optional: true,
 					Elem: &schema.Resource{
@@ -334,17 +441,19 @@ func customAnalyzersSchema() *schema.Schema {
 								Type:     schema.TypeString,
 								Optional: false,
 							},
-							"ignoreTags": {
-								Type:     schema.TypeList,
+							"ignore_tags": {
+								Type:     schema.TypeSet,
 								Optional: true,
 								Elem: &schema.Schema{
 									Type: schema.TypeString,
 								},
 							},
 							"mappings": {
-								Type:     schema.TypeList,
+								Type:     schema.TypeSet,
 								Optional: true,
-								//TODO: how to implement map[string]string
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
 							},
 						},
 					},
@@ -359,15 +468,15 @@ func customAnalyzersSchema() *schema.Schema {
 								Type:     schema.TypeString,
 								Optional: false,
 							},
-							"maxTokenLength": {
+							"max_token_length": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"minGram": {
+							"min_gram": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"maxGram": {
+							"max_gram": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
@@ -382,7 +491,7 @@ func customAnalyzersSchema() *schema.Schema {
 						},
 					},
 				},
-				"tokenFilters": {
+				"token_filters": {
 					Type:     schema.TypeSet,
 					Optional: true,
 					Elem: &schema.Resource{
@@ -391,7 +500,7 @@ func customAnalyzersSchema() *schema.Schema {
 								Type:     schema.TypeString,
 								Optional: false,
 							},
-							"originalTokens": {
+							"original_tokens": {
 								Type:     schema.TypeString,
 								Optional: true,
 							},
@@ -403,27 +512,27 @@ func customAnalyzersSchema() *schema.Schema {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"normalizationForm": {
+							"normalization_form": {
 								Type:     schema.TypeString,
 								Optional: true,
 							},
-							"minGram": {
+							"min_gram": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"maxGram": {
+							"max_gram": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"termsNotInBounds": {
+							"terms_not_in_bounds": {
 								Type:     schema.TypeString,
 								Optional: true,
 							},
-							"minShingleSize": {
+							"min_shingle_size": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"maxShingleSize": {
+							"max_shingle_size": {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
@@ -439,7 +548,7 @@ func customAnalyzersSchema() *schema.Schema {
 								Type:     schema.TypeString,
 								Optional: true,
 							},
-							"stemmerName": {
+							"stemmer_name": {
 								Type:     schema.TypeString,
 								Optional: true,
 							},
@@ -450,7 +559,7 @@ func customAnalyzersSchema() *schema.Schema {
 									Type: schema.TypeString,
 								},
 							},
-							"ignoreCase": {
+							"ignore_case": {
 								Type:     schema.TypeBool,
 								Optional: true,
 							},
@@ -462,6 +571,208 @@ func customAnalyzersSchema() *schema.Schema {
 	}
 }
 
-func expandCustomAnalyzers(d *schema.ResourceData) ([]*matlas.CustomAnalyzer, error) {
+func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
 
+	if len(analyzers) > 0 {
+
+		var analyzersList []*matlas.CustomAnalyzer
+
+		for _, analyzerObj := range analyzers {
+
+			analyzerInterface := analyzerObj.(map[string]interface{})
+
+			analyzer := &matlas.CustomAnalyzer{
+				Name: analyzerInterface["name"].(string),
+			}
+
+			charFiltersMap, ok := analyzerInterface["char_filters"]
+			if ok {
+				analyzer.CharFilters = expandIndexCharFilters(charFiltersMap.(*schema.Set).List())
+			}
+
+			tokenizer, ok := analyzerInterface["tokenizer"]
+			if ok {
+				analyzer.Tokenizer = expandIndexTokenizer(tokenizer.(*schema.Set).List())
+			}
+
+			tokenFiltersMap, ok := analyzerInterface["token_filters"]
+			if ok {
+				analyzer.TokenFilters = expandIndexTokenFilters(tokenFiltersMap.(*schema.Set).List())
+			}
+
+			analyzersList = append(analyzersList, analyzer)
+		}
+
+		return analyzersList
+
+	}
+	return nil
+}
+
+func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerTokenFilters {
+	var analyzerTokenFilters []*matlas.AnalyzerTokenFilters
+
+	for _, tf := range tokenFilters {
+		tokenFilterMap := tf.(map[string]interface{})
+
+		tokenFilter := &matlas.AnalyzerTokenFilters{}
+
+		tokenFilter.Type = tokenFilterMap["type"].(string)
+
+		if originalToken, ok := tokenFilterMap["original_tokens"]; ok {
+			tokenFilter.OriginalTokens = originalToken.(string)
+		}
+
+		if min, ok := tokenFilterMap["min"]; ok {
+			tokenFilter.Min = pointy.Int(min.(int))
+		}
+
+		if max, ok := tokenFilterMap["max"]; ok {
+			tokenFilter.Min = pointy.Int(max.(int))
+		}
+
+		if normalizationForm, ok := tokenFilterMap["normalization_form"]; ok {
+			tokenFilter.NormalizationForm = normalizationForm.(string)
+		}
+
+		if minGram, ok := tokenFilterMap["min_gram"]; ok {
+			tokenFilter.MinGram = pointy.Int(minGram.(int))
+		}
+
+		if maxGram, ok := tokenFilterMap["max_gram"]; ok {
+			tokenFilter.MinGram = pointy.Int(maxGram.(int))
+		}
+
+		if termsNotInBounds, ok := tokenFilterMap["terms_not_in_bounds"]; ok {
+			tokenFilter.TermsNotInBounds = termsNotInBounds.(string)
+		}
+
+		if minShingleSize, ok := tokenFilterMap["min_shingle_size"]; ok {
+			tokenFilter.MinShingleSize = pointy.Int(minShingleSize.(int))
+		}
+
+		if maxShingleSize, ok := tokenFilterMap["max_shingle_size"]; ok {
+			tokenFilter.MaxShingleSize = pointy.Int(maxShingleSize.(int))
+		}
+
+		if pattern, ok := tokenFilterMap["pattern"]; ok {
+			tokenFilter.Pattern = pattern.(string)
+		}
+
+		if replacement, ok := tokenFilterMap["replacement"]; ok {
+			tokenFilter.Replacement = replacement.(string)
+		}
+
+		if matches, ok := tokenFilterMap["matches"]; ok {
+			tokenFilter.Matches = matches.(string)
+		}
+
+		if stemmerName, ok := tokenFilterMap["stemmer_name"]; ok {
+			tokenFilter.StemmerName = stemmerName.(string)
+		}
+
+		if tokens, ok := tokenFilterMap["tokens"]; ok {
+			tokenFilter.Tokens = tokens.([]string)
+		}
+
+		if ignoreCase, ok := tokenFilterMap["ignore_case"]; ok {
+			tokenFilter.IgnoreCase = pointy.Bool(ignoreCase.(bool))
+		}
+
+		analyzerTokenFilters = append(analyzerTokenFilters, tokenFilter)
+
+	}
+
+	return analyzerTokenFilters
+}
+
+func expandIndexTokenizer(tokenizers []interface{}) *matlas.AnalyzerTokenizer {
+
+	if len(tokenizers) > 0 {
+		analyzerTokenizer := &matlas.AnalyzerTokenizer{}
+
+		tokenizer := tokenizers[0].(map[string]interface{})
+
+		analyzerTokenizer.Type = tokenizer["type"].(string)
+
+		if maxTokenLength, ok := tokenizer["max_token_length"]; ok {
+			analyzerTokenizer.MaxTokenLength = pointy.Int(maxTokenLength.(int))
+		}
+
+		if minGram, ok := tokenizer["min_gram"]; ok {
+			analyzerTokenizer.MinGram = pointy.Int(minGram.(int))
+		}
+
+		if maxGram, ok := tokenizer["max_gram"]; ok {
+			analyzerTokenizer.MaxGram = pointy.Int(maxGram.(int))
+		}
+
+		if pattern, ok := tokenizer["pattern"]; ok {
+			analyzerTokenizer.Pattern = pattern.(string)
+		}
+
+		if group, ok := tokenizer["group"]; ok {
+			analyzerTokenizer.Group = pointy.Int(group.(int))
+		}
+
+		return analyzerTokenizer
+	}
+
+	return nil
+}
+
+func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFilter {
+	var analyzerCharFilters []*matlas.AnalyzerCharFilter
+
+	if len(charFilters) > 0 {
+		for _, tf := range charFilters {
+			charFilterMap := tf.(map[string]interface{})
+
+			charFilter := &matlas.AnalyzerCharFilter{
+				Type: charFilterMap["type"].(string),
+			}
+
+			if ignoreTags, ok := charFilterMap["ignoreTags"]; ok {
+				charFilter.IgnoreTags = ignoreTags.([]string)
+			}
+
+			if mappings, ok := charFilterMap["mappings"]; ok {
+				charFilter.Mappings = mappings.(*map[string]string)
+			}
+
+			analyzerCharFilters = append(analyzerCharFilters, charFilter)
+
+		}
+
+		return analyzerCharFilters
+	}
+
+	return nil
+}
+
+func validateSearchIndexMappingDiff(k, old, new string, d *schema.ResourceData) bool {
+	var j, j2 interface{}
+	if err := json.Unmarshal([]byte(old), &j); err != nil {
+		log.Printf("[ERROR] json.Unmarshal %v", err)
+	}
+	if err := json.Unmarshal([]byte(new), &j2); err != nil {
+		log.Printf("[ERROR] json.Unmarshal %v", err)
+	}
+	if diff := deep.Equal(&j, &j2); diff != nil {
+		log.Printf("[DEBUG] deep equal not passed: %v", diff)
+		return false
+	}
+
+	return true
+}
+
+func unmarshalSearchIndexMappingFields(mappingString string) *map[string]matlas.IndexField {
+
+	var fields *map[string]matlas.IndexField
+	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
+		log.Printf("[ERROR] json.Unmarshal %v", err)
+		return nil
+	}
+
+	return fields
 }

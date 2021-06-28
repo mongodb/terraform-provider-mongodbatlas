@@ -1,13 +1,13 @@
 package mongodbatlas
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -17,11 +17,8 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 		resourceName = "mongodbatlas_search_index.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-global")
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name         = "name_test"
 	)
-
-	a:= matlas.CustomAnalyzer{}
-
-	b:= matlas.AnalyzerCharFilter{Mappings: }
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,73 +28,63 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
-
-					[]*matlas.ProjectTeam{
-						{
-							TeamID:    teamsIds[0],
-							RoleNames: []string{"GROUP_OWNER"},
-						},
-						{
-							TeamID:    teamsIds[1],
-							RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
-						},
-						{
-							TeamID:    teamsIds[2],
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
-
-					[]*matlas.ProjectTeam{
-						{
-							TeamID:    teamsIds[0],
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
-						},
-						{
-							TeamID:    teamsIds[1],
-							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "project_id", name),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
 				),
 			},
 		},
 	})
+}
+func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_search_index.test"
+		clusterName  = acctest.RandomWithPrefix("test-acc-global")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMongoDBAtlasSearchIndexDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matlas.SearchIndex) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*matlas.Client)
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		indexResponse, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
+		if err != nil {
+			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
+		}
+
+		*index = *indexResponse
+
+		return nil
+	}
 }
 
 func testAccMongoDBAtlasSearchIndexConfig(projectID string, clusterName string) string {
@@ -123,5 +110,31 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID string, clusterName string) 
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
+	conn := testAccProvider.Meta().(*matlas.Client)
 
+	for _, rs := range state.RootModule().Resources {
+		if rs.Type != "mongodbatlas_search_index" {
+			continue
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		_, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
+		if err == nil {
+			return fmt.Errorf("index id (%s) still exists", ids["index_id"])
+		}
+	}
+
+	return nil
+}
+
+func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		return rs.Primary.ID, nil
+	}
 }

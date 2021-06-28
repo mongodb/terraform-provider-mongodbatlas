@@ -2,7 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"net/http"
@@ -20,21 +22,29 @@ func dataSourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"page_num": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"items_per_page": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"results": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"baseAnalyzer": {
+						"base_analyzer": {
 							Type:     schema.TypeString,
 							Computed: true,
 							Required: false,
 						},
-						"ignoreCase": {
+						"ignore_case": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"maxTokenLength": {
+						"max_token_length": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -42,7 +52,7 @@ func dataSourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: false,
 						},
-						"stemExclusionSet": {
+						"stem_exclusion_set": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -59,6 +69,10 @@ func dataSourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 					},
 				},
 			},
+			"total_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -66,10 +80,19 @@ func dataSourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 func dataSourceMongoDBAtlasSearchAnalyzersRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
 	conn := meta.(*matlas.Client)
-	projectID := d.Get("project_id").(string)
-	clusterName := d.Get("cluster_name").(string)
+	projectID, projectIDOK := d.GetOk("project_id")
+	clusterName, clusterNameOK := d.GetOk("cluster_name")
 
-	analyzers, resp, err := conn.Search.ListAnalyzers(context.Background(), projectID, clusterName, nil)
+	if !projectIDOK || !clusterNameOK {
+		return errors.New("project_id and cluster_name must be configured")
+	}
+
+	options := &matlas.ListOptions{
+		PageNum:      d.Get("page_num").(int),
+		ItemsPerPage: d.Get("items_per_page").(int),
+	}
+
+	analyzers, resp, err := conn.Search.ListAnalyzers(context.Background(), projectID.(string), clusterName.(string), options)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
@@ -78,7 +101,15 @@ func dataSourceMongoDBAtlasSearchAnalyzersRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error reading analyzers list for project(%s): %s", projectID, err)
 	}
 
-	d.Set("results", flattenSearchAnalyzers(analyzers))
+	if err := d.Set("results", flattenSearchAnalyzers(analyzers)); err != nil {
+		return fmt.Errorf("error setting `result` for search analyzers: %s", err)
+	}
+
+	if err := d.Set("total_count", len(analyzers)); err != nil {
+		return fmt.Errorf("error setting `name`: %s", err)
+	}
+
+	d.SetId(resource.UniqueId())
 
 	return nil
 }

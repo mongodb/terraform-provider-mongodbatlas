@@ -8,59 +8,35 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceMongoDBAtlasAnalyzers_basic(t *testing.T) {
-	resourceName := "mongodbatlas_custom_db_role.test"
-	dataSourceName := "data.mongodbatlas_custom_db_role.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	roleName := fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
+func TestAccDataSourceMongoDBAtlasSearchAnalyzer_basic(t *testing.T) {
+	var (
+		clusterName = acctest.RandomWithPrefix("test-acc-global")
+		projectID   = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy: testAccCheckMongoDBAtlasSearchAnalyzerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasCustomDBRoleConfig(projectID, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: testAccMongoDBAtlasSearchAnalyzerDSConfig(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					// Test for Resource
-					testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.resources.#", "1"),
-
-					// Test for Data source
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "role_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_analyzers.test", "project_id"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_analyzers.test", "cluster_name"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDSMongoDBAtlasCustomDBRoleConfig(projectID, roleName, action, databaseName string) string {
+func testAccMongoDBAtlasSearchAnalyzerDSConfig(projectID string, clusterName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_custom_db_role" "test" {
-			project_id = "%s"
-			role_name  = "%s"
+		%s
 
-			actions {
-				action = "%s"
-				resources {
-					collection_name = ""
-					database_name   = "%s"
-				}
-			}
+		data "mongodbatlas_search_analyzers" "test" {
+			cluster_name           = mongodbatlas_search_analyzer.test.cluster_name
+			project_id         = mongodbatlas_search_analyzer.test.project_id
 		}
-
-		data "mongodbatlas_custom_db_role" "test" {
-			project_id = "${mongodbatlas_custom_db_role.test.project_id}"
-			role_name  = "${mongodbatlas_custom_db_role.test.role_name}"
-		}
-	`, projectID, roleName, action, databaseName)
+	`, testAccMongoDBAtlasSearchAnalyzerConfig(projectID, clusterName))
 }

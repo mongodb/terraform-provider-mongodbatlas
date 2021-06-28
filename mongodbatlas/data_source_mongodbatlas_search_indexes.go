@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -9,7 +10,6 @@ import (
 )
 
 func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
-
 	return &schema.Resource{
 		Read: dataSourceMongoDBAtlasSearchIndexesRead,
 		Schema: map[string]*schema.Schema{
@@ -21,82 +21,32 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"database-name": {
+			"database_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"collection-name": {
+			"collection_name": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"page_num": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"items_per_page": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"indexID": {
-							Type:     schema.TypeString,
-							Computed: true,
-							Required: false,
-						},
-						"analyzer": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"analyzers": {
-							Type:     schema.TypeString, //TODO: change type
-							Required: true,
-						},
-						"collectionName": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"database": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"searchAnalyzer": {
-							Type:     schema.TypeString,
-							Required: false,
-						},
-						"mappings": {
-							Type:     schema.TypeSet,
-							Optional: false,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"dynamic": {
-										Type:     schema.TypeBool,
-										Optional: false,
-									},
-									"fields": {
-										Type:     schema.TypeSet,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"field": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						"status": {
-							Type:     schema.TypeString,
-							Required: false,
-						},
-					},
+					Schema: returnSearchIndexSchema(),
 				},
+			},
+			"total_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 		},
 	}
@@ -106,18 +56,31 @@ func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interf
 	// Get client connection.
 	conn := meta.(*matlas.Client)
 
-	projectID := d.Get("project_id").(string)
-	clusterName := d.Get("cluster_name").(string)
-	databaseName := d.Get("database_name").(string)
-	collectionName := d.Get("collection_name").(string)
+	projectID, projectIDOK := d.GetOk("project_id")
+	clusterName, clusterNameOk := d.GetOk("cluster_name")
+	databaseName, databaseNameOK := d.GetOk("database_name")
+	collectionName, collectionNameOK := d.GetOk("collection_name")
 
-	searchIndexes, _, err := conn.Search.ListIndexes(context.Background(), projectID, clusterName, databaseName, collectionName, nil)
+	if !projectIDOK || !clusterNameOk || !databaseNameOK || !collectionNameOK {
+		return errors.New("project_id, cluster_name, database_name and collection_name must be configured")
+	}
+
+	options := &matlas.ListOptions{
+		PageNum:      d.Get("page_num").(int),
+		ItemsPerPage: d.Get("items_per_page").(int),
+	}
+
+	searchIndexes, _, err := conn.Search.ListIndexes(context.Background(), projectID.(string), clusterName.(string), databaseName.(string), collectionName.(string), options)
 	if err != nil {
 		return fmt.Errorf("error getting search indexes information: %s", err)
 	}
 
 	if err := d.Set("results", flattenSearchIndexes(searchIndexes)); err != nil {
 		return fmt.Errorf("error setting `result` for search indexes: %s", err)
+	}
+
+	if err := d.Set("total_count", len(searchIndexes)); err != nil {
+		return fmt.Errorf("error setting `name`: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())
@@ -133,15 +96,16 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) []map[string]inte
 
 		for i := range searchIndexes {
 			searchIndexesMap[i] = map[string]interface{}{
-				"analyzer":       searchIndexes[i].Analyzer,
-				"analyzers":      searchIndexes[i].Analyzers,
-				"collectionName": searchIndexes[i].CollectionName,
-				"database":       searchIndexes[i].Database,
-				"indexID":        searchIndexes[i].IndexID,
-				//"mappings":       searchIndexes[i].Mappings,  //TODO: create Flatten function
-				"name":           searchIndexes[i].Name,
-				"searchAnalyzer": searchIndexes[i].SearchAnalyzer,
-				"status":         searchIndexes[i].Status,
+				"analyzer":        searchIndexes[i].Analyzer,
+				"analyzers":       flattenSearchIndexCustomAnalyzers(searchIndexes[i].Analyzers),
+				"collectionName":  searchIndexes[i].CollectionName,
+				"database":        searchIndexes[i].Database,
+				"indexID":         searchIndexes[i].IndexID,
+				"mapping_dynamic": searchIndexes[i].Mappings.Dynamic,
+				"mappings_fields": marshallSearchIndexMappingFields(searchIndexes[i].Mappings.Fields),
+				"name":            searchIndexes[i].Name,
+				"searchAnalyzer":  searchIndexes[i].SearchAnalyzer,
+				"status":          searchIndexes[i].Status,
 			}
 		}
 	}

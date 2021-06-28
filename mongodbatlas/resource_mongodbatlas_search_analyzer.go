@@ -2,9 +2,12 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/openlyinc/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"log"
 	"strings"
 )
 
@@ -30,16 +33,16 @@ func resourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"baseAnalyzer": {
+						"base_analyzer": {
 							Type:     schema.TypeString,
 							Computed: true,
 							Required: false,
 						},
-						"ignoreCase": {
+						"ignore_case": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"maxTokenLength": {
+						"max_token_length": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -47,7 +50,7 @@ func resourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: false,
 						},
-						"stemExclusionSet": {
+						"stem_exclusion_set": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -69,20 +72,19 @@ func resourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 }
 
 func resourceMongoDBAtlasSearchAnalyzersImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	/*conn := meta.(*matlas.Client)
+	conn := meta.(*matlas.Client)
 
-	parts := strings.SplitN(d.Id(), "-", 3)
-	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a search index, use the format {project_id}-{cluster_name}-{index_id}")
+	parts := strings.SplitN(d.Id(), "-", 2)
+	if len(parts) != 2 {
+		return nil, errors.New("import format error: to import a search analyzer, use the format {project_id}-{cluster_name}")
 	}
 
 	projectID := parts[0]
 	clusterName := parts[1]
-	indexID := parts[2]
 
-	_, _, err := conn.Search.GetIndex(context.Background(), projectID, clusterName, indexID)
+	_, _, err := conn.Search.ListAnalyzers(context.Background(), projectID, clusterName, nil)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
+		return nil, fmt.Errorf("couldn't import search analyzers in projectID (%s) and Cluster (%s), error: %s", projectID, clusterName, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
@@ -93,21 +95,12 @@ func resourceMongoDBAtlasSearchAnalyzersImportState(d *schema.ResourceData, meta
 		log.Printf("[WARN] Error setting cluster_name for (%s): %s", clusterName, err)
 	}
 
-	if err := d.Set("index_id", indexID); err != nil {
-		log.Printf("[WARN] Error setting index_id for (%s): %s", indexID, err)
-	}
-
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
-		"index_id":     indexID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
-
-	*/
-
-	return nil, nil
 }
 
 func resourceMongoDBAtlasSearchAnalyzersUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -116,7 +109,6 @@ func resourceMongoDBAtlasSearchAnalyzersUpdate(d *schema.ResourceData, meta inte
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
-	//TODO: what can I use as identifier?
 
 	var searchAnalyzers []*matlas.SearchAnalyzer
 
@@ -193,11 +185,11 @@ func expandSearchAnalyzers(p []interface{}) []*matlas.SearchAnalyzer {
 	for k, v := range p {
 		mapping := v.(map[string]interface{})
 		mappings[k] = &matlas.SearchAnalyzer{
-			BaseAnalyzer:     mapping["baseAnalyzer"].(string),
-			IgnoreCase:       mapping["ignoreCase"].(*bool),
-			MaxTokenLength:   mapping["maxTokenLength"].(*int),
+			BaseAnalyzer:     mapping["base_analyzer"].(string),
+			IgnoreCase:       pointy.Bool(mapping["ignore_case"].(bool)),
+			MaxTokenLength:   pointy.Int(mapping["max_token_length"].(int)),
 			Name:             mapping["name"].(string),
-			StemExclusionSet: mapping["stemExclusionSet"].([]string),
+			StemExclusionSet: mapping["stem_exclusion_set"].([]string),
 			Stopwords:        mapping["stopwords"].([]string),
 		}
 	}
@@ -209,12 +201,12 @@ func flattenSearchAnalyzers(analyzers []*matlas.SearchAnalyzer) []map[string]int
 	analyzersMap := make([]map[string]interface{}, 0)
 	for _, v := range analyzers {
 		analyzersMap = append(analyzersMap, map[string]interface{}{
-			"baseAnalyzer":     v.BaseAnalyzer,
-			"IgnoreCase":       v.IgnoreCase,
-			"maxTokenLength":   v.MaxTokenLength,
-			"name":             v.Name,
-			"stemExclusionSet": v.StemExclusionSet,
-			"stopwords":        v.Stopwords,
+			"base_analyzer":      v.BaseAnalyzer,
+			"Ignore_case":        v.IgnoreCase,
+			"max_token_length":   v.MaxTokenLength,
+			"name":               v.Name,
+			"stem_exclusion_set": v.StemExclusionSet,
+			"stopwords":          v.Stopwords,
 		})
 	}
 
