@@ -125,6 +125,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy() *schema.Resource {
 				},
 			},
 		},
+		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_cloud_backup_schedule",
 	}
 }
 
