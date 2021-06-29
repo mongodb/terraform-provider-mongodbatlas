@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/realm/realm"

@@ -14,9 +14,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -360,7 +359,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					m := v.(map[string]interface{})
 					buf.WriteString(m["key"].(string))
 					buf.WriteString(m["value"].(string))
-					return hashcode.String(buf.String())
+					return HashCodeString(buf.String())
 				},
 				Computed: true,
 				Elem: &schema.Resource{
