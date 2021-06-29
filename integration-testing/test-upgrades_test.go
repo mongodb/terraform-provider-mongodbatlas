@@ -466,6 +466,79 @@ func TestUpgradeDesignIDState(t *testing.T) {
 	terraform.Plan(t, terraformOptionsSnapshotRestore)
 }
 
+func TestUpgradePrivateLinkEndpointDeprecation(t *testing.T) {
+	t.Parallel()
+
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		publicKey   = os.Getenv("MONGODB_ATLAS_PUBLIC_KEY")
+		privateKey  = os.Getenv("MONGODB_ATLAS_PRIVATE_KEY")
+		awsAccess   = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecret   = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		awsVPC      = os.Getenv("AWS_VPC_ID")
+		awsSubnets  = os.Getenv("AWS_SUBNET_ID")
+		awsSG       = os.Getenv("AWS_SECURITY_GROUP_ID")
+	)
+	// Construct the terraform options with default retryable errors to handle the most common
+	// retryable errors in terraform testing.
+	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v100/privatelink-endpoint/v091",
+		Vars: map[string]interface{}{
+			"project_name":   projectName,
+			"org_id":         orgID,
+			"public_key":     publicKey,
+			"private_key":    privateKey,
+			"aws_access_key": awsAccess,
+			"aws_secret_key": awsSecret,
+			"aws_vpc_id":     awsVPC,
+			"aws_subnet_ids": awsSubnets,
+			"aws_sg_ids":     awsSG,
+		},
+	})
+
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptions)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.InitAndApply(t, terraformOptions)
+
+	terraform.Plan(t, terraformOptions)
+
+	projectID := terraform.Output(t, terraformOptions, "project_id")
+	vpcEndpoint := terraform.Output(t, terraformOptions, "vpc_endpoint_id")
+	privateEndpoint := terraform.Output(t, terraformOptions, "private_endpoint_id")
+
+	tempTestFolder := CleanUpState(t, "examples/test-upgrade/v100/privatelink-endpoint/v100")
+
+	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: tempTestFolder,
+		Vars: map[string]interface{}{
+			"project_name":   projectName,
+			"org_id":         orgID,
+			"public_key":     publicKey,
+			"private_key":    privateKey,
+			"aws_access_key": awsAccess,
+			"aws_secret_key": awsSecret,
+			"aws_vpc_id":     awsVPC,
+			"aws_subnet_ids": awsSubnets,
+			"aws_sg_ids":     awsSG,
+		},
+	})
+
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+	//Remove states
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_privatelink_endpoint.test", fmt.Sprintf("%s-%s-%s-%s", projectID, privateEndpoint, "AWS", "us-east-1"))
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_vpc_endpoint.ptfe_service", vpcEndpoint)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_privatelink_endpoint_service.test", fmt.Sprintf("%s--%s--%s--%s", projectID, privateEndpoint, vpcEndpoint, "AWS"))
+	// Run `terraform apply`. Fail the test if there are any errors.
+	terraform.Plan(t, terraformOptionsSecond)
+
+}
+
 // This func means that the terraform state will be always clean to avoid error about resource already used
 func CleanUpState(t *testing.T, path string) string {
 	// Root folder where terraform files should be (relative to the test folder)

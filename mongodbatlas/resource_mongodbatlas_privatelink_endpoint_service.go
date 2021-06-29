@@ -237,19 +237,19 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "project_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "project_id", privateLinkID, err)
 	}
 
 	if err := d.Set("private_link_id", privateLinkID); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "private_link_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "private_link_id", privateLinkID, err)
 	}
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "endpoint_service_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "endpoint_service_id", privateLinkID, err)
 	}
 
 	if err := d.Set("provider_name", providerName); err != nil {
-		return nil, fmt.Errorf(errorPrivateEndpointsSetting, "provider_name", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
