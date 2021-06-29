@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
