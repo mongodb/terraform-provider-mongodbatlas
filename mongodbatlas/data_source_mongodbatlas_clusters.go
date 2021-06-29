@@ -65,7 +65,6 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 						"bi_connector_config": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -85,8 +84,6 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 						},
 						"connection_strings": {
 							Type:     schema.TypeList,
-							MinItems: 1,
-							MaxItems: 1,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
