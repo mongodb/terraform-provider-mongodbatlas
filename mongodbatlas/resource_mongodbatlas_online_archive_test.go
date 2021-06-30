@@ -100,9 +100,9 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 	updateConfig := fmt.Sprintf(onlineArchiveConfig, projectID, name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: initialConfig,

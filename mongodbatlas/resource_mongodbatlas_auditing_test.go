@@ -22,9 +22,9 @@ func TestAccResourceMongoDBAtlasAuditing_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasAuditingDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAuditingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAuditingConfig(projectID, auditFilter, auditAuth, enabled),
@@ -74,9 +74,9 @@ func TestAccResourceMongoDBAtlasAuditing_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasAuditingDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAuditingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAuditingConfig(projectID, auditFilter, auditAuth, enabled),

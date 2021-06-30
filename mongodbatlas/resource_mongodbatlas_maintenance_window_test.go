@@ -26,9 +26,9 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),
@@ -74,9 +74,9 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),

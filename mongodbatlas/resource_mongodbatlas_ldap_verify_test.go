@@ -30,9 +30,9 @@ func TestAccResourceMongoDBAtlasLDAPVerify_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
@@ -66,9 +66,9 @@ func TestAccResourceMongoDBAtlasLDAPVerifyWithConfiguration_CACertificate(t *tes
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
@@ -108,9 +108,9 @@ func TestAccResourceMongoDBAtlasLDAPVerify_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkLDAP(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),

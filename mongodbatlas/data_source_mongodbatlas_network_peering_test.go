@@ -22,9 +22,9 @@ func TestAccDataSourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
 	awsRegion := os.Getenv("AWS_REGION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasNetworkPeeringConfig(projectID, vpcID, awsAccountID, vpcCIDRBlock, awsRegion),

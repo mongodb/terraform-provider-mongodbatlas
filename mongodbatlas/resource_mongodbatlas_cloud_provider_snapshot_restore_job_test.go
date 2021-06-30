@@ -26,9 +26,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
@@ -63,9 +63,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
@@ -94,9 +94,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJobWithPointTime_bas
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID, timeUtc),
