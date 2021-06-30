@@ -261,6 +261,14 @@ func marshallSearchIndexMappingFields(fields *map[string]matlas.IndexField) inte
 	return mappingFieldJson
 }
 
+func marshallSearchIndexCharFilterMappingFields(fields *map[string]string) interface{} {
+	mappingFieldJson, err := json.Marshal(fields)
+	if err != nil {
+
+	}
+	return mappingFieldJson
+}
+
 func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map[string]interface{} {
 
 	if len(analyzers) > 0 {
@@ -378,7 +386,7 @@ func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[s
 			}
 
 			if filter.Mappings != nil {
-				mapCharFilters[i]["mappings"] = *filter.Mappings
+				mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(filter.Mappings)
 			}
 
 		}
@@ -449,11 +457,9 @@ func customAnalyzersSchema() *schema.Schema {
 								},
 							},
 							"mappings": {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
-								},
+								Type:             schema.TypeString,
+								Optional:         true,
+								DiffSuppressFunc: validateSearchIndexMappingDiff,
 							},
 						},
 					},
@@ -737,7 +743,7 @@ func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFil
 			}
 
 			if mappings, ok := charFilterMap["mappings"]; ok {
-				charFilter.Mappings = mappings.(*map[string]string)
+				charFilter.Mappings = unmarshalSearchIndexCharFilterMapping(mappings.(string))
 			}
 
 			analyzerCharFilters = append(analyzerCharFilters, charFilter)
@@ -774,5 +780,14 @@ func unmarshalSearchIndexMappingFields(mappingString string) *map[string]matlas.
 		return nil
 	}
 
+	return fields
+}
+
+func unmarshalSearchIndexCharFilterMapping(mappingString string) *map[string]string {
+	var fields *map[string]string
+	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
+		log.Printf("[ERROR] json.Unmarshal %v", err)
+		return nil
+	}
 	return fields
 }

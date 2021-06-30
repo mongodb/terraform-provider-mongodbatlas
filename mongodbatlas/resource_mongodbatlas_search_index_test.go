@@ -96,9 +96,7 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID string, clusterName string) 
 			analyzer = "lucene.standard"
 			collectionName = "collection_test"
 			database = "database_test"
-			mappings{
-				dynamic = true
-			}
+			mappings_dynamic = true
 			name = "name_test"
 			searchAnalyzer = "lucene.standard"
 
