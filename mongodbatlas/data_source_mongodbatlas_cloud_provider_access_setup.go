@@ -29,6 +29,13 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				Required: true,
 			},
 			"aws": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"aws_config": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{

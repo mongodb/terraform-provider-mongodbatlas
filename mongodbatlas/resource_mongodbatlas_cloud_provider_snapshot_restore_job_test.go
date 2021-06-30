@@ -35,8 +35,8 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName, &cloudProviderSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobAttributes(&cloudProviderSnapshotRestoreJob, "automated"),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.0.target_cluster_name", targetClusterName),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.0.target_project_id", targetGroupID),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_project_id", targetGroupID),
 				),
 			},
 			{
@@ -44,7 +44,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName, &cloudProviderSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobAttributes(&cloudProviderSnapshotRestoreJob, "download"),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.0.download", "true"),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
 				),
 			},
 		},
@@ -210,7 +210,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
-			delivery_type   {
+			delivery_type_config   {
 				automated           = true
 				target_cluster_name = "%s"
 				target_project_id   = "%s"
@@ -245,7 +245,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
-			delivery_type   {
+			delivery_type_config   {
 				download = true
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
@@ -293,7 +293,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
 
-			delivery_type   {
+			delivery_type_config   {
 				point_in_time       = true
 				target_cluster_name = mongodbatlas_cluster.target_cluster.name
 				target_project_id   = "%s"

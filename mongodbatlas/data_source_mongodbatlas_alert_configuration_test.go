@@ -76,7 +76,7 @@ func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 				value      = "SECONDARY"
 			}
 
-			metric_threshold {
+			metric_threshold_config {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = 99.0
@@ -114,7 +114,7 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID string
 				value      = "SECONDARY"
 			}
 
-			threshold {
+			threshold_config {
 				operator    = "LESS_THAN"
 				units       = "HOURS"
 				threshold   = %f
