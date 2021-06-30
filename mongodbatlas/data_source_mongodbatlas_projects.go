@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -12,7 +13,7 @@ import (
 
 func dataSourceMongoDBAtlasProjects() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasProjectsRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasProjectsRead,
 		Schema: map[string]*schema.Schema{
 			"page_num": {
 				Type:     schema.TypeInt,
@@ -77,7 +78,7 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasProjectsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	options := &matlas.ListOptions{
@@ -85,17 +86,17 @@ func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	projects, _, err := conn.Projects.GetAllProjects(context.Background(), options)
+	projects, _, err := conn.Projects.GetAllProjects(ctx, options)
 	if err != nil {
-		return fmt.Errorf("error getting projects information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting projects information: %s", err))
 	}
 
-	if err := d.Set("results", flattenProjects(conn, projects.Results)); err != nil {
-		return fmt.Errorf("error setting `results`: %s", err)
+	if err := d.Set("results", flattenProjects(ctx, conn, projects.Results)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
 	if err := d.Set("total_count", projects.TotalCount); err != nil {
-		return fmt.Errorf("error setting `name`: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())
@@ -103,14 +104,14 @@ func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenProjects(conn *matlas.Client, projects []*matlas.Project) []map[string]interface{} {
+func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matlas.Project) []map[string]interface{} {
 	var results []map[string]interface{}
 
 	if len(projects) > 0 {
 		results = make([]map[string]interface{}, len(projects))
 
 		for k, project := range projects {
-			teams, _, err := conn.Projects.GetProjectTeamsAssigned(context.Background(), project.ID)
+			teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, project.ID)
 			if err != nil {
 				fmt.Printf("[WARN] error getting project's teams assigned (%s): %s", project.ID, err)
 			}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -15,7 +16,7 @@ const (
 
 func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCloudProviderAccessRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasCloudProviderAccessRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -85,18 +86,18 @@ func featureUsagesSchema() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+	roles, _, err := conn.CloudProviderAccess.ListRoles(ctx, projectID)
 
 	if err != nil {
-		return fmt.Errorf(errorGetRead, err)
+		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
 	if err = d.Set("aws_iam_roles", flatCloudProviderAccessRoles(roles)); err != nil {
-		return fmt.Errorf(errorGetRead, err)
+		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
 	d.SetId(resource.UniqueId())

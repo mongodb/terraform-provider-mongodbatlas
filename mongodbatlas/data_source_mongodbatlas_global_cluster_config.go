@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasGlobalClusterRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasGlobalClusterRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -49,27 +50,27 @@ func dataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	globalCluster, resp, err := conn.GlobalClusters.Get(context.Background(), projectID, clusterName)
+	globalCluster, resp, err := conn.GlobalClusters.Get(ctx, projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 
-		return fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
 	if err := d.Set("managed_namespaces", flattenManagedNamespaces(globalCluster.ManagedNamespaces)); err != nil {
-		return fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
 	if err := d.Set("custom_zone_mapping", globalCluster.CustomZoneMapping); err != nil {
-		return fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
 	}
 
 	d.SetId(clusterName)

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -24,12 +25,12 @@ const (
 
 func resourceMongoDBAtlasTeam() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasTeamCreate,
-		Read:   resourceMongoDBAtlasTeamRead,
-		Update: resourceMongoDBAtlasTeamUpdate,
-		Delete: resourceMongoDBAtlasTeamDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasTeamCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasTeamRead,
+		UpdateWithoutTimeout: resourceMongoDBAtlasTeamUpdate,
+		DeleteWithoutTimeout: resourceMongoDBAtlasTeamDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasTeamImportState,
+			StateContext: resourceMongoDBAtlasTeamImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"org_id": {
@@ -56,18 +57,18 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
 	// Creating the team
-	teamsResp, _, err := conn.Teams.Create(context.Background(), orgID,
+	teamsResp, _, err := conn.Teams.Create(ctx, orgID,
 		&matlas.Team{
 			Name:      d.Get("name").(string),
 			Usernames: expandStringListFromSetSchema(d.Get("usernames").(*schema.Set)),
 		})
 	if err != nil {
-		return fmt.Errorf(errorTeamCreate, err)
+		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -75,10 +76,10 @@ func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) er
 		"id":     teamsResp.ID,
 	}))
 
-	return resourceMongoDBAtlasTeamRead(d, meta)
+	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -93,22 +94,21 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf(errorTeamRead, err)
+		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
 	if err = d.Set("name", team.Name); err != nil {
-		return fmt.Errorf(errorTeamSetting, "name", teamID, err)
+		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", teamID, err))
 	}
 
 	if err = d.Set("team_id", team.ID); err != nil {
-		return fmt.Errorf(errorTeamSetting, "team_id", teamID, err)
+		return diag.FromErr(fmt.Errorf(errorTeamSetting, "team_id", teamID, err))
 	}
 
 	// Set Usernames
-	users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, teamID)
+	users, _, err := conn.Teams.GetTeamUsersAssigned(ctx, orgID, teamID)
 	if err != nil {
-		return fmt.Errorf(errorTeamRead, err)
+		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
 	usernames := []string{}
@@ -117,13 +117,13 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if err := d.Set("usernames", usernames); err != nil {
-		return fmt.Errorf(errorTeamSetting, "usernames", teamID, err)
+		return diag.FromErr(fmt.Errorf(errorTeamSetting, "usernames", teamID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -131,19 +131,19 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 	teamID := ids["id"]
 
 	if d.HasChange("name") {
-		_, _, err := conn.Teams.Rename(context.Background(), orgID, teamID, d.Get("name").(string))
+		_, _, err := conn.Teams.Rename(ctx, orgID, teamID, d.Get("name").(string))
 		if err != nil {
-			return fmt.Errorf(errorTeamUpdate, err)
+			return diag.FromErr(fmt.Errorf(errorTeamUpdate, err))
 		}
 	}
 
 	if d.HasChange("usernames") {
 		// First, we need to remove the current users of the team and later add the new users
 		// Get the current team's users
-		users, _, err := conn.Teams.GetTeamUsersAssigned(context.Background(), orgID, teamID)
+		users, _, err := conn.Teams.GetTeamUsersAssigned(ctx, orgID, teamID)
 
 		if err != nil {
-			return fmt.Errorf(errorTeamRead, err)
+			return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 		}
 
 		// Removing each user - Let's not modify the state before making sure we can continue
@@ -156,7 +156,7 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 
 		cleanUsers := func() error {
 			for i := range users {
-				_, err := conn.Teams.RemoveUserToTeam(context.Background(), orgID, teamID, users[i].ID)
+				_, err := conn.Teams.RemoveUserToTeam(ctx, orgID, teamID, users[i].ID)
 				if err != nil {
 					return fmt.Errorf("error deleting Atlas User (%s) information: %s", teamID, err)
 				}
@@ -170,7 +170,7 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 		var newUsers []string
 
 		for _, username := range d.Get("usernames").(*schema.Set).List() {
-			user, _, err := conn.AtlasUsers.GetByName(context.Background(), username.(string))
+			user, _, err := conn.AtlasUsers.GetByName(ctx, username.(string))
 
 			updatedUserData := user
 
@@ -178,7 +178,7 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 				// this must be handle as a soft error
 				if !strings.Contains(err.Error(), "401") {
 					// In this case is a hard error doing a rollback from the initial operation
-					return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
+					return diag.FromErr(fmt.Errorf("error getting Atlas User (%s) information: %s", username, err))
 				}
 
 				log.Printf("[WARN] error fetching information user for (%s): %s\n", username, err)
@@ -189,7 +189,7 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 
 					if !ok {
 						log.Printf("[WARN] no information in cached for (%s)", username)
-						return fmt.Errorf("error getting Atlas User (%s) information: %s", username, err)
+						return diag.FromErr(fmt.Errorf("error getting Atlas User (%s) information: %s", username, err))
 					}
 					updatedUserData = &cached
 				}
@@ -201,33 +201,33 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 		// Update the users, remove the old ones, add the new ones
 		err = cleanUsers()
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
-		_, _, err = conn.Teams.AddUsersToTeam(context.Background(), orgID, teamID, newUsers)
+		_, _, err = conn.Teams.AddUsersToTeam(ctx, orgID, teamID, newUsers)
 		if err != nil {
-			return fmt.Errorf(errorTeamAddUsers, err)
+			return diag.FromErr(fmt.Errorf(errorTeamAddUsers, err))
 		}
 	}
 
-	return resourceMongoDBAtlasTeamRead(d, meta)
+	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
-	_, err := conn.Teams.RemoveTeamFromOrganization(context.Background(), orgID, id)
+	_, err := conn.Teams.RemoveTeamFromOrganization(ctx, orgID, id)
 	if err != nil {
-		return fmt.Errorf(errorTeamDelete, id, err)
+		return diag.FromErr(fmt.Errorf(errorTeamDelete, id, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasTeamImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -238,7 +238,7 @@ func resourceMongoDBAtlasTeamImportState(d *schema.ResourceData, meta interface{
 	orgID := parts[0]
 	teamID := parts[1]
 
-	u, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
+	u, _, err := conn.Teams.Get(ctx, orgID, teamID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import team (%s) in organization(%s), error: %s", teamID, orgID, err)
 	}

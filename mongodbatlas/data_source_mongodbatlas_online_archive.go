@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -29,7 +30,7 @@ func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasOnlineArchivesRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasOnlineArchivesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:         schema.TypeString,
@@ -58,8 +59,8 @@ func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
 
 func dataSourceMongoDBAtlasOnlineArchive() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceMongoDBAtlasOnlineArchiveRead,
-		Schema: schemaOnlineArchive(),
+		ReadWithoutTimeout: dataSourceMongoDBAtlasOnlineArchiveRead,
+		Schema:             schemaOnlineArchive(),
 	}
 }
 
@@ -145,23 +146,23 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 	}
 }
 
-func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	atlasID := d.Get("archive_id").(string)
 
-	archive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
+	archive, _, err := conn.OnlineArchives.Get(ctx, projectID, clusterName, atlasID)
 
 	if err != nil {
-		return fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error())
+		return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error()))
 	}
 
 	onlineArchiveMap := fromOnlineArchiveToMap(archive)
 
 	for key, val := range onlineArchiveMap {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error())
+			return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error()))
 		}
 	}
 
@@ -174,14 +175,14 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func dataSourceMongoDBAtlasOnlineArchivesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	archives, _, err := conn.OnlineArchives.List(context.Background(), projectID, clusterName, &matlas.ListOptions{})
+	archives, _, err := conn.OnlineArchives.List(ctx, projectID, clusterName, &matlas.ListOptions{})
 
 	if err != nil {
-		return fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error())
+		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
 	}
 
 	results := make([]map[string]interface{}, 0, len(archives.Results))
@@ -193,11 +194,11 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(d *schema.ResourceData, meta inter
 	}
 
 	if err = d.Set("results", results); err != nil {
-		return fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error())
+		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
 	}
 
 	if err = d.Set("total_count", archives.TotalCount); err != nil {
-		return fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error())
+		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
 	}
 
 	d.SetId(resource.UniqueId())

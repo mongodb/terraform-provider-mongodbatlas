@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,11 +18,11 @@ import (
 
 func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate,
-		Read:   resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
-		Delete: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
+		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState,
+			StateContext: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -120,7 +121,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -131,14 +132,14 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 
 	err := validateDeliveryType(d.Get("delivery_type").([]interface{}))
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	snapshotReq := buildRequestSnapshotReq(d)
 
-	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(context.Background(), requestParameters, snapshotReq)
+	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(ctx, requestParameters, snapshotReq)
 	if err != nil {
-		return fmt.Errorf("error restore a snapshot: %s", err)
+		return diag.FromErr(fmt.Errorf("error restore a snapshot: %s", err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -147,10 +148,10 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(d *schema.Resourc
 		"snapshot_restore_job_id": cloudProviderSnapshotRestoreJob.ID,
 	}))
 
-	return resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d, meta)
+	return resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -168,45 +169,45 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceD
 			return nil
 		}
 
-		return fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err))
 	}
 
 	if err = d.Set("delivery_url", snapshotReq.DeliveryURL); err != nil {
-		return fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `delivery_url` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("cancelled", snapshotReq.Cancelled); err != nil {
-		return fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `cancelled` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("created_at", snapshotReq.CreatedAt); err != nil {
-		return fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `created_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("expired", snapshotReq.Expired); err != nil {
-		return fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `expired` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("expires_at", snapshotReq.ExpiresAt); err != nil {
-		return fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("finished_at", snapshotReq.FinishedAt); err != nil {
-		return fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `Finished_at` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("timestamp", snapshotReq.Timestamp); err != nil {
-		return fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	if err = d.Set("snapshot_restore_job_id", snapshotReq.ID); err != nil {
-		return fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_restore_job_id` for cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -220,16 +221,16 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(d *schema.Resourc
 	if aut, _ := d.Get("delivery_type.automated").(string); aut == "true" {
 		log.Print("Automated restore cannot be cancelled")
 	} else {
-		_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(context.Background(), requestParameters)
+		_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(ctx, requestParameters)
 		if err != nil {
-			return fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err)
+			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, clusterName, snapshotJobID, err := splitSnapshotRestoreJobImportID(d.Id())
@@ -243,7 +244,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(d *schema.Re
 		JobID:       *snapshotJobID,
 	}
 
-	u, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
+	u, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(ctx, requestParameters)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cloudProviderSnapshotRestoreJob %s in project %s, error: %s", requestParameters.ClusterName, requestParameters.GroupID, err)
 	}
