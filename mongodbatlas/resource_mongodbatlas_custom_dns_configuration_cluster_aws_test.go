@@ -17,9 +17,9 @@ func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDNSConfigurationAWSConfig(projectID, true),
@@ -56,9 +56,9 @@ func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_importBasic(t *testing
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDNSConfigurationAWSConfig(projectID, true),

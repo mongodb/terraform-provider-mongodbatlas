@@ -27,9 +27,9 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testin
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
@@ -63,9 +63,9 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_import(t *testing.
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(

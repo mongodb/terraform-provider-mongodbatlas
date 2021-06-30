@@ -25,9 +25,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays),
@@ -54,9 +54,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) 
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotConfig(projectID, clusterName, description, retentionInDays),

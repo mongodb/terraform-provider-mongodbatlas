@@ -57,9 +57,9 @@ func TestAccResourceMongoDBAtlasCloudProviderAccessSetup_importBasic(t *testing.
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(createProviderAccessSetupRole, name, projectID, "AWS"),
