@@ -79,6 +79,155 @@ so no changes are needed.
 **NOTE** Doc links for [mongodbatlas_privatelink_endpoint](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint)
 **NOTE** Doc links for [mongodbatlas_privatelink_endpoint_service](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service)
 
+## Migration to Terraform SDK v2
+
+Because of migration to terraform sdk v2, in various resources and datasource(s) are not supported using TypeMap as object, instead it should use TypeSet or TypeList with MaxItems:1, here the list of resources affected by migration
+
+### Alert Configuration
+- Fields Affected:
+    - metric_threshold (deprecated), use metric_threshold_config instead
+    - threshold (deprecated), use threshold_confing instead
+
+Old usage:
+```terraform
+metric_threshold = {
+  metric_name = "ASSERT_REGULAR"
+  operator    = "LESS_THAN"
+  threshold   = 1.0
+  units       = "RAW"
+  mode        = "AVERAGE"
+}
+
+threshold = {
+    operator    = "LESS_THAN"
+    threshold   = 72
+    units       = "HOURS"
+  }
+
+```
+
+Actual usage:
+```terraform
+metric_threshold_config {
+  metric_name = "ASSERT_REGULAR"
+  operator    = "LESS_THAN"
+  threshold   = 1.0
+  units       = "RAW"
+  mode        = "AVERAGE"
+}
+
+threshold_config {
+    operator    = "LESS_THAN"
+    threshold   = 72
+    units       = "HOURS"
+  }
+
+```
+
+### Cloud Provider Access Authorization
+- Fields Affected:
+    - aws (deprecated), use aws_config instead
+
+Old usage:
+```terraform
+aws = {
+  iam_assumed_role_arn = aws_iam_role.test_role.arn
+}
+```
+
+Actual usage:
+```terraform
+aws_config {
+  iam_assumed_role_arn = aws_iam_role.test_role.arn
+}
+```
+
+### Cloud Provider Snapshot Restore Job
+- Fields Affected:
+    - delivery_type (deprecated), use delivery_type_config instead
+
+Old usage:
+```terraform
+delivery_type  = {
+  point_in_time       = true
+  target_cluster_name = mongodbatlas_cluster.target_cluster.name
+  target_project_id   = ""
+}
+```
+
+Actual usage:
+```terraform
+delivery_type_config   {
+  point_in_time       = true
+  target_cluster_name = mongodbatlas_cluster.target_cluster.name
+  target_project_id   = ""
+}
+```
+
+### Encryption at rest
+- Fields Affected:
+    - aws_kms (deprecated), use aws_kms instead
+    - azure_key_vault (deprecated), use azure_key_vault instead
+    - google_cloud_kms (deprecated), use google_cloud_kms instead
+
+Old usage:
+```terraform
+
+aws_kms = {
+  enabled                = true
+  access_key_id          = ""
+  secret_access_key      = ""
+  customer_master_key_id = ""
+  region                 = ""
+}
+
+azure_key_vault = {
+  enabled             = true
+  client_id           = ""
+  azure_environment   = ""
+  subscription_id     = ""
+  resource_group_name = ""
+  key_vault_name  	  = ""
+  key_identifier  	  = ""
+  secret  			  = ""
+  tenant_id  		  = ""
+}
+
+google_cloud_kms = {
+  enabled                 = true
+  service_account_key     = ""
+  key_version_resource_id = ""
+}
+```
+
+Actual usage:
+```terraform
+aws_kms_config {
+  enabled                = true
+  access_key_id          = ""
+  secret_access_key      = ""
+  customer_master_key_id = ""
+  region                 = ""
+}
+
+azure_key_vault_config {
+  enabled             = true
+  client_id           = ""
+  azure_environment   = ""
+  subscription_id     = ""
+  resource_group_name = ""
+  key_vault_name  	  = ""
+  key_identifier  	  = ""
+  secret  			  = ""
+  tenant_id  		  = ""
+}
+
+google_cloud_kms_config {
+  enabled                 = true
+  service_account_key     = ""
+  key_version_resource_id = ""
+}
+```
 
 ### Helpful Links
 
