@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/openlyinc/pointy"
+	"github.com/mwielbut/pointy"
 	"log"
 	"strings"
 
@@ -81,7 +81,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 }
 
 func resourceMongoDBAtlasSearchIndexImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
 	if len(parts) != 3 {
@@ -120,7 +120,7 @@ func resourceMongoDBAtlasSearchIndexImportState(d *schema.ResourceData, meta int
 
 func resourceMongoDBAtlasSearchIndexDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -136,7 +136,7 @@ func resourceMongoDBAtlasSearchIndexDelete(d *schema.ResourceData, meta interfac
 
 func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -189,7 +189,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 
 func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -397,7 +397,7 @@ func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[s
 
 func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	clusterName := d.Get("cluster_name").(string)

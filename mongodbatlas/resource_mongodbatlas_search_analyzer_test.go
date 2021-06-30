@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"os"
 	"testing"
 )
@@ -58,7 +57,7 @@ func TestAccResourceMongoDBAtlasSearchAnalyzer_importBasic(t *testing.T) {
 }
 func testAccCheckMongoDBAtlasSearchAnalyzerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -99,7 +98,7 @@ func testAccMongoDBAtlasSearchAnalyzerConfig(projectID string, clusterName strin
 }
 
 func testAccCheckMongoDBAtlasSearchAnalyzerDestroy(state *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_search_analyzer" {

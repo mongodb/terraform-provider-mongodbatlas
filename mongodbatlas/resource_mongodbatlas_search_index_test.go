@@ -63,7 +63,7 @@ func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
 }
 func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matlas.SearchIndex) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -108,7 +108,7 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID string, clusterName string) 
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_search_index" {

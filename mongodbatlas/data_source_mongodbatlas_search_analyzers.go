@@ -79,7 +79,7 @@ func dataSourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 
 func dataSourceMongoDBAtlasSearchAnalyzersRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID, projectIDOK := d.GetOk("project_id")
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
 

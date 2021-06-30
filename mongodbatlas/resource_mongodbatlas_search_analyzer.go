@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/openlyinc/pointy"
+	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"log"
 	"strings"
@@ -72,7 +72,7 @@ func resourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 }
 
 func resourceMongoDBAtlasSearchAnalyzersImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -105,7 +105,7 @@ func resourceMongoDBAtlasSearchAnalyzersImportState(d *schema.ResourceData, meta
 
 func resourceMongoDBAtlasSearchAnalyzersUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -126,7 +126,7 @@ func resourceMongoDBAtlasSearchAnalyzersUpdate(d *schema.ResourceData, meta inte
 
 func resourceMongoDBAtlasSearchAnalyzersRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -159,7 +159,7 @@ func resourceMongoDBAtlasSearchAnalyzersRead(d *schema.ResourceData, meta interf
 
 func resourceMongoDBAtlasSearchAnalyzersCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	clusterName := d.Get("cluster_name").(string)

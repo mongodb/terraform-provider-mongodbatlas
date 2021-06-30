@@ -18,7 +18,7 @@ func dataSourceMongoDBAtlasSearchIndex() *schema.Resource {
 
 func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
