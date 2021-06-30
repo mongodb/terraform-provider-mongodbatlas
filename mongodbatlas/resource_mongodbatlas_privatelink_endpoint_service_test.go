@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
@@ -105,7 +104,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceImportStateIDFunc(resourc
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -128,7 +127,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName strin
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service" {

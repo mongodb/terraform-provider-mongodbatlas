@@ -6,8 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/spf13/cast"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
@@ -72,7 +70,7 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 
 func dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")

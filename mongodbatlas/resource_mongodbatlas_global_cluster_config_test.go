@@ -101,7 +101,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConfig *matlas.GlobalCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -151,7 +151,7 @@ func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.Globa
 }
 
 func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_global_cluster_config" {

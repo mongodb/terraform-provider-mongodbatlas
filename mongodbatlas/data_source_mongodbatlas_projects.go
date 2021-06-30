@@ -79,7 +79,7 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 
 func dataSourceMongoDBAtlasProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),
 		ItemsPerPage: d.Get("items_per_page").(int),

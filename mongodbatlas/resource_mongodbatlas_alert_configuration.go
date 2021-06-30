@@ -275,7 +275,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 
@@ -302,7 +302,7 @@ func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta i
 }
 
 func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
@@ -343,7 +343,7 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 
 func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	var (
-		conn = meta.(*matlas.Client)
+		conn = meta.(*MongoDBClient).Atlas
 		ids  = decodeStateID(d.Id())
 		err  error
 	)
@@ -401,7 +401,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceMongoDBAtlasAlertConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	_, err := conn.AlertConfigurations.Delete(context.Background(), ids["project_id"], ids["id"])
@@ -413,7 +413,7 @@ func resourceMongoDBAtlasAlertConfigurationDelete(d *schema.ResourceData, meta i
 }
 
 func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	parts := strings.SplitN(d.Id(), "-", 2)
 
 	if len(parts) != 2 {

@@ -61,7 +61,7 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 
 func dataSourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	name, nameOk := d.GetOk("name")

@@ -99,7 +99,7 @@ func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 
 func dataSourceMongoDBAtlasDataLakesRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 

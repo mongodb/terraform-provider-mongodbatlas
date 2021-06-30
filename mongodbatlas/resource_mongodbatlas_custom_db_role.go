@@ -100,7 +100,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	customDBRoleReq := &matlas.CustomDBRole{
@@ -147,7 +147,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -173,7 +173,7 @@ func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -203,7 +203,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
@@ -243,7 +243,7 @@ func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasCustomDBRoleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

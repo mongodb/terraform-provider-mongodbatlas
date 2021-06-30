@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
@@ -219,7 +217,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 
 func dataSourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	alertID := getEncodedID(d.Get("alert_configuration_id").(string), "id")
 

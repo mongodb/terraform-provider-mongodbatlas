@@ -41,7 +41,7 @@ func resourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("project_id").(string)
 
 	// Creating(Updating) the Custom DNS Configuration for Atlas Clusters on AWS
@@ -59,7 +59,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationCreate(d *schema.ResourceData, me
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	dnsResp, _, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
 	if err != nil {
@@ -78,7 +78,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationRead(d *schema.ResourceData, meta
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	if d.HasChange("enabled") {
 		_, _, err := conn.CustomAWSDNS.Update(context.Background(), d.Id(), &matlas.AWSCustomDNSSetting{
@@ -93,7 +93,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationUpdate(d *schema.ResourceData, me
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	_, _, err := conn.CustomAWSDNS.Update(context.Background(), d.Id(), &matlas.AWSCustomDNSSetting{
 		Enabled: false,

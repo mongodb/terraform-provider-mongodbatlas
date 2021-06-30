@@ -66,7 +66,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		SnapshotID:  d.Get("snapshot_id").(string),

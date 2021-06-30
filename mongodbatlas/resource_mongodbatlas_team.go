@@ -56,7 +56,7 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 }
 
 func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
 	// Creating the team
@@ -78,7 +78,7 @@ func resourceMongoDBAtlasTeamCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -123,7 +123,7 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -213,7 +213,7 @@ func resourceMongoDBAtlasTeamUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceMongoDBAtlasTeamDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
@@ -227,7 +227,7 @@ func resourceMongoDBAtlasTeamDelete(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceMongoDBAtlasTeamImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

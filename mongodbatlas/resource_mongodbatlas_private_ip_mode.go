@@ -43,7 +43,7 @@ func resourceMongoDBAtlasPrivateIPMode() *schema.Resource {
 
 func resourceMongoDBAtlasPrivateIPModeCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	// Get the required ones
@@ -63,7 +63,7 @@ func resourceMongoDBAtlasPrivateIPModeCreate(d *schema.ResourceData, meta interf
 
 func resourceMongoDBAtlasPrivateIPModeRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Id()
 
@@ -85,7 +85,7 @@ func resourceMongoDBAtlasPrivateIPModeRead(d *schema.ResourceData, meta interfac
 
 func resourceMongoDBAtlasPrivateIPModeDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
 	// Get the required ones

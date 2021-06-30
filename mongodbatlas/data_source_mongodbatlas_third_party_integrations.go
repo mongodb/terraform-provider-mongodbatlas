@@ -27,7 +27,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	integrations, _, err := conn.Integrations.List(context.Background(), projectID)

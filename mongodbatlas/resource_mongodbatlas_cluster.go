@@ -389,7 +389,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 
 func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
@@ -597,7 +597,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 
 func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -771,7 +771,7 @@ func resourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -923,7 +923,7 @@ func resourceMongoDBAtlasClusterUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -955,7 +955,7 @@ func resourceMongoDBAtlasClusterDelete(d *schema.ResourceData, meta interface{})
 }
 
 func resourceMongoDBAtlasClusterImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, name, err := splitSClusterImportID(d.Id())
 	if err != nil {

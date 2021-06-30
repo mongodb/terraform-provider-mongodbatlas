@@ -180,7 +180,7 @@ func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -213,7 +213,7 @@ func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectN
 }
 
 func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project" {
