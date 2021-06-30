@@ -79,7 +79,7 @@ func testAccCheckMongoDBAtlasSearchAnalyzerExists(resourceName string) resource.
 	}
 }
 
-func testAccMongoDBAtlasSearchAnalyzerConfig(projectID string, clusterName string) string {
+func testAccMongoDBAtlasSearchAnalyzerConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			project_id         = "%[1]s"

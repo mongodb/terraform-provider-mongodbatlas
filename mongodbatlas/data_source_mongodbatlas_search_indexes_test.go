@@ -33,7 +33,7 @@ func TestAccDataSourceMongoDBAtlasSearchIndexes_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasSearchIndexesDSConfig(projectID string, clusterName string, databaseName string, collectionName string) string {
+func testAccMongoDBAtlasSearchIndexesDSConfig(projectID, clusterName, databaseName, collectionName string) string {
 	return fmt.Sprintf(`
 		%s
 

@@ -115,7 +115,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_cloud_provider_access_setup":           resourceMongoDBAtlasCloudProviderAccessSetup(),
 			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
 			"mongodbatlas_search_index":                          resourceMongoDBAtlasSearchIndex(),
-			"mongodbatlas_search_analyzer":                       resourceMongoDBAtlasSearchIndex(),
+			"mongodbatlas_search_analyzer":                       resourceMongoDBAtlasSearchAnalyzers(),
 			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 		},

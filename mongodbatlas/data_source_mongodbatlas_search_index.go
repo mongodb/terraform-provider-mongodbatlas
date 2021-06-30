@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasSearchIndex() *schema.Resource {
@@ -65,7 +64,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting `mapping_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(searchIndex.Mappings.Fields)); err != nil {
+	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)); err != nil {
 		return fmt.Errorf("error setting `mapping_fields` for for search index (%s): %s", d.Id(), err)
 	}
 

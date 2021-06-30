@@ -240,7 +240,7 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `mapping_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(searchIndex.Mappings.Fields)); err != nil {
+	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)); err != nil {
 		return fmt.Errorf("error setting `mapping_fields` for for search index (%s): %s", d.Id(), err)
 	}
 
@@ -253,20 +253,20 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func marshallSearchIndexMappingFields(fields *map[string]matlas.IndexField) interface{} {
-	mappingFieldJson, err := json.Marshal(fields)
+func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) interface{} {
+	mappingFieldJSON, err := json.Marshal(fields)
 	if err != nil {
 
 	}
-	return mappingFieldJson
+	return mappingFieldJSON
 }
 
-func marshallSearchIndexCharFilterMappingFields(fields *map[string]string) interface{} {
-	mappingFieldJson, err := json.Marshal(fields)
+func marshallSearchIndexCharFilterMappingFields(fields map[string]string) interface{} {
+	mappingFieldJSON, err := json.Marshal(fields)
 	if err != nil {
 
 	}
-	return mappingFieldJson
+	return mappingFieldJSON
 }
 
 func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map[string]interface{} {
@@ -386,7 +386,7 @@ func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[s
 			}
 
 			if filter.Mappings != nil {
-				mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(filter.Mappings)
+				mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(*filter.Mappings)
 			}
 
 		}
@@ -756,12 +756,12 @@ func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFil
 	return nil
 }
 
-func validateSearchIndexMappingDiff(k, old, new string, d *schema.ResourceData) bool {
+func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
 	var j, j2 interface{}
 	if err := json.Unmarshal([]byte(old), &j); err != nil {
 		log.Printf("[ERROR] json.Unmarshal %v", err)
 	}
-	if err := json.Unmarshal([]byte(new), &j2); err != nil {
+	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
 		log.Printf("[ERROR] json.Unmarshal %v", err)
 	}
 	if diff := deep.Equal(&j, &j2); diff != nil {

@@ -30,7 +30,7 @@ func TestAccDataSourceMongoDBAtlasSearchAnalyzer_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasSearchAnalyzerDSConfig(projectID string, clusterName string) string {
+func testAccMongoDBAtlasSearchAnalyzerDSConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		%s
 

@@ -102,7 +102,7 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) []map[string]inte
 				"database":        searchIndexes[i].Database,
 				"indexID":         searchIndexes[i].IndexID,
 				"mapping_dynamic": searchIndexes[i].Mappings.Dynamic,
-				"mappings_fields": marshallSearchIndexMappingFields(searchIndexes[i].Mappings.Fields),
+				"mappings_fields": marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields),
 				"name":            searchIndexes[i].Name,
 				"searchAnalyzer":  searchIndexes[i].SearchAnalyzer,
 				"status":          searchIndexes[i].Status,

@@ -87,7 +87,7 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matla
 	}
 }
 
-func testAccMongoDBAtlasSearchIndexConfig(projectID string, clusterName string) string {
+func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			project_id         = "%[1]s"
