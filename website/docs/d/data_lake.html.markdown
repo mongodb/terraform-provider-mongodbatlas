@@ -63,8 +63,8 @@ In addition to all arguments above, the following attributes are exported:
 * `aws_external_id` - Unique identifier associated with the IAM Role that Data Lake assumes when accessing the data stores.
 
 * `data_process_region` - The cloud provider region to which Atlas Data Lake routes client connections for data processing.
-    * `data_process_region.cloud_provider` - Name of the cloud service provider.
-    * `data_process_region.region` -Name of the region to which Data Lake routes client connections for data processing.
+    * `data_process_region.0.cloud_provider` - Name of the cloud service provider.
+    * `data_process_region.0.region` -Name of the region to which Data Lake routes client connections for data processing.
 * `hostnames` - The list of hostnames assigned to the Atlas Data Lake. Each string in the array is a hostname assigned to the Atlas Data Lake.
 * `state` - Current state of the Atlas Data Lake:
     * `ACTIVE` - The Data Lake is active and verified. You can query the data stores associated with the Atlas Data Lake.

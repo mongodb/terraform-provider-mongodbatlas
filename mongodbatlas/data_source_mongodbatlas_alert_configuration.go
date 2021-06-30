@@ -58,7 +58,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				},
 			},
 			"metric_threshold": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -86,7 +86,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				},
 			},
 			"threshold": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

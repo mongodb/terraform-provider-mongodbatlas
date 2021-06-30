@@ -81,7 +81,8 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				},
 			},
 			"metric_threshold": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -127,7 +128,8 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				},
 			},
 			"threshold": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -497,14 +499,18 @@ func flattenAlertConfigurationMatchers(matchers []matlas.Matcher) []map[string]i
 
 func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.MetricThreshold {
 	if value, ok := d.GetOk("metric_threshold"); ok {
-		v := value.(map[string]interface{})
+		vL := value.([]interface{})
 
-		return &matlas.MetricThreshold{
-			MetricName: cast.ToString(v["metric_name"]),
-			Operator:   cast.ToString(v["operator"]),
-			Threshold:  cast.ToFloat64(v["threshold"]),
-			Units:      cast.ToString(v["units"]),
-			Mode:       cast.ToString(v["mode"]),
+		if len(vL) != 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.MetricThreshold{
+				MetricName: cast.ToString(v["metric_name"]),
+				Operator:   cast.ToString(v["operator"]),
+				Threshold:  cast.ToFloat64(v["threshold"]),
+				Units:      cast.ToString(v["units"]),
+				Mode:       cast.ToString(v["mode"]),
+			}
 		}
 	}
 
@@ -513,42 +519,46 @@ func expandAlertConfigurationMetricThreshold(d *schema.ResourceData) *matlas.Met
 
 func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold {
 	if value, ok := d.GetOk("threshold"); ok {
-		v := value.(map[string]interface{})
+		vL := value.([]interface{})
 
-		return &matlas.Threshold{
-			Operator:  cast.ToString(v["operator"]),
-			Units:     cast.ToString(v["units"]),
-			Threshold: cast.ToFloat64(v["threshold"]),
+		if len(vL) != 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.Threshold{
+				Operator:  cast.ToString(v["operator"]),
+				Units:     cast.ToString(v["units"]),
+				Threshold: cast.ToFloat64(v["threshold"]),
+			}
 		}
 	}
 
 	return nil
 }
 
-func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[string]interface{} {
+func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) []interface{} {
 	if m != nil {
-		return map[string]interface{}{
+		return []interface{}{map[string]interface{}{
 			"metric_name": m.MetricName,
 			"operator":    m.Operator,
-			"threshold":   cast.ToString(m.Threshold),
+			"threshold":   m.Threshold,
 			"units":       m.Units,
 			"mode":        m.Mode,
-		}
+		}}
 	}
 
-	return map[string]interface{}{}
+	return []interface{}{}
 }
 
-func flattenAlertConfigurationThreshold(m *matlas.Threshold) map[string]interface{} {
+func flattenAlertConfigurationThreshold(m *matlas.Threshold) []interface{} {
 	if m != nil {
-		return map[string]interface{}{
+		return []interface{}{map[string]interface{}{
 			"operator":  m.Operator,
 			"units":     m.Units,
-			"threshold": cast.ToString(m.Threshold),
-		}
+			"threshold": m.Threshold,
+		}}
 	}
 
-	return map[string]interface{}{}
+	return []interface{}{}
 }
 
 func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notification {
