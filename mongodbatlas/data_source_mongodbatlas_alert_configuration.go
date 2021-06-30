@@ -257,20 +257,20 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "matcher", projectID, err))
 	}
 
-	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err))
 	}
 
-	if err := d.Set("threshold", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
+	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err))
 	}
 
-	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err))
+	if err := d.Set("metric_threshold_config", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold_config", projectID, err))
 	}
 
-	if err := d.Set("threshold", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err))
+	if err := d.Set("threshold_config", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold_config", projectID, err))
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {

@@ -41,9 +41,11 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				ForceNew: true,
 			},
 			"delivery_type": {
-				Type:     schema.TypeMap,
-				Required: true,
-				ForceNew: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				ForceNew:      true,
+				Deprecated:    "use delivery_type_config instead",
+				ConflictsWith: []string{"delivery_type_config"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -101,10 +103,11 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				},
 			},
 			"delivery_type_config": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Required: true,
-				ForceNew: true,
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"delivery_type"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"download": {
@@ -199,7 +202,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate(ctx context.Conte
 
 	if _, ok := d.GetOk("delivery_type"); ok {
 		deliveryType := "automated"
-		if aut, _ := d.Get("delivery_type.automated").(string); aut != "true" {
+		if aut, _ := d.Get("delivery_type.download").(string); aut != "true" {
 			deliveryType = "download"
 		}
 
@@ -442,7 +445,7 @@ func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapsh
 	delivery := deliveryList[0].(map[string]interface{})
 
 	deliveryType := "automated"
-	if aut, _ := delivery["automated"].(string); aut != "true" {
+	if aut, _ := delivery["download"].(string); aut != "true" {
 		deliveryType = "download"
 	}
 
