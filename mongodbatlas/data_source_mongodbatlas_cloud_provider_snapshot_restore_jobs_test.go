@@ -20,8 +20,8 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *test
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfig(projectID, clusterName, description, retentionInDays),
@@ -47,8 +47,8 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_withPaginatio
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobsConfigWithPagination(projectID, clusterName, description, retentionInDays, 1, 5),

@@ -14,8 +14,8 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *tes
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceCloudProviderSnapshotBackupPolicyConfig(projectID, clusterName),

@@ -24,8 +24,8 @@ func TestAccDataSourceMongoDBAtlasDataLake_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataLakeDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket),

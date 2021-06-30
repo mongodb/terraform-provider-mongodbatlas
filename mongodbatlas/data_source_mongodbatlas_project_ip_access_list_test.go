@@ -16,8 +16,8 @@ func TestAccDataMongoDBAtlasProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, ipAddress, comment),
@@ -42,8 +42,8 @@ func TestAccDataMongoDBAtlasProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(projectID, cidrBlock, comment),
@@ -76,8 +76,8 @@ func TestAccDataMongoDBAtlasProjectIPAccessList_SettingAWSSecurityGroup(t *testi
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
