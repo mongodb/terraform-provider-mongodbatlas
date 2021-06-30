@@ -219,7 +219,7 @@ func schemaDataLakesStores() *schema.Schema {
 
 func resourceMongoDBAtlasDataLakeCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
@@ -249,7 +249,7 @@ func resourceMongoDBAtlasDataLakeCreate(d *schema.ResourceData, meta interface{}
 
 func resourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
@@ -311,7 +311,7 @@ func resourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceMongoDBAtlasDataLakeUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
@@ -345,7 +345,7 @@ func resourceMongoDBAtlasDataLakeUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceMongoDBAtlasDataLakeDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
@@ -359,7 +359,7 @@ func resourceMongoDBAtlasDataLakeDelete(d *schema.ResourceData, meta interface{}
 }
 
 func resourceMongoDBAtlasDataLakeImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, name, s3Bucket, err := splitDataLakeImportID(d.Id())
 	if err != nil {

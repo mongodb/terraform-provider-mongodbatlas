@@ -99,7 +99,7 @@ func testAccCheckMongoDBAtlasDataLakeImportStateIDFunc(resourceName, s3Bucket st
 
 func testAccCheckMongoDBAtlasDataLakeExists(resourceName string, dataLake *matlas.DataLake) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,7 +133,7 @@ func testAccCheckMongoDBAtlasDataLakeAttributes(dataLake *matlas.DataLake, name 
 }
 
 func testAccCheckMongoDBAtlasDataLakeDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_data_lake" {
