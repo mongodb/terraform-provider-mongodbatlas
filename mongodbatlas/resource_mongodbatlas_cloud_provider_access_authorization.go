@@ -33,7 +33,8 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 				Required: true,
 			},
 			"aws": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -121,7 +122,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(d *schema.Resour
 		return fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn")
 	}
 
-	iamRole := (roleAWS.(map[string]interface{}))["iam_assumed_role_arn"]
+	iamRole := roleAWS.([]interface{})[0].(map[string]interface{})["iam_assumed_role_arn"]
 
 	req := &matlas.CloudProviderAuthorizationRequest{
 		ProviderName:      targetRole.ProviderName,
@@ -238,9 +239,9 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder(d *schema.R
 func roleToSchemaAuthorization(role *matlas.AWSIAMRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"role_id": role.RoleID,
-		"aws": map[string]interface{}{
+		"aws": []interface{}{map[string]interface{}{
 			"iam_assumed_role_arn": role.IAMAssumedRoleARN,
-		},
+		}},
 		"authorized_date": role.AuthorizedDate,
 	}
 

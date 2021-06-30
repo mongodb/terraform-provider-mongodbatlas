@@ -35,7 +35,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     value      = "SECONDARY"
   }
 
-  metric_threshold = {
+  metric_threshold {
     metric_name = "ASSERT_REGULAR"
     operator    = "LESS_THAN"
     threshold   = 99.0
@@ -69,7 +69,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     value      = "SECONDARY"
   }
 
-  threshold = {
+  threshold {
     operator    = "LESS_THAN"
     threshold   = 1
     units       = "HOURS"

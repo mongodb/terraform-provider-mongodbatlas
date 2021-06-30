@@ -38,7 +38,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
 			},
 			"aws": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -173,10 +173,10 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(d *schema.ResourceData, 
 func roleToSchemaSetup(role *matlas.AWSIAMRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"provider_name": role.ProviderName,
-		"aws": map[string]interface{}{
+		"aws": []interface{}{map[string]interface{}{
 			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
-		},
+		}},
 		"created_date": role.CreatedDate,
 		"role_id":      role.RoleID,
 	}

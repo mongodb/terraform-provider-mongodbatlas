@@ -69,7 +69,8 @@ func resourceMongoDBAtlasDataLake() *schema.Resource {
 				},
 			},
 			"data_process_region": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -428,15 +429,15 @@ func flattenAWSBlock(aws *matlas.CloudProviderConfig) []map[string]interface{} {
 	return database
 }
 
-func flattenDataLakeProcessRegion(processRegion *matlas.DataProcessRegion) map[string]interface{} {
+func flattenDataLakeProcessRegion(processRegion *matlas.DataProcessRegion) []interface{} {
 	if processRegion != nil && (processRegion.Region != "" || processRegion.CloudProvider != "") {
-		return map[string]interface{}{
+		return []interface{}{map[string]interface{}{
 			"cloud_provider": processRegion.CloudProvider,
 			"region":         processRegion.Region,
-		}
+		}}
 	}
 
-	return map[string]interface{}{}
+	return []interface{}{}
 }
 
 func flattenDataLakeStorageDatabases(databases []matlas.DataLakeDatabase) []map[string]interface{} {
@@ -530,11 +531,15 @@ func expandDataLakeAwsBlock(d *schema.ResourceData) matlas.AwsCloudProviderConfi
 
 func expandDataLakeDataProcessRegion(d *schema.ResourceData) *matlas.DataProcessRegion {
 	if value, ok := d.GetOk("data_process_region"); ok {
-		v := value.(map[string]interface{})
+		vL := value.([]interface{})
 
-		return &matlas.DataProcessRegion{
-			CloudProvider: cast.ToString(v["cloud_provider"]),
-			Region:        cast.ToString(v["region"]),
+		if len(vL) != 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.DataProcessRegion{
+				CloudProvider: cast.ToString(v["cloud_provider"]),
+				Region:        cast.ToString(v["region"]),
+			}
 		}
 	}
 	return nil

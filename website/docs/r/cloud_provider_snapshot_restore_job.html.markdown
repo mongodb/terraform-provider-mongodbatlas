@@ -47,7 +47,7 @@ description: |-
     project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
-    delivery_type   = {
+    delivery_type   {
       automated           = true
       target_cluster_name = "MyCluster"
       target_project_id   = "5cf5a45a9ccf6400e60981b6"
@@ -82,7 +82,7 @@ description: |-
     project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
-    delivery_type = {
+    delivery_type {
       download = true
     }
   }

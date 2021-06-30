@@ -185,12 +185,12 @@ resource "aws_iam_role" "test_role" {
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws.atlas_aws_account_arn}"
+        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws.0.atlas_aws_account_arn}"
       },
       "Action": "sts:AssumeRole",
       "Condition": {
         "StringEquals": {
-          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws.atlas_assumed_role_external_id}"
+          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws.0.atlas_assumed_role_external_id}"
         }
       }
     }
@@ -215,7 +215,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    project_id = mongodbatlas_project.test.id
    role_id =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
-   aws = {
+   aws {
       iam_assumed_role_arn = aws_iam_role.test_role.arn
    }
 }
@@ -244,7 +244,7 @@ resource "mongodbatlas_data_lake" "test" {
      role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
      test_s3_bucket = %[2]q
    }
-   data_process_region = {
+   data_process_region {
       cloud_provider = "AWS"
       region = %[3]q
    }

@@ -87,17 +87,8 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Optional:      true,
 				Deprecated:    "use bi_connector_config instead",
 				ConflictsWith: []string{"bi_connector_config"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"read_preference": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"bi_connector_config": {
@@ -517,7 +508,7 @@ func resourceMongoDBAtlasClusterCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if _, ok := d.GetOk("bi_connector_config"); ok {
-		biConnector, err := expandBiConnector(d)
+		biConnector, err := expandBiConnectorConfig(d)
 		if err != nil {
 			return fmt.Errorf(errorClusterCreate, err)
 		}
@@ -1423,8 +1414,6 @@ func getContainerID(containers []matlas.Container, cluster *matlas.Cluster) stri
 func clusterConnectionStringsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		MinItems: 1,
-		MaxItems: 1,
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{

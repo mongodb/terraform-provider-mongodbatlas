@@ -366,7 +366,7 @@ func testAccMongoDBAtlasAlertConfigurationConfig(projectID string, enabled bool)
 				value      = "SECONDARY"
 			}
 
-			metric_threshold = {
+			metric_threshold {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = 99.0
@@ -458,7 +458,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMetrictUpdated(projectID str
 				value      = "SECONDARY"
 			}
 
-			metric_threshold = {
+			metric_threshold {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = %f
@@ -491,7 +491,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(projectID string, e
 				value      = "SECONDARY"
 			}
 
-			metric_threshold = {
+			metric_threshold {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = %f
@@ -524,7 +524,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID s
 				value      = "SECONDARY"
 			}
 
-			threshold = {
+			threshold {
 				operator    = "LESS_THAN"
 				units       = "HOURS"
 				threshold   = %f
@@ -570,7 +570,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     value      = "SECONDARY"
   }
 
-  threshold = {
+  threshold {
     operator    = "LESS_THAN"
     threshold   = 72
     units       = "HOURS"
