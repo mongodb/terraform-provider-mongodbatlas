@@ -203,21 +203,37 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 		GroupID: d.Get("project_id").(string),
 	}
 
+	// Deprecated workflows
 	aws, awsOk := d.GetOk("aws_kms")
 	if awsOk {
-		err := validateAwsKms(aws.([]interface{}))
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		encryptionAtRestReq.AwsKms = expandAwsKmsConfig(aws.([]interface{}))
+		encryptionAtRestReq.AwsKms = expandAwsKms(aws.(map[string]interface{}))
 	}
 	azure, azureOk := d.GetOk("azure_key_vault")
 	if azureOk {
-		encryptionAtRestReq.AzureKeyVault = expandAzureKeyVaultConfig(azure.([]interface{}))
+		encryptionAtRestReq.AzureKeyVault = expandAzureKeyVault(azure.(map[string]interface{}))
 	}
 	gcp, gcpOk := d.GetOk("google_cloud_kms")
 	if gcpOk {
-		encryptionAtRestReq.GoogleCloudKms = expandGCPKmsConfig(gcp.([]interface{}))
+		encryptionAtRestReq.GoogleCloudKms = expandGCPKms(gcp.(map[string]interface{}))
+	}
+
+	// End Depprecated workflows
+
+	awsC, awsCOk := d.GetOk("aws_kms_config")
+	if awsCOk {
+		err := validateAwsKms(awsC.([]interface{}))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		encryptionAtRestReq.AwsKms = expandAwsKmsConfig(awsC.([]interface{}))
+	}
+	azureC, azureCOk := d.GetOk("azure_key_vault_config")
+	if azureCOk {
+		encryptionAtRestReq.AzureKeyVault = expandAzureKeyVaultConfig(azureC.([]interface{}))
+	}
+	gcpC, gcpCOk := d.GetOk("google_cloud_kms_config")
+	if gcpCOk {
+		encryptionAtRestReq.GoogleCloudKms = expandGCPKmsConfig(gcpC.([]interface{}))
 	}
 
 	_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
@@ -325,7 +341,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 			}
 			values2[0] = value
 
-			if err = d.Set("aws_kms", values2); err != nil {
+			if err = d.Set("aws_kms_config", values2); err != nil {
 				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms_config", d.Id(), err))
 			}
 		}
@@ -348,7 +364,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 			}
 			values2[0] = value
 
-			if err = d.Set("azure_key_vault", values2); err != nil {
+			if err = d.Set("azure_key_vault_config", values2); err != nil {
 				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault_config", d.Id(), err))
 			}
 		}
@@ -370,7 +386,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 			}
 			values2[0] = value
 
-			if err = d.Set("google_cloud_kms", values2); err != nil {
+			if err = d.Set("google_cloud_kms_config", values2); err != nil {
 				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms_config", d.Id(), err))
 			}
 		}
@@ -407,15 +423,15 @@ func resourceMongoDBAtlasEncryptionAtRestUpdate(ctx context.Context, d *schema.R
 	}
 
 	if d.HasChange("aws_kms_config") {
-		encrypt.AwsKms = expandAwsKmsConfig(d.Get("aws_kms").([]interface{}))
+		encrypt.AwsKms = expandAwsKmsConfig(d.Get("aws_kms_config").([]interface{}))
 	}
 
 	if d.HasChange("azure_key_vault_config") {
-		encrypt.AzureKeyVault = expandAzureKeyVaultConfig(d.Get("azure_key_vault").([]interface{}))
+		encrypt.AzureKeyVault = expandAzureKeyVaultConfig(d.Get("azure_key_vault_config").([]interface{}))
 	}
 
 	if d.HasChange("google_cloud_kms_config") {
-		encrypt.GoogleCloudKms = expandGCPKmsConfig(d.Get("google_cloud_kms").([]interface{}))
+		encrypt.GoogleCloudKms = expandGCPKmsConfig(d.Get("google_cloud_kms_config").([]interface{}))
 	}
 
 	_, _, err = conn.EncryptionsAtRest.Create(ctx, encrypt)
@@ -525,16 +541,16 @@ func expandAwsKmsConfig(awsKms []interface{}) matlas.AwsKms {
 
 func validateAwsKms(awsKms []interface{}) error {
 	if len(awsKms) == 0 {
-		return fmt.Errorf("empty aws_kms")
+		return fmt.Errorf("empty aws_kms_config")
 	}
 
 	v := awsKms[0].(map[string]interface{})
 
-	_, akOk := v["access_key_id"]
-	_, saOk := v["secret_access_key"]
-	_, rOk := v["role_id"]
+	ak, akOk := v["access_key_id"]
+	sa, saOk := v["secret_access_key"]
+	r, rOk := v["role_id"]
 
-	if (akOk && saOk && rOk) || (akOk && rOk) || (saOk && rOk) {
+	if ((akOk && ak != "") && (saOk && sa != "") && (rOk && r != "")) || ((akOk && ak != "") && (rOk && r != "")) || ((saOk && sa != "") && (rOk && r != "")) {
 		return fmt.Errorf("for credentials: `access_key_id` and `secret_access_key` are allowed but not `role_id`." +
 			" For roles: `access_key_id` and `secret_access_key` are not allowed but `role_id` is allowed")
 	}

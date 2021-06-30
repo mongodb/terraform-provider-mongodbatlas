@@ -366,7 +366,7 @@ func testAccMongoDBAtlasAlertConfigurationConfig(projectID string, enabled bool)
 				value      = "SECONDARY"
 			}
 
-			metric_threshold {
+			metric_threshold_config {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = 99.0

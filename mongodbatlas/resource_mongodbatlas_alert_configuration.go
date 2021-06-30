@@ -474,14 +474,6 @@ func resourceMongoDBAtlasAlertConfigurationImportState(ctx context.Context, d *s
 		return nil, fmt.Errorf(errorAlertConfSetting, "matcher", id, err)
 	}
 
-	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
-		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
-	}
-
-	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
-		return nil, fmt.Errorf(errorAlertConfSetting, "threshold", id, err)
-	}
-
 	if err := d.Set("metric_threshold_config", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
 		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold_config", id, err)
 	}
@@ -565,7 +557,20 @@ func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold
 }
 
 func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matlas.MetricThreshold {
+	//Deprecated, will be removed later
 	if value, ok := d.GetOk("metric_threshold"); ok {
+		v := value.(map[string]interface{})
+
+		return &matlas.MetricThreshold{
+			MetricName: cast.ToString(v["metric_name"]),
+			Operator:   cast.ToString(v["operator"]),
+			Threshold:  cast.ToFloat64(v["threshold"]),
+			Units:      cast.ToString(v["units"]),
+			Mode:       cast.ToString(v["mode"]),
+		}
+	}
+
+	if value, ok := d.GetOk("metric_threshold_config"); ok {
 		vL := value.([]interface{})
 
 		if len(vL) != 0 {
@@ -585,7 +590,18 @@ func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matl
 }
 
 func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Threshold {
+	//Deprecated, will be removed later
 	if value, ok := d.GetOk("threshold"); ok {
+		v := value.(map[string]interface{})
+
+		return &matlas.Threshold{
+			Operator:  cast.ToString(v["operator"]),
+			Units:     cast.ToString(v["units"]),
+			Threshold: cast.ToFloat64(v["threshold"]),
+		}
+	}
+
+	if value, ok := d.GetOk("threshold_config"); ok {
 		vL := value.([]interface{})
 
 		if len(vL) != 0 {
