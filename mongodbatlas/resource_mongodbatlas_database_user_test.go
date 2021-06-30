@@ -604,7 +604,7 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 
 func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -639,7 +639,7 @@ func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser,
 }
 
 func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {

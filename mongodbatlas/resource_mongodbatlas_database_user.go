@@ -132,7 +132,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 
 func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -209,7 +209,7 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 
 func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	dbName, dbNameOk := d.GetOk("database_name")
@@ -254,7 +254,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 
 func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -291,7 +291,7 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 
 func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -306,7 +306,7 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, username, authDatabaseName, err := splitDatabaseUserImportID(d.Id())
 	if err != nil {

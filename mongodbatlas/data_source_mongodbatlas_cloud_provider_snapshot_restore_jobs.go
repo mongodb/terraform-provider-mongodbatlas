@@ -110,7 +110,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		GroupID:     d.Get("project_id").(string),

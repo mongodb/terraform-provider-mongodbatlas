@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var integrationTypes = []string{
@@ -124,7 +123,7 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
 
@@ -157,7 +156,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(d *schema.ResourceData, met
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
@@ -186,7 +185,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
@@ -212,7 +211,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationUpdate(d *schema.ResourceData, met
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
@@ -228,7 +227,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationDelete(d *schema.ResourceData, met
 }
 
 func resourceMongoDBAtlasThirdPartyIntegrationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, integrationType, err := splitIntegrationTypeID(d.Id())
 

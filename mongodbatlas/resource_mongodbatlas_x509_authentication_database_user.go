@@ -97,7 +97,7 @@ func resourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 }
 
 func resourceMongoDBAtlasX509AuthDBUserCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -160,7 +160,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceMongoDBAtlasX509AuthDBUserDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	currentCertificate := ids["current_certificate"]
@@ -179,7 +179,7 @@ func resourceMongoDBAtlasX509AuthDBUserDelete(d *schema.ResourceData, meta inter
 }
 
 func resourceMongoDBAtlasX509AuthDBUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 && len(parts) != 2 {

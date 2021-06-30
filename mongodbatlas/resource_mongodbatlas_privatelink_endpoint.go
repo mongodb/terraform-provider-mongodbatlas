@@ -90,7 +90,7 @@ func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	region := d.Get("region").(string)
@@ -131,7 +131,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -188,7 +188,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta in
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
@@ -224,7 +224,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.Split(d.Id(), "-")
 	if len(parts) != 6 && len(parts) != 4 {

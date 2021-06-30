@@ -3,9 +3,13 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/spf13/cast"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -321,7 +325,7 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 
 func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
 
@@ -332,6 +336,25 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 		}
 
 		return fmt.Errorf(errorClusterRead, clusterName, err)
+	}
+
+	if cluster.ProviderSettings != nil && (cast.ToString(cluster.ProviderSettings.ProviderName) == "AWS" ||
+		cast.ToString(cluster.ProviderSettings.ProviderName) == "AZURE") {
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"PRIVATE_ENDPOINTS_NIL", "PRIVATE_ENDPOINTS_EMPTY"},
+			Target:     []string{"PRIVATE_ENDPOINTS_EXISTS", "NORMAL"},
+			Refresh:    datasourceClusterPrivateEndpointRefreshFunc(clusterName, projectID, conn),
+			Timeout:    10 * time.Minute,
+			MinTimeout: 1 * time.Minute,
+			Delay:      3 * time.Minute,
+		}
+
+		resp, err := stateConf.WaitForState()
+		if err != nil {
+			log.Printf("[ERROR] %v", fmt.Errorf(errorClusterRead, clusterName, err))
+		} else {
+			cluster = resp.(*matlas.Cluster)
+		}
 	}
 
 	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
@@ -442,4 +465,36 @@ func dataSourceMongoDBAtlasClusterRead(d *schema.ResourceData, meta interface{})
 	d.SetId(cluster.ID)
 
 	return nil
+}
+
+func datasourceClusterPrivateEndpointRefreshFunc(name, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		cluster, resp, err := client.Clusters.Get(context.Background(), projectID, name)
+
+		if err != nil && cluster == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		if cluster.ConnectionStrings != nil {
+			if cluster.ConnectionStrings.PrivateEndpoint == nil {
+				return cluster, "PRIVATE_ENDPOINTS_NIL", nil
+			}
+			if cluster.ConnectionStrings.PrivateEndpoint != nil && len(cluster.ConnectionStrings.PrivateEndpoint) == 0 {
+				return cluster, "PRIVATE_ENDPOINTS_EMPTY", nil
+			}
+			if cluster.ConnectionStrings.PrivateEndpoint != nil && len(cluster.ConnectionStrings.PrivateEndpoint) != 0 {
+				return cluster, "PRIVATE_ENDPOINTS_EXISTS", nil
+			}
+		}
+
+		return cluster, "NORMAL", nil
+	}
 }

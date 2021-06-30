@@ -147,7 +147,7 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 }
 
 func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	atlasID := d.Get("archive_id").(string)
@@ -176,7 +176,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interf
 }
 
 func dataSourceMongoDBAtlasOnlineArchivesRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	archives, _, err := conn.OnlineArchives.List(context.Background(), projectID, clusterName, &matlas.ListOptions{})

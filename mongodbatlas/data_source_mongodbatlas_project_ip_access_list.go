@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
@@ -68,7 +67,7 @@ func dataSourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	cidrBlock := d.Get("cidr_block").(string)
 	ipAddress := d.Get("ip_address").(string)

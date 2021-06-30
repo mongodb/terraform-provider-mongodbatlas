@@ -106,7 +106,7 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName string, maintenance *matlas.MaintenanceWindow) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -141,7 +141,7 @@ func testAccCheckMongoDBAtlasMaintenanceWindowAttributes(attr string, expected i
 }
 
 func testAccCheckMongoDBAtlasMaintenanceWindowDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_maintenance_window" {

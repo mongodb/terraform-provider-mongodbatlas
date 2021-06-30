@@ -64,8 +64,6 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_x509_authentication_database_user":     dataSourceMongoDBAtlasX509AuthDBUser(),
 			"mongodbatlas_privatelink_endpoint":                  dataSourceMongoDBAtlasPrivateLinkEndpoint(),
 			"mongodbatlas_privatelink_endpoint_service":          dataSourceMongoDBAtlasPrivateEndpointServiceLink(),
-			"mongodbatlas_private_endpoint":                      dataSourceMongoDBAtlasPrivateEndpoint(),
-			"mongodbatlas_private_endpoint_interface_link":       dataSourceMongoDBAtlasPrivateEndpointInterfaceLink(),
 			"mongodbatlas_cloud_provider_snapshot_backup_policy": dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
 			"mongodbatlas_third_party_integrations":              dataSourceMongoDBAtlasThirdPartyIntegrations(),
 			"mongodbatlas_third_party_integration":               dataSourceMongoDBAtlasThirdPartyIntegration(),
@@ -82,6 +80,8 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_search_analyzers":                      dataSourceMongoDBAtlasSearchAnalyzers(),
 			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
 			"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
+			"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
+			"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -104,8 +104,6 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_x509_authentication_database_user":     resourceMongoDBAtlasX509AuthDBUser(),
 			"mongodbatlas_privatelink_endpoint":                  resourceMongoDBAtlasPrivateLinkEndpoint(),
 			"mongodbatlas_privatelink_endpoint_service":          resourceMongoDBAtlasPrivateEndpointServiceLink(),
-			"mongodbatlas_private_endpoint":                      resourceMongoDBAtlasPrivateEndpoint(),
-			"mongodbatlas_private_endpoint_interface_link":       resourceMongoDBAtlasPrivateEndpointInterfaceLink(),
 			"mongodbatlas_cloud_provider_snapshot_backup_policy": resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
 			"mongodbatlas_third_party_integration":               resourceMongoDBAtlasThirdPartyIntegration(),
 			"mongodbatlas_project_ip_access_list":                resourceMongoDBAtlasProjectIPAccessList(),
@@ -119,6 +117,7 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_search_index":                          resourceMongoDBAtlasSearchIndex(),
 			"mongodbatlas_search_analyzer":                       resourceMongoDBAtlasSearchIndex(),
 			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
+			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 		},
 
 		ConfigureFunc: providerConfigure,

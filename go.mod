@@ -15,4 +15,5 @@ require (
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20200518153306-40099de47e37
 	github.com/terraform-providers/terraform-provider-google v1.20.1-0.20200518165017-1dd21651c496
 	go.mongodb.org/atlas v0.8.1-0.20210604212331-3f489d7a4eed
+	go.mongodb.org/realm v0.0.0-20210618220639-e70c919266f2
 )

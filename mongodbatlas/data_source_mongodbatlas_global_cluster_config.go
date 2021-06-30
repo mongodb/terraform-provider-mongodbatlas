@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
@@ -53,7 +51,7 @@ func dataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
 
 func dataSourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 

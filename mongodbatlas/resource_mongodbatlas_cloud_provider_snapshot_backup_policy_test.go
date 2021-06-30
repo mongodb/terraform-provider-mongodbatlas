@@ -134,7 +134,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_importBasic(t 
 
 func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -159,7 +159,7 @@ func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyExists(resourceNam
 }
 
 func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_provider_snapshot_backup_policy" {

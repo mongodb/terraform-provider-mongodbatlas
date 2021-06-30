@@ -114,7 +114,7 @@ func dataSourceMongoDBAtlasNetworkPeerings() *schema.Resource {
 
 func dataSourceMongoDBAtlasNetworkPeeringsRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	peers, _, err := conn.Peers.List(context.Background(), projectID, nil)

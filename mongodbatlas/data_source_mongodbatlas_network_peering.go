@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
@@ -110,7 +108,7 @@ func dataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
 
 func dataSourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	peerID := getEncodedID(d.Get("peering_id").(string), "peer_id")
 

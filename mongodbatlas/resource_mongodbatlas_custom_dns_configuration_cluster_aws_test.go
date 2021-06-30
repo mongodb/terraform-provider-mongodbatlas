@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) {
@@ -80,7 +79,7 @@ func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_importBasic(t *testing
 
 func testAccCheckMongoDBAtlasCustomDNSConfigurationAWSExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -100,7 +99,7 @@ func testAccCheckMongoDBAtlasCustomDNSConfigurationAWSExists(resourceName string
 	}
 }
 func testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_custom_dns_configuration_cluster_aws" {

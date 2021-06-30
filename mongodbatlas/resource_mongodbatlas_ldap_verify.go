@@ -110,7 +110,7 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 }
 
 func resourceMongoDBAtlasLDAPVerifyCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	ldapReq := &matlas.LDAP{}
@@ -163,7 +163,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceMongoDBAtlasLDAPVerifyRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -230,7 +230,7 @@ func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]
 }
 
 func resourceMongoDBAtlasLDAPVerifyImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

@@ -78,7 +78,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 
 func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 
@@ -115,7 +115,7 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta in
 
 func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	maintenanceWindow, _, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
 	if err != nil {
@@ -149,7 +149,7 @@ func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta inte
 
 func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	maintenanceWindowReq := &matlas.MaintenanceWindow{}
 
@@ -182,7 +182,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta in
 
 func resourceMongoDBAtlasMaintenanceWindowDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get the client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	_, err := conn.MaintenanceWindows.Reset(context.Background(), d.Id())
 	if err != nil {

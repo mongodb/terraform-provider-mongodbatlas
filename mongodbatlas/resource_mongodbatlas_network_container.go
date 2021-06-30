@@ -101,7 +101,7 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 
 func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 
@@ -150,7 +150,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 
 func resourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
@@ -213,7 +213,7 @@ func resourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta inter
 
 func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
@@ -252,7 +252,7 @@ func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta int
 
 func resourceMongoDBAtlasNetworkContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"provisioned_container"},
@@ -273,7 +273,7 @@ func resourceMongoDBAtlasNetworkContainerDelete(d *schema.ResourceData, meta int
 }
 
 func resourceMongoDBAtlasNetworkContainerImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

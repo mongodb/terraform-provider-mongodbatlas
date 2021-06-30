@@ -144,7 +144,7 @@ func TestAccResourceMongoDBAtlasLDAPConfiguration_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*matlas.Client)
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -167,7 +167,7 @@ func testAccCheckMongoDBAtlasLDAPConfigurationExists(resourceName string, ldapCo
 }
 
 func testAccCheckMongoDBAtlasLDAPConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*matlas.Client)
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_ldap_configuration" {
