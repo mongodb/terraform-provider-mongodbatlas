@@ -41,8 +41,8 @@ func TestAccdataSourceMongoDBAtlasCloudProviderAccessSetup_aws_basic(t *testing.
 	config := fmt.Sprintf(dataSourceCPASProviderConfig, name, projectID, "AWS", dataSCName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

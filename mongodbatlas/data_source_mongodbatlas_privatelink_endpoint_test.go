@@ -16,8 +16,8 @@ func TestAccDataSourceMongoDBAtlasPrivateLinkEndpoint_basic(t *testing.T) {
 	providerName := "AWS"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointDataSourceConfig(projectID, providerName, region),

@@ -20,8 +20,8 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testi
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectID, clusterName, description, retentionInDays),

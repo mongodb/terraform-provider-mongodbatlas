@@ -17,8 +17,8 @@ func TestAccDataSourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 	hourOfDay := 3
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),
