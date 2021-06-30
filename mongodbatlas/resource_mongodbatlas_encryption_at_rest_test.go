@@ -322,7 +322,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *matl
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
-		  aws_kms {
+		  aws_kms_config {
 				enabled                = %t
 				access_key_id          = "%s"
 				secret_access_key      = "%s"
@@ -338,7 +338,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, az
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
-		  azure_key_vault {
+		  azure_key_vault_config {
 				enabled             = %t
 				client_id           = "%s"
 				azure_environment   = "%s"
@@ -359,7 +359,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
-		  google_cloud_kms {
+		  google_cloud_kms_config {
 				enabled                 = %t
 				service_account_key     = "%s"
 				key_version_resource_id = "%s"

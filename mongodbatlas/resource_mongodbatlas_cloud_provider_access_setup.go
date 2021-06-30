@@ -39,6 +39,14 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
 			},
 			"aws": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Deprecated: "use aws_config instead",
+			},
+			"aws_config": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -174,7 +182,11 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *
 func roleToSchemaSetup(role *matlas.AWSIAMRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"provider_name": role.ProviderName,
-		"aws": []interface{}{map[string]interface{}{
+		"aws": map[string]interface{}{ // Deprecated, will be deleted later
+			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+		},
+		"aws_config": []interface{}{map[string]interface{}{
 			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		}},

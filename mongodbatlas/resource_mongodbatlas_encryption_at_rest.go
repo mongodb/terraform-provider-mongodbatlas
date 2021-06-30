@@ -34,10 +34,55 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 				ForceNew: true,
 			},
 			"aws_kms": {
-				Type:      schema.TypeList,
-				MaxItems:  1,
-				Optional:  true,
-				Sensitive: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Sensitive:     true,
+				Deprecated:    "use aws_kms_config instead",
+				ConflictsWith: []string{"aws_kms_config"},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(map[string]interface{})
+
+					_, akOk := v["access_key_id"]
+					_, saOk := v["secret_access_key"]
+					_, rOk := v["role_id"]
+
+					if (akOk && saOk && rOk) || (akOk && rOk) || (saOk && rOk) {
+						errs = append(errs, fmt.Errorf("%q For credentials: `access_key_id` and `secret_access_key` are allowed but not `role_id`."+
+							" For roles: `access_key_id` and `secret_access_key` are not allowed but `role_id` is allowed", key))
+					}
+
+					return
+				},
+			},
+			"azure_key_vault": {
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Sensitive:     true,
+				Deprecated:    "use azure_key_vault_config instead",
+				ConflictsWith: []string{"azure_key_vault_config"},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"google_cloud_kms": {
+				Type:          schema.TypeMap,
+				Optional:      true,
+				Sensitive:     true,
+				Deprecated:    "use google_cloud_kms_config instead",
+				ConflictsWith: []string{"google_cloud_kms_config"},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"aws_kms_config": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"aws_kms"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -70,11 +115,12 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 					},
 				},
 			},
-			"azure_key_vault": {
-				Type:      schema.TypeList,
-				MaxItems:  1,
-				Optional:  true,
-				Sensitive: true,
+			"azure_key_vault_config": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"azure_key_vault"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -121,11 +167,12 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 					},
 				},
 			},
-			"google_cloud_kms": {
-				Type:      schema.TypeList,
-				MaxItems:  1,
-				Optional:  true,
-				Sensitive: true,
+			"google_cloud_kms_config": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"google_cloud_kms"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -162,15 +209,15 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		encryptionAtRestReq.AwsKms = expandAwsKms(aws.([]interface{}))
+		encryptionAtRestReq.AwsKms = expandAwsKmsConfig(aws.([]interface{}))
 	}
 	azure, azureOk := d.GetOk("azure_key_vault")
 	if azureOk {
-		encryptionAtRestReq.AzureKeyVault = expandAzureKeyVault(azure.([]interface{}))
+		encryptionAtRestReq.AzureKeyVault = expandAzureKeyVaultConfig(azure.([]interface{}))
 	}
 	gcp, gcpOk := d.GetOk("google_cloud_kms")
 	if gcpOk {
-		encryptionAtRestReq.GoogleCloudKms = expandGCPKms(gcp.([]interface{}))
+		encryptionAtRestReq.GoogleCloudKms = expandGCPKmsConfig(gcp.([]interface{}))
 	}
 
 	_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
@@ -196,9 +243,69 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorReadEncryptionAtRest, err))
 	}
 
+	// Deprecated workflows
 	values := flattenAWSKMS(&resp.AwsKms)
-	if len(values) != 0 {
-		value := values[0].(map[string]interface{})
+	if !counterEmptyValues(values) {
+		aws, awsOk := d.GetOk("aws_kms")
+		if awsOk {
+			aws2 := aws.(map[string]interface{})
+			values["secret_access_key"] = cast.ToString(aws2["secret_access_key"])
+			if v, sa := values["role_id"]; sa {
+				if v.(string) == "" {
+					delete(values, "role_id")
+				}
+			}
+			if v, sa := values["access_key_id"]; sa {
+				if v.(string) == "" {
+					delete(values, "access_key_id")
+					delete(values, "secret_access_key")
+				}
+			}
+		}
+
+		if err = d.Set("aws_kms", values); err != nil {
+			return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err))
+		}
+	}
+
+	values = flattenAzureVault(&resp.AzureKeyVault)
+	if !counterEmptyValues(values) {
+		azure, azureOk := d.GetOk("azure_key_vault")
+		if azureOk {
+			azure2 := azure.(map[string]interface{})
+			values["secret"] = cast.ToString(azure2["secret"])
+			if v, sa := values["secret"]; sa {
+				if v.(string) == "" {
+					delete(values, "secret")
+				}
+			}
+		}
+		if err = d.Set("azure_key_vault", values); err != nil {
+			return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault", d.Id(), err))
+		}
+	}
+
+	values = flattenGCPKms(&resp.GoogleCloudKms)
+	if !counterEmptyValues(values) {
+		gcp, gcpOk := d.GetOk("google_cloud_kms")
+		if gcpOk {
+			gcp2 := gcp.(map[string]interface{})
+			values["service_account_key"] = cast.ToString(gcp2["service_account_key"])
+			if v, sa := values["service_account_key"]; sa {
+				if v.(string) == "" {
+					delete(values, "service_account_key")
+				}
+			}
+		}
+		if err = d.Set("google_cloud_kms", values); err != nil {
+			return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err))
+		}
+	}
+	// End Deprecated workflows
+
+	values2 := flattenAWSKMSConfig(&resp.AwsKms)
+	if len(values2) != 0 {
+		value := values2[0].(map[string]interface{})
 		if !counterEmptyValues(value) {
 			aws, awsOk := d.GetOk("aws_kms")
 			if awsOk {
@@ -216,17 +323,17 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 					}
 				}
 			}
-			values[0] = value
+			values2[0] = value
 
-			if err = d.Set("aws_kms", values); err != nil {
-				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err))
+			if err = d.Set("aws_kms", values2); err != nil {
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms_config", d.Id(), err))
 			}
 		}
 	}
 
-	values = flattenAzureVault(&resp.AzureKeyVault)
-	if len(values) != 0 {
-		value := values[0].(map[string]interface{})
+	values2 = flattenAzureVaultConfig(&resp.AzureKeyVault)
+	if len(values2) != 0 {
+		value := values2[0].(map[string]interface{})
 
 		if !counterEmptyValues(value) {
 			azure, azureOk := d.GetOk("azure_key_vault")
@@ -239,17 +346,17 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 					}
 				}
 			}
-			values[0] = value
+			values2[0] = value
 
-			if err = d.Set("azure_key_vault", values); err != nil {
-				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault", d.Id(), err))
+			if err = d.Set("azure_key_vault", values2); err != nil {
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault_config", d.Id(), err))
 			}
 		}
 	}
 
-	values = flattenGCPKms(&resp.GoogleCloudKms)
-	if len(values) != 0 {
-		value := values[0].(map[string]interface{})
+	values2 = flattenGCPKmsConfig(&resp.GoogleCloudKms)
+	if len(values2) != 0 {
+		value := values2[0].(map[string]interface{})
 		if !counterEmptyValues(value) {
 			gcp, gcpOk := d.GetOk("google_cloud_kms")
 			if gcpOk {
@@ -261,10 +368,10 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 					}
 				}
 			}
-			values[0] = value
+			values2[0] = value
 
-			if err = d.Set("google_cloud_kms", values); err != nil {
-				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err))
+			if err = d.Set("google_cloud_kms", values2); err != nil {
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms_config", d.Id(), err))
 			}
 		}
 	}
@@ -288,15 +395,27 @@ func resourceMongoDBAtlasEncryptionAtRestUpdate(ctx context.Context, d *schema.R
 	encrypt.GroupID = projectID
 
 	if d.HasChange("aws_kms") {
-		encrypt.AwsKms = expandAwsKms(d.Get("aws_kms").([]interface{}))
+		encrypt.AwsKms = expandAwsKms(d.Get("aws_kms").(map[string]interface{}))
 	}
 
 	if d.HasChange("azure_key_vault") {
-		encrypt.AzureKeyVault = expandAzureKeyVault(d.Get("azure_key_vault").([]interface{}))
+		encrypt.AzureKeyVault = expandAzureKeyVault(d.Get("azure_key_vault").(map[string]interface{}))
 	}
 
 	if d.HasChange("google_cloud_kms") {
-		encrypt.GoogleCloudKms = expandGCPKms(d.Get("google_cloud_kms").([]interface{}))
+		encrypt.GoogleCloudKms = expandGCPKms(d.Get("google_cloud_kms").(map[string]interface{}))
+	}
+
+	if d.HasChange("aws_kms_config") {
+		encrypt.AwsKms = expandAwsKmsConfig(d.Get("aws_kms").([]interface{}))
+	}
+
+	if d.HasChange("azure_key_vault_config") {
+		encrypt.AzureKeyVault = expandAzureKeyVaultConfig(d.Get("azure_key_vault").([]interface{}))
+	}
+
+	if d.HasChange("google_cloud_kms_config") {
+		encrypt.GoogleCloudKms = expandGCPKmsConfig(d.Get("google_cloud_kms").([]interface{}))
 	}
 
 	_, _, err = conn.EncryptionsAtRest.Create(ctx, encrypt)
@@ -318,7 +437,74 @@ func resourceMongoDBAtlasEncryptionAtRestDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func expandAwsKms(awsKms []interface{}) matlas.AwsKms {
+func expandAwsKms(awsKms map[string]interface{}) matlas.AwsKms {
+	awsRegion, _ := valRegion(awsKms["region"])
+
+	return matlas.AwsKms{
+		Enabled:             pointy.Bool(cast.ToBool(awsKms["enabled"])),
+		AccessKeyID:         cast.ToString(awsKms["access_key_id"]),
+		SecretAccessKey:     cast.ToString(awsKms["secret_access_key"]),
+		CustomerMasterKeyID: cast.ToString(awsKms["customer_master_key_id"]),
+		Region:              awsRegion,
+		RoleID:              cast.ToString(awsKms["role_id"]),
+	}
+}
+
+func expandAzureKeyVault(azure map[string]interface{}) matlas.AzureKeyVault {
+	return matlas.AzureKeyVault{
+		Enabled:           pointy.Bool(cast.ToBool(azure["enabled"])),
+		ClientID:          cast.ToString(azure["client_id"]),
+		AzureEnvironment:  cast.ToString(azure["azure_environment"]),
+		SubscriptionID:    cast.ToString(azure["subscription_id"]),
+		ResourceGroupName: cast.ToString(azure["resource_group_name"]),
+		KeyVaultName:      cast.ToString(azure["key_vault_name"]),
+		KeyIdentifier:     cast.ToString(azure["key_identifier"]),
+		Secret:            cast.ToString(azure["secret"]),
+		TenantID:          cast.ToString(azure["tenant_id"]),
+	}
+}
+
+func expandGCPKms(gcpKms map[string]interface{}) matlas.GoogleCloudKms {
+	return matlas.GoogleCloudKms{
+		Enabled:              pointy.Bool(cast.ToBool(gcpKms["enabled"])),
+		ServiceAccountKey:    cast.ToString(gcpKms["service_account_key"]),
+		KeyVersionResourceID: cast.ToString(gcpKms["key_version_resource_id"]),
+	}
+}
+
+func flattenAWSKMS(m *matlas.AwsKms) map[string]interface{} {
+	return map[string]interface{}{
+		"enabled":                cast.ToString(m.Enabled),
+		"access_key_id":          m.AccessKeyID,
+		"customer_master_key_id": m.CustomerMasterKeyID,
+		"region":                 m.Region,
+		"role_id":                m.RoleID,
+	}
+}
+
+func flattenAzureVault(m *matlas.AzureKeyVault) map[string]interface{} {
+	return map[string]interface{}{
+		"enabled":             cast.ToString(m.Enabled),
+		"client_id":           m.ClientID,
+		"azure_environment":   m.AzureEnvironment,
+		"subscription_id":     m.SubscriptionID,
+		"resource_group_name": m.ResourceGroupName,
+		"key_vault_name":      m.KeyVaultName,
+		"key_identifier":      m.KeyIdentifier,
+		"secret":              m.Secret,
+		"tenant_id":           m.TenantID,
+	}
+}
+
+func flattenGCPKms(m *matlas.GoogleCloudKms) map[string]interface{} {
+	return map[string]interface{}{
+		"enabled":                 cast.ToString(m.Enabled),
+		"service_account_key":     m.ServiceAccountKey,
+		"key_version_resource_id": m.KeyVersionResourceID,
+	}
+}
+
+func expandAwsKmsConfig(awsKms []interface{}) matlas.AwsKms {
 	if len(awsKms) == 0 {
 		return matlas.AwsKms{}
 	}
@@ -356,7 +542,7 @@ func validateAwsKms(awsKms []interface{}) error {
 	return nil
 }
 
-func expandAzureKeyVault(azure []interface{}) matlas.AzureKeyVault {
+func expandAzureKeyVaultConfig(azure []interface{}) matlas.AzureKeyVault {
 	if len(azure) == 0 {
 		return matlas.AzureKeyVault{}
 	}
@@ -376,7 +562,7 @@ func expandAzureKeyVault(azure []interface{}) matlas.AzureKeyVault {
 	}
 }
 
-func expandGCPKms(gcpKms []interface{}) matlas.GoogleCloudKms {
+func expandGCPKmsConfig(gcpKms []interface{}) matlas.GoogleCloudKms {
 	if len(gcpKms) == 0 {
 		return matlas.GoogleCloudKms{}
 	}
@@ -390,7 +576,7 @@ func expandGCPKms(gcpKms []interface{}) matlas.GoogleCloudKms {
 	}
 }
 
-func flattenAWSKMS(m *matlas.AwsKms) []interface{} {
+func flattenAWSKMSConfig(m *matlas.AwsKms) []interface{} {
 	return []interface{}{map[string]interface{}{
 		"enabled":                cast.ToString(m.Enabled),
 		"access_key_id":          m.AccessKeyID,
@@ -400,7 +586,7 @@ func flattenAWSKMS(m *matlas.AwsKms) []interface{} {
 	}}
 }
 
-func flattenAzureVault(m *matlas.AzureKeyVault) []interface{} {
+func flattenAzureVaultConfig(m *matlas.AzureKeyVault) []interface{} {
 	return []interface{}{map[string]interface{}{
 		"enabled":             cast.ToString(m.Enabled),
 		"client_id":           m.ClientID,
@@ -414,7 +600,7 @@ func flattenAzureVault(m *matlas.AzureKeyVault) []interface{} {
 	}}
 }
 
-func flattenGCPKms(m *matlas.GoogleCloudKms) []interface{} {
+func flattenGCPKmsConfig(m *matlas.GoogleCloudKms) []interface{} {
 	return []interface{}{map[string]interface{}{
 		"enabled":                 cast.ToString(m.Enabled),
 		"service_account_key":     m.ServiceAccountKey,

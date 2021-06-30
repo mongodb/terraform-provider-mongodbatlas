@@ -47,7 +47,7 @@ description: |-
     project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
-    delivery_type   {
+    delivery_type_config   {
       automated           = true
       target_cluster_name = "MyCluster"
       target_project_id   = "5cf5a45a9ccf6400e60981b6"
@@ -82,7 +82,7 @@ description: |-
     project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
-    delivery_type {
+    delivery_type_config {
       download = true
     }
   }
@@ -112,7 +112,7 @@ In addition to all arguments above, the following attributes are exported:
 * `snapshot_restore_job_id` - The unique identifier of the restore job.
 * `cancelled` -	Indicates whether the restore job was canceled.
 * `created_at` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
-* `delivery_type` - Type of restore job to create. Possible values are: automated and download.
+* `delivery_type_config` - Type of restore job to create. Possible values are: automated and download.
 * `delivery_url` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
 * `expired` -	Indicates whether the restore job expired.
 * `expires_at` -	UTC ISO 8601 formatted point in time when the restore job expires.

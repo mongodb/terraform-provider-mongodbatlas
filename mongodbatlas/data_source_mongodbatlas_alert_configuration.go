@@ -59,6 +59,20 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 				},
 			},
 			"metric_threshold": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"threshold": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"metric_threshold_config": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -86,7 +100,7 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					},
 				},
 			},
-			"threshold": {
+			"threshold_config": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -243,11 +257,19 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "matcher", projectID, err))
 	}
 
-	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
+	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err))
 	}
 
-	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
+	if err := d.Set("threshold", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err))
+	}
+
+	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err))
+	}
+
+	if err := d.Set("threshold", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err))
 	}
 
