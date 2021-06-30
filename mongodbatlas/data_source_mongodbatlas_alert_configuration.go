@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasAlertConfigurationRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasAlertConfigurationRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -215,43 +216,43 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	alertID := getEncodedID(d.Get("alert_configuration_id").(string), "id")
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), projectID, alertID)
+	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, projectID, alertID)
 	if err != nil {
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "event_type", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "event_type", projectID, err))
 	}
 
 	if err := d.Set("created", alert.Created); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "created", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "created", projectID, err))
 	}
 
 	if err := d.Set("updated", alert.Updated); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "updated", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "updated", projectID, err))
 	}
 
 	if err := d.Set("matcher", flattenAlertConfigurationMatchers(alert.Matchers)); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "matcher", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "matcher", projectID, err))
 	}
 
 	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold", projectID, err))
 	}
 
 	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold", projectID, err))
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "notification", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", projectID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

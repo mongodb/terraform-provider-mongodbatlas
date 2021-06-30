@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -32,12 +33,12 @@ var requiredPerType = map[string][]string{
 
 func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasThirdPartyIntegrationCreate,
-		Read:   resourceMongoDBAtlasThirdPartyIntegrationRead,
-		Update: resourceMongoDBAtlasThirdPartyIntegrationUpdate,
-		Delete: resourceMongoDBAtlasThirdPartyIntegrationDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasThirdPartyIntegrationCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasThirdPartyIntegrationRead,
+		UpdateWithoutTimeout: resourceMongoDBAtlasThirdPartyIntegrationUpdate,
+		DeleteWithoutTimeout: resourceMongoDBAtlasThirdPartyIntegrationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasThirdPartyIntegrationImportState,
+			StateContext: resourceMongoDBAtlasThirdPartyIntegrationImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -123,7 +124,7 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
@@ -134,17 +135,17 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(d *schema.ResourceData, met
 			_, valid := d.GetOk(key)
 
 			if !valid {
-				return fmt.Errorf("error attribute for third party integration %s. please set it", key)
+				return diag.FromErr(fmt.Errorf("error attribute for third party integration %s. please set it", key))
 			}
 		}
 	}
 
 	requestBody := schemaToIntegration(d)
 
-	_, _, err := conn.Integrations.Create(context.Background(), projectID, integrationType, requestBody)
+	_, _, err := conn.Integrations.Create(ctx, projectID, integrationType, requestBody)
 
 	if err != nil {
-		return fmt.Errorf("error creating third party integration %s", err)
+		return diag.FromErr(fmt.Errorf("error creating third party integration %s", err))
 	}
 
 	// ID is equal to project_id+type need to ask
@@ -153,10 +154,10 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(d *schema.ResourceData, met
 		"type":       integrationType,
 	}))
 
-	return resourceMongoDBAtlasThirdPartyIntegrationRead(d, meta)
+	return resourceMongoDBAtlasThirdPartyIntegrationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -170,14 +171,14 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err)
+		return diag.FromErr(fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err))
 	}
 
 	integrationMap := integrationToSchema(integration)
 
 	for key, val := range integrationMap {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf("error setting `%s` for third party integration (%s): %s", key, d.Id(), err)
+			return diag.FromErr(fmt.Errorf("error setting `%s` for third party integration (%s): %s", key, d.Id(), err))
 		}
 	}
 
@@ -189,49 +190,49 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
 
-	integration, _, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
+	integration, _, err := conn.Integrations.Get(ctx, projectID, integrationType)
 
 	if err != nil {
-		return fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err)
+		return diag.FromErr(fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err))
 	}
 
 	// check for changed attributes per type
 
 	updateIntegrationFromSchema(d, integration)
 
-	_, _, err = conn.Integrations.Replace(context.Background(), projectID, integrationType, integration)
+	_, _, err = conn.Integrations.Replace(ctx, projectID, integrationType, integration)
 
 	if err != nil {
-		return fmt.Errorf("error updating third party integration type `%s` (%s): %w", integrationType, d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error updating third party integration type `%s` (%s): %w", integrationType, d.Id(), err))
 	}
 
-	return resourceMongoDBAtlasThirdPartyIntegrationRead(d, meta)
+	return resourceMongoDBAtlasThirdPartyIntegrationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
 
-	_, err := conn.Integrations.Delete(context.Background(), projectID, integrationType)
+	_, err := conn.Integrations.Delete(ctx, projectID, integrationType)
 
 	if err != nil {
-		return fmt.Errorf("error deleting third party integration type `%s` (%s): %w", integrationType, d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error deleting third party integration type `%s` (%s): %w", integrationType, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, integrationType, err := splitIntegrationTypeID(d.Id())
@@ -240,7 +241,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationImportState(d *schema.ResourceData
 		return nil, err
 	}
 
-	integration, _, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
+	integration, _, err := conn.Integrations.Get(ctx, projectID, integrationType)
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import third party integration (%s) in project(%s), error: %w", integrationType, projectID, err)

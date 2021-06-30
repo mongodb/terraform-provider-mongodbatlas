@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasDatabaseUserRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasDatabaseUserRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -99,7 +100,7 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasDatabaseUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -109,7 +110,7 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 	authDBName, authDBNameOk := d.GetOk("auth_database_name")
 
 	if !dbNameOk && !authDBNameOk {
-		return errors.New("one of database_name or auth_database_name must be configured")
+		return diag.FromErr(errors.New("one of database_name or auth_database_name must be configured"))
 	}
 
 	var authDatabaseName string
@@ -119,47 +120,47 @@ func dataSourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interfa
 		authDatabaseName = authDBName.(string)
 	}
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
 	if err != nil {
-		return fmt.Errorf("error getting database user information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting database user information: %s", err))
 	}
 
 	if err := d.Set("username", dbUser.Username); err != nil {
-		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err))
 	}
 
 	if _, ok := d.GetOk("auth_database_name"); ok {
 		if err := d.Set("auth_database_name", dbUser.DatabaseName); err != nil {
-			return fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
+			return diag.FromErr(fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err))
 		}
 	} else {
 		if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
-			return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
+			return diag.FromErr(fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err))
 		}
 	}
 
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
-		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("aws_iam_type", dbUser.AWSIAMType); err != nil {
-		return fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("ldap_auth_type", dbUser.LDAPAuthType); err != nil {
-		return fmt.Errorf("error setting `ldap_auth_type` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `ldap_auth_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
-		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
-		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("scopes", flattenScopes(dbUser.Scopes)); err != nil {
-		return fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -12,7 +13,7 @@ import (
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -109,7 +110,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -121,17 +122,17 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(d *schema.Resour
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudProviderSnapshotRestoreJobs.List(context.Background(), requestParameters, options)
+	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudProviderSnapshotRestoreJobs.List(ctx, requestParameters, options)
 	if err != nil {
-		return fmt.Errorf("error getting cloudProviderSnapshotRestoreJobs information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJobs information: %s", err))
 	}
 
 	if err := d.Set("results", flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs.Results)); err != nil {
-		return fmt.Errorf("error setting `results`: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
 	if err := d.Set("total_count", cloudProviderSnapshotRestoreJobs.TotalCount); err != nil {
-		return fmt.Errorf("error setting `total_count`: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

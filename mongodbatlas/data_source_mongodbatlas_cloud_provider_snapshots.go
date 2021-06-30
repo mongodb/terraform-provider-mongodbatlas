@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -12,7 +13,7 @@ import (
 
 func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCloudProviderSnapshotsRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasCloudProviderSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -86,7 +87,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -99,17 +100,17 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(d *schema.ResourceData, me
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	cloudProviderSnapshots, _, err := conn.CloudProviderSnapshots.GetAllCloudProviderSnapshots(context.Background(), requestParameters, options)
+	cloudProviderSnapshots, _, err := conn.CloudProviderSnapshots.GetAllCloudProviderSnapshots(ctx, requestParameters, options)
 	if err != nil {
-		return fmt.Errorf("error getting cloudProviderSnapshots information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshots information: %s", err))
 	}
 
 	if err := d.Set("results", flattenCloudProviderSnapshots(cloudProviderSnapshots.Results)); err != nil {
-		return fmt.Errorf("error setting `results`: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
 	if err := d.Set("total_count", cloudProviderSnapshots.TotalCount); err != nil {
-		return fmt.Errorf("error setting `total_count`: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

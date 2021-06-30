@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasPrivateLinkEndpointRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasPrivateLinkEndpointRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -64,7 +65,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -72,41 +73,41 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta 
 	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 	if err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err))
 	}
 
 	if err := d.Set("private_link_id", privateEndpoint.ID); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_id", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_id", privateLinkID, err))
 	}
 
 	if err := d.Set("endpoint_service_name", privateEndpoint.EndpointServiceName); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "endpoint_service_name", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "endpoint_service_name", privateLinkID, err))
 	}
 
 	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "error_message", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "error_message", privateLinkID, err))
 	}
 
 	if err := d.Set("interface_endpoints", privateEndpoint.InterfaceEndpoints); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err))
 	}
 
 	if err := d.Set("private_endpoints", privateEndpoint.PrivateEndpoints); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_endpoints", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_endpoints", privateLinkID, err))
 	}
 
 	if err := d.Set("private_link_service_name", privateEndpoint.PrivateLinkServiceName); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_service_name", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_service_name", privateLinkID, err))
 	}
 
 	if err := d.Set("private_link_service_resource_id", privateEndpoint.PrivateLinkServiceResourceID); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_service_resource_id", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_service_resource_id", privateLinkID, err))
 	}
 
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", privateLinkID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

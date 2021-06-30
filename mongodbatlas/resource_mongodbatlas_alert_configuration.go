@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -26,12 +27,12 @@ const (
 
 func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasAlertConfigurationCreate,
-		Read:   resourceMongoDBAtlasAlertConfigurationRead,
-		Update: resourceMongoDBAtlasAlertConfigurationUpdate,
-		Delete: resourceMongoDBAtlasAlertConfigurationDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasAlertConfigurationCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasAlertConfigurationRead,
+		UpdateWithoutTimeout: resourceMongoDBAtlasAlertConfigurationUpdate,
+		DeleteWithoutTimeout: resourceMongoDBAtlasAlertConfigurationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasAlertConfigurationImportState,
+			StateContext: resourceMongoDBAtlasAlertConfigurationImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -277,7 +278,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -291,9 +292,9 @@ func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta i
 		Notifications:   expandAlertConfigurationNotification(d),
 	}
 
-	resp, _, err := conn.AlertConfigurations.Create(context.Background(), projectID, req)
+	resp, _, err := conn.AlertConfigurations.Create(ctx, projectID, req)
 	if err != nil {
-		return fmt.Errorf(errorCreateAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorCreateAlertConf, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -301,10 +302,10 @@ func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta i
 		"project_id": projectID,
 	}))
 
-	return resourceMongoDBAtlasAlertConfigurationRead(d, meta)
+	return resourceMongoDBAtlasAlertConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -316,33 +317,33 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 
 	if err := d.Set("alert_configuration_id", alert.ID); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err))
 	}
 
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "event_type", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "event_type", ids["id"], err))
 	}
 
 	if err := d.Set("created", alert.Created); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err))
 	}
 
 	if err := d.Set("updated", alert.Updated); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err))
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var (
 		conn = meta.(*MongoDBClient).Atlas
 		ids  = decodeStateID(d.Id())
@@ -351,9 +352,9 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
-	req, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
+	req, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, ids["project_id"], ids["id"])
 	if err != nil {
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 	// Removing the computed attributes to recreate the original request
 	req.GroupID = ""
@@ -389,31 +390,31 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
 	if reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(true)}) ||
 		reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(false)}) {
-		_, _, err = conn.AlertConfigurations.EnableAnAlertConfig(context.Background(), ids["project_id"], ids["id"], req.Enabled)
+		_, _, err = conn.AlertConfigurations.EnableAnAlertConfig(ctx, ids["project_id"], ids["id"], req.Enabled)
 	} else {
-		_, _, err = conn.AlertConfigurations.Update(context.Background(), ids["project_id"], ids["id"], req)
+		_, _, err = conn.AlertConfigurations.Update(ctx, ids["project_id"], ids["id"], req)
 	}
 
 	if err != nil {
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 
-	return resourceMongoDBAtlasAlertConfigurationRead(d, meta)
+	return resourceMongoDBAtlasAlertConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAlertConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	_, err := conn.AlertConfigurations.Delete(context.Background(), ids["project_id"], ids["id"])
+	_, err := conn.AlertConfigurations.Delete(ctx, ids["project_id"], ids["id"])
 	if err != nil {
-		return fmt.Errorf(errorDeleteAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorDeleteAlertConf, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasAlertConfigurationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	parts := strings.SplitN(d.Id(), "-", 2)
 
@@ -424,7 +425,7 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	projectID := parts[0]
 	id := parts[1]
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), projectID, id)
+	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, projectID, id)
 	if err != nil {
 		return nil, fmt.Errorf(errorImportAlertConf, id, projectID, err)
 	}

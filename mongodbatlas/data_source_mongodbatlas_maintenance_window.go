@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 )
 
 func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasMaintenanceWindowRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasMaintenanceWindowRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -36,30 +37,30 @@ func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	maintenance, _, err := conn.MaintenanceWindows.Get(context.Background(), projectID)
+	maintenance, _, err := conn.MaintenanceWindows.Get(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf(errorMaintenanceRead, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("day_of_week", maintenance.DayOfWeek); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("hour_of_day", maintenance.HourOfDay); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("number_of_deferrals", maintenance.NumberOfDeferrals); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	if err := d.Set("start_asap", cast.ToBool(maintenance.StartASAP)); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
 	d.SetId(projectID)

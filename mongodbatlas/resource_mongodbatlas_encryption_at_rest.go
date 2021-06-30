@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -21,11 +22,11 @@ const (
 
 func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 	return &schema.Resource{
-		Create:   resourceMongoDBAtlasEncryptionAtRestCreate,
-		Read:     resourceMongoDBAtlasEncryptionAtRestRead,
-		Delete:   resourceMongoDBAtlasEncryptionAtRestDelete,
-		Update:   resourceMongoDBAtlasEncryptionAtRestUpdate,
-		Importer: &schema.ResourceImporter{},
+		CreateWithoutTimeout: resourceMongoDBAtlasEncryptionAtRestCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasEncryptionAtRestRead,
+		DeleteWithoutTimeout: resourceMongoDBAtlasEncryptionAtRestDelete,
+		UpdateWithoutTimeout: resourceMongoDBAtlasEncryptionAtRestUpdate,
+		Importer:             &schema.ResourceImporter{},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -148,7 +149,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
@@ -159,7 +160,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 	if awsOk {
 		err := validateAwsKms(aws.([]interface{}))
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		encryptionAtRestReq.AwsKms = expandAwsKms(aws.([]interface{}))
 	}
@@ -172,17 +173,17 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 		encryptionAtRestReq.GoogleCloudKms = expandGCPKms(gcp.([]interface{}))
 	}
 
-	_, _, err := conn.EncryptionsAtRest.Create(context.Background(), encryptionAtRestReq)
+	_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
 	if err != nil {
-		return fmt.Errorf(errorCreateEncryptionAtRest, err)
+		return diag.FromErr(fmt.Errorf(errorCreateEncryptionAtRest, err))
 	}
 
 	d.SetId(d.Get("project_id").(string))
 
-	return resourceMongoDBAtlasEncryptionAtRestRead(d, meta)
+	return resourceMongoDBAtlasEncryptionAtRestRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	resp, response, err := conn.EncryptionsAtRest.Get(context.Background(), d.Id())
@@ -192,7 +193,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf(errorReadEncryptionAtRest, err)
+		return diag.FromErr(fmt.Errorf(errorReadEncryptionAtRest, err))
 	}
 
 	values := flattenAWSKMS(&resp.AwsKms)
@@ -218,7 +219,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 			values[0] = value
 
 			if err = d.Set("aws_kms", values); err != nil {
-				return fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err)
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "aws_kms", d.Id(), err))
 			}
 		}
 	}
@@ -241,7 +242,7 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 			values[0] = value
 
 			if err = d.Set("azure_key_vault", values); err != nil {
-				return fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault", d.Id(), err)
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "azure_key_vault", d.Id(), err))
 			}
 		}
 	}
@@ -263,25 +264,25 @@ func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta inter
 			values[0] = value
 
 			if err = d.Set("google_cloud_kms", values); err != nil {
-				return fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err)
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err))
 			}
 		}
 	}
 
 	if err = d.Set("project_id", d.Id()); err != nil {
-		return fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "project_id", d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEncryptionAtRestUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	encrypt, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
+	encrypt, _, err := conn.EncryptionsAtRest.Get(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf(errorUpdateEncryptionAtRest, err)
+		return diag.FromErr(fmt.Errorf(errorUpdateEncryptionAtRest, err))
 	}
 
 	encrypt.GroupID = projectID
@@ -298,20 +299,20 @@ func resourceMongoDBAtlasEncryptionAtRestUpdate(d *schema.ResourceData, meta int
 		encrypt.GoogleCloudKms = expandGCPKms(d.Get("google_cloud_kms").([]interface{}))
 	}
 
-	_, _, err = conn.EncryptionsAtRest.Create(context.Background(), encrypt)
+	_, _, err = conn.EncryptionsAtRest.Create(ctx, encrypt)
 	if err != nil {
-		return fmt.Errorf("error updating encryption at rest (%s): %s", projectID, err)
+		return diag.FromErr(fmt.Errorf("error updating encryption at rest (%s): %s", projectID, err))
 	}
 
-	return resourceMongoDBAtlasEncryptionAtRestRead(d, meta)
+	return resourceMongoDBAtlasEncryptionAtRestRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasEncryptionAtRestDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEncryptionAtRestDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	_, err := conn.EncryptionsAtRest.Delete(context.Background(), d.Id())
+	_, err := conn.EncryptionsAtRest.Delete(ctx, d.Id())
 	if err != nil {
-		return fmt.Errorf(errorDeleteEncryptionAtRest, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorDeleteEncryptionAtRest, d.Id(), err))
 	}
 
 	return nil

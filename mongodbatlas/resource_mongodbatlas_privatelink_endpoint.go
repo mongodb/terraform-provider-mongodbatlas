@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -25,11 +26,11 @@ const (
 
 func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasPrivateLinkEndpointCreate,
-		Read:   resourceMongoDBAtlasPrivateLinkEndpointRead,
-		Delete: resourceMongoDBAtlasPrivateLinkEndpointDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateLinkEndpointRead,
+		DeleteWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasPrivateLinkEndpointImportState,
+			StateContext: resourceMongoDBAtlasPrivateLinkEndpointImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -90,7 +91,7 @@ func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
@@ -101,24 +102,24 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta 
 		Region:       region,
 	}
 
-	privateEndpointConn, _, err := conn.PrivateEndpoints.Create(context.Background(), projectID, request)
+	privateEndpointConn, _, err := conn.PrivateEndpoints.Create(ctx, projectID, request)
 	if err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsCreate, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "DELETING"},
 		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    resourcePrivateLinkEndpointRefreshFunc(conn, projectID, providerName, privateEndpointConn.ID),
+		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateEndpointConn.ID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
 
 	// Wait, catching any errors
-	_, err = stateConf.WaitForState()
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsCreate, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -128,10 +129,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(d *schema.ResourceData, meta 
 		"region":          region,
 	}))
 
-	return resourceMongoDBAtlasPrivateLinkEndpointRead(d, meta)
+	return resourceMongoDBAtlasPrivateLinkEndpointRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -147,53 +148,53 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err))
 	}
 
 	if err := d.Set("private_link_id", privateEndpoint.ID); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_id", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "private_link_id", privateLinkID, err))
 	}
 
 	if err := d.Set("endpoint_service_name", privateEndpoint.EndpointServiceName); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "endpoint_service_name", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "endpoint_service_name", privateLinkID, err))
 	}
 
 	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "error_message", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "error_message", privateLinkID, err))
 	}
 
 	if err := d.Set("interface_endpoints", privateEndpoint.InterfaceEndpoints); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err))
 	}
 
 	if err := d.Set("private_endpoints", privateEndpoint.PrivateEndpoints); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err))
 	}
 
 	if err := d.Set("private_link_service_name", privateEndpoint.PrivateLinkServiceName); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err))
 	}
 
 	if err := d.Set("private_link_service_resource_id", privateEndpoint.PrivateLinkServiceResourceID); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "interface_endpoints", privateLinkID, err))
 	}
 
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", privateLinkID, err))
 	}
 
 	if err := d.Set("provider_name", providerName); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "provider_name", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "provider_name", privateLinkID, err))
 	}
 
 	if err := d.Set("region", region); err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsSetting, "region", privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "region", privateLinkID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -201,13 +202,13 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(d *schema.ResourceData, meta 
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
 
-	resp, err := conn.PrivateEndpoints.Delete(context.Background(), projectID, providerName, privateLinkID)
+	resp, err := conn.PrivateEndpoints.Delete(ctx, projectID, providerName, privateLinkID)
 	if err != nil {
 		if resp.Response.StatusCode == 404 {
 			return nil
 		}
 
-		return fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
 	}
 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
@@ -215,21 +216,21 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(d *schema.ResourceData, meta 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
-		Refresh:    resourcePrivateLinkEndpointRefreshFunc(conn, projectID, providerName, privateLinkID),
+		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID),
 		Timeout:    10 * time.Minute,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
 	// Wait, catching any errors
-	_, err = stateConf.WaitForState()
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.Split(d.Id(), "-")
@@ -245,7 +246,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(d *schema.ResourceData, 
 		region = fmt.Sprintf("%s-%s-%s", parts[3], parts[4], parts[5])
 	}
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+	privateEndpoint, _, err := conn.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s with cloud provider name %s, error: %s", privateLinkID, projectID, providerName, err)
 	}
@@ -264,9 +265,9 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(d *schema.ResourceData, 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourcePrivateLinkEndpointRefreshFunc(client *matlas.Client, projectID, providerName, privateLinkID string) resource.StateRefreshFunc {
+func resourcePrivateLinkEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		p, resp, err := client.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+		p, resp, err := client.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {
 				return "", "DELETED", nil

@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasCustomDNSConfigurationAWS() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -24,19 +25,19 @@ func dataSourceMongoDBAtlasCustomDNSConfigurationAWS() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 
-	customDNSSetting, _, err := conn.CustomAWSDNS.Get(context.Background(), projectID)
+	customDNSSetting, _, err := conn.CustomAWSDNS.Get(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationRead, err)
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationRead, err))
 	}
 
 	if err := d.Set("enabled", customDNSSetting.Enabled); err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationSetting, "enabled", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationSetting, "enabled", projectID, err))
 	}
 
 	d.SetId(projectID)

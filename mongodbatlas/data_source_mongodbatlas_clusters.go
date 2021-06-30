@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -14,7 +15,7 @@ import (
 
 func dataSourceMongoDBAtlasClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasClustersRead,
+		ReadWithoutTimeout: dataSourceMongoDBAtlasClustersRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -317,33 +318,33 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	d.SetId(resource.UniqueId())
 
-	clusters, resp, err := conn.Clusters.List(context.Background(), projectID, nil)
+	clusters, resp, err := conn.Clusters.List(ctx, projectID, nil)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 
-		return fmt.Errorf("error reading cluster list for project(%s): %s", projectID, err)
+		return diag.FromErr(fmt.Errorf("error reading cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenClusters(d, conn, clusters)); err != nil {
-		return fmt.Errorf(errorClusterSetting, "results", d.Id(), err)
+	if err := d.Set("results", flattenClusters(ctx, d, conn, clusters)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenClusters(d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster) []map[string]interface{} {
+func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	for i := range clusters {
-		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(d, conn, clusters[i].GroupID, clusters[i].Name)
+		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, d, conn, clusters[i].GroupID, clusters[i].Name)
 		if err != nil {
 			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", clusters[i].ID, err)
 		}
