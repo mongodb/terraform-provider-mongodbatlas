@@ -81,18 +81,18 @@ func testAccCheckMongoDBAtlasSearchAnalyzerExists(resourceName string) resource.
 
 func testAccMongoDBAtlasSearchAnalyzerConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_search_index" "test" {
-			project_id         = "%[1]s"
-			cluster_name       = "%[2]s"
+		resource "mongodbatlas_search_analyzer" "test_analyzer" {
+			project_id   = "%[1]s"
+			cluster_name = "%[2]s"
 
 			search_analyzers = {
-				name= "test_analyzer_1"
+				name = "test_analyzer_1"
 				base_analyzer = "lucene.standard"
 			},
 		}
-		data "mongodbatlas_search_index" "test" {
-			cluster_name           = mongodbatlas_search_index.test.cluster_name
-			project_id         = mongodbatlas_search_index.test.project_id
+		data "mongodbatlas_search_analyzer" "test_analyzer" {
+			cluster_name = mongodbatlas_search_index.test.cluster_name
+			project_id   = mongodbatlas_search_index.test.project_id
 		}
 	`, projectID, clusterName)
 }

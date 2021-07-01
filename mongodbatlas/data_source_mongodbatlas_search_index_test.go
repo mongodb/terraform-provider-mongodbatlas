@@ -24,7 +24,10 @@ func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "project_id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "cluster_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "collection_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "database_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "search_analyzer"),
 				),
 			},
 		},

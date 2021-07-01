@@ -24,6 +24,8 @@ func TestAccDataSourceMongoDBAtlasSearchAnalyzer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_search_analyzers.test", "project_id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_search_analyzers.test", "cluster_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_analyzers.test", "search_analyzers.0.name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_analyzers.test", "search_analyzers.0.base_analyzer"),
 				),
 			},
 		},

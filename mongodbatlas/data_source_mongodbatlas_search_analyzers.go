@@ -83,7 +83,7 @@ func dataSourceMongoDBAtlasSearchAnalyzersRead(d *schema.ResourceData, meta inte
 	projectID, projectIDOK := d.GetOk("project_id")
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
 
-	if !projectIDOK || !clusterNameOK {
+	if !(projectIDOK && clusterNameOK) {
 		return errors.New("project_id and cluster_name must be configured")
 	}
 
