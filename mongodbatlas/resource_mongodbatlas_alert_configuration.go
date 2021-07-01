@@ -557,7 +557,7 @@ func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold
 }
 
 func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matlas.MetricThreshold {
-	//Deprecated, will be removed later
+	// Deprecated, will be removed later
 	if value, ok := d.GetOk("metric_threshold"); ok {
 		v := value.(map[string]interface{})
 
@@ -590,7 +590,7 @@ func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matl
 }
 
 func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Threshold {
-	//Deprecated, will be removed later
+	// Deprecated, will be removed later
 	if value, ok := d.GetOk("threshold"); ok {
 		v := value.(map[string]interface{})
 
