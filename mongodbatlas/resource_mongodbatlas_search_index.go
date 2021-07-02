@@ -404,7 +404,7 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 
 	searchIndexRequest := &matlas.SearchIndex{
 		Analyzer:       d.Get("analyzer").(string),
-		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").([]interface{})), //TODO: check if is correct type
+		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").([]interface{})),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Mappings: &matlas.IndexMapping{
@@ -432,7 +432,7 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 
 func customAnalyzersSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet, //TODO: change type
+		Type:     schema.TypeSet,
 		Required: false,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{

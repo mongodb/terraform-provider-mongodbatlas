@@ -10,7 +10,7 @@ Describes a Search Index.
 
 `mongodbatlas_search_index` describe all Projects. This represents projects that have been created.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
+> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 
 ## Example Usage

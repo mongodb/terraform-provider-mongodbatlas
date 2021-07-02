@@ -34,8 +34,6 @@ resource "mongodbatlas_search_index" "test" {
 * `cluster_name` - (Required) The name of the cluster where you want to create the search index within.
 
 
-
-~> **NOTE:** Atlas limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization.
 * `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 
 * `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index (this is an array of objects).
@@ -227,14 +225,12 @@ An Atlas Search analyzer prepares a set of documents to be indexed by performing
 
 
 
-~> **NOTE:** Do not use [daitchMokotoffSoundex](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-daitchmokotoffsoundex-tf-ref) token filter in operators where `fuzzy` is enabled. Atlas Search supports the `fuzzy` option for the following operators:
-* [autocomplete](https://docs.atlas.mongodb.com/reference/atlas-search/autocomplete/#std-label-autocomplete-ref)
-* [term (Deprecated)](https://docs.atlas.mongodb.com/reference/atlas-search/term/#std-label-term-ref)
-* [text](https://docs.atlas.mongodb.com/reference/atlas-search/text/#std-label-text-ref)
+> **NOTE:** Do not use [daitchMokotoffSoundex](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-daitchmokotoffsoundex-tf-ref) token filter in operators where `fuzzy` is enabled. Atlas Search supports the `fuzzy` option for the following operators:
+>* [autocomplete](https://docs.atlas.mongodb.com/reference/atlas-search/autocomplete/#std-label-autocomplete-ref)
+>* [term (Deprecated)](https://docs.atlas.mongodb.com/reference/atlas-search/term/#std-label-term-ref)
+>* [text](https://docs.atlas.mongodb.com/reference/atlas-search/text/#std-label-text-ref)
 
 
-
-~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
 ## Attributes Reference
 
