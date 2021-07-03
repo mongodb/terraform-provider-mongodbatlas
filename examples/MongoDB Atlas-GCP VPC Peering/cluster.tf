@@ -1,3 +1,4 @@
+//This cluster is in GCP cloud-provider with VPC peering enabled
 
 resource "mongodbatlas_cluster" "cluster-test-single" {
   project_id   = var.project_id
@@ -37,4 +38,8 @@ resource "mongodbatlas_cluster" "cluster-test-single" {
       provider_instance_size_name
     ]
   }
+}
+//The connection strings available for the GCP MognoDB Atlas cluster
+output "connection_string" {
+  value = mongodbatlas_cluster.cluster-atlas.connection_strings
 }

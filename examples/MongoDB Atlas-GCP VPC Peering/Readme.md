@@ -1,6 +1,6 @@
 # Example - GCP and MongoDB Atlas VPC Peering
 
-This project aims to provide an example of using Azure and MongoDB Atlas together.
+This project aims to provide an example of using GCP and MongoDB Atlas together.
 
 
 ## Dependencies
