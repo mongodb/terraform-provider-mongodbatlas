@@ -38,9 +38,10 @@ func testAccMongoDBAtlasSearchIndexDSConfig(projectID string, clusterName string
 	return fmt.Sprintf(`
 		%s
 
-		data "mongodbatlas_search_index" "test" {
-			cluster_name           = mongodbatlas_search_index.test.cluster_name
-			project_id         = mongodbatlas_search_index.test.project_id
+		data "mongodbatlas_search_index" "test_two" {
+			cluster_name        = mongodbatlas_search_index.test.cluster_name
+			project_id          = mongodbatlas_search_index.test.project_id
+			index_id 			= mongodbatlas_search_index.test.index_id
 		}
 	`, testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName))
 }

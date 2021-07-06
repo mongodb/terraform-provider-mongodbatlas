@@ -271,128 +271,133 @@ func marshallSearchIndexCharFilterMappingFields(fields map[string]string) interf
 
 func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map[string]interface{} {
 
-	if len(analyzers) > 0 {
-		mapAnalyzers := make([]map[string]interface{}, len(analyzers))
-
-		for i, analyzer := range analyzers {
-			mapAnalyzers[i] = map[string]interface{}{
-				"name":      analyzer.Name,
-				"tokenizer": *analyzer.Tokenizer,
-			}
-
-			if len(analyzer.CharFilters) > 0 {
-				mapAnalyzers[i]["char_filters"] = flattenSearchIndexCharFilters(analyzer.CharFilters)
-			}
-
-			if len(analyzer.TokenFilters) > 0 {
-				mapAnalyzers[i]["token_filters"] = flattenSearchIndexTokenFilters(analyzer.TokenFilters)
-			}
-
-		}
-		return mapAnalyzers
+	if len(analyzers) == 0 {
+		return nil
 	}
-	return nil
+
+	mapAnalyzers := make([]map[string]interface{}, len(analyzers))
+
+	for i, analyzer := range analyzers {
+		mapAnalyzers[i] = map[string]interface{}{
+			"name":      analyzer.Name,
+			"tokenizer": *analyzer.Tokenizer,
+		}
+
+		if len(analyzer.CharFilters) > 0 {
+			mapAnalyzers[i]["char_filters"] = flattenSearchIndexCharFilters(analyzer.CharFilters)
+		}
+
+		if len(analyzer.TokenFilters) > 0 {
+			mapAnalyzers[i]["token_filters"] = flattenSearchIndexTokenFilters(analyzer.TokenFilters)
+		}
+
+	}
+	return mapAnalyzers
 }
 
 func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []map[string]interface{} {
 
-	if len(filters) > 0 {
-		mapCharFilters := make([]map[string]interface{}, len(filters))
-
-		for i, filter := range filters {
-			mapCharFilters[i] = map[string]interface{}{
-				"type": filter.Type,
-			}
-
-			if filter.OriginalTokens != "" {
-				mapCharFilters[i]["original_tokens"] = filter.OriginalTokens
-			}
-			//
-
-			if filter.Min != nil {
-				mapCharFilters[i]["min"] = *filter.Min
-			}
-
-			if filter.Max != nil {
-				mapCharFilters[i]["max"] = *filter.Max
-			}
-
-			if filter.NormalizationForm != "" {
-				mapCharFilters[i]["normalization_form"] = filter.NormalizationForm
-			}
-
-			if filter.MinGram != nil {
-				mapCharFilters[i]["min_gram"] = *filter.MinGram
-			}
-
-			if filter.MaxGram != nil {
-				mapCharFilters[i]["max_gram"] = *filter.MaxGram
-			}
-
-			if filter.TermsNotInBounds != "" {
-				mapCharFilters[i]["terms_not_in_bounds"] = filter.TermsNotInBounds
-			}
-
-			if filter.MinShingleSize != nil {
-				mapCharFilters[i]["min_shingle_size"] = *filter.MinShingleSize
-			}
-
-			if filter.MaxShingleSize != nil {
-				mapCharFilters[i]["max_shingle_size"] = *filter.MaxShingleSize
-			}
-
-			if filter.Pattern != "" {
-				mapCharFilters[i]["pattern"] = filter.Pattern
-			}
-
-			if filter.Replacement != "" {
-				mapCharFilters[i]["replacement"] = filter.Replacement
-			}
-
-			if filter.Matches != "" {
-				mapCharFilters[i]["matches"] = filter.Matches
-			}
-
-			if filter.StemmerName != "" {
-				mapCharFilters[i]["stemmer_name"] = filter.StemmerName
-			}
-
-			if len(filter.Tokens) > 0 {
-				mapCharFilters[i]["tokens"] = filter.Tokens
-			}
-
-			if filter.IgnoreCase != nil {
-				mapCharFilters[i]["ignore_case"] = *filter.IgnoreCase
-			}
-
-		}
-		return mapCharFilters
+	if len(filters) == 0 {
+		return nil
 	}
-	return nil
+
+	mapCharFilters := make([]map[string]interface{}, len(filters))
+
+	for i, filter := range filters {
+		mapCharFilters[i] = map[string]interface{}{
+			"type": filter.Type,
+		}
+
+		if filter.OriginalTokens != "" {
+			mapCharFilters[i]["original_tokens"] = filter.OriginalTokens
+		}
+		//
+
+		if filter.Min != nil {
+			mapCharFilters[i]["min"] = *filter.Min
+		}
+
+		if filter.Max != nil {
+			mapCharFilters[i]["max"] = *filter.Max
+		}
+
+		if filter.NormalizationForm != "" {
+			mapCharFilters[i]["normalization_form"] = filter.NormalizationForm
+		}
+
+		if filter.MinGram != nil {
+			mapCharFilters[i]["min_gram"] = *filter.MinGram
+		}
+
+		if filter.MaxGram != nil {
+			mapCharFilters[i]["max_gram"] = *filter.MaxGram
+		}
+
+		if filter.TermsNotInBounds != "" {
+			mapCharFilters[i]["terms_not_in_bounds"] = filter.TermsNotInBounds
+		}
+
+		if filter.MinShingleSize != nil {
+			mapCharFilters[i]["min_shingle_size"] = *filter.MinShingleSize
+		}
+
+		if filter.MaxShingleSize != nil {
+			mapCharFilters[i]["max_shingle_size"] = *filter.MaxShingleSize
+		}
+
+		if filter.Pattern != "" {
+			mapCharFilters[i]["pattern"] = filter.Pattern
+		}
+
+		if filter.Replacement != "" {
+			mapCharFilters[i]["replacement"] = filter.Replacement
+		}
+
+		if filter.Matches != "" {
+			mapCharFilters[i]["matches"] = filter.Matches
+		}
+
+		if filter.StemmerName != "" {
+			mapCharFilters[i]["stemmer_name"] = filter.StemmerName
+		}
+
+		if len(filter.Tokens) > 0 {
+			mapCharFilters[i]["tokens"] = filter.Tokens
+		}
+
+		if filter.IgnoreCase != nil {
+			mapCharFilters[i]["ignore_case"] = *filter.IgnoreCase
+		}
+
+	}
+	return mapCharFilters
+
 }
 
 func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[string]interface{} {
 
-	if len(filters) > 0 {
-		mapCharFilters := make([]map[string]interface{}, len(filters))
-
-		for i, filter := range filters {
-			mapCharFilters[i] = map[string]interface{}{
-				"type": filter.Type,
-			}
-
-			if len(filter.IgnoreTags) > 0 {
-				mapCharFilters[i]["ignore_tags"] = filter.IgnoreTags
-			}
-
-			if filter.Mappings != nil {
-				mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(*filter.Mappings)
-			}
-
-		}
-		return mapCharFilters
+	if len(filters) == 0 {
+		return nil
 	}
-	return nil
+
+	mapCharFilters := make([]map[string]interface{}, len(filters))
+
+	for i, filter := range filters {
+		mapCharFilters[i] = map[string]interface{}{
+			"type": filter.Type,
+		}
+
+		if len(filter.IgnoreTags) > 0 {
+			mapCharFilters[i]["ignore_tags"] = filter.IgnoreTags
+		}
+
+		if filter.Mappings != nil {
+			mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(*filter.Mappings)
+		}
+
+	}
+	return mapCharFilters
+
 }
 
 func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
@@ -579,44 +584,48 @@ func customAnalyzersSchema() *schema.Schema {
 
 func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
 
-	if len(analyzers) > 0 {
+	if len(analyzers) == 0 {
+		return nil
+	}
 
-		var analyzersList []*matlas.CustomAnalyzer
+	var analyzersList []*matlas.CustomAnalyzer
 
-		for _, analyzerObj := range analyzers {
+	for _, analyzerObj := range analyzers {
 
-			analyzerInterface := analyzerObj.(map[string]interface{})
+		analyzerInterface := analyzerObj.(map[string]interface{})
 
-			analyzer := &matlas.CustomAnalyzer{
-				Name: analyzerInterface["name"].(string),
-			}
-
-			charFiltersMap, ok := analyzerInterface["char_filters"]
-			if ok {
-				analyzer.CharFilters = expandIndexCharFilters(charFiltersMap.(*schema.Set).List())
-			}
-
-			tokenizer, ok := analyzerInterface["tokenizer"]
-			if ok {
-				analyzer.Tokenizer = expandIndexTokenizer(tokenizer.(*schema.Set).List())
-			}
-
-			tokenFiltersMap, ok := analyzerInterface["token_filters"]
-			if ok {
-				analyzer.TokenFilters = expandIndexTokenFilters(tokenFiltersMap.(*schema.Set).List())
-			}
-
-			analyzersList = append(analyzersList, analyzer)
+		analyzer := &matlas.CustomAnalyzer{
+			Name: analyzerInterface["name"].(string),
 		}
 
-		return analyzersList
+		charFiltersMap, ok := analyzerInterface["char_filters"]
+		if ok {
+			analyzer.CharFilters = expandIndexCharFilters(charFiltersMap.(*schema.Set).List())
+		}
 
+		tokenizer, ok := analyzerInterface["tokenizer"]
+		if ok {
+			analyzer.Tokenizer = expandIndexTokenizer(tokenizer.(*schema.Set).List())
+		}
+
+		tokenFiltersMap, ok := analyzerInterface["token_filters"]
+		if ok {
+			analyzer.TokenFilters = expandIndexTokenFilters(tokenFiltersMap.(*schema.Set).List())
+		}
+
+		analyzersList = append(analyzersList, analyzer)
 	}
-	return nil
+
+	return analyzersList
+
 }
 
 func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerTokenFilters {
 	var analyzerTokenFilters []*matlas.AnalyzerTokenFilters
+
+	if len(tokenFilters) == 0 {
+		return nil
+	}
 
 	for _, tf := range tokenFilters {
 		tokenFilterMap := tf.(map[string]interface{})
@@ -694,66 +703,68 @@ func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerToken
 
 func expandIndexTokenizer(tokenizers []interface{}) *matlas.AnalyzerTokenizer {
 
-	if len(tokenizers) > 0 {
-		analyzerTokenizer := &matlas.AnalyzerTokenizer{}
-
-		tokenizer := tokenizers[0].(map[string]interface{})
-
-		analyzerTokenizer.Type = tokenizer["type"].(string)
-
-		if maxTokenLength, ok := tokenizer["max_token_length"]; ok {
-			analyzerTokenizer.MaxTokenLength = pointy.Int(maxTokenLength.(int))
-		}
-
-		if minGram, ok := tokenizer["min_gram"]; ok {
-			analyzerTokenizer.MinGram = pointy.Int(minGram.(int))
-		}
-
-		if maxGram, ok := tokenizer["max_gram"]; ok {
-			analyzerTokenizer.MaxGram = pointy.Int(maxGram.(int))
-		}
-
-		if pattern, ok := tokenizer["pattern"]; ok {
-			analyzerTokenizer.Pattern = pattern.(string)
-		}
-
-		if group, ok := tokenizer["group"]; ok {
-			analyzerTokenizer.Group = pointy.Int(group.(int))
-		}
-
-		return analyzerTokenizer
+	if len(tokenizers) == 0 {
+		return nil
 	}
 
-	return nil
+	analyzerTokenizer := &matlas.AnalyzerTokenizer{}
+
+	tokenizer := tokenizers[0].(map[string]interface{})
+
+	analyzerTokenizer.Type = tokenizer["type"].(string)
+
+	if maxTokenLength, ok := tokenizer["max_token_length"]; ok {
+		analyzerTokenizer.MaxTokenLength = pointy.Int(maxTokenLength.(int))
+	}
+
+	if minGram, ok := tokenizer["min_gram"]; ok {
+		analyzerTokenizer.MinGram = pointy.Int(minGram.(int))
+	}
+
+	if maxGram, ok := tokenizer["max_gram"]; ok {
+		analyzerTokenizer.MaxGram = pointy.Int(maxGram.(int))
+	}
+
+	if pattern, ok := tokenizer["pattern"]; ok {
+		analyzerTokenizer.Pattern = pattern.(string)
+	}
+
+	if group, ok := tokenizer["group"]; ok {
+		analyzerTokenizer.Group = pointy.Int(group.(int))
+	}
+
+	return analyzerTokenizer
+
 }
 
 func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFilter {
 	var analyzerCharFilters []*matlas.AnalyzerCharFilter
 
-	if len(charFilters) > 0 {
-		for _, tf := range charFilters {
-			charFilterMap := tf.(map[string]interface{})
-
-			charFilter := &matlas.AnalyzerCharFilter{
-				Type: charFilterMap["type"].(string),
-			}
-
-			if ignoreTags, ok := charFilterMap["ignoreTags"]; ok {
-				charFilter.IgnoreTags = ignoreTags.([]string)
-			}
-
-			if mappings, ok := charFilterMap["mappings"]; ok {
-				charFilter.Mappings = unmarshalSearchIndexCharFilterMapping(mappings.(string))
-			}
-
-			analyzerCharFilters = append(analyzerCharFilters, charFilter)
-
-		}
-
-		return analyzerCharFilters
+	if len(charFilters) == 0 {
+		return nil
 	}
 
-	return nil
+	for _, tf := range charFilters {
+		charFilterMap := tf.(map[string]interface{})
+
+		charFilter := &matlas.AnalyzerCharFilter{
+			Type: charFilterMap["type"].(string),
+		}
+
+		if ignoreTags, ok := charFilterMap["ignoreTags"]; ok {
+			charFilter.IgnoreTags = ignoreTags.([]string)
+		}
+
+		if mappings, ok := charFilterMap["mappings"]; ok {
+			charFilter.Mappings = unmarshalSearchIndexCharFilterMapping(mappings.(string))
+		}
+
+		analyzerCharFilters = append(analyzerCharFilters, charFilter)
+
+	}
+
+	return analyzerCharFilters
+
 }
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {

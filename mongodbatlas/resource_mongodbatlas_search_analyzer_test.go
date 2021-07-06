@@ -44,9 +44,14 @@ func TestAccResourceMongoDBAtlasSearchAnalyzer_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasSearchAnalyzerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasSearchAnalyzerConfig(projectID, clusterName),
+				Config:            testAccMongoDBAtlasSearchAnalyzerConfig(projectID, clusterName),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchAnalyzerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
+				Config:            testAccMongoDBAtlasSearchAnalyzerConfigAdvanced(projectID, clusterName),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchAnalyzerImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -89,6 +94,33 @@ func testAccMongoDBAtlasSearchAnalyzerConfig(projectID, clusterName string) stri
 				name = "test_analyzer_1"
 				base_analyzer = "lucene.standard"
 			},
+		}
+		data "mongodbatlas_search_analyzer" "test_analyzer" {
+			cluster_name = mongodbatlas_search_index.test.cluster_name
+			project_id   = mongodbatlas_search_index.test.project_id
+		}
+	`, projectID, clusterName)
+}
+
+func testAccMongoDBAtlasSearchAnalyzerConfigAdvanced(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_search_analyzer" "test_analyzer" {
+			project_id   = "%[1]s"
+			cluster_name = "%[2]s"
+
+			search_analyzers = {
+				name = "test_analyzer_1"
+				base_analyzer = "lucene.standard"
+				ignore_case = "false"
+				stem_exclusion_set = ["foo", "bar", "baz"]
+				stopwords = ["foo", "bar", "baz"]
+			}
+
+			search_analyzers = {
+				name = "test_analyzer_2"
+				base_analyzer = "lucenene.standard"
+				ignore_case = true
+			}
 		}
 		data "mongodbatlas_search_analyzer" "test_analyzer" {
 			cluster_name = mongodbatlas_search_index.test.cluster_name

@@ -41,7 +41,7 @@ func dataSourceMongoDBAtlasSearchAnalyzers() *schema.Resource {
 							Required: false,
 						},
 						"ignore_case": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 						"max_token_length": {

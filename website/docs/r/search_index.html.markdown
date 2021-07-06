@@ -12,6 +12,7 @@ Provides a Search Index resource.
 
 ## Example Usage
 
+### Basic 
 ```hcl
 resource "mongodbatlas_search_index" "test" {
   name   = "project-name"
@@ -24,6 +25,71 @@ resource "mongodbatlas_search_index" "test" {
   mappings_dynamic = true
   
   searchAnalyzer = "lucene.standard"
+}
+```
+
+### Advanced (with custom analyzers)
+```hcl
+resource "mongodbatlas_search_index" "test" {
+ project_id         = "%[1]s"
+ cluster_name       = "%[2]s"
+ analyzer = "lucene.standard"
+ collectionName = "collection_test"
+ database = "database_test"
+ mappings_dynamic = false
+ mappings_fields = <<-EOF
+{
+      "address": {
+        "type": "document",
+        "fields": {
+          "city": {
+            "type": "string",
+            "analyzer": "lucene.simple",
+            "ignoreAbove": 255
+          },
+          "state": {
+            "type": "string",
+            "analyzer": "lucene.english"
+          }
+        }
+      },
+      "company": {
+        "type": "string",
+        "analyzer": "lucene.whitespace",
+        "multi": {
+          "mySecondaryAnalyzer": {
+            "type": "string",
+            "analyzer": "lucene.french"
+          }
+        }
+      },
+      "employees": {
+        "type": "string",
+        "analyzer": "lucene.standard"
+      }
+}
+EOF
+ name = "name_test"
+ searchAnalyzer = "lucene.standard"
+ analyzers = {
+  name = "index_analyzer_test_name"
+  char_filters = {
+   type = "mapping"
+   mappings = <<EOF
+   {"\\" : "/"}
+   EOF
+   }
+   tokenizer = { 
+    type = "nGram"
+    min_gram = 2
+    max_gram = 5
+   }
+   token_filters = {
+    type = "length"
+    min = 20
+    max = 33
+   }
+  }
 }
 ```
 
@@ -44,10 +110,43 @@ resource "mongodbatlas_search_index" "test" {
 
 * `mappings_dynamic` - Indicates whether the index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`
 
+* `mappings_fields` - attribute is required when `mappings_dynamic` is true. This field needs to be a JSON string in order to be decoded correctly.
+  ```hcl
+    mappings_fields = <<-EOF
+    {
+    "address": {
+    "type": "document",
+    "fields": {
+    "city": {
+    "type": "string",
+    "analyzer": "lucene.simple",
+    "ignoreAbove": 255
+    },
+    "state": {
+    "type": "string",
+    "analyzer": "lucene.english"
+    }
+    }
+    },
+    "company": {
+    "type": "string",
+    "analyzer": "lucene.whitespace",
+    "multi": {
+    "mySecondaryAnalyzer": {
+    "type": "string",
+    "analyzer": "lucene.french"
+    }
+    }
+    },
+    "employees": {
+    "type": "string",
+    "analyzer": "lucene.standard"
+    }
+    }
+  ```
+
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 
-### Mapping fields
-`mapping_fields` attribute is required when `mappings_dynamic` is true. This field needs to be a JSON string in order to be decoded correctly
 
 ### Analyzers
 An Atlas Search analyzer prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
@@ -80,14 +179,16 @@ An Atlas Search analyzer prepares a set of documents to be indexed by performing
     * [icuNormalize](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-icuNormalize-ref) - Normalizes text with the [ICU](http://site.icu-project.org/) Normalizer. Based on Lucene's [ICUNormalizer2CharFilter](https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html)
     * [mapping](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-mapping-ref) - Applies user-specified normalization mappings to characters. Based on Lucene's [MappingCharFilter](https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html)
       An object containing a comma-separated list of mappings. A mapping indicates that one character or group of characters should be substituted for another, in the format `<original> : <replacement>`
-      ```hcl
+      >Note: this field needs to be in a JSON format using `EOF` tags
+      ### Example
+        ```hcl
         analyzers{
           type= "mapping"
-          mappings = <<-EOF
+          mappings =<<-EOF
           {
              "\\" : "/"
           }
-          EOF       
+          EOF 
       ```
     * [persian](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-persian-ref) - Replaces instances of [zero-width non-joiners](https://en.wikipedia.org/wiki/Zero-width_non-joiner) with ordinary space. Based on Lucene's [PersianCharFilter](https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html)
 

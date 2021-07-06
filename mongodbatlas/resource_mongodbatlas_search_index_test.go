@@ -50,9 +50,14 @@ func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),
+				Config:            testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
+				Config:            testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -103,6 +108,80 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 		data "mongodbatlas_search_index" "test" {
 			cluster_name           = mongodbatlas_search_index.test.cluster_name
 			project_id         = mongodbatlas_search_index.test.project_id
+			index_id 			= mongodbatlas_search_index.test.index_id
+		}
+	`, projectID, clusterName)
+}
+
+func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_search_index" "test" {
+			project_id         = "%[1]s"
+			cluster_name       = "%[2]s"
+
+			analyzer = "lucene.standard"
+			collectionName = "collection_test"
+			database = "database_test"
+			mappings_dynamic = false
+			mappings_fields =<<-EOF
+							 {
+				  "address": {
+					"type": "document",
+					"fields": {
+					  "city": {
+						"type": "string",
+						"analyzer": "lucene.simple",
+						"ignoreAbove": 255
+					  },
+					  "state": {
+						"type": "string",
+						"analyzer": "lucene.english"
+					  }
+					}
+				  },
+				  "company": {
+					"type": "string",
+					"analyzer": "lucene.whitespace",
+					"multi": {
+					  "mySecondaryAnalyzer": {
+						"type": "string",
+						"analyzer": "lucene.french"
+					  }
+					}
+				  },
+				  "employees": {
+					"type": "string",
+					"analyzer": "lucene.standard"
+				  }
+				}
+   			EOF
+			name = "name_test"
+			searchAnalyzer = "lucene.standard"
+			analyzers = {
+				name = "index_analyzer_test_name"
+				char_filters = {
+					type = "mapping"
+					mappings =<<-EOF
+					{"\\" : "/"}
+					EOF
+				}
+				tokenizer = {
+					type = "nGram"
+					min_gram = 2
+					max_gram = 5
+				}
+
+			token_filters = {
+				type = "length"
+				min = 20
+				max = 33
+			}
+		}
+	}
+		data "mongodbatlas_search_index" "test" {
+			cluster_name           = mongodbatlas_search_index.test.cluster_name
+			project_id         = mongodbatlas_search_index.test.project_id
+			index_id 			= mongodbatlas_search_index.test.index_id
 		}
 	`, projectID, clusterName)
 }
