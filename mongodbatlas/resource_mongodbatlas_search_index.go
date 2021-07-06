@@ -15,7 +15,6 @@ import (
 )
 
 func resourceMongoDBAtlasSearchIndex() *schema.Resource {
-
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasSearchIndexCreate,
 		Read:   resourceMongoDBAtlasSearchIndexRead,
@@ -256,7 +255,7 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) interface{} {
 	mappingFieldJSON, err := json.Marshal(fields)
 	if err != nil {
-
+		return nil
 	}
 	return mappingFieldJSON
 }
@@ -264,13 +263,12 @@ func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) inter
 func marshallSearchIndexCharFilterMappingFields(fields map[string]string) interface{} {
 	mappingFieldJSON, err := json.Marshal(fields)
 	if err != nil {
-
+		return nil
 	}
 	return mappingFieldJSON
 }
 
 func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map[string]interface{} {
-
 	if len(analyzers) == 0 {
 		return nil
 	}
@@ -290,13 +288,11 @@ func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map
 		if len(analyzer.TokenFilters) > 0 {
 			mapAnalyzers[i]["token_filters"] = flattenSearchIndexTokenFilters(analyzer.TokenFilters)
 		}
-
 	}
 	return mapAnalyzers
 }
 
 func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []map[string]interface{} {
-
 	if len(filters) == 0 {
 		return nil
 	}
@@ -368,14 +364,11 @@ func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []ma
 		if filter.IgnoreCase != nil {
 			mapCharFilters[i]["ignore_case"] = *filter.IgnoreCase
 		}
-
 	}
 	return mapCharFilters
-
 }
 
 func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[string]interface{} {
-
 	if len(filters) == 0 {
 		return nil
 	}
@@ -394,10 +387,8 @@ func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[s
 		if filter.Mappings != nil {
 			mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(*filter.Mappings)
 		}
-
 	}
 	return mapCharFilters
-
 }
 
 func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
@@ -583,7 +574,6 @@ func customAnalyzersSchema() *schema.Schema {
 }
 
 func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
-
 	if len(analyzers) == 0 {
 		return nil
 	}
@@ -591,7 +581,6 @@ func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
 	var analyzersList []*matlas.CustomAnalyzer
 
 	for _, analyzerObj := range analyzers {
-
 		analyzerInterface := analyzerObj.(map[string]interface{})
 
 		analyzer := &matlas.CustomAnalyzer{
@@ -617,7 +606,6 @@ func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
 	}
 
 	return analyzersList
-
 }
 
 func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerTokenFilters {
@@ -695,14 +683,12 @@ func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerToken
 		}
 
 		analyzerTokenFilters = append(analyzerTokenFilters, tokenFilter)
-
 	}
 
 	return analyzerTokenFilters
 }
 
 func expandIndexTokenizer(tokenizers []interface{}) *matlas.AnalyzerTokenizer {
-
 	if len(tokenizers) == 0 {
 		return nil
 	}
@@ -734,7 +720,6 @@ func expandIndexTokenizer(tokenizers []interface{}) *matlas.AnalyzerTokenizer {
 	}
 
 	return analyzerTokenizer
-
 }
 
 func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFilter {
@@ -760,11 +745,9 @@ func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFil
 		}
 
 		analyzerCharFilters = append(analyzerCharFilters, charFilter)
-
 	}
 
 	return analyzerCharFilters
-
 }
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
@@ -784,7 +767,6 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 }
 
 func unmarshalSearchIndexMappingFields(mappingString string) *map[string]matlas.IndexField {
-
 	var fields *map[string]matlas.IndexField
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] json.Unmarshal %v", err)

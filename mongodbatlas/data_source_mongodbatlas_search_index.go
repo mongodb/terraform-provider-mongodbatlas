@@ -12,7 +12,6 @@ func dataSourceMongoDBAtlasSearchIndex() *schema.Resource {
 		Read:   dataSourceMongoDBAtlasSearchIndexRead,
 		Schema: returnSearchIndexSchema(),
 	}
-
 }
 
 func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
