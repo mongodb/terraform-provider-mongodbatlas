@@ -215,7 +215,12 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzers", flattenSearchIndexCustomAnalyzers(searchIndex.Analyzers)); err != nil {
+	searchIndexCustomAnalyzers, err := flattenSearchIndexCustomAnalyzers(searchIndex.Analyzers)
+	if err != nil {
+		return err
+	}
+
+	if err := d.Set("analyzers", searchIndexCustomAnalyzers); err != nil {
 		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
@@ -239,7 +244,12 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `mapping_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)); err != nil {
+	searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
+	if err != nil {
+		return err
+	}
+
+	if err := d.Set("mapping_fields", searchIndexMappingFields); err != nil {
 		return fmt.Errorf("error setting `mapping_fields` for for search index (%s): %s", d.Id(), err)
 	}
 
@@ -252,25 +262,20 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) interface{} {
+func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) (interface{}, error) {
 	mappingFieldJSON, err := json.Marshal(fields)
-	if err != nil {
-		return nil
-	}
-	return mappingFieldJSON
+	return mappingFieldJSON, err
 }
 
-func marshallSearchIndexCharFilterMappingFields(fields map[string]string) interface{} {
+func marshallSearchIndexCharFilterMappingFields(fields map[string]string) (interface{}, error) {
 	mappingFieldJSON, err := json.Marshal(fields)
-	if err != nil {
-		return nil
-	}
-	return mappingFieldJSON
+
+	return mappingFieldJSON, err
 }
 
-func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map[string]interface{} {
+func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) ([]map[string]interface{}, error) {
 	if len(analyzers) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	mapAnalyzers := make([]map[string]interface{}, len(analyzers))
@@ -282,14 +287,18 @@ func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) []map
 		}
 
 		if len(analyzer.CharFilters) > 0 {
-			mapAnalyzers[i]["char_filters"] = flattenSearchIndexCharFilters(analyzer.CharFilters)
+			searchIndexCharFilters, err := flattenSearchIndexCharFilters(analyzer.CharFilters)
+			if err != nil {
+				return nil, err
+			}
+			mapAnalyzers[i]["char_filters"] = searchIndexCharFilters
 		}
 
 		if len(analyzer.TokenFilters) > 0 {
 			mapAnalyzers[i]["token_filters"] = flattenSearchIndexTokenFilters(analyzer.TokenFilters)
 		}
 	}
-	return mapAnalyzers
+	return mapAnalyzers, nil
 }
 
 func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []map[string]interface{} {
@@ -368,9 +377,9 @@ func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []ma
 	return mapCharFilters
 }
 
-func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[string]interface{} {
+func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) ([]map[string]interface{}, error) {
 	if len(filters) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	mapCharFilters := make([]map[string]interface{}, len(filters))
@@ -385,10 +394,15 @@ func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) []map[s
 		}
 
 		if filter.Mappings != nil {
-			mapCharFilters[i]["mappings"] = marshallSearchIndexCharFilterMappingFields(*filter.Mappings)
+			searchIndexCharFilterMappingFields, err := marshallSearchIndexCharFilterMappingFields(*filter.Mappings)
+			if err != nil {
+				return nil, err
+			}
+
+			mapCharFilters[i]["mappings"] = searchIndexCharFilterMappingFields
 		}
 	}
-	return mapCharFilters
+	return mapCharFilters, nil
 }
 
 func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {

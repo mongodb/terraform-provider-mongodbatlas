@@ -39,7 +39,12 @@ func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("analyzers", flattenSearchIndexCustomAnalyzers(searchIndex.Analyzers)); err != nil {
+	searchIndexCustomAnalyzers, err := flattenSearchIndexCustomAnalyzers(searchIndex.Analyzers)
+	if err != nil {
+		return nil
+	}
+
+	if err := d.Set("analyzers", searchIndexCustomAnalyzers); err != nil {
 		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
@@ -63,7 +68,11 @@ func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting `mapping_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mapping_fields", marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)); err != nil {
+	searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("mapping_fields", searchIndexMappingFields); err != nil {
 		return fmt.Errorf("error setting `mapping_fields` for for search index (%s): %s", d.Id(), err)
 	}
 

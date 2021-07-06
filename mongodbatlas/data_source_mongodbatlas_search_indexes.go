@@ -75,7 +75,12 @@ func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error getting search indexes information: %s", err)
 	}
 
-	if err := d.Set("results", flattenSearchIndexes(searchIndexes)); err != nil {
+	flattedSearchIndexes, err := flattenSearchIndexes(searchIndexes)
+	if err != nil {
+		return err
+	}
+
+	if err := d.Set("results", flattedSearchIndexes); err != nil {
 		return fmt.Errorf("error setting `result` for search indexes: %s", err)
 	}
 
@@ -88,27 +93,39 @@ func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) []map[string]interface{} {
+func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]interface{}, error) {
 	var searchIndexesMap []map[string]interface{}
 
-	if len(searchIndexes) > 0 {
-		searchIndexesMap = make([]map[string]interface{}, len(searchIndexes))
+	if len(searchIndexes) == 0 {
+		return nil, nil
+	}
+	searchIndexesMap = make([]map[string]interface{}, len(searchIndexes))
 
-		for i := range searchIndexes {
-			searchIndexesMap[i] = map[string]interface{}{
-				"analyzer":        searchIndexes[i].Analyzer,
-				"analyzers":       flattenSearchIndexCustomAnalyzers(searchIndexes[i].Analyzers),
-				"collectionName":  searchIndexes[i].CollectionName,
-				"database":        searchIndexes[i].Database,
-				"indexID":         searchIndexes[i].IndexID,
-				"mapping_dynamic": searchIndexes[i].Mappings.Dynamic,
-				"mappings_fields": marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields),
-				"name":            searchIndexes[i].Name,
-				"searchAnalyzer":  searchIndexes[i].SearchAnalyzer,
-				"status":          searchIndexes[i].Status,
-			}
+	for i := range searchIndexes {
+
+		searchIndexCustomAnalyzers, err := flattenSearchIndexCustomAnalyzers(searchIndexes[i].Analyzers)
+		if err != nil {
+			return nil, err
+		}
+
+		searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields)
+		if err != nil {
+			return nil, err
+		}
+
+		searchIndexesMap[i] = map[string]interface{}{
+			"analyzer":        searchIndexes[i].Analyzer,
+			"analyzers":       searchIndexCustomAnalyzers,
+			"collectionName":  searchIndexes[i].CollectionName,
+			"database":        searchIndexes[i].Database,
+			"indexID":         searchIndexes[i].IndexID,
+			"mapping_dynamic": searchIndexes[i].Mappings.Dynamic,
+			"mappings_fields": searchIndexMappingFields,
+			"name":            searchIndexes[i].Name,
+			"searchAnalyzer":  searchIndexes[i].SearchAnalyzer,
+			"status":          searchIndexes[i].Status,
 		}
 	}
 
-	return searchIndexesMap
+	return searchIndexesMap, nil
 }
