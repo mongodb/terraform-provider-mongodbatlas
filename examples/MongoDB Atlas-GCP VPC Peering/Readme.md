@@ -37,7 +37,7 @@ $ terraform plan
 ```
 This project currently does the below deployments:
 
-- MongoDB Atlas Azure cluster - M10
+- MongoDB Atlas GCP cluster - M10
 - MongoDB Atlas Network Container
 - MongoDB Atlas and GCP VPC peering, Routes Entry and IP Access Whitelisting
 
@@ -51,7 +51,7 @@ $ terraform apply
 
 **5\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Azure and Atlas charges.
+Once you are finished your testing, ensure you destroy the resources to avoid unnecessary GCP and Atlas charges.
 
 ``` bash
 $ terraform destroy
