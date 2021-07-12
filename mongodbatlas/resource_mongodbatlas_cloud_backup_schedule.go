@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/spf13/cast"
@@ -142,38 +140,39 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	performUpdate := false
+	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 
-	// Reading default configuration
-	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
-
-	if err != nil {
-		return err
-	}
-
-	var config []matlas.Policy
-
-	// if no policies getting default policies
 	_, ok := d.GetOk("policies")
-
-	if !ok {
-		config = backupPolicy.Policies
-	} else {
-		config = expandPolicies(d)
+	if ok {
+		req.Policies = expandPolicies(d)
 	}
 
-	// compare as set
-	if needsUpdate(config, backupPolicy.Policies) {
-		performUpdate = true
+	hourDay, ok := d.GetOk("reference_hour_of_day")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(hourDay))
+		req.ReferenceHourOfDay = value
 	}
-
-	req, performUpdate := buildRequestCloudBackupSchedule(d, backupPolicy, config, performUpdate)
-
-	if performUpdate {
-		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
-		if err != nil {
-			return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
+	minHour, ok := d.GetOk("reference_minute_of_hour")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(minHour))
+		req.ReferenceMinuteOfHour = value
+	}
+	winDays, ok := d.GetOk("restore_window_days")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(winDays))
+		req.RestoreWindowDays = value
+	}
+	updateSnap, ok := d.GetOk("update_snapshots")
+	if ok {
+		value := pointy.Bool(updateSnap.(bool))
+		if *value {
+			req.UpdateSnapshots = value
 		}
+	}
+
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
+	if err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -280,94 +279,6 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta 
 	}
 
 	return nil
-}
-
-func needsUpdate(a, b []matlas.Policy) bool {
-	if len(a) != len(b) {
-		return true
-	}
-
-	// deeper diff sort everything XD
-	sort.Slice(a, func(i, j int) bool {
-		// sort each item
-		return a[i].ID <= a[j].ID
-	})
-
-	sort.Slice(b, func(i, j int) bool {
-		return b[i].ID <= b[j].ID
-	})
-
-	// sort subitems
-	sortItems := func(array []matlas.Policy) {
-		for _, item := range array {
-			sort.Slice(item.PolicyItems, func(i, j int) bool {
-				return item.PolicyItems[i].ID <= item.PolicyItems[j].ID
-			})
-		}
-	}
-
-	sortItems(a)
-	sortItems(b)
-
-	return reflect.DeepEqual(a, b)
-}
-
-func compareInt64(a, b *int64) bool {
-	if b == nil {
-		return true
-	} else if *a != *b {
-		return true
-	}
-	return false
-}
-
-func buildRequestCloudBackupSchedule(d *schema.ResourceData, backupPolicy *matlas.CloudProviderSnapshotBackupPolicy,
-	policies []matlas.Policy, performUpdate bool) (*matlas.CloudProviderSnapshotBackupPolicy, bool) {
-	// tenative request
-	req := &matlas.CloudProviderSnapshotBackupPolicy{
-		Policies: policies,
-	}
-
-	hourDay, ok := d.GetOk("reference_hour_of_day")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(hourDay))
-		if compareInt64(value, backupPolicy.ReferenceHourOfDay) {
-			performUpdate = true
-			req.ReferenceHourOfDay = value
-		}
-	}
-	minHour, ok := d.GetOk("reference_minute_of_hour")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(minHour))
-		if compareInt64(value, backupPolicy.ReferenceMinuteOfHour) {
-			performUpdate = true
-			req.ReferenceMinuteOfHour = value
-		}
-	}
-	winDays, ok := d.GetOk("restore_window_days")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(winDays))
-		if compareInt64(value, backupPolicy.RestoreWindowDays) {
-			performUpdate = true
-			req.RestoreWindowDays = value
-		}
-	}
-	updateSnap, ok := d.GetOk("update_snapshots")
-	if ok {
-		value := pointy.Bool(updateSnap.(bool))
-		if backupPolicy.UpdateSnapshots != nil {
-			// just when true sending back
-			if *value {
-				performUpdate = true
-				req.UpdateSnapshots = value
-			}
-		} else if *backupPolicy.UpdateSnapshots != *value {
-			performUpdate = true
-			req.UpdateSnapshots = value
-		}
-	}
-
-	return req, performUpdate
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
