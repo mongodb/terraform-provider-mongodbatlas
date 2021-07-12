@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
-## Example Usage - Create a Cluster with no policies (no policies will get the default Policies Items)
+## Example Usage - Create a Cluster with no policies (no policies will get the default Policies Items in Read)
 
 ```hcl
 resource "mongodbatlas_cluster" "my_cluster" {
@@ -230,7 +230,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### Policies
 
-**NOTE** - If no policies are provided the default ones will be imported.
+**NOTE** - If no policies are provided the default ones will be imported in Read.
 **NOTE** - If policies are provided the default ones will be overridden.
 
 * `policies` - (Optional) Contains a document for each backup policy item in the desired updated backup policy.
