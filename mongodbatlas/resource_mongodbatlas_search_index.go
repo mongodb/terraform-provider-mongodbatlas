@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/mwielbut/pointy"
 	"log"
 	"strings"
 
+	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -46,7 +46,11 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
-		"analyzers": customAnalyzersSchema(),
+		"analyzers": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     customAnalyzersSchema(),
+		},
 		"collection_name": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -61,11 +65,11 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		},
 		"search_analyzer": {
 			Type:     schema.TypeString,
-			Required: false,
+			Optional: true,
 		},
 		"mappings_dynamic": {
 			Type:     schema.TypeBool,
-			Required: false,
+			Optional: true,
 		},
 		"mappings_fields": {
 			Type:             schema.TypeString,
@@ -74,7 +78,151 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		},
 		"status": {
 			Type:     schema.TypeString,
-			Required: false,
+			Optional: true,
+			Computed: true,
+		},
+	}
+}
+
+func customAnalyzersSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"char_filters": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"ignore_tags": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"mappings": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: validateSearchIndexMappingDiff,
+						},
+					},
+				},
+			},
+			"tokenizer": {
+				Type:     schema.TypeSet,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"max_token_length": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"min_gram": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"max_gram": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"pattern": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"group": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"token_filters": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"original_tokens": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"min": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"max": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"normalization_form": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"min_gram": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"max_gram": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"terms_not_in_bounds": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"min_shingle_size": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"max_shingle_size": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"pattern": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"replacement": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"matches": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"stemmer_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"tokens": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"ignore_case": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -151,7 +299,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("analyzers") {
-		searchIndex.Analyzers = expandCustomAnalyzers(d.Get("analyzers").([]interface{}))
+		searchIndex.Analyzers = expandCustomAnalyzers(d.Get("analyzers").(*schema.Set))
 	}
 
 	if d.HasChange("collection_name") {
@@ -414,7 +562,7 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 
 	searchIndexRequest := &matlas.SearchIndex{
 		Analyzer:       d.Get("analyzer").(string),
-		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").([]interface{})),
+		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").(*schema.Set)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Mappings: &matlas.IndexMapping{
@@ -440,161 +588,16 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 	return resourceMongoDBAtlasSearchIndexRead(d, meta)
 }
 
-func customAnalyzersSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Required: false,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"name": {
-					Type:     schema.TypeString,
-					Optional: false,
-				},
-				"char_filters": {
-					Type:     schema.TypeSet,
-					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"type": {
-								Type:     schema.TypeString,
-								Optional: false,
-							},
-							"ignore_tags": {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
-								},
-							},
-							"mappings": {
-								Type:             schema.TypeString,
-								Optional:         true,
-								DiffSuppressFunc: validateSearchIndexMappingDiff,
-							},
-						},
-					},
-				},
-				"tokenizer": {
-					Type:     schema.TypeSet,
-					Optional: false,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"type": {
-								Type:     schema.TypeString,
-								Optional: false,
-							},
-							"max_token_length": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"min_gram": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"max_gram": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"pattern": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"group": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-						},
-					},
-				},
-				"token_filters": {
-					Type:     schema.TypeSet,
-					Optional: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"type": {
-								Type:     schema.TypeString,
-								Optional: false,
-							},
-							"original_tokens": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"min": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"max": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"normalization_form": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"min_gram": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"max_gram": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"terms_not_in_bounds": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"min_shingle_size": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"max_shingle_size": {
-								Type:     schema.TypeInt,
-								Optional: true,
-							},
-							"pattern": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"replacement": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"matches": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"stemmer_name": {
-								Type:     schema.TypeString,
-								Optional: true,
-							},
-							"tokens": {
-								Type:     schema.TypeList,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
-								},
-							},
-							"ignore_case": {
-								Type:     schema.TypeBool,
-								Optional: true,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
+func expandCustomAnalyzers(analyzers *schema.Set) []*matlas.CustomAnalyzer {
+	analyzersSlice := analyzers.List()
 
-func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
-	if len(analyzers) == 0 {
+	if len(analyzersSlice) == 0 {
 		return nil
 	}
 
 	var analyzersList []*matlas.CustomAnalyzer
 
-	for _, analyzerObj := range analyzers {
+	for _, analyzerObj := range analyzersSlice {
 		analyzerInterface := analyzerObj.(map[string]interface{})
 
 		analyzer := &matlas.CustomAnalyzer{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -102,7 +103,6 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 	searchIndexesMap = make([]map[string]interface{}, len(searchIndexes))
 
 	for i := range searchIndexes {
-
 		searchIndexCustomAnalyzers, err := flattenSearchIndexCustomAnalyzers(searchIndexes[i].Analyzers)
 		if err != nil {
 			return nil, err

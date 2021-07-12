@@ -4,13 +4,70 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceMongoDBAtlasSearchIndex() *schema.Resource {
 	return &schema.Resource{
 		Read:   dataSourceMongoDBAtlasSearchIndexRead,
-		Schema: returnSearchIndexSchema(),
+		Schema: returnSearchIndexDSSchema(),
+	}
+}
+
+func returnSearchIndexDSSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"project_id": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"cluster_name": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"index_id": {
+			Type:     schema.TypeString,
+			Required: true,
+		},
+		"analyzer": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"analyzers": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     customAnalyzersSchema(),
+		},
+		"collection_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"database": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"search_analyzer": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"mappings_dynamic": {
+			Type:     schema.TypeBool,
+			Optional: true,
+		},
+		"mappings_fields": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: validateSearchIndexMappingDiff,
+		},
+		"status": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
 	}
 }
 

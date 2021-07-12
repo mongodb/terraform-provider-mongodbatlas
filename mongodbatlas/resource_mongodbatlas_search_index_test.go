@@ -3,19 +3,20 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
-	"os"
-	"testing"
 )
 
 func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 	var (
 		index        matlas.SearchIndex
 		resourceName = "mongodbatlas_search_index.test"
-		clusterName  = acctest.RandomWithPrefix("test-acc-global")
+		clusterName  = acctest.RandomWithPrefix("test-acc-index")
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = "name_test"
 	)
@@ -37,6 +38,7 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_search_index.test"
@@ -56,16 +58,17 @@ func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			{
+			/*	{
 				Config:            testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
+			}, */
 		},
 	})
 }
+
 func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matlas.SearchIndex) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -94,16 +97,31 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matla
 
 func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_search_index" "test" {
-			project_id         = "%[1]s"
-			cluster_name       = "%[2]s"
+		resource "mongodbatlas_cluster" "aws_conf" {
+			project_id   = "%[1]s"
+			name         = "%[2]s"
+			disk_size_gb = 10
+			replication_factor           = 3
+			backup_enabled               = false
+			auto_scaling_disk_gb_enabled = false
 
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+			provider_region_name        = "US_EAST_2"
+
+		}
+
+		resource "mongodbatlas_search_index" "test" {
+			project_id         = mongodbatlas_cluster.aws_conf.project_id
+			cluster_name       = mongodbatlas_cluster.aws_conf.name
 			analyzer = "lucene.standard"
-			collectionName = "collection_test"
+			collection_name = "collection_test"
 			database = "database_test"
-			mappings_dynamic = true
+			mappings_dynamic = "true"
 			name = "name_test"
-			searchAnalyzer = "lucene.standard"
+			search_analyzer = "lucene.standard"
+		}
 
 		data "mongodbatlas_search_index" "test" {
 			cluster_name           = mongodbatlas_search_index.test.cluster_name
@@ -115,15 +133,17 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 
 func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string) string {
 	return fmt.Sprintf(`
+		%s
+
 		resource "mongodbatlas_search_index" "test" {
 			project_id         = "%[1]s"
 			cluster_name       = "%[2]s"
 
 			analyzer = "lucene.standard"
-			collectionName = "collection_test"
+			collection_name = "collection_test"
 			database = "database_test"
 			mappings_dynamic = false
-			mappings_fields =<<-EOF
+			mappings_fields = jsonencode(
 							 {
 				  "address": {
 					"type": "document",
@@ -154,16 +174,16 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 					"analyzer": "lucene.standard"
 				  }
 				}
-   			EOF
+   			)
 			name = "name_test"
-			searchAnalyzer = "lucene.standard"
+			search_analyzer = "lucene.standard"
 			analyzers = {
 				name = "index_analyzer_test_name"
 				char_filters = {
 					type = "mapping"
-					mappings =<<-EOF
+					mappings = jsonencode(
 					{"\\" : "/"}
-					EOF
+					)
 				}
 				tokenizer = {
 					type = "nGram"
@@ -183,7 +203,7 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 			project_id         = mongodbatlas_search_index.test.project_id
 			index_id 			= mongodbatlas_search_index.test.index_id
 		}
-	`, projectID, clusterName)
+	`, testAccMongoDBAtlasClusterConfigGCP(projectID, clusterName, "false"), projectID, clusterName)
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
