@@ -190,6 +190,10 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"provider_encrypt_ebs_volume_flag": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"provider_region_name": {
 				Type:     schema.TypeString,
 				Computed: true,
