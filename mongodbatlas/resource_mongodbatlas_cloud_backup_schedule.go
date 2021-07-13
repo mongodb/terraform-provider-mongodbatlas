@@ -136,7 +136,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
@@ -185,7 +185,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 
 func resourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -228,7 +228,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta in
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -268,7 +268,7 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta 
 
 func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -282,7 +282,7 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta 
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {

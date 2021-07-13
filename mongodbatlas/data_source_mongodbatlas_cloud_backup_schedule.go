@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 // Note: the schema is the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
@@ -89,7 +88,7 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 // Almost the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead
 // just do not save the update_snapshots because is not specified in the DS
 func dataSourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*matlas.Client)
+	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
