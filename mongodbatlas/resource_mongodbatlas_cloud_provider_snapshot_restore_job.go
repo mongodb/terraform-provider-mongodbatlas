@@ -113,34 +113,42 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 						"download": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							ForceNew: true,
 						},
 						"automated": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							ForceNew: true,
 						},
 						"point_in_time": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							ForceNew: true,
 						},
 						"target_cluster_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"target_project_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"oplog_ts": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ForceNew: true,
 						},
 						"point_in_time_utc_seconds": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ForceNew: true,
 						},
 						"oplog_inc": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -301,11 +309,21 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete(ctx context.Conte
 		ClusterName: ids["cluster_name"],
 	}
 
+	shouldDelete := true
+
 	// Validate because atomated restore can not be cancelled
 	if aut, _ := d.Get("delivery_type.automated").(string); aut == "true" {
 		log.Print("Automated restore cannot be cancelled")
-	} else {
-		_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(ctx, requestParameters)
+		shouldDelete = false
+	}
+
+	if aut, _ := d.Get("delivery_type_config.0.automated").(bool); aut {
+		log.Print("Automated restore cannot be cancelled")
+		shouldDelete = false
+	}
+
+	if shouldDelete {
+		_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(context.Background(), requestParameters)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}
@@ -346,18 +364,25 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState(ctx context.
 	}
 
 	deliveryType := make(map[string]interface{})
+	deliveryTypeConfig := make(map[string]interface{})
 
 	if u.DeliveryType == "automated" {
 		deliveryType["automated"] = "true"
 		deliveryType["target_cluster_name"] = u.TargetClusterName
 		deliveryType["target_project_id"] = u.TargetGroupID
+		// For delivery_type_config
+		deliveryTypeConfig["automated"] = true
+		deliveryTypeConfig["target_cluster_name"] = u.TargetClusterName
+		deliveryTypeConfig["target_project_id"] = u.TargetGroupID
 	}
 
-	if err := d.Set("delivery_type", deliveryType); err != nil {
-		log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
+	if _, ok := d.GetOk("delivery_type"); ok {
+		if err := d.Set("delivery_type", deliveryType); err != nil {
+			log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
+		}
 	}
 
-	if err := d.Set("delivery_type_config", []interface{}{deliveryType}); err != nil {
+	if err := d.Set("delivery_type_config", []interface{}{deliveryTypeConfig}); err != nil {
 		log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
 	}
 
@@ -387,79 +412,87 @@ func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapsho
 }
 
 func validateDeliveryType(d []interface{}) error {
-	v := d[0].(map[string]interface{})
-	key := "delivery_type"
-	_, automated := v["automated"]
-	_, download := v["download"]
-	_, pointInTime := v["point_in_time"]
+	if len(d) != 0 {
+		v := d[0].(map[string]interface{})
+		key := "delivery_type_config"
 
-	if (v["automated"] == "true" && v["download"] == "true" && v["point_in_time"] == "true") ||
-		(v["automated"] == "false" && v["download"] == "false" && v["point_in_time"] == "false") ||
-		(!automated && !download && !pointInTime) {
-		return fmt.Errorf("%q you can only submit one type of restore job: automated, download or point_in_time", key)
+		_, automated := v["automated"]
+		_, download := v["download"]
+		_, pointInTime := v["point_in_time"]
+
+		if (v["automated"] == true && v["download"] == true && v["point_in_time"] == true) ||
+			(v["automated"] == false && v["download"] == false && v["point_in_time"] == false) ||
+			(!automated && !download && !pointInTime) {
+			return fmt.Errorf("%q you can only submit one type of restore job: automated, download or point_in_time", key)
+		}
+		if v["automated"] == true && (v["download"] == false || !download) {
+			if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
+				return fmt.Errorf("%q target_cluster_name must be set", key)
+			}
+			if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
+				return fmt.Errorf("%q target_project_id must be set", key)
+			}
+		}
+		if v["download"] == true && (v["automated"] == false || !automated) &&
+			(v["point_in_time"] == false || !pointInTime) {
+			if targetClusterName, ok := v["target_cluster_name"]; ok && targetClusterName != "" {
+				return fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key)
+			}
+			if targetGroupID, ok := v["target_project_id"]; ok && targetGroupID != "" {
+				return fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key)
+			}
+		}
+		if v["point_in_time"] == true && (v["download"] == false || !download) &&
+			(v["automated"] == false || !automated) {
+			_, oplogTS := v["oplog_ts"]
+			_, pointTimeUTC := v["point_in_time_utc_seconds"]
+			_, oplogInc := v["oplog_inc"]
+			if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
+				return fmt.Errorf("%q target_cluster_name must be set", key)
+			}
+			if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
+				return fmt.Errorf("%q target_project_id must be set", key)
+			}
+			if !pointTimeUTC && !oplogTS && !oplogInc {
+				return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
+			}
+			if (oplogTS && !oplogInc) || (!oplogTS && oplogInc) {
+				return fmt.Errorf("%q if oplog_ts or oplog_inc is provided, oplog_inc and oplog_ts must be set", key)
+			}
+			if pointTimeUTC && (oplogTS || oplogInc) {
+				return fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key)
+			}
+		}
 	}
-	if v["automated"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) {
-		if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
-			return fmt.Errorf("%q target_cluster_name must be set", key)
-		}
-		if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
-			return fmt.Errorf("%q target_project_id must be set", key)
-		}
-	}
-	if v["download"] == "true" && (v["automated"] == "false" || v["automated"] == "" || !automated) &&
-		(v["point_in_time"] == "false" || v["point_in_time"] == "" || !pointInTime) {
-		if targetClusterName, ok := v["target_cluster_name"]; ok || targetClusterName == "" {
-			return fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key)
-		}
-		if targetGroupID, ok := v["target_project_id"]; ok || targetGroupID == "" {
-			return fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key)
-		}
-	}
-	if v["point_in_time"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) &&
-		(v["automated"] == "false" || v["automated"] == "" || !automated) {
-		_, oplogTS := v["oplog_ts"]
-		_, pointTimeUTC := v["point_in_time_utc_seconds"]
-		_, oplogInc := v["oplog_inc"]
-		if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
-			return fmt.Errorf("%q target_cluster_name must be set", key)
-		}
-		if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
-			return fmt.Errorf("%q target_project_id must be set", key)
-		}
-		if !pointTimeUTC && !oplogTS && !oplogInc {
-			return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
-		}
-		if (oplogTS && !oplogInc) || (!oplogTS && oplogInc) {
-			return fmt.Errorf("%q if oplog_ts or oplog_inc is provided, oplog_inc and oplog_ts must be set", key)
-		}
-		if pointTimeUTC && (oplogTS || oplogInc) {
-			return fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key)
-		}
-	}
+
 	return nil
 }
 
 func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapshotRestoreJob {
-	deliveryList := d.Get("delivery_type_config").([]interface{})
+	if _, ok := d.GetOk("delivery_type_config"); ok {
+		deliveryList := d.Get("delivery_type_config").([]interface{})
 
-	delivery := deliveryList[0].(map[string]interface{})
+		delivery := deliveryList[0].(map[string]interface{})
 
-	deliveryType := "automated"
-	if aut, _ := delivery["download"].(string); aut != "true" {
-		deliveryType = "download"
+		deliveryType := "automated"
+		if aut, _ := delivery["download"].(bool); aut {
+			deliveryType = "download"
+		}
+
+		if aut, _ := delivery["point_in_time"].(bool); aut {
+			deliveryType = "pointInTime"
+		}
+
+		return &matlas.CloudProviderSnapshotRestoreJob{
+			SnapshotID:            getEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
+			DeliveryType:          deliveryType,
+			TargetClusterName:     delivery["target_cluster_name"].(string),
+			TargetGroupID:         delivery["target_project_id"].(string),
+			OplogTs:               cast.ToInt64(delivery["oplog_ts"]),
+			OplogInc:              cast.ToInt64(delivery["oplog_inc"]),
+			PointInTimeUTCSeconds: cast.ToInt64(delivery["point_in_time_utc_seconds"]),
+		}
 	}
 
-	if aut, _ := delivery["point_in_time"].(string); aut == "true" {
-		deliveryType = "pointInTime"
-	}
-
-	return &matlas.CloudProviderSnapshotRestoreJob{
-		SnapshotID:            getEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
-		DeliveryType:          deliveryType,
-		TargetClusterName:     delivery["target_cluster_name"].(string),
-		TargetGroupID:         delivery["target_project_id"].(string),
-		OplogTs:               cast.ToInt64(delivery["oplog_ts"]),
-		OplogInc:              cast.ToInt64(delivery["oplog_inc"]),
-		PointInTimeUTCSeconds: cast.ToInt64(delivery["point_in_time_utc_seconds"]),
-	}
+	return &matlas.CloudProviderSnapshotRestoreJob{}
 }
