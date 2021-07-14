@@ -3,7 +3,9 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -20,7 +22,6 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = "name_test"
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -31,10 +32,17 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "project_id", name),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 				),
 			},
+			/*{
+				Config:            testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},*/
 		},
 	})
 }
@@ -85,13 +93,13 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matla
 		ids := decodeStateID(rs.Primary.ID)
 
 		indexResponse, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
-		if err != nil {
-			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
+		if err == nil {
+			*index = *indexResponse
+			return nil
 		}
 
-		*index = *indexResponse
+		return fmt.Errorf("index (%s) does not exist", ids["index_id"])
 
-		return nil
 	}
 }
 
@@ -210,6 +218,10 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
+
+		log.Printf("[DEBUG] rs.Primary.ID : %v", rs.Primary.ID)
+		log.Printf("[DEBUG] rs.Type : %v", rs.Type)
+
 		if rs.Type != "mongodbatlas_search_index" {
 			continue
 		}
@@ -217,7 +229,8 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 		ids := decodeStateID(rs.Primary.ID)
 
 		_, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
-		if err == nil {
+		log.Printf("[DEBUG] Error when getting index : %v", err)
+		if err == nil || !(strings.Contains(err.Error(), "RESOURCE_NOT_FOUND")) {
 			return fmt.Errorf("index id (%s) still exists", ids["index_id"])
 		}
 	}

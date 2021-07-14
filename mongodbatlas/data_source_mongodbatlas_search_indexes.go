@@ -108,22 +108,22 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 			return nil, err
 		}
 
-		searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields)
+		searchIndexMappingFields, err := marshallSearchIndexMappingFields(searchIndexes[i].Mappings.Fields)
 		if err != nil {
 			return nil, err
 		}
 
 		searchIndexesMap[i] = map[string]interface{}{
-			"analyzer":        searchIndexes[i].Analyzer,
-			"analyzers":       searchIndexCustomAnalyzers,
-			"collectionName":  searchIndexes[i].CollectionName,
-			"database":        searchIndexes[i].Database,
-			"indexID":         searchIndexes[i].IndexID,
-			"mapping_dynamic": searchIndexes[i].Mappings.Dynamic,
-			"mappings_fields": searchIndexMappingFields,
-			"name":            searchIndexes[i].Name,
-			"searchAnalyzer":  searchIndexes[i].SearchAnalyzer,
-			"status":          searchIndexes[i].Status,
+			"analyzer":         searchIndexes[i].Analyzer,
+			"analyzers":        searchIndexCustomAnalyzers,
+			"collectionName":   searchIndexes[i].CollectionName,
+			"database":         searchIndexes[i].Database,
+			"indexID":          searchIndexes[i].IndexID,
+			"mappings_dynamic": searchIndexes[i].Mappings.Dynamic,
+			"mappings_fields":  searchIndexMappingFields,
+			"name":             searchIndexes[i].Name,
+			"searchAnalyzer":   searchIndexes[i].SearchAnalyzer,
+			"status":           searchIndexes[i].Status,
 		}
 	}
 

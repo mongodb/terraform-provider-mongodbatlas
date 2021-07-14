@@ -388,17 +388,17 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mapping_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-		return fmt.Errorf("error setting `mapping_dynamic` for search index (%s): %s", d.Id(), err)
+	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+		return fmt.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
+	searchIndexMappingFields, err := marshallSearchIndexMappingFields(searchIndex.Mappings.Fields)
 	if err != nil {
 		return err
 	}
 
-	if err := d.Set("mapping_fields", searchIndexMappingFields); err != nil {
-		return fmt.Errorf("error setting `mapping_fields` for for search index (%s): %s", d.Id(), err)
+	if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+		return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -410,12 +410,20 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) (interface{}, error) {
-	mappingFieldJSON, err := json.Marshal(fields)
-	return mappingFieldJSON, err
+func marshallSearchIndexMappingFields(fields *map[string]matlas.IndexField) (string, error) {
+	if fields == nil || len(*fields) == 0 {
+		return "", nil
+	}
+
+	mappingFieldJSON, err := json.Marshal(*fields)
+	return string(mappingFieldJSON), err
 }
 
 func marshallSearchIndexCharFilterMappingFields(fields map[string]string) (interface{}, error) {
+	if len(fields) == 0 {
+		return "", nil
+	}
+
 	mappingFieldJSON, err := json.Marshal(fields)
 
 	return mappingFieldJSON, err
@@ -584,6 +592,8 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 		"cluster_name": clusterName,
 		"index_id":     dbSearchIndexRes.IndexID,
 	}))
+
+	log.Printf("[DEBUG] resource ID on create: %s", d.Id())
 
 	return resourceMongoDBAtlasSearchIndexRead(d, meta)
 }
