@@ -11,7 +11,7 @@ import (
 
 func dataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasNetworkPeeringRead,
+		ReadContext: dataSourceMongoDBAtlasNetworkPeeringRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

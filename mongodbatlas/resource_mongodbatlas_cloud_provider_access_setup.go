@@ -19,10 +19,10 @@ import (
 
 func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
-		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
-		UpdateWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
+		ReadContext:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
+		CreateContext: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
+		UpdateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
+		DeleteContext: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderAccessSetupImportState,
 		},

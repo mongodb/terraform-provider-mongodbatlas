@@ -12,7 +12,7 @@ import (
 
 func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasNetworkContainersRead,
+		ReadContext: dataSourceMongoDBAtlasNetworkContainersRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

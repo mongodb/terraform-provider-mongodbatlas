@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasLDAPVerifyRead,
+		ReadContext: dataSourceMongoDBAtlasLDAPVerifyRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

@@ -16,7 +16,7 @@ import (
 
 func dataSourceMongoDBAtlasCluster() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasClusterRead,
+		ReadContext: dataSourceMongoDBAtlasClusterRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

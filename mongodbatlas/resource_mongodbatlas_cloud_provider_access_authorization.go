@@ -19,10 +19,10 @@ import (
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
-		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate,
-		UpdateWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
+		ReadContext:   resourceMongoDBAtlasCloudProviderAccessAuthorizationRead,
+		CreateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate,
+		UpdateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate,
+		DeleteContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
 
 		Schema: map[string]*schema.Schema{
 			"project_id": {

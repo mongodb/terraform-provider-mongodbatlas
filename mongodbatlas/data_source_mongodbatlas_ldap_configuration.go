@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasLDAPConfigurationRead,
+		ReadContext: dataSourceMongoDBAtlasLDAPConfigurationRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

@@ -23,9 +23,9 @@ const (
 
 func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasLDAPVerifyCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasLDAPVerifyRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasLDAPVerifyDelete,
+		CreateContext: resourceMongoDBAtlasLDAPVerifyCreate,
+		ReadContext:   resourceMongoDBAtlasLDAPVerifyRead,
+		DeleteContext: resourceMongoDBAtlasLDAPVerifyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasLDAPVerifyImportState,
 		},

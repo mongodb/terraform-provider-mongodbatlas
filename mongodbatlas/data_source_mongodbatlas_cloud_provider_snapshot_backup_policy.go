@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
+		ReadContext: dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

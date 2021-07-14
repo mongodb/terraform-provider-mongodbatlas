@@ -12,7 +12,7 @@ import (
 
 func dataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
+		ReadContext: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

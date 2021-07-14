@@ -21,7 +21,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 		Description: "Third-party service integration identifier",
 	}
 
-	integration.ReadWithoutTimeout = dataSourceMongoDBAtlasThirdPartyIntegrationRead
+	integration.ReadContext = dataSourceMongoDBAtlasThirdPartyIntegrationRead
 
 	return integration
 }

@@ -21,10 +21,10 @@ const (
 
 func resourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasCustomDNSConfigurationCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasCustomDNSConfigurationRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasCustomDNSConfigurationUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCustomDNSConfigurationDelete,
+		CreateContext: resourceMongoDBAtlasCustomDNSConfigurationCreate,
+		ReadContext:   resourceMongoDBAtlasCustomDNSConfigurationRead,
+		UpdateContext: resourceMongoDBAtlasCustomDNSConfigurationUpdate,
+		DeleteContext: resourceMongoDBAtlasCustomDNSConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

@@ -21,10 +21,10 @@ import (
 
 func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasCustomDBRoleCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasCustomDBRoleRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasCustomDBRoleUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCustomDBRoleDelete,
+		CreateContext: resourceMongoDBAtlasCustomDBRoleCreate,
+		ReadContext:   resourceMongoDBAtlasCustomDBRoleRead,
+		UpdateContext: resourceMongoDBAtlasCustomDBRoleUpdate,
+		DeleteContext: resourceMongoDBAtlasCustomDBRoleDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCustomDBRoleImportState,
 		},

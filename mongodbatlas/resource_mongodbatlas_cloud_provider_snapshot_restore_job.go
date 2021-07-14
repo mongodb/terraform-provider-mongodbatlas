@@ -18,9 +18,9 @@ import (
 
 func resourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete,
+		CreateContext: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobCreate,
+		ReadContext:   resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
+		DeleteContext: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderSnapshotRestoreJobImportState,
 		},

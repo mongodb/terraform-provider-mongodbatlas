@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasAuditing() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasAuditingRead,
+		ReadContext: dataSourceMongoDBAtlasAuditingRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

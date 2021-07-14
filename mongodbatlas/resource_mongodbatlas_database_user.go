@@ -16,10 +16,10 @@ import (
 
 func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasDatabaseUserCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasDatabaseUserRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasDatabaseUserUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasDatabaseUserDelete,
+		CreateContext: resourceMongoDBAtlasDatabaseUserCreate,
+		ReadContext:   resourceMongoDBAtlasDatabaseUserRead,
+		UpdateContext: resourceMongoDBAtlasDatabaseUserUpdate,
+		DeleteContext: resourceMongoDBAtlasDatabaseUserDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasDatabaseUserImportState,
 		},

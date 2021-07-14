@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasCustomDNSConfigurationAWS() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
+		ReadContext: dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

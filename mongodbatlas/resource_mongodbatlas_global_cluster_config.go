@@ -23,10 +23,10 @@ const (
 
 func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasGlobalClusterCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasGlobalClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasGlobalClusterUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasGlobalClusterDelete,
+		CreateContext: resourceMongoDBAtlasGlobalClusterCreate,
+		ReadContext:   resourceMongoDBAtlasGlobalClusterRead,
+		UpdateContext: resourceMongoDBAtlasGlobalClusterUpdate,
+		DeleteContext: resourceMongoDBAtlasGlobalClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasGlobalClusterImportState,
 		},

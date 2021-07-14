@@ -30,7 +30,7 @@ func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasOnlineArchivesRead,
+		ReadContext: dataSourceMongoDBAtlasOnlineArchivesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:         schema.TypeString,
@@ -59,8 +59,8 @@ func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
 
 func dataSourceMongoDBAtlasOnlineArchive() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasOnlineArchiveRead,
-		Schema:             schemaOnlineArchive(),
+		ReadContext: dataSourceMongoDBAtlasOnlineArchiveRead,
+		Schema:      schemaOnlineArchive(),
 	}
 }
 

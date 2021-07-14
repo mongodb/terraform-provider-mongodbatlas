@@ -27,10 +27,10 @@ const (
 
 func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasNetworkPeeringCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasNetworkPeeringRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasNetworkPeeringUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasNetworkPeeringDelete,
+		CreateContext: resourceMongoDBAtlasNetworkPeeringCreate,
+		ReadContext:   resourceMongoDBAtlasNetworkPeeringRead,
+		UpdateContext: resourceMongoDBAtlasNetworkPeeringUpdate,
+		DeleteContext: resourceMongoDBAtlasNetworkPeeringDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasNetworkPeeringImportState,
 		},

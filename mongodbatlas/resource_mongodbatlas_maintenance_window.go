@@ -22,10 +22,10 @@ const (
 
 func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasMaintenanceWindowCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasMaintenanceWindowRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasMaintenanceWindowUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasMaintenanceWindowDelete,
+		CreateContext: resourceMongoDBAtlasMaintenanceWindowCreate,
+		ReadContext:   resourceMongoDBAtlasMaintenanceWindowRead,
+		UpdateContext: resourceMongoDBAtlasMaintenanceWindowUpdate,
+		DeleteContext: resourceMongoDBAtlasMaintenanceWindowDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
