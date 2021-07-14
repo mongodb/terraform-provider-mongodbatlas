@@ -27,10 +27,10 @@ const (
 
 func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasAlertConfigurationCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasAlertConfigurationRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasAlertConfigurationUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasAlertConfigurationDelete,
+		CreateContext: resourceMongoDBAtlasAlertConfigurationCreate,
+		ReadContext:   resourceMongoDBAtlasAlertConfigurationRead,
+		UpdateContext: resourceMongoDBAtlasAlertConfigurationUpdate,
+		DeleteContext: resourceMongoDBAtlasAlertConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasAlertConfigurationImportState,
 		},

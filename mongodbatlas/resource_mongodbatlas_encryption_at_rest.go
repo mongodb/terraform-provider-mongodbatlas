@@ -22,11 +22,11 @@ const (
 
 func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasEncryptionAtRestCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasEncryptionAtRestRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasEncryptionAtRestDelete,
-		UpdateWithoutTimeout: resourceMongoDBAtlasEncryptionAtRestUpdate,
-		Importer:             &schema.ResourceImporter{},
+		CreateContext: resourceMongoDBAtlasEncryptionAtRestCreate,
+		ReadContext:   resourceMongoDBAtlasEncryptionAtRestRead,
+		DeleteContext: resourceMongoDBAtlasEncryptionAtRestDelete,
+		UpdateContext: resourceMongoDBAtlasEncryptionAtRestUpdate,
+		Importer:      &schema.ResourceImporter{},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

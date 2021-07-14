@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasAlertConfigurationRead,
+		ReadContext: dataSourceMongoDBAtlasAlertConfigurationRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

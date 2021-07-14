@@ -11,7 +11,7 @@ import (
 
 func dataSourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasMaintenanceWindowRead,
+		ReadContext: dataSourceMongoDBAtlasMaintenanceWindowRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

@@ -23,10 +23,10 @@ const (
 
 func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyCreate,
-		UpdateWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete,
+		CreateContext: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyCreate,
+		UpdateContext: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyUpdate,
+		ReadContext:   resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead,
+		DeleteContext: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyImportState,
 		},

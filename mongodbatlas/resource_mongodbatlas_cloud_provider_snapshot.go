@@ -18,9 +18,9 @@ import (
 
 func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderSnapshotRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderSnapshotDelete,
+		CreateContext: resourceMongoDBAtlasCloudProviderSnapshotCreate,
+		ReadContext:   resourceMongoDBAtlasCloudProviderSnapshotRead,
+		DeleteContext: resourceMongoDBAtlasCloudProviderSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderSnapshotImportState,
 		},

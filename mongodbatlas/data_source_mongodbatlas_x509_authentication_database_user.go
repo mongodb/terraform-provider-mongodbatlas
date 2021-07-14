@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasX509AuthDBUserRead,
+		ReadContext: dataSourceMongoDBAtlasX509AuthDBUserRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

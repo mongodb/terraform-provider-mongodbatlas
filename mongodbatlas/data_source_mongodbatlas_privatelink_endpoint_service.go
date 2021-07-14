@@ -11,7 +11,7 @@ import (
 
 func dataSourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead,
+		ReadContext: dataSourceMongoDBAtlasPrivateEndpointServiceLinkRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

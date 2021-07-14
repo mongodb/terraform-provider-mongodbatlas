@@ -25,10 +25,10 @@ const (
 
 func resourceMongoDBAtlasTeam() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasTeamCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasTeamRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasTeamUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasTeamDelete,
+		CreateContext: resourceMongoDBAtlasTeamCreate,
+		ReadContext:   resourceMongoDBAtlasTeamRead,
+		UpdateContext: resourceMongoDBAtlasTeamUpdate,
+		DeleteContext: resourceMongoDBAtlasTeamDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasTeamImportState,
 		},

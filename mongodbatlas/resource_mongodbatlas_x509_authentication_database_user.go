@@ -23,9 +23,9 @@ const (
 
 func resourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasX509AuthDBUserCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasX509AuthDBUserRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasX509AuthDBUserDelete,
+		CreateContext: resourceMongoDBAtlasX509AuthDBUserCreate,
+		ReadContext:   resourceMongoDBAtlasX509AuthDBUserRead,
+		DeleteContext: resourceMongoDBAtlasX509AuthDBUserDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasX509AuthDBUserImportState,
 		},

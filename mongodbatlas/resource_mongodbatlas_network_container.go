@@ -28,10 +28,10 @@ const (
 
 func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasNetworkContainerCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasNetworkContainerRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasNetworkContainerUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasNetworkContainerDelete,
+		CreateContext: resourceMongoDBAtlasNetworkContainerCreate,
+		ReadContext:   resourceMongoDBAtlasNetworkContainerRead,
+		UpdateContext: resourceMongoDBAtlasNetworkContainerUpdate,
+		DeleteContext: resourceMongoDBAtlasNetworkContainerDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasNetworkContainerImportState,
 		},

@@ -19,10 +19,10 @@ const (
 
 func resourceMongoDBAtlasAuditing() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasAuditingCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasAuditingRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasAuditingUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasAuditingDelete,
+		CreateContext: resourceMongoDBAtlasAuditingCreate,
+		ReadContext:   resourceMongoDBAtlasAuditingRead,
+		UpdateContext: resourceMongoDBAtlasAuditingUpdate,
+		DeleteContext: resourceMongoDBAtlasAuditingDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

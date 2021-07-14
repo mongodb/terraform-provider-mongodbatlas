@@ -24,10 +24,10 @@ const (
 
 func resourceMongoDBAtlasDataLake() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasDataLakeCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasDataLakeRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasDataLakeUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasDataLakeDelete,
+		CreateContext: resourceMongoDBAtlasDataLakeCreate,
+		ReadContext:   resourceMongoDBAtlasDataLakeRead,
+		UpdateContext: resourceMongoDBAtlasDataLakeUpdate,
+		DeleteContext: resourceMongoDBAtlasDataLakeDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasDataLakeImportState,
 		},

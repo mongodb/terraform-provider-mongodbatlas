@@ -13,7 +13,7 @@ import (
 
 func dataSourceMongoDBAtlasProjects() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasProjectsRead,
+		ReadContext: dataSourceMongoDBAtlasProjectsRead,
 		Schema: map[string]*schema.Schema{
 			"page_num": {
 				Type:     schema.TypeInt,

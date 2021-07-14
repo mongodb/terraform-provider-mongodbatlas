@@ -13,7 +13,7 @@ import (
 
 func dataSourceMongoDBAtlasTeam() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasTeamRead,
+		ReadContext: dataSourceMongoDBAtlasTeamRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,

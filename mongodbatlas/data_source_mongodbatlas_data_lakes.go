@@ -13,7 +13,7 @@ import (
 
 func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasDataLakesRead,
+		ReadContext: dataSourceMongoDBAtlasDataLakesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:         schema.TypeString,

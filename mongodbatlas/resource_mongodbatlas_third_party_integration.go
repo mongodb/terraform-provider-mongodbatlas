@@ -33,10 +33,10 @@ var requiredPerType = map[string][]string{
 
 func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasThirdPartyIntegrationCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasThirdPartyIntegrationRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasThirdPartyIntegrationUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasThirdPartyIntegrationDelete,
+		CreateContext: resourceMongoDBAtlasThirdPartyIntegrationCreate,
+		ReadContext:   resourceMongoDBAtlasThirdPartyIntegrationRead,
+		UpdateContext: resourceMongoDBAtlasThirdPartyIntegrationUpdate,
+		DeleteContext: resourceMongoDBAtlasThirdPartyIntegrationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasThirdPartyIntegrationImportState,
 		},

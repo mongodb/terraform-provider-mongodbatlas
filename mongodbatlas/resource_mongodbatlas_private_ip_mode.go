@@ -21,10 +21,10 @@ const (
 
 func resourceMongoDBAtlasPrivateIPMode() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasPrivateIPModeCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateIPModeRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasPrivateIPModeCreate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasPrivateIPModeDelete,
+		CreateContext: resourceMongoDBAtlasPrivateIPModeCreate,
+		ReadContext:   resourceMongoDBAtlasPrivateIPModeRead,
+		UpdateContext: resourceMongoDBAtlasPrivateIPModeCreate,
+		DeleteContext: resourceMongoDBAtlasPrivateIPModeDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasPrivateIPModeImportState,
 		},

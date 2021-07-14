@@ -21,10 +21,10 @@ const (
 
 func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasCloudProviderAccessRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasCloudProviderAccessDelete,
+		CreateContext: resourceMongoDBAtlasCloudProviderAccessCreate,
+		ReadContext:   resourceMongoDBAtlasCloudProviderAccessRead,
+		UpdateContext: resourceMongoDBAtlasCloudProviderAccessUpdate,
+		DeleteContext: resourceMongoDBAtlasCloudProviderAccessDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasCloudProviderAccessImportState,
 		},

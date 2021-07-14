@@ -24,11 +24,11 @@ const (
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 	return &schema.Resource{
-		Schema:               getMongoDBAtlasOnlineArchiveSchema(),
-		CreateWithoutTimeout: resourceMongoDBAtlasOnlineArchiveCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasOnlineArchiveRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasOnlineArchiveDelete,
-		UpdateWithoutTimeout: resourceMongoDBAtlasOnlineArchiveUpdate,
+		Schema:        getMongoDBAtlasOnlineArchiveSchema(),
+		CreateContext: resourceMongoDBAtlasOnlineArchiveCreate,
+		ReadContext:   resourceMongoDBAtlasOnlineArchiveRead,
+		DeleteContext: resourceMongoDBAtlasOnlineArchiveDelete,
+		UpdateContext: resourceMongoDBAtlasOnlineArchiveUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasOnlineArchiveImportState,
 		},

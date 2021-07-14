@@ -20,10 +20,10 @@ const (
 
 func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasLDAPConfigurationCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasLDAPConfigurationRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasLDAPConfigurationUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasLDAPConfigurationDelete,
+		CreateContext: resourceMongoDBAtlasLDAPConfigurationCreate,
+		ReadContext:   resourceMongoDBAtlasLDAPConfigurationRead,
+		UpdateContext: resourceMongoDBAtlasLDAPConfigurationUpdate,
+		DeleteContext: resourceMongoDBAtlasLDAPConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

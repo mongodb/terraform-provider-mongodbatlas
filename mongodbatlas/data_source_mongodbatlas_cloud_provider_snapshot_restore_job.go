@@ -12,7 +12,7 @@ import (
 
 func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
+		ReadContext: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

@@ -38,10 +38,10 @@ var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atla
 
 func resourceMongoDBAtlasCluster() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasClusterUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasClusterDelete,
+		CreateContext: resourceMongoDBAtlasClusterCreate,
+		ReadContext:   resourceMongoDBAtlasClusterRead,
+		UpdateContext: resourceMongoDBAtlasClusterUpdate,
+		DeleteContext: resourceMongoDBAtlasClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasClusterImportState,
 		},

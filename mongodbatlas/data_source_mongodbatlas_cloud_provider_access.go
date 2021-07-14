@@ -16,7 +16,7 @@ const (
 
 func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasCloudProviderAccessRead,
+		ReadContext: dataSourceMongoDBAtlasCloudProviderAccessRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

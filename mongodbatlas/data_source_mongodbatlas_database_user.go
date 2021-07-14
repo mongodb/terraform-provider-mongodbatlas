@@ -11,7 +11,7 @@ import (
 
 func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasDatabaseUserRead,
+		ReadContext: dataSourceMongoDBAtlasDatabaseUserRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

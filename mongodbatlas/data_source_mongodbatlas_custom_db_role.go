@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
-		ReadWithoutTimeout: dataSourceMongoDBAtlasCustomDBRoleRead,
+		ReadContext: dataSourceMongoDBAtlasCustomDBRoleRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
