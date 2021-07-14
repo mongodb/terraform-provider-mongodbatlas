@@ -24,9 +24,9 @@ func TestAccDataSourceMongoDBAtlasSearchIndexes_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexesDSConfig(projectID, clusterName, databaseName, collectionName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test.0", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test.0", "project_id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test.0", "cluster_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.data_index.0", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.data_index.0", "project_id"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.data_index.0", "cluster_name"),
 				),
 			},
 		},
@@ -37,7 +37,7 @@ func testAccMongoDBAtlasSearchIndexesDSConfig(projectID, clusterName, databaseNa
 	return fmt.Sprintf(`
 		%s
 
-		data "mongodbatlas_search_indexes" "test" {
+		data "mongodbatlas_search_indexes" "data_index" {
 			cluster_name           = mongodbatlas_search_index.test.cluster_name
 			project_id         = mongodbatlas_search_index.test.project_id
 			database_name   = "%s"

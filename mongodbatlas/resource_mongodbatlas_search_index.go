@@ -326,6 +326,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 	}
 
+	searchIndex.IndexID = ""
 	_, _, err = conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
 	if err != nil {
 		return fmt.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
@@ -426,7 +427,7 @@ func marshallSearchIndexCharFilterMappingFields(fields map[string]string) (inter
 
 	mappingFieldJSON, err := json.Marshal(fields)
 
-	return mappingFieldJSON, err
+	return string(mappingFieldJSON), err
 }
 
 func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) ([]map[string]interface{}, error) {
@@ -437,9 +438,15 @@ func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) ([]ma
 	mapAnalyzers := make([]map[string]interface{}, len(analyzers))
 
 	for i, analyzer := range analyzers {
+
+		tokenizer, err := flattenSearchIndexTokenizer(analyzer.Tokenizer)
+		if err != nil {
+			return nil, err
+		}
+
 		mapAnalyzers[i] = map[string]interface{}{
 			"name":      analyzer.Name,
-			"tokenizer": *analyzer.Tokenizer,
+			"tokenizer": tokenizer,
 		}
 
 		if len(analyzer.CharFilters) > 0 {
@@ -455,6 +462,37 @@ func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) ([]ma
 		}
 	}
 	return mapAnalyzers, nil
+}
+
+func flattenSearchIndexTokenizer(tokenizer *matlas.AnalyzerTokenizer) ([]map[string]interface{}, error) {
+	tokenList := make([]map[string]interface{}, 0)
+
+	mapTokenizer := map[string]interface{}{}
+
+	if tokenizer.Type != "" {
+		mapTokenizer["type"] = tokenizer.Type
+	}
+
+	if tokenizer.MaxTokenLength != nil {
+		mapTokenizer["max_token_length"] = *tokenizer.MaxTokenLength
+	}
+
+	if tokenizer.MinGram != nil {
+		mapTokenizer["min_gram"] = *tokenizer.MinGram
+	}
+	if tokenizer.MaxGram != nil {
+		mapTokenizer["max_gram"] = *tokenizer.MaxGram
+	}
+	if tokenizer.Pattern != "" {
+		mapTokenizer["pattern"] = tokenizer.Pattern
+	}
+	if tokenizer.Group != nil {
+		mapTokenizer["group"] = *tokenizer.Group
+	}
+
+	tokenList = append(tokenList, mapTokenizer)
+
+	return tokenList, nil
 }
 
 func flattenSearchIndexTokenFilters(filters []*matlas.AnalyzerTokenFilters) []map[string]interface{} {
@@ -702,7 +740,7 @@ func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerToken
 		}
 
 		if tokens, ok := tokenFilterMap["tokens"]; ok {
-			tokenFilter.Tokens = tokens.([]string)
+			tokenFilter.Tokens = expandIndexTokens(tokens) //TODO: put expand tokens
 		}
 
 		if ignoreCase, ok := tokenFilterMap["ignore_case"]; ok {
@@ -713,6 +751,16 @@ func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerToken
 	}
 
 	return analyzerTokenFilters
+}
+
+func expandIndexTokens(tokens interface{}) []string {
+	tokensInterfaces := tokens.([]interface{})
+	tokensList := make([]string, len(tokensInterfaces))
+
+	for i, token := range tokensInterfaces {
+		tokensList[i] = token.(string)
+	}
+	return tokensList
 }
 
 func expandIndexTokenizer(tokenizers []interface{}) *matlas.AnalyzerTokenizer {

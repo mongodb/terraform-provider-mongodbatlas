@@ -2,10 +2,11 @@ package mongodbatlas
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
@@ -22,12 +23,12 @@ func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexDSConfig(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "project_id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "collection_name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "database_name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test", "search_analyzer"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "project_id"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "collection_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "database_name"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "search_analyzer"),
 				),
 			},
 		},

@@ -71,15 +71,15 @@ resource "mongodbatlas_search_index" "test" {
 EOF
  name = "name_test"
  searchAnalyzer = "lucene.standard"
- analyzers = {
+ analyzers {
   name = "index_analyzer_test_name"
-  char_filters = {
+  char_filters {
    type = "mapping"
    mappings = <<EOF
    {"\\" : "/"}
    EOF
    }
-   tokenizer = { 
+   tokenizer { 
     type = "nGram"
     min_gram = 2
     max_gram = 5
