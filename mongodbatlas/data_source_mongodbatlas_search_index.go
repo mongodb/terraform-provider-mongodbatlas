@@ -133,5 +133,11 @@ func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 	}
 
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":   projectID.(string),
+		"cluster_name": clusterName.(string),
+		"index_id":     indexID.(string),
+	}))
+
 	return nil
 }

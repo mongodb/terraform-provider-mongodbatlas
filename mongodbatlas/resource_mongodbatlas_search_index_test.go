@@ -101,7 +101,6 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matla
 		}
 
 		return fmt.Errorf("index (%s) does not exist", ids["index_id"])
-
 	}
 }
 
@@ -162,7 +161,7 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 			collection_name = "collection_test"
 			database = "database_test"
 			mappings_dynamic = false
-			mappings_fields = jsonencode(
+			mappings_fields = <<-EOF
 							 {
 				  "address": {
 					"type": "document",
@@ -193,16 +192,16 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 					"analyzer": "lucene.standard"
 				  }
 				}
-   			)
+   			EOF
 			name = "name_test"
 			search_analyzer = "lucene.standard"
 			analyzers {
 				name = "index_analyzer_test_name"
 				char_filters {
 					type = "mapping"
-					mappings = jsonencode(
+					mappings = <<-EOF
 					{"\\" : "/"}
-					)
+					EOF
 				}
 				tokenizer {
 					type = "nGram"
@@ -225,7 +224,6 @@ func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
-
 		if rs.Type != "mongodbatlas_search_index" {
 			continue
 		}

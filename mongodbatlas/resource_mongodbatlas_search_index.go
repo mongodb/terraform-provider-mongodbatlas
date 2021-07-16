@@ -402,11 +402,12 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
+	/*d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 		"index_id":     indexID,
 	}))
+	*/
 
 	return nil
 }
@@ -438,7 +439,6 @@ func flattenSearchIndexCustomAnalyzers(analyzers []*matlas.CustomAnalyzer) ([]ma
 	mapAnalyzers := make([]map[string]interface{}, len(analyzers))
 
 	for i, analyzer := range analyzers {
-
 		tokenizer, err := flattenSearchIndexTokenizer(analyzer.Tokenizer)
 		if err != nil {
 			return nil, err
@@ -827,11 +827,20 @@ func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFil
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
 	var j, j2 interface{}
+
+	if old == "" {
+		old = "{}"
+	}
+
+	if newStr == "" {
+		newStr = "{}"
+	}
+
 	if err := json.Unmarshal([]byte(old), &j); err != nil {
-		log.Printf("[ERROR] json.Unmarshal %v", err)
+		log.Printf("[ERROR] cannot unmarshal old search index mapping json %v", err)
 	}
 	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
-		log.Printf("[ERROR] json.Unmarshal %v", err)
+		log.Printf("[ERROR] cannot unmarshal new search index mapping json %v", err)
 	}
 	if diff := deep.Equal(&j, &j2); diff != nil {
 		log.Printf("[DEBUG] deep equal not passed: %v", diff)
@@ -842,9 +851,14 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 }
 
 func unmarshalSearchIndexMappingFields(mappingString string) *map[string]matlas.IndexField {
+	if mappingString == "" {
+		return nil
+	}
+
 	var fields *map[string]matlas.IndexField
+
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
-		log.Printf("[ERROR] json.Unmarshal %v", err)
+		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
 		return nil
 	}
 

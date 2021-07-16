@@ -9,10 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasSearchIndexes_byID(t *testing.T) {
 	var (
-		clusterName = acctest.RandomWithPrefix("test-acc-global")
-		projectID   = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName    = acctest.RandomWithPrefix("test-acc-global")
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		datasourceName = "data.mongodbatlas_search_index.test_two"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,12 +24,12 @@ func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexDSConfig(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "project_id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "collection_name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "database_name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_search_index.test_two", "search_analyzer"),
+					resource.TestCheckResourceAttrSet(datasourceName, "name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "collection_name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "database"),
+					resource.TestCheckResourceAttrSet(datasourceName, "search_analyzer"),
 				),
 			},
 		},

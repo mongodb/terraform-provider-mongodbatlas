@@ -22,7 +22,7 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"database_name": {
+			"database": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -59,11 +59,11 @@ func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interf
 
 	projectID, projectIDOK := d.GetOk("project_id")
 	clusterName, clusterNameOk := d.GetOk("cluster_name")
-	databaseName, databaseNameOK := d.GetOk("database_name")
+	databaseName, databaseNameOK := d.GetOk("database")
 	collectionName, collectionNameOK := d.GetOk("collection_name")
 
 	if !(projectIDOK && clusterNameOk && databaseNameOK && collectionNameOK) {
-		return errors.New("project_id, cluster_name, database_name and collection_name must be configured")
+		return errors.New("project_id, cluster_name, database and collection_name must be configured")
 	}
 
 	options := &matlas.ListOptions{
@@ -116,13 +116,13 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 		searchIndexesMap[i] = map[string]interface{}{
 			"analyzer":         searchIndexes[i].Analyzer,
 			"analyzers":        searchIndexCustomAnalyzers,
-			"collectionName":   searchIndexes[i].CollectionName,
+			"collection_name":  searchIndexes[i].CollectionName,
 			"database":         searchIndexes[i].Database,
-			"indexID":          searchIndexes[i].IndexID,
+			"index_id":         searchIndexes[i].IndexID,
 			"mappings_dynamic": searchIndexes[i].Mappings.Dynamic,
 			"mappings_fields":  searchIndexMappingFields,
 			"name":             searchIndexes[i].Name,
-			"searchAnalyzer":   searchIndexes[i].SearchAnalyzer,
+			"search_analyzer":  searchIndexes[i].SearchAnalyzer,
 			"status":           searchIndexes[i].Status,
 		}
 	}
