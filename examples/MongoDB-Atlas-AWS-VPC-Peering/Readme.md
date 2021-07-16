@@ -5,9 +5,12 @@ This project aims to provide a very straight-forward example of using AWS and Mo
 
 ## Dependencies
 
-* Terraform v0.12
-* An AWS account - provider.aws: version = "~> 2.39"
-* A MongoDB Atlas account - provider.mongodbatlas: version = "~> 0.3"
+```
+Terraform v0.15.4
+on darwin_amd64
++ provider registry.terraform.io/hashicorp/aws v3.48.0
++ provider registry.terraform.io/mongodb/mongodbatlas v0.9.1
+```
 
 ## Usage
 
