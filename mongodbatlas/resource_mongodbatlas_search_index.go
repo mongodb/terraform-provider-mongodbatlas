@@ -323,7 +323,10 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("mappings_fields") {
-		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+		var indexMapping *map[string]matlas.IndexField
+		indexMappingResult := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+		indexMapping = &indexMappingResult
+		searchIndex.Mappings.Fields = indexMapping
 	}
 
 	searchIndex.IndexID = ""
@@ -393,7 +396,7 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	searchIndexMappingFields, err := marshallSearchIndexMappingFields(searchIndex.Mappings.Fields)
+	searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
 	if err != nil {
 		return err
 	}
@@ -402,22 +405,15 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 	}
 
-	/*d.SetId(encodeStateID(map[string]string{
-		"project_id":   projectID,
-		"cluster_name": clusterName,
-		"index_id":     indexID,
-	}))
-	*/
-
 	return nil
 }
 
-func marshallSearchIndexMappingFields(fields *map[string]matlas.IndexField) (string, error) {
-	if fields == nil || len(*fields) == 0 {
+func marshallSearchIndexMappingFields(fields map[string]matlas.IndexField) (string, error) {
+	if len(fields) == 0 {
 		return "", nil
 	}
 
-	mappingFieldJSON, err := json.Marshal(*fields)
+	mappingFieldJSON, err := json.Marshal(fields)
 	return string(mappingFieldJSON), err
 }
 
@@ -606,6 +602,10 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 
 	clusterName := d.Get("cluster_name").(string)
 
+	var indexMapping *map[string]matlas.IndexField
+	indexMappingResult := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+	indexMapping = &indexMappingResult
+
 	searchIndexRequest := &matlas.SearchIndex{
 		Analyzer:       d.Get("analyzer").(string),
 		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").(*schema.Set)),
@@ -613,7 +613,7 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 		Database:       d.Get("database").(string),
 		Mappings: &matlas.IndexMapping{
 			Dynamic: d.Get("mappings_dynamic").(bool),
-			Fields:  unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string)),
+			Fields:  indexMapping,
 		},
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: d.Get("search_analyzer").(string),
@@ -816,7 +816,10 @@ func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFil
 		}
 
 		if mappings, ok := charFilterMap["mappings"]; ok {
-			charFilter.Mappings = unmarshalSearchIndexCharFilterMapping(mappings.(string))
+			var charFilterMapping *map[string]string
+			charFilters := unmarshalSearchIndexCharFilterMapping(mappings.(string))
+			charFilterMapping = &charFilters
+			charFilter.Mappings = charFilterMapping
 		}
 
 		analyzerCharFilters = append(analyzerCharFilters, charFilter)
@@ -850,12 +853,12 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 	return true
 }
 
-func unmarshalSearchIndexMappingFields(mappingString string) *map[string]matlas.IndexField {
+func unmarshalSearchIndexMappingFields(mappingString string) map[string]matlas.IndexField {
 	if mappingString == "" {
 		return nil
 	}
 
-	var fields *map[string]matlas.IndexField
+	var fields map[string]matlas.IndexField
 
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
@@ -865,8 +868,8 @@ func unmarshalSearchIndexMappingFields(mappingString string) *map[string]matlas.
 	return fields
 }
 
-func unmarshalSearchIndexCharFilterMapping(mappingString string) *map[string]string {
-	var fields *map[string]string
+func unmarshalSearchIndexCharFilterMapping(mappingString string) map[string]string {
+	var fields map[string]string
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] json.Unmarshal %v", err)
 		return nil
