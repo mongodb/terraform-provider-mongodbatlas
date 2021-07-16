@@ -26,7 +26,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMongoDBAtlasCloudBackupScheduleCreate,
 		Read:   resourceMongoDBAtlasCloudBackupScheduleRead,
-		Update: resourceMongoDBAtlasCloudBackupScheduleUpdate, // To review
+		Update: resourceMongoDBAtlasCloudBackupScheduleUpdate,
 		Delete: resourceMongoDBAtlasCloudBackupScheduleDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceMongoDBAtlasCloudBackupScheduleImportState,
@@ -140,35 +140,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	req := &matlas.CloudProviderSnapshotBackupPolicy{}
-
-	_, ok := d.GetOk("policies")
-	if ok {
-		req.Policies = expandPolicies(d)
-	}
-
-	hourDay, ok := d.GetOk("reference_hour_of_day")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(hourDay))
-		req.ReferenceHourOfDay = value
-	}
-	minHour, ok := d.GetOk("reference_minute_of_hour")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(minHour))
-		req.ReferenceMinuteOfHour = value
-	}
-	winDays, ok := d.GetOk("restore_window_days")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(winDays))
-		req.RestoreWindowDays = value
-	}
-	updateSnap, ok := d.GetOk("update_snapshots")
-	if ok {
-		value := pointy.Bool(updateSnap.(bool))
-		if *value {
-			req.UpdateSnapshots = value
-		}
-	}
+	req := buildCloudBackupScheduleRequest(d)
 
 	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
 	if err != nil {
@@ -244,18 +216,10 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	req := &matlas.CloudProviderSnapshotBackupPolicy{
-		ReferenceHourOfDay:    pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day"))),
-		ReferenceMinuteOfHour: pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour"))),
-		UpdateSnapshots:       pointy.Bool(cast.ToBool(d.Get("update_snapshots").(bool))),
-	}
+	req := buildCloudBackupScheduleRequest(d)
 
 	if rwd, ok := d.GetOk("restore_window_days"); ok {
 		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(rwd))
-	}
-
-	if d.HasChange("policies") {
-		req.Policies = expandPolicies(d)
 	}
 
 	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
@@ -311,4 +275,38 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, 
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func buildCloudBackupScheduleRequest(d *schema.ResourceData) *matlas.CloudProviderSnapshotBackupPolicy {
+	req := &matlas.CloudProviderSnapshotBackupPolicy{}
+
+	_, ok := d.GetOk("policies")
+	if ok {
+		req.Policies = expandPolicies(d)
+	}
+
+	hourDay, ok := d.GetOk("reference_hour_of_day")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(hourDay))
+		req.ReferenceHourOfDay = value
+	}
+	minHour, ok := d.GetOk("reference_minute_of_hour")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(minHour))
+		req.ReferenceMinuteOfHour = value
+	}
+	winDays, ok := d.GetOk("restore_window_days")
+	if ok {
+		value := pointy.Int64(cast.ToInt64(winDays))
+		req.RestoreWindowDays = value
+	}
+	updateSnap, ok := d.GetOk("update_snapshots")
+	if ok {
+		value := pointy.Bool(updateSnap.(bool))
+		if *value {
+			req.UpdateSnapshots = value
+		}
+	}
+
+	return req
 }
