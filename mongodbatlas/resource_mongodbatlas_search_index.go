@@ -47,7 +47,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"analyzers": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     customAnalyzersSchema(),
 		},
@@ -92,7 +92,7 @@ func customAnalyzersSchema() *schema.Resource {
 				Required: true,
 			},
 			"char_filters": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -101,7 +101,7 @@ func customAnalyzersSchema() *schema.Resource {
 							Required: true,
 						},
 						"ignore_tags": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -116,7 +116,7 @@ func customAnalyzersSchema() *schema.Resource {
 				},
 			},
 			"tokenizer": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -149,7 +149,7 @@ func customAnalyzersSchema() *schema.Resource {
 				},
 			},
 			"token_filters": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -299,7 +299,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("analyzers") {
-		searchIndex.Analyzers = expandCustomAnalyzers(d.Get("analyzers").(*schema.Set))
+		searchIndex.Analyzers = expandCustomAnalyzers(d.Get("analyzers").([]interface{}))
 	}
 
 	if d.HasChange("collection_name") {
@@ -396,13 +396,15 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
-	if err != nil {
-		return err
-	}
+	if searchIndex.Mappings.Fields != nil {
+		searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
+		if err != nil {
+			return err
+		}
 
-	if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-		return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+			return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+		}
 	}
 
 	return nil
@@ -608,7 +610,7 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 
 	searchIndexRequest := &matlas.SearchIndex{
 		Analyzer:       d.Get("analyzer").(string),
-		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").(*schema.Set)),
+		Analyzers:      expandCustomAnalyzers(d.Get("analyzers").([]interface{})),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
 		Mappings: &matlas.IndexMapping{
@@ -631,21 +633,17 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 		"index_id":     dbSearchIndexRes.IndexID,
 	}))
 
-	log.Printf("[DEBUG] resource ID on create: %s", d.Id())
-
 	return resourceMongoDBAtlasSearchIndexRead(d, meta)
 }
 
-func expandCustomAnalyzers(analyzers *schema.Set) []*matlas.CustomAnalyzer {
-	analyzersSlice := analyzers.List()
-
-	if len(analyzersSlice) == 0 {
+func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
+	if len(analyzers) == 0 {
 		return nil
 	}
 
 	var analyzersList []*matlas.CustomAnalyzer
 
-	for _, analyzerObj := range analyzersSlice {
+	for _, analyzerObj := range analyzers {
 		analyzerInterface := analyzerObj.(map[string]interface{})
 
 		analyzer := &matlas.CustomAnalyzer{
@@ -654,17 +652,17 @@ func expandCustomAnalyzers(analyzers *schema.Set) []*matlas.CustomAnalyzer {
 
 		charFiltersMap, ok := analyzerInterface["char_filters"]
 		if ok {
-			analyzer.CharFilters = expandIndexCharFilters(charFiltersMap.(*schema.Set).List())
+			analyzer.CharFilters = expandIndexCharFilters(charFiltersMap.([]interface{}))
 		}
 
 		tokenizer, ok := analyzerInterface["tokenizer"]
 		if ok {
-			analyzer.Tokenizer = expandIndexTokenizer(tokenizer.(*schema.Set).List())
+			analyzer.Tokenizer = expandIndexTokenizer(tokenizer.([]interface{}))
 		}
 
 		tokenFiltersMap, ok := analyzerInterface["token_filters"]
 		if ok {
-			analyzer.TokenFilters = expandIndexTokenFilters(tokenFiltersMap.(*schema.Set).List())
+			analyzer.TokenFilters = expandIndexTokenFilters(tokenFiltersMap.([]interface{}))
 		}
 
 		analyzersList = append(analyzersList, analyzer)
@@ -675,7 +673,7 @@ func expandCustomAnalyzers(analyzers *schema.Set) []*matlas.CustomAnalyzer {
 
 func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerTokenFilters {
 	var analyzerTokenFilters []*matlas.AnalyzerTokenFilters
-
+	//TODO: here occurrs the change
 	if len(tokenFilters) == 0 {
 		return nil
 	}
@@ -691,36 +689,36 @@ func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerToken
 			tokenFilter.OriginalTokens = originalToken.(string)
 		}
 
-		if min, ok := tokenFilterMap["min"]; ok {
-			tokenFilter.Min = pointy.Int(min.(int))
+		if min, ok := tokenFilterMap["min"].(int); ok && min > 0 {
+			tokenFilter.Min = pointy.Int(min)
 		}
 
-		if max, ok := tokenFilterMap["max"]; ok {
-			tokenFilter.Min = pointy.Int(max.(int))
+		if max, ok := tokenFilterMap["max"].(int); ok && max > 0 {
+			tokenFilter.Max = pointy.Int(max)
 		}
 
 		if normalizationForm, ok := tokenFilterMap["normalization_form"]; ok {
 			tokenFilter.NormalizationForm = normalizationForm.(string)
 		}
 
-		if minGram, ok := tokenFilterMap["min_gram"]; ok {
-			tokenFilter.MinGram = pointy.Int(minGram.(int))
+		if minGram, ok := tokenFilterMap["min_gram"].(int); ok && minGram > 0 {
+			tokenFilter.MinGram = pointy.Int(minGram)
 		}
 
-		if maxGram, ok := tokenFilterMap["max_gram"]; ok {
-			tokenFilter.MinGram = pointy.Int(maxGram.(int))
+		if maxGram, ok := tokenFilterMap["max_gram"].(int); ok && maxGram > 0 {
+			tokenFilter.MinGram = pointy.Int(maxGram)
 		}
 
 		if termsNotInBounds, ok := tokenFilterMap["terms_not_in_bounds"]; ok {
 			tokenFilter.TermsNotInBounds = termsNotInBounds.(string)
 		}
 
-		if minShingleSize, ok := tokenFilterMap["min_shingle_size"]; ok {
-			tokenFilter.MinShingleSize = pointy.Int(minShingleSize.(int))
+		if minShingleSize, ok := tokenFilterMap["min_shingle_size"].(int); ok && minShingleSize > 0 {
+			tokenFilter.MinShingleSize = pointy.Int(minShingleSize)
 		}
 
-		if maxShingleSize, ok := tokenFilterMap["max_shingle_size"]; ok {
-			tokenFilter.MaxShingleSize = pointy.Int(maxShingleSize.(int))
+		if maxShingleSize, ok := tokenFilterMap["max_shingle_size"].(int); ok && maxShingleSize > 0 {
+			tokenFilter.MaxShingleSize = pointy.Int(maxShingleSize)
 		}
 
 		if pattern, ok := tokenFilterMap["pattern"]; ok {
@@ -740,11 +738,11 @@ func expandIndexTokenFilters(tokenFilters []interface{}) []*matlas.AnalyzerToken
 		}
 
 		if tokens, ok := tokenFilterMap["tokens"]; ok {
-			tokenFilter.Tokens = expandIndexTokens(tokens) //TODO: put expand tokens
+			tokenFilter.Tokens = expandIndexTokens(tokens)
 		}
 
-		if ignoreCase, ok := tokenFilterMap["ignore_case"]; ok {
-			tokenFilter.IgnoreCase = pointy.Bool(ignoreCase.(bool))
+		if ignoreCase, ok := tokenFilterMap["ignore_case"].(bool); ok {
+			tokenFilter.IgnoreCase = pointy.Bool(ignoreCase)
 		}
 
 		analyzerTokenFilters = append(analyzerTokenFilters, tokenFilter)
@@ -774,24 +772,24 @@ func expandIndexTokenizer(tokenizers []interface{}) *matlas.AnalyzerTokenizer {
 
 	analyzerTokenizer.Type = tokenizer["type"].(string)
 
-	if maxTokenLength, ok := tokenizer["max_token_length"]; ok {
-		analyzerTokenizer.MaxTokenLength = pointy.Int(maxTokenLength.(int))
+	if maxTokenLength, ok := tokenizer["max_token_length"].(int); ok && maxTokenLength > 0 {
+		analyzerTokenizer.MaxTokenLength = pointy.Int(maxTokenLength)
 	}
 
-	if minGram, ok := tokenizer["min_gram"]; ok {
-		analyzerTokenizer.MinGram = pointy.Int(minGram.(int))
+	if minGram, ok := tokenizer["min_gram"].(int); ok && minGram > 0 {
+		analyzerTokenizer.MinGram = pointy.Int(minGram)
 	}
 
-	if maxGram, ok := tokenizer["max_gram"]; ok {
-		analyzerTokenizer.MaxGram = pointy.Int(maxGram.(int))
+	if maxGram, ok := tokenizer["max_gram"].(int); ok && maxGram > 0 {
+		analyzerTokenizer.MaxGram = pointy.Int(maxGram)
 	}
 
 	if pattern, ok := tokenizer["pattern"]; ok {
 		analyzerTokenizer.Pattern = pattern.(string)
 	}
 
-	if group, ok := tokenizer["group"]; ok {
-		analyzerTokenizer.Group = pointy.Int(group.(int))
+	if group, ok := tokenizer["group"].(int); ok {
+		analyzerTokenizer.Group = pointy.Int(group)
 	}
 
 	return analyzerTokenizer
@@ -811,8 +809,8 @@ func expandIndexCharFilters(charFilters []interface{}) []*matlas.AnalyzerCharFil
 			Type: charFilterMap["type"].(string),
 		}
 
-		if ignoreTags, ok := charFilterMap["ignoreTags"]; ok {
-			charFilter.IgnoreTags = ignoreTags.([]string)
+		if ignoreTags, ok := charFilterMap["ignoreTags"].([]string); ok {
+			charFilter.IgnoreTags = ignoreTags
 		}
 
 		if mappings, ok := charFilterMap["mappings"]; ok {

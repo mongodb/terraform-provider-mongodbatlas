@@ -44,6 +44,7 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

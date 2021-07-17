@@ -125,12 +125,14 @@ func dataSourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
-	if err != nil {
-		return err
-	}
-	if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-		return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+	if searchIndex.Mappings.Fields != nil {
+		searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+			return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+		}
 	}
 
 	d.SetId(encodeStateID(map[string]string{

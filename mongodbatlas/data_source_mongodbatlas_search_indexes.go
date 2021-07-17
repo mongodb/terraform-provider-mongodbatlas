@@ -108,11 +108,6 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 			return nil, err
 		}
 
-		searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields)
-		if err != nil {
-			return nil, err
-		}
-
 		searchIndexesMap[i] = map[string]interface{}{
 			"analyzer":         searchIndexes[i].Analyzer,
 			"analyzers":        searchIndexCustomAnalyzers,
@@ -120,10 +115,17 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 			"database":         searchIndexes[i].Database,
 			"index_id":         searchIndexes[i].IndexID,
 			"mappings_dynamic": searchIndexes[i].Mappings.Dynamic,
-			"mappings_fields":  searchIndexMappingFields,
 			"name":             searchIndexes[i].Name,
 			"search_analyzer":  searchIndexes[i].SearchAnalyzer,
 			"status":           searchIndexes[i].Status,
+		}
+
+		if searchIndexes[i].Mappings.Fields != nil {
+			searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields)
+			if err != nil {
+				return nil, err
+			}
+			searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
 		}
 	}
 
