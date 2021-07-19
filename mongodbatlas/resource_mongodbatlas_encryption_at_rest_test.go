@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/mwielbut/pointy"
@@ -152,7 +151,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 			Enabled:           pointy.Bool(true),
 			ClientID:          os.Getenv("AZURE_CLIENT_ID"),
 			AzureEnvironment:  "AZURE",
-			SubscriptionID:    os.Getenv("AZURE_SUBCRIPTION_ID"),
+			SubscriptionID:    os.Getenv("AZURE_SUBSCRIPTION_ID"),
 			ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME"),
 			KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME"),
 			KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER"),
@@ -164,7 +163,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 			Enabled:           pointy.Bool(true),
 			ClientID:          os.Getenv("AZURE_CLIENT_ID_UPDATED"),
 			AzureEnvironment:  "AZURE",
-			SubscriptionID:    os.Getenv("AZURE_SUBCRIPTION_ID"),
+			SubscriptionID:    os.Getenv("AZURE_SUBSCRIPTION_ID"),
 			ResourceGroupName: os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED"),
 			KeyVaultName:      os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED"),
 			KeyIdentifier:     os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED"),

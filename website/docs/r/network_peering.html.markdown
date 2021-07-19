@@ -310,7 +310,7 @@ resource "mongodbatlas_network_peering" "test" {
   container_id          = mongodbatlas_cluster.test.container_id
   provider_name         = "AZURE"
   azure_directory_id    = local.AZURE_DIRECTORY_ID
-  azure_subscription_id = local.AZURE_SUBCRIPTION_ID
+  azure_subscription_id = local.AZURE_SUBSCRIPTION_ID
   resource_group_name   = local.AZURE_RESOURCE_GROUP_NAME
   vnet_name             = local.AZURE_VNET_NAME
 }
