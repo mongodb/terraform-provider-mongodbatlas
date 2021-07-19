@@ -234,21 +234,26 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
-			project_id   = "%s"
-			name         = "%s"
-			disk_size_gb = 100
-			num_shards   = 1
-
-			replication_factor           = 3
-			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
+			project_id              = "%s"
+			name                    = "%s"
+			disk_size_gb            = 80
+			provider_backup_enabled = %s
+			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_encrypt_ebs_volume = false
-			provider_instance_size_name = "M30"
-			provider_region_name        = "US_EAST_1"
-			provider_backup_enabled     = %s
+ 			provider_instance_size_name = "M30"
+
+			replication_specs {
+				zone_name  = "Zone 1"
+				num_shards = 1
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
+			}
 		}
 
 		resource "mongodbatlas_global_cluster_config" "config" {
