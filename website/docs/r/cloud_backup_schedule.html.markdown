@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
-## Example Usage - Create a Cluster with no policies (no policies will get the default Policies Items in Read)
+## Example Usage - Create a Cluster with no policies
 
 ```hcl
 resource "mongodbatlas_cluster" "my_cluster" {
@@ -38,6 +38,89 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 }
 ```
+
+## Example Usage - Create a Cluster with no policies and add 4 policies items
+
+### First step - Create a Cluster with no policies 
+```hcl
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "EU_CENTRAL_1"
+  provider_instance_size_name = "M10"
+  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+  provider_disk_iops          = 100
+}
+
+resource "mongodbatlas_cloud_backup_schedule" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+}
+```
+
+### Second step - Add 2 policies items
+```hcl
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "EU_CENTRAL_1"
+  provider_instance_size_name = "M10"
+  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+  provider_disk_iops          = 100
+}
+
+resource "mongodbatlas_cloud_backup_schedule" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+  
+  policies {
+    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
+
+    policy_item {
+      frequency_interval = 2
+      frequency_type     = "hourly"
+      retention_unit     = "days"
+      retention_value    = 1
+    }
+    policy_item {
+      frequency_interval = 1
+      frequency_type     = "daily"
+      retention_unit     = "days"
+      retention_value    = 4
+    }
+    policy_item {
+      frequency_interval = 4
+      frequency_type     = "weekly"
+      retention_unit     = "weeks"
+      retention_value    = 2
+    }
+    policy_item {
+      frequency_interval = 5
+      frequency_type     = "monthly"
+      retention_unit     = "months"
+      retention_value    = 3
+    }
+  }
+}
+```
+
 
 ~> **IMPORTANT:**   `policies.#.policy_item.#.id` is obtained when the cluster is created. 
 

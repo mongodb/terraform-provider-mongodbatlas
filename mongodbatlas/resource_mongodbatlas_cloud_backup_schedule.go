@@ -140,6 +140,14 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
+	// Delete policies items if not set
+	if _, ok := d.GetOk("policies"); !ok {
+		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
+		if err != nil {
+			return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+		}
+	}
+
 	req := buildCloudBackupScheduleRequest(d)
 
 	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)

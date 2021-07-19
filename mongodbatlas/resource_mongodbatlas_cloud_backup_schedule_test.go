@@ -39,7 +39,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
 					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policies.0.policy_item.#", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policies.0.policy_item.#", "0"),
 				),
 			},
 			{
