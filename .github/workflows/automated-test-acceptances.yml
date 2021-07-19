@@ -59,7 +59,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
           AZURE_DIRECTORY_ID: ${{ secrets.AZURE_DIRECTORY_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_SUBCRIPTION_ID: ${{ secrets.AZURE_SUBCRIPTION_ID }}
           AZURE_VNET_NAME: ${{ secrets.AZURE_VNET_NAME }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
