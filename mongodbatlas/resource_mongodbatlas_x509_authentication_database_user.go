@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -144,6 +143,13 @@ func resourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interfa
 	if username != "" {
 		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(context.Background(), projectID, username)
 		if err != nil {
+			// new resource missing
+			reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+			if reset {
+				d.SetId("")
+				return nil
+			}
+
 			return fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
 	}

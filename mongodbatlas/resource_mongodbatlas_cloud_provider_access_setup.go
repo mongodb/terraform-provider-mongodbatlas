@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -71,9 +72,13 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, me
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
 
-	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
-
+	roles, resp, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorGetRead, err)
 	}
 

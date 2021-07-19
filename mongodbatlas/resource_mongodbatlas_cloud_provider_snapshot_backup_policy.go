@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -154,8 +153,13 @@ func resourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead(d *schema.Resourc
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	backupPolicy, resp, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
 	}
 

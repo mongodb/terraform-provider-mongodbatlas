@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -305,12 +305,10 @@ func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta int
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
+	alert, resp, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 	if err != nil {
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}

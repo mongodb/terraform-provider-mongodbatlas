@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -279,6 +278,7 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	peer, resp, err := conn.Peers.Get(context.Background(), projectID, peerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
 			return nil
 		}
 

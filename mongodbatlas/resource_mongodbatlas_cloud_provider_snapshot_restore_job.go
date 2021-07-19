@@ -5,12 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 
-	"github.com/spf13/cast"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -223,8 +222,13 @@ func resourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(d *schema.ResourceD
 		ClusterName: ids["cluster_name"],
 	}
 
-	snapshotReq, _, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
+	snapshotReq, resp, err := conn.CloudProviderSnapshotRestoreJobs.Get(context.Background(), requestParameters)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("error getting cloudProviderSnapshotRestoreJob Information: %s", err)
 	}
 

@@ -3,11 +3,11 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -117,8 +117,13 @@ func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta inte
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	maintenanceWindow, _, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
+	maintenanceWindow, resp, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
 	}
 

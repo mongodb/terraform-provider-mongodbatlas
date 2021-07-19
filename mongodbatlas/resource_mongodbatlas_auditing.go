@@ -3,10 +3,10 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mwielbut/pointy"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -84,8 +84,13 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 func resourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*MongoDBClient).Atlas
 
-	auditing, _, err := conn.Auditing.Get(context.Background(), d.Id())
+	auditing, resp, err := conn.Auditing.Get(context.Background(), d.Id())
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorAuditingRead, d.Id(), err)
 	}
 

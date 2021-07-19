@@ -3,9 +3,9 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -61,8 +61,13 @@ func resourceMongoDBAtlasCustomDNSConfigurationCreate(d *schema.ResourceData, me
 func resourceMongoDBAtlasCustomDNSConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*MongoDBClient).Atlas
 
-	dnsResp, _, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
+	dnsResp, resp, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorCustomDNSConfigurationRead, err)
 	}
 

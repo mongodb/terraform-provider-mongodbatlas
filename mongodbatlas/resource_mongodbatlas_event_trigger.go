@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/go-test/deep"
@@ -299,8 +300,12 @@ func resourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interfac
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
 
-	resp, _, err := conn.EventTriggers.Get(context.Background(), projectID, appID, triggerID)
+	resp, recodes, err := conn.EventTriggers.Get(context.Background(), projectID, appID, triggerID)
 	if err != nil {
+		if recodes != nil && recodes.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf(errorEventTriggersRead, projectID, appID, err)
 	}
 

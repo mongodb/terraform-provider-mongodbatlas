@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -95,8 +94,13 @@ func resourceMongoDBAtlasCloudProviderSnapshotRead(d *schema.ResourceData, meta 
 		ClusterName: ids["cluster_name"],
 	}
 
-	snapshotReq, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+	snapshotReq, resp, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("error getting snapshot Information: %s", err)
 	}
 

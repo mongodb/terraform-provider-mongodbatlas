@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -139,8 +139,13 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(d *schema.ResourceData, meta in
 	providerName := ids["provider_name"]
 	region := ids["region"]
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
+	privateEndpoint, resp, err := conn.PrivateEndpoints.Get(context.Background(), projectID, providerName, privateLinkID)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorPrivateLinkEndpointsRead, privateLinkID, err)
 	}
 
