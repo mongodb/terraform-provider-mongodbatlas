@@ -97,7 +97,6 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 	)
 
 	initialConfig := fmt.Sprintf(clusterConfig, projectID, name, "false")
-	updateConfig := fmt.Sprintf(onlineArchiveConfig)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -111,7 +110,7 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: initialConfig + updateConfig,
+				Config: initialConfig + onlineArchiveConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
