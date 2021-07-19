@@ -313,7 +313,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### Policies
 
-**NOTE** - If no policies are provided the default ones will be imported in Read.
+**NOTE** - If no policies are provided the default ones will be deleted.
 **NOTE** - If policies are provided the default ones will be overridden.
 
 * `policies` - (Optional) Contains a document for each backup policy item in the desired updated backup policy.
