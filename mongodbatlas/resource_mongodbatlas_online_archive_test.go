@@ -49,8 +49,8 @@ const (
 
 	onlineArchiveConfig = `
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = "%s"
-		cluster_name = "%s"
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
 		coll_name = "listingsAndReviews"
 		db_name = "sample_airbnb"
 	
@@ -97,7 +97,7 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 	)
 
 	initialConfig := fmt.Sprintf(clusterConfig, projectID, name, "false")
-	updateConfig := fmt.Sprintf(onlineArchiveConfig, projectID, name)
+	updateConfig := fmt.Sprintf(onlineArchiveConfig)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
