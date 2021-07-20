@@ -23,7 +23,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   }
   provider_backup_enabled      = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "5.0"
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -64,7 +64,7 @@ resource "mongodbatlas_network_peering" "aws-atlas" {
   aws_account_id         = var.aws_account_id
 }
 
-resource "mongodbatlas_project_ip_whitelist" "test" {
+resource "mongodbatlas_project_ip_access_list" "test" {
   project_id = mongodbatlas_project.aws_atlas.id
   cidr_block = aws_vpc.primary.cidr_block
   comment    = "cidr block for AWS VPC"

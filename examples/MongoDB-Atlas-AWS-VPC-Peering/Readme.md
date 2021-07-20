@@ -41,7 +41,7 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently does the below deployments:
+This project currently creates the below deployments:
 
 - MongoDB cluster - M10
 - MongoDB User (Pass the values when asked)
