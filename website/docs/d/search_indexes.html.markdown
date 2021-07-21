@@ -8,7 +8,7 @@ Describes a Search Indexes.
 
 # mongodbatlas_search_indexes
 
-`mongodbatlas_search_indexes` describe all Projects. This represents projects that have been created.
+`mongodbatlas_search_indexes` describe all search indexes. This represents search indexes that have been created.
 
 > **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -30,16 +30,27 @@ data "mongodbatlas_search_index" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The ID of the organization or project you want to get the search index within.
-* `cluster_name` - (Required) The name of the cluster where you want to get the search index within.
+* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster.
+* `cluster_name` - (Required) Name of the cluster containing the collection with one or more Atlas Search indexes.
 * `database_name` - (Required) Name of the database containing the collection with one or more Atlas Search indexes.
-* `collection_name` - (Required) Name of the collection with one or more Atlas Search indexes
+* `collection_name` - (Required) Name of the collection with one or more Atlas Search indexes.
 * `total_count` - Represents the total of the search indexes
 
 * `page_num` - Page number, starting with one, that Atlas returns of the total number of objects.
   
 * `items_per_page` - Number of items that Atlas returns per page, up to a maximum of 500.
 * `results` - A list where each represents a search index.
+
+### Results
+
+* `name` - Name of the index.
+* `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index.
+* `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index (this is an array of objects).
+* `collection_name` - (Required) Name of the collection the index is on.
+* `database` - (Required) Name of the database the collection is in.
+* `mappings_dynamic` - Flag indicating whether the index uses dynamic or static mappings.
+* `mappings_fields` - Object containing one or more field specifications.
+* `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index.
 
 
 

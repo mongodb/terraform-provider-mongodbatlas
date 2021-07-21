@@ -8,7 +8,7 @@ Describes a Search Index.
 
 # mongodbatlas_search_index
 
-`mongodbatlas_search_index` describe all Projects. This represents projects that have been created.
+`mongodbatlas_search_index` describe a single search indexes. This represents a single search index that have been created.
 
 > **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -26,9 +26,9 @@ data "mongodbatlas_search_index" "test" {
 
 ## Argument Reference
 
-* `index_id` - (Required) The indexID of the search index you want to create.
-* `project_id` - (Required) The ID of the organization or project you want to create the search index within.
-* `cluster_name` - (Required) The name of the cluster where you want to create the search index within.
+* `index_id` - (Required) The unique identifier of the Atlas Search index. Use the `mongodbatlas_search_indexes`datasource to find the IDs of all Atlas Search indexes.
+* `project_id` - (Required) The unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster.
+* `cluster_name` - (Required) The name of the cluster containing the collection with one or more Atlas Search indexes.
 
 
 

@@ -149,7 +149,7 @@ EOF
 
 
 ### Analyzers
-An Atlas Search analyzer prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
+An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/) prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
 
 * `name` - (Required) 	
   Name of the custom analyzer. Names must be unique within an index, and may **not** start with any of the following strings:
@@ -221,7 +221,7 @@ An Atlas Search analyzer prepares a set of documents to be indexed by performing
         * `pattern` - (Required) A regular expression to match against.
         * `group` - (Required) Index of the character group within the matching expression to extract into tokens. Use 0 to extract all character groups.
     * [regexSplit](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-regexSplit-tokenizer-ref) - Split tokens with a regular-expression based delimiter.
-        * `type` - Must be `regexSplit
+        * `type` - Must be `regexSplit`
         * `pattern` - (Required) A regular expression to match against.
     * [uaxUrlEmail](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-uaxUrlEmail-tokenizer-ref) - Tokenize URLs and email addresses. Although [uaxUrlEmail](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-uaxUrlEmail-tokenizer-ref) tokenizer tokenizes based on word break rules from the [Unicode Text Segmentation algorithm](http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf), we recommend using uaxUrlEmail tokenizer only when the indexed field value includes URLs and email addresses. For fields that do not include URLs or email addresses, use the [standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-standard-tokenizer-ref) tokenizer to create tokens based on word break rules.
         * `type` - Must be `uaxUrlEmail`
@@ -330,10 +330,6 @@ An Atlas Search analyzer prepares a set of documents to be indexed by performing
 >* [autocomplete](https://docs.atlas.mongodb.com/reference/atlas-search/autocomplete/#std-label-autocomplete-ref)
 >* [term (Deprecated)](https://docs.atlas.mongodb.com/reference/atlas-search/term/#std-label-term-ref)
 >* [text](https://docs.atlas.mongodb.com/reference/atlas-search/text/#std-label-text-ref)
-
-
-
-## Attributes Reference
 
 
 
