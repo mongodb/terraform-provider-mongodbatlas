@@ -6,15 +6,15 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
 	"github.com/terraform-providers/terraform-provider-google/google"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
+
 var testAccProvider *schema.Provider
 
 func init() {
@@ -58,17 +58,17 @@ func checkPeeringEnvAWS(t *testing.T) {
 
 func checkPeeringEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
-		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
 		os.Getenv("AZURE_VNET_NAME") == "" ||
 		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" {
-		t.Fatal("`AZURE_DIRECTORY_ID`, `AZURE_SUBCRIPTION_ID`, `AZURE_VNET_NAME` and `AZURE_RESOURCE_GROUP_NAME` must be set for  network peering acceptance testing")
+		t.Fatal("`AZURE_DIRECTORY_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_VNET_NAME` and `AZURE_RESOURCE_GROUP_NAME` must be set for  network peering acceptance testing")
 	}
 }
 
 func checkEncryptionAtRestEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
 		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
-		os.Getenv("AZURE_SUBCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
 		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
 		os.Getenv("AZURE_RESOURCE_GROUP_NAME_UPDATED") == "" ||
 		os.Getenv("AZURE_SECRET") == "" ||
@@ -77,7 +77,7 @@ func checkEncryptionAtRestEnvAzure(t *testing.T) {
 		os.Getenv("AZURE_KEY_IDENTIFIER") == "" ||
 		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" ||
 		os.Getenv("AZURE_TENANT_ID") == "" {
-		t.Fatal(`'AZURE_CLIENT_ID','AZURE_CLIENT_ID_UPDATED', 'AZURE_SUBCRIPTION_ID',
+		t.Fatal(`'AZURE_CLIENT_ID','AZURE_CLIENT_ID_UPDATED', 'AZURE_SUBSCRIPTION_ID',
 		'AZURE_RESOURCE_GROUP_NAME','AZURE_RESOURCE_GROUP_NAME_UPDATED', 'AZURE_SECRET',
 		'AZURE_SECRET_UPDATED', 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
 		'AZURE_KEY_IDENTIFIER_UPDATED', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)

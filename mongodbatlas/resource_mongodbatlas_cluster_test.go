@@ -601,7 +601,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
-		subcrptionID      = os.Getenv("AZURE_SUBCRIPTION_ID")
+		subcrptionID      = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		vNetName          = os.Getenv("AZURE_VNET_NAME")
 		providerName      = "AZURE"
@@ -673,7 +673,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
 		providerName      = "AZURE"
 		region            = os.Getenv("AZURE_REGION")
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
-		subcrptionID      = os.Getenv("AZURE_SUBCRIPTION_ID")
+		subcrptionID      = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		vNetName          = os.Getenv("AZURE_VNET_NAME")
 	)

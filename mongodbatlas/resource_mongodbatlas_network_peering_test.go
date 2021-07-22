@@ -61,7 +61,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 		resourceName      = "mongodbatlas_network_peering.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		directoryID       = os.Getenv("AZURE_DIRECTORY_ID")
-		subcrptionID      = os.Getenv("AZURE_SUBCRIPTION_ID")
+		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		vNetName          = os.Getenv("AZURE_VNET_NAME")
 		providerName      = "AZURE"
@@ -73,7 +73,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName),
+				Config: testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasNetworkPeeringExists(resourceName, &peer),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -277,7 +277,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigAWS(projectID, providerName, vpcID, 
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion)
 }
 
-func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName string) string {
+func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = "%[1]s"
@@ -296,7 +296,7 @@ func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, direc
 			resource_group_name   = "%[5]s"
 			vnet_name	            = "%[6]s"
 		}
-	`, projectID, providerName, directoryID, subcrptionID, resourceGroupName, vNetName)
+	`, projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName)
 }
 
 func testAccMongoDBAtlasNetworkPeeringConfigGCP(projectID, providerName, gcpProjectID, networkName string) string {
