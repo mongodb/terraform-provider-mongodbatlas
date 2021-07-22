@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -154,8 +155,13 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(d *schema.ResourceData, meta in
 func resourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ldapResp, _, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
+	ldapResp, resp, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorLDAPConfigurationRead, d.Id(), err)
 	}
 

@@ -3,11 +3,11 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -192,8 +192,13 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(d *schema.ResourceData, meta int
 func resourceMongoDBAtlasEncryptionAtRestRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*MongoDBClient).Atlas
 
-	resp, _, err := conn.EncryptionsAtRest.Get(context.Background(), d.Id())
+	resp, response, err := conn.EncryptionsAtRest.Get(context.Background(), d.Id())
 	if err != nil {
+		if response != nil && response.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorReadEncryptionAtRest, err)
 	}
 

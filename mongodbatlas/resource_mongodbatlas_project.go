@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -98,8 +99,13 @@ func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) e
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	projectRes, _, err := conn.Projects.GetOneProject(context.Background(), projectID)
+	projectRes, resp, err := conn.Projects.GetOneProject(context.Background(), projectID)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorProjectRead, projectID, err)
 	}
 

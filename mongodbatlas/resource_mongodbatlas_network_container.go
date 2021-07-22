@@ -10,11 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cast"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -158,6 +157,7 @@ func resourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta inter
 	container, resp, err := conn.Containers.Get(context.Background(), projectID, containerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
 			return nil
 		}
 

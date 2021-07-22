@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -152,8 +153,13 @@ func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
-	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+	customDBRole, resp, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("error getting custom db role information: %s", err)
 	}
 

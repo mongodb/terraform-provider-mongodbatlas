@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -162,9 +163,13 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta 
 	projectID := ids["project_id"]
 	integrationType := ids["type"]
 
-	integration, _, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
-
+	integration, resp, err := conn.Integrations.Get(context.Background(), projectID, integrationType)
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err)
 	}
 

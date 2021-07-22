@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -148,6 +146,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(d *schema.ResourceData, meta interf
 
 	return resourceMongoDBAtlasGlobalClusterRead(d, meta)
 }
+
 func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
@@ -158,6 +157,7 @@ func resourceMongoDBAtlasGlobalClusterRead(d *schema.ResourceData, meta interfac
 	globalCluster, resp, err := conn.GlobalClusters.Get(context.Background(), projectID, clusterName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
 			return nil
 		}
 

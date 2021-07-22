@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -169,8 +169,13 @@ func resourceMongoDBAtlasLDAPVerifyRead(d *schema.ResourceData, meta interface{}
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
 
-	ldapResp, _, err := conn.LDAPConfigurations.GetStatus(context.Background(), projectID, requestID)
+	ldapResp, resp, err := conn.LDAPConfigurations.GetStatus(context.Background(), projectID, requestID)
 	if err != nil || ldapResp == nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf(errorLDAPVerifyRead, d.Id(), err)
 	}
 

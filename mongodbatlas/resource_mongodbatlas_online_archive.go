@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -207,14 +208,13 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	onlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
-
+	onlineArchive, resp, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
 	if err != nil {
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
 	}
 

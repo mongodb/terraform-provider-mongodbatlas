@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -84,15 +84,15 @@ func resourceMongoDBAtlasTeamRead(d *schema.ResourceData, meta interface{}) erro
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
-	team, _, err := conn.Teams.Get(context.Background(), orgID, teamID)
+	team, resp, err := conn.Teams.Get(context.Background(), orgID, teamID)
 
 	if err != nil {
 		// new resource missing
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf(errorTeamRead, err)
 	}
 

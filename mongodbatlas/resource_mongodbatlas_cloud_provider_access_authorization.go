@@ -66,8 +66,13 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(d *schema.Resource
 	projectID := ids["project_id"]
 
 	targetRole, err := FindRole(conn, projectID, roleID)
-
 	if err != nil {
+		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+		if reset {
+			d.SetId("")
+			return nil
+		}
+
 		return err
 	}
 

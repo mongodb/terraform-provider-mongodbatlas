@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
-	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -146,13 +145,11 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	dbUser, resp, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}

@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -70,6 +69,7 @@ func resourceMongoDBAtlasPrivateIPModeRead(d *schema.ResourceData, meta interfac
 	privateIPMode, resp, err := conn.PrivateIPMode.Get(context.Background(), projectID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
 			return nil
 		}
 
