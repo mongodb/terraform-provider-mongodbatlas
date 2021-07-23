@@ -81,8 +81,12 @@ so no changes are needed.
 
 ## Migration from Cloud Provider Snapshot Backup Policy to Cloud Provider Backup Schedule
 
+
+
 To upgrade from v0.9.1 to v1.0.0 with the existing resources `mongodbatlas_cloud_provider_snapshot_backup_policy`
 perform the following steps
+
+**IMPORTANT** In resource `mongodbatlas_cluster` the parameter `provider_backup_enabled` has been deprecated, use `cloud_backup` instead.
 
 1. Remove your existing `mongodbatlas_cloud_provider_snapshot_backup_policy` resources from terraform state
    **NOTE** before doing any terraform state change please do a backup
@@ -93,13 +97,12 @@ $ terraform state rm mongodbatlas_cloud_provider_snapshot_backup_policy.test
 
 2. Change the version of provider to the v1.0.0
 
-3. Perform an import from your existing `mongodbatlas_cloud_provider_snapshot_backup_policy` to `mongodbatlas_cloud_backup_schedule`
+3. Perform an import of your existing `mongodbatlas_cloud_provider_snapshot_backup_policy` to `mongodbatlas_cloud_backup_schedule`
 ```bash
     terraform import mongodbatlas_cloud_backup_schedule.test <project_id>-<cluster_name>
 ```
 
 4. Do a terraform plan (no changes detected)
-   **NOTE** If you imported without policies since now it's optional, it's possible that it will detect changes after terraform plan
 
 ```bash
 terraform plan
@@ -112,6 +115,8 @@ No changes. Your infrastructure matches the configuration.
 Terraform has compared your real infrastructure against your configuration and found no differences,
 so no changes are needed.
 ```
+
+
 
 **NOTE** Doc links for [mongodbatlas_cloud_backup_schedule](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule)
 

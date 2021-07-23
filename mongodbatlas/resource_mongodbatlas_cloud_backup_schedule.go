@@ -1,11 +1,13 @@
 package mongodbatlas
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -43,9 +45,10 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Required: true,
 			},
 			"policies": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -53,9 +56,11 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 							Required: true,
 						},
 						"policy_item": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Computed: true,
+							MinItems: 0,
+							MaxItems: 4,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -82,6 +87,15 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 										Required: true,
 									},
 								},
+							},
+							Set: func(v interface{}) int {
+								var buf bytes.Buffer
+								m := v.(map[string]interface{})
+								buf.WriteString(fmt.Sprintf("%d", m["frequency_interval"].(int)))
+								buf.WriteString(fmt.Sprintf("%d", m["retention_value"].(int)))
+								buf.WriteString(m["frequency_type"].(string))
+								buf.WriteString(m["retention_unit"].(string))
+								return hashcode.String(buf.String())
 							},
 						},
 					},

@@ -25,7 +25,6 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
   cloud_backup     = true // enable cloud backup snapshots
-  provider_disk_iops          = 100
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -60,14 +59,14 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Policies
 * `policies` - A list of policy definitions for the cluster.
-* `policies.#.id` - Unique identifier of the backup policy.
+* `policies.0.id` - Unique identifier of the backup policy.
 
 #### Policy Item
-* `policies.#.policy_item` - A list of specifications for a policy.
-* `policies.#.policy_item.#.id` - Unique identifier for this policy item.
-* `policies.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
-* `policies.#.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
-* `policies.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
-* `policies.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
+* `policies.0.policy_item` - A list of specifications for a policy.
+* `policies.0.policy_item.#.id` - Unique identifier for this policy item.
+* `policies.0.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
+* `policies.0.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
+* `policies.0.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
+* `policies.0.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/)

@@ -42,7 +42,7 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Computed: true,
 			},
 			"policies": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -51,7 +51,7 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 							Computed: true,
 						},
 						"policy_item": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{

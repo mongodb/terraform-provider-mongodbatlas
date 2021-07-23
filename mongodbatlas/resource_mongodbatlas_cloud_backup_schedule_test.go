@@ -39,7 +39,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
 					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policies.0.policy_item.#", "0"),
 				),
 			},
 			{
@@ -56,7 +55,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policies.0.policy_item.#", "4"),
 				),
 			},
 		},
@@ -89,7 +87,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
 					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policies.0.policy_item.#", "4"),
 				),
 			},
 			{
@@ -106,7 +103,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policies.0.policy_item.#", "1"),
 				),
 			},
 		},
@@ -213,7 +209,6 @@ func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterNa
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			cloud_backup     = true //enable cloud provider snapshots
-			provider_disk_iops          = 1000
 		}
 
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -239,7 +234,6 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			cloud_backup     = true //enable cloud provider snapshots
-			provider_disk_iops          = 1000
 		}
 
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -299,7 +293,6 @@ func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterNam
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			cloud_backup     = true //enable cloud provider snapshots
-			provider_disk_iops          = 1000
 		}
 
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -337,7 +330,6 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(projectID, clusterN
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			cloud_backup     = true //enable cloud provider snapshots
-			provider_disk_iops          = 1000
 		}
 
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
