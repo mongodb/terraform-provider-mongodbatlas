@@ -557,6 +557,22 @@ func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold
 }
 
 func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matlas.MetricThreshold {
+	if value, ok := d.GetOk("metric_threshold_config"); ok {
+		vL := value.([]interface{})
+
+		if len(vL) > 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.MetricThreshold{
+				MetricName: cast.ToString(v["metric_name"]),
+				Operator:   cast.ToString(v["operator"]),
+				Threshold:  cast.ToFloat64(v["threshold"]),
+				Units:      cast.ToString(v["units"]),
+				Mode:       cast.ToString(v["mode"]),
+			}
+		}
+	}
+
 	// Deprecated, will be removed later
 	if value, ok := d.GetOk("metric_threshold"); ok {
 		v := value.(map[string]interface{})
@@ -570,26 +586,24 @@ func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matl
 		}
 	}
 
-	if value, ok := d.GetOk("metric_threshold_config"); ok {
-		vL := value.([]interface{})
-
-		if len(vL) != 0 {
-			v := vL[0].(map[string]interface{})
-
-			return &matlas.MetricThreshold{
-				MetricName: cast.ToString(v["metric_name"]),
-				Operator:   cast.ToString(v["operator"]),
-				Threshold:  cast.ToFloat64(v["threshold"]),
-				Units:      cast.ToString(v["units"]),
-				Mode:       cast.ToString(v["mode"]),
-			}
-		}
-	}
-
 	return nil
 }
 
 func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Threshold {
+	if value, ok := d.GetOk("threshold_config"); ok {
+		vL := value.([]interface{})
+
+		if len(vL) > 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.Threshold{
+				Operator:  cast.ToString(v["operator"]),
+				Units:     cast.ToString(v["units"]),
+				Threshold: cast.ToFloat64(v["threshold"]),
+			}
+		}
+	}
+
 	// Deprecated, will be removed later
 	if value, ok := d.GetOk("threshold"); ok {
 		v := value.(map[string]interface{})
@@ -598,20 +612,6 @@ func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Thr
 			Operator:  cast.ToString(v["operator"]),
 			Units:     cast.ToString(v["units"]),
 			Threshold: cast.ToFloat64(v["threshold"]),
-		}
-	}
-
-	if value, ok := d.GetOk("threshold_config"); ok {
-		vL := value.([]interface{})
-
-		if len(vL) != 0 {
-			v := vL[0].(map[string]interface{})
-
-			return &matlas.Threshold{
-				Operator:  cast.ToString(v["operator"]),
-				Units:     cast.ToString(v["units"]),
-				Threshold: cast.ToFloat64(v["threshold"]),
-			}
 		}
 	}
 
