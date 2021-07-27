@@ -135,7 +135,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		config.BaseURL = baseURL.(string)
 	}
 
-	return config.NewClient(), nil
+	return config.NewClient(ctx)
 }
 
 func encodeStateID(values map[string]string) string {

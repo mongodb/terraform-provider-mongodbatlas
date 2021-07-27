@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 
 	digest "github.com/mongodb-forks/digest"
@@ -25,14 +26,14 @@ type MongoDBClient struct {
 }
 
 // NewClient func...
-func (c *Config) NewClient() interface{} {
+func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(c.PublicKey, c.PrivateKey)
 
 	// initialize the client
 	client, err := transport.Client()
 	if err != nil {
-		return err
+		return nil, diag.FromErr(err)
 	}
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
@@ -45,7 +46,7 @@ func (c *Config) NewClient() interface{} {
 	// Initialize the MongoDB Atlas API Client.
 	atlasClient, err := matlasClient.New(client, optsAtlas...)
 	if err != nil {
-		return err
+		return nil, diag.FromErr(err)
 	}
 
 	// Realm
@@ -54,9 +55,9 @@ func (c *Config) NewClient() interface{} {
 		optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
 	}
 	authConfig := realmAuth.NewConfig(client)
-	token, err := authConfig.NewTokenFromCredentials(context.Background(), c.PublicKey, c.PrivateKey)
+	token, err := authConfig.NewTokenFromCredentials(ctx, c.PublicKey, c.PrivateKey)
 	if err != nil {
-		return err
+		return nil, diag.FromErr(err)
 	}
 
 	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
@@ -65,7 +66,7 @@ func (c *Config) NewClient() interface{} {
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)
 	if err != nil {
-		return err
+		return nil, diag.FromErr(err)
 	}
 
 	clients := &MongoDBClient{
@@ -73,5 +74,5 @@ func (c *Config) NewClient() interface{} {
 		Realm: realmClient,
 	}
 
-	return clients
+	return clients, nil
 }
