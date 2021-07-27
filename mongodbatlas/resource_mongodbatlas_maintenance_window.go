@@ -13,11 +13,12 @@ import (
 )
 
 const (
-	errorMaintenanceCreate = "error creating the MongoDB Atlas Maintenance Window (%s): %s"
-	errorMaintenanceUpdate = "error updating the MongoDB Atlas Maintenance Window (%s): %s"
-	errorMaintenanceRead   = "error reading the MongoDB Atlas Maintenance Window (%s): %s"
-	errorMaintenanceDelete = "error deleting the MongoDB Atlas Maintenance Window (%s): %s"
-	errorMaintenanceDefer  = "error deferring the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceCreate    = "error creating the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceUpdate    = "error updating the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceRead      = "error reading the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceDelete    = "error deleting the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceDefer     = "error deferring the MongoDB Atlas Maintenance Window (%s): %s"
+	errorMaintenanceAutoDefer = "error auto deferring the MongoDB Atlas Maintenance Window (%s): %s"
 )
 
 func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
@@ -73,6 +74,11 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"auto_defer": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -87,6 +93,13 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 		_, err := conn.MaintenanceWindows.Defer(ctx, projectID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
+		}
+	}
+
+	if autoDeferValue := d.Get("auto_defer").(bool); autoDeferValue {
+		_, err := conn.MaintenanceWindows.AutoDefer(ctx, projectID)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
 	}
 
@@ -163,6 +176,13 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 		_, err := conn.MaintenanceWindows.Defer(ctx, d.Id())
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, d.Id(), err))
+		}
+	}
+
+	if d.HasChange("auto_defer") {
+		_, err := conn.MaintenanceWindows.AutoDefer(ctx, d.Id())
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, d.Id(), err))
 		}
 	}
 
