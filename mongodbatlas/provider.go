@@ -78,6 +78,8 @@ func Provider() *schema.Provider {
 			"mongodbatlas_online_archives":                       dataSourceMongoDBAtlasOnlineArchives(),
 			"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
 			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
+			"mongodbatlas_search_index":                          dataSourceMongoDBAtlasSearchIndex(),
+			"mongodbatlas_search_indexes":                        dataSourceMongoDBAtlasSearchIndexes(),
 			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
 			"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
 			"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
@@ -114,6 +116,7 @@ func Provider() *schema.Provider {
 			"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
 			"mongodbatlas_cloud_provider_access_setup":           resourceMongoDBAtlasCloudProviderAccessSetup(),
 			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
+			"mongodbatlas_search_index":                          resourceMongoDBAtlasSearchIndex(),
 			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 		},
@@ -132,7 +135,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		config.BaseURL = baseURL.(string)
 	}
 
-	return config.NewClient(), nil
+	return config.NewClient(ctx)
 }
 
 func encodeStateID(values map[string]string) string {
