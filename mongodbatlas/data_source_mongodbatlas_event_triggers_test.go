@@ -37,8 +37,8 @@ func TestAccDataSourceMongoDBAtlasEventTriggers_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggersDataSourceConfig(projectID, appID, `"INSERT", "UPDATE"`, &event),

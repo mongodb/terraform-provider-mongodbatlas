@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasEventTriggerRead,
+		ReadContext: dataSourceMongoDBAtlasEventTriggerRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -125,70 +126,70 @@ func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasEventTriggerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Realm
 	projectID := d.Get("project_id").(string)
 	appID := d.Get("app_id").(string)
 	triggerID := getEncodedID(d.Get("trigger_id").(string), "trigger_id")
 
-	eventResp, _, err := conn.EventTriggers.Get(context.Background(), projectID, appID, triggerID)
+	eventResp, _, err := conn.EventTriggers.Get(ctx, projectID, appID, triggerID)
 	if err != nil {
-		return fmt.Errorf(errorEventTriggersRead, projectID, triggerID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersRead, projectID, triggerID, err))
 	}
 
 	if err = d.Set("name", eventResp.Name); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "name", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "name", projectID, appID, err))
 	}
 	if err = d.Set("type", eventResp.Type); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "type", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "type", projectID, appID, err))
 	}
 	if err = d.Set("function_id", eventResp.FunctionID); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "function_id", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "function_id", projectID, appID, err))
 	}
 	if err = d.Set("function_name", eventResp.FunctionName); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "function_name", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "function_name", projectID, appID, err))
 	}
 	if err = d.Set("disabled", eventResp.Disabled); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "disabled", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "disabled", projectID, appID, err))
 	}
 	if err = d.Set("config_operation_types", eventResp.Config.OperationTypes); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_operation_types", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_operation_types", projectID, appID, err))
 	}
 	if err = d.Set("config_operation_type", eventResp.Config.OperationType); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_operation_type", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_operation_type", projectID, appID, err))
 	}
 	if err = d.Set("config_providers", eventResp.Config.Providers); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_providers", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_providers", projectID, appID, err))
 	}
 	if err = d.Set("config_database", eventResp.Config.Database); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_database", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_database", projectID, appID, err))
 	}
 	if err = d.Set("config_collection", eventResp.Config.Collection); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_collection", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_collection", projectID, appID, err))
 	}
 	if err = d.Set("config_service_id", eventResp.Config.ServiceID); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_service_id", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_service_id", projectID, appID, err))
 	}
 	if err = d.Set("config_match", matchToString(eventResp.Config.Match)); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_match", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_match", projectID, appID, err))
 	}
 	if err = d.Set("config_project", matchToString(eventResp.Config.Project)); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_project", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_project", projectID, appID, err))
 	}
 	if err = d.Set("config_full_document", eventResp.Config.FullDocument); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err))
 	}
 	if err = d.Set("config_full_document_before", eventResp.Config.FullDocumentBeforeChange); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_full_document_before", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document_before", projectID, appID, err))
 	}
 	if err = d.Set("config_schedule", eventResp.Config.Schedule); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_schedule", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule", projectID, appID, err))
 	}
 	if err = d.Set("config_schedule_type", eventResp.Config.ScheduleType); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err))
 	}
 	if err = d.Set("event_processors", flattenTriggerEventProcessorAWSEventBridge(eventResp.EventProcessors)); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

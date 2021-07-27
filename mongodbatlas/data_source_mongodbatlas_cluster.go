@@ -341,7 +341,7 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 			Delay:      3 * time.Minute,
 		}
 
-		resp, err := stateConf.WaitForState()
+		resp, err := stateConf.WaitForStateContext(ctx)
 		if err != nil {
 			log.Printf("[ERROR] %v", fmt.Errorf(errorClusterRead, clusterName, err))
 		} else {
