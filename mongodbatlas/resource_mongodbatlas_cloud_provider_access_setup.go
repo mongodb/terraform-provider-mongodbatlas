@@ -3,9 +3,11 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -17,12 +19,12 @@ import (
 
 func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
-		Create: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
-		Update: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
-		Delete: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
+		ReadContext:   resourceMongoDBAtlasCloudProviderAccessSetupRead,
+		CreateContext: resourceMongoDBAtlasCloudProviderAccessSetupCreate,
+		UpdateContext: resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder,
+		DeleteContext: resourceMongoDBAtlasCloudProviderAccessSetupDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasCloudProviderAccessSetupImportState,
+			StateContext: resourceMongoDBAtlasCloudProviderAccessSetupImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -38,6 +40,14 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 			},
 			"aws": {
 				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Deprecated: "use aws_config instead",
+			},
+			"aws_config": {
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -64,17 +74,21 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
 
-	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
-
+	roles, resp, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
 	if err != nil {
-		return fmt.Errorf(errorGetRead, err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
 	// aws specific
@@ -97,19 +111,19 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, me
 
 		for key, val := range roleSchema {
 			if err := d.Set(key, val); err != nil {
-				return fmt.Errorf(errorGetRead, err)
+				return diag.FromErr(fmt.Errorf(errorGetRead, err))
 			}
 		}
 	} else {
 		// planning for the future multiple providers
-		return fmt.Errorf(errorGetRead,
-			fmt.Sprintf("unsopported provider type %s", providerName))
+		return diag.FromErr(fmt.Errorf(errorGetRead,
+			fmt.Sprintf("unsopported provider type %s", providerName)))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*MongoDBClient).Atlas
@@ -118,10 +132,10 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(d *schema.ResourceData, 
 		ProviderName: d.Get("provider_name").(string),
 	}
 
-	role, _, err := conn.CloudProviderAccess.CreateRole(context.Background(), projectID, requestParameters)
+	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
 
 	if err != nil {
-		return fmt.Errorf(errorCloudProviderAccessCreate, err)
+		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
 
 	// once multiple providers enable here do a switch, select for provider type
@@ -135,14 +149,14 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(d *schema.ResourceData, 
 
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf(errorCloudProviderAccessCreate, err)
+			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 		}
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -156,10 +170,10 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(d *schema.ResourceData, 
 		GroupID:      projectID,
 	}
 
-	_, err := conn.CloudProviderAccess.DeauthorizeRole(context.Background(), req)
+	_, err := conn.CloudProviderAccess.DeauthorizeRole(ctx, req)
 
 	if err != nil {
-		return fmt.Errorf(errorCloudProviderAccessDelete, err)
+		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}
 
 	return nil
@@ -168,10 +182,14 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(d *schema.ResourceData, 
 func roleToSchemaSetup(role *matlas.AWSIAMRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"provider_name": role.ProviderName,
-		"aws": map[string]interface{}{
+		"aws": map[string]interface{}{ // Deprecated, will be deleted later
 			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		},
+		"aws_config": []interface{}{map[string]interface{}{
+			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+		}},
 		"created_date": role.CreatedDate,
 		"role_id":      role.RoleID,
 	}
@@ -179,7 +197,7 @@ func roleToSchemaSetup(role *matlas.AWSIAMRole) map[string]interface{} {
 	return out
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {
@@ -193,9 +211,9 @@ func resourceMongoDBAtlasCloudProviderAccessSetupImportState(d *schema.ResourceD
 		"provider_name": providerName,
 	}))
 
-	err = resourceMongoDBAtlasCloudProviderAccessSetupRead(d, meta)
+	err2 := resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx, d, meta)
 
-	if err != nil {
+	if err2 != nil {
 		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
 	}
 

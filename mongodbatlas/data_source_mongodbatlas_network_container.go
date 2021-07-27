@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasNetworkContainerRead,
+		ReadContext: dataSourceMongoDBAtlasNetworkContainerRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -71,67 +72,67 @@ func dataSourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	containerID := getEncodedID(d.Get("container_id").(string), "container_id")
 
-	container, resp, err := conn.Containers.Get(context.Background(), projectID, containerID)
+	container, resp, err := conn.Containers.Get(ctx, projectID, containerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 
-		return fmt.Errorf(errorContainerRead, containerID, err)
+		return diag.FromErr(fmt.Errorf(errorContainerRead, containerID, err))
 	}
 
 	if err := d.Set("atlas_cidr_block", container.AtlasCIDRBlock); err != nil {
-		return fmt.Errorf("error setting `atlas_cidr_block` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `atlas_cidr_block` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("provider_name", container.ProviderName); err != nil {
-		return fmt.Errorf("error setting `provider_name` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `provider_name` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("region_name", container.RegionName); err != nil {
-		return fmt.Errorf("error setting `region_name` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `region_name` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("region", container.Region); err != nil {
-		return fmt.Errorf("error setting `region` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `region` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("azure_subscription_id", container.AzureSubscriptionID); err != nil {
-		return fmt.Errorf("error setting `azure_subscription_id` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `azure_subscription_id` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("provisioned", container.Provisioned); err != nil {
-		return fmt.Errorf("error setting `provisioned` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `provisioned` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("network_name", container.NetworkName); err != nil {
-		return fmt.Errorf("error setting `network_name` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `network_name` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("vpc_id", container.VPCID); err != nil {
-		return fmt.Errorf("error setting `vpc_id` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `vpc_id` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("vnet_name", container.VNetName); err != nil {
-		return fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("regions", container.Regions); err != nil {
-		return fmt.Errorf("error setting `regions` for Network Container (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `regions` for Network Container (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(container.ID)

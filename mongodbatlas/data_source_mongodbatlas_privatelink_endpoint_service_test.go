@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceAWS_basic(t *testing.T) {
@@ -24,8 +24,8 @@ func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceAWS_basic(t *testing
 	securityGroupID := os.Getenv("AWS_SECURITY_GROUP_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); checkAwsEnv(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceDataSourceConfig(

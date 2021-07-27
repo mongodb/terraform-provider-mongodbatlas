@@ -38,8 +38,8 @@ In addition to all arguments above, the following attributes are exported:
 * `aws_role_id` - Unique identifier of the role that Data Lake can use to access the data stores.
 * `aws_test_s3_bucket` - Name of the S3 data bucket that the provided role ID is authorized to access.
 * `data_process_region` - The cloud provider region to which Atlas Data Lake routes client connections for data processing.
-  * `data_process_region.cloud_provider` - Name of the cloud service provider.
-  * `data_process_region.region` -Name of the region to which Data Lake routes client connections for data processing.
+  * `data_process_region.0.cloud_provider` - Name of the cloud service provider.
+  * `data_process_region.0.region` -Name of the region to which Data Lake routes client connections for data processing.
 * `aws_iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that Data Lake assumes when accessing S3 Bucket data stores.
 
   For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).

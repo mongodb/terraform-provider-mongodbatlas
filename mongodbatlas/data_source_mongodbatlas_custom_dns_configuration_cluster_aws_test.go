@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) {
@@ -13,8 +13,8 @@ func TestAccDataSourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) 
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDNSConfigurationAWSDataSourceConfig(projectID, true),

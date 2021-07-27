@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -24,9 +24,9 @@ func TestAccDataSourceMongoDBAtlasNetworkContainers_basic(t *testing.T) {
 	providerName := "AWS"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainersDSConfig(projectName, orgID, cidrBlock),
@@ -60,9 +60,9 @@ func TestAccDataSourceMongoDBAtlasNetworkContainers_WithGCPRegions(t *testing.T)
 	providerName := "GCP"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainersDSWithGCPRegionsConfig(projectName, orgID, cidrBlock),

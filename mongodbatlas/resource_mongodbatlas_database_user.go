@@ -4,23 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
-	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasDatabaseUserCreate,
-		Read:   resourceMongoDBAtlasDatabaseUserRead,
-		Update: resourceMongoDBAtlasDatabaseUserUpdate,
-		Delete: resourceMongoDBAtlasDatabaseUserDelete,
+		CreateContext: resourceMongoDBAtlasDatabaseUserCreate,
+		ReadContext:   resourceMongoDBAtlasDatabaseUserRead,
+		UpdateContext: resourceMongoDBAtlasDatabaseUserUpdate,
+		DeleteContext: resourceMongoDBAtlasDatabaseUserDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasDatabaseUserImportState,
+			StateContext: resourceMongoDBAtlasDatabaseUserImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -130,7 +131,7 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDatabaseUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -146,56 +147,54 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	dbUser, resp, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("error getting database user information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting database user information: %s", err))
 	}
 
 	if err := d.Set("username", dbUser.Username); err != nil {
-		return fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `username` for database user (%s): %s", d.Id(), err))
 	}
 
 	if _, ok := d.GetOk("auth_database_name"); ok {
 		if err := d.Set("auth_database_name", dbUser.DatabaseName); err != nil {
-			return fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err)
+			return diag.FromErr(fmt.Errorf("error setting `auth_database_name` for database user (%s): %s", d.Id(), err))
 		}
 	} else {
 		if err := d.Set("database_name", dbUser.DatabaseName); err != nil {
-			return fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err)
+			return diag.FromErr(fmt.Errorf("error setting `database_name` for database user (%s): %s", d.Id(), err))
 		}
 	}
 
 	if err := d.Set("x509_type", dbUser.X509Type); err != nil {
-		return fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `x509_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("aws_iam_type", dbUser.AWSIAMType); err != nil {
-		return fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("ldap_auth_type", dbUser.LDAPAuthType); err != nil {
-		return fmt.Errorf("error setting `ldap_auth_type` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `ldap_auth_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("roles", flattenRoles(dbUser.Roles)); err != nil {
-		return fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `roles` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("labels", flattenLabels(dbUser.Labels)); err != nil {
-		return fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `labels` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("scopes", flattenScopes(dbUser.Scopes)); err != nil {
-		return fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `scopes` for database user (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -207,7 +206,7 @@ func resourceMongoDBAtlasDatabaseUserRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDatabaseUserCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -215,7 +214,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 	dbName, dbNameOk := d.GetOk("database_name")
 	authDBName, authDBNameOk := d.GetOk("auth_database_name")
 	if !dbNameOk && !authDBNameOk {
-		return errors.New("one of database_name or auth_database_name must be configured")
+		return diag.FromErr(errors.New("one of database_name or auth_database_name must be configured"))
 	}
 
 	var authDatabaseName string
@@ -238,9 +237,9 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		Scopes:       expandScopes(d),
 	}
 
-	dbUserRes, _, err := conn.DatabaseUsers.Create(context.Background(), projectID, dbUserReq)
+	dbUserRes, _, err := conn.DatabaseUsers.Create(ctx, projectID, dbUserReq)
 	if err != nil {
-		return fmt.Errorf("error creating database user: %s", err)
+		return diag.FromErr(fmt.Errorf("error creating database user: %s", err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -249,10 +248,10 @@ func resourceMongoDBAtlasDatabaseUserCreate(d *schema.ResourceData, meta interfa
 		"auth_database_name": authDatabaseName,
 	}))
 
-	return resourceMongoDBAtlasDatabaseUserRead(d, meta)
+	return resourceMongoDBAtlasDatabaseUserRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -260,9 +259,9 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	dbUser, _, err := conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
+	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
 	if err != nil {
-		return fmt.Errorf("error getting database user information to update it: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting database user information to update it: %s", err))
 	}
 
 	if d.HasChange("password") {
@@ -281,15 +280,15 @@ func resourceMongoDBAtlasDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 		dbUser.Scopes = expandScopes(d)
 	}
 
-	_, _, err = conn.DatabaseUsers.Update(context.Background(), projectID, username, dbUser)
+	_, _, err = conn.DatabaseUsers.Update(ctx, projectID, username, dbUser)
 	if err != nil {
-		return fmt.Errorf("error updating database user(%s): %s", username, err)
+		return diag.FromErr(fmt.Errorf("error updating database user(%s): %s", username, err))
 	}
 
-	return resourceMongoDBAtlasDatabaseUserRead(d, meta)
+	return resourceMongoDBAtlasDatabaseUserRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDatabaseUserDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -297,15 +296,15 @@ func resourceMongoDBAtlasDatabaseUserDelete(d *schema.ResourceData, meta interfa
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]
 
-	_, err := conn.DatabaseUsers.Delete(context.Background(), authDatabaseName, projectID, username)
+	_, err := conn.DatabaseUsers.Delete(ctx, authDatabaseName, projectID, username)
 	if err != nil {
-		return fmt.Errorf("error deleting database user (%s): %s", username, err)
+		return diag.FromErr(fmt.Errorf("error deleting database user (%s): %s", username, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasDatabaseUserImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, username, authDatabaseName, err := splitDatabaseUserImportID(d.Id())
@@ -313,7 +312,7 @@ func resourceMongoDBAtlasDatabaseUserImportState(d *schema.ResourceData, meta in
 		return nil, err
 	}
 
-	u, _, err := conn.DatabaseUsers.Get(context.Background(), *authDatabaseName, *projectID, *username)
+	u, _, err := conn.DatabaseUsers.Get(ctx, *authDatabaseName, *projectID, *username)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import user(%s) in project(%s), error: %s", *username, *projectID, err)
 	}

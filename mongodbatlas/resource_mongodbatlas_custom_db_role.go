@@ -5,13 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -19,12 +21,12 @@ import (
 
 func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasCustomDBRoleCreate,
-		Read:   resourceMongoDBAtlasCustomDBRoleRead,
-		Update: resourceMongoDBAtlasCustomDBRoleUpdate,
-		Delete: resourceMongoDBAtlasCustomDBRoleDelete,
+		CreateContext: resourceMongoDBAtlasCustomDBRoleCreate,
+		ReadContext:   resourceMongoDBAtlasCustomDBRoleRead,
+		UpdateContext: resourceMongoDBAtlasCustomDBRoleUpdate,
+		DeleteContext: resourceMongoDBAtlasCustomDBRoleDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasCustomDBRoleImportState,
+			StateContext: resourceMongoDBAtlasCustomDBRoleImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -99,7 +101,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -113,7 +115,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (interface{}, string, error) {
-			customDBRoleRes, _, err := conn.CustomDBRoles.Create(context.Background(), projectID, customDBRoleReq)
+			customDBRoleRes, _, err := conn.CustomDBRoles.Create(ctx, projectID, customDBRoleReq)
 			if err != nil {
 				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
 					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
@@ -133,9 +135,9 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("error creating custom db role: %s", err)
+		return diag.FromErr(fmt.Errorf("error creating custom db role: %s", err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -143,44 +145,49 @@ func resourceMongoDBAtlasCustomDBRoleCreate(d *schema.ResourceData, meta interfa
 		"role_name":  customDBRoleReq.RoleName,
 	}))
 
-	return resourceMongoDBAtlasCustomDBRoleRead(d, meta)
+	return resourceMongoDBAtlasCustomDBRoleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
-	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+	customDBRole, resp, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
 	if err != nil {
-		return fmt.Errorf("error getting custom db role information: %s", err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf("error getting custom db role information: %s", err))
 	}
 
 	if err := d.Set("role_name", customDBRole.RoleName); err != nil {
-		return fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("actions", flattenActions(customDBRole.Actions)); err != nil {
-		return fmt.Errorf("error setting `actions` for custom db role (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `actions` for custom db role (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("inherited_roles", flattenInheritedRoles(customDBRole.InheritedRoles)); err != nil {
-		return fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
-	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+	customDBRole, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
 	if err != nil {
-		return fmt.Errorf("error getting custom db role information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting custom db role information: %s", err))
 	}
 
 	// Clean the roleName because it can be sent into the update request to avoid an unexpected error 500
@@ -194,15 +201,15 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(d *schema.ResourceData, meta interfa
 		customDBRole.InheritedRoles = expandInheritedRoles(d)
 	}
 
-	_, _, err = conn.CustomDBRoles.Update(context.Background(), projectID, roleName, customDBRole)
+	_, _, err = conn.CustomDBRoles.Update(ctx, projectID, roleName, customDBRole)
 	if err != nil {
-		return fmt.Errorf("error updating custom db role (%s): %s", roleName, err)
+		return diag.FromErr(fmt.Errorf("error updating custom db role (%s): %s", roleName, err))
 	}
 
-	return resourceMongoDBAtlasCustomDBRoleRead(d, meta)
+	return resourceMongoDBAtlasCustomDBRoleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -212,7 +219,7 @@ func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interfa
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted", "failed"},
 		Refresh: func() (interface{}, string, error) {
-			_, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+			_, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
 			if err != nil {
 				if strings.Contains(fmt.Sprint(err), "404") ||
 					strings.Contains(fmt.Sprint(err), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
@@ -221,7 +228,7 @@ func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interfa
 				return nil, "failed", err
 			}
 
-			_, err = conn.CustomDBRoles.Delete(context.Background(), projectID, roleName)
+			_, err = conn.CustomDBRoles.Delete(ctx, projectID, roleName)
 			if err != nil {
 				return nil, "failed", fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
 			}
@@ -234,15 +241,15 @@ func resourceMongoDBAtlasCustomDBRoleDelete(d *schema.ResourceData, meta interfa
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDBRoleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -253,7 +260,7 @@ func resourceMongoDBAtlasCustomDBRoleImportState(d *schema.ResourceData, meta in
 	projectID := parts[0]
 	roleName := parts[1]
 
-	r, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+	r, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import custom db role %s in project %s, error: %s", roleName, projectID, err)
 	}

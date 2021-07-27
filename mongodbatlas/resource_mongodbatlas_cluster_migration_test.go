@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
@@ -22,9 +22,9 @@ func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	warns, errs := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+	diags := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
 
-	if len(warns) > 0 || len(errs) > 0 {
+	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
 
 		return
@@ -34,9 +34,9 @@ func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	v1State := migrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	warns, errs = resourceMongoDBAtlasCluster().Validate(v1Config)
-	if len(warns) > 0 || len(errs) > 0 {
-		fmt.Println(warns, errs)
+	diags = resourceMongoDBAtlasCluster().Validate(v1Config)
+	if len(diags) > 0 {
+		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
 
 		return
@@ -66,8 +66,8 @@ func TestAccMongoDBAtlasClusterMigrateState_with_advancedConfig(t *testing.T) {
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	warns, errs := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
-	if len(warns) > 0 || len(errs) > 0 {
+	diags := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
 
 		return
@@ -77,9 +77,9 @@ func TestAccMongoDBAtlasClusterMigrateState_with_advancedConfig(t *testing.T) {
 	v1State := migrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	warns, errs = resourceMongoDBAtlasCluster().Validate(v1Config)
-	if len(warns) > 0 || len(errs) > 0 {
-		fmt.Println(warns, errs)
+	diags = resourceMongoDBAtlasCluster().Validate(v1Config)
+	if len(diags) > 0 {
+		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
 
 		return
@@ -109,8 +109,8 @@ func TestAccMongoDBAtlasClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t 
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
-	warns, errs := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
-	if len(warns) > 0 || len(errs) > 0 {
+	diags := resourceMongoDBAtlasClusterResourceV0().Validate(v0Config)
+	if len(diags) > 0 {
 		t.Error("test precondition failed - invalid mongodb cluster v0 config")
 
 		return
@@ -120,9 +120,9 @@ func TestAccMongoDBAtlasClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t 
 	v1State := migrateAdvancedConfiguration(v0State)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
-	warns, errs = resourceMongoDBAtlasCluster().Validate(v1Config)
-	if len(warns) > 0 || len(errs) > 0 {
-		fmt.Println(warns, errs)
+	diags = resourceMongoDBAtlasCluster().Validate(v1Config)
+	if len(diags) > 0 {
+		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
 
 		return

@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCustomDBRoles() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCustomDBRolesRead,
+		ReadContext: dataSourceMongoDBAtlasCustomDBRolesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -81,17 +82,17 @@ func dataSourceMongoDBAtlasCustomDBRoles() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRolesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	customDBRoles, _, err := conn.CustomDBRoles.List(context.Background(), projectID, nil)
+	customDBRoles, _, err := conn.CustomDBRoles.List(ctx, projectID, nil)
 	if err != nil {
-		return fmt.Errorf("error getting custom db roles information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting custom db roles information: %s", err))
 	}
 
 	if err := d.Set("results", flattenCustomDBRoles(*customDBRoles)); err != nil {
-		return fmt.Errorf("error setting `results for custom db roles: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `results for custom db roles: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

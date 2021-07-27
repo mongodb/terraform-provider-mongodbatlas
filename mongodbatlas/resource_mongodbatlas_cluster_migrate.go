@@ -2,10 +2,10 @@ package mongodbatlas
 
 import (
 	"bytes"
+	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
@@ -304,7 +304,7 @@ func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 					m := v.(map[string]interface{})
 					buf.WriteString(m["key"].(string))
 					buf.WriteString(m["value"].(string))
-					return hashcode.String(buf.String())
+					return HashCodeString(buf.String())
 				},
 				Computed: true,
 				Elem: &schema.Resource{
@@ -327,7 +327,7 @@ func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasClusterStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func resourceMongoDBAtlasClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
 
 	return migrateAdvancedConfiguration(rawState), nil

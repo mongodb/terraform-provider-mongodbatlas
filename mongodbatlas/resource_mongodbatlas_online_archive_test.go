@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -49,8 +49,8 @@ const (
 
 	onlineArchiveConfig = `
 	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = "%s"
-		cluster_name = "%s"
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
 		coll_name = "listingsAndReviews"
 		db_name = "sample_airbnb"
 	
@@ -97,12 +97,11 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 	)
 
 	initialConfig := fmt.Sprintf(clusterConfig, projectID, name, "false")
-	updateConfig := fmt.Sprintf(onlineArchiveConfig, projectID, name)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: initialConfig,
@@ -111,7 +110,7 @@ func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: initialConfig + updateConfig,
+				Config: initialConfig + onlineArchiveConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),

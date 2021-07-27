@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -22,9 +22,9 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_Basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(projectID, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
@@ -130,9 +130,9 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID, inheritRole, testRole),
@@ -344,9 +344,9 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID, inheritRole, testRole),
@@ -424,9 +424,9 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
 
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:     func() { testAccPreCheck(t) },
-				Providers:    testAccProviders,
-				CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+				PreCheck:          func() { testAccPreCheck(t) },
+				ProviderFactories: testAccProviderFactories,
+				CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 				Steps: []resource.TestStep{
 					{
 						Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(projectID, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
@@ -458,9 +458,9 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_importBasic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(projectID, roleName, "INSERT", databaseName),
@@ -554,9 +554,9 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID, inheritRole, testRole),

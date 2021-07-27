@@ -3,11 +3,12 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -21,12 +22,12 @@ const (
 
 func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasMaintenanceWindowCreate,
-		Read:   resourceMongoDBAtlasMaintenanceWindowRead,
-		Update: resourceMongoDBAtlasMaintenanceWindowUpdate,
-		Delete: resourceMongoDBAtlasMaintenanceWindowDelete,
+		CreateContext: resourceMongoDBAtlasMaintenanceWindowCreate,
+		ReadContext:   resourceMongoDBAtlasMaintenanceWindowRead,
+		UpdateContext: resourceMongoDBAtlasMaintenanceWindowUpdate,
+		DeleteContext: resourceMongoDBAtlasMaintenanceWindowDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -76,16 +77,16 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 
 	if deferValue := d.Get("defer").(bool); deferValue {
-		_, err := conn.MaintenanceWindows.Defer(context.Background(), projectID)
+		_, err := conn.MaintenanceWindows.Defer(ctx, projectID)
 		if err != nil {
-			return fmt.Errorf(errorMaintenanceDefer, projectID, err)
+			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
 	}
 
@@ -103,60 +104,65 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(d *schema.ResourceData, meta in
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(numberOfDeferrals)
 	}
 
-	_, err := conn.MaintenanceWindows.Update(context.Background(), projectID, maintenanceWindowReq)
+	_, err := conn.MaintenanceWindows.Update(ctx, projectID, maintenanceWindowReq)
 	if err != nil {
-		return fmt.Errorf(errorMaintenanceCreate, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
 	}
 
 	d.SetId(projectID)
 
-	return resourceMongoDBAtlasMaintenanceWindowRead(d, meta)
+	return resourceMongoDBAtlasMaintenanceWindowRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasMaintenanceWindowRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	maintenanceWindow, _, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
+	maintenanceWindow, resp, err := conn.MaintenanceWindows.Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
 	if err := d.Set("day_of_week", maintenanceWindow.DayOfWeek); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
 	if err := d.Set("hour_of_day", maintenanceWindow.HourOfDay); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
 	if err := d.Set("number_of_deferrals", maintenanceWindow.NumberOfDeferrals); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 	// start_asap is just display the state of the maintenance,
 	// and it doesn't able to set it because breacks the Terraform flow
 	// it can be used via API
 	if err := d.Set("start_asap", maintenanceWindow.StartASAP); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
 	if err := d.Set("project_id", d.Id()); err != nil {
-		return fmt.Errorf(errorMaintenanceRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
 	maintenanceWindowReq := &matlas.MaintenanceWindow{}
 
 	if d.HasChange("defer") {
-		_, err := conn.MaintenanceWindows.Defer(context.Background(), d.Id())
+		_, err := conn.MaintenanceWindows.Defer(ctx, d.Id())
 		if err != nil {
-			return fmt.Errorf(errorMaintenanceDefer, d.Id(), err)
+			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, d.Id(), err))
 		}
 	}
 
@@ -172,21 +178,21 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(d *schema.ResourceData, meta in
 		maintenanceWindowReq.NumberOfDeferrals = cast.ToInt(d.Get("number_of_deferrals"))
 	}
 
-	_, err := conn.MaintenanceWindows.Update(context.Background(), d.Id(), maintenanceWindowReq)
+	_, err := conn.MaintenanceWindows.Update(ctx, d.Id(), maintenanceWindowReq)
 	if err != nil {
-		return fmt.Errorf(errorMaintenanceUpdate, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasMaintenanceWindowDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasMaintenanceWindowDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	_, err := conn.MaintenanceWindows.Reset(context.Background(), d.Id())
+	_, err := conn.MaintenanceWindows.Reset(ctx, d.Id())
 	if err != nil {
-		return fmt.Errorf(errorMaintenanceDelete, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, d.Id(), err))
 	}
 
 	return nil

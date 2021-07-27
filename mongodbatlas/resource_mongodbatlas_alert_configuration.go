@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -25,12 +27,12 @@ const (
 
 func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasAlertConfigurationCreate,
-		Read:   resourceMongoDBAtlasAlertConfigurationRead,
-		Update: resourceMongoDBAtlasAlertConfigurationUpdate,
-		Delete: resourceMongoDBAtlasAlertConfigurationDelete,
+		CreateContext: resourceMongoDBAtlasAlertConfigurationCreate,
+		ReadContext:   resourceMongoDBAtlasAlertConfigurationRead,
+		UpdateContext: resourceMongoDBAtlasAlertConfigurationUpdate,
+		DeleteContext: resourceMongoDBAtlasAlertConfigurationDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasAlertConfigurationImportState,
+			StateContext: resourceMongoDBAtlasAlertConfigurationImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -82,6 +84,26 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 			"metric_threshold": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				ConflictsWith: []string{"metric_threshold_config"},
+				Deprecated:    "use metric_threshold_config instead",
+			},
+			"threshold": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				ConflictsWith: []string{"threshold_config"},
+				Deprecated:    "use threshold_config instead",
+			},
+			"metric_threshold_config": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"metric_threshold"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"metric_name": {
@@ -125,9 +147,11 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					},
 				},
 			},
-			"threshold": {
-				Type:     schema.TypeMap,
-				Optional: true,
+			"threshold_config": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"threshold"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"operator": {
@@ -274,7 +298,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -283,14 +307,14 @@ func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta i
 		EventTypeName:   d.Get("event_type").(string),
 		Enabled:         pointy.Bool(d.Get("enabled").(bool)),
 		Matchers:        expandAlertConfigurationMatchers(d),
-		MetricThreshold: expandAlertConfigurationMetricThreshold(d),
-		Threshold:       expandAlertConfigurationThreshold(d),
+		MetricThreshold: expandAlertConfigurationMetricThresholdConfig(d),
+		Threshold:       expandAlertConfigurationThresholdConfig(d),
 		Notifications:   expandAlertConfigurationNotification(d),
 	}
 
-	resp, _, err := conn.AlertConfigurations.Create(context.Background(), projectID, req)
+	resp, _, err := conn.AlertConfigurations.Create(ctx, projectID, req)
 	if err != nil {
-		return fmt.Errorf(errorCreateAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorCreateAlertConf, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -298,50 +322,48 @@ func resourceMongoDBAtlasAlertConfigurationCreate(d *schema.ResourceData, meta i
 		"project_id": projectID,
 	}))
 
-	return resourceMongoDBAtlasAlertConfigurationRead(d, meta)
+	return resourceMongoDBAtlasAlertConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAlertConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
+	alert, resp, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
 	if err != nil {
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 
 	if err := d.Set("alert_configuration_id", alert.ID); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "alert_configuration_id", ids["id"], err))
 	}
 
 	if err := d.Set("event_type", alert.EventTypeName); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "event_type", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "event_type", ids["id"], err))
 	}
 
 	if err := d.Set("created", alert.Created); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "created", ids["id"], err))
 	}
 
 	if err := d.Set("updated", alert.Updated); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err))
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
-		return fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err)
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var (
 		conn = meta.(*MongoDBClient).Atlas
 		ids  = decodeStateID(d.Id())
@@ -350,9 +372,9 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 
 	// In order to update an alert config it is necessary to send the original alert configuration request again, if not the
 	// server returns an error 500
-	req, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
+	req, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, ids["project_id"], ids["id"])
 	if err != nil {
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 	// Removing the computed attributes to recreate the original request
 	req.GroupID = ""
@@ -381,6 +403,14 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 		req.Threshold = expandAlertConfigurationThreshold(d)
 	}
 
+	if d.HasChange("metric_threshold_config") {
+		req.MetricThreshold = expandAlertConfigurationMetricThresholdConfig(d)
+	}
+
+	if d.HasChange("threshold_config") {
+		req.Threshold = expandAlertConfigurationThresholdConfig(d)
+	}
+
 	if d.HasChange("notification") {
 		req.Notifications = expandAlertConfigurationNotification(d)
 	}
@@ -388,31 +418,31 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(d *schema.ResourceData, meta i
 	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
 	if reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(true)}) ||
 		reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(false)}) {
-		_, _, err = conn.AlertConfigurations.EnableAnAlertConfig(context.Background(), ids["project_id"], ids["id"], req.Enabled)
+		_, _, err = conn.AlertConfigurations.EnableAnAlertConfig(ctx, ids["project_id"], ids["id"], req.Enabled)
 	} else {
-		_, _, err = conn.AlertConfigurations.Update(context.Background(), ids["project_id"], ids["id"], req)
+		_, _, err = conn.AlertConfigurations.Update(ctx, ids["project_id"], ids["id"], req)
 	}
 
 	if err != nil {
-		return fmt.Errorf(errorReadAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
 	}
 
-	return resourceMongoDBAtlasAlertConfigurationRead(d, meta)
+	return resourceMongoDBAtlasAlertConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAlertConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAlertConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	_, err := conn.AlertConfigurations.Delete(context.Background(), ids["project_id"], ids["id"])
+	_, err := conn.AlertConfigurations.Delete(ctx, ids["project_id"], ids["id"])
 	if err != nil {
-		return fmt.Errorf(errorDeleteAlertConf, err)
+		return diag.FromErr(fmt.Errorf(errorDeleteAlertConf, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasAlertConfigurationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	parts := strings.SplitN(d.Id(), "-", 2)
 
@@ -423,7 +453,7 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 	projectID := parts[0]
 	id := parts[1]
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), projectID, id)
+	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, projectID, id)
 	if err != nil {
 		return nil, fmt.Errorf(errorImportAlertConf, id, projectID, err)
 	}
@@ -444,12 +474,12 @@ func resourceMongoDBAtlasAlertConfigurationImportState(d *schema.ResourceData, m
 		return nil, fmt.Errorf(errorAlertConfSetting, "matcher", id, err)
 	}
 
-	if err := d.Set("metric_threshold", flattenAlertConfigurationMetricThreshold(alert.MetricThreshold)); err != nil {
-		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
+	if err := d.Set("metric_threshold_config", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold_config", id, err)
 	}
 
-	if err := d.Set("threshold", flattenAlertConfigurationThreshold(alert.Threshold)); err != nil {
-		return nil, fmt.Errorf(errorAlertConfSetting, "metric_threshold", id, err)
+	if err := d.Set("threshold_config", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
+		return nil, fmt.Errorf(errorAlertConfSetting, "threshold_config", id, err)
 	}
 
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
@@ -526,6 +556,68 @@ func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold
 	return nil
 }
 
+func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matlas.MetricThreshold {
+	if value, ok := d.GetOk("metric_threshold_config"); ok {
+		vL := value.([]interface{})
+
+		if len(vL) > 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.MetricThreshold{
+				MetricName: cast.ToString(v["metric_name"]),
+				Operator:   cast.ToString(v["operator"]),
+				Threshold:  cast.ToFloat64(v["threshold"]),
+				Units:      cast.ToString(v["units"]),
+				Mode:       cast.ToString(v["mode"]),
+			}
+		}
+	}
+
+	// Deprecated, will be removed later
+	if value, ok := d.GetOk("metric_threshold"); ok {
+		v := value.(map[string]interface{})
+
+		return &matlas.MetricThreshold{
+			MetricName: cast.ToString(v["metric_name"]),
+			Operator:   cast.ToString(v["operator"]),
+			Threshold:  cast.ToFloat64(v["threshold"]),
+			Units:      cast.ToString(v["units"]),
+			Mode:       cast.ToString(v["mode"]),
+		}
+	}
+
+	return nil
+}
+
+func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Threshold {
+	if value, ok := d.GetOk("threshold_config"); ok {
+		vL := value.([]interface{})
+
+		if len(vL) > 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.Threshold{
+				Operator:  cast.ToString(v["operator"]),
+				Units:     cast.ToString(v["units"]),
+				Threshold: cast.ToFloat64(v["threshold"]),
+			}
+		}
+	}
+
+	// Deprecated, will be removed later
+	if value, ok := d.GetOk("threshold"); ok {
+		v := value.(map[string]interface{})
+
+		return &matlas.Threshold{
+			Operator:  cast.ToString(v["operator"]),
+			Units:     cast.ToString(v["units"]),
+			Threshold: cast.ToFloat64(v["threshold"]),
+		}
+	}
+
+	return nil
+}
+
 func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[string]interface{} {
 	if m != nil {
 		return map[string]interface{}{
@@ -550,6 +642,32 @@ func flattenAlertConfigurationThreshold(m *matlas.Threshold) map[string]interfac
 	}
 
 	return map[string]interface{}{}
+}
+
+func flattenAlertConfigurationMetricThresholdConfig(m *matlas.MetricThreshold) []interface{} {
+	if m != nil {
+		return []interface{}{map[string]interface{}{
+			"metric_name": m.MetricName,
+			"operator":    m.Operator,
+			"threshold":   m.Threshold,
+			"units":       m.Units,
+			"mode":        m.Mode,
+		}}
+	}
+
+	return []interface{}{}
+}
+
+func flattenAlertConfigurationThresholdConfig(m *matlas.Threshold) []interface{} {
+	if m != nil {
+		return []interface{}{map[string]interface{}{
+			"operator":  m.Operator,
+			"units":     m.Units,
+			"threshold": m.Threshold,
+		}}
+	}
+
+	return []interface{}{}
 }
 
 func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notification {

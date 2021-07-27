@@ -3,8 +3,10 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -17,12 +19,12 @@ const (
 
 func resourceMongoDBAtlasProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasProjectCreate,
-		Read:   resourceMongoDBAtlasProjectRead,
-		Update: resourceMongoDBAtlasProjectUpdate,
-		Delete: resourceMongoDBAtlasProjectDelete,
+		CreateContext: resourceMongoDBAtlasProjectCreate,
+		ReadContext:   resourceMongoDBAtlasProjectRead,
+		UpdateContext: resourceMongoDBAtlasProjectUpdate,
+		DeleteContext: resourceMongoDBAtlasProjectDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -66,7 +68,7 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -75,63 +77,68 @@ func resourceMongoDBAtlasProjectCreate(d *schema.ResourceData, meta interface{})
 		Name:  d.Get("name").(string),
 	}
 
-	project, _, err := conn.Projects.Create(context.Background(), projectReq)
+	project, _, err := conn.Projects.Create(ctx, projectReq)
 	if err != nil {
-		return fmt.Errorf(errorProjectCreate, err)
+		return diag.FromErr(fmt.Errorf(errorProjectCreate, err))
 	}
 
 	// Check if teams were set, if so we need to add the teams into the project
 	if teams, ok := d.GetOk("teams"); ok {
 		// adding the teams into the project
-		_, _, err := conn.Projects.AddTeamsToProject(context.Background(), project.ID, expandTeamsSet(teams.(*schema.Set)))
+		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, expandTeamsSet(teams.(*schema.Set)))
 		if err != nil {
-			return fmt.Errorf("error adding teams into the project: %s", err)
+			return diag.FromErr(fmt.Errorf("error adding teams into the project: %s", err))
 		}
 	}
 
 	d.SetId(project.ID)
 
-	return resourceMongoDBAtlasProjectRead(d, meta)
+	return resourceMongoDBAtlasProjectRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	projectRes, _, err := conn.Projects.GetOneProject(context.Background(), projectID)
+	projectRes, resp, err := conn.Projects.GetOneProject(context.Background(), projectID)
 	if err != nil {
-		return fmt.Errorf(errorProjectRead, projectID, err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorProjectRead, projectID, err))
 	}
 
-	teams, _, err := conn.Projects.GetProjectTeamsAssigned(context.Background(), projectID)
+	teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("error getting project's teams assigned (%s): %s", projectID, err)
+		return diag.FromErr(fmt.Errorf("error getting project's teams assigned (%s): %s", projectID, err))
 	}
 
 	if err := d.Set("name", projectRes.Name); err != nil {
-		return fmt.Errorf(errorProjectSetting, `name`, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorProjectSetting, `name`, projectID, err))
 	}
 
 	if err := d.Set("org_id", projectRes.OrgID); err != nil {
-		return fmt.Errorf(errorProjectSetting, `org_id`, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorProjectSetting, `org_id`, projectID, err))
 	}
 
 	if err := d.Set("cluster_count", projectRes.ClusterCount); err != nil {
-		return fmt.Errorf(errorProjectSetting, `clusterCount`, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorProjectSetting, `clusterCount`, projectID, err))
 	}
 
 	if err := d.Set("created", projectRes.Created); err != nil {
-		return fmt.Errorf(errorProjectSetting, `created`, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorProjectSetting, `created`, projectID, err))
 	}
 
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
-		return fmt.Errorf(errorProjectSetting, `created`, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorProjectSetting, `created`, projectID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
@@ -141,9 +148,9 @@ func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{})
 
 		// adding new teans into the project
 		if len(newTeams) > 0 {
-			_, _, err := conn.Projects.AddTeamsToProject(context.Background(), projectID, expandTeamsList(newTeams))
+			_, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, expandTeamsList(newTeams))
 			if err != nil {
-				return fmt.Errorf("error adding teams into the project(%s): %s", projectID, err)
+				return diag.FromErr(fmt.Errorf("error adding teams into the project(%s): %s", projectID, err))
 			}
 		}
 
@@ -151,9 +158,9 @@ func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{})
 		for _, team := range removedTeams {
 			teamID := team.(map[string]interface{})["team_id"].(string)
 
-			_, err := conn.Teams.RemoveTeamFromProject(context.Background(), projectID, teamID)
+			_, err := conn.Teams.RemoveTeamFromProject(ctx, projectID, teamID)
 			if err != nil {
-				return fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
+				return diag.FromErr(fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err))
 			}
 		}
 
@@ -161,27 +168,27 @@ func resourceMongoDBAtlasProjectUpdate(d *schema.ResourceData, meta interface{})
 		for _, t := range changedTeams {
 			team := t.(map[string]interface{})
 
-			_, _, err := conn.Teams.UpdateTeamRoles(context.Background(), projectID, team["team_id"].(string),
+			_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, team["team_id"].(string),
 				&matlas.TeamUpdateRoles{
 					RoleNames: expandStringList(team["role_names"].(*schema.Set).List()),
 				},
 			)
 			if err != nil {
-				return fmt.Errorf("error updating role names for the team(%s): %s", team["team_id"], err)
+				return diag.FromErr(fmt.Errorf("error updating role names for the team(%s): %s", team["team_id"], err))
 			}
 		}
 	}
 
-	return resourceMongoDBAtlasProjectRead(d, meta)
+	return resourceMongoDBAtlasProjectRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	_, err := conn.Projects.Delete(context.Background(), projectID)
+	_, err := conn.Projects.Delete(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf(errorProjectDelete, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorProjectDelete, projectID, err))
 	}
 
 	return nil

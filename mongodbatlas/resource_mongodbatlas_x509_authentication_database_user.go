@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -23,11 +23,11 @@ const (
 
 func resourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasX509AuthDBUserCreate,
-		Read:   resourceMongoDBAtlasX509AuthDBUserRead,
-		Delete: resourceMongoDBAtlasX509AuthDBUserDelete,
+		CreateContext: resourceMongoDBAtlasX509AuthDBUserCreate,
+		ReadContext:   resourceMongoDBAtlasX509AuthDBUserRead,
+		DeleteContext: resourceMongoDBAtlasX509AuthDBUserDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasX509AuthDBUserImportState,
+			StateContext: resourceMongoDBAtlasX509AuthDBUserImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -96,7 +96,7 @@ func resourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasX509AuthDBUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -105,17 +105,17 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(d *schema.ResourceData, meta inter
 	var currentCertificate string
 
 	if expirationMonths, ok := d.GetOk("months_until_expiration"); ok {
-		res, _, err := conn.X509AuthDBUsers.CreateUserCertificate(context.Background(), projectID, username, expirationMonths.(int))
+		res, _, err := conn.X509AuthDBUsers.CreateUserCertificate(ctx, projectID, username, expirationMonths.(int))
 		if err != nil {
-			return fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err)
+			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err))
 		}
 
 		currentCertificate = res.Certificate
 	} else {
 		customerX509Cas := d.Get("customer_x509_cas").(string)
-		_, _, err := conn.X509AuthDBUsers.SaveConfiguration(context.Background(), projectID, &matlas.CustomerX509{Cas: customerX509Cas})
+		_, _, err := conn.X509AuthDBUsers.SaveConfiguration(ctx, projectID, &matlas.CustomerX509{Cas: customerX509Cas})
 		if err != nil {
-			return fmt.Errorf(errorCustomerX509AuthDBUsersCreate, projectID, err)
+			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersCreate, projectID, err))
 		}
 	}
 
@@ -125,10 +125,10 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(d *schema.ResourceData, meta inter
 		"current_certificate": currentCertificate,
 	}))
 
-	return resourceMongoDBAtlasX509AuthDBUserRead(d, meta)
+	return resourceMongoDBAtlasX509AuthDBUserRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -142,24 +142,30 @@ func resourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interfa
 	)
 
 	if username != "" {
-		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(context.Background(), projectID, username)
+		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
 		if err != nil {
-			return fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
+			// new resource missing
+			reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
+			if reset {
+				d.SetId("")
+				return nil
+			}
+			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
 	}
 
 	if err := d.Set("current_certificate", cast.ToString(currentCertificate)); err != nil {
-		return fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err)
+		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
 	}
 
 	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
-		return fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
+		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -167,9 +173,9 @@ func resourceMongoDBAtlasX509AuthDBUserDelete(d *schema.ResourceData, meta inter
 	projectID := ids["project_id"]
 
 	if currentCertificate == "" {
-		_, err := conn.X509AuthDBUsers.DisableCustomerX509(context.Background(), projectID)
+		_, err := conn.X509AuthDBUsers.DisableCustomerX509(ctx, projectID)
 		if err != nil {
-			return fmt.Errorf(errorCustomerX509AuthDBUsersDelete, projectID, err)
+			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersDelete, projectID, err))
 		}
 	}
 
@@ -178,7 +184,7 @@ func resourceMongoDBAtlasX509AuthDBUserDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -194,7 +200,7 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(d *schema.ResourceData, meta 
 	projectID := parts[0]
 
 	if username != "" {
-		_, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), projectID, username)
+		_, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
 		if err != nil {
 			return nil, fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
@@ -204,7 +210,7 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(d *schema.ResourceData, meta 
 		}
 	}
 
-	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(context.Background(), projectID)
+	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
 	}

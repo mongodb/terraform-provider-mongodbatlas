@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCustomDBRoleRead,
+		ReadContext: dataSourceMongoDBAtlasCustomDBRoleRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -71,26 +72,26 @@ func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRoleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	roleName := d.Get("role_name").(string)
 
-	customDBRole, _, err := conn.CustomDBRoles.Get(context.Background(), projectID, roleName)
+	customDBRole, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
 	if err != nil {
-		return fmt.Errorf("error getting custom db role information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting custom db role information: %s", err))
 	}
 
 	if err := d.Set("role_name", customDBRole.RoleName); err != nil {
-		return fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `role_name` for custom db role (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("actions", flattenActions(customDBRole.Actions)); err != nil {
-		return fmt.Errorf("error setting `actions` for custom db role (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `actions` for custom db role (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("inherited_roles", flattenInheritedRoles(customDBRole.InheritedRoles)); err != nil {
-		return fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error setting `inherited_roles` for custom db role (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

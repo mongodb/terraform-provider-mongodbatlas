@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -26,17 +26,17 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName, &cloudProviderSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobAttributes(&cloudProviderSnapshotRestoreJob, "automated"),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.target_cluster_name", targetClusterName),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.target_project_id", targetGroupID),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_project_id", targetGroupID),
 				),
 			},
 			{
@@ -44,7 +44,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobExists(resourceName, &cloudProviderSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobAttributes(&cloudProviderSnapshotRestoreJob, "download"),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type.download", "true"),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
 				),
 			},
 		},
@@ -63,9 +63,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
@@ -94,9 +94,9 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJobWithPointTime_bas
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudProviderSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID, timeUtc),
@@ -210,7 +210,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigAutomated(projectID
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
-			delivery_type   = {
+			delivery_type_config   {
 				automated           = true
 				target_cluster_name = "%s"
 				target_project_id   = "%s"
@@ -245,7 +245,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigDownload(projectID,
 			project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
-			delivery_type   = {
+			delivery_type_config   {
 				download = true
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
@@ -293,7 +293,7 @@ func testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime(project
 			cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.id
 
-			delivery_type   = {
+			delivery_type_config   {
 				point_in_time       = true
 				target_cluster_name = mongodbatlas_cluster.target_cluster.name
 				target_project_id   = "%s"

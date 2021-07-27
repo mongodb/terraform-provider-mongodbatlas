@@ -3,8 +3,10 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -19,12 +21,12 @@ const (
 
 func resourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasCustomDNSConfigurationCreate,
-		Read:   resourceMongoDBAtlasCustomDNSConfigurationRead,
-		Update: resourceMongoDBAtlasCustomDNSConfigurationUpdate,
-		Delete: resourceMongoDBAtlasCustomDNSConfigurationDelete,
+		CreateContext: resourceMongoDBAtlasCustomDNSConfigurationCreate,
+		ReadContext:   resourceMongoDBAtlasCustomDNSConfigurationRead,
+		UpdateContext: resourceMongoDBAtlasCustomDNSConfigurationUpdate,
+		DeleteContext: resourceMongoDBAtlasCustomDNSConfigurationDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -40,66 +42,71 @@ func resourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("project_id").(string)
 
 	// Creating(Updating) the Custom DNS Configuration for Atlas Clusters on AWS
-	_, _, err := conn.CustomAWSDNS.Update(context.Background(), orgID,
+	_, _, err := conn.CustomAWSDNS.Update(ctx, orgID,
 		&matlas.AWSCustomDNSSetting{
 			Enabled: d.Get("enabled").(bool),
 		})
 	if err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationCreate, err)
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationCreate, err))
 	}
 
 	d.SetId(orgID)
 
-	return resourceMongoDBAtlasCustomDNSConfigurationRead(d, meta)
+	return resourceMongoDBAtlasCustomDNSConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	dnsResp, _, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
+	dnsResp, resp, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationRead, err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationRead, err))
 	}
 
 	if err = d.Set("enabled", dnsResp.Enabled); err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationSetting, "enabled", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationSetting, "enabled", d.Id(), err))
 	}
 
 	if err = d.Set("project_id", d.Id()); err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationSetting, "project_id", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationSetting, "project_id", d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	if d.HasChange("enabled") {
-		_, _, err := conn.CustomAWSDNS.Update(context.Background(), d.Id(), &matlas.AWSCustomDNSSetting{
+		_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
 			Enabled: d.Get("enabled").(bool),
 		})
 		if err != nil {
-			return fmt.Errorf(errorCustomDNSConfigurationUpdate, err)
+			return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationUpdate, err))
 		}
 	}
 
-	return resourceMongoDBAtlasCustomDNSConfigurationRead(d, meta)
+	return resourceMongoDBAtlasCustomDNSConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCustomDNSConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	_, _, err := conn.CustomAWSDNS.Update(context.Background(), d.Id(), &matlas.AWSCustomDNSSetting{
+	_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
 		Enabled: false,
 	})
 	if err != nil {
-		return fmt.Errorf(errorCustomDNSConfigurationDelete, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationDelete, d.Id(), err))
 	}
 
 	return nil

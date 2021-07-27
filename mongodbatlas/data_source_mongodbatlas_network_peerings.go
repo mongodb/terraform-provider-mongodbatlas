@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasNetworkPeerings() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasNetworkPeeringsRead,
+		ReadContext: dataSourceMongoDBAtlasNetworkPeeringsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -112,18 +113,18 @@ func dataSourceMongoDBAtlasNetworkPeerings() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasNetworkPeeringsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasNetworkPeeringsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	peers, _, err := conn.Peers.List(context.Background(), projectID, nil)
+	peers, _, err := conn.Peers.List(ctx, projectID, nil)
 	if err != nil {
-		return fmt.Errorf("error getting network peering connections information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting network peering connections information: %s", err))
 	}
 
 	if err := d.Set("results", flattenNetworkPeerings(peers)); err != nil {
-		return fmt.Errorf("error setting `result` for network peering connections: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `result` for network peering connections: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

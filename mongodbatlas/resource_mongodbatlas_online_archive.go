@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -22,13 +24,13 @@ const (
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
 	return &schema.Resource{
-		Schema: getMongoDBAtlasOnlineArchiveSchema(),
-		Create: resourceMongoDBAtlasOnlineArchiveCreate,
-		Read:   resourceMongoDBAtlasOnlineArchiveRead,
-		Delete: resourceMongoDBAtlasOnlineArchiveDelete,
-		Update: resourceMongoDBAtlasOnlineArchiveUpdate,
+		Schema:        getMongoDBAtlasOnlineArchiveSchema(),
+		CreateContext: resourceMongoDBAtlasOnlineArchiveCreate,
+		ReadContext:   resourceMongoDBAtlasOnlineArchiveRead,
+		DeleteContext: resourceMongoDBAtlasOnlineArchiveDelete,
+		UpdateContext: resourceMongoDBAtlasOnlineArchiveUpdate,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasOnlineArchiveImportState,
+			StateContext: resourceMongoDBAtlasOnlineArchiveImportState,
 		},
 	}
 }
@@ -131,17 +133,17 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
 	inputRequest := mapToArchivePayload(d)
-	outputRequest, _, err := conn.OnlineArchives.Create(context.Background(), projectID, clusterName, &inputRequest)
+	outputRequest, _, err := conn.OnlineArchives.Create(ctx, projectID, clusterName, &inputRequest)
 
 	if err != nil {
-		return fmt.Errorf(errorOnlineArchivesCreate, err)
+		return diag.FromErr(fmt.Errorf(errorOnlineArchivesCreate, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -154,25 +156,25 @@ func resourceMongoDBAtlasOnlineArchiveCreate(d *schema.ResourceData, meta interf
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
 			Target:     []string{"IDLE", "ACTIVE"},
-			Refresh:    resourceOnlineRefreshFunc(projectID, outputRequest.ClusterName, outputRequest.ID, conn),
+			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, outputRequest.ClusterName, outputRequest.ID, conn),
 			Timeout:    3 * time.Hour,
 			MinTimeout: 1 * time.Minute,
 			Delay:      3 * time.Minute,
 		}
 
 		// Wait, catching any errors
-		_, err := stateConf.WaitForState()
+		_, err := stateConf.WaitForStateContext(ctx)
 		if err != nil {
-			return fmt.Errorf("error updating the online archive status %s for cluster %s", outputRequest.ClusterName, outputRequest.ID)
+			return diag.FromErr(fmt.Errorf("error updating the online archive status %s for cluster %s", outputRequest.ClusterName, outputRequest.ID))
 		}
 	}
 
-	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
+	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
 }
 
-func resourceOnlineRefreshFunc(projectID, clusterName, archiveID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		c, resp, err := client.OnlineArchives.Get(context.Background(), projectID, clusterName, archiveID)
+		c, resp, err := client.OnlineArchives.Get(ctx, projectID, clusterName, archiveID)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -198,7 +200,7 @@ func resourceOnlineRefreshFunc(projectID, clusterName, archiveID string, client 
 	}
 }
 
-func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// getting the atlas id
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -207,35 +209,33 @@ func resourceMongoDBAtlasOnlineArchiveRead(d *schema.ResourceData, meta interfac
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	onlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
-
+	onlineArchive, resp, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
 	if err != nil {
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-		if reset {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
+		return diag.FromErr(fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error()))
 	}
 
 	mapValues := fromOnlineArchiveToMapInCreate(onlineArchive)
 
 	for key, val := range mapValues {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
+			return diag.FromErr(fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error()))
 		}
 	}
 	return nil
 }
 
-func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := conn.OnlineArchives.Delete(context.Background(), projectID, clusterName, atlasID)
+	_, err := conn.OnlineArchives.Delete(ctx, projectID, clusterName, atlasID)
 
 	if err != nil {
 		alreadyDeleted := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -243,12 +243,12 @@ func resourceMongoDBAtlasOnlineArchiveDelete(d *schema.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf(errorOnlineArchivesDelete, err, atlasID)
+		return diag.FromErr(fmt.Errorf(errorOnlineArchivesDelete, err, atlasID))
 	}
 	return nil
 }
 
-func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	parts := strings.Split(d.Id(), "-")
 
@@ -266,7 +266,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(d *schema.ResourceData, meta i
 		projectID, clusterName, atlasID = parts[0], parts[1], parts[2]
 	}
 
-	outOnlineArchive, _, err := conn.OnlineArchives.Get(context.Background(), projectID, clusterName, atlasID)
+	outOnlineArchive, _, err := conn.OnlineArchives.Get(ctx, projectID, clusterName, atlasID)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not import Online Archive %s in project %s, error %s", atlasID, projectID, err.Error())
@@ -326,7 +326,7 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	return requestInput
 }
 
-func resourceMongoDBAtlasOnlineArchiveUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -355,13 +355,13 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(d *schema.ResourceData, meta interf
 		request.Criteria = mapCriteria(d)
 	}
 
-	_, _, err := conn.OnlineArchives.Update(context.Background(), projectID, clusterName, atlasID, &request)
+	_, _, err := conn.OnlineArchives.Update(ctx, projectID, clusterName, atlasID, &request)
 
 	if err != nil {
-		return fmt.Errorf("error updating Mongo Online Archive id: %s %s", atlasID, err.Error())
+		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s %s", atlasID, err.Error()))
 	}
 
-	return resourceMongoDBAtlasOnlineArchiveRead(d, meta)
+	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
 }
 
 func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {

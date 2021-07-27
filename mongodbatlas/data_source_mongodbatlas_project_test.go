@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -20,8 +20,8 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); checkTeamsIds(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithDSByID(projectName, orgID,
@@ -54,8 +54,8 @@ func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); checkTeamsIds(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID,

@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
+		ReadContext: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -26,18 +27,18 @@ func dataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
-	integrations, _, err := conn.Integrations.List(context.Background(), projectID)
+	integrations, _, err := conn.Integrations.List(ctx, projectID)
 
 	if err != nil {
-		return fmt.Errorf("error getting third party integration list: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting third party integration list: %s", err))
 	}
 
 	if err = d.Set("results", flattenIntegrations(integrations, projectID)); err != nil {
-		return fmt.Errorf("error setting results for third party integrations %s", err)
+		return diag.FromErr(fmt.Errorf("error setting results for third party integrations %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/spf13/cast"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -95,7 +94,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 								buf.WriteString(fmt.Sprintf("%d", m["retention_value"].(int)))
 								buf.WriteString(m["frequency_type"].(string))
 								buf.WriteString(m["retention_unit"].(string))
-								return hashcode.String(buf.String())
+								return HashCodeString(buf.String())
 							},
 						},
 					},
@@ -228,7 +227,7 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta 
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	if err := snapshotScheduleUpdate(d, conn, projectID, clusterName); err != nil {
+	if err := snapshotScheduleUpdate(context.Background(), d, conn, projectID, clusterName); err != nil {
 		return err
 	}
 

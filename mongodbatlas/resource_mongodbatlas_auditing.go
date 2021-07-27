@@ -3,10 +3,11 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -18,12 +19,12 @@ const (
 
 func resourceMongoDBAtlasAuditing() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasAuditingCreate,
-		Read:   resourceMongoDBAtlasAuditingRead,
-		Update: resourceMongoDBAtlasAuditingUpdate,
-		Delete: resourceMongoDBAtlasAuditingDelete,
+		CreateContext: resourceMongoDBAtlasAuditingCreate,
+		ReadContext:   resourceMongoDBAtlasAuditingRead,
+		UpdateContext: resourceMongoDBAtlasAuditingUpdate,
+		DeleteContext: resourceMongoDBAtlasAuditingDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -53,7 +54,7 @@ func resourceMongoDBAtlasAuditing() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAuditingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -71,44 +72,49 @@ func resourceMongoDBAtlasAuditingCreate(d *schema.ResourceData, meta interface{}
 		auditingReq.Enabled = pointy.Bool(enabled.(bool))
 	}
 
-	_, _, err := conn.Auditing.Configure(context.Background(), projectID, auditingReq)
+	_, _, err := conn.Auditing.Configure(ctx, projectID, auditingReq)
 	if err != nil {
-		return fmt.Errorf(errorAuditingCreate, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorAuditingCreate, projectID, err))
 	}
 
 	d.SetId(projectID)
 
-	return resourceMongoDBAtlasAuditingRead(d, meta)
+	return resourceMongoDBAtlasAuditingRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAuditingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	auditing, _, err := conn.Auditing.Get(context.Background(), d.Id())
+	auditing, resp, err := conn.Auditing.Get(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf(errorAuditingRead, d.Id(), err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
 	if err := d.Set("audit_authorization_success", auditing.AuditAuthorizationSuccess); err != nil {
-		return fmt.Errorf(errorAuditingRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
 	if err := d.Set("audit_filter", auditing.AuditFilter); err != nil {
-		return fmt.Errorf(errorAuditingRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
 	if err := d.Set("enabled", auditing.Enabled); err != nil {
-		return fmt.Errorf(errorAuditingRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
 	if err := d.Set("configuration_type", auditing.ConfigurationType); err != nil {
-		return fmt.Errorf(errorAuditingRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorAuditingRead, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -126,15 +132,15 @@ func resourceMongoDBAtlasAuditingUpdate(d *schema.ResourceData, meta interface{}
 		auditingReq.Enabled = pointy.Bool(d.Get("enabled").(bool))
 	}
 
-	_, _, err := conn.Auditing.Configure(context.Background(), d.Id(), auditingReq)
+	_, _, err := conn.Auditing.Configure(ctx, d.Id(), auditingReq)
 	if err != nil {
-		return fmt.Errorf(errorAuditingUpdate, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorAuditingUpdate, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasAuditingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasAuditingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	d.SetId("")
 
 	return nil

@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -25,11 +26,11 @@ const (
 
 func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
-		Read:   resourceMongoDBAtlasPrivateEndpointServiceLinkRead,
-		Delete: resourceMongoDBAtlasPrivateEndpointServiceLinkDelete,
+		CreateContext: resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
+		ReadContext:   resourceMongoDBAtlasPrivateEndpointServiceLinkRead,
+		DeleteContext: resourceMongoDBAtlasPrivateEndpointServiceLinkDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasPrivateEndpointServiceLinkImportState,
+			StateContext: resourceMongoDBAtlasPrivateEndpointServiceLinkImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -90,7 +91,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
@@ -102,23 +103,23 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 		PrivateEndpointIPAddress: d.Get("private_endpoint_ip_address").(string),
 	}
 
-	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, request)
+	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, request)
 	if err != nil {
-		return fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, providerName, privateLinkID, err))
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
-		Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
+		Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
 	// Wait, catching any errors
-	_, err = stateConf.WaitForState()
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, err)
+		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -128,10 +129,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(d *schema.ResourceData
 		"provider_name":       providerName,
 	}))
 
-	return resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d, meta)
+	return resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -140,51 +141,56 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(d *schema.ResourceData, 
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
 
-	privateEndpoint, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+	privateEndpoint, resp, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
 	if err != nil {
-		return fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err))
 	}
 
 	if err := d.Set("delete_requested", cast.ToBool(privateEndpoint.DeleteRequested)); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
 
 	if err := d.Set("error_message", privateEndpoint.ErrorMessage); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err))
 	}
 
 	if err := d.Set("aws_connection_status", privateEndpoint.AWSConnectionStatus); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
 	if err := d.Set("azure_status", privateEndpoint.AzureStatus); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 	}
 
 	if err := d.Set("interface_endpoint_id", privateEndpoint.InterfaceEndpointID); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_connection_name", privateEndpoint.PrivateEndpointConnectionName); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_ip_address", privateEndpoint.PrivateEndpointIPAddress); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_resource_id", privateEndpoint.PrivateEndpointResourceID); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "connection_status", endpointServiceID, err))
 	}
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
-		return fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err)
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -194,31 +200,31 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(d *schema.ResourceData
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+		_, err := conn.PrivateEndpoints.DeleteOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
-			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
+			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}
 
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
-			Refresh:    resourceServiceEndpointRefreshFunc(conn, projectID, providerName, privateLinkID, endpointServiceID),
+			Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    1 * time.Hour,
 			MinTimeout: 5 * time.Second,
 			Delay:      3 * time.Second,
 		}
 
 		// Wait, catching any errors
-		_, err = stateConf.WaitForState()
+		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
-			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
+			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 4)
@@ -231,7 +237,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	endpointServiceID := parts[2]
 	providerName := parts[3]
 
-	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+	_, _, err := conn.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -262,9 +268,9 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(d *schema.Resourc
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServiceEndpointRefreshFunc(client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) resource.StateRefreshFunc {
+func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(context.Background(), projectID, providerName, privateLinkID, endpointServiceID)
+		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil

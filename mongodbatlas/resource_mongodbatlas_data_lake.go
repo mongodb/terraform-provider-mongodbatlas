@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/spf13/cast"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -23,12 +24,12 @@ const (
 
 func resourceMongoDBAtlasDataLake() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasDataLakeCreate,
-		Read:   resourceMongoDBAtlasDataLakeRead,
-		Update: resourceMongoDBAtlasDataLakeUpdate,
-		Delete: resourceMongoDBAtlasDataLakeDelete,
+		CreateContext: resourceMongoDBAtlasDataLakeCreate,
+		ReadContext:   resourceMongoDBAtlasDataLakeRead,
+		UpdateContext: resourceMongoDBAtlasDataLakeUpdate,
+		DeleteContext: resourceMongoDBAtlasDataLakeDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasDataLakeImportState,
+			StateContext: resourceMongoDBAtlasDataLakeImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -69,7 +70,8 @@ func resourceMongoDBAtlasDataLake() *schema.Resource {
 				},
 			},
 			"data_process_region": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -217,7 +219,7 @@ func schemaDataLakesStores() *schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasDataLakeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDataLakeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -232,9 +234,9 @@ func resourceMongoDBAtlasDataLakeCreate(d *schema.ResourceData, meta interface{}
 		Name:                name,
 	}
 
-	dataLake, _, err := conn.DataLakes.Create(context.Background(), projectID, dataLakeReq)
+	dataLake, _, err := conn.DataLakes.Create(ctx, projectID, dataLakeReq)
 	if err != nil {
-		return fmt.Errorf(errorDataLakeCreate, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeCreate, err))
 	}
 
 	dataLake.CloudProviderConfig.AWSConfig.TestS3Bucket = cloudConfig.AWSConfig.TestS3Bucket
@@ -244,24 +246,24 @@ func resourceMongoDBAtlasDataLakeCreate(d *schema.ResourceData, meta interface{}
 		"name":       dataLake.Name,
 	}))
 
-	return resourceMongoDBAtlasDataLakeRead(d, meta)
+	return resourceMongoDBAtlasDataLakeRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDataLakeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	dataLake, resp, err := conn.DataLakes.Get(context.Background(), projectID, name)
+	dataLake, resp, err := conn.DataLakes.Get(ctx, projectID, name)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf(errorDataLakeRead, name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeRead, name, err))
 	}
 
 	values := flattenAWSBlock(&dataLake.CloudProviderConfig)
@@ -276,29 +278,29 @@ func resourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 			if err = d.Set("aws", values); err != nil {
-				return fmt.Errorf(errorDataLakeSetting, "aws", name, err)
+				return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "aws", name, err))
 			}
 		}
 	}
 
 	if err := d.Set("data_process_region", flattenDataLakeProcessRegion(&dataLake.DataProcessRegion)); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "data_process_region", name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "data_process_region", name, err))
 	}
 
 	if err := d.Set("hostnames", dataLake.Hostnames); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "hostnames", name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "hostnames", name, err))
 	}
 
 	if err := d.Set("state", dataLake.State); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "state", name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "state", name, err))
 	}
 
 	if err := d.Set("storage_databases", flattenDataLakeStorageDatabases(dataLake.Storage.Databases)); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "storage_databases", name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_databases", name, err))
 	}
 
 	if err := d.Set("storage_stores", flattenDataLakeStorageStores(dataLake.Storage.Stores)); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -309,7 +311,7 @@ func resourceMongoDBAtlasDataLakeRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceMongoDBAtlasDataLakeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDataLakeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -335,30 +337,30 @@ func resourceMongoDBAtlasDataLakeUpdate(d *schema.ResourceData, meta interface{}
 		CloudProviderConfig: &matlas.CloudProviderConfig{AWSConfig: awsConfig},
 		DataProcessRegion:   dataProcess,
 	}
-	_, _, err := conn.DataLakes.Update(context.Background(), projectID, name, dataLakeReq)
+	_, _, err := conn.DataLakes.Update(ctx, projectID, name, dataLakeReq)
 	if err != nil {
-		return fmt.Errorf(errorDataLakeUpdate, name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeUpdate, name, err))
 	}
 
-	return resourceMongoDBAtlasDataLakeRead(d, meta)
+	return resourceMongoDBAtlasDataLakeRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDataLakeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasDataLakeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	_, err := conn.DataLakes.Delete(context.Background(), projectID, name)
+	_, err := conn.DataLakes.Delete(ctx, projectID, name)
 	if err != nil {
-		return fmt.Errorf(errorDataLakeDelete, name, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeDelete, name, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasDataLakeImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasDataLakeImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, name, s3Bucket, err := splitDataLakeImportID(d.Id())
@@ -366,7 +368,7 @@ func resourceMongoDBAtlasDataLakeImportState(d *schema.ResourceData, meta interf
 		return nil, err
 	}
 
-	u, _, err := conn.DataLakes.Get(context.Background(), projectID, name)
+	u, _, err := conn.DataLakes.Get(ctx, projectID, name)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err)
 	}
@@ -428,15 +430,15 @@ func flattenAWSBlock(aws *matlas.CloudProviderConfig) []map[string]interface{} {
 	return database
 }
 
-func flattenDataLakeProcessRegion(processRegion *matlas.DataProcessRegion) map[string]interface{} {
+func flattenDataLakeProcessRegion(processRegion *matlas.DataProcessRegion) []interface{} {
 	if processRegion != nil && (processRegion.Region != "" || processRegion.CloudProvider != "") {
-		return map[string]interface{}{
+		return []interface{}{map[string]interface{}{
 			"cloud_provider": processRegion.CloudProvider,
 			"region":         processRegion.Region,
-		}
+		}}
 	}
 
-	return map[string]interface{}{}
+	return []interface{}{}
 }
 
 func flattenDataLakeStorageDatabases(databases []matlas.DataLakeDatabase) []map[string]interface{} {
@@ -530,11 +532,15 @@ func expandDataLakeAwsBlock(d *schema.ResourceData) matlas.AwsCloudProviderConfi
 
 func expandDataLakeDataProcessRegion(d *schema.ResourceData) *matlas.DataProcessRegion {
 	if value, ok := d.GetOk("data_process_region"); ok {
-		v := value.(map[string]interface{})
+		vL := value.([]interface{})
 
-		return &matlas.DataProcessRegion{
-			CloudProvider: cast.ToString(v["cloud_provider"]),
-			Region:        cast.ToString(v["region"]),
+		if len(vL) != 0 {
+			v := vL[0].(map[string]interface{})
+
+			return &matlas.DataProcessRegion{
+				CloudProvider: cast.ToString(v["cloud_provider"]),
+				Region:        cast.ToString(v["region"]),
+			}
 		}
 	}
 	return nil

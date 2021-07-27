@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -25,11 +26,11 @@ const (
 
 func resourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasProjectIPAccessListCreate,
-		Read:   resourceMongoDBAtlasProjectIPAccessListRead,
-		Delete: resourceMongoDBAtlasProjectIPAccessListDelete,
+		CreateContext: resourceMongoDBAtlasProjectIPAccessListCreate,
+		ReadContext:   resourceMongoDBAtlasProjectIPAccessListRead,
+		DeleteContext: resourceMongoDBAtlasProjectIPAccessListDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasIPAccessListImportState,
+			StateContext: resourceMongoDBAtlasIPAccessListImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -94,7 +95,7 @@ func resourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasProjectIPAccessListCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	cidrBlock := d.Get("cidr_block").(string)
@@ -102,14 +103,14 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(d *schema.ResourceData, meta 
 	awsSecurityGroup := d.Get("aws_security_group").(string)
 
 	if cidrBlock == "" && ipAddress == "" && awsSecurityGroup == "" {
-		return errors.New("cidr_block, ip_address or aws_security_group needs to contain a value")
+		return diag.FromErr(errors.New("cidr_block, ip_address or aws_security_group needs to contain a value"))
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (interface{}, string, error) {
-			accessList, _, err := conn.ProjectIPAccessList.Create(context.Background(), projectID, []*matlas.ProjectIPAccessList{
+			accessList, _, err := conn.ProjectIPAccessList.Create(ctx, projectID, []*matlas.ProjectIPAccessList{
 				{
 					AwsSecurityGroup: awsSecurityGroup,
 					CIDRBlock:        cidrBlock,
@@ -148,9 +149,9 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(d *schema.ResourceData, meta 
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorAccessListCreate, err)
+		return diag.FromErr(fmt.Errorf(errorAccessListCreate, err))
 	}
 
 	var entry string
@@ -169,15 +170,15 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(d *schema.ResourceData, meta 
 		"entry":      entry,
 	}))
 
-	return resourceMongoDBAtlasProjectIPAccessListRead(d, meta)
+	return resourceMongoDBAtlasProjectIPAccessListRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	return resource.Retry(2*time.Minute, func() *resource.RetryError {
-		accessList, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+	return diag.FromErr(resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
+		accessList, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			switch {
 			case strings.Contains(fmt.Sprint(err), "500"):
@@ -212,16 +213,16 @@ func resourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta in
 		}
 
 		return nil
-	})
+	}))
 }
 
-func resourceMongoDBAtlasProjectIPAccessListDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.ProjectIPAccessList.Delete(context.Background(), ids["project_id"], ids["entry"])
+	return diag.FromErr(resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+		_, err := conn.ProjectIPAccessList.Delete(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			if strings.Contains(fmt.Sprint(err), "500") ||
 				strings.Contains(fmt.Sprint(err), "Unexpected error") ||
@@ -232,7 +233,7 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(d *schema.ResourceData, meta 
 			return resource.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
 		}
 
-		entry, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+		entry, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			if strings.Contains(fmt.Sprint(err), "404") ||
 				strings.Contains(fmt.Sprint(err), "ATLAS_ACCESS_LIST_NOT_FOUND") {
@@ -247,10 +248,10 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(d *schema.ResourceData, meta 
 		}
 
 		return nil
-	})
+	}))
 }
 
-func resourceMongoDBAtlasIPAccessListImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -261,7 +262,7 @@ func resourceMongoDBAtlasIPAccessListImportState(d *schema.ResourceData, meta in
 	projectID := parts[0]
 	entry := parts[1]
 
-	_, _, err := conn.ProjectIPAccessList.Get(context.Background(), projectID, entry)
+	_, _, err := conn.ProjectIPAccessList.Get(ctx, projectID, entry)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import entry access list %s in project %s, error: %s", entry, projectID, err)
 	}

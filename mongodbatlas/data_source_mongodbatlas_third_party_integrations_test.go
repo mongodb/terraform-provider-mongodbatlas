@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -36,8 +36,8 @@ func TestAccdataSourceMongoDBAtlasThirdPartyIntegrations_basic(t *testing.T) {
 	intgResourcesHCL := testAccMongoDBAtlasThirdPartyIntegrationsDataSourceConfig(hclConfig, projectID)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: intgResourcesHCL,
