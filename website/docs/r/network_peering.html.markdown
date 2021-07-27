@@ -332,7 +332,7 @@ resource "mongodbatlas_network_peering" "test" {
 **GCP ONLY:**
 
 * `gcp_project_id` - (Required - GCP) GCP project ID of the owner of the network peer.
-* `network_name` - (Required- AWS) Name of the network peer to which Atlas connects.
+* `network_name` - (Required - GCP) Name of the network peer to which Atlas connects.
   
 **AZURE ONLY:** 
 
