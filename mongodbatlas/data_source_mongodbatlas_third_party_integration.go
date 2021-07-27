@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
@@ -20,7 +21,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 		Description: "Third-party service integration identifier",
 	}
 
-	integration.Read = dataSourceMongoDBAtlasThirdPartyIntegrationRead
+	integration.ReadContext = dataSourceMongoDBAtlasThirdPartyIntegrationRead
 
 	return integration
 }
@@ -108,23 +109,23 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasThirdPartyIntegrationRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 	queryType := d.Get("type").(string)
 
 	conn := meta.(*MongoDBClient).Atlas
 
-	integration, _, err := conn.Integrations.Get(context.Background(), projectID, queryType)
+	integration, _, err := conn.Integrations.Get(ctx, projectID, queryType)
 
 	if err != nil {
-		return fmt.Errorf("error getting third party integration for type %s %w", queryType, err)
+		return diag.FromErr(fmt.Errorf("error getting third party integration for type %s %w", queryType, err))
 	}
 
 	fieldMap := integrationToSchema(integration)
 
 	for property, value := range fieldMap {
 		if err = d.Set(property, value); err != nil {
-			return fmt.Errorf("error setting %s for third party integration %w", property, err)
+			return diag.FromErr(fmt.Errorf("error setting %s for third party integration %w", property, err))
 		}
 	}
 

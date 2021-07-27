@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -25,12 +27,12 @@ const (
 
 func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasNetworkPeeringCreate,
-		Read:   resourceMongoDBAtlasNetworkPeeringRead,
-		Update: resourceMongoDBAtlasNetworkPeeringUpdate,
-		Delete: resourceMongoDBAtlasNetworkPeeringDelete,
+		CreateContext: resourceMongoDBAtlasNetworkPeeringCreate,
+		ReadContext:   resourceMongoDBAtlasNetworkPeeringRead,
+		UpdateContext: resourceMongoDBAtlasNetworkPeeringUpdate,
+		DeleteContext: resourceMongoDBAtlasNetworkPeeringDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasNetworkPeeringImportState,
+			StateContext: resourceMongoDBAtlasNetworkPeeringImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -151,7 +153,7 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -166,22 +168,22 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 	if providerName == "AWS" {
 		region, err := valRegion(d.Get("accepter_region_name"), "network_peering")
 		if err != nil {
-			return errors.New("`accepter_region_name` must be set when `provider_name` is `AWS`")
+			return diag.FromErr(errors.New("`accepter_region_name` must be set when `provider_name` is `AWS`"))
 		}
 
 		awsAccountID, ok := d.GetOk("aws_account_id")
 		if !ok {
-			return errors.New("`aws_account_id` must be set when `provider_name` is `AWS`")
+			return diag.FromErr(errors.New("`aws_account_id` must be set when `provider_name` is `AWS`"))
 		}
 
 		rtCIDR, ok := d.GetOk("route_table_cidr_block")
 		if !ok {
-			return errors.New("`route_table_cidr_block` must be set when `provider_name` is `AWS`")
+			return diag.FromErr(errors.New("`route_table_cidr_block` must be set when `provider_name` is `AWS`"))
 		}
 
 		vpcID, ok := d.GetOk("vpc_id")
 		if !ok {
-			return errors.New("`vpc_id` must be set when `provider_name` is `AWS`")
+			return diag.FromErr(errors.New("`vpc_id` must be set when `provider_name` is `AWS`"))
 		}
 
 		peerRequest.AccepterRegionName = region
@@ -193,12 +195,12 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 	if providerName == "GCP" {
 		gcpProjectID, ok := d.GetOk("gcp_project_id")
 		if !ok {
-			return errors.New("`gcp_project_id` must be set when `provider_name` is `GCP`")
+			return diag.FromErr(errors.New("`gcp_project_id` must be set when `provider_name` is `GCP`"))
 		}
 
 		networkName, ok := d.GetOk("network_name")
 		if !ok {
-			return errors.New("`network_name` must be set when `provider_name` is `GCP`")
+			return diag.FromErr(errors.New("`network_name` must be set when `provider_name` is `GCP`"))
 		}
 
 		peerRequest.GCPProjectID = gcpProjectID.(string)
@@ -208,27 +210,27 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 	if providerName == "AZURE" {
 		atlasCidrBlock, ok := d.GetOk("atlas_cidr_block")
 		if !ok {
-			return errors.New("`atlas_cidr_block` must be set when `provider_name` is `AZURE`")
+			return diag.FromErr(errors.New("`atlas_cidr_block` must be set when `provider_name` is `AZURE`"))
 		}
 
 		azureDirectoryID, ok := d.GetOk("azure_directory_id")
 		if !ok {
-			return errors.New("`azure_directory_id` must be set when `provider_name` is `AZURE`")
+			return diag.FromErr(errors.New("`azure_directory_id` must be set when `provider_name` is `AZURE`"))
 		}
 
 		azureSubscriptionID, ok := d.GetOk("azure_subscription_id")
 		if !ok {
-			return errors.New("`azure_subscription_id` must be set when `provider_name` is `AZURE`")
+			return diag.FromErr(errors.New("`azure_subscription_id` must be set when `provider_name` is `AZURE`"))
 		}
 
 		resourceGroupName, ok := d.GetOk("resource_group_name")
 		if !ok {
-			return errors.New("`resource_group_name` must be set when `provider_name` is `AZURE`")
+			return diag.FromErr(errors.New("`resource_group_name` must be set when `provider_name` is `AZURE`"))
 		}
 
 		vnetName, ok := d.GetOk("vnet_name")
 		if !ok {
-			return errors.New("`vnet_name` must be set when `provider_name` is `AZURE`")
+			return diag.FromErr(errors.New("`vnet_name` must be set when `provider_name` is `AZURE`"))
 		}
 
 		peerRequest.AtlasCIDRBlock = atlasCidrBlock.(string)
@@ -238,24 +240,24 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		peerRequest.VNetName = vnetName.(string)
 	}
 
-	peer, _, err := conn.Peers.Create(context.Background(), projectID, peerRequest)
+	peer, _, err := conn.Peers.Create(ctx, projectID, peerRequest)
 	if err != nil {
-		return fmt.Errorf(errorPeersCreate, err)
+		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(peer.ID, projectID, peerRequest.ContainerID, conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peer.ID, projectID, peerRequest.ContainerID, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      30 * time.Second,
 	}
 
 	// Wait, catching any errors
-	_, err = stateConf.WaitForState()
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorPeersCreate, err)
+		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -264,10 +266,10 @@ func resourceMongoDBAtlasNetworkPeeringCreate(d *schema.ResourceData, meta inter
 		"provider_name": providerName,
 	}))
 
-	return resourceMongoDBAtlasNetworkPeeringRead(d, meta)
+	return resourceMongoDBAtlasNetworkPeeringRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -275,14 +277,14 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	peerID := ids["peer_id"]
 	providerName := ids["provider_name"]
 
-	peer, resp, err := conn.Peers.Get(context.Background(), projectID, peerID)
+	peer, resp, err := conn.Peers.Get(ctx, projectID, peerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf(errorPeersRead, peerID, err)
+		return diag.FromErr(fmt.Errorf(errorPeersRead, peerID, err))
 	}
 
 	/* This fix the bug https://github.com/mongodb/terraform-provider-mongodbatlas/issues/53
@@ -293,83 +295,83 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	if peer.AccepterRegionName != "" {
 		acepterRegionName = peer.AccepterRegionName
 	} else {
-		container, _, err := conn.Containers.Get(context.Background(), projectID, peer.ContainerID)
+		container, _, err := conn.Containers.Get(ctx, projectID, peer.ContainerID)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		acepterRegionName = strings.ToLower(strings.ReplaceAll(container.RegionName, "_", "-"))
 	}
 
 	if err := d.Set("accepter_region_name", acepterRegionName); err != nil {
-		return fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `accepter_region_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("aws_account_id", peer.AWSAccountID); err != nil {
-		return fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `aws_account_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("route_table_cidr_block", peer.RouteTableCIDRBlock); err != nil {
-		return fmt.Errorf("error setting `route_table_cidr_block` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `route_table_cidr_block` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("vpc_id", peer.VpcID); err != nil {
-		return fmt.Errorf("error setting `vpc_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `vpc_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("connection_id", peer.ConnectionID); err != nil {
-		return fmt.Errorf("error setting `connection_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `connection_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("error_state_name", peer.ErrorStateName); err != nil {
-		return fmt.Errorf("error setting `error_state_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `error_state_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("atlas_id", peer.ID); err != nil {
-		return fmt.Errorf("error setting `atlas_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `atlas_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("status_name", peer.StatusName); err != nil {
-		return fmt.Errorf("error setting `status_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `status_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("azure_directory_id", peer.AzureDirectoryID); err != nil {
-		return fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `azure_directory_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("azure_subscription_id", peer.AzureSubscriptionID); err != nil {
-		return fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `azure_subscription_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("resource_group_name", peer.ResourceGroupName); err != nil {
-		return fmt.Errorf("error setting `resource_group_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `resource_group_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("vnet_name", peer.VNetName); err != nil {
-		return fmt.Errorf("error setting `vnet_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `vnet_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("error_state", peer.ErrorState); err != nil {
-		return fmt.Errorf("error setting `error_state` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `error_state` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("status", peer.Status); err != nil {
-		return fmt.Errorf("error setting `status` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `status` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("gcp_project_id", peer.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("network_name", peer.NetworkName); err != nil {
-		return fmt.Errorf("error setting `network_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `network_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("error_message", peer.ErrorMessage); err != nil {
-		return fmt.Errorf("error setting `error_message` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `error_message` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("peer_id", peer.ID); err != nil {
-		return fmt.Errorf("error setting `peer_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `peer_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	// If provider name is GCP we need to get the parameters to configure the the reciprocal connection
@@ -377,24 +379,24 @@ func resourceMongoDBAtlasNetworkPeeringRead(d *schema.ResourceData, meta interfa
 	container := &matlas.Container{}
 
 	if strings.EqualFold(providerName, "GCP") {
-		container, _, err = conn.Containers.Get(context.Background(), projectID, peer.ContainerID)
+		container, _, err = conn.Containers.Get(ctx, projectID, peer.ContainerID)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	if err := d.Set("atlas_gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `atlas_gcp_project_id` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	if err := d.Set("atlas_vpc_name", container.NetworkName); err != nil {
-		return fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `atlas_vpc_name` for Network Peering Connection (%s): %s", peerID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -438,40 +440,40 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(d *schema.ResourceData, meta inter
 
 	// Has changes
 	if !reflect.DeepEqual(peer, matlas.Peer{}) {
-		_, _, err := conn.Peers.Update(context.Background(), projectID, peerID, peer)
+		_, _, err := conn.Peers.Update(ctx, projectID, peerID, peer)
 		if err != nil {
-			return fmt.Errorf(errorPeersUpdate, peerID, err)
+			return diag.FromErr(fmt.Errorf(errorPeersUpdate, peerID, err))
 		}
 	}
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, "", conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peerID, projectID, "", conn),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorPeersCreate, err)
+		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
-	return resourceMongoDBAtlasNetworkPeeringRead(d, meta)
+	return resourceMongoDBAtlasNetworkPeeringRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
-	_, err := conn.Peers.Delete(context.Background(), projectID, peerID)
+	_, err := conn.Peers.Delete(ctx, projectID, peerID)
 	if err != nil {
-		return fmt.Errorf(errorPeersDelete, peerID, err)
+		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
 	}
 
 	log.Println("[INFO] Waiting for MongoDB Network Peering Connection to be destroyed")
@@ -479,22 +481,22 @@ func resourceMongoDBAtlasNetworkPeeringDelete(d *schema.ResourceData, meta inter
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceNetworkPeeringRefreshFunc(peerID, projectID, "", conn),
+		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peerID, projectID, "", conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second, // Wait 10 secs before starting
 	}
 
 	// Wait, catching any errors
-	_, err = stateConf.WaitForState()
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorPeersDelete, peerID, err)
+		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
@@ -506,7 +508,7 @@ func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta 
 	peerID := parts[1]
 	providerName := parts[2]
 
-	peer, _, err := conn.Peers.Get(context.Background(), projectID, peerID)
+	peer, _, err := conn.Peers.Get(ctx, projectID, peerID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
 	}
@@ -532,9 +534,9 @@ func resourceMongoDBAtlasNetworkPeeringImportState(d *schema.ResourceData, meta 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkPeeringRefreshFunc(peerID, projectID, containerID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		c, resp, err := client.Peers.Get(context.Background(), projectID, peerID)
+		c, resp, err := client.Peers.Get(ctx, projectID, peerID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return "", "DELETED", nil
@@ -558,7 +560,7 @@ func resourceNetworkPeeringRefreshFunc(peerID, projectID, containerID string, cl
 		 * is right, and the Mongo parameters used on the Google side to configure the reciprocal connection
 		 * are now available. */
 		if status == "WAITING_FOR_USER" {
-			container, _, err := client.Containers.Get(context.Background(), projectID, containerID)
+			container, _, err := client.Containers.Get(ctx, projectID, containerID)
 
 			if err != nil {
 				return nil, "", fmt.Errorf(errorContainerRead, containerID, err)

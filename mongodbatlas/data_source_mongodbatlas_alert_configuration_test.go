@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -17,9 +17,9 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasAlertConfiguration(projectID),
@@ -40,9 +40,9 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_withThreshold(t *testing.T) 
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID, true, 1),
@@ -76,7 +76,7 @@ func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 				value      = "SECONDARY"
 			}
 
-			metric_threshold = {
+			metric_threshold_config {
 				metric_name = "ASSERT_REGULAR"
 				operator    = "LESS_THAN"
 				threshold   = 99.0
@@ -114,7 +114,7 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID string
 				value      = "SECONDARY"
 			}
 
-			threshold = {
+			threshold_config {
 				operator    = "LESS_THAN"
 				units       = "HOURS"
 				threshold   = %f

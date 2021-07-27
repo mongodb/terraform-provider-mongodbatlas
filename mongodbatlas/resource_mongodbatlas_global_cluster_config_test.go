@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -22,9 +22,9 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false"),
@@ -52,9 +52,9 @@ func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, "true"),
@@ -81,9 +81,9 @@ func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false"),
@@ -234,21 +234,26 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
-			project_id   = "%s"
-			name         = "%s"
-			disk_size_gb = 100
-			num_shards   = 1
-
-			replication_factor           = 3
-			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
+			project_id              = "%s"
+			name                    = "%s"
+			disk_size_gb            = 80
+			provider_backup_enabled = %s
+			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_encrypt_ebs_volume = false
-			provider_instance_size_name = "M30"
-			provider_region_name        = "US_EAST_1"
-			provider_backup_enabled     = %s
+ 			provider_instance_size_name = "M30"
+
+			replication_specs {
+				zone_name  = "Zone 1"
+				num_shards = 1
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
+			}
 		}
 
 		resource "mongodbatlas_global_cluster_config" "config" {

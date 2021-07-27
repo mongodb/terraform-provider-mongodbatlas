@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasNetworkContainersRead,
+		ReadContext: dataSourceMongoDBAtlasNetworkContainersRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -84,21 +85,21 @@ func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasNetworkContainersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasNetworkContainersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	containers, _, err := conn.Containers.List(context.Background(), projectID, &matlas.ContainersListOptions{
+	containers, _, err := conn.Containers.List(ctx, projectID, &matlas.ContainersListOptions{
 		ProviderName: d.Get("provider_name").(string),
 	})
 
 	if err != nil {
-		return fmt.Errorf("error getting network peering containers information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting network peering containers information: %s", err))
 	}
 
 	if err := d.Set("results", flattenNetworkContainers(containers)); err != nil {
-		return fmt.Errorf("error setting `result` for network containers: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `result` for network containers: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

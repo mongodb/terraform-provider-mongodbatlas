@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -19,12 +20,12 @@ const (
 
 func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasLDAPConfigurationCreate,
-		Read:   resourceMongoDBAtlasLDAPConfigurationRead,
-		Update: resourceMongoDBAtlasLDAPConfigurationUpdate,
-		Delete: resourceMongoDBAtlasLDAPConfigurationDelete,
+		CreateContext: resourceMongoDBAtlasLDAPConfigurationCreate,
+		ReadContext:   resourceMongoDBAtlasLDAPConfigurationRead,
+		UpdateContext: resourceMongoDBAtlasLDAPConfigurationUpdate,
+		DeleteContext: resourceMongoDBAtlasLDAPConfigurationDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -96,7 +97,7 @@ func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasLDAPConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -142,17 +143,17 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(d *schema.ResourceData, meta in
 		LDAP: ldap,
 	}
 
-	_, _, err := conn.LDAPConfigurations.Save(context.Background(), projectID, ladpReq)
+	_, _, err := conn.LDAPConfigurations.Save(ctx, projectID, ladpReq)
 	if err != nil {
-		return fmt.Errorf(errorLDAPConfigurationCreate, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationCreate, projectID, err))
 	}
 
 	d.SetId(projectID)
 
-	return resourceMongoDBAtlasLDAPConfigurationRead(d, meta)
+	return resourceMongoDBAtlasLDAPConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ldapResp, resp, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
@@ -162,38 +163,38 @@ func resourceMongoDBAtlasLDAPConfigurationRead(d *schema.ResourceData, meta inte
 			return nil
 		}
 
-		return fmt.Errorf(errorLDAPConfigurationRead, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationRead, d.Id(), err))
 	}
 
 	if err = d.Set("authentication_enabled", ldapResp.LDAP.AuthenticationEnabled); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "authentication_enabled", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authentication_enabled", d.Id(), err))
 	}
 	if err = d.Set("authorization_enabled", ldapResp.LDAP.AuthorizationEnabled); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "authorization_enabled", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authorization_enabled", d.Id(), err))
 	}
 	if err = d.Set("hostname", ldapResp.LDAP.Hostname); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "hostname", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "hostname", d.Id(), err))
 	}
 	if err = d.Set("port", ldapResp.LDAP.Port); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "port", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "port", d.Id(), err))
 	}
 	if err = d.Set("bind_username", ldapResp.LDAP.BindUsername); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "bind_username", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "bind_username", d.Id(), err))
 	}
 	if err = d.Set("ca_certificate", ldapResp.LDAP.CaCertificate); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "ca_certificate", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "ca_certificate", d.Id(), err))
 	}
 	if err = d.Set("authz_query_template", ldapResp.LDAP.AuthzQueryTemplate); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "authz_query_template", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "authz_query_template", d.Id(), err))
 	}
 	if err = d.Set("user_to_dn_mapping", flattenDNMapping(ldapResp.LDAP.UserToDNMapping)); err != nil {
-		return fmt.Errorf(errorLDAPConfigurationSetting, "user_to_dn_mapping", d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationSetting, "user_to_dn_mapping", d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -239,20 +240,20 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(d *schema.ResourceData, meta in
 		LDAP: ldap,
 	}
 
-	_, _, err := conn.LDAPConfigurations.Save(context.Background(), d.Id(), ldapReq)
+	_, _, err := conn.LDAPConfigurations.Save(ctx, d.Id(), ldapReq)
 	if err != nil {
-		return fmt.Errorf(errorLDAPConfigurationUpdate, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationUpdate, d.Id(), err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasLDAPConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	_, _, err := conn.LDAPConfigurations.Delete(context.Background(), d.Id())
+	_, _, err := conn.LDAPConfigurations.Delete(ctx, d.Id())
 	if err != nil {
-		return fmt.Errorf(errorLDAPConfigurationDelete, d.Id(), err)
+		return diag.FromErr(fmt.Errorf(errorLDAPConfigurationDelete, d.Id(), err))
 	}
 
 	return nil

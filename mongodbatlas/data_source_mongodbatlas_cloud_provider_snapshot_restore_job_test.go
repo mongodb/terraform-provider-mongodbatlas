@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -20,8 +20,8 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testi
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectID, clusterName, description, retentionInDays),
@@ -63,8 +63,9 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 			project_id    = mongodbatlas_cloud_provider_snapshot.test.project_id
 			cluster_name  = mongodbatlas_cloud_provider_snapshot.test.cluster_name
 			snapshot_id   = mongodbatlas_cloud_provider_snapshot.test.id
-			delivery_type = {
+			delivery_type_config {
 				download = true
+				automated = true
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}

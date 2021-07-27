@@ -10,10 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/spf13/cast"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -26,12 +28,12 @@ const (
 
 func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasNetworkContainerCreate,
-		Read:   resourceMongoDBAtlasNetworkContainerRead,
-		Update: resourceMongoDBAtlasNetworkContainerUpdate,
-		Delete: resourceMongoDBAtlasNetworkContainerDelete,
+		CreateContext: resourceMongoDBAtlasNetworkContainerCreate,
+		ReadContext:   resourceMongoDBAtlasNetworkContainerRead,
+		UpdateContext: resourceMongoDBAtlasNetworkContainerUpdate,
+		DeleteContext: resourceMongoDBAtlasNetworkContainerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasNetworkContainerImportState,
+			StateContext: resourceMongoDBAtlasNetworkContainerImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -98,7 +100,7 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -112,7 +114,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 	if providerName == "AWS" {
 		region, err := valRegion(d.Get("region_name"))
 		if err != nil {
-			return fmt.Errorf("`region_name` must be set when `provider_name` is AWS")
+			return diag.FromErr(fmt.Errorf("`region_name` must be set when `provider_name` is AWS"))
 		}
 
 		containerRequest.RegionName = region
@@ -121,7 +123,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 	if providerName == "AZURE" {
 		region, err := valRegion(d.Get("region"))
 		if err != nil {
-			return fmt.Errorf("`region` must be set when `provider_name` is AZURE")
+			return diag.FromErr(fmt.Errorf("`region` must be set when `provider_name` is AZURE"))
 		}
 
 		containerRequest.Region = region
@@ -134,9 +136,9 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	container, _, err := conn.Containers.Create(context.Background(), projectID, containerRequest)
+	container, _, err := conn.Containers.Create(ctx, projectID, containerRequest)
 	if err != nil {
-		return fmt.Errorf(errorContainterCreate, err)
+		return diag.FromErr(fmt.Errorf(errorContainterCreate, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -144,74 +146,74 @@ func resourceMongoDBAtlasNetworkContainerCreate(d *schema.ResourceData, meta int
 		"container_id": container.ID,
 	}))
 
-	return resourceMongoDBAtlasNetworkContainerRead(d, meta)
+	return resourceMongoDBAtlasNetworkContainerRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
 
-	container, resp, err := conn.Containers.Get(context.Background(), projectID, containerID)
+	container, resp, err := conn.Containers.Get(ctx, projectID, containerID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf(errorContainerRead, containerID, err)
+		return diag.FromErr(fmt.Errorf(errorContainerRead, containerID, err))
 	}
 
 	if err = d.Set("region_name", container.RegionName); err != nil {
-		return fmt.Errorf("error setting `region_name` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `region_name` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("region", container.Region); err != nil {
-		return fmt.Errorf("error setting `region` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `region` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("azure_subscription_id", container.AzureSubscriptionID); err != nil {
-		return fmt.Errorf("error setting `azure_subscription_id` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `azure_subscription_id` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("provisioned", container.Provisioned); err != nil {
-		return fmt.Errorf("error setting `provisioned` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `provisioned` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("network_name", container.NetworkName); err != nil {
-		return fmt.Errorf("error setting `network_name` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `network_name` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("gcp_project_id", container.GCPProjectID); err != nil {
-		return fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `gcp_project_id` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("vpc_id", container.VPCID); err != nil {
-		return fmt.Errorf("error setting `vpc_id` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `vpc_id` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("vnet_name", container.VNetName); err != nil {
-		return fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `vnet_name` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("container_id", container.ID); err != nil {
-		return fmt.Errorf("error setting `container_id` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `container_id` for Network Container (%s): %s", containerID, err))
 	}
 
 	if err = d.Set("regions", container.Regions); err != nil {
-		return fmt.Errorf("error setting `regions` for Network Container (%s): %s", containerID, err)
+		return diag.FromErr(fmt.Errorf("error setting `regions` for Network Container (%s): %s", containerID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -241,38 +243,38 @@ func resourceMongoDBAtlasNetworkContainerUpdate(d *schema.ResourceData, meta int
 
 	// Has changes
 	if !reflect.DeepEqual(container, matlas.Container{}) {
-		_, _, err := conn.Containers.Update(context.Background(), projectID, containerID, container)
+		_, _, err := conn.Containers.Update(ctx, projectID, containerID, container)
 		if err != nil {
-			return fmt.Errorf(errorContainerUpdate, containerID, err)
+			return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, err))
 		}
 	}
 
-	return resourceMongoDBAtlasNetworkContainerRead(d, meta)
+	return resourceMongoDBAtlasNetworkContainerRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"provisioned_container"},
 		Target:     []string{"deleted"},
-		Refresh:    resourceNetworkContainerRefreshFunc(d, conn),
+		Refresh:    resourceNetworkContainerRefreshFunc(ctx, d, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 10 * time.Second,
 		Delay:      2 * time.Minute,
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForState()
+	_, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err)
+		return diag.FromErr(fmt.Errorf(errorContainerDelete, decodeStateID(d.Id())["container_id"], err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkContainerImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -283,7 +285,7 @@ func resourceMongoDBAtlasNetworkContainerImportState(d *schema.ResourceData, met
 	projectID := parts[0]
 	containerID := parts[1]
 
-	u, _, err := conn.Containers.Get(context.Background(), projectID, containerID)
+	u, _, err := conn.Containers.Get(ctx, projectID, containerID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import container %s in project %s, error: %s", containerID, projectID, err)
 	}
@@ -312,14 +314,14 @@ func resourceMongoDBAtlasNetworkContainerImportState(d *schema.ResourceData, met
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkContainerRefreshFunc(d *schema.ResourceData, client *matlas.Client) resource.StateRefreshFunc {
+func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ids := decodeStateID(d.Id())
 		projectID := ids["project_id"]
 		containerID := ids["container_id"]
 
 		var err error
-		container, res, err := client.Containers.Get(context.Background(), projectID, containerID)
+		container, res, err := client.Containers.Get(ctx, projectID, containerID)
 		if err != nil {
 			if res.StatusCode == 404 {
 				return "", "deleted", nil
@@ -332,7 +334,7 @@ func resourceNetworkContainerRefreshFunc(d *schema.ResourceData, client *matlas.
 			return nil, "provisioned_container", nil
 		}
 
-		_, err = client.Containers.Delete(context.Background(), projectID, containerID)
+		_, err = client.Containers.Delete(ctx, projectID, containerID)
 		if err != nil {
 			return nil, "provisioned_container", nil
 		}

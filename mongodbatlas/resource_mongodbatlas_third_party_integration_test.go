@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -29,9 +29,9 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedConfig),
@@ -65,9 +65,9 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_importBasic(t *testing.T) 
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedConfig),
@@ -117,9 +117,9 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_updateBasic(t *testing.T) 
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasThirdPartyIntegrationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(&seedInitialConfig),

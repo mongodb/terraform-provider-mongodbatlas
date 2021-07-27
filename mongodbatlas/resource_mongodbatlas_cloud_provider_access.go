@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -20,12 +21,12 @@ const (
 
 func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasCloudProviderAccessCreate,
-		Read:   resourceMongoDBAtlasCloudProviderAccessRead,
-		Update: resourceMongoDBAtlasCloudProviderAccessUpdate,
-		Delete: resourceMongoDBAtlasCloudProviderAccessDelete,
+		CreateContext: resourceMongoDBAtlasCloudProviderAccessCreate,
+		ReadContext:   resourceMongoDBAtlasCloudProviderAccessRead,
+		UpdateContext: resourceMongoDBAtlasCloudProviderAccessUpdate,
+		DeleteContext: resourceMongoDBAtlasCloudProviderAccessDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasCloudProviderAccessImportState,
+			StateContext: resourceMongoDBAtlasCloudProviderAccessImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -70,7 +71,7 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*MongoDBClient).Atlas
@@ -79,10 +80,10 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 		ProviderName: d.Get("provider_name").(string),
 	}
 
-	role, _, err := conn.CloudProviderAccess.CreateRole(context.Background(), projectID, requestParameters)
+	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
 
 	if err != nil {
-		return fmt.Errorf(errorCloudProviderAccessCreate, err)
+		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
 
 	roleSchema := roleToSchema(role)
@@ -95,14 +96,14 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(d *schema.ResourceData, meta 
 
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf(errorCloudProviderAccessCreate, err)
+			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 		}
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -116,7 +117,7 @@ func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf(errorGetRead, err)
+		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
 	var targetRole matlas.AWSIAMRole
@@ -140,14 +141,14 @@ func resourceMongoDBAtlasCloudProviderAccessRead(d *schema.ResourceData, meta in
 
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return fmt.Errorf(errorGetRead, err)
+			return diag.FromErr(fmt.Errorf(errorGetRead, err))
 		}
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -160,16 +161,16 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(d *schema.ResourceData, meta 
 			IAMAssumedRoleARN: d.Get("iam_assumed_role_arn").(string),
 		}
 
-		role, _, err := conn.CloudProviderAccess.AuthorizeRole(context.Background(), projectID, roleID, req)
+		role, _, err := conn.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
 		if err != nil {
-			return fmt.Errorf(errorCloudProviderAccessUpdate, err)
+			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessUpdate, err))
 		}
 
 		roleSchema := roleToSchema(role)
 
 		for key, val := range roleSchema {
 			if err := d.Set(key, val); err != nil {
-				return fmt.Errorf(errorGetRead, err)
+				return diag.FromErr(fmt.Errorf(errorGetRead, err))
 			}
 		}
 	}
@@ -177,7 +178,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudProviderAccessDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -191,16 +192,16 @@ func resourceMongoDBAtlasCloudProviderAccessDelete(d *schema.ResourceData, meta 
 		GroupID:      projectID,
 	}
 
-	_, err := conn.CloudProviderAccess.DeauthorizeRole(context.Background(), req)
+	_, err := conn.CloudProviderAccess.DeauthorizeRole(ctx, req)
 
 	if err != nil {
-		return fmt.Errorf(errorCloudProviderAccessDelete, err)
+		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudProviderAccessImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {
@@ -214,9 +215,9 @@ func resourceMongoDBAtlasCloudProviderAccessImportState(d *schema.ResourceData, 
 		"provider_name": providerName,
 	}))
 
-	err = resourceMongoDBAtlasCloudProviderAccessRead(d, meta)
+	err2 := resourceMongoDBAtlasCloudProviderAccessRead(ctx, d, meta)
 
-	if err != nil {
+	if err2 != nil {
 		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
 	}
 

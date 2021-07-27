@@ -35,7 +35,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     value      = "SECONDARY"
   }
 
-  metric_threshold = {
+  metric_threshold_config {
     metric_name = "ASSERT_REGULAR"
     operator    = "LESS_THAN"
     threshold   = 99.0
@@ -69,7 +69,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     value      = "SECONDARY"
   }
 
-  threshold = {
+  threshold_config {
     operator    = "LESS_THAN"
     threshold   = 1
     units       = "HOURS"
@@ -125,7 +125,7 @@ Rules to apply when matching an object against this alert configuration. Only en
     - `CONFIG`
     - `MONGOS`
 
-### Metric Threshold
+### Metric Threshold Config
 The threshold that causes an alert to be triggered. Required if `event_type_name` : "OUTSIDE_METRIC_THRESHOLD".
 
 * `metric_name` - Name of the metric to check. The full list of current options is available [here](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types)
@@ -156,7 +156,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 
 * `mode` - This must be set to AVERAGE. Atlas computes the current metric value as an average.
 
-### Threshold
+### Threshold Config
 * `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`

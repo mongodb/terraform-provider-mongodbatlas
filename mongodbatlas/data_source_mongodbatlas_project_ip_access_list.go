@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasProjectIPAccessListRead,
+		ReadContext: dataSourceMongoDBAtlasProjectIPAccessListRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -66,7 +67,7 @@ func dataSourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	cidrBlock := d.Get("cidr_block").(string)
@@ -74,7 +75,7 @@ func dataSourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta 
 	awsSecurityGroup := d.Get("aws_security_group").(string)
 
 	if cidrBlock == "" && ipAddress == "" && awsSecurityGroup == "" {
-		return errors.New("cidr_block, ip_address or aws_security_group needs to contain a value")
+		return diag.FromErr(errors.New("cidr_block, ip_address or aws_security_group needs to contain a value"))
 	}
 	var entry bytes.Buffer
 
@@ -82,22 +83,22 @@ func dataSourceMongoDBAtlasProjectIPAccessListRead(d *schema.ResourceData, meta 
 	entry.WriteString(ipAddress)
 	entry.WriteString(awsSecurityGroup)
 
-	accessList, _, err := conn.ProjectIPAccessList.Get(context.Background(), projectID, entry.String())
+	accessList, _, err := conn.ProjectIPAccessList.Get(ctx, projectID, entry.String())
 	if err != nil {
-		return fmt.Errorf("error getting access list information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting access list information: %s", err))
 	}
 
 	if err := d.Set("cidr_block", accessList.CIDRBlock); err != nil {
-		return fmt.Errorf("error setting `cidr_block` for the project access list: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `cidr_block` for the project access list: %s", err))
 	}
 	if err := d.Set("ip_address", accessList.IPAddress); err != nil {
-		return fmt.Errorf("error setting `ip_address` for the project access list: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `ip_address` for the project access list: %s", err))
 	}
 	if err := d.Set("aws_security_group", accessList.AwsSecurityGroup); err != nil {
-		return fmt.Errorf("error setting `aws_security_group` for the project access list: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `aws_security_group` for the project access list: %s", err))
 	}
 	if err := d.Set("comment", accessList.Comment); err != nil {
-		return fmt.Errorf("error setting `comment` for the project access list: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `comment` for the project access list: %s", err))
 	}
 
 	d.SetId(resource.UniqueId())

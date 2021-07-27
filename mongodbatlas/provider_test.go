@@ -6,28 +6,41 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-provider-google/google"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
-	"github.com/terraform-providers/terraform-provider-google/google"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
+const (
+	// Provider name for single configuration testing
+	ProviderNameMongoDBAtlas = "mongodbatlas"
+	ProviderNameAws          = "aws"
+	ProviderNameGoogle       = "google"
+)
 
+var testAccProviders map[string]*schema.Provider
+var testAccProviderFactories map[string]func() (*schema.Provider, error)
 var testAccProvider *schema.Provider
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"mongodbatlas": testAccProvider,
-		"aws":          aws.Provider(),
-		"google":       google.Provider(),
+	testAccProvider = Provider()
+	testAccProviders = map[string]*schema.Provider{
+		ProviderNameMongoDBAtlas: testAccProvider,
+		ProviderNameAws:          aws.Provider(),
+		ProviderNameGoogle:       google.Provider(),
+	}
+
+	testAccProviderFactories = map[string]func() (*schema.Provider, error){
+		ProviderNameMongoDBAtlas: func() (*schema.Provider, error) { return testAccProvider, nil },
+		ProviderNameAws:          func() (*schema.Provider, error) { return aws.Provider(), nil },
+		ProviderNameGoogle:       func() (*schema.Provider, error) { return google.Provider(), nil },
 	}
 }
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }

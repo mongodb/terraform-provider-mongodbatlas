@@ -1,21 +1,24 @@
 package mongodbatlas
 
 import (
+	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
+	"hash/crc32"
 	"log"
 	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 // Provider returns the provider to be use by the code.
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
@@ -118,11 +121,11 @@ func Provider() terraform.ResourceProvider {
 			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 		},
 
-		ConfigureFunc: providerConfigure,
+		ConfigureContextFunc: providerConfigure,
 	}
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
@@ -132,7 +135,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		config.BaseURL = baseURL.(string)
 	}
 
-	return config.NewClient(), nil
+	return config.NewClient(ctx)
 }
 
 func encodeStateID(values map[string]string) string {
@@ -279,4 +282,32 @@ func hasMultipleValues(value string) bool {
 	}
 
 	return false
+}
+
+// HashCodeString hashes a string to a unique hashcode.
+//
+// crc32 returns a uint32, but for our use we need
+// and non negative integer. Here we cast to an integer
+// and invert it if the result is negative.
+func HashCodeString(s string) int {
+	v := int(crc32.ChecksumIEEE([]byte(s)))
+	if v >= 0 {
+		return v
+	}
+	if -v >= 0 {
+		return -v
+	}
+	// v == MinInt
+	return 0
+}
+
+// HashCodeStrings hashes a list of strings to a unique hashcode.
+func HashCodeStrings(hashStrings []string) string {
+	var buf bytes.Buffer
+
+	for _, s := range hashStrings {
+		buf.WriteString(fmt.Sprintf("%s-", s))
+	}
+
+	return fmt.Sprintf("%d", HashCodeString(buf.String()))
 }

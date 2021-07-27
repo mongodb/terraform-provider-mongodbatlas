@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -24,8 +24,8 @@ func TestAccDataSourceMongoDBAtlasDataLake_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataLakeDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket),
@@ -70,12 +70,12 @@ resource "aws_iam_role" "test_role" {
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws.atlas_aws_account_arn}"
+        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_aws_account_arn}"
       },
       "Action": "sts:AssumeRole",
       "Condition": {
         "StringEquals": {
-          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws.atlas_assumed_role_external_id}"
+          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config.0.atlas_assumed_role_external_id}"
         }
       }
     }
@@ -100,7 +100,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    project_id = mongodbatlas_project.test.id
    role_id =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
-   aws = {
+   aws {
       iam_assumed_role_arn = aws_iam_role.test_role.arn
    }
 }

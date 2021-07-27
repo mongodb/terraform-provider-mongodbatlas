@@ -6,9 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -80,7 +81,7 @@ EOF
 resource "mongodbatlas_encryption_at_rest" "test" {
 	project_id = "%s"
 
-	aws_kms = {
+	aws_kms {
 		enabled                = %t
 		customer_master_key_id = "%s"
 		region                 = "%s"
@@ -119,9 +120,9 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
@@ -173,9 +174,9 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkEncryptionAtRestEnvAzure(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkEncryptionAtRestEnvAzure(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID, &azureKeyVault),
@@ -215,9 +216,9 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID, &googleCloudKms),
@@ -256,9 +257,9 @@ func TestAccResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) 
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); checkAwsEnv(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(awsKms.Region, accessKeyID, secretKey, projectID, policyName, roleName, false, &awsKms),
@@ -321,7 +322,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *matl
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
-		  aws_kms = {
+		  aws_kms_config {
 				enabled                = %t
 				access_key_id          = "%s"
 				secret_access_key      = "%s"
@@ -337,7 +338,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, az
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
-		  azure_key_vault = {
+		  azure_key_vault_config {
 				enabled             = %t
 				client_id           = "%s"
 				azure_environment   = "%s"
@@ -358,7 +359,7 @@ func testAccMongoDBAtlasEncryptionAtRestConfigGoogleCloudKms(projectID string, g
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = "%s"
 
-		  google_cloud_kms = {
+		  google_cloud_kms_config {
 				enabled                 = %t
 				service_account_key     = "%s"
 				key_version_resource_id = "%s"

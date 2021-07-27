@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/realm/realm"
@@ -27,12 +28,12 @@ const (
 
 func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasEventTriggersCreate,
-		Read:   resourceMongoDBAtlasEventTriggersRead,
-		Update: resourceMongoDBAtlasEventTriggersUpdate,
-		Delete: resourceMongoDBAtlasEventTriggersDelete,
+		CreateContext: resourceMongoDBAtlasEventTriggersCreate,
+		ReadContext:   resourceMongoDBAtlasEventTriggersRead,
+		UpdateContext: resourceMongoDBAtlasEventTriggersUpdate,
+		DeleteContext: resourceMongoDBAtlasEventTriggersDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasEventTriggerImportState,
+			StateContext: resourceMongoDBAtlasEventTriggerImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -199,7 +200,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasEventTriggersCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Realm
 
 	projectID := d.Get("project_id").(string)
@@ -227,17 +228,17 @@ func resourceMongoDBAtlasEventTriggersCreate(d *schema.ResourceData, meta interf
 
 	if typeTrigger == "DATABASE" {
 		if !okCots || !okD || !okC || !okSI {
-			return fmt.Errorf("`config_operation_types`, `config_database`,`config_collection`,`config_service_id` must be provided if type is DATABASE")
+			return diag.FromErr(fmt.Errorf("`config_operation_types`, `config_database`,`config_collection`,`config_service_id` must be provided if type is DATABASE"))
 		}
 	}
 	if typeTrigger == "AUTHENTICATION" {
 		if !okCot || !okP {
-			return fmt.Errorf("`config_operation_type`, `config_providers` must be provided if type is AUTHENTICATION")
+			return diag.FromErr(fmt.Errorf("`config_operation_type`, `config_providers` must be provided if type is AUTHENTICATION"))
 		}
 	}
 	if typeTrigger == "SCHEDULED" {
 		if !oksch {
-			return fmt.Errorf("`config_schedule` must be provided if type is SCHEDULED")
+			return diag.FromErr(fmt.Errorf("`config_schedule` must be provided if type is SCHEDULED"))
 		}
 	}
 
@@ -280,7 +281,7 @@ func resourceMongoDBAtlasEventTriggersCreate(d *schema.ResourceData, meta interf
 
 	eventResp, _, err := conn.EventTriggers.Create(context.Background(), projectID, appID, eventTriggerReq)
 	if err != nil {
-		return fmt.Errorf(errorEventTriggersCreate, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersCreate, projectID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -289,10 +290,10 @@ func resourceMongoDBAtlasEventTriggersCreate(d *schema.ResourceData, meta interf
 		"trigger_id": eventResp.ID,
 	}))
 
-	return resourceMongoDBAtlasEventTriggersRead(d, meta)
+	return resourceMongoDBAtlasEventTriggersRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Realm
 
 	ids := decodeStateID(d.Id())
@@ -300,81 +301,81 @@ func resourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interfac
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
 
-	resp, recodes, err := conn.EventTriggers.Get(context.Background(), projectID, appID, triggerID)
+	resp, recodes, err := conn.EventTriggers.Get(ctx, projectID, appID, triggerID)
 	if err != nil {
 		if recodes != nil && recodes.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf(errorEventTriggersRead, projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersRead, projectID, appID, err))
 	}
 
 	if err = d.Set("trigger_id", resp.ID); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "trigger_id", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "trigger_id", projectID, appID, err))
 	}
 	if err = d.Set("name", resp.Name); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "name", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "name", projectID, appID, err))
 	}
 	if err = d.Set("type", resp.Type); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "type", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "type", projectID, appID, err))
 	}
 	functionID := resp.FunctionID
 	if resp.FunctionID == "000000000000000000000000" {
 		functionID = ""
 	}
 	if err = d.Set("function_id", functionID); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "function_id", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "function_id", projectID, appID, err))
 	}
 	if err = d.Set("function_name", resp.FunctionName); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "function_name", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "function_name", projectID, appID, err))
 	}
 	if err = d.Set("disabled", resp.Disabled); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "disabled", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "disabled", projectID, appID, err))
 	}
 	if err = d.Set("config_operation_types", resp.Config.OperationTypes); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_operation_types", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_operation_types", projectID, appID, err))
 	}
 	if err = d.Set("config_operation_type", resp.Config.OperationType); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_operation_type", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_operation_type", projectID, appID, err))
 	}
 	if err = d.Set("config_providers", resp.Config.Providers); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_providers", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_providers", projectID, appID, err))
 	}
 	if err = d.Set("config_database", resp.Config.Database); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_database", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_database", projectID, appID, err))
 	}
 	if err = d.Set("config_collection", resp.Config.Collection); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_collection", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_collection", projectID, appID, err))
 	}
 	if err = d.Set("config_service_id", resp.Config.ServiceID); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_service_id", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_service_id", projectID, appID, err))
 	}
 	if err = d.Set("config_match", matchToString(resp.Config.Match)); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_match", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_match", projectID, appID, err))
 	}
 	if err = d.Set("config_project", matchToString(resp.Config.Project)); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_project", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_project", projectID, appID, err))
 	}
 	if err = d.Set("config_full_document", resp.Config.FullDocument); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err))
 	}
 	if err = d.Set("config_full_document_before", resp.Config.FullDocumentBeforeChange); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_full_document_before", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document_before", projectID, appID, err))
 	}
 	if err = d.Set("config_schedule", resp.Config.Schedule); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_schedule", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule", projectID, appID, err))
 	}
 	if err = d.Set("config_schedule_type", resp.Config.ScheduleType); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err))
 	}
 	if err = d.Set("event_processors", flattenTriggerEventProcessorAWSEventBridge(resp.EventProcessors)); err != nil {
-		return fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasEventTriggersUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Realm
 
@@ -415,15 +416,15 @@ func resourceMongoDBAtlasEventTriggersUpdate(d *schema.ResourceData, meta interf
 
 	eventReq.Config = eventTriggerConfig
 
-	_, _, err := conn.EventTriggers.Update(context.Background(), projectID, appID, triggerID, eventReq)
+	_, _, err := conn.EventTriggers.Update(ctx, projectID, appID, triggerID, eventReq)
 	if err != nil {
-		return fmt.Errorf(errorEventTriggersUpdate, projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersUpdate, projectID, appID, err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasEventTriggersDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Realm
 	ids := decodeStateID(d.Id())
@@ -432,9 +433,9 @@ func resourceMongoDBAtlasEventTriggersDelete(d *schema.ResourceData, meta interf
 	appID := ids["app_id"]
 	triggerID := ids["trigger_id"]
 
-	_, err := conn.EventTriggers.Delete(context.Background(), projectID, appID, triggerID)
+	_, err := conn.EventTriggers.Delete(ctx, projectID, appID, triggerID)
 	if err != nil {
-		return fmt.Errorf(errorEventTriggersDelete, projectID, appID, err)
+		return diag.FromErr(fmt.Errorf(errorEventTriggersDelete, projectID, appID, err))
 	}
 
 	return nil
@@ -483,7 +484,7 @@ func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interf
 	return results
 }
 
-func resourceMongoDBAtlasEventTriggerImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Realm
 
 	parts := strings.Split(d.Id(), "--")
@@ -495,7 +496,7 @@ func resourceMongoDBAtlasEventTriggerImportState(d *schema.ResourceData, meta in
 	appID := parts[1]
 	triggerID := parts[2]
 
-	_, _, err := conn.EventTriggers.Get(context.Background(), projectID, appID, triggerID)
+	_, _, err := conn.EventTriggers.Get(ctx, projectID, appID, triggerID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import event trigger %s in project %s, error: %s", triggerID, projectID, err)
 	}

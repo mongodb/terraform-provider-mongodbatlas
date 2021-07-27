@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCloudProviderAccessSetupRead,
+		ReadContext: dataSourceMongoDBAtlasCloudProviderAccessSetupRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -29,6 +30,13 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 			},
 			"aws": {
 				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"aws_config": {
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -51,16 +59,16 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	roleID := d.Get("role_id").(string)
 
-	roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+	roles, _, err := conn.CloudProviderAccess.ListRoles(ctx, projectID)
 
 	if err != nil {
-		return fmt.Errorf(errorGetRead, err)
+		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
 	// aws specific
@@ -83,13 +91,13 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(d *schema.ResourceData, 
 
 		for key, val := range roleSchema {
 			if err := d.Set(key, val); err != nil {
-				return fmt.Errorf(errorGetRead, err)
+				return diag.FromErr(fmt.Errorf(errorGetRead, err))
 			}
 		}
 	} else {
 		// planning for the future multiple providers
-		return fmt.Errorf(errorGetRead,
-			fmt.Sprintf("unsupported provider type %s", providerName))
+		return diag.FromErr(fmt.Errorf(errorGetRead,
+			fmt.Sprintf("unsupported provider type %s", providerName)))
 	}
 
 	d.SetId(resource.UniqueId())

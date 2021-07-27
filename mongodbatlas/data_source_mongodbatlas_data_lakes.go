@@ -4,15 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasDataLakesRead,
+		ReadContext: dataSourceMongoDBAtlasDataLakesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:         schema.TypeString,
@@ -34,7 +35,6 @@ func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 						},
 						"aws": {
 							Type:     schema.TypeList,
-							MaxItems: 1,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -62,7 +62,7 @@ func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 							},
 						},
 						"data_process_region": {
-							Type:     schema.TypeMap,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -97,19 +97,19 @@ func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasDataLakesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 
-	dataLakes, _, err := conn.DataLakes.List(context.Background(), projectID)
+	dataLakes, _, err := conn.DataLakes.List(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("error getting MongoDB Atlas Data Lakes information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Data Lakes information: %s", err))
 	}
 
 	if err := d.Set("results", flattenDataLakes(dataLakes)); err != nil {
-		return fmt.Errorf(errorDataLakeSetting, "results", projectID, err)
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
 	}
 
 	d.SetId(resource.UniqueId())

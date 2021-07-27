@@ -46,8 +46,8 @@ resource "mongodbatlas_data_lake" "basic_ds" {
   * `aws.0.role_id` - (Required) Unique identifier of the role that Data Lake can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `aws.0.test_s3_bucket`.
   * `aws.0.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `aws.0.role_id`.
 * `data_process_region` - (Optional) The cloud provider region to which Atlas Data Lake routes client connections for data processing. Set to `null` to direct Atlas Data Lake to route client connections to the region nearest to the client based on DNS resolution.
-  * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Atlas Data Lake only supports AWS.
-  * `data_process_region.region` - (Required). Name of the region to which Data Lake routes client connections for data processing. Atlas Data Lake only supports the following regions:
+  * `data_process_region.0.cloud_provider` - (Required) Name of the cloud service provider. Atlas Data Lake only supports AWS.
+  * `data_process_region.0.region` - (Required). Name of the region to which Data Lake routes client connections for data processing. Atlas Data Lake only supports the following regions:
     * `SYDNEY_AUS` (ap-southeast-2)
     * `FRANKFURT_DEU` (eu-central-1)
     * `DUBLIN_IRL` (eu-west-1)

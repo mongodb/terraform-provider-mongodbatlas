@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasX509AuthDBUserRead,
+		ReadContext: dataSourceMongoDBAtlasX509AuthDBUserRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -58,30 +59,30 @@ func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasX509AuthDBUserRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
 	if username != "" {
-		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), projectID, username)
+		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
 		if err != nil {
-			return fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
+			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
 
 		if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
-			return fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
+			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 		}
 	}
 
-	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(context.Background(), projectID)
+	customerX509, _, err := conn.X509AuthDBUsers.GetCurrentX509Conf(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
+		return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err))
 	}
 
 	if err := d.Set("customer_x509_cas", customerX509.Cas); err != nil {
-		return fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err)
+		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
