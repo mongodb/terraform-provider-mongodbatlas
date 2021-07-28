@@ -4,12 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
+
+type apiKey struct {
+	id    string
+	roles []string
+}
 
 func dataSourceMongoDBAtlasProject() *schema.Resource {
 	return &schema.Resource{
@@ -56,8 +62,48 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 					},
 				},
 			},
+			"api_keys": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"api_key_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"role_names": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
+}
+
+func getProjectApiKeys(conn *matlas.Client, ctx context.Context, orgID, projectID string) ([]*apiKey, error) {
+	apiKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, &matlas.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []*apiKey
+	for _, key := range apiKeys {
+		id := key.ID
+		var roles []string
+		for _, role := range key.Roles {
+			if !strings.HasPrefix(role.RoleName, "ORG_") {
+				roles = append(roles, role.RoleName)
+			}
+		}
+		keys = append(keys, &apiKey{id, roles})
+	}
+
+	return keys, nil
 }
 
 func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -91,6 +137,11 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf("error getting project's teams assigned (%s): %s", projectID, err))
 	}
 
+	apiKeys, err := getProjectApiKeys(conn, ctx, project.OrgID, project.ID)
+	if err != nil {
+		return fmt.Errorf("error getting project's api keys (%s): %s", projectID, err)
+	}
+
 	if err := d.Set("org_id", project.OrgID); err != nil {
 		return diag.FromErr(fmt.Errorf(errorProjectSetting, `org_id`, project.ID, err))
 	}
@@ -105,6 +156,10 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorProjectSetting, `teams`, project.ID, err))
+	}
+
+	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorProjectSetting, `api_keys`, project.ID, err))
 	}
 
 	d.SetId(project.ID)
