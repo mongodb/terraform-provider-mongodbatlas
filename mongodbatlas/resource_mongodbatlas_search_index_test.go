@@ -22,9 +22,9 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 		updatedAnalyzer = "lucene.simple"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasSearchIndexDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),

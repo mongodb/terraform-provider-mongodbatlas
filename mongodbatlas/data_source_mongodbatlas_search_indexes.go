@@ -2,9 +2,8 @@ package mongodbatlas
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -12,7 +11,7 @@ import (
 
 func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasSearchIndexesRead,
+		ReadContext: dataSourceMongoDBAtlasSearchIndexesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -53,7 +52,7 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -63,7 +62,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interf
 	collectionName, collectionNameOK := d.GetOk("collection_name")
 
 	if !(projectIDOK && clusterNameOk && databaseNameOK && collectionNameOK) {
-		return errors.New("project_id, cluster_name, database and collection_name must be configured")
+		return diag.Errorf("project_id, cluster_name, database and collection_name must be configured")
 	}
 
 	options := &matlas.ListOptions{
@@ -71,22 +70,22 @@ func dataSourceMongoDBAtlasSearchIndexesRead(d *schema.ResourceData, meta interf
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	searchIndexes, _, err := conn.Search.ListIndexes(context.Background(), projectID.(string), clusterName.(string), databaseName.(string), collectionName.(string), options)
+	searchIndexes, _, err := conn.Search.ListIndexes(ctx, projectID.(string), clusterName.(string), databaseName.(string), collectionName.(string), options)
 	if err != nil {
-		return fmt.Errorf("error getting search indexes information: %s", err)
+		return diag.Errorf("error getting search indexes information: %s", err)
 	}
 
 	flattedSearchIndexes, err := flattenSearchIndexes(searchIndexes)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if err := d.Set("results", flattedSearchIndexes); err != nil {
-		return fmt.Errorf("error setting `result` for search indexes: %s", err)
+		return diag.Errorf("error setting `result` for search indexes: %s", err)
 	}
 
 	if err := d.Set("total_count", len(searchIndexes)); err != nil {
-		return fmt.Errorf("error setting `name`: %s", err)
+		return diag.Errorf("error setting `name`: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())

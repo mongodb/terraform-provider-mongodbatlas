@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -16,12 +17,12 @@ import (
 
 func resourceMongoDBAtlasSearchIndex() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasSearchIndexCreate,
-		Read:   resourceMongoDBAtlasSearchIndexRead,
-		Update: resourceMongoDBAtlasSearchIndexUpdate,
-		Delete: resourceMongoDBAtlasSearchIndexDelete,
+		CreateContext: resourceMongoDBAtlasSearchIndexCreate,
+		ReadContext:   resourceMongoDBAtlasSearchIndexRead,
+		UpdateContext: resourceMongoDBAtlasSearchIndexUpdate,
+		DeleteContext: resourceMongoDBAtlasSearchIndexDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasSearchIndexImportState,
+			StateContext: resourceMongoDBAtlasSearchIndexImportState,
 		},
 		Schema: returnSearchIndexSchema(),
 	}
@@ -227,7 +228,7 @@ func customAnalyzersSchema() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasSearchIndexImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
@@ -239,7 +240,7 @@ func resourceMongoDBAtlasSearchIndexImportState(d *schema.ResourceData, meta int
 	clusterName := parts[1]
 	indexID := parts[2]
 
-	_, _, err := conn.Search.GetIndex(context.Background(), projectID, clusterName, indexID)
+	_, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
 	}
@@ -265,7 +266,7 @@ func resourceMongoDBAtlasSearchIndexImportState(d *schema.ResourceData, meta int
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceMongoDBAtlasSearchIndexDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -273,15 +274,15 @@ func resourceMongoDBAtlasSearchIndexDelete(d *schema.ResourceData, meta interfac
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	_, err := conn.Search.DeleteIndex(context.Background(), projectID, clusterName, indexID)
+	_, err := conn.Search.DeleteIndex(ctx, projectID, clusterName, indexID)
 	if err != nil {
-		return fmt.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
+		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -289,9 +290,9 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	searchIndex, _, err := conn.Search.GetIndex(context.Background(), projectID, clusterName, indexID)
+	searchIndex, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
 	if err != nil {
-		return fmt.Errorf("error getting search index information: %s", err)
+		return diag.Errorf("error getting search index information: %s", err)
 	}
 
 	if d.HasChange("analyzer") {
@@ -332,13 +333,13 @@ func resourceMongoDBAtlasSearchIndexUpdate(d *schema.ResourceData, meta interfac
 	searchIndex.IndexID = ""
 	_, _, err = conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
 	if err != nil {
-		return fmt.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
+		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
 	}
 
-	return resourceMongoDBAtlasSearchIndexRead(d, meta)
+	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -346,7 +347,7 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	searchIndex, _, err := conn.Search.GetIndex(context.Background(), projectID, clusterName, indexID)
+	searchIndex, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -357,53 +358,53 @@ func resourceMongoDBAtlasSearchIndexRead(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("error getting search index information: %s", err)
+		return diag.Errorf("error getting search index information: %s", err)
 	}
 	if err := d.Set("index_id", indexID); err != nil {
-		return fmt.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
-		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
 	searchIndexCustomAnalyzers, err := flattenSearchIndexCustomAnalyzers(searchIndex.Analyzers)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if err := d.Set("analyzers", searchIndexCustomAnalyzers); err != nil {
-		return fmt.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("collection_name", searchIndex.CollectionName); err != nil {
-		return fmt.Errorf("error setting `collectionName` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `collectionName` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("database", searchIndex.Database); err != nil {
-		return fmt.Errorf("error setting `database` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `database` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("name", searchIndex.Name); err != nil {
-		return fmt.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `name` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("search_analyzer", searchIndex.SearchAnalyzer); err != nil {
-		return fmt.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-		return fmt.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
 	if searchIndex.Mappings.Fields != nil {
 		searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndex.Mappings.Fields)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-			return fmt.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+			return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 		}
 	}
 
@@ -597,7 +598,7 @@ func flattenSearchIndexCharFilters(filters []*matlas.AnalyzerCharFilter) ([]map[
 	return mapCharFilters, nil
 }
 
-func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -622,9 +623,9 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 		Status:         d.Get("status").(string),
 	}
 
-	dbSearchIndexRes, _, err := conn.Search.CreateIndex(context.Background(), projectID, clusterName, searchIndexRequest)
+	dbSearchIndexRes, _, err := conn.Search.CreateIndex(ctx, projectID, clusterName, searchIndexRequest)
 	if err != nil {
-		return fmt.Errorf("error creating database user: %s", err)
+		return diag.Errorf("error creating database user: %s", err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -633,7 +634,7 @@ func resourceMongoDBAtlasSearchIndexCreate(d *schema.ResourceData, meta interfac
 		"index_id":     dbSearchIndexRes.IndexID,
 	}))
 
-	return resourceMongoDBAtlasSearchIndexRead(d, meta)
+	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
 }
 
 func expandCustomAnalyzers(analyzers []interface{}) []*matlas.CustomAnalyzer {
