@@ -939,6 +939,91 @@ func TestAccResourceMongoDBAtlasCluster_basicGCPRegionName(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	replications := `replication_specs {
+		num_shards = 1
+		zone_name = "us2"
+		regions_config{
+			region_name     = "US_WEST_2"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	  }
+	 replication_specs {
+		num_shards = 1
+		zone_name = "germany"
+		regions_config{
+			region_name     = "EU_CENTRAL_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	 }
+	 replication_specs {
+		num_shards = 1
+		zone_name = "us1"
+		regions_config{
+			region_name     = "US_WEST_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	}`
+
+	replicationsUpdate := `replication_specs {
+		num_shards = 1
+		zone_name = "us2"
+		regions_config{
+			region_name     = "US_WEST_2"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	  }
+
+	 replication_specs {
+		num_shards = 1
+		zone_name = "us1"
+		regions_config{
+			region_name     = "US_WEST_1"
+			electable_nodes = 3
+			priority        = 7
+			read_only_nodes = 0
+		}
+	}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigRegions(projectID, clusterName, replications),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "3"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigRegions(projectID, clusterName, replicationsUpdate),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.#", "2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -1625,4 +1710,28 @@ func testAccMongoDBAtlasClusterConfigGCPRegionName(
   provider_region_name         = %[3]q
 }
 	`, projectID, name, regionName)
+}
+
+func testAccMongoDBAtlasClusterConfigRegions(
+	projectID, name, replications string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_cluster" "test" {
+		project_id                              = "%[1]s"
+		name                                    = "%[2]s"
+		disk_size_gb            = 400
+	  num_shards              = 3
+	  provider_backup_enabled = true
+	  cluster_type            = "GEOSHARDED"
+	  // Provider Settings "block"
+	  provider_name               = "AWS"
+	  provider_disk_iops          = 1200
+	  provider_instance_size_name = "M30"
+	  %[3]s
+
+		lifecycle {
+		# avoid cluster has been auto-scaled to different instance size
+		ignore_changes = [provider_instance_size_name, disk_size_gb]
+	  }
+	}
+	`, projectID, name, replications)
 }
