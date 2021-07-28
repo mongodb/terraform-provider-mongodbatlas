@@ -44,7 +44,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Required: true,
 			},
 			"policies": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,

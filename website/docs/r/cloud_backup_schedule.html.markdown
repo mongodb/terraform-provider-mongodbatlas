@@ -15,7 +15,7 @@ description: |-
 In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
 
-~> **IMPORTANT:**   `policies.0.policy_item.#.id` is obtained when the cluster is created.
+~> **IMPORTANT:**   `policies.0.policy_item.#.id` is obtained when the cluster for which the policy applies is created and has `cloud_backup` is set to true.
 
 ## Example Usage - Create a Cluster with 2 Policies Items
 
@@ -98,7 +98,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 If you followed the example to Create a Cluster with Cloud Backup Enabled but No Policy Items and then want to add policy items later to the `mongodbatlas_cloud_backup_schedule` this example shows how.
 
-The cluster already exist with `cloud_backup` enabled
+The cluster already exists with `cloud_backup` enabled
 ```hcl
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"

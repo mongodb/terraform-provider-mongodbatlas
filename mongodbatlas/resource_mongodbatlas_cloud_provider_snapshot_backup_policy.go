@@ -274,9 +274,9 @@ func snapshotScheduleUpdate(ctx context.Context, d *schema.ResourceData, conn *m
 }
 
 func expandPolicies(d *schema.ResourceData) []matlas.Policy {
-	policies := make([]matlas.Policy, len(d.Get("policies").(*schema.Set).List()))
+	policies := make([]matlas.Policy, len(d.Get("policies").([]interface{})))
 
-	for k, v := range d.Get("policies").(*schema.Set).List() {
+	for k, v := range d.Get("policies").([]interface{}) {
 		policy := v.(map[string]interface{})
 		policies[k] = matlas.Policy{
 			ID:          policy["id"].(string),
