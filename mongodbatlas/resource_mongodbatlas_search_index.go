@@ -230,7 +230,7 @@ func customAnalyzersSchema() *schema.Resource {
 func resourceMongoDBAtlasSearchIndexImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
-	parts := strings.SplitN(d.Id(), "-", 3)
+	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
 		return nil, errors.New("import format error: to import a search index, use the format {project_id}-{cluster_name}-{index_id}")
 	}
