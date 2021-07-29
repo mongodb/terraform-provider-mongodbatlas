@@ -83,17 +83,17 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
 # Container example provided but not always required, 
 # see network_container documentation for details. 
 resource "mongodbatlas_network_container" "test" {
-  project_id       = "${local.project_id}"
+  project_id       = local.project_id
   atlas_cidr_block = "10.8.0.0/21"
   provider_name    = "GCP"
 }
 
 # Create the peering connection request
 resource "mongodbatlas_network_peering" "test" {
-  project_id     = "${local.project_id}"
-  container_id   = "${mongodbatlas_network_container.test.container_id}"
+  project_id     = local.project_id
+  container_id   = mongodbatlas_network_container.test.container_id
   provider_name  = "GCP"
-  gcp_project_id = "${local.GCP_PROJECT_ID}"
+  gcp_project_id = local.GCP_PROJECT_ID
   network_name   = "default"
 }
 
@@ -105,13 +105,13 @@ data "google_compute_network" "default" {
 # Create the GCP peer
 resource "google_compute_network_peering" "peering" {
   name         = "peering-gcp-terraform-test"
-  network      = "${data.google_compute_network.default.self_link}"
+  network      = data.google_compute_network.default.self_link
   peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 }
 
 # Create the cluster once the peering connection is completed
 resource "mongodbatlas_cluster" "test" {
-  project_id   = "${local.project_id}"
+  project_id   = local.project_id
   name         = "terraform-manually-test"
   num_shards   = 1
   disk_size_gb = 5
@@ -148,7 +148,7 @@ resource "mongodbatlas_cluster" "test" {
 # Container example provided but not always required, 
 # see network_container documentation for details. 
 resource "mongodbatlas_network_container" "test" {
-  project_id       = "${local.project_id}"
+  project_id       = local.project_id
   atlas_cidr_block = "10.8.0.0/21"
   provider_name    = "AZURE"
   region           = "US_EAST_2"
@@ -156,18 +156,19 @@ resource "mongodbatlas_network_container" "test" {
 
 # Create the peering connection request
 resource "mongodbatlas_network_peering" "test" {
-  project_id            = "${local.project_id}"
-  container_id          = "${mongodbatlas_network_container.test.container_id}"
+  project_id            = local.project_id
+  container_id          = mongodbatlas_network_container.test.container_id
   provider_name         = "AZURE"
-  azure_directory_id    = "${local.AZURE_DIRECTORY_ID}"
-  azure_subscription_id = "${local.AZURE_SUBSCRIPTION_ID}"
-  resource_group_name   = "${local.AZURE_RESOURCES_GROUP_NAME}"
-  vnet_name             = "${local.AZURE_VNET_NAME}"
+  azure_directory_id    = local.AZURE_DIRECTORY_ID
+  azure_subscription_id = local.AZURE_SUBSCRIPTION_ID
+  resource_group_name   = local.AZURE_RESOURCES_GROUP_NAME
+  vnet_name             = local.AZURE_VNET_NAME
+  atlas_cidr_block      = local.ATLAS_CIDR_BLOCK
 }
 
 # Create the cluster once the peering connection is completed
 resource "mongodbatlas_cluster" "test" {
-  project_id = "${local.project_id}"
+  project_id = local.project_id
   name       = "terraform-manually-test"
   num_shards = 1
 
@@ -259,7 +260,7 @@ resource "mongodbatlas_cluster" "test" {
 
 # Create the peering connection request
 resource "mongodbatlas_network_peering" "test" {
-  project_id       = "${local.project_id}"
+  project_id       = local.project_id
   atlas_cidr_block = "192.168.0.0/18"
 
   container_id   = mongodbatlas_cluster.test.container_id
@@ -313,6 +314,7 @@ resource "mongodbatlas_network_peering" "test" {
   azure_subscription_id = local.AZURE_SUBSCRIPTION_ID
   resource_group_name   = local.AZURE_RESOURCE_GROUP_NAME
   vnet_name             = local.AZURE_VNET_NAME
+  atlas_cidr_block      = local.ATLAS_CIDR_BLOCK
 }
 ```
 
