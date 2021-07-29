@@ -96,6 +96,8 @@ func getProjectApiKeys(conn *matlas.Client, ctx context.Context, orgID, projectI
 		id := key.ID
 		var roles []string
 		for _, role := range key.Roles {
+			// ProjectAPIKeys.List returns all API keys of the Project, including the org and project roles
+			// For more details: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/
 			if !strings.HasPrefix(role.RoleName, "ORG_") {
 				roles = append(roles, role.RoleName)
 			}
@@ -139,7 +141,7 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 
 	apiKeys, err := getProjectApiKeys(conn, ctx, project.OrgID, project.ID)
 	if err != nil {
-		return fmt.Errorf("error getting project's api keys (%s): %s", projectID, err)
+		return diag.FromErr(fmt.Errorf("error getting project's api keys (%s): %s", projectID, err))
 	}
 
 	if err := d.Set("org_id", project.OrgID); err != nil {
