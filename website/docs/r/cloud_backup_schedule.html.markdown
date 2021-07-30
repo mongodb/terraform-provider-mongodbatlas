@@ -139,7 +139,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot backup policy you want to retrieve.
 * `reference_hour_of_day` - (Optional) UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
-* `reference_minute_of_hour` - (Optional) UTC Minutes after referenceHourOfDay that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
+* `reference_minute_of_hour` - (Optional) UTC Minutes after `reference_hour_of_day` that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
 * `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
 * `policy_item_hourly` - (Optional) Hourly policy item
@@ -151,7 +151,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * 
 * `policy_item_daily.0.id` - Unique identifier of the backup policy item.
 * `policy_item_daily.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_daily.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_daily.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
 * `policy_item_daily.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
 * `policy_item_daily.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
@@ -159,7 +159,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 *
 * `policy_item_weekly.0.id` - Unique identifier of the backup policy item.
 * `policy_item_weekly.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_weekly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_weekly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
 * `policy_item_weekly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
 * `policy_item_weekly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
@@ -167,7 +167,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 *
 * `policy_item_hourly.0.id` - Unique identifier of the backup policy item.
 * `policy_item_hourly.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_hourly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_hourly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
 * `policy_item_hourly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
 * `policy_item_hourly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
@@ -175,7 +175,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 *
 * `policy_item_monthly.0.id` - Unique identifier of the backup policy item.
 * `policy_item_monthly.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_monthly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_monthly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
 * `policy_item_monthly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
 * `policy_item_monthly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
