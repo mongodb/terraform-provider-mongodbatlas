@@ -40,6 +40,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"cluster_name": {
 				Type:     schema.TypeString,
