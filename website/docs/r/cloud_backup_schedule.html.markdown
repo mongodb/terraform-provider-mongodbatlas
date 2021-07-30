@@ -15,8 +15,6 @@ description: |-
 In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
 
-~> **IMPORTANT:**   `policies.0.policy_item.#.id` is obtained when the cluster for which the policy applies is created and has `cloud_backup` is set to true.
-
 ## Example Usage - Create a Cluster with 2 Policies Items
 
 You can create a new cluster with `cloud_backup` enabled and then immediately overwrite the default cloud backup policy that Atlas creates by default at the same time with this example.
@@ -44,24 +42,15 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 
   // This will now add the desired policy items to the existing mongodbatlas_cloud_backup_schedule resource
-  policies {
-    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
-
-    policy_item {
-      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
-      frequency_interval = 1
-      frequency_type     = "hourly"
-      retention_unit     = "days"
-      retention_value    = 1
-    }
-
-    policy_item {
-      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
-      frequency_interval = 1
-      frequency_type     = "daily"
-      retention_unit     = "days"
-      retention_value    = 2
-    }
+  policy_item_hourly {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 1
+  }
+  policy_item_daily {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 2
   }
 }
 ```
@@ -121,34 +110,27 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   restore_window_days      = 4
   
   // This will now add the desired policy items to the existing mongodbatlas_cloud_backup_schedule resource
-  policies {
-    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
-
-    policy_item {
-      frequency_interval = 2
-      frequency_type     = "hourly"
-      retention_unit     = "days"
-      retention_value    = 1
-    }
-    policy_item {
-      frequency_interval = 1
-      frequency_type     = "daily"
-      retention_unit     = "days"
-      retention_value    = 4
-    }
-    policy_item {
-      frequency_interval = 4
-      frequency_type     = "weekly"
-      retention_unit     = "weeks"
-      retention_value    = 2
-    }
-    policy_item {
-      frequency_interval = 5
-      frequency_type     = "monthly"
-      retention_unit     = "months"
-      retention_value    = 3
-    }
+  policy_item_hourly {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 1
   }
+  policy_item_daily {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 2
+  }
+  policy_item_weekly {
+    frequency_interval = 4
+    retention_unit     = "weeks"
+    retention_value    = 3
+  }
+  policy_item_monthly {
+    frequency_interval = 5
+    retention_unit     = "months"
+    retention_value    = 4
+  }
+
 }
 ```
 
@@ -160,22 +142,42 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `reference_minute_of_hour` - (Optional) UTC Minutes after referenceHourOfDay that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
 * `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
+* `policy_item_hourly` - (Optional) Hourly policy item
+* `policy_item_daily` - (Optional) Daily policy item
+* `policy_item_weekly` - (Optional) Weekly policy item
+* `policy_item_monthly` - (Optional) Monthly policy item
 
-### Policies
+#### Policy Item Hourly
+* 
+* `policy_item_daily.0.id` - Unique identifier of the backup policy item.
+* `policy_item_daily.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_daily.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_daily.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_daily.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
-**NOTE** - If no policies are provided the default ones will be deleted.
-**NOTE** - If policies are provided the default ones will be overridden.
+#### Policy Item Daily
+*
+* `policy_item_weekly.0.id` - Unique identifier of the backup policy item.
+* `policy_item_weekly.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_weekly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_weekly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_weekly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
-* `policies` - (Optional) Contains a document for each backup policy item in the desired updated backup policy.
-* `policies.0.id` - (Optional) Unique identifier of the backup policy that you want to update. policies.0.id is a value obtained via the mongodbatlas_cluster resource. `cloud_backup` of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.0.id
+#### Policy Item Weekly
+*
+* `policy_item_hourly.0.id` - Unique identifier of the backup policy item.
+* `policy_item_hourly.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_hourly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_hourly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_hourly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
-#### Policy Item
-* `policies.0.policy_item` - (Optional) Array of backup policy items.
-* `policies.0.policy_item.#.id` - (Optional) Unique identifier of the backup policy item. `policies.0.policy_item.#.id` is a value obtained via the mongodbatlas_cluster resource. `cloud_backup` of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.0.policy_item.#.id . **NOTE** If not specified, it might create a policy item if the policies items are empty.
-* `policies.0.policy_item.#.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
-* `policies.0.policy_item.#.frequency_type` - (Required) Frequency associated with the backup policy item. One of the following values: hourly, daily, weekly or monthly.
-* `policies.0.policy_item.#.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `policies.0.policy_item.#.retention_value` - (Required) Value to associate with retentionUnit.
+#### Policy Item Monthly
+*
+* `policy_item_monthly.0.id` - Unique identifier of the backup policy item.
+* `policy_item_monthly.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_monthly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_monthly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_monthly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
 
 ## Attributes Reference
@@ -184,6 +186,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - Unique identifier of the Atlas cluster.
 * `next_snapshot` - Timestamp in the number of seconds that have elapsed since the UNIX epoch when Atlas takes the next snapshot.
+* `id_policy` - Unique identifier of the backup policy.
 
 ## Import
 

@@ -1,7 +1,6 @@
 package mongodbatlas
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,15 +9,19 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
+	errorSnapshotBackupScheduleCreate  = "error creating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
 	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
+	snapshotScheduleHourly             = "hourly"
+	snapshotScheduleDaily              = "daily"
+	snapshotScheduleWeekly             = "weekly"
+	snapshotScheduleMonthly            = "monthly"
 )
 
 // https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/modify-one-schedule/
@@ -37,65 +40,127 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"policies": {
-				Type:     schema.TypeList,
-				Optional: true,
+			"id_policy": {
+				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"policy_item_hourly": {
+				Type:     schema.TypeList,
 				MaxItems: 1,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"policy_item": {
-							Type:     schema.TypeSet,
-							Optional: true,
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"policy_item_daily": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
 							Computed: true,
-							MinItems: 0,
-							MaxItems: 4,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-									},
-									"frequency_interval": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"frequency_type": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"hourly", "daily", "weekly", "monthly"}, false),
-									},
-									"retention_unit": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{"days", "weeks", "months"}, false),
-									},
-									"retention_value": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-							Set: func(v interface{}) int {
-								var buf bytes.Buffer
-								m := v.(map[string]interface{})
-								buf.WriteString(fmt.Sprintf("%d", m["frequency_interval"].(int)))
-								buf.WriteString(fmt.Sprintf("%d", m["retention_value"].(int)))
-								buf.WriteString(m["frequency_type"].(string))
-								buf.WriteString(m["retention_unit"].(string))
-								return HashCodeString(buf.String())
-							},
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
+			"policy_item_weekly": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
+			"policy_item_monthly": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
 						},
 					},
 				},
@@ -153,19 +218,9 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	// Delete policies items if not set
-	if _, ok := d.GetOk("policies"); !ok {
-		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
-		if err != nil {
-			return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
-		}
-	}
-
-	req := buildCloudBackupScheduleRequest(d)
-
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
+	err := cloudBackupScheduleCreateOrUpdate(conn, d, projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
+		return fmt.Errorf(errorSnapshotBackupScheduleCreate, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -213,8 +268,24 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta in
 		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
 
-	if err := d.Set("policies", flattenPolicies(backupPolicy.Policies)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policies", clusterName, err)
+	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
+	}
+
+	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
+	}
+
+	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleDaily)); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
+	}
+
+	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleWeekly)); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
+	}
+
+	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
 	return nil
@@ -227,23 +298,13 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta 
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	if err := snapshotScheduleUpdate(context.Background(), d, conn, projectID, clusterName); err != nil {
-		return err
-	}
-
 	if restoreWindowDays, ok := d.GetOk("restore_window_days"); ok {
 		if cast.ToInt64(restoreWindowDays) <= 0 {
 			return fmt.Errorf("`restore_window_days` cannot be <= 0")
 		}
 	}
 
-	req := buildCloudBackupScheduleRequest(d)
-
-	if rwd, ok := d.GetOk("restore_window_days"); ok {
-		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(rwd))
-	}
-
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
+	err := cloudBackupScheduleCreateOrUpdate(conn, d, projectID, clusterName)
 	if err != nil {
 		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
@@ -298,36 +359,91 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, 
 	return []*schema.ResourceData{d}, nil
 }
 
-func buildCloudBackupScheduleRequest(d *schema.ResourceData) *matlas.CloudProviderSnapshotBackupPolicy {
+func cloudBackupScheduleCreateOrUpdate(conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
 	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 
-	_, ok := d.GetOk("policies")
-	if ok {
-		req.Policies = expandPolicies(d)
+	// Delete policies items
+	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
+	if err != nil {
+		return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
-	hourDay, ok := d.GetOk("reference_hour_of_day")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(hourDay))
-		req.ReferenceHourOfDay = value
+	policy := matlas.Policy{}
+	policyItem := matlas.PolicyItem{}
+	var policiesItem []matlas.PolicyItem
+
+	if v, ok := d.GetOk("policy_item_hourly"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		policyItem.FrequencyType = snapshotScheduleHourly
+		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		policyItem.RetentionValue = itemObj["retention_value"].(int)
+		policiesItem = append(policiesItem, policyItem)
 	}
-	minHour, ok := d.GetOk("reference_minute_of_hour")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(minHour))
-		req.ReferenceMinuteOfHour = value
+	if v, ok := d.GetOk("policy_item_daily"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		policyItem.FrequencyType = snapshotScheduleDaily
+		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		policyItem.RetentionValue = itemObj["retention_value"].(int)
+		policiesItem = append(policiesItem, policyItem)
 	}
-	winDays, ok := d.GetOk("restore_window_days")
-	if ok {
-		value := pointy.Int64(cast.ToInt64(winDays))
-		req.RestoreWindowDays = value
+	if v, ok := d.GetOk("policy_item_weekly"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		policyItem.FrequencyType = snapshotScheduleWeekly
+		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		policyItem.RetentionValue = itemObj["retention_value"].(int)
+		policiesItem = append(policiesItem, policyItem)
 	}
-	updateSnap, ok := d.GetOk("update_snapshots")
-	if ok {
-		value := pointy.Bool(updateSnap.(bool))
-		if *value {
-			req.UpdateSnapshots = value
+	if v, ok := d.GetOk("policy_item_monthly"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		policyItem.FrequencyType = snapshotScheduleMonthly
+		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		policyItem.RetentionValue = itemObj["retention_value"].(int)
+		policiesItem = append(policiesItem, policyItem)
+	}
+
+	policy.ID = resp.Policies[0].ID
+	policy.PolicyItems = policiesItem
+	if len(policiesItem) > 0 {
+		req.Policies = []matlas.Policy{policy}
+	}
+
+	req.ReferenceHourOfDay = pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day")))
+	req.ReferenceMinuteOfHour = pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour")))
+	req.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
+	value := pointy.Bool(d.Get("update_snapshots").(bool))
+	if *value {
+		req.UpdateSnapshots = value
+	}
+
+	_, _, err = conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
+	if err != nil {
+		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
+	}
+
+	return nil
+}
+
+func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[string]interface{} {
+	policyItems := make([]map[string]interface{}, 0)
+	for _, v := range items {
+		if frequencyType == v.FrequencyType {
+			policyItems = append(policyItems, map[string]interface{}{
+				"id":                 v.ID,
+				"frequency_interval": v.FrequencyInterval,
+				"frequency_type":     v.FrequencyType,
+				"retention_unit":     v.RetentionUnit,
+				"retention_value":    v.RetentionValue,
+			})
 		}
 	}
 
-	return req
+	return policyItems
 }

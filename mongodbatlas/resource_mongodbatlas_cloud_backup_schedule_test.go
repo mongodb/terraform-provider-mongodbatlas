@@ -38,7 +38,10 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
 				),
 			},
 			{
@@ -54,7 +57,22 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
-					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "3"),
 				),
 			},
 		},
@@ -86,7 +104,22 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "3"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
 				),
 			},
 			{
@@ -102,7 +135,12 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "0"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
-					resource.TestCheckResourceAttr(resourceName, "policies.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
 				),
 			},
 		},
@@ -134,6 +172,22 @@ func TestAccResourceMongoDBAtlasCloudBackupScheduleImport_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "3"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
 				),
 			},
 			{
@@ -244,38 +298,25 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
 
-
-			policies {
-				id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
-
-				policy_item {
-					id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
-					frequency_interval = 1
-					frequency_type     = "hourly"
-					retention_unit     = "days"
-					retention_value    = 1
-				}
-				policy_item {
-					id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
-					frequency_interval = 1
-					frequency_type     = "daily"
-					retention_unit     = "days"
-					retention_value    = 2
-				}
-				policy_item {
-					id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
-					frequency_interval = 4
-					frequency_type     = "weekly"
-					retention_unit     = "weeks"
-					retention_value    = 3
-				}
-				policy_item {
-					id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id
-					frequency_interval = 5
-					frequency_type     = "monthly"
-					retention_unit     = "months"
-					retention_value    = 4
-				}
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 2
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 3
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 4
 			}
 		}
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
@@ -303,16 +344,10 @@ func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterNam
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
 
-			policies {
-				id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
-
-				policy_item {
-					id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
-					frequency_interval = 1
-					frequency_type     = "hourly"
-					retention_unit     = "days"
-					retention_value    = 1
-				}
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
 			}
 		}
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
@@ -339,35 +374,26 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(projectID, clusterN
 			reference_hour_of_day    = %d
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
-
-
-			policies {
-				id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
-
-				policy_item {
-					frequency_interval = 2
-					frequency_type     = "hourly"
-					retention_unit     = "days"
-					retention_value    = 1
-				}
-				policy_item {
-					frequency_interval = 1
-					frequency_type     = "daily"
-					retention_unit     = "days"
-					retention_value    = 4
-				}
-				policy_item {
-					frequency_interval = 4
-					frequency_type     = "weekly"
-					retention_unit     = "weeks"
-					retention_value    = 2
-				}
-				policy_item {
-					frequency_interval = 5
-					frequency_type     = "monthly"
-					retention_unit     = "months"
-					retention_value    = 3
-				}
+			
+			policy_item_hourly {
+				frequency_interval = 2
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 4
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 2
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 3
 			}
 		}
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)

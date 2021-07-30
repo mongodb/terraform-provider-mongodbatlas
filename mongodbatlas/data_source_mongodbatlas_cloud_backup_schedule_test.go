@@ -13,7 +13,6 @@ import (
 
 func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		datasourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
@@ -31,13 +30,16 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					RestoreWindowDays:     pointy.Int64(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(datasourceName, "policies.#", "1"),
+					testAccCheckMongoDBAtlasCloudBackupScheduleExists(datasourceName),
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "reference_hour_of_day", "3"),
+					resource.TestCheckResourceAttr(datasourceName, "reference_minute_of_hour", "45"),
+					resource.TestCheckResourceAttr(datasourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_hourly.#", "0"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_daily.#", "0"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_weekly.#", "0"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_monthly.#", "0"),
 				),
 			},
 		},
@@ -46,7 +48,6 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 
 func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_withOnePolicy(t *testing.T) {
 	var (
-		resourceName   = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		datasourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName    = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
@@ -64,13 +65,18 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_withOnePolicy(t *testing.T
 					RestoreWindowDays:     pointy.Int64(4),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(datasourceName, "policies.#", "1"),
+					testAccCheckMongoDBAtlasCloudBackupScheduleExists(datasourceName),
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "reference_hour_of_day", "3"),
+					resource.TestCheckResourceAttr(datasourceName, "reference_minute_of_hour", "45"),
+					resource.TestCheckResourceAttr(datasourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_hourly.0.frequency_interval", "2"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_daily.#", "0"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_weekly.#", "0"),
+					resource.TestCheckResourceAttr(datasourceName, "policy_item_monthly.#", "0"),
 				),
 			},
 		},
@@ -130,16 +136,10 @@ func testAccDataSourceMongoDBAtlasCloudBackupScheduleWithPoliciesConfig(projectI
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
 
-			policies {
-				id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
-
-				policy_item {
-					id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
-					frequency_interval = 1
-					frequency_type     = "hourly"
-					retention_unit     = "days"
-					retention_value    = 1
-				}
+			policy_item_hourly {
+				frequency_interval = 2
+				retention_unit     = "days"
+				retention_value    = 1
 			}
 		}
 	 

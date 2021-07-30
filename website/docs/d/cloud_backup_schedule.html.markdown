@@ -56,17 +56,42 @@ In addition to all arguments above, the following attributes are exported:
 * `reference_hour_of_day` - UTC Hour of day between 0 and 23 representing which hour of the day that Atlas takes a snapshot.
 * `reference_minute_of_hour` - UTC Minute of day between 0 and 59 representing which minute of the referenceHourOfDay that Atlas takes the snapshot.
 * `restore_window_days` - Specifies a restore window in days for cloud backup to maintain.
+* `id_policy` - Unique identifier of the backup policy.
+* `policy_item_hourly` - (Optional) Hourly policy item
+* `policy_item_daily` - (Optional) Daily policy item
+* `policy_item_weekly` - (Optional) Weekly policy item
+* `policy_item_monthly` - (Optional) Monthly policy item
 
-### Policies
-* `policies` - A list of policy definitions for the cluster.
-* `policies.0.id` - Unique identifier of the backup policy.
+#### Policy Item Hourly
+*
+* `policy_item_daily.0.id` - Unique identifier of the backup policy item.
+* `policy_item_daily.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_daily.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_daily.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_daily.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
-#### Policy Item
-* `policies.0.policy_item` - A list of specifications for a policy.
-* `policies.0.policy_item.#.id` - Unique identifier for this policy item.
-* `policies.0.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
-* `policies.0.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
-* `policies.0.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
-* `policies.0.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
+#### Policy Item Daily
+*
+* `policy_item_weekly.0.id` - Unique identifier of the backup policy item.
+* `policy_item_weekly.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_weekly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_weekly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_weekly.0.retention_value` - (Required) Value to associate with `retention_unit`.
+
+#### Policy Item Weekly
+*
+* `policy_item_hourly.0.id` - Unique identifier of the backup policy item.
+* `policy_item_hourly.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_hourly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_hourly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_hourly.0.retention_value` - (Required) Value to associate with `retention_unit`.
+
+#### Policy Item Monthly
+*
+* `policy_item_monthly.0.id` - Unique identifier of the backup policy item.
+* `policy_item_monthly.0.frequency_type` - Frequency associated with the backup policy item.
+* `policy_item_monthly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
+* `policy_item_monthly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `policy_item_monthly.0.retention_value` - (Required) Value to associate with `retention_unit`.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/)
