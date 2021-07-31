@@ -280,7 +280,7 @@ func expandPolicies(d *schema.ResourceData) []matlas.Policy {
 		policy := v.(map[string]interface{})
 		policies[k] = matlas.Policy{
 			ID:          policy["id"].(string),
-			PolicyItems: expandPolicyItems(policy["policy_item"].(*schema.Set).List()),
+			PolicyItems: expandPolicyItems(policy["policy_item"].([]interface{})),
 		}
 	}
 

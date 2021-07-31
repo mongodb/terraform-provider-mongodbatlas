@@ -507,6 +507,22 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
 	}
+	if v, ok := d.GetOk("cloud_backup"); ok {
+		clusterRequest.ProviderBackupEnabled = pointy.Bool(v.(bool))
+	}
+
+	// Deprecated will remove later
+	if v, ok := d.GetOk("provider_backup_enabled"); ok {
+		clusterRequest.ProviderBackupEnabled = pointy.Bool(v.(bool))
+	}
+
+	if _, ok := d.GetOk("bi_connector"); ok {
+		biConnector, err := expandBiConnector(d)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
+		}
+		clusterRequest.BiConnector = biConnector
+	}
 
 	if _, ok := d.GetOk("bi_connector"); ok {
 		biConnector, err := expandBiConnector(d)
@@ -640,6 +656,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err))
+	}
+
+	if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err))
 	}
 
 	if err := d.Set("cloud_backup", cluster.ProviderBackupEnabled); err != nil {
@@ -847,6 +867,11 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	if d.HasChange("disk_size_gb") {
 		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
+	}
+
+	// Deprecated will remove later
+	if d.HasChange("provider_backup_enabled") {
+		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
 	}
 
 	if d.HasChange("cloud_backup") {

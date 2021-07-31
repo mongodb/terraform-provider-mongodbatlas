@@ -149,35 +149,27 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### Policy Item Hourly
 * 
-* `policy_item_daily.0.id` - Unique identifier of the backup policy item.
-* `policy_item_daily.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_daily.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `policy_item_daily.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `policy_item_daily.0.retention_value` - (Required) Value to associate with `retention_unit`.
+* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
+* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `retention_value` - (Required) Value to associate with `retention_unit`.
 
 ### Policy Item Daily
 *
-* `policy_item_weekly.0.id` - Unique identifier of the backup policy item.
-* `policy_item_weekly.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_weekly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `policy_item_weekly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `policy_item_weekly.0.retention_value` - (Required) Value to associate with `retention_unit`.
+* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
+* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `retention_value` - (Required) Value to associate with `retention_unit`.
 
 ### Policy Item Weekly
 *
-* `policy_item_hourly.0.id` - Unique identifier of the backup policy item.
-* `policy_item_hourly.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_hourly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `policy_item_hourly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `policy_item_hourly.0.retention_value` - (Required) Value to associate with `retention_unit`.
+* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
+* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `retention_value` - (Required) Value to associate with `retention_unit`.
 
 ### Policy Item Monthly
 *
-* `policy_item_monthly.0.id` - Unique identifier of the backup policy item.
-* `policy_item_monthly.0.frequency_type` - Frequency associated with the backup policy item.
-* `policy_item_monthly.0.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `policy_item_monthly.0.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `policy_item_monthly.0.retention_value` - (Required) Value to associate with `retention_unit`.
+* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
+* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
+* `retention_value` - (Required) Value to associate with `retention_unit`.
 
 
 ## Attributes Reference
