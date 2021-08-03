@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -90,10 +89,10 @@ func getProjectApiKeys(conn *matlas.Client, ctx context.Context, orgID, projectI
 	if err != nil {
 		return nil, err
 	}
-
 	var keys []*apiKey
 	for _, key := range apiKeys {
 		id := key.ID
+
 		var roles []string
 		for _, role := range key.Roles {
 			// ProjectAPIKeys.List returns all API keys of the Project, including the org and project roles
@@ -131,37 +130,37 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorProjectRead, projectID, err))
+		return diag.Errorf(errorProjectRead, projectID, err)
 	}
 
 	teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, project.ID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting project's teams assigned (%s): %s", projectID, err))
+		return diag.Errorf("error getting project's teams assigned (%s): %s", projectID, err)
 	}
 
 	apiKeys, err := getProjectApiKeys(conn, ctx, project.OrgID, project.ID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting project's api keys (%s): %s", projectID, err))
+		return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
 	}
 
 	if err := d.Set("org_id", project.OrgID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorProjectSetting, `org_id`, project.ID, err))
+		return diag.Errorf(errorProjectSetting, `org_id`, project.ID, err)
 	}
 
 	if err := d.Set("cluster_count", project.ClusterCount); err != nil {
-		return diag.FromErr(fmt.Errorf(errorProjectSetting, `clusterCount`, project.ID, err))
+		return diag.Errorf(errorProjectSetting, `clusterCount`, project.ID, err)
 	}
 
 	if err := d.Set("created", project.Created); err != nil {
-		return diag.FromErr(fmt.Errorf(errorProjectSetting, `created`, project.ID, err))
+		return diag.Errorf(errorProjectSetting, `created`, project.ID, err)
 	}
 
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorProjectSetting, `teams`, project.ID, err))
+		return diag.Errorf(errorProjectSetting, `teams`, project.ID, err)
 	}
 
 	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorProjectSetting, `api_keys`, project.ID, err))
+		return diag.Errorf(errorProjectSetting, `api_keys`, project.ID, err)
 	}
 
 	d.SetId(project.ID)
