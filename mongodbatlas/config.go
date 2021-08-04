@@ -2,11 +2,12 @@ package mongodbatlas
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 
-	digest "github.com/mongodb-forks/digest"
+	"github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
