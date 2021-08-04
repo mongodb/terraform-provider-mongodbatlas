@@ -2,9 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 
 	digest "github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
@@ -38,7 +38,7 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
 	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
@@ -50,7 +50,7 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 	}
 
 	// Realm
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + ProviderVersion)}
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
 	if c.BaseURL != "" {
 		optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
 	}

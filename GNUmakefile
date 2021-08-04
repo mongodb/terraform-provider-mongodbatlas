@@ -9,7 +9,7 @@ GOOPTS="-p 2"
 
 GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
-LINKER_FLAGS=-X mongodbatlas/version.ProviderVersion=${VERSION}
+LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
 GOLANGCI_VERSION=v1.29.0
 
