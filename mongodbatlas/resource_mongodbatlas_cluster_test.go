@@ -827,10 +827,11 @@ func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, clusterName, true, false),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled"},
 			},
 		},
 	})
