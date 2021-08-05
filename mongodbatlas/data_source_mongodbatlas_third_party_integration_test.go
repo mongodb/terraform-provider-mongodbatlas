@@ -3,11 +3,11 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"os"
 	"testing"
 
-	"math/rand"
-	"time"
+	"crypto/rand"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -87,10 +87,6 @@ const (
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	numeric  = "0123456789"
 	alphaNum = alphabet + numeric
-)
-
-var (
-	seeder = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
 type thirdPartyConfig struct {
@@ -242,8 +238,10 @@ func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 
 func testGenString(length int, charSet string) string {
 	sequence := make([]byte, length)
+	upperBound := big.NewInt(int64(len(charSet)))
 	for i := range sequence {
-		sequence[i] = charSet[seeder.Intn(len(charSet))]
+		n, _ := rand.Int(rand.Reader, upperBound)
+		sequence[i] = charSet[int(n.Int64())]
 	}
 	return string(sequence)
 }
