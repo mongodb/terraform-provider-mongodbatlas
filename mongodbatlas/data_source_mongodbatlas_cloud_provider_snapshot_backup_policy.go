@@ -85,6 +85,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy() *schema.Resource 
 				},
 			},
 		},
+		DeprecationMessage: "This data source is deprecated. Please transition to mongodbatlas_cloud_backup_schedule as soon as possible",
 	}
 }
 
