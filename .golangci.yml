@@ -11,7 +11,38 @@ linters-settings:
   govet:
     check-shadowing: true
   revive:
-    min-confidence: 0
+    # see https://github.com/mgechev/revive#available-rules for details.
+    ignore-generated-header: true
+    severity: warning
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: errorf
+      - name: exported
+      - name: indent-error-flow
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: struct-tag
+      # Too many unusued parameters, skipping this check for now
+      #- name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
   maligned:
     suggest-new: true
   depguard:
