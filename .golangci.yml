@@ -10,7 +10,7 @@ linters-settings:
       - octalLiteral
   govet:
     check-shadowing: true
-  golint:
+  revive:
     min-confidence: 0
   maligned:
     suggest-new: true
@@ -54,20 +54,19 @@ linters:
     - gocritic
     - gofmt
     - goimports
-    - golint
+    - revive
     - gomnd
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
     - nolintlint
     - rowserrcheck
-    - scopelint
+    - exportloopref
     - staticcheck
     - structcheck
     - stylecheck

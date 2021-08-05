@@ -11,9 +11,10 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.29.0
+GOLANGCI_VERSION=v1.41.1
 
-export PATH := ./bin:$(PATH)
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
+export SHELL := env PATH=$(PATH) /bin/bash
 
 default: build
 
@@ -42,12 +43,12 @@ websitefmtcheck:
 lint:
 	@echo "==> Checking source code against linters..."
 	# https://github.com/golangci/golangci-lint/issues/337 fixing error
-	bin/golangci-lint run ./$(PKG_NAME) -v --deadline=30m
+	golangci-lint run ./$(PKG_NAME) -v --deadline=30m
 
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_VERSION)
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 check: test lint
 
