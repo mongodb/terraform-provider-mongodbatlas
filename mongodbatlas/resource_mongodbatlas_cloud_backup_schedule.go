@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cast"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -28,12 +28,12 @@ const (
 // same as resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy
 func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMongoDBAtlasCloudBackupScheduleCreate,
-		Read:   resourceMongoDBAtlasCloudBackupScheduleRead,
-		Update: resourceMongoDBAtlasCloudBackupScheduleUpdate,
-		Delete: resourceMongoDBAtlasCloudBackupScheduleDelete,
+		CreateContext: resourceMongoDBAtlasCloudBackupScheduleCreate,
+		ReadContext:   resourceMongoDBAtlasCloudBackupScheduleRead,
+		UpdateContext: resourceMongoDBAtlasCloudBackupScheduleUpdate,
+		DeleteContext: resourceMongoDBAtlasCloudBackupScheduleDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceMongoDBAtlasCloudBackupScheduleImportState,
+			StateContext: resourceMongoDBAtlasCloudBackupScheduleImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -214,14 +214,14 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	err := cloudBackupScheduleCreateOrUpdate(conn, d, projectID, clusterName)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleCreate, err)
+		return diag.Errorf(errorSnapshotBackupScheduleCreate, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -229,10 +229,10 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(d *schema.ResourceData, meta 
 		"cluster_name": clusterName,
 	}))
 
-	return resourceMongoDBAtlasCloudBackupScheduleRead(d, meta)
+	return resourceMongoDBAtlasCloudBackupScheduleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -242,57 +242,57 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta in
 
 	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
 
 	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
 	}
 
 	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
 	}
 
 	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
 	}
 
 	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
 	if err := d.Set("update_snapshots", backupPolicy.UpdateSnapshots); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "update_snapshots", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "update_snapshots", clusterName, err)
 	}
 
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
 
 	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleDaily)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleWeekly)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -301,34 +301,34 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(d *schema.ResourceData, meta 
 
 	if restoreWindowDays, ok := d.GetOk("restore_window_days"); ok {
 		if cast.ToInt64(restoreWindowDays) <= 0 {
-			return fmt.Errorf("`restore_window_days` cannot be <= 0")
+			return diag.Errorf("`restore_window_days` cannot be <= 0")
 		}
 	}
 
-	err := cloudBackupScheduleCreateOrUpdate(conn, d, projectID, clusterName)
+	err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
+		return diag.Errorf(errorSnapshotBackupScheduleUpdate, err)
 	}
 
-	return resourceMongoDBAtlasCloudBackupScheduleRead(d, meta)
+	return resourceMongoDBAtlasCloudBackupScheduleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -339,7 +339,7 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, 
 	projectID := parts[0]
 	clusterName := parts[1]
 
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
@@ -360,11 +360,11 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(d *schema.ResourceData, 
 	return []*schema.ResourceData{d}, nil
 }
 
-func cloudBackupScheduleCreateOrUpdate(conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
+func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
 	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 
 	// Delete policies items
-	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(context.Background(), projectID, clusterName)
+	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
 	if err != nil {
 		return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
