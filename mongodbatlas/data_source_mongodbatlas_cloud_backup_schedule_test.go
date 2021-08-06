@@ -19,9 +19,9 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasCloudBackupScheduleConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
@@ -54,9 +54,9 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_withOnePolicy(t *testing.T
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasCloudBackupScheduleWithPoliciesConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{

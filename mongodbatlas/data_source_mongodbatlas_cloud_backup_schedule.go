@@ -2,8 +2,8 @@ package mongodbatlas
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -11,7 +11,7 @@ import (
 // see documentation at https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/
 func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasCloudBackupScheduleRead,
+		ReadContext: dataSourceMongoDBAtlasCloudBackupScheduleRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -163,55 +163,55 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 
 // Almost the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead
 // just do not save the update_snapshots because is not specified in the DS
-func dataSourceMongoDBAtlasCloudBackupScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(context.Background(), projectID, clusterName)
+	backupPolicy, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
+		return diag.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
 	}
 
 	if err := d.Set("cluster_id", backupPolicy.ClusterID); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "cluster_id", clusterName, err)
 	}
 
 	if err := d.Set("reference_hour_of_day", backupPolicy.ReferenceHourOfDay); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_hour_of_day", clusterName, err)
 	}
 
 	if err := d.Set("reference_minute_of_hour", backupPolicy.ReferenceMinuteOfHour); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "reference_minute_of_hour", clusterName, err)
 	}
 
 	if err := d.Set("restore_window_days", backupPolicy.RestoreWindowDays); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
 
 	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleDaily)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_weekly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleWeekly)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_weekly", clusterName, err)
 	}
 
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
