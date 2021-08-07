@@ -43,7 +43,7 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 }
 ```
 
-## Example with AWS
+## Example with Azure
 
 ```hcl
 resource "mongodbatlas_privatelink_endpoint" "test" {
