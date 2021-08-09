@@ -1,8 +1,8 @@
 # Changelog
 
-## [v1.0.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/HEAD)
+## [v1.0.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.0-pre.1]) (2021-06-09)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.9.1...HEAD)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.9.1...v1.0.0-pre.1])
 
 **Closed issues:**
 
