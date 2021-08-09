@@ -8,6 +8,24 @@ MongoDB Atlas Provider 0.1.0: Upgrade and Information Guide
 
 # MongoDB Atlas Provider 1.0.0: Upgrade and Information Guide
 
+The Terraform MongoDB Atlas Provider version 1.0.0 has a number of new and exciting features and changes.  
+New features include:
+* Support for Atlas Search
+* Support for Online Archive
+* Support for Data Lake
+* Support for Triggers
+* Re-Architected and Updated Cloud Backup Policy Schedule
+
+1.0.0 also includes general improvements and bug fixes. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
+
+In addition, there are a few changes that will require modifications to your TF configuration between earlier versions of the provdier and this one.  Below we have outlined guidance for each of the changes.
+These configuration impacting changes include:
+* The Project IP Whitelist resource and data source are at end of life.  They have been replaced by Project IP Access List.
+* Private Endpoint and Private Endpoint Interface Link are at end of life.  They have been replaced by PrivateLink Endpoint and PrivateLink Endpoint Service
+* We've upgraded to Terraform's SDK v2, which results in configuration changes for some resources and data sources.  They include: Alert Configuration, Cloud Provider Access Authorization, Cloud Provider Snapshot Restore Job and Encryption at Rest with BYOK.
+* Cloud Provider Backup Schedule replaces the now deprecated Cloud Provider Snapshot Backup Policy.  
+* Related to the above, in the Cluster resource and data source the parameter `provider_backup_enabled` has been deprecated, use `cloud_backup` instead.
+
 ## End of Life and removal of Project IP Whitelist and import with Project IP Access List
 
 To upgrade from v0.9.1 to v1.0.0 with the existing resources `mongodbatlas_project_ip_whitelist`
