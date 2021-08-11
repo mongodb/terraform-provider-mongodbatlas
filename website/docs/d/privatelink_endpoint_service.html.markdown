@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-## Example Usage
+## Example with AWS
 
 ```hcl
 resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -30,10 +30,48 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id       = mongodbatlas_privatelink_endpoint.test.private_link_id
-  endpoint_service_id   = aws_vpc_endpoint.ptfe_service.id
-  provider_name         ="AWS"
+  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+  endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
+  provider_name       = "AWS"
+}
+
+data "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id            = mongodbatlas_privatelink_endpoint_service.test.project_id
+  private_link_id       = mongodbatlas_privatelink_endpoint_service.test.private_link_id
+  interface_endpoint_id = mongodbatlas_privatelink_endpoint_service.test.interface_endpoint_id
+}
+```
+
+## Example with Azure
+
+```hcl
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id    = var.project_id
+  provider_name = "AZURE"
+  region        = "eastus2"
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "endpoint-test"
+  location            = data.azurerm_resource_group.test.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = azurerm_subnet.test.id
+  private_service_connection {
+    name                           = mongodbatlas_privatelink_endpoint.test.private_link_service_name
+    private_connection_resource_id = mongodbatlas_privatelink_endpoint.test.private_link_service_resource_id
+    is_manual_connection           = true
+    request_message                = "Azure Private Link test"
+  }
+
+}
+
+resource "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
+  endpoint_service_id         = azurerm_private_endpoint.test.id
+  private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
+  provider_name               = "AZURE"
 }
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
