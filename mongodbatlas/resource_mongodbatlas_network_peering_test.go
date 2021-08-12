@@ -88,7 +88,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasNetworkPeeringImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"atlas_cidr_block", "container_id"},
+				ImportStateVerifyIgnore: []string{"container_id"},
 			},
 		},
 	})
@@ -288,7 +288,6 @@ func testAccMongoDBAtlasNetworkPeeringConfigAzure(projectID, providerName, direc
 
 		resource "mongodbatlas_network_peering" "test" {
 			project_id   		      = "%[1]s"
-			atlas_cidr_block      = "192.168.0.0/21"
 			container_id          = mongodbatlas_network_container.test.container_id
 			provider_name         = "%[2]s"
 			azure_directory_id    = "%[3]s"

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -208,11 +207,6 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 	}
 
 	if providerName == "AZURE" {
-		atlasCidrBlock, ok := d.GetOk("atlas_cidr_block")
-		if !ok {
-			return diag.FromErr(errors.New("`atlas_cidr_block` must be set when `provider_name` is `AZURE`"))
-		}
-
 		azureDirectoryID, ok := d.GetOk("azure_directory_id")
 		if !ok {
 			return diag.FromErr(errors.New("`azure_directory_id` must be set when `provider_name` is `AZURE`"))
@@ -233,7 +227,6 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 			return diag.FromErr(errors.New("`vnet_name` must be set when `provider_name` is `AZURE`"))
 		}
 
-		peerRequest.AtlasCIDRBlock = atlasCidrBlock.(string)
 		peerRequest.AzureDirectoryID = azureDirectoryID.(string)
 		peerRequest.AzureSubscriptionID = azureSubscriptionID.(string)
 		peerRequest.ResourceGroupName = resourceGroupName.(string)
