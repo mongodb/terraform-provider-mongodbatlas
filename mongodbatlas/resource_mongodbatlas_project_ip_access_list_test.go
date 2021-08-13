@@ -152,11 +152,12 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingAWSSecurityGroup(t *t
 
 func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test_%d"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 
 	accessList := make([]map[string]string, 0)
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 200; i++ {
 		entry := make(map[string]string)
 		entryName := ""
 		ipAddr := ""
@@ -174,6 +175,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T
 
 		accessList = append(accessList, entry)
 	}
+
 	//TODO: make testAccCheckMongoDBAtlasProjectIPAccessListExists dynamic
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -181,7 +183,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectID, accessList, false),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(fmt.Sprintf(resourceName, 0)),
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(fmt.Sprintf(resourceName, 1)),
@@ -189,7 +191,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectID, accessList, true),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(fmt.Sprintf(resourceName, 0)),
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(fmt.Sprintf(resourceName, 1)),
@@ -329,8 +331,12 @@ func testAccMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(project
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
 }
 
-func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectID string, accessList []map[string]string, isUpdate bool) string {
-	config := ""
+func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID string, accessList []map[string]string, isUpdate bool) string {
+	config := fmt.Sprintf(`
+			resource "mongodbatlas_project" "test" {
+				name   = %[1]q
+				org_id = %[2]q
+			}`, projectName, orgID)
 
 	for i, entry := range accessList {
 		comment := entry["comment"]
@@ -341,20 +347,20 @@ func testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectID strin
 
 		if cidr, ok := entry["cidr_block"]; ok {
 			config += fmt.Sprintf(`
-			resource "mongodbatlas_project_ip_access_list" "test_%d" {
-				project_id = "%s"
-				cidr_block = "%s"
-				comment    = "%s"
+			resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
+				project_id   = mongodbatlas_project.test.id
+				cidr_block = %[2]q
+				comment    = %[3]q
 			}
-		`, i, projectID, cidr, comment)
+		`, i, cidr, comment)
 		} else {
 			config += fmt.Sprintf(`
-			resource "mongodbatlas_project_ip_access_list" "test_%d" {
-				project_id = "%s"
-				ip_address = "%s"
-				comment    = "%s"
+			resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
+				project_id   = mongodbatlas_project.test.id
+				ip_address = %[2]q
+				comment    = %[3]q
 			}
-		`, i, projectID, entry["ip_address"], comment)
+		`, i, entry["ip_address"], comment)
 		}
 	}
 	return config
