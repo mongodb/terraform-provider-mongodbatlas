@@ -132,7 +132,7 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 				accessListEntry = cidrBlock
 			}
 
-			exists, err := isProjectIpAccessInTheList(ctx, conn, projectID, accessListEntry)
+			exists, err := isProjectIPAccessInTheList(ctx, conn, projectID, accessListEntry)
 			if err != nil {
 				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
 					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
@@ -284,7 +284,7 @@ func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.
 	return []*schema.ResourceData{d}, nil
 }
 
-func isProjectIpAccessInTheList(ctx context.Context, conn *matlas.Client, projectID, entry string) (bool, error) {
+func isProjectIPAccessInTheList(ctx context.Context, conn *matlas.Client, projectID, entry string) (bool, error) {
 	currentPage := 1
 	exists := false
 	err := resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
