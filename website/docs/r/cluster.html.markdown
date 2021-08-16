@@ -16,7 +16,7 @@ description: |-
 
 ~> **IMPORTANT:**
 <br> &#8226; Free tier cluster creation (M0) is not supported via API or by this Provider.
-<br> &#8226; Shared tier clusters (M2, M5) cannot be upgraded to higher tiers via API or by this Provider.
+<br> &#8226; Shared tier clusters (M2, M5) cannot be upgraded to higher tiers via API or by this Provider.  WARNING! If you attempt to upgrade from an existing shared tier cluster that you manage with this Provider to a dedicated cluster (M10+) Terraform will see it as a request to destroy the shared tier cluster and as a request to create a dedicated tier cluster, i.e. Terraform will not see it as a request to upgrade.   If you accept the plan in this case the shared tier cluster would be destroyed and you would lose the data on that cluster. Do not attempt to upgrade from the shared to dedicated tier via this Provider, it is not supported!  
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).   
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
