@@ -154,10 +154,10 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T
 	resourceName := "mongodbatlas_project_ip_access_list.test_%d"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
-
+	const ipWhiteListCount = 200
 	accessList := make([]map[string]string, 0)
 
-	for i := 0; i < 200; i++ {
+	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)
 		entryName := ""
 		ipAddr := ""
