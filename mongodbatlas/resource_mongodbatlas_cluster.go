@@ -9,18 +9,15 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"time"
-
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -207,14 +204,16 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"provider_auto_scaling_compute_min_instance_size": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: isEqualProviderAutoScalingMinInstanceSize,
 			},
 			"provider_auto_scaling_compute_max_instance_size": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: isEqualProviderAutoScalingMaxInstanceSize,
 			},
 			"replication_factor": {
 				Type:     schema.TypeInt,
@@ -1524,4 +1523,25 @@ func clusterConnectionStringsSchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+func isEqualProviderAutoScalingMinInstanceSize(k, old, new string, d *schema.ResourceData) bool {
+	canScaleDown, _ := d.GetOk("auto_scaling_compute_scale_down_enabled")
+	canScaleUp, _ := d.GetOk("auto_scaling_compute_enabled")
+	if canScaleDown != nil && canScaleUp != nil && canScaleUp.(bool) && canScaleDown.(bool) {
+		if old != new {
+			return false
+		}
+	}
+	return true
+}
+
+func isEqualProviderAutoScalingMaxInstanceSize(k, old, new string, d *schema.ResourceData) bool {
+	canScaleUp, _ := d.GetOk("auto_scaling_compute_enabled")
+	if canScaleUp != nil && canScaleUp.(bool) {
+		if old != new {
+			return false
+		}
+	}
+	return true
 }
