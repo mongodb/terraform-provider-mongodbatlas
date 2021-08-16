@@ -128,7 +128,7 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 			}
 
 			accessListEntry := ipAddress
-			if cidrBlock != "" {
+			if len(cidrBlock) > 0 {
 				accessListEntry = cidrBlock
 			}
 
