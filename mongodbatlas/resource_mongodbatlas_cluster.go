@@ -1525,21 +1525,21 @@ func clusterConnectionStringsSchema() *schema.Schema {
 	}
 }
 
-func isEqualProviderAutoScalingMinInstanceSize(k, old, new string, d *schema.ResourceData) bool {
+func isEqualProviderAutoScalingMinInstanceSize(k, old, newStr string, d *schema.ResourceData) bool {
 	canScaleDown, _ := d.GetOk("auto_scaling_compute_scale_down_enabled")
 	canScaleUp, _ := d.GetOk("auto_scaling_compute_enabled")
 	if canScaleDown != nil && canScaleUp != nil && canScaleUp.(bool) && canScaleDown.(bool) {
-		if old != new {
+		if old != newStr {
 			return false
 		}
 	}
 	return true
 }
 
-func isEqualProviderAutoScalingMaxInstanceSize(k, old, new string, d *schema.ResourceData) bool {
+func isEqualProviderAutoScalingMaxInstanceSize(k, old, newStr string, d *schema.ResourceData) bool {
 	canScaleUp, _ := d.GetOk("auto_scaling_compute_enabled")
 	if canScaleUp != nil && canScaleUp.(bool) {
-		if old != new {
+		if old != newStr {
 			return false
 		}
 	}
