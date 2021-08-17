@@ -56,7 +56,6 @@ In addition to all arguments above, the following attributes are exported:
 * `vpc_id` - Unique identifier of the peer VPC.
 * `error_state_name` - Error state, if any. The VPC peering connection error state value can be one of the following: `REJECTED`, `EXPIRED`, `INVALID_ARGUMENT`.
 * `status_name` - The VPC peering connection status value can be one of the following: `INITIATING`, `PENDING_ACCEPTANCE`, `FAILED`, `FINALIZING`, `AVAILABLE`, `TERMINATING`.
-* `atlas_cidr_block` - Unique identifier for an Azure AD directory.
 * `azure_directory_id` - Unique identifier for an Azure AD directory.
 * `azure_subscription_id` - Unique identifer of the Azure subscription in which the VNet resides.
 * `resource_group_name` - Name of your Azure resource group. 

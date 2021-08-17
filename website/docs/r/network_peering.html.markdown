@@ -163,7 +163,6 @@ resource "mongodbatlas_network_peering" "test" {
   azure_subscription_id = local.AZURE_SUBSCRIPTION_ID
   resource_group_name   = local.AZURE_RESOURCES_GROUP_NAME
   vnet_name             = local.AZURE_VNET_NAME
-  atlas_cidr_block      = mongodbatlas_network_container.test.atlas_cidr_block
 }
 
 # Create the cluster once the peering connection is completed
@@ -314,7 +313,6 @@ resource "mongodbatlas_network_peering" "test" {
   azure_subscription_id = local.AZURE_SUBSCRIPTION_ID
   resource_group_name   = local.AZURE_RESOURCE_GROUP_NAME
   vnet_name             = local.AZURE_VNET_NAME
-  atlas_cidr_block      = local.ATLAS_CIDR_BLOCK
 }
 ```
 
