@@ -127,17 +127,21 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
 			}
 
-			if accessList.TotalCount > 0 {
-				accessListEntry := ipAddress
-				if cidrBlock != "" {
-					accessListEntry = cidrBlock
-				}
+			accessListEntry := ipAddress
+			if len(cidrBlock) > 0 {
+				accessListEntry = cidrBlock
+			}
 
-				for _, entry := range accessList.Results {
-					if entry.IPAddress == accessListEntry || entry.CIDRBlock == accessListEntry {
-						return accessList, "created", nil
-					}
+			exists, err := isEntryInProjectAccessList(ctx, conn, projectID, accessListEntry)
+			if err != nil {
+				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
+					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
+					strings.Contains(fmt.Sprint(err), "500") {
+					return nil, "pending", nil
 				}
+				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
+			}
+			if !exists {
 				return nil, "pending", nil
 			}
 
@@ -236,7 +240,8 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 		entry, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			if strings.Contains(fmt.Sprint(err), "404") ||
-				strings.Contains(fmt.Sprint(err), "ATLAS_ACCESS_LIST_NOT_FOUND") {
+				strings.Contains(fmt.Sprint(err), "ATLAS_ACCESS_LIST_NOT_FOUND") ||
+				strings.Contains(fmt.Sprint(err), "ATLAS_NETWORK_PERMISSION_ENTRY_NOT_FOUND") {
 				return nil
 			}
 
@@ -277,4 +282,55 @@ func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projectID, entry string) (bool, error) {
+	currentPage := 1
+	exists := false
+	err := resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
+		accessList, resp, err := conn.ProjectIPAccessList.List(ctx, projectID, &matlas.ListOptions{PageNum: currentPage})
+		if err != nil {
+			switch {
+			case strings.Contains(fmt.Sprint(err), "500"):
+				return resource.RetryableError(err)
+			case strings.Contains(fmt.Sprint(err), "404"):
+				return resource.RetryableError(err)
+			default:
+				return resource.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
+			}
+		}
+
+		if accessList.TotalCount > 0 {
+			for _, result := range accessList.Results {
+				if result.IPAddress == entry || result.CIDRBlock == entry {
+					exists = true
+					break
+				}
+			}
+		}
+
+		if !exists {
+			currentPage, err = resp.CurrentPage()
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
+			}
+
+			if !resp.IsLastPage() {
+				currentPage++
+				return resource.RetryableError(fmt.Errorf("[DEBUG] Current page : %d Next page: %d, will retry again", currentPage-1, currentPage))
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
+			strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
+			strings.Contains(fmt.Sprint(err), "500") {
+			return exists, nil
+		}
+		return exists, err
+	}
+
+	return exists, nil
 }
