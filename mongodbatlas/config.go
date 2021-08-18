@@ -6,10 +6,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
+	realmAuth "go.mongodb.org/realm/auth"
 
 	"github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
-	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
 )
 
@@ -50,29 +50,32 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 		return nil, diag.FromErr(err)
 	}
 
-	// Realm
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if c.BaseURL != "" {
-		optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
-	}
-	authConfig := realmAuth.NewConfig(client)
-	token, err := authConfig.NewTokenFromCredentials(ctx, c.PublicKey, c.PrivateKey)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
-	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
-
-	// Initialize the MongoDB Realm API Client.
-	realmClient, err := realm.New(clientRealm, optsRealm...)
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
 	clients := &MongoDBClient{
 		Atlas: atlasClient,
-		Realm: realmClient,
+	}
+
+	// Realm
+	if len(c.PublicKey) > 0 && len(c.PrivateKey) > 0 {
+		optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
+		if c.BaseURL != "" {
+			optsRealm = append(optsRealm, realm.SetBaseURL(c.BaseURL))
+		}
+		authConfig := realmAuth.NewConfig(nil)
+		token, err := authConfig.NewTokenFromCredentials(ctx, c.PublicKey, c.PrivateKey)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
+		clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+
+		// Initialize the MongoDB Realm API Client.
+		realmClient, err := realm.New(clientRealm, optsRealm...)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		clients.Realm = realmClient
 	}
 
 	return clients, nil
