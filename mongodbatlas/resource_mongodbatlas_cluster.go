@@ -1530,7 +1530,7 @@ func isEqualProviderAutoScalingMinInstanceSize(k, old, newStr string, d *schema.
 	canScaleUp, scaleUpOk := d.GetOk("auto_scaling_compute_enabled")
 
 	if !scaleDownOK || !scaleUpOk {
-		return true //if the return is true, it means that both values are the same and there's nothing to do
+		return true // if the return is true, it means that both values are the same and there's nothing to do
 	}
 
 	if canScaleUp.(bool) && canScaleDown.(bool) {
