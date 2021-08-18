@@ -1526,9 +1526,14 @@ func clusterConnectionStringsSchema() *schema.Schema {
 }
 
 func isEqualProviderAutoScalingMinInstanceSize(k, old, newStr string, d *schema.ResourceData) bool {
-	canScaleDown, _ := d.GetOk("auto_scaling_compute_scale_down_enabled")
-	canScaleUp, _ := d.GetOk("auto_scaling_compute_enabled")
-	if canScaleDown != nil && canScaleUp != nil && canScaleUp.(bool) && canScaleDown.(bool) {
+	canScaleDown, scaleDownOK := d.GetOk("auto_scaling_compute_scale_down_enabled")
+	canScaleUp, scaleUpOk := d.GetOk("auto_scaling_compute_enabled")
+
+	if !scaleDownOK || !scaleUpOk {
+		return true //if the return is true, it means that both values are the same and there's nothing to do
+	}
+
+	if canScaleUp.(bool) && canScaleDown.(bool) {
 		if old != newStr {
 			return false
 		}
