@@ -62,7 +62,7 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
 	// Realm
-	if len(c.Config.PublicKey) == 0 && len(c.Config.PrivateKey) == 0 {
+	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
 		return nil, fmt.Errorf("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
