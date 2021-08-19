@@ -90,16 +90,14 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 							Optional: true,
 						},
 						"access_key_id": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Sensitive:        true,
-							DiffSuppressFunc: ignoreIfOldIsEmpty,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 						"secret_access_key": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Sensitive:        true,
-							DiffSuppressFunc: ignoreIfOldIsEmpty,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 						"customer_master_key_id": {
 							Type:      schema.TypeString,
@@ -157,10 +155,9 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 							Sensitive: true,
 						},
 						"secret": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Sensitive:        true,
-							DiffSuppressFunc: ignoreIfOldIsEmpty,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 						"tenant_id": {
 							Type:      schema.TypeString,
@@ -183,10 +180,9 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 							Required: true,
 						},
 						"service_account_key": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Sensitive:        true,
-							DiffSuppressFunc: ignoreIfOldIsEmpty,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 						"key_version_resource_id": {
 							Type:      schema.TypeString,
@@ -315,9 +311,9 @@ func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.Res
 					delete(values, "service_account_key")
 				}
 			}
-		}
-		if err = d.Set("google_cloud_kms", values); err != nil {
-			return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err))
+			if err = d.Set("google_cloud_kms", values); err != nil {
+				return diag.FromErr(fmt.Errorf(errorAlertEncryptionAtRestSetting, "google_cloud_kms", d.Id(), err))
+			}
 		}
 	}
 	// End Deprecated workflows
@@ -662,13 +658,4 @@ func counterEmptyValues(values map[string]interface{}) bool {
 	}
 
 	return len(values) == count
-}
-
-func ignoreIfOldIsEmpty(k, old, newStr string, d *schema.ResourceData) bool {
-	if len(old) == 0 {
-		return false
-	}
-
-	return true
-
 }
