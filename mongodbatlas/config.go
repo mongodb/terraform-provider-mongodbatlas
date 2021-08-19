@@ -15,16 +15,21 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
+// Config struct ...
+type Config struct {
+	PublicKey  string
+	PrivateKey string
+	BaseURL    string
+}
+
 // MongoDBClient client
 type MongoDBClient struct {
-	PublicKey  *string
-	PrivateKey *string
-	BaseURL    *string
-	Atlas      *matlasClient.Client
+	Atlas  *matlasClient.Client
+	Config *Config
 }
 
 // NewClient func...
-func (c *MongoDBClient) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) {
+func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
 
@@ -37,8 +42,8 @@ func (c *MongoDBClient) NewClient(ctx context.Context) (interface{}, diag.Diagno
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if cast.ToString(c.BaseURL) == "" {
-		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(cast.ToString(c.BaseURL)))
+	if len(c.BaseURL) > 0 {
+		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
 
 	// Initialize the MongoDB Atlas API Client.
@@ -48,10 +53,8 @@ func (c *MongoDBClient) NewClient(ctx context.Context) (interface{}, diag.Diagno
 	}
 
 	clients := &MongoDBClient{
-		Atlas:      atlasClient,
-		PublicKey:  c.PublicKey,
-		PrivateKey: c.PrivateKey,
-		BaseURL:    c.BaseURL,
+		Atlas:  atlasClient,
+		Config: c,
 	}
 
 	return clients, nil
@@ -59,16 +62,16 @@ func (c *MongoDBClient) NewClient(ctx context.Context) (interface{}, diag.Diagno
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
 	// Realm
-	if cast.ToString(c.PublicKey) == "" && cast.ToString(c.PrivateKey) == "" {
+	if len(c.Config.PublicKey) == 0 && len(c.Config.PrivateKey) == 0 {
 		return nil, fmt.Errorf("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
 	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if cast.ToString(c.BaseURL) == "" {
-		optsRealm = append(optsRealm, realm.SetBaseURL(cast.ToString(c.BaseURL)))
+	if len(c.Config.BaseURL) > 0 {
+		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.BaseURL))
 	}
 	authConfig := realmAuth.NewConfig(nil)
-	token, err := authConfig.NewTokenFromCredentials(ctx, cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
+	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}

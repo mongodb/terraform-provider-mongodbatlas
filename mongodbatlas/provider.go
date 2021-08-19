@@ -13,7 +13,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/openlyinc/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -129,13 +128,13 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	config := MongoDBClient{
-		PublicKey:  pointy.String(d.Get("public_key").(string)),
-		PrivateKey: pointy.String(d.Get("private_key").(string)),
+	config := Config{
+		PublicKey:  d.Get("public_key").(string),
+		PrivateKey: d.Get("private_key").(string),
 	}
 
-	if baseURL := d.Get("base_url"); baseURL != nil {
-		config.BaseURL = pointy.String(baseURL.(string))
+	if baseURL, ok := d.GetOk("base_url"); ok {
+		config.BaseURL = baseURL.(string)
 	}
 
 	return config.NewClient(ctx)
