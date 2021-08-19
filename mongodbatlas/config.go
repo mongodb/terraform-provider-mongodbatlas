@@ -37,7 +37,7 @@ func (c *MongoDBClient) NewClient(ctx context.Context) (interface{}, diag.Diagno
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if len(cast.ToString(c.BaseURL)) > 0 {
+	if cast.ToString(c.BaseURL) == "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(cast.ToString(c.BaseURL)))
 	}
 
@@ -64,7 +64,7 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	}
 
 	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if len(cast.ToString(c.BaseURL)) > 0 {
+	if cast.ToString(c.BaseURL) == "" {
 		optsRealm = append(optsRealm, realm.SetBaseURL(cast.ToString(c.BaseURL)))
 	}
 	authConfig := realmAuth.NewConfig(nil)
