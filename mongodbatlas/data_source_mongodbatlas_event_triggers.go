@@ -140,12 +140,16 @@ func dataSourceMongoDBAtlasEventTriggers() *schema.Resource {
 
 func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interface{}) error {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Realm
+	ctx := context.Background()
+	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	if err != nil {
+		return err
+	}
 
 	projectID := d.Get("project_id").(string)
 	appID := d.Get("app_id").(string)
 
-	eventTriggers, _, err := conn.EventTriggers.List(context.Background(), projectID, appID)
+	eventTriggers, _, err := conn.EventTriggers.List(ctx, projectID, appID)
 	if err != nil {
 		return fmt.Errorf("error getting event triggers information: %s", err)
 	}

@@ -380,7 +380,11 @@ func TestAccResourceMongoDBAtlasEventTriggerSchedule_eventProcessor(t *testing.T
 
 func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Realm
+		ctx := context.Background()
+		conn, err := testAccProvider.Meta().(*MongoDBClient).GetRealmClient(ctx)
+		if err != nil {
+			return err
+		}
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -395,7 +399,7 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 
 		log.Printf("[DEBUG] trigger_id ID: %s", ids["trigger_id"])
 
-		res, _, err := conn.EventTriggers.Get(context.Background(), ids["project_id"], ids["app_id"], ids["trigger_id"])
+		res, _, err := conn.EventTriggers.Get(ctx, ids["project_id"], ids["app_id"], ids["trigger_id"])
 		if err == nil {
 			*eventTrigger = *res
 			return nil
@@ -406,7 +410,11 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 }
 
 func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Realm
+	ctx := context.Background()
+	conn, err := testAccProvider.Meta().(*MongoDBClient).GetRealmClient(ctx)
+	if err != nil {
+		return err
+	}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_event_trigger" {
@@ -415,7 +423,7 @@ func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		res, _, _ := conn.EventTriggers.Get(context.Background(), ids["project_id"], ids["app_id"], ids["trigger_id"])
+		res, _, _ := conn.EventTriggers.Get(ctx, ids["project_id"], ids["app_id"], ids["trigger_id"])
 
 		if res != nil {
 			return fmt.Errorf("event trigger (%s) still exists", ids["trigger_id"])
