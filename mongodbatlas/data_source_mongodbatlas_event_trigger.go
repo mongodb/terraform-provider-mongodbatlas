@@ -127,7 +127,10 @@ func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Realm
+	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 	projectID := d.Get("project_id").(string)
 	appID := d.Get("app_id").(string)
 	triggerID := getEncodedID(d.Get("trigger_id").(string), "trigger_id")

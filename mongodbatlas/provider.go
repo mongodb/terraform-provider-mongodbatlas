@@ -133,7 +133,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		PrivateKey: d.Get("private_key").(string),
 	}
 
-	if baseURL := d.Get("base_url"); baseURL != nil {
+	if baseURL, ok := d.GetOk("base_url"); ok {
 		config.BaseURL = baseURL.(string)
 	}
 
