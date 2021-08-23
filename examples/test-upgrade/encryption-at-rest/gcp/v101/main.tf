@@ -7,9 +7,9 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = mongodbatlas_project.test.id
 
   google_cloud_kms_config {
-    enabled                = true
-    service_account_key = var.service_account_key
-    key_version_resource_id                 = var.gcp_key_version_resource_id
+    enabled                 = true
+    service_account_key     = var.service_account_key
+    key_version_resource_id = var.gcp_key_version_resource_id
   }
 }
 
