@@ -12,10 +12,10 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     azure_environment   = "AZURE"
     subscription_id     = var.subscription_id
     resource_group_name = var.resource_group_name
-    key_vault_name  	= var.key_vault_name
-    key_identifier  	= var.key_identifier
-    secret  			= var.client_secret
-    tenant_id  			= var.tenant_id
+    key_vault_name      = var.key_vault_name
+    key_identifier      = var.key_identifier
+    secret              = var.client_secret
+    tenant_id           = var.tenant_id
   }
 }
 

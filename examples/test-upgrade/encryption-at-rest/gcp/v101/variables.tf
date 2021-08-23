@@ -1,23 +1,23 @@
 // mongo 
-variable project_id {
-  default     = ""
+variable "project_id" {
+  default = ""
 }
-variable cloud_provider_access_name {
+variable "cloud_provider_access_name" {
   default = "AWS"
 }
-variable public_key {
-  default     = ""
+variable "public_key" {
+  default = ""
 }
-variable private_key {
-  default     = ""
+variable "private_key" {
+  default = ""
 }
 
 // gcp
-variable service_account_key {
-  default     = ""
+variable "service_account_key" {
+  default = ""
 }
-variable gcp_key_version_resource_id {
-  default     = ""
+variable "gcp_key_version_resource_id" {
+  default = ""
 }
 
 // encryption at rest
