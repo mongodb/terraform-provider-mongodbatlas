@@ -33,7 +33,7 @@ resource "mongodbatlas_cluster" "test" {
       read_only_nodes = 0
     }
   }
-  cloud_backup_config           = true
+  cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
 
   //Provider Settings "block"
