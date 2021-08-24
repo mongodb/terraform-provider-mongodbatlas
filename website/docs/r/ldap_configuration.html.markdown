@@ -12,19 +12,43 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_project" "test" {
-	name   = "NAME OF THE PROJECT"
-	org_id = "ORG ID"
+  name   = "NAME OF THE PROJECT"
+  org_id = "ORG ID"
 }
 
 resource "mongodbatlas_ldap_configuration" "test" {
-	project_id                  = mongodbatlas_project.test.id
-	authentication_enabled      = true
-	hostname 					= "HOSTNAME"
-	port                     	= 636
-	bind_username               = "USERNAME"
-	bind_password               = "PASSWORD"
+  project_id             = mongodbatlas_project.test.id
+  authentication_enabled = true
+  hostname               = "HOSTNAME"
+  port                   = 636
+  bind_username          = "USERNAME"
+  bind_password          = "PASSWORD"
+}
+```
+
+## Example Usage of LDAP with user to DN mapping
+
+```terraform
+resource "mongodbatlas_project" "test" {
+  name   = "NAME OF THE PROJECT"
+  org_id = "ORG ID"
+}
+
+resource "mongodbatlas_ldap_configuration" "test" {
+  project_id             = mongodbatlas_project.test.id
+  authentication_enabled = true
+  hostname               = "HOSTNAME"
+  port                   = 636
+  bind_username          = "USERNAME"
+  bind_password          = "PASSWORD"
+  ca_certificate         = "CA CERTIFICATE"
+  authz_query_template   = "{USER}?memberOf?base"
+  user_to_dn_mapping {
+    match      = "(.+)"
+    ldap_query = "DC=example,DC=com??sub?(userPrincipalName={0})"
+  }
 }
 ```
 
