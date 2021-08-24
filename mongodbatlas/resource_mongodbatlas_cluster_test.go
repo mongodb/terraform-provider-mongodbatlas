@@ -558,7 +558,7 @@ func TestAccResourceMongoDBAtlasCluster_AWSWithLabels(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
-	//SkipTestExtCred(t)
+	SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_endpoint_link"
