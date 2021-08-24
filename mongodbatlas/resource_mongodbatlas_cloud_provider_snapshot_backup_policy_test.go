@@ -208,7 +208,6 @@ func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfig(projectID, clust
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_encrypt_ebs_volume = false
 		}
 
 		resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -268,7 +267,6 @@ func testAccMongoDBAtlasCloudProviderSnapshotBackupPolicyConfigWithoutRestoreDay
 			provider_region_name        = "EU_CENTRAL_1"
 			provider_instance_size_name = "M10"
 			provider_backup_enabled     = true //enable cloud provider snapshots
-			provider_encrypt_ebs_volume = false
 		}
 
 		resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {

@@ -558,7 +558,7 @@ func TestAccResourceMongoDBAtlasCluster_AWSWithLabels(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
-	SkipTestExtCred(t)
+	//SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.with_endpoint_link"
@@ -1104,9 +1104,19 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
 			project_id                   = "%[1]s"
 			name                         = "%[2]s"
 			disk_size_gb                 = 100
-			num_shards                   = 1
-			replication_factor           = 3
-			provider_backup_enabled      = %[3]t
+
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "EU_CENTRAL_1"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
+			cloud_backup                 = %[3]t
 			pit_enabled                  = %[3]t
 			auto_scaling_disk_gb_enabled = %[4]t
 			mongo_db_major_version       = "4.0"
@@ -1114,7 +1124,6 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M30"
-			provider_region_name        = "EU_CENTRAL_1"
 		}
 	`, projectID, name, backupEnabled, autoDiskGBEnabled)
 }
@@ -1125,18 +1134,26 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnab
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 			disk_size_gb = 100
-			num_shards   = 1
-			replication_factor           = 3
+
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "EU_CENTRAL_1"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			provider_backup_enabled      = %[3]s
 			pit_enabled 				 = %[3]s
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_encrypt_ebs_volume = false
 			provider_volume_type        = "PROVISIONED"
 			provider_instance_size_name = "M40_NVME"
-			provider_region_name        = "EU_CENTRAL_1"
 		}
 	`, projectID, name, backupEnabled)
 }
@@ -1147,7 +1164,18 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, autoscalingEn
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 10
-			replication_factor           = 3
+
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "EU_CENTRAL_1"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled =  %s
 			mongo_db_major_version       = "4.0"
@@ -1155,7 +1183,6 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, autoscalingEn
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "EU_CENTRAL_1"
 
 			advanced_configuration  {
 				fail_index_key_too_long              = %t
@@ -1178,7 +1205,18 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, name, autosc
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 10
-			replication_factor           = 3
+
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "EU_CENTRAL_1"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled =  %s
 			mongo_db_major_version       = "4.0"
@@ -1200,10 +1238,19 @@ func testAccMongoDBAtlasClusterConfigAzure(projectID, name, backupEnabled string
 		resource "mongodbatlas_cluster" "basic_azure" {
 			project_id   = "%s"
 			name         = "%s"
-			num_shards   = 1
 
-			replication_factor           = 3
-			provider_backup_enabled      = %s
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "US_EAST_2"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
+			cloud_backup                 = %s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
@@ -1222,17 +1269,25 @@ func testAccMongoDBAtlasClusterConfigGCP(projectID, name, backupEnabled string) 
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 40
-			num_shards   = 1
 
-			replication_factor           = 3
-			provider_backup_enabled      = %s
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "US_EAST_4"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
+			cloud_backup                 = %s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "GCP"
 			provider_instance_size_name = "M30"
-			provider_region_name        = "US_EAST_4"
 		}
 	`, projectID, name, backupEnabled)
 }
@@ -1243,17 +1298,25 @@ func testAccMongoDBAtlasClusterConfigGCPWithBiConnector(projectID, name, backupE
 			project_id   = "%s"
 			name         = "%s"
 			disk_size_gb = 40
-			num_shards   = 1
 
-			replication_factor           = 3
-			provider_backup_enabled      = %s
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "US_EAST_4"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
+			cloud_backup                 = %s
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "GCP"
 			provider_instance_size_name = "M30"
-			provider_region_name        = "US_EAST_4"
 			bi_connector_config {
 				enabled = %t
 			}
@@ -1392,18 +1455,25 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 		resource "mongodbatlas_cluster" "aws_with_labels" {
 			project_id   = "%s"
 			name         = "%s"
-			num_shards   = 1
 			disk_size_gb = 10
-			replication_factor           = 3
+  
 			backup_enabled               = %s
 			auto_scaling_disk_gb_enabled = false
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_encrypt_ebs_volume = false
 			provider_instance_size_name = "%s"
-			provider_region_name        = "%s"
+			cluster_type = "REPLICASET"
+			  replication_specs {
+				num_shards = 1
+				regions_config {
+				  region_name     = "%s"
+				  electable_nodes = 3
+				  priority        = 7
+				  read_only_nodes = 0
+				}
+		  	}
 			%s
 		}
 	`, projectID, name, backupEnabled, tier, region, labelsConf)
@@ -1448,7 +1518,6 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 		  provider_region_name        = "${upper(replace("%[5]s", "-", "_"))}"
 		  provider_instance_size_name = "M10"
 		  provider_backup_enabled     = true // enable cloud provider snapshots
-		  provider_encrypt_ebs_volume = true
 		  depends_on = ["mongodbatlas_privatelink_endpoint_service.test"]
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName)
@@ -1478,7 +1547,17 @@ func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, provider
 			project_id   = "%[1]s"
 			name         = "%[7]s"
 
-			replication_factor           = 3
+			cluster_type = "REPLICASET"
+			  replication_specs {
+				num_shards = 1
+				regions_config {
+				  region_name     = "%[9]s"
+				  electable_nodes = 3
+				  priority        = 7
+				  read_only_nodes = 0
+				}
+		  	}
+
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
@@ -1486,7 +1565,6 @@ func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, provider
 			provider_name               = "%[2]s"
 			provider_disk_type_name     = "P6"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "%[9]s"
 
 			depends_on = ["mongodbatlas_network_peering.test"]
 		}
@@ -1528,16 +1606,24 @@ func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(gcpProjectID, gcpRegi
 			project_id   = "%[3]s"
 			name         = "%[6]s"
 			disk_size_gb = 5
-			num_shards   = 1
 
-			replication_factor           = 3
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "%[7]s"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[4]s"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "%[7]s"
 
 			depends_on = ["google_compute_network_peering.gcp_peering"]
 		}
@@ -1550,14 +1636,23 @@ func testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 
-			replication_factor           = 3
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "%[4]s"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			auto_scaling_disk_gb_enabled = false
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[3]s"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "%[4]s"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
@@ -1586,14 +1681,23 @@ func testAccMongoDBAtlasClusterConfigAWSWithContainerID(awsAccessKey, awsSecretK
 			name         = "%[4]s"
 			disk_size_gb = 5
 
-			replication_factor           = 3
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "%[6]s"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			auto_scaling_disk_gb_enabled = false
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[5]s"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "%[6]s"
 		}
 
 		resource "aws_default_vpc" "default" {
@@ -1634,16 +1738,24 @@ func testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion,
 			project_id   = "%[3]s"
 			name         = "%[4]s"
 			disk_size_gb = 5
-			num_shards   = 1
 
-			replication_factor           = 3
+            cluster_type = "REPLICASET"
+		    replication_specs {
+			  num_shards = 1
+			  regions_config {
+			     region_name     = "%[6]s"
+			     electable_nodes = 3
+			     priority        = 7
+                 read_only_nodes = 0
+		       }
+		    }
+
 			auto_scaling_disk_gb_enabled = true
 			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[5]s"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "%[6]s"
 		}
 
 		resource "mongodbatlas_network_peering" "test" {
@@ -1673,9 +1785,18 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 		project_id                              = "%[1]s"
 		name                                    = "%[2]s"
 		disk_size_gb                            = 100
-		num_shards                              = 1
-		replication_factor                      = 3
-		provider_backup_enabled                 = %[3]s
+
+		cluster_type = "REPLICASET"
+		replication_specs {
+		  num_shards = 1
+		  regions_config {
+			 region_name     = "EU_CENTRAL_1"
+			 electable_nodes = 3
+			 priority        = 7
+			 read_only_nodes = 0
+		   }
+		}
+		cloud_backup                            = %[3]s
 		auto_scaling_disk_gb_enabled            = %[4]s
 		auto_scaling_compute_enabled            = %[5]s
 		auto_scaling_compute_scale_down_enabled = %[6]s
@@ -1683,9 +1804,7 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 
 		//Provider Settings "block"
 		provider_name                                   = "AWS"
-		provider_encrypt_ebs_volume                     = false
 		provider_instance_size_name                     = "%[8]s"
-		provider_region_name                            = "EU_CENTRAL_1"
 		provider_auto_scaling_compute_min_instance_size = "%[7]s"
 		provider_auto_scaling_compute_max_instance_size = "%[8]s"
 

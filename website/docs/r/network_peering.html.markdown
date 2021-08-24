@@ -115,15 +115,24 @@ resource "mongodbatlas_cluster" "test" {
   name         = "terraform-manually-test"
   num_shards   = 1
   disk_size_gb = 5
-
-  replication_factor           = 3
+  
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_4"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+  
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
   # Provider Settings "block"
   provider_name               = "GCP"
   provider_instance_size_name = "M10"
-  provider_region_name        = "US_EAST_4"
 
   depends_on = ["google_compute_network_peering.peering"]
 }
@@ -169,9 +178,18 @@ resource "mongodbatlas_network_peering" "test" {
 resource "mongodbatlas_cluster" "test" {
   project_id = local.project_id
   name       = "terraform-manually-test"
-  num_shards = 1
 
-  replication_factor           = 3
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_2"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
@@ -179,7 +197,6 @@ resource "mongodbatlas_cluster" "test" {
   provider_name               = "AZURE"
   provider_disk_type_name     = "P4"
   provider_instance_size_name = "M10"
-  provider_region_name        = "US_EAST_2"
 
   depends_on = ["mongodbatlas_network_peering.test"]
 }
@@ -197,15 +214,24 @@ resource "mongodbatlas_cluster" "test" {
   project_id   = local.project_id
   name         = "terraform-test"
   disk_size_gb = 5
+  
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_2"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
 
-  replication_factor           = 3
   auto_scaling_disk_gb_enabled = false
   mongo_db_major_version       = "4.2"
 
   //Provider Settings "block"
   provider_name               = "AWS"
   provider_instance_size_name = "M10"
-  provider_region_name        = "US_EAST_2"
 }
 
 # the following assumes an AWS provider is configured
@@ -244,17 +270,25 @@ resource "aws_vpc_peering_connection_accepter" "aws_peer" {
 resource "mongodbatlas_cluster" "test" {
   project_id   = local.project_id
   name         = "terraform-manually-test"
-  num_shards   = 1
   disk_size_gb = 5
 
-  replication_factor           = 3
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_2"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
   //Provider Settings "block"
   provider_name               = "GCP"
   provider_instance_size_name = "M10"
-  provider_region_name        = "US_EAST_2"
 }
 
 # Create the peering connection request
@@ -294,14 +328,23 @@ resource "mongodbatlas_cluster" "test" {
   project_id = local.project_id
   name       = "cluster-azure"
 
-  replication_factor           = 3
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_2"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+
   auto_scaling_disk_gb_enabled = false
   mongo_db_major_version       = "4.2"
 
   //Provider Settings "block"
   provider_name               = "AZURE"
   provider_instance_size_name = "M10"
-  provider_region_name        = "US_EAST_2"
 }
 
 # Create the peering connection request

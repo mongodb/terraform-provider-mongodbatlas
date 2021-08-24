@@ -20,17 +20,24 @@ const (
 		project_id   = "%s"
 		name         = "%s"
 		disk_size_gb = 10
-		num_shards   = 1
 
-		replication_factor           = 3
-		provider_backup_enabled      = %s
+		cluster_type = "REPLICASET"
+		replication_specs {
+		  num_shards = 1
+		  regions_config {
+			 region_name     = "US_EAST_2"
+			 electable_nodes = 3
+			 priority        = 7
+			 read_only_nodes = 0
+		   }
+		}
+
+		cloud_backup                 = %s
 		auto_scaling_disk_gb_enabled = true
 
 		// Provider Settings "block"
 		provider_name               = "AWS"
-		provider_encrypt_ebs_volume = false
 		provider_instance_size_name = "M10"
-		provider_region_name        = "US_EAST_2"
 
 		labels {
 			key   = "ArchiveTest"
