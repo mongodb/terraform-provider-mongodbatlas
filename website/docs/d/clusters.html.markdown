@@ -33,7 +33,7 @@ resource "mongodbatlas_cluster" "test" {
       read_only_nodes = 0
     }
   }
-  provider_backup_enabled      = true
+  cloud_backup                = true
   auto_scaling_disk_gb_enabled = true
 
   //Provider Settings "block"
@@ -60,7 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 ### Cluster
 
 * `name` - Name of the cluster as it appears in Atlas.
-*  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
+* `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `mongo_uri` - Base connection string for the cluster. Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `mongo_uri_updated` - Lists when the connection string was last updated. The connection string changes, for example, if you change a replica set to a sharded cluster.
 * `mongo_uri_with_options` - Describes connection string for connecting to the Atlas cluster. Includes the replicaSet, ssl, and authSource query parameters in the connection string with values appropriate for the cluster.
@@ -103,7 +103,8 @@ In addition to all arguments above, the following attributes are exported:
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
-* `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
+* `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups. **DEPRECATED** Use `cloud_backup` instead.
+* `cloud_backup` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.
 * `backing_provider_name` - Indicates Cloud service provider on which the server for a multi-tenant cluster is provisioned.

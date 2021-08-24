@@ -103,7 +103,7 @@ In addition to all arguments above, the following attributes are exported:
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
 * `provider_backup_enabled` - **(DEPRECATED)** Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
-* `cloud_backup` - Flag indicating
+* `cloud_backup` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.
 * `backing_provider_name` - Indicates Cloud service provider on which the server for a multi-tenant cluster is provisioned.

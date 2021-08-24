@@ -307,15 +307,16 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-aws-kms/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For complete documentation on configuring Encryption at Rest, see Encryption at Rest using Customer Key Management. Requires M10 or greater. and for legacy backups, backup_enabled, to be false or omitted. **Note: Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default**.   
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `3.6`, `4.0`, or `4.2`. You must set this value to `4.2` if `provider_instance_size_name` is either M2 or M5.
 * `num_shards` - (Optional) Selects whether the cluster is a replica set or a sharded cluster. If you use the replicationSpecs parameter, you must set num_shards.
-* `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, provider_backup_enabled must also be set to true.
+* `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, cloud_backup must also be set to true.
 * `provider_backup_enabled` -  (Optional) Flag indicating if the cluster uses Cloud Backup for backups. **Deprecated** use `cloud_backup` instead.
+* `cloud_backup` - (Optional) Flag indicating if the cluster uses Cloud Backup for backups. 
 
-    If true, the cluster uses Cloud Backup for backups. If provider_backup_enabled and backup_enabled are false, the cluster does not use Atlas backups.
+    If true, the cluster uses Cloud Backup for backups. If cloud_backup and backup_enabled are false, the cluster does not use Atlas backups.
 
     You cannot enable cloud backup if you have an existing cluster in the project with legacy backup enabled.
 
     ~> **IMPORTANT:** If setting to true for an existing cluster or imported cluster be sure to run terraform refresh after applying to enable modification of the Cloud Backup Snapshot Policy going forward.
-* `cloud_backup` - (Optional) 
+
 * `backing_provider_name` - (Optional) Cloud service provider on which the server for a multi-tenant cluster is provisioned.
 
     This setting is only valid when providerSetting.providerName is TENANT and providerSetting.instanceSizeName is M2 or M5.
@@ -505,7 +506,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 
 ### Cloud Backup Policy
-Cloud Backup Policy will be added if provider_backup_enabled is enabled because MongoDB Atlas automatically creates a default policy, if not, returned values will be empty.   
+Cloud Backup Policy will be added if provider_backup_enabled or cloud_backup is enabled because MongoDB Atlas automatically creates a default policy, if not, returned values will be empty.   
 
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
 
