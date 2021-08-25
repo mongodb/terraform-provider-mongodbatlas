@@ -506,6 +506,9 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 
 ### Cloud Backup Policy
+
+**WARNING:** This property is going to be deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead. 
+
 Cloud Backup Policy will be added if provider_backup_enabled or cloud_backup is enabled because MongoDB Atlas automatically creates a default policy, if not, returned values will be empty.   
 
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
@@ -519,10 +522,14 @@ Cloud Backup Policy will be added if provider_backup_enabled or cloud_backup is 
 * `snapshot_backup_policy.#.update_snapshots` - Specifies it's true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
 
 ### Policies
+**WARNING:** This property is going to be deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead.
+
 * `snapshot_backup_policy.#.policies` - A list of policy definitions for the cluster.
 * `snapshot_backup_policy.#.policies.#.id` - Unique identifier of the backup policy.
 
 #### Policy Item
+**WARNING:** This property is going to be deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead.
+
 * `snapshot_backup_policy.#.policies.#.policy_item` - A list of specifications for a policy.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.id` - Unique identifier for this policy item.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
