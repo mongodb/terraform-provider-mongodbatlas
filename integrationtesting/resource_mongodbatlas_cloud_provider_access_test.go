@@ -1,6 +1,7 @@
+//go:build integration
 // +build integration
 
-package integration_testing
+package integrationtesting
 
 import (
 	"os"

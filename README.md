@@ -226,10 +226,10 @@ $ make testacc
 ```
 ### Running the integration tests
 
-The integration tests helps the validation for resources interacting with third party providers (aws, azure or gcp) using terratest [environment setup details](integration-testing/README.md)
+The integration tests helps the validation for resources interacting with third party providers (aws, azure or gcp) using terratest [environment setup details](integrationtesting/README.md)
 
 ```
-  cd integration-testing
+  cd integrationtesting
   go test -tags=integration
 ```
 
