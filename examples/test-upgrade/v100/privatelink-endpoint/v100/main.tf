@@ -27,8 +27,8 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id       = mongodbatlas_privatelink_endpoint.test.private_link_id
+  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
   endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
-  provider_name = "AWS"
+  provider_name       = "AWS"
 }

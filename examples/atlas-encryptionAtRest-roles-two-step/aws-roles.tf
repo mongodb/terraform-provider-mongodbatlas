@@ -1,9 +1,9 @@
 resource "mongodbatlas_cloud_provider_access" "test" {
-        project_id = mongodbatlas_project.my_project.id
-        provider_name = "AWS"
-        #after first apply, add the following line:
-        #iam_assumed_role_arn = aws_iam_role.test_role.arn
-    }
+  project_id    = mongodbatlas_project.my_project.id
+  provider_name = "AWS"
+  #after first apply, add the following line:
+  #iam_assumed_role_arn = aws_iam_role.test_role.arn
+}
 
 resource "aws_iam_role_policy" "test_policy" {
   name = "test_policy"

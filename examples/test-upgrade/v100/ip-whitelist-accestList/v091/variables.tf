@@ -16,10 +16,10 @@ variable "org_id" {
 }
 variable "ip_address" {
   description = "IP Address"
-  default = ""
+  default     = ""
 }
 variable "comment" {
   description = "Comment"
-  default = ""
+  default     = ""
 }
 

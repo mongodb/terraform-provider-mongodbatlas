@@ -21,46 +21,58 @@ export SHELL := env PATH=$(PATH) /bin/bash
 
 default: build
 
+.PHONY: build
 build: fmtcheck
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
+.PHONY: install
 install: fmtcheck
 	go install -ldflags="$(LINKER_FLAGS)"
 
+.PHONY: test
 test: fmtcheck
 	go test $(TEST) -timeout=30s -parallel=4
 
+.PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
 	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 300m -cover -ldflags="$(LINKER_FLAGS)"
 
+.PHONY: fmt
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	gofmt -s -w ./main.go
 	gofmt -s -w ./$(PKG_NAME)
 
-# Currently required by tf-deploy compile
-fmtcheck:
+.PHONY: fmtcheck
+fmtcheck: # Currently required by tf-deploy compile
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
+.PHONY: websitefmtcheck
 websitefmtcheck:
 	@sh -c "'$(CURDIR)/scripts/websitefmtcheck.sh'"
 
+.PHONY: lint-fix
 lint-fix:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run --fix
 
+.PHONY: lint
 lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run
 
+.PHONY: tools
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/client9/misspell/cmd/misspell@latest
+	go install github.com/terraform-linters/tflint@v0.31.0
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
+.PHONY: check
 check: test lint
 
+.PHONY: test-compile
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \
@@ -69,6 +81,7 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
+.PHONY: website
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
@@ -76,10 +89,12 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
+.PHONY: website-lint
 website-lint:
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text website/
 
+.PHONY: website-test
 website-test:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
@@ -87,8 +102,11 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build test testacc fmt fmtcheck lint check tools test-compile website website-lint website-test
-
+.PHONY: terratest
 terratest: fmtcheck
 	@$(eval VERSION=acc)
 	 go test $$(go list ./... | grep  /integrationtesting) -v -parallel 20 $(TESTARGS) -timeout 120m -cover -ldflags="$(LINKER_FLAGS)"
+
+.PHONY: tflint
+tflint: fmtcheck
+	@scripts/tflint.sh

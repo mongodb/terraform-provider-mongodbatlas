@@ -16,9 +16,9 @@ variable "org_id" {
 }
 variable "cluster_name" {
   description = "Cluster name"
-  default = ""
+  default     = ""
 }
 variable "mongodb_major_version" {
   description = "MongoDB major version"
-  default = ""
+  default     = ""
 }

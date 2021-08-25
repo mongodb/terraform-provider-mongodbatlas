@@ -1,5 +1,5 @@
 data "mongodbatlas_project" "test" {
-  name             = var.project_name
+  name = var.project_name
 }
 
 provider "aws" {
@@ -23,23 +23,23 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = data.mongodbatlas_project.test.id
-  private_link_id       = mongodbatlas_privatelink_endpoint.test.id
+  project_id          = data.mongodbatlas_project.test.id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.id
   endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
-  provider_name = "AWS"
+  provider_name       = "AWS"
 }
 
 data "mongodbatlas_privatelink_endpoint" "test" {
   project_id      = data.mongodbatlas_project.test.id
   private_link_id = mongodbatlas_privatelink_endpoint.test.id
-  provider_name = "AWS"
+  provider_name   = "AWS"
 }
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = data.mongodbatlas_project.test.id
-  private_link_id       =  mongodbatlas_privatelink_endpoint_service.test.id
+  project_id          = data.mongodbatlas_project.test.id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.id
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
-  provider_name = "AWS"
+  provider_name       = "AWS"
 }
 
 output "privatelink_id_state" {
