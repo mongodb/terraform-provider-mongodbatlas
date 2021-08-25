@@ -131,14 +131,24 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 			disk_size_gb = 10
-			replication_factor           = 3
+
+			cluster_type = "REPLICASET"
+			replication_specs {
+			  num_shards = 1
+			  regions_config {
+				 region_name     = "US_EAST_2"
+				 electable_nodes = 3
+				 priority        = 7
+				 read_only_nodes = 0
+			   }
+			}
+
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled = false
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "US_EAST_2"
 
 		}
 
@@ -163,14 +173,24 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 			disk_size_gb = 10
-			replication_factor           = 3
+
+			cluster_type = "REPLICASET"
+			replication_specs {
+			  num_shards = 1
+			  regions_config {
+				 region_name     = "US_EAST_2"
+				 electable_nodes = 3
+				 priority        = 7
+				 read_only_nodes = 0
+			   }
+			}
+
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled = false
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-			provider_region_name        = "US_EAST_2"
 
 		}
 

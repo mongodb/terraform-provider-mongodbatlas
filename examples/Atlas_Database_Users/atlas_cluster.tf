@@ -18,7 +18,6 @@ resource "mongodbatlas_cluster" "cluster" {
   provider_name                = "AWS"
   disk_size_gb                 = 10
   provider_instance_size_name  = "M10"
-  provider_encrypt_ebs_volume  = true
 }
 output "atlasclusterstring" {
   value = mongodbatlas_cluster.cluster.connection_strings
