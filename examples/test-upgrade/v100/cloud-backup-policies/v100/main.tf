@@ -16,7 +16,7 @@ resource "mongodbatlas_cluster" "cluster_test" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  cloud_backup     = true //enable cloud provider snapshots
+  cloud_backup                = true //enable cloud provider snapshots
   provider_disk_iops          = 1000
 }
 

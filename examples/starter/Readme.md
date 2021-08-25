@@ -72,13 +72,13 @@ You can fetch the connection string as per the use case by following the MongoDB
 
 Or to fetch the connection string using terraform follow the below steps:
 
-```
+```hcl
 output "atlasclusterstring" {
     value = mongodbatlas_cluster.cluster.connection_strings
 }
 ```
 **Outputs:**
-```
+```hcl
 atlasclusterstring = [
   {
     "aws_private_link" = {

@@ -1,0 +1,38 @@
+name: Examples Checks
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/examples.yml
+      - examples/**
+
+env:
+  AWS_DEFAULT_REGION: us-west-2
+
+jobs:
+  validate-terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform_version: ["0.12.29"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ matrix.terraform_version }}
+          # Needed to use the output of `terraform validate -json`
+          terraform_wrapper: false
+      - name: install tflint
+        run: go install github.com/terraform-linters/tflint@0.31.0
+      - name: terraform
+        run: make tflint

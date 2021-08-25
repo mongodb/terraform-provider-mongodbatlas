@@ -6,9 +6,9 @@ variable "private_key" {
   description = "The private API key for MongoDB Atlas"
   default     = ""
 }
-variable base_url {
-  type = string
-  default     = ""
+variable "base_url" {
+  type    = string
+  default = ""
 }
 variable "project_name" {
   description = "Atlas project name"

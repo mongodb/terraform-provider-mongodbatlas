@@ -1,8 +1,8 @@
- provider "azurerm" {    
+provider "azurerm" {
   subscription_id = var.subscription_id
   client_id       = var.client_id
   client_secret   = var.client_secret
-  tenant_id = var.tenant_id
+  tenant_id       = var.tenant_id
   features {
   }
 }
@@ -19,11 +19,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-  enforce_private_link_service_network_policies = true
+  name                                           = "testsubnet"
+  resource_group_name                            = var.resource_group_name
+  virtual_network_name                           = azurerm_virtual_network.test.name
+  address_prefixes                               = ["10.0.1.0/24"]
+  enforce_private_link_service_network_policies  = true
   enforce_private_link_endpoint_network_policies = true
 }
 
@@ -42,15 +42,15 @@ resource "azurerm_private_endpoint" "test" {
     name                           = mongodbatlas_privatelink_endpoint.test.private_link_service_name
     private_connection_resource_id = mongodbatlas_privatelink_endpoint.test.private_link_service_resource_id
     is_manual_connection           = true
-    request_message = "Azure Private Link test"
+    request_message                = "Azure Private Link test"
   }
-        
+
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id       = mongodbatlas_privatelink_endpoint.test.private_link_id
-  endpoint_service_id = azurerm_private_endpoint.test.id
+  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
+  endpoint_service_id         = azurerm_private_endpoint.test.id
   private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
-  provider_name = "AZURE"
+  provider_name               = "AZURE"
 }
