@@ -337,8 +337,8 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 			Target:     []string{"PRIVATE_ENDPOINTS_EXISTS", "NORMAL"},
 			Refresh:    datasourceClusterPrivateEndpointRefreshFunc(clusterName, projectID, conn),
 			Timeout:    10 * time.Minute,
-			MinTimeout: 1 * time.Minute,
-			Delay:      3 * time.Minute,
+			MinTimeout: 5 * time.Second,
+			Delay:      3 * time.Second,
 		}
 
 		resp, err := stateConf.WaitForStateContext(ctx)
