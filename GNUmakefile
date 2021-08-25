@@ -53,7 +53,7 @@ lint:
 
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
-	curl -L https://git.io/misspell | bash
+	go install github.com/client9/misspell/cmd/misspell@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 check: test lint
