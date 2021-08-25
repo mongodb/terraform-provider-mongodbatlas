@@ -1,4 +1,4 @@
-package integration_testing
+package integrationtesting
 
 import "os"
 

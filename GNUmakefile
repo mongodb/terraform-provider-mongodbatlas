@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... | grep -v /integration-testing)
+TEST?=$$(go list ./... | grep -v /integrationtesting)
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=mongodbatlas
 WEBSITE_REPO=github.com/hashicorp/terraform-website
@@ -82,4 +82,4 @@ endif
 
 terratest: fmtcheck
 	@$(eval VERSION=acc)
-	 go test $$(go list ./... | grep  /integration-testing) -v -parallel 20 $(TESTARGS) -timeout 120m -cover -ldflags="$(LINKER_FLAGS)"
+	 go test $$(go list ./... | grep  /integrationtesting) -v -parallel 20 $(TESTARGS) -timeout 120m -cover -ldflags="$(LINKER_FLAGS)"
