@@ -136,8 +136,6 @@ issues:
 run:
   tests: true
   build-tags:
-    - e2e
-    - unit
     - integration
   skip-dirs:
     - internal/mocks
