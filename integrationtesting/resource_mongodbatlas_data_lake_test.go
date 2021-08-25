@@ -1,4 +1,4 @@
-package integration_testing
+package integrationtesting
 
 import (
 	"fmt"
@@ -86,5 +86,4 @@ func TestTerraformResourceMongoDBAtlasDataLake_basicAWS(t *testing.T) {
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_data_lake.test", fmt.Sprintf("%s--%s--%s", projectID, lakeName, s3Bucket))
 
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
