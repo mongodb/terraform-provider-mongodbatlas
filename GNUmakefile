@@ -4,7 +4,6 @@ PKG_NAME=mongodbatlas
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 
 GOFLAGS=-mod=vendor
-GOGC=10
 GOOPTS="-p 2"
 
 GITTAG=$(shell git describe --always --tags)
@@ -40,10 +39,13 @@ fmtcheck:
 websitefmtcheck:
 	@sh -c "'$(CURDIR)/scripts/websitefmtcheck.sh'"
 
+lint-fix:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run --fix
+
 lint:
 	@echo "==> Checking source code against linters..."
-	# https://github.com/golangci/golangci-lint/issues/337 fixing error
-	golangci-lint run ./$(PKG_NAME) -v --deadline=30m
+	golangci-lint run
 
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
