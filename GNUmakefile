@@ -1,9 +1,12 @@
 TEST?=$$(go list ./... | grep -v /integration-testing)
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=mongodbatlas
+
+BINARY_NAME=terraform-provider-mongodbatlas
+DESTINATION=./bin/$(BINARY_NAME)
+
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 
-GOFLAGS=-mod=vendor
 GOGC=10
 GOOPTS="-p 2"
 
@@ -19,6 +22,9 @@ export SHELL := env PATH=$(PATH) /bin/bash
 default: build
 
 build: fmtcheck
+	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
+
+install: fmtcheck
 	go install -ldflags="$(LINKER_FLAGS)"
 
 test: fmtcheck
@@ -47,7 +53,6 @@ lint:
 
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
-	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 check: test lint
