@@ -648,7 +648,7 @@ func TestUpgradeEncryptionAtRestAws(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_encryption_at_rest.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_iam_role.test_role", roleName)
@@ -674,7 +674,7 @@ func TestUpgradeEncryptionAtRestAzure(t *testing.T) {
 		azureKeyVault      = os.Getenv("AZURE_KEY_VAULT_NAME")
 		azureKeyIdentifier = os.Getenv("AZURE_KEY_IDENTIFIER")
 		azureSecret        = os.Getenv("AZURE_SECRET")
-		azureTenantId      = os.Getenv("AZURE_TENANT_ID")
+		azureTenantID      = os.Getenv("AZURE_TENANT_ID")
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -692,7 +692,7 @@ func TestUpgradeEncryptionAtRestAzure(t *testing.T) {
 			"key_vault_name":      azureKeyVault,
 			"key_identifier":      azureKeyIdentifier,
 			"client_secret":       azureSecret,
-			"tenant_id":           azureTenantId,
+			"tenant_id":           azureTenantID,
 		},
 	})
 
@@ -720,12 +720,12 @@ func TestUpgradeEncryptionAtRestAzure(t *testing.T) {
 			"key_vault_name":      azureKeyVault,
 			"key_identifier":      azureKeyIdentifier,
 			"client_secret":       azureSecret,
-			"tenant_id":           azureTenantId,
+			"tenant_id":           azureTenantID,
 		},
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_encryption_at_rest.test", projectID)
 	// Run `terraform apply`. Fail the test if there are any errors.
@@ -785,7 +785,7 @@ func TestUpgradeEncryptionAtRestGCP(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_encryption_at_rest.test", projectID)
 	// Run `terraform apply`. Fail the test if there are any errors.

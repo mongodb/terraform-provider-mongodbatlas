@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package integrationtesting
 
 import (
@@ -149,7 +146,7 @@ func TestResourceEncryptionAtRestAzure(t *testing.T) {
 		azureKeyVault      = os.Getenv("AZURE_KEY_VAULT_NAME")
 		azureKeyIdentifier = os.Getenv("AZURE_KEY_IDENTIFIER")
 		azureSecret        = os.Getenv("AZURE_SECRET")
-		azureTenantId      = os.Getenv("AZURE_TENANT_ID")
+		azureTenantID      = os.Getenv("AZURE_TENANT_ID")
 	)
 	// Construct the terraform options with default retryable errors to handle the most common
 	// retryable errors in terraform testing.
@@ -167,7 +164,7 @@ func TestResourceEncryptionAtRestAzure(t *testing.T) {
 			"key_vault_name":      azureKeyVault,
 			"key_identifier":      azureKeyIdentifier,
 			"client_secret":       azureSecret,
-			"tenant_id":           azureTenantId,
+			"tenant_id":           azureTenantID,
 		},
 	})
 
