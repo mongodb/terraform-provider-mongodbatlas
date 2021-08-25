@@ -33,6 +33,6 @@ jobs:
           # Needed to use the output of `terraform validate -json`
           terraform_wrapper: false
       - name: install tflint
-        run: go install github.com/terraform-linters/tflint@0.31.0
+        run: go install github.com/terraform-linters/tflint@v0.31.0
       - name: terraform
         run: make tflint
