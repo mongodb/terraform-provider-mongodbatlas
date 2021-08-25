@@ -23,8 +23,7 @@ description: |-
 		project_id              = "<YOUR-PROJECT-ID>"
 		name                    = "<CLUSTER-NAME>"
 		disk_size_gb            = 80
-		backup_enabled          = false
-		provider_backup_enabled = true
+		cloud_backup            = true
 		cluster_type            = "GEOSHARDED"
 
 		//Provider Settings "block"

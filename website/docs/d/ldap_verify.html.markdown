@@ -30,7 +30,7 @@ resource "mongodbatlas_cluster" "test" {
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_2"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true //enable cloud provider snapshots
+  cloud_backup                = true //enable cloud provider snapshots
   provider_encrypt_ebs_volume = false
 }
 
