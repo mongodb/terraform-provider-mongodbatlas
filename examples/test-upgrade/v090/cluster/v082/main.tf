@@ -17,7 +17,6 @@ resource "mongodbatlas_cluster" "test" {
   // Provider Settings "block"
   provider_name               = "AWS"
   provider_disk_iops          = 300
-  provider_encrypt_ebs_volume = false
   provider_instance_size_name = "M30"
   provider_region_name        = "EU_CENTRAL_1"
 }
