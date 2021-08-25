@@ -1,7 +1,7 @@
 resource "mongodbatlas_cloud_provider_access" "test" {
-  project_id           = var.project_id
-  provider_name        = "AWS"
-  
+  project_id    = var.project_id
+  provider_name = "AWS"
+
   #(Optional) Since we update the `iam_assumed_role_arn` resource using an HTTP call and not by the `mongodbatlas_cloud_provider_access` resource argument, 
   #the lifecycle argument was added so that terraform would ignore changes of the `iam_assumed_role_arn` argument in future terraform applies.
   lifecycle {
@@ -57,7 +57,7 @@ EOF
 # sleep 10 - Waits ten seconds to make sure that all AWS servers are updated with the new IAM Role.
 resource "null_resource" "link_role_arn_to_cloud_provider_access" {
   provisioner "local-exec" {
-      command = <<EOT
+    command = <<EOT
       sleep 10;
       curl --user "${var.public_key}:${var.private_key}" -X PATCH --digest \
             --header "Accept: application/json" \

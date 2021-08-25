@@ -16,5 +16,5 @@ variable "org_id" {
 }
 variable "cluster_name" {
   description = "Cluster name"
-  default = ""
+  default     = ""
 }

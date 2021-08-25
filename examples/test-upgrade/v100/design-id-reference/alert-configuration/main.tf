@@ -1,5 +1,5 @@
 data "mongodbatlas_project" "test" {
-  name             = var.project_name
+  name = var.project_name
 }
 
 resource "mongodbatlas_alert_configuration" "test" {
