@@ -6,7 +6,7 @@ Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mon
 
 For general information about Terraform, visit the [official website](https://www.terraform.io) and the [GitHub project page](https://github.com/hashicorp/terraform).
 
-# Support, Bugs, Feature Requests
+## Support, Bugs, Feature Requests
 
 Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas support plans.   Please submit support questions within the Atlas UI.  Support questions submitted under the Issues section of this repo will be handled on a "best effort" basis.
 
@@ -14,43 +14,51 @@ Bugs should be filed under the Issues section of this repo.
 
 Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
 
-# Requirements
+## Requirements
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
 - [Go](https://golang.org/doc/install) 1.16 (to build the provider plugin)
 
-# Developing the Provider
+## Using the Provider
+
+To use a released provider in your Terraform environment, run [`terraform init`](https://www.terraform.io/docs/commands/init.html) and Terraform will automatically install the provider. To specify a particular provider version when installing released providers, see the [`Terraform documentation on provider versioning`](https://www.terraform.io/docs/configuration/providers.html#version-provider-versions).
+
+Documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
+
+## Developing the Provider
+
 If you wish to work on the provider, you'll first need [Go](https://golang.org/doc/install) installed on your machine (please check the [requirements](#Requirements) before proceeding).
 
 Note: This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](https://golang.org/doc/code.html#GOPATH). The instructions that follow assume a directory in your home directory outside of the standard GOPATH (i.e $HOME/development/terraform-providers/).
 
 Clone repository to: `$HOME/development/terraform-providers/`
 
-```
-$ mkdir -p $HOME/development/terraform-providers/; cd $HOME/development/terraform-providers/
-$ git clone git@github.com:mongodb/terraform-provider-mongodbatlas
+```bash
+mkdir -p $HOME/development/terraform-providers/; cd $HOME/development/terraform-providers/
+git clone git@github.com:mongodb/terraform-provider-mongodbatlas
 ...
 ```
 
 Enter the provider directory and run `make tools`. This will install the needed tools for the provider.
-```
-$ make tools
+
+```bash
+make tools
 ```
 
-To compile the provider, run `make build`. This will build the provider and put the provider binary in the $GOPATH/bin directory 
-(**if you are using `go modules`, is not necessary to move the binary to `$GOPATH/bin**).
+To compile the provider, run `make build`. This will build the provider and put its binary in the ./bin directory.
 
-```
-$ make build
+```bash
+make build
 ...
-$ $GOPATH/bin/terraform-provider-mongodbatlas
+# ./bin/terraform-provider-mongodbatlas
 ...
 ```
 
-## Using development provider in Terraform 0.14+
+### Using development provider in Terraform 0.14+
 From terraform version 0.14, we can override provider use for development purposes.
 
 Just create a `.trfc` file to hold the configuration to override terraform local configuration
-```
+
+```hcl
 provider_installation {
 
   dev_overrides {
@@ -60,20 +68,13 @@ provider_installation {
   direct {}
 }
 ```
+
 and set the env var `TF_CLI_CONFIG_FILE` like this:
 `export TF_CLI_CONFIG_FILE=PATH/TO/dev.trfc`
 
 For more explained information about "plugin override" check [Development Overrides for Provider Developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
 
-# Using the Provider
-
-To use a released provider in your Terraform environment, run [`terraform init`](https://www.terraform.io/docs/commands/init.html) and Terraform will automatically install the provider. To specify a particular provider version when installing released providers, see the [`Terraform documentation on provider versioning`](https://www.terraform.io/docs/configuration/providers.html#version-provider-versions).
-
-To instead use a custom-built provider in your Terraform environment (e.g. the provider binary from the build instructions above), follow the instructions to [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
-
-For either installation method, documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
-
-# Testing the Provider
+### Testing the Provider
 
 In order to test the provider, you can run `make test`. You can use [meta-arguments](https://www.terraform.io/docs/configuration/providers.html) such as `alias` and `version`. The following arguments are supported in the MongoDB Atlas `provider` block:
 
@@ -85,9 +86,9 @@ In order to test the provider, you can run `make test`. You can use [meta-argume
   provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY`
   environment variable.
 
-~> **Notice:**  If you do not have a `public_key` and `private_key` you must create a programmatic API key to configure the provider (see [Creating Programmatic API key](#Creating-Programmatic-API-key)). If you already have one, you can continue with [Configuring environment variables](#Configuring-environment-variables)
+~> **Notice:**  If you do not have a `public_key` and `private_key` you must create a programmatic API key to configure the provider (see [Creating Programmatic API key](#Programmatic-API-key)). If you already have one, you can continue with [Configuring environment variables](#Configuring-environment-variables)
 
-# Running the acceptance test
+### Running the acceptance test
 
 #### Programmatic API key
 
@@ -169,7 +170,6 @@ $ export AWS_SECURITY_GROUP_ID=<YOUR_SECURITY_GROUP_ID>
 ```
 ~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/https://docs.atlas.mongodb.com/reference/api/private-endpoint/
 
-
 ##### AZURE env variables
 
 - For `Network Peering` resource configuration:
@@ -224,12 +224,7 @@ In order to run the full suite of Acceptance tests, run ``make testacc``.
 ```
 $ make testacc
 ```
-
-Thanks
----------------------------
-We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
-
-# Running the integration tests
+### Running the integration tests
 
 The integration tests helps the validation for resources interacting with third party providers (aws, azure or gcp) using terratest [environment setup details](integrationtesting/README.md)
 
@@ -237,3 +232,7 @@ The integration tests helps the validation for resources interacting with third 
   cd integrationtesting
   go test -tags=integration
 ```
+
+## Thanks
+
+We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
