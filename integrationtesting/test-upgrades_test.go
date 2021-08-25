@@ -1,4 +1,4 @@
-package integration_testing
+package integrationtesting
 
 import (
 	"context"
@@ -73,7 +73,6 @@ func TestUpgradeNetworkContainerRegionsGCP(t *testing.T) {
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_network_container.test", fmt.Sprintf("%s-%s", projectID, networkContainerID))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
@@ -128,12 +127,11 @@ func TestUpgradeDatabaseUserLDAPAuthType(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_database_user.test", fmt.Sprintf("%s-%s-%s", projectID, userName, authDatabaseName))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 func testAccGetMongoDBAtlasMajorVersion() string {
@@ -194,12 +192,11 @@ func TestUpgradeClusterDeprecationEBSVolume(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cluster.test", fmt.Sprintf("%s-%s", projectID, clusterNameOutput))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 func TestUpgradePrivateEndpoint(t *testing.T) {
@@ -268,14 +265,13 @@ func TestUpgradePrivateEndpoint(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init")
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_private_endpoint.test", fmt.Sprintf("%s-%s-%s-%s", projectID, privateEndpoint, "AWS", "us-east-1"))
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_vpc_endpoint.ptfe_service", vpcEndpoint)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_private_endpoint_interface_link.test", fmt.Sprintf("%s-%s-%s", projectID, privateEndpoint, vpcEndpoint))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
@@ -329,12 +325,11 @@ func TestUpgradeProjectIPWhitelistDeprecation(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project_ip_access_list.test", fmt.Sprintf("%s-%s", projectID, entry))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 func TestUpgradeDesignIDState(t *testing.T) {
@@ -529,14 +524,13 @@ func TestUpgradePrivateLinkEndpointDeprecation(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_privatelink_endpoint.test", fmt.Sprintf("%s-%s-%s-%s", projectID, privateEndpoint, "AWS", "us-east-1"))
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "aws_vpc_endpoint.ptfe_service", vpcEndpoint)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_privatelink_endpoint_service.test", fmt.Sprintf("%s--%s--%s--%s", projectID, privateEndpoint, vpcEndpoint, "AWS"))
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 func TestUpgradeCloudBackupPolicies(t *testing.T) {
@@ -587,14 +581,13 @@ func TestUpgradeCloudBackupPolicies(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	//Remove states
+	// Remove states
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.project_test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cluster.cluster_test", fmt.Sprintf("%s-%s", projectID, cluster))
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cloud_backup_schedule.test", fmt.Sprintf("%s-%s", projectID, cluster))
 	// Run `terraform apply`. Fail the test if there are any errors.
 
 	terraform.Plan(t, terraformOptionsSecond)
-
 }
 
 // This func means that the terraform state will be always clean to avoid error about resource already used

@@ -1,6 +1,7 @@
+//go:build integration
 // +build integration
 
-package integration_testing
+package integrationtesting
 
 import (
 	"fmt"
@@ -81,5 +82,4 @@ func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testi
 
 	// Run `terraform apply`. Fail the test if there are any errors.
 	terraform.InitAndApply(t, terraformOptionsSecond)
-
 }
