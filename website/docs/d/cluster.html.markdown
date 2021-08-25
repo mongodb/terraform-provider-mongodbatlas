@@ -162,7 +162,7 @@ Contains a key-value pair that tags that the cluster was created by a Terraform 
 
 ### Cloud Provider Snapshot Backup Policy
 
-**WARNING:** This property is going to be deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
 
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
 
@@ -176,14 +176,14 @@ Contains a key-value pair that tags that the cluster was created by a Terraform 
 
 ### Policies
 
-**WARNING:** This property is going to be deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
 
 * `snapshot_backup_policy.#.policies` - A list of policy definitions for the cluster.
 * `snapshot_backup_policy.#.policies.#.id` - Unique identifier of the backup policy.
 
 #### Policy Item
 
-**WARNING:** This property is going to be deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
 
 * `snapshot_backup_policy.#.policies.#.policy_item` - A list of specifications for a policy.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.id` - Unique identifier for this policy item.
