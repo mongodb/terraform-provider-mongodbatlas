@@ -177,7 +177,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 						"service_account_key": {
 							Type:      schema.TypeString,
