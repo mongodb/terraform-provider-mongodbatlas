@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_cluster
 
-`mongodbatlas_cluster` describes a Cluster. The. The data source requires your Project ID.
+`mongodbatlas_cluster` describes a Cluster. The data source requires your Project ID.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
