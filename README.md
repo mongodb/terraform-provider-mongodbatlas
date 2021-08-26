@@ -1,5 +1,6 @@
 # MongoDB Atlas Provider
-[![Build Status](https://travis-ci.org/mongodb/terraform-provider-mongodbatlas.svg?branch=master)](https://travis-ci.org/mongodb/terraform-provider-mongodbatlas)
+[![Automated Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/automated-test.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/automated-test.yml)
+[![Automated Acceptances Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/automated-test-acceptances.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/automated-test-acceptances.yml)
 
 This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas.
 Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
@@ -15,7 +16,7 @@ Bugs should be filed under the Issues section of this repo.
 Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
 
 ## Requirements
-- [Terraform](https://www.terraform.io/downloads.html) 0.12+
+- [Terraform](https://www.terraform.io/downloads.html) 0.13+
 - [Go](https://golang.org/doc/install) 1.16 (to build the provider plugin)
 
 ## Using the Provider
