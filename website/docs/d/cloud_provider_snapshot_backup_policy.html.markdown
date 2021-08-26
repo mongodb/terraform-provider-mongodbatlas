@@ -6,6 +6,9 @@ description: |-
     Provides a Cloud Backup Snapshot Policy Datasource.
 ---
 
+
+ **WARNING:** This data source is deprecated, use `mongodbatlas_cloud_backup_schedule`
+
 # mongodbatlas_cloud_provider_snapshot_backup_policy
 
 `mongodbatlas_cloud_provider_snapshot_backup_policy` provides a Cloud Backup Snapshot Backup Policy datasource. An Atlas Cloud Backup Snapshot Policy provides the current snapshot schedule and retention settings for the cluster. 

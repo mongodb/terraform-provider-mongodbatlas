@@ -33,7 +33,7 @@ resource "mongodbatlas_cluster" "test" {
       read_only_nodes = 0
     }
   }
-  provider_backup_enabled      = true
+  cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
 
   //Provider Settings "block"
@@ -57,7 +57,7 @@ data "mongodbatlas_cluster" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The cluster ID.
-*  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
+* `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
 * `mongo_uri` - Base connection string for the cluster. Atlas only displays this field after the cluster is operational, not while it builds the cluster.
 * `mongo_uri_updated` - Lists when the connection string was last updated. The connection string changes, for example, if you change a replica set to a sharded cluster.
 * `mongo_uri_with_options` - Describes connection string for connecting to the Atlas cluster. Includes the replicaSet, ssl, and authSource query parameters in the connection string with values appropriate for the cluster.
@@ -102,7 +102,8 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Name of the cluster as it appears in Atlas.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
-* `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
+* `provider_backup_enabled` - **(DEPRECATED)** Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
+* `cloud_backup` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.
 * `backing_provider_name` - Indicates Cloud service provider on which the server for a multi-tenant cluster is provisioned.
@@ -160,6 +161,9 @@ Contains a key-value pair that tags that the cluster was created by a Terraform 
 * `version` - The current version of the plugin.
 
 ### Cloud Provider Snapshot Backup Policy
+
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
+
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
 
 * `snapshot_backup_policy.#.cluster_id` - Unique identifier of the Atlas cluster.
@@ -171,10 +175,16 @@ Contains a key-value pair that tags that the cluster was created by a Terraform 
 * `snapshot_backup_policy.#.update_snapshots` - Specifies it's true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
 
 ### Policies
+
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
+
 * `snapshot_backup_policy.#.policies` - A list of policy definitions for the cluster.
 * `snapshot_backup_policy.#.policies.#.id` - Unique identifier of the backup policy.
 
 #### Policy Item
+
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` datasource instead.
+
 * `snapshot_backup_policy.#.policies.#.policy_item` - A list of specifications for a policy.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.id` - Unique identifier for this policy item.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.

@@ -38,7 +38,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
       read_only_nodes = 0
     }
   }
-  provider_backup_enabled      = true
+  cloud_backup = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
@@ -65,7 +65,7 @@ resource "mongodbatlas_cluster" "test" {
       read_only_nodes = 0
     }
   }
-  provider_backup_enabled      = true
+  cloud_backup     = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
@@ -92,7 +92,7 @@ resource "mongodbatlas_cluster" "test" {
       read_only_nodes = 0
     }
   }
-  provider_backup_enabled      = true
+  cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
@@ -111,7 +111,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   name                     = "cluster-test-multi-region"
   disk_size_gb             = 100
   num_shards               = 1
-  provider_backup_enabled  = true
+  cloud_backup             = true
   cluster_type             = "REPLICASET"
 
   //Provider Settings "block"
@@ -150,7 +150,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   name                    = "cluster-test-global"
   disk_size_gb            = 80
   num_shards              = 1
-  provider_backup_enabled = true
+  cloud_backup            = true
   cluster_type            = "GEOSHARDED"
 
   //Provider Settings "block"
@@ -279,11 +279,11 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 
 * `backup_enabled` - (Optional) Legacy Backup - Set to true to enable Atlas legacy backups for the cluster.
 **Important** - MongoDB deprecated the Legacy Backup feature. Clusters that use Legacy Backup can continue to use it. MongoDB recommends using [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/). 
-    * Any net new Atlas clusters of any type do not support this parameter. These clusters must use Cloud Backup, `provider_backup_enabled`, to enable Cloud Backup.  If you create a new Atlas cluster and set `backup_enabled` to true, the Provider will respond with an error.  This change doesn’t affect existing clusters that use legacy backups.
+    * New Atlas clusters of any type do not support this parameter. These clusters must use Cloud Backup, `cloud_backup`, to enable Cloud Backup.  If you create a new Atlas cluster and set `backup_enabled` to true, the Provider will respond with an error.  This change doesn’t affect existing clusters that use legacy backups.
     * Setting this value to false to disable legacy backups for the cluster will let Atlas delete any stored snapshots. In order to preserve the legacy backups snapshots, disable the legacy backups and enable the cloud backups in the single **terraform apply** action.
     ```
     backup_enabled = "false"
-    provider_backup_enabled = "true"
+    cloud_backup = "true"
     ```
     * The default value is false.  M10 and above only.
 
@@ -307,10 +307,11 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-aws-kms/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For complete documentation on configuring Encryption at Rest, see Encryption at Rest using Customer Key Management. Requires M10 or greater. and for legacy backups, backup_enabled, to be false or omitted. **Note: Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default**.   
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `3.6`, `4.0`, or `4.2`. You must set this value to `4.2` if `provider_instance_size_name` is either M2 or M5.
 * `num_shards` - (Optional) Selects whether the cluster is a replica set or a sharded cluster. If you use the replicationSpecs parameter, you must set num_shards.
-* `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, provider_backup_enabled must also be set to true.
-* `provider_backup_enabled` - (Optional) Flag indicating if the cluster uses Cloud Backup for backups.
+* `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, cloud_backup must also be set to true.
+* `provider_backup_enabled` -  (Optional) Flag indicating if the cluster uses Cloud Backup for backups. **Deprecated** use `cloud_backup` instead.
+* `cloud_backup` - (Optional) Flag indicating if the cluster uses Cloud Backup for backups. 
 
-    If true, the cluster uses Cloud Backup for backups. If provider_backup_enabled and backup_enabled are false, the cluster does not use Atlas backups.
+    If true, the cluster uses Cloud Backup for backups. If cloud_backup and backup_enabled are false, the cluster does not use Atlas backups.
 
     You cannot enable cloud backup if you have an existing cluster in the project with legacy backup enabled.
 
@@ -505,7 +506,10 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 
 ### Cloud Backup Policy
-Cloud Backup Policy will be added if provider_backup_enabled is enabled because MongoDB Atlas automatically creates a default policy, if not, returned values will be empty.   
+
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead. 
+
+Cloud Backup Policy will be added if provider_backup_enabled or cloud_backup is enabled because MongoDB Atlas automatically creates a default policy, if not, returned values will be empty.   
 
 * `snapshot_backup_policy` - current snapshot schedule and retention settings for the cluster.
 
@@ -518,10 +522,14 @@ Cloud Backup Policy will be added if provider_backup_enabled is enabled because 
 * `snapshot_backup_policy.#.update_snapshots` - Specifies it's true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
 
 ### Policies
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead.
+
 * `snapshot_backup_policy.#.policies` - A list of policy definitions for the cluster.
 * `snapshot_backup_policy.#.policies.#.id` - Unique identifier of the backup policy.
 
 #### Policy Item
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead.
+
 * `snapshot_backup_policy.#.policies.#.policy_item` - A list of specifications for a policy.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.id` - Unique identifier for this policy item.
 * `snapshot_backup_policy.#.policies.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
