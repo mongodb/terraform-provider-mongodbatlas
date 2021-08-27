@@ -1,4 +1,4 @@
-// mongo 
+# mongo
 variable "project_id" {
   default = ""
 }
@@ -12,7 +12,7 @@ variable "private_key" {
   default = ""
 }
 
-// azure
+# azure
 variable "client_id" {
   default = ""
 }
@@ -35,13 +35,11 @@ variable "key_identifier" {
   default = ""
 }
 
-// encryption at rest
-
+# encryption at rest
 variable "atlas_region" {
   default     = "US_EAST_1"
   description = "Atlas Region"
 }
-
 variable "project_name" {
   description = "Atlas project name"
   default     = ""

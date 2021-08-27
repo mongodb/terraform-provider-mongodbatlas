@@ -1,5 +1,5 @@
-// This is only for import stuff because it needs the resource names and set to
-// avoid changes when terraform plan
+# This is only for import stuff because it needs the resource names and set to
+# avoid changes when terraform plan
 
 resource "mongodbatlas_project" "test" {
   name   = var.project_name

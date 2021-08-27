@@ -1,4 +1,4 @@
-// mongo 
+# mongo
 variable "project_id" {
   default = ""
 }
@@ -12,7 +12,7 @@ variable "private_key" {
   default = ""
 }
 
-// aws
+# aws
 variable "access_key" {
   default = ""
 }
@@ -23,7 +23,7 @@ variable "aws_region" {
   default = ""
 }
 
-// encryption at rest
+# encryption at rest
 variable "customer_master_key" {
   description = "The customer master secret key for AWS Account"
   default     = ""
