@@ -16,7 +16,7 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIds) < 2 {
-		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,7 +50,7 @@ func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIds) < 2 {
-		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{

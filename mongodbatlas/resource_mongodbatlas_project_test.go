@@ -24,7 +24,7 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 		teamsIds     = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	)
 	if len(teamsIds) < 3 {
-		t.Fatal("`MONGODB_ATLAS_TEAMS_IDS` must have 3 team ids for this acceptance testing")
+		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 3 team ids for this acceptance testing")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
