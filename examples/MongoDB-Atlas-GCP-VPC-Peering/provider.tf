@@ -4,7 +4,7 @@ provider "mongodbatlas" {
 }
 provider "google" {
   # credentials = file("service-account.json")
-  project     = var.gcpprojectid
-  region      = var.gcp_region
+  project = var.gcpprojectid
+  region  = var.gcp_region
   # zone="us-central-1c"
 }
