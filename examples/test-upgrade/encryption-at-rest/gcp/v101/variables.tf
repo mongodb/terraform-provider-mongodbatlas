@@ -7,10 +7,6 @@ variable "gcp_key_version_resource_id" {
 }
 
 # encryption at rest
-variable "atlas_region" {
-  default     = "US_EAST_1"
-  description = "Atlas Region"
-}
 variable "project_name" {
   description = "Atlas project name"
   default     = ""
