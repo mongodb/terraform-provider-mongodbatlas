@@ -1,7 +1,6 @@
 package mongodbatlas
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -22,22 +21,38 @@ func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_PUBLIC_KEY", ""),
+				Type:     schema.TypeString,
+				Required: true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"MONGODB_ATLAS_PUBLIC_KEY",
+					"MCLI_PUBLIC_API_KEY",
+				}, ""),
 				Description: "MongoDB Atlas Programmatic Public Key",
 			},
 			"private_key": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_PRIVATE_KEY", ""),
+				Type:     schema.TypeString,
+				Required: true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"MONGODB_ATLAS_PRIVATE_KEY",
+					"MCLI_PRIVATE_API_KEY",
+				}, ""),
 				Description: "MongoDB Atlas Programmatic Private Key",
+				Sensitive:   true,
 			},
 			"base_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"MONGODB_ATLAS_BASE_URL",
+					"MCLI_OPS_MANAGER_URL",
+				}, ""),
+				Description: "MongoDB Atlas Base URL",
+			},
+			"realm_base_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MONGODB_ATLAS_BASE_URL", ""),
-				Description: "MongoDB Atlas Base URL",
+				DefaultFunc: schema.EnvDefaultFunc("MONGODB_REALM_BASE_URL", ""),
+				Description: "MongoDB Realm Base URL",
 			},
 		},
 
@@ -129,12 +144,10 @@ func Provider() *schema.Provider {
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	config := Config{
-		PublicKey:  d.Get("public_key").(string),
-		PrivateKey: d.Get("private_key").(string),
-	}
-
-	if baseURL, ok := d.GetOk("base_url"); ok {
-		config.BaseURL = baseURL.(string)
+		PublicKey:    d.Get("public_key").(string),
+		PrivateKey:   d.Get("private_key").(string),
+		BaseURL:      d.Get("base_url").(string),
+		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 
 	return config.NewClient(ctx)
@@ -301,15 +314,4 @@ func HashCodeString(s string) int {
 	}
 	// v == MinInt
 	return 0
-}
-
-// HashCodeStrings hashes a list of strings to a unique hashcode.
-func HashCodeStrings(hashStrings []string) string {
-	var buf bytes.Buffer
-
-	for _, s := range hashStrings {
-		buf.WriteString(fmt.Sprintf("%s-", s))
-	}
-
-	return fmt.Sprintf("%d", HashCodeString(buf.String()))
 }

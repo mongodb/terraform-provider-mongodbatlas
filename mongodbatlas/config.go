@@ -2,24 +2,24 @@ package mongodbatlas
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/mongodb-forks/digest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 	"github.com/spf13/cast"
-	realmAuth "go.mongodb.org/realm/auth"
-
-	"github.com/mongodb-forks/digest"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
+	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
 )
 
 // Config struct ...
 type Config struct {
-	PublicKey  string
-	PrivateKey string
-	BaseURL    string
+	PublicKey    string
+	PrivateKey   string
+	BaseURL      string
+	RealmBaseURL string
 }
 
 // MongoDBClient client
@@ -27,6 +27,8 @@ type MongoDBClient struct {
 	Atlas  *matlasClient.Client
 	Config *Config
 }
+
+var ua = "terraform-provider-mongodbatlas/" + version.ProviderVersion
 
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) {
@@ -41,8 +43,8 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if len(c.BaseURL) > 0 {
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(ua)}
+	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
 
@@ -63,12 +65,12 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
 	// Realm
 	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
-		return nil, fmt.Errorf("please set `public_key` and `private_key` in order to use the realm client")
+		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent("terraform-provider-mongodbatlas/" + version.ProviderVersion)}
-	if len(c.Config.BaseURL) > 0 {
-		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.BaseURL))
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent(ua)}
+	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
+		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.RealmBaseURL))
 	}
 	authConfig := realmAuth.NewConfig(nil)
 	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
