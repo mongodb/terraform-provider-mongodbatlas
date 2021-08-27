@@ -25,8 +25,4 @@ resource "mongodbatlas_data_lake" "test" {
     role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
     test_s3_bucket = var.test_s3_bucket
   }
-  data_process_region = {
-    cloud_provider = "AWS"
-    region         = var.data_lake_region
-  }
 }
