@@ -4,7 +4,7 @@ terraform {
       source = "hashicorp/azurerm"
     }
     mongodbatlas = {
-      source  = "mongodb/mongodbatlas"
+      source = "mongodb/mongodbatlas"
     }
   }
   required_version = ">= 0.13"
