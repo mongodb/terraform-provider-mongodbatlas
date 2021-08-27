@@ -49,6 +49,7 @@ resource "mongodbatlas_network_container" "atlas_container" {
   region_name      = var.atlas_region
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_network_container" "atlas_container" {
   container_id = mongodbatlas_network_container.atlas_container.container_id
   project_id   = mongodbatlas_project.aws_atlas.id
