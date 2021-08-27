@@ -37,7 +37,7 @@ jobs:
       - name: terraform
         run: |
           for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
-              pushd "$DIR"
+              pushd "${DIR}"
               if [ -f terraform.template.tfvars ]; then
                 cp terraform.template.tfvars terraform.tfvars
               fi
