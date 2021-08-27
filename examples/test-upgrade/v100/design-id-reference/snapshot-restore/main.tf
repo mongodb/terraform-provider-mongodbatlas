@@ -30,6 +30,7 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
   }
 }
 
+# tflint-ignore: terraform_unused_declarations
 data "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
   project_id   = data.mongodbatlas_project.test.id
   cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name

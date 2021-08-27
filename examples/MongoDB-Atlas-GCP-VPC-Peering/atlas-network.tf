@@ -22,9 +22,9 @@ data "google_compute_network" "default" {
 
 # Create the GCP peer
 resource "google_compute_network_peering" "peering" {
-  name         = "peering-gcp-terraform-test"
+  name = "peering-gcp-terraform-test"
   # The URI of the GCP VPC. self_link which is found by enabling the [Compute Engine API](https://console.cloud.google.com/apis/api/compute.googleapis.com)
-  network      = data.google_compute_network.default.self_link 
+  network = data.google_compute_network.default.self_link
   # The URI of the Atlas VPC
   peer_network = "https://www.googleapis.com/compute/v1/projects/${mongodbatlas_network_peering.test.atlas_gcp_project_id}/global/networks/${mongodbatlas_network_peering.test.atlas_vpc_name}"
 }
