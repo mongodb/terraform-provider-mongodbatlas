@@ -6,5 +6,5 @@ provider "google" {
   credentials = file("service-account.json")
   project     = var.gcpprojectid
   region      = var.gcp_region
-  //zone="us-central-1c"
+  # zone="us-central-1c"
 }
