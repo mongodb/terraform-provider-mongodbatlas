@@ -38,7 +38,3 @@ variable "data_lake_name" {
   description = "The data lake name"
   default     = ""
 }
-variable "data_lake_region" {
-  default     = "VIRGINIA_USA"
-  description = "The data lake region"
-}
