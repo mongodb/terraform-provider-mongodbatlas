@@ -1,17 +1,3 @@
-# mongo
-variable "project_id" {
-  default = ""
-}
-variable "cloud_provider_access_name" {
-  default = "AWS"
-}
-variable "public_key" {
-  default = ""
-}
-variable "private_key" {
-  default = ""
-}
-
 # gcp
 variable "service_account_key" {
   default = ""
