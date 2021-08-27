@@ -6,6 +6,10 @@ variable "private_key" {
   description = "The private API key for MongoDB Atlas"
   default     = ""
 }
+variable "project_id" {
+  description = "Atlas project ID"
+  default     = ""
+}
 variable "access_key" {
   description = "The access key for AWS Account"
   default     = ""
