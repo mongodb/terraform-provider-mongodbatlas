@@ -14,5 +14,5 @@ output "data_lake_name" {
   value = mongodbatlas_data_lake.test.name
 }
 output "s3_bucket" {
-  value = mongodbatlas_data_lake.test.aws_test_s3_bucket
+  value = mongodbatlas_data_lake.test.aws[0].test_s3_bucket
 }
