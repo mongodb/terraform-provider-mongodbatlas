@@ -1,15 +1,60 @@
 # Changelog
 
+## [v1.0.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.1-pre.1) (2021-08-30)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.0...v1.0.1-pre.1)
+
+**Fixed bugs:**
+
+- Cannot define a mongodbatlas\_cloud\_provider\_snapshot\_backup\_policy and enable provider\_backup\_enabled for an existing cluster in the same apply [\#350](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/350)
+
+**Closed issues:**
+
+- Not able to obtain CSRS hostnames from mongodbatlas\_cluster resource [\#543](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/543)
+- Cloud Provider Access Setup for Datalake [\#486](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/486)
+- Cluster region does not change after cluster creation [\#478](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/478)
+- Terraform: Unable to fetch connection strings when using 'data' resource for existing cluster [\#422](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/422)
+- SDK framework update v2.0.0+ [\#408](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/408)
+- Issues with resource and API design for Cloud Provider Snapshot Backup Policy [\#222](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/222)
+
+**Merged pull requests:**
+
+- test: skip instead of fatal for team ids missing [\#544](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/544) ([gssbzn](https://github.com/gssbzn))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.32.20 to 0.37.7 [\#541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/541) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/mongodb-forks/digest from 1.0.1 to 1.0.3 [\#540](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/540) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump octokit/request-action from 2.0.0 to 2.1.0 [\#539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/539) ([dependabot[bot]](https://github.com/apps/dependabot))
+- feat: add dependabot [\#537](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/537) ([gssbzn](https://github.com/gssbzn))
+- feat: mcli integration [\#536](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/536) ([gssbzn](https://github.com/gssbzn))
+- docs: fix typo cluster.html.markdown [\#535](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/535) ([gssbzn](https://github.com/gssbzn))
+- docs: update README [\#534](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/534) ([gssbzn](https://github.com/gssbzn))
+- INTMDB-226 - Added forceNew to vpc\_id in network\_peering [\#533](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/533) ([abner-dou](https://github.com/abner-dou))
+- Modified workflow to trigger the automated tests [\#532](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/532) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-247: Fixes a bug where it's taking 3 minutes to read a cluster [\#530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/530) ([coderGo93](https://github.com/coderGo93))
+- task: check examples are formatted correctly [\#529](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/529) ([gssbzn](https://github.com/gssbzn))
+- feat: use golangci lint action [\#528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/528) ([gssbzn](https://github.com/gssbzn))
+- task: remove misspell as a dependency [\#527](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/527) ([gssbzn](https://github.com/gssbzn))
+- INTMDB-236: Updated the cluster configuration [\#526](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/526) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-244: add deprecation notes for cloud backup documentation [\#525](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/525) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-237: fix word in private\_endpoint resource documentation [\#523](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/523) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-243: Fixes a bug for encryption at rest with new parameters [\#522](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/522) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-235: Added example of ldap configuration docs [\#520](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/520) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-242: Fixes the bug when if you don set public/private key it would fail for getting realm client [\#519](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/519) ([coderGo93](https://github.com/coderGo93))
+- Add stronger warning against attempting a shared tier upgrade [\#516](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/516) ([themantissa](https://github.com/themantissa))
+- INTMDB-219: Fixed cluster scaling issue [\#515](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/515) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-218: fixes the bug when you try to add more than 100 ip whitelist [\#514](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/514) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-225: Fixed network peering resource for Azure [\#513](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/513) ([abner-dou](https://github.com/abner-dou))
+
 ## [v1.0.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.0) (2021-08-11)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.0-pre.1...v1.0.0)
 
 **Merged pull requests:**
 
+-  INTMDB-215: tag version 1.0.0 for release [\#511](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/511) ([coderGo93](https://github.com/coderGo93))
 - Update 1.0.0-upgrade-guide.html.markdown [\#510](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/510) ([themantissa](https://github.com/themantissa))
 - update the privatelink doc with Azure example [\#509](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/509) ([nikhil-mongo](https://github.com/nikhil-mongo))
 
-## [v1.0.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.0-pre.1) (2021-08-09)
+## [v1.0.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.0-pre.1) (2021-08-10)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v0.9.1...v1.0.0-pre.1)
 
