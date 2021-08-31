@@ -47,9 +47,8 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Required: true,
 		},
 		"analyzers": {
-			Type:     schema.TypeString,
-			Optional: true,
-			//Elem:     customAnalyzersSchema(),
+			Type:             schema.TypeString,
+			Optional:         true,
 			DiffSuppressFunc: validateSearchAnalyzersDiff,
 		},
 		"collection_name": {
@@ -293,8 +292,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 
 	clusterName := d.Get("cluster_name").(string)
 
-	var indexMapping map[string]interface{}
-	indexMapping = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+	indexMapping := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 
 	searchIndexRequest := &matlas.SearchIndex{
 		Analyzer:       d.Get("analyzer").(string),
