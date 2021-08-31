@@ -181,7 +181,8 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("mappings_fields") {
-		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+		mappingFields := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+		searchIndex.Mappings.Fields = &mappingFields
 	}
 
 	searchIndex.IndexID = ""
@@ -292,7 +293,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 
 	clusterName := d.Get("cluster_name").(string)
 
-	var indexMapping *map[string]interface{}
+	var indexMapping map[string]interface{}
 	indexMapping = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 
 	searchIndexRequest := &matlas.SearchIndex{
@@ -302,7 +303,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		Database:       d.Get("database").(string),
 		Mappings: &matlas.IndexMapping{
 			Dynamic: d.Get("mappings_dynamic").(bool),
-			Fields:  indexMapping,
+			Fields:  &indexMapping,
 		},
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: d.Get("search_analyzer").(string),
@@ -373,12 +374,12 @@ func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) 
 	return true
 }
 
-func unmarshalSearchIndexMappingFields(mappingString string) *map[string]interface{} {
+func unmarshalSearchIndexMappingFields(mappingString string) map[string]interface{} {
 	if mappingString == "" {
 		return nil
 	}
 
-	var fields *map[string]interface{}
+	var fields map[string]interface{}
 
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
