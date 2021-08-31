@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.0.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.1-pre.1) (2021-08-30)
+## [v1.0.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.1-pre.1) (2021-09-01)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.0...v1.0.1-pre.1)
 
@@ -19,7 +19,9 @@
 
 **Merged pull requests:**
 
+- INTMDB-251: Update search rs and ds to use go-client v0.12.0 [\#548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/548) ([abner-dou](https://github.com/abner-dou))
 - test: skip instead of fatal for team ids missing [\#544](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/544) ([gssbzn](https://github.com/gssbzn))
+- Chore\(deps\): Bump github.com/spf13/cast from 1.3.1 to 1.4.1 [\#542](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/542) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.32.20 to 0.37.7 [\#541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/541) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Chore\(deps\): Bump github.com/mongodb-forks/digest from 1.0.1 to 1.0.3 [\#540](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/540) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Chore\(deps\): Bump octokit/request-action from 2.0.0 to 2.1.0 [\#539](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/539) ([dependabot[bot]](https://github.com/apps/dependabot))
