@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasSearchIndexes_byID(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
 	var (
 		clusterName    = acctest.RandomWithPrefix("test-acc-global")
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

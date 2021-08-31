@@ -71,26 +71,25 @@ resource "mongodbatlas_search_index" "test" {
 EOF
  name = "name_test"
  searchAnalyzer = "lucene.standard"
- analyzers {
-  name = "index_analyzer_test_name"
-  char_filters {
-   type = "mapping"
-   mappings = <<EOF
-   {"\\" : "/"}
-   EOF
-   }
-   tokenizer { 
-    type = "nGram"
-    min_gram = 2
-    max_gram = 5
-   }
-   token_filters = {
-    type = "length"
-    min = 20
-    max = 33
-   }
-  }
-}
+ analyzers = <<-EOF
+  [{
+  "name": "index_analyzer_test_name",
+  "char_filters": {
+	"type": "mapping",
+	"mappings": {"\\" : "/"}
+    	},
+  "tokenizer": {
+  "type": "nGram",
+  "min_gram": 2,
+  "max_gram": 5
+		},
+  "token_filters": {
+	"type": "length",
+	"min": 20,
+	"max": 33
+    	}
+  }]
+EOF
 ```
 
 ## Argument Reference
@@ -102,7 +101,28 @@ EOF
 
 * `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 
-* `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index (this is an array of objects).
+* `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index. This is an array of JSON objects.
+```
+analyzers = <<-EOF
+  [{
+  "name": "index_analyzer_test_name",
+  "char_filters": {
+	"type": "mapping",
+	"mappings": {"\\" : "/"}
+    	},
+  "tokenizer": {
+  "type": "nGram",
+  "min_gram": 2,
+  "max_gram": 5
+	},
+  "token_filters": {
+	"type": "length",
+	"min": 20,
+	"max": 33
+    	}
+  }]
+EOF
+```
 
 * `collection_name` - (Required) Name of the collection the index is on.
 
@@ -158,9 +178,9 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * `mongodb`
 * `char_filters` - Array containing zero or more character filters. Always require a `type` field, and some take additional options as well
   ```hcl
-  char_filters{
-   type = "<FILTER_TYPE>"
-   ADDITIONAL_OPTION = VALUE
+  "char_filters":{
+   "type": "<FILTER_TYPE>",
+   "ADDITIONAL_OPTION": VALUE
   }
   ```
   Atlas search supports four `types` of character filters:
@@ -168,26 +188,27 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
         * `type` - (Required) Must be `htmlStrip`
         * `ignored_tags`- a list of HTML tags to exclude from filtering
         ```hcl
-          analyzers{
-            name = "analyzer_test"
-            char_filters={
-              type = "htmlStrip"
-              ignored_tags = ["a"]
+          analyzers = <<-EOF [{
+            "name": "analyzer_test",
+            "char_filters":{
+              "type": "htmlStrip",
+              "ignored_tags": ["a"]
               }   
-            } 
+            }] 
        ```
     * [icuNormalize](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-icuNormalize-ref) - Normalizes text with the [ICU](http://site.icu-project.org/) Normalizer. Based on Lucene's [ICUNormalizer2CharFilter](https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html)
     * [mapping](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-mapping-ref) - Applies user-specified normalization mappings to characters. Based on Lucene's [MappingCharFilter](https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html)
       An object containing a comma-separated list of mappings. A mapping indicates that one character or group of characters should be substituted for another, in the format `<original> : <replacement>`
-      >Note: this field needs to be in a JSON format using `EOF` tags
       ### Example
         ```hcl
-        analyzers{
-          type= "mapping"
-          mappings =<<-EOF
+        analyzers = <<-EOF [{
+          "name":"name_analyzer",        
+          "type": "mapping",
+          "mappings":  
           {
              "\\" : "/"
           }
+          }]
           EOF 
       ```
     * [persian](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-persian-ref) - Replaces instances of [zero-width non-joiners](https://en.wikipedia.org/wiki/Zero-width_non-joiner) with ordinary space. Based on Lucene's [PersianCharFilter](https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html)
@@ -195,9 +216,9 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
 
 * `tokenizer` - (Required) Tokenizer to use. Determines how Atlas Search splits up text into discrete chunks of indexing. Always require a type field, and some take additional options as well.
     ```hcl
-    tokenizer{
-    type = "<tokenizer-type>"
-    ADDITIONAL_OPTIONS = VALUE
+    "tokenizer":{
+    "type": "<tokenizer-type>",
+    "ADDITIONAL_OPTIONS": VALUE
     }
     ```
   Atlas Search supports the following tokenizer options:
@@ -229,9 +250,9 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
 
 * `tokenFilters` - Array containing zero or more token filters. Always require a type field, and some take additional options as well:
   ```hcl
-  token_filters{
-    type = "<FILTER_TYPE>"
-    ADDITIONAL-OPTIONS = VALUE
+  "token_filters":{
+    "type": "<FILTER_TYPE>",
+    "ADDITIONAL-OPTIONS": VALUE
   }
   ```
   Atlas Search supports the following token filters:

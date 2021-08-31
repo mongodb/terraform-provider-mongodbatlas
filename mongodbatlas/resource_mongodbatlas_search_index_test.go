@@ -61,7 +61,6 @@ func TestAccResourceMongoDBAtlasSearchIndex_withMapping(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -236,27 +235,27 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
    			EOF
 			name = "name_test"
 			search_analyzer = "lucene.standard"
-			analyzers {
-				name = "index_analyzer_test_name"
-				char_filters {
-					type = "mapping"
-					mappings = <<-EOF
-					{"\\" : "/"}
-					EOF
+			analyzers = <<-EOF
+						[{
+				"name": "index_analyzer_test_name",
+				"char_filters": {
+					"type": "mapping",
+					"mappings": {"\\" : "/"}
+				},
+				"tokenizer": {
+					"type": "nGram",
+					"min_gram": 2,
+					"max_gram": 5
+				},
+				"token_filters": {
+				"type": "length",
+				"min": 20,
+				"max": 33
 				}
-				tokenizer {
-					type = "nGram"
-					min_gram = 2
-					max_gram = 5
-				}
-
-			token_filters {
-				type = "length"
-				min = 20
-				max = 33
-			}
+			}]
+			EOF
 		}
-	}
+	
 	
 	`, projectID, clusterName)
 }
