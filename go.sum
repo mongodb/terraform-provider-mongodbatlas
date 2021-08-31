@@ -561,8 +561,8 @@ github.com/hashicorp/terraform-plugin-go v0.3.0/go.mod h1:dFHsQMaTLpON2gWhVWT96f
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.4.0/go.mod h1:JBItawj+j8Ssla5Ib6BC/W9VQkOucBfnX7VRtyx1vw8=
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.5.0/go.mod h1:z+cMZ0iswzZOahBJ3XmNWgWkVnAd2bl8g+FhyyuPDH4=
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1/go.mod h1:72j8cKfs9IirGhPMXJJWLTvRUK4zATtrCOvs2avDlo8=
-github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0 h1:SuI59MqNjYDrL7EfqHX9V6P/24isgqYx/FdglwVs9bg=
-github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0/go.mod h1:grseeRo9g3yNkYW09iFlV8LG78jTa1ssBgouogQg/RU=
+github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.1 h1:vpzKKP2dIFb9n89AG8Wxl758/5JSZWZH0OuKdlq0M38=
+github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.1/go.mod h1:o3pdss6ynDZW9FfiZ+rETUH5LEVufrXdhwLU+5OiRo0=
 github.com/hashicorp/terraform-provider-google v1.20.1-0.20210625223728-379bcb41c06b h1:r7lcONv0Fk/71AkXD1DL9CEkPIR2miuEytLasvTYhms=
 github.com/hashicorp/terraform-provider-google v1.20.1-0.20210625223728-379bcb41c06b/go.mod h1:OhGjOHXiFi9LYqZ1ufo11myNGbENa71nkCNavijbGw4=
 github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb/go.mod h1:+NfK9FKeTrX5uv1uIXGdwYDTeHna2qgaIlx54MXqjAM=
