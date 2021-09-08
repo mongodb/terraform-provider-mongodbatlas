@@ -435,8 +435,17 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if providerName != "AWS" {
+
+		instanceName, instanceOk := d.GetOk("provider_instance_size_name")
+
+		if _, ok := d.GetOk("provider_disk_iops"); ok && instanceOk && strings.Contains(instanceName.(string), "NVME") {
+
+			return diag.Errorf("`provider_disk_iops` shouldn't be set when provider instance is an NVME storage")
+		}
+
 		if _, ok := d.GetOk("provider_disk_iops"); ok {
-			return diag.FromErr(fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`"))
+
+			return diag.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
 
 		if _, ok := d.GetOk("provider_volume_type"); ok {
@@ -1151,11 +1160,16 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 	}
 
 	if d.Get("provider_name") == "AWS" {
-		// Check if the Provider Disk IOS sets in the Terraform configuration.
+		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
+		if _, ok := d.GetOk("provider_disk_iops"); ok && strings.Contains(providerSettings.InstanceSizeName, "NVME") {
+			return nil, fmt.Errorf("cannot set 'provider_disk_iops' when a NVME instance size has been setted")
+		}
+
 		if v, ok := d.GetOk("provider_disk_iops"); ok {
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
+
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 	}
 
@@ -1167,7 +1181,7 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 		log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
 	}
 
-	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
+	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 && !strings.Contains(settings.InstanceSizeName, "NVME") {
 		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
 			log.Printf(errorClusterSetting, "provider_disk_iops", clusterName, err)
 		}
