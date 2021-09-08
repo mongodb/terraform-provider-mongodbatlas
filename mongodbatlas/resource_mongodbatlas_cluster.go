@@ -311,61 +311,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"advanced_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"default_read_concern": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"default_write_concern": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"fail_index_key_too_long": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-						"javascript_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-						"minimum_enabled_tls_protocol": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"no_table_scan": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-						"oplog_size_mb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"sample_size_bi_connector": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"sample_refresh_interval_bi_connector": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -1569,4 +1515,62 @@ func isEqualProviderAutoScalingMaxInstanceSize(k, old, newStr string, d *schema.
 		}
 	}
 	return true
+}
+
+func clusterAdvancedConfigurationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
 }
