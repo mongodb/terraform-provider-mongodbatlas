@@ -435,16 +435,13 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if providerName != "AWS" {
-
 		instanceName, instanceOk := d.GetOk("provider_instance_size_name")
 
 		if _, ok := d.GetOk("provider_disk_iops"); ok && instanceOk && strings.Contains(instanceName.(string), "NVME") {
-
 			return diag.Errorf("`provider_disk_iops` shouldn't be set when provider instance is an NVME storage")
 		}
 
 		if _, ok := d.GetOk("provider_disk_iops"); ok {
-
 			return diag.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
 
