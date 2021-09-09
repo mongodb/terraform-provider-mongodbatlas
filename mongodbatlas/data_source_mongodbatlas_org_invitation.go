@@ -56,35 +56,35 @@ func dataSourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Reso
 
 	orgInvitation, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting Organisation Invitation information: %s", err))
+		return diag.FromErr(fmt.Errorf("error getting Organization Invitation information: %s", err))
 	}
 
 	if err := d.Set("username", orgInvitation.Username); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("org_id", orgInvitation.GroupID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("roles", orgInvitation.Roles); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `roles` for Organisation Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

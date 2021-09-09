@@ -190,31 +190,28 @@ func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *sc
 	}
 
 	for _, projectInvitation := range projectInvitations {
-		if projectInvitation.Username == username {
-
-			if err := d.Set("username", projectInvitation.Username); err != nil {
-				return nil, fmt.Errorf("error getting `username` for Project Invitation (%s): %s", username, err)
-			}
-
-			if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
-				return nil, fmt.Errorf("error getting `project_id` for Project Invitation (%s): %s", username, err)
-			}
-
-			if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
-				return nil, fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %s", username, err)
-			}
-
-			d.SetId(encodeStateID(map[string]string{
-				"username":      username,
-				"project_id":    projectID,
-				"invitation_id": projectInvitation.ID,
-			}))
-
-			return []*schema.ResourceData{d}, nil
+		if projectInvitation.Username != username {
+			continue
 		}
+
+		if err := d.Set("username", projectInvitation.Username); err != nil {
+			return nil, fmt.Errorf("error getting `username` for Project Invitation (%s): %s", username, err)
+		}
+		if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
+			return nil, fmt.Errorf("error getting `project_id` for Project Invitation (%s): %s", username, err)
+		}
+		if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
+			return nil, fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %s", username, err)
+		}
+		d.SetId(encodeStateID(map[string]string{
+			"username":      username,
+			"project_id":    projectID,
+			"invitation_id": projectInvitation.ID,
+		}))
+		return []*schema.ResourceData{d}, nil
 	}
 
-	return nil, fmt.Errorf("Could not import Project Invitation for %s", d.Id())
+	return nil, fmt.Errorf("could not import Project Invitation for %s", d.Id())
 }
 
 func splitProjectInvitationImportID(id string) (projectID, username string, err error) {
@@ -235,7 +232,7 @@ func splitProjectInvitationImportID(id string) (projectID, username string, err 
 func validateProjectRoles(list *schema.Set) error {
 	if rs := list.List(); list.Len() > 0 {
 		for _, role := range rs {
-			if validateProjectRole(role.(string)) == false {
+			if !validateProjectRole(role.(string)) {
 				return fmt.Errorf("error creating an invite: %s is an invalid role for a Project", role)
 			}
 		}
@@ -245,7 +242,7 @@ func validateProjectRoles(list *schema.Set) error {
 }
 
 func validateProjectRole(str string) bool {
-	proj_roles := []string{
+	projRoles := []string{
 		"GROUP_OWNER",
 		"GROUP_CLUSTER_MANAGER",
 		"GROUP_READ_ONLY",
@@ -254,8 +251,8 @@ func validateProjectRole(str string) bool {
 		"GROUP_DATA_ACCESS_READ_ONLY",
 	}
 
-	for _, valid_role := range proj_roles {
-		if valid_role == str {
+	for _, validRole := range projRoles {
+		if validRole == str {
 			return true
 		}
 	}
