@@ -15,7 +15,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
+func TestAccResourceMongoDBAtlasCluster_basicAWS_simple(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
@@ -61,7 +61,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
-	SkipTest(t) // Skipped for now because of paramater provider_disk_iops breaks the terraform flow
+	//SkipTest(t) // Skipped for now because of paramater provider_disk_iops breaks the terraform flow
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
@@ -75,33 +75,25 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWS(projectID, name, true, false),
+				Config: testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, "M40_NVME"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
-					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M40_NVME"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, "true"),
+				Config: testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, "M50_NVME"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
-					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "provider_backup_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M40_NVME"),
+					resource.TestCheckResourceAttr(resourceName, "provider_instance_size_name", "M50_NVME"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 				),
 			},
 		},
@@ -1104,7 +1096,6 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
 			project_id                   = "%[1]s"
 			name                         = "%[2]s"
 			disk_size_gb                 = 100
-
             cluster_type = "REPLICASET"
 		    replication_specs {
 			  num_shards = 1
@@ -1115,47 +1106,33 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
                  read_only_nodes = 0
 		       }
 		    }
-
 			cloud_backup                 = %[3]t
 			pit_enabled                  = %[3]t
 			auto_scaling_disk_gb_enabled = %[4]t
 			mongo_db_major_version       = "4.0"
-
 			// Provider Settings "block"
+
 			provider_name               = "AWS"
 			provider_instance_size_name = "M30"
 		}
 	`, projectID, name, backupEnabled, autoDiskGBEnabled)
 }
 
-func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, backupEnabled string) string {
+func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, instanceName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%[1]s"
 			name         = "%[2]s"
-			disk_size_gb = 100
 
-            cluster_type = "REPLICASET"
-		    replication_specs {
-			  num_shards = 1
-			  regions_config {
-			     region_name     = "EU_CENTRAL_1"
-			     electable_nodes = 3
-			     priority        = 7
-                 read_only_nodes = 0
-		       }
-		    }
-
-			provider_backup_enabled      = %[3]s
-			pit_enabled 				 = %[3]s
-			mongo_db_major_version       = "4.0"
-
+			cloud_backup                 = true
+			mongo_db_major_version       = "4.4"
 			// Provider Settings "block"
+			provider_region_name     = "US_EAST_1"
 			provider_name               = "AWS"
+			provider_instance_size_name = "%[3]s"
 			provider_volume_type        = "PROVISIONED"
-			provider_instance_size_name = "M40_NVME"
 		}
-	`, projectID, name, backupEnabled)
+	`, projectID, name, instanceName)
 }
 
 func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
