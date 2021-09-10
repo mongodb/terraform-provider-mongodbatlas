@@ -36,6 +36,8 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "is_custom_shard_key_hashed", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_shard_key_unique", "true"),
 					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
 				),
 			},
@@ -221,6 +223,8 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 				db               = "mydata"
 				collection       = "publishers"
 				custom_shard_key = "city"
+				is_custom_shard_key_hashed = true
+				is_shard_key_unique = true
 			}
 
 			custom_zone_mappings {
