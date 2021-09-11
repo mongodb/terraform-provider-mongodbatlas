@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: org_invitation"
-sidebar_current: "docs-mongodbatlas-organisation-invitation"
+sidebar_current: "docs-mongodbatlas-organization-invitation"
 description: |-
     Provides a Atlas Organisation Invitation resource.
 ---
@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_org_invitation` provides a Organisation Invitation resource. This represents an invitation for an Atlas User within an Atlas Organisation.
 
-Each invitation for an Atlas user has a set of roles that provide access to an organisation.
+Each invitation for an Atlas user has a set of roles that provide access to an organization.
 
 The roles that can be utilised can be found in the [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#organization-roles), which map to:
 
@@ -64,7 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Organisations Invitations can be imported using organisation ID and username (email address), in the format `org_id`-`username`, e.g.
+Organisations Invitations can be imported using organization ID and username (email address), in the format `org_id`-`username`, e.g.
 
 ```
 $ terraform import mongodbatlas_org_invitation.my_user 1112222b3bf99403840e8934-my_user

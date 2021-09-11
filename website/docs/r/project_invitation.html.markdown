@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_project_invitation` provides a Project Invitation resource. This represents an invitation for an Atlas User within an Atlas Project.
 
-Each invitation for an Atlas user has a set of roles that provide access to a project in an organisation.
+Each invitation for an Atlas user has a set of roles that provide access to a project in an organization.
 
 The roles that can be utilised can be found in the [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#project-roles), which map to:
 

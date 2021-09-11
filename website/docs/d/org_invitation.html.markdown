@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: org_invitation"
-sidebar_current: "docs-mongodbatlas-organisation-invitation"
+sidebar_current: "docs-mongodbatlas-organization-invitation"
 description: |-
     Provides a Atlas Organisation Invitation resource.
 ---
@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_org_invitation` describes a Organisation Invitation resource. This represents an invitation for an Atlas User within an Atlas Organisation.
 
-Each invitation has a set of roles for an Atlas user within an organisation.
+Each invitation has a set of roles for an Atlas user within an organization.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
