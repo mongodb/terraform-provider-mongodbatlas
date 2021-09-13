@@ -1269,9 +1269,9 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfDefaultWriteRead(projectID, nam
 		    replication_specs {
 			  num_shards = 1
 			  regions_config {
-			     region_name     = "EU_CENTRAL_1"
-			     electable_nodes = 3
-			     priority        = 7
+                 region_name     = "EU_CENTRAL_1"
+                 electable_nodes = 3
+                 priority        = 7
                  read_only_nodes = 0
 		       }
 		    }
@@ -1291,7 +1291,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfDefaultWriteRead(projectID, nam
 				minimum_enabled_tls_protocol         = %[5]q
 				no_table_scan                        = %[6]t
 				oplog_size_mb                        = %[7]d
-				sample_size_bi_connector			 = %[8]d
+				sample_size_bi_connector             = %[8]d
 				sample_refresh_interval_bi_connector = %[9]d
 			}
 		}
@@ -1345,9 +1345,9 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialDefault(projectID, name,
 		    replication_specs {
 			  num_shards = 1
 			  regions_config {
-			     region_name     = "EU_CENTRAL_1"
-			     electable_nodes = 3
-			     priority        = 7
+                 region_name     = "EU_CENTRAL_1"
+                 electable_nodes = 3
+                 priority        = 7
                  read_only_nodes = 0
 		       }
 		    }
