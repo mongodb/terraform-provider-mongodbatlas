@@ -1362,7 +1362,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartialDefault(projectID, name,
 			provider_region_name        = "EU_CENTRAL_1"
 
 			advanced_configuration {
-				minimum_enabled_tls_protocol         = "%s"
+				minimum_enabled_tls_protocol = "%s"
 			}
 		}
 	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol)
