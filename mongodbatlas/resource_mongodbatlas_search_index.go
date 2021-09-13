@@ -89,7 +89,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a search index, use the format {project_id}-{cluster_name}-{index_id}")
+		return nil, errors.New("import format error: to import a search index, use the format {project_id}--{cluster_name}--{index_id}")
 	}
 
 	projectID := parts[0]
