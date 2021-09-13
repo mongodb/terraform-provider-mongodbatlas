@@ -1260,41 +1260,40 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, autoscalingEn
 
 func testAccMongoDBAtlasClusterConfigAdvancedConfDefaultWriteRead(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "advance_conf" {
-			project_id   = %[1]q
-			name         = %[2]q
-			disk_size_gb = 10
+resource "mongodbatlas_cluster" "advance_conf" {
+  project_id   = %[1]q
+  name         = %[2]q
+  disk_size_gb = 10
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "EU_CENTRAL_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
 
-            cluster_type = "REPLICASET"
-		    replication_specs {
-			  num_shards = 1
-			  regions_config {
-                 region_name     = "EU_CENTRAL_1"
-                 electable_nodes = 3
-                 priority        = 7
-                 read_only_nodes = 0
-		       }
-		    }
+  backup_enabled               = false
+  auto_scaling_disk_gb_enabled =  %[3]s
+  mongo_db_major_version       = "4.4"
 
-			backup_enabled               = false
-			auto_scaling_disk_gb_enabled =  %[3]s
-			mongo_db_major_version       = "4.4"
+  // Provider Settings "block"
+  provider_name               = "AWS"
+  provider_instance_size_name = "M10"
 
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-
-			advanced_configuration  {
-				default_read_concern                 = %[10]q
-				default_write_concern                = %[11]q
-				javascript_enabled                   = %[4]t
-				minimum_enabled_tls_protocol         = %[5]q
-				no_table_scan                        = %[6]t
-				oplog_size_mb                        = %[7]d
-				sample_size_bi_connector             = %[8]d
-				sample_refresh_interval_bi_connector = %[9]d
-			}
-		}
+  advanced_configuration {
+  default_read_concern                 = %[10]q
+  default_write_concern                = %[11]q
+  javascript_enabled                   = %[4]t
+  minimum_enabled_tls_protocol         = %[5]q
+  no_table_scan                        = %[6]t
+  oplog_size_mb                        = %[7]d
+  sample_size_bi_connector             = %[8]d
+  sample_refresh_interval_bi_connector = %[9]d
+  }
+}
 	`, projectID, name, autoscalingEnabled,
 		*p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern)
@@ -1336,35 +1335,35 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, name, autosc
 
 func testAccMongoDBAtlasClusterConfigAdvancedConfPartialDefault(projectID, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "advance_conf" {
-			project_id   = "%s"
-			name         = "%s"
-			disk_size_gb = 10
+resource "mongodbatlas_cluster" "advance_conf" {
+  project_id   = "%s"
+  name         = "%s"
+  disk_size_gb = 10
 
-            cluster_type = "REPLICASET"
-		    replication_specs {
-			  num_shards = 1
-			  regions_config {
-                 region_name     = "EU_CENTRAL_1"
-                 electable_nodes = 3
-                 priority        = 7
-                 read_only_nodes = 0
-		       }
-		    }
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "EU_CENTRAL_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
 
-			backup_enabled               = false
-			auto_scaling_disk_gb_enabled =  %s
-			mongo_db_major_version       = "4.4"
+  backup_enabled               = false
+  auto_scaling_disk_gb_enabled =  %s
+  mongo_db_major_version       = "4.4"
 
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-			provider_region_name        = "EU_CENTRAL_1"
+  // Provider Settings "block"
+  provider_name               = "AWS"
+  provider_instance_size_name = "M10"
+  provider_region_name        = "EU_CENTRAL_1"
 
-			advanced_configuration {
-				minimum_enabled_tls_protocol = "%s"
-			}
-		}
+  advanced_configuration {
+    minimum_enabled_tls_protocol = "%s"
+  }
+}
 	`, projectID, name, autoscalingEnabled, p.MinimumEnabledTLSProtocol)
 }
 
