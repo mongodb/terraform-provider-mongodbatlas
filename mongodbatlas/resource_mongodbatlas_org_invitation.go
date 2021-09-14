@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -63,11 +64,11 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	orgInvitation, resp, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
+	orgInvitation, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		var target *atlas.ErrorResponse
+		var target *matlas.ErrorResponse
 		if errors.As(err, &target) && target.ErrorCode == "NOT_FOUND" {
 			d.SetId("")
 			return nil
