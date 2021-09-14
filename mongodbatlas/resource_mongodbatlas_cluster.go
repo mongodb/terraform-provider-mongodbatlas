@@ -1260,39 +1260,39 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
-	if _, ok := d.GetOk("advanced_configuration.0.default_read_concern"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
 		res.DefaultReadConcern = cast.ToString(p["default_read_concern"])
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.default_write_concern"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_write_concern"); ok {
 		res.DefaultWriteConcern = cast.ToString(p["default_write_concern"])
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.fail_index_key_too_long"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
 		res.FailIndexKeyTooLong = pointy.Bool(cast.ToBool(p["fail_index_key_too_long"]))
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.javascript_enabled"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
 		res.JavascriptEnabled = pointy.Bool(cast.ToBool(p["javascript_enabled"]))
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
 		res.MinimumEnabledTLSProtocol = cast.ToString(p["minimum_enabled_tls_protocol"])
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.no_table_scan"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
 		res.NoTableScan = pointy.Bool(cast.ToBool(p["no_table_scan"]))
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.sample_size_bi_connector"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
 		res.SampleSizeBIConnector = pointy.Int64(cast.ToInt64(p["sample_size_bi_connector"]))
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
 		res.SampleRefreshIntervalBIConnector = pointy.Int64(cast.ToInt64(p["sample_refresh_interval_bi_connector"]))
 	}
 
-	if _, ok := d.GetOk("advanced_configuration.0.oplog_size_mb"); ok {
+	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
 			res.OplogSizeMB = pointy.Int64(cast.ToInt64(p["oplog_size_mb"]))
 		} else {
