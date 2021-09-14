@@ -62,10 +62,12 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 						"is_custom_shard_key_hashed": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 						"is_shard_key_unique": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
