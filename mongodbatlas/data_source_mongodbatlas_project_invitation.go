@@ -56,31 +56,31 @@ func dataSourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.
 
 	projectInvitation, _, err := conn.Projects.Invitation(ctx, projectID, invitationID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting Project Invitation information: %s", err))
+		return diag.FromErr(fmt.Errorf("error getting Project Invitation information: %w", err))
 	}
 
 	if err := d.Set("username", projectInvitation.Username); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("expires_at", projectInvitation.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("created_at", projectInvitation.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `created_at` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `created_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("inviter_username", projectInvitation.InviterUsername); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("roles", projectInvitation.Roles); err != nil {

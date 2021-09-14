@@ -63,11 +63,12 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	orgInvitation, resp, err := conn.Organizations.Invitation(context.Background(), orgID, invitationID)
+	orgInvitation, resp, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		var target *atlas.ErrorResponse
+		if errors.As(err, &target) && target.ErrorCode == "NOT_FOUND" {
 			d.SetId("")
 			return nil
 		}
@@ -76,27 +77,27 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 	}
 
 	if err := d.Set("username", orgInvitation.Username); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("org_id", orgInvitation.GroupID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Organization Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organization Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("roles", orgInvitation.Roles); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -118,12 +119,12 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	InvitationReq := &matlas.Invitation{
+	invitationReq := &matlas.Invitation{
 		Roles:    createOrgStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 		Username: d.Get("username").(string),
 	}
 
-	InvitationRes, resp, err := conn.Organizations.InviteUser(ctx, orgID, InvitationReq)
+	invitationRes, resp, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -131,13 +132,13 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 			d.SetId("")
 			return nil
 		}
-		return diag.FromErr(fmt.Errorf("error creating Organization invitation: %s", err))
+		return diag.FromErr(fmt.Errorf("error creating Organization invitation for user %s: %w", d.Get("username").(string), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"username":      InvitationRes.Username,
-		"org_id":        InvitationRes.OrgID,
-		"invitation_id": InvitationRes.ID,
+		"username":      invitationRes.Username,
+		"org_id":        invitationRes.OrgID,
+		"invitation_id": invitationRes.ID,
 	}))
 
 	return resourceMongoDBAtlasOrgInvitationRead(ctx, d, meta)
@@ -152,7 +153,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 
 	_, err := conn.Organizations.DeleteInvitation(ctx, orgID, invitationID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Organization invitation: %s for %s", username, err))
+		return diag.FromErr(fmt.Errorf("error deleting Organization invitation for user %s: %w", username, err))
 	}
 
 	return nil
@@ -165,13 +166,13 @@ func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.Reso
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	InvitationReq := &matlas.Invitation{
+	invitationReq := &matlas.Invitation{
 		Roles: createOrgStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 	}
 
-	_, _, err := conn.Organizations.UpdateInvitationByID(ctx, orgID, invitationID, InvitationReq)
+	_, _, err := conn.Organizations.UpdateInvitationByID(ctx, orgID, invitationID, invitationReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Organization invitation: %s for %s", username, err))
+		return diag.FromErr(fmt.Errorf("error updating Organization invitation for user %s: for %w", username, err))
 	}
 
 	return resourceMongoDBAtlasOrgInvitationRead(ctx, d, meta)
@@ -186,7 +187,7 @@ func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema
 
 	orgInvitations, _, err := conn.Organizations.Invitations(ctx, orgID, nil)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import Organization invitations, error: %s", err)
+		return nil, fmt.Errorf("couldn't import Organization invitations, error: %w", err)
 	}
 
 	for _, orgInvitation := range orgInvitations {
@@ -195,13 +196,13 @@ func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema
 		}
 
 		if err := d.Set("username", orgInvitation.Username); err != nil {
-			return nil, fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", username, err)
+			return nil, fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", username, err)
 		}
 		if err := d.Set("org_id", orgInvitation.GroupID); err != nil {
-			return nil, fmt.Errorf("error getting `org_id` for Organization Invitation (%s): %s", username, err)
+			return nil, fmt.Errorf("error getting `org_id` for Organization Invitation (%s): %w", username, err)
 		}
 		if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
-			return nil, fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", username, err)
+			return nil, fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %w", username, err)
 		}
 		d.SetId(encodeStateID(map[string]string{
 			"username":      username,
@@ -219,7 +220,7 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = fmt.Errorf("import format error: to import a Organization Invitation, use the format {project_id}-{username}")
+		err = fmt.Errorf("import format error: to import a Organization Invitation, use the format {org_id}-{username}")
 		return
 	}
 
@@ -230,11 +231,12 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 }
 
 func validateOrgRoles(list *schema.Set) error {
-	if rs := list.List(); list.Len() > 0 {
-		for _, role := range rs {
-			if !validateOrgRole(role.(string)) {
-				return fmt.Errorf("error creating an invite: %s is an invalid role for a Organization", role)
-			}
+	if list.Len() == 0 {
+		return nil
+	}
+	for _, role := range list.List() {
+		if !validateOrgRole(role.(string)) {
+			return fmt.Errorf("error creating an invite: %s is an invalid role for a Organization", role)
 		}
 	}
 

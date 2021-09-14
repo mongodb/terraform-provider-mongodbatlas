@@ -63,7 +63,7 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	projectInvitation, resp, err := conn.Projects.Invitation(context.Background(), projectID, invitationID)
+	projectInvitation, resp, err := conn.Projects.Invitation(ctx, projectID, invitationID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -72,31 +72,31 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf("error getting Project Invitation information: %s", err))
+		return diag.FromErr(fmt.Errorf("error getting Project Invitation information: %w", err))
 	}
 
 	if err := d.Set("username", projectInvitation.Username); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `username` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `project_id` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `project_id` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("expires_at", projectInvitation.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("created_at", projectInvitation.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `created_at` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `created_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("roles", projectInvitation.Roles); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `roles` for Project Invitation (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error getting `roles` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -118,12 +118,12 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	InvitationReq := &matlas.Invitation{
+	invitationReq := &matlas.Invitation{
 		Roles:    createProjectStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 		Username: d.Get("username").(string),
 	}
 
-	InvitationRes, resp, err := conn.Projects.InviteUser(ctx, projectID, InvitationReq)
+	invitationRes, resp, err := conn.Projects.InviteUser(ctx, projectID, invitationReq)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -131,13 +131,13 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 			d.SetId("")
 			return nil
 		}
-		return diag.FromErr(fmt.Errorf("error creating Atlas user: %s", err))
+		return diag.FromErr(fmt.Errorf("error creating Project invitation for user %s: %w", d.Get("username").(string), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"username":      InvitationRes.Username,
-		"project_id":    InvitationRes.GroupID,
-		"invitation_id": InvitationRes.ID,
+		"username":      invitationRes.Username,
+		"project_id":    invitationRes.GroupID,
+		"invitation_id": invitationRes.ID,
 	}))
 
 	return resourceMongoDBAtlasProjectInvitationRead(ctx, d, meta)
@@ -152,7 +152,7 @@ func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.
 
 	_, err := conn.Projects.DeleteInvitation(ctx, projectID, invitationID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Project invitation: %s for %s", username, err))
+		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
 	}
 
 	return nil
@@ -165,13 +165,13 @@ func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	InvitationReq := &matlas.Invitation{
+	invitationReq := &matlas.Invitation{
 		Roles: createProjectStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 	}
 
-	_, _, err := conn.Projects.UpdateInvitationByID(ctx, projectID, invitationID, InvitationReq)
+	_, _, err := conn.Projects.UpdateInvitationByID(ctx, projectID, invitationID, invitationReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Project invitation: %s for %s", username, err))
+		return diag.FromErr(fmt.Errorf("error updating Project invitation for user %s: %w", username, err))
 	}
 
 	return resourceMongoDBAtlasProjectInvitationRead(ctx, d, meta)
@@ -195,13 +195,13 @@ func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *sc
 		}
 
 		if err := d.Set("username", projectInvitation.Username); err != nil {
-			return nil, fmt.Errorf("error getting `username` for Project Invitation (%s): %s", username, err)
+			return nil, fmt.Errorf("error getting `username` for Project Invitation (%s): %w", username, err)
 		}
 		if err := d.Set("project_id", projectInvitation.GroupID); err != nil {
-			return nil, fmt.Errorf("error getting `project_id` for Project Invitation (%s): %s", username, err)
+			return nil, fmt.Errorf("error getting `project_id` for Project Invitation (%s): %w", username, err)
 		}
 		if err := d.Set("invitation_id", projectInvitation.ID); err != nil {
-			return nil, fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %s", username, err)
+			return nil, fmt.Errorf("error getting `invitation_id` for Project Invitation (%s): %w", username, err)
 		}
 		d.SetId(encodeStateID(map[string]string{
 			"username":      username,
