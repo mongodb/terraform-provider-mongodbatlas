@@ -978,6 +978,8 @@ go.etcd.io/etcd v0.0.0-20200513171258-e048e166ab9c/go.mod h1:xCI7ZzBfRuGgBXyXO6y
 go.mongodb.org/atlas v0.11.0/go.mod h1:MMWDsc2akjTDSG4tVQrxv/82p3QbBnqeELbtTl45sbg=
 go.mongodb.org/atlas v0.12.0 h1:/vnHX3rh8jdPrP8mRznuU/2VrGH+cCdz8/Esrzpvaus=
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
+go.mongodb.org/atlas v0.12.1-0.20210914184738-151291ec6779 h1:UVBeNe+ntj3m47JexenCnoPTf8HGXtZx7k2cqSw1iXg=
+go.mongodb.org/atlas v0.12.1-0.20210914184738-151291ec6779/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
 go.mongodb.org/realm v0.0.1 h1:qh47ZkEMvlukKiKqcDDox5Lmx1Tk3krxwC7W9LhVGcc=
 go.mongodb.org/realm v0.0.1/go.mod h1:4LzdATHVci61HSpYuqmRPISks5WQdB92u/aJRHNz9/0=
 go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=
