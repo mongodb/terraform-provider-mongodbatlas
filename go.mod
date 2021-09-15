@@ -13,5 +13,5 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20210625132053-af2d5c0ad54f
 	go.mongodb.org/atlas v0.12.1-0.20210914184738-151291ec6779
-	go.mongodb.org/realm v0.0.1
+	go.mongodb.org/realm v0.1.0
 )
