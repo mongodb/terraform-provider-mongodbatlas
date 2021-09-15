@@ -77,7 +77,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		Name:  d.Get("name").(string),
 	}
 
-	project, _, err := conn.Projects.Create(ctx, projectReq)
+	project, _, err := conn.Projects.Create(ctx, projectReq, nil)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorProjectCreate, err))
 	}
