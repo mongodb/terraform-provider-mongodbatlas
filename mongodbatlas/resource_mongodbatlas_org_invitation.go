@@ -74,7 +74,7 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf("error getting Organization Invitation information: %s", err))
+		return diag.FromErr(fmt.Errorf("error getting Organization Invitation information: %w", err))
 	}
 
 	if err := d.Set("username", orgInvitation.Username); err != nil {
