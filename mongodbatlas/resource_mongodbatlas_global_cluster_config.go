@@ -211,17 +211,18 @@ func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.Reso
 		remove := oldSet.Difference(newSet).List()
 		add := newSet.Difference(oldSet).List()
 
+		if len(remove) > 0 {
+			if err := removeManagedNamespaces(ctx, conn, remove, projectID, clusterName); err != nil {
+				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
+			}
+		}
+
 		if len(add) > 0 {
 			if err := addManagedNamespaces(ctx, conn, add, projectID, clusterName); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
 			}
 		}
 
-		if len(remove) > 0 {
-			if err := removeManagedNamespaces(ctx, conn, remove, projectID, clusterName); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
-			}
-		}
 	}
 
 	return resourceMongoDBAtlasGlobalClusterRead(ctx, d, meta)
