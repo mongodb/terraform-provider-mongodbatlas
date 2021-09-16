@@ -220,11 +220,11 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 			cluster_name = mongodbatlas_cluster.test.name
 
 			managed_namespaces {
-				db               = "mydata"
-				collection       = "publishers"
-				custom_shard_key = "city"
+				db               		   = "mydata"
+				collection       		   = "publishers"
+				custom_shard_key		   = "city"
 				is_custom_shard_key_hashed = false
-				is_shard_key_unique = false
+				is_shard_key_unique 	   = false
 			}
 
 			custom_zone_mappings {

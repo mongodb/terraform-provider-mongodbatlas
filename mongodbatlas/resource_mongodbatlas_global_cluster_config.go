@@ -121,7 +121,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 				addManagedNamespace.IsCustomShardKeyHashed = pointy.Bool(isCustomShardKeyHashed.(bool))
 			}
 
-			if isShardKeyUnique, okShard := mn["is_shard_"]; okShard {
+			if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
 				addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
 			}
 
@@ -309,7 +309,7 @@ func removeManagedNamespaces(ctx context.Context, conn *matlas.Client, remove []
 			addManagedNamespace.IsCustomShardKeyHashed = pointy.Bool(isCustomShardKeyHashed.(bool))
 		}
 
-		if isShardKeyUnique, okShard := mn["is_shard_"]; okShard {
+		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
 			addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
 		}
 		_, _, err := conn.GlobalClusters.DeleteManagedNamespace(ctx, projectID, clusterName, addManagedNamespace)
@@ -336,7 +336,7 @@ func addManagedNamespaces(ctx context.Context, conn *matlas.Client, add []interf
 			addManagedNamespace.IsCustomShardKeyHashed = pointy.Bool(isCustomShardKeyHashed.(bool))
 		}
 
-		if isShardKeyUnique, okShard := mn["is_shard_"]; okShard {
+		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
 			addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
 		}
 		_, _, err := conn.GlobalClusters.AddManagedNamespace(ctx, projectID, clusterName, addManagedNamespace)
