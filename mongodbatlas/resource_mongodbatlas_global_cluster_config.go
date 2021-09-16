@@ -222,7 +222,6 @@ func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.Reso
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
 			}
 		}
-
 	}
 
 	return resourceMongoDBAtlasGlobalClusterRead(ctx, d, meta)
