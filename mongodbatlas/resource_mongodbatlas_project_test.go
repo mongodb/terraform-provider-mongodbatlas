@@ -306,10 +306,9 @@ func testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamID,
 func testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%[1]s"
-			org_id = "%[2]s"
-
-		   project_owner_id = "%[3]s"
+			name   			 = "%[1]s"
+			org_id 			 = "%[2]s"
+		    project_owner_id = "%[3]s"
 		}
 	`, projectName, orgID, projectOwnerID)
 }
