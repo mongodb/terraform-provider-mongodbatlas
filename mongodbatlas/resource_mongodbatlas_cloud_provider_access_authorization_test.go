@@ -10,6 +10,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasCloudProviderAccessAuthorization_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		policyName      = acctest.RandomWithPrefix("tf-acc")
