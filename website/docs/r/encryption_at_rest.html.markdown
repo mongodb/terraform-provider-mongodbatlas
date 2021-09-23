@@ -24,6 +24,9 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+
+-> **IMPORTANT NOTE** To disable the encryption at rest with customer key management for a project all existing clusters in the project must first either have encryption at rest for the provider set to none, e.g. `encryption_at_rest_provider = "NONE"`, or be deleted.
+
 ## Example Usage
 
 ```terraform
@@ -66,9 +69,9 @@ resource "mongodbatlas_encryption_at_rest" "default" {
 }
 ```
 
-## Example of encryption at rest with azure and a cluster using its encryption at rest
+## Example: Configuring encryption at rest using customer key management in Azure and then creating a cluster
 
-**NOTE** Since the cluster wants to use the encryption at rest it should wait for `mongodbatlas_encryption_at_rest` to finish first by using implicit dependency of `project_id`(see the example below).
+The configuration of encryption at rest with customer key management, `mongodbatlas_encryption_at_rest`, needs to be completed before a cluster is created in the project. Force this wait by using an implicit dependency via `project_id` as shown in the example below.
 
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "example" {
@@ -107,7 +110,6 @@ resource "mongodbatlas_cluster" "example_cluster" {
   encryption_at_rest_provider = "AZURE"
 }
 ```
-**NOTE** To disable the encryption at rest, all the clusters of the same project must be deleted.
 
 ## Argument Reference
 
