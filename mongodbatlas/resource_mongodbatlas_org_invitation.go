@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -50,6 +51,13 @@ func resourceMongoDBAtlasOrgInvitation() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"ORG_OWNER",
+						"ORG_GROUP_CREATOR",
+						"ORG_BILLING_ADMIN",
+						"ORG_READ_ONLY",
+						"ORG_MEMBER",
+					}, false),
 				},
 			},
 		},
@@ -114,11 +122,6 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
-
-	err := validateOrgRoles(d.Get("roles").(*schema.Set))
-	if err != nil {
-		return diag.FromErr(err)
-	}
 
 	invitationReq := &matlas.Invitation{
 		Roles:    createOrgStringListFromSetSchema(d.Get("roles").(*schema.Set)),
@@ -229,37 +232,6 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	username = parts[2]
 
 	return
-}
-
-func validateOrgRoles(list *schema.Set) error {
-	if list.Len() == 0 {
-		return nil
-	}
-	for _, role := range list.List() {
-		if !validateOrgRole(role.(string)) {
-			return fmt.Errorf("error creating an invite: %s is an invalid role for a Organization", role)
-		}
-	}
-
-	return nil
-}
-
-func validateOrgRole(str string) bool {
-	orgRoles := []string{
-		"ORG_OWNER",
-		"ORG_GROUP_CREATOR",
-		"ORG_BILLING_ADMIN",
-		"ORG_READ_ONLY",
-		"ORG_MEMBER",
-	}
-
-	for _, validRole := range orgRoles {
-		if validRole == str {
-			return true
-		}
-	}
-
-	return false
 }
 
 func createOrgStringListFromSetSchema(list *schema.Set) []string {

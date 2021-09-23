@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -49,6 +50,14 @@ func resourceMongoDBAtlasProjectInvitation() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"GROUP_OWNER",
+						"GROUP_CLUSTER_MANAGER",
+						"GROUP_READ_ONLY",
+						"GROUP_DATA_ACCESS_ADMIN",
+						"GROUP_DATA_ACCESS_READ_WRITE",
+						"GROUP_DATA_ACCESS_READ_ONLY",
+					}, false),
 				},
 			},
 		},
@@ -112,11 +121,6 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-
-	err := validateProjectRoles(d.Get("roles").(*schema.Set))
-	if err != nil {
-		return diag.FromErr(err)
-	}
 
 	invitationReq := &matlas.Invitation{
 		Roles:    createProjectStringListFromSetSchema(d.Get("roles").(*schema.Set)),
@@ -227,37 +231,6 @@ func splitProjectInvitationImportID(id string) (projectID, username string, err 
 	username = parts[2]
 
 	return
-}
-
-func validateProjectRoles(list *schema.Set) error {
-	if rs := list.List(); list.Len() > 0 {
-		for _, role := range rs {
-			if !validateProjectRole(role.(string)) {
-				return fmt.Errorf("error creating an invite: %s is an invalid role for a Project", role)
-			}
-		}
-	}
-
-	return nil
-}
-
-func validateProjectRole(str string) bool {
-	projRoles := []string{
-		"GROUP_OWNER",
-		"GROUP_CLUSTER_MANAGER",
-		"GROUP_READ_ONLY",
-		"GROUP_DATA_ACCESS_ADMIN",
-		"GROUP_DATA_ACCESS_READ_WRITE",
-		"GROUP_DATA_ACCESS_READ_ONLY",
-	}
-
-	for _, validRole := range projRoles {
-		if validRole == str {
-			return true
-		}
-	}
-
-	return false
 }
 
 func createProjectStringListFromSetSchema(list *schema.Set) []string {
