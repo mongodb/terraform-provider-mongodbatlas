@@ -115,6 +115,33 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasProject_CreateWithProjectOwner(t *testing.T) {
+	var (
+		project        matlas.Project
+		resourceName   = "mongodbatlas_project.test"
+		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_project.test"
@@ -254,8 +281,8 @@ func testAccMongoDBAtlasProjectConfig(projectName, orgID string, teams []*matlas
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   = "%s"
-			org_id = "%s"
+			name  			 = "%s"
+			org_id 			 = "%s"
 
 			%s
 		}
@@ -274,4 +301,14 @@ func testAccMongoDBAtlasProjectConfigWithUpdatedRole(projectName, orgID, teamID,
 			}
 		}
 	`, projectName, orgID, teamID, roleName)
+}
+
+func testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   			 = "%[1]s"
+			org_id 			 = "%[2]s"
+		    project_owner_id = "%[3]s"
+		}
+	`, projectName, orgID, projectOwnerID)
 }
