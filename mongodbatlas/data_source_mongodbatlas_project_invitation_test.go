@@ -49,6 +49,6 @@ func testAccDataSourceMongoDBAtlasProjectInvitationConfig(projectID, username st
 			project_id = mongodbatlas_project_invitation.test.projectID
 			username 	 = mongodbatlas_project_invitation.test.username
 		}`, projectID, username,
-		strings.ReplaceAll(fmt.Sprintf("%+q", roles), " ", ","),
+		strings.Join(roles, ","),
 	)
 }

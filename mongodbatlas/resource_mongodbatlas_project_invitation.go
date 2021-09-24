@@ -170,7 +170,7 @@ func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.
 	invitationID := ids["invitation_id"]
 
 	invitationReq := &matlas.Invitation{
-		Roles: createProjectStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		Roles: expandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 	}
 
 	_, _, err := conn.Projects.UpdateInvitationByID(ctx, projectID, invitationID, invitationReq)

@@ -32,7 +32,7 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgInvitationExists(resourceName, &invitation),
+					testAccCheckMongoDBAtlasOrgInvitationExists(resourceName, &invitation, t),
 					testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, initialRole),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -45,7 +45,7 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgInvitationExists(resourceName, &invitation),
+					testAccCheckMongoDBAtlasOrgInvitationExists(resourceName, &invitation, t),
 					testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, updateRoles),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
@@ -93,7 +93,7 @@ func TestAccResourceMongoDBAtlasOrgInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasOrgInvitationExists(resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasOrgInvitationExists(resourceName string, invitation *matlas.Invitation, t *testing.T) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -112,9 +112,9 @@ func testAccCheckMongoDBAtlasOrgInvitationExists(resourceName string, invitation
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] orgID: %s", orgID)
-		log.Printf("[DEBUG] username: %s", username)
-		log.Printf("[DEBUG] invitationID: %s", invitationID)
+		t.Logf("orgID: %s", orgID)
+		t.Logf("username: %s", username)
+		t.Logf("invitationID: %s", invitationID)
 
 		invitationResp, _, err := conn.Organizations.Invitation(context.Background(), orgID, invitationID)
 		if err == nil {
@@ -138,12 +138,10 @@ func testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(invitation *matlas.I
 
 func testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(invitation *matlas.Invitation, roles []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if len(roles) > 0 {
-			for _, role := range roles {
-				for _, currentRole := range invitation.Roles {
-					if currentRole == role {
-						return nil
-					}
+		for _, role := range roles {
+			for _, currentRole := range invitation.Roles {
+				if currentRole == role {
+					return nil
 				}
 			}
 		}
