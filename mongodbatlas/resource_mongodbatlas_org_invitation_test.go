@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"testing"
@@ -32,7 +31,7 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgInvitationExists(resourceName, &invitation, t),
+					testAccCheckMongoDBAtlasOrgInvitationExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, initialRole),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -45,7 +44,7 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgInvitationExists(resourceName, &invitation, t),
+					testAccCheckMongoDBAtlasOrgInvitationExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasOrgInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, updateRoles),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
@@ -93,7 +92,7 @@ func TestAccResourceMongoDBAtlasOrgInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasOrgInvitationExists(resourceName string, invitation *matlas.Invitation, t *testing.T) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasOrgInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -191,6 +190,6 @@ func testAccMongoDBAtlasOrgInvitationConfig(orgID, username string, roles []stri
 			username   = "%s"
 			roles  		 = %s
 		}`, orgID, username,
-		strings.ReplaceAll(fmt.Sprintf("%+q", roles), " ", ","),
+		strings.Join(roles, ","),
 	)
 }
