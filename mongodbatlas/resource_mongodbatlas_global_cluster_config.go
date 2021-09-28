@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
+	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -59,6 +59,16 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"is_custom_shard_key_hashed": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"is_shard_key_unique": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -106,6 +116,15 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 				Db:             mn["db"].(string),
 				CustomShardKey: mn["custom_shard_key"].(string),
 			}
+
+			if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
+				addManagedNamespace.IsCustomShardKeyHashed = pointy.Bool(isCustomShardKeyHashed.(bool))
+			}
+
+			if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
+				addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
+			}
+
 			_, _, err := conn.GlobalClusters.AddManagedNamespace(ctx, projectID, clusterName, addManagedNamespace)
 
 			if err != nil {
@@ -148,6 +167,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 
 	return resourceMongoDBAtlasGlobalClusterRead(ctx, d, meta)
 }
+
 func resourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
@@ -191,14 +211,14 @@ func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.Reso
 		remove := oldSet.Difference(newSet).List()
 		add := newSet.Difference(oldSet).List()
 
-		if len(add) > 0 {
-			if err := addManagedNamespaces(ctx, conn, add, projectID, clusterName); err != nil {
+		if len(remove) > 0 {
+			if err := removeManagedNamespaces(ctx, conn, remove, projectID, clusterName); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
 			}
 		}
 
-		if len(remove) > 0 {
-			if err := removeManagedNamespaces(ctx, conn, remove, projectID, clusterName); err != nil {
+		if len(add) > 0 {
+			if err := addManagedNamespaces(ctx, conn, add, projectID, clusterName); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterUpdate, clusterName, err))
 			}
 		}
@@ -239,9 +259,11 @@ func flattenManagedNamespaces(managedNamespaces []matlas.ManagedNamespace) []map
 
 		for k, managedNamespace := range managedNamespaces {
 			results[k] = map[string]interface{}{
-				"db":               managedNamespace.Db,
-				"collection":       managedNamespace.Collection,
-				"custom_shard_key": managedNamespace.CustomShardKey,
+				"db":                         managedNamespace.Db,
+				"collection":                 managedNamespace.Collection,
+				"custom_shard_key":           managedNamespace.CustomShardKey,
+				"is_custom_shard_key_hashed": *managedNamespace.IsCustomShardKeyHashed,
+				"is_shard_key_unique":        *managedNamespace.IsShardKeyUnique,
 			}
 		}
 	}
@@ -282,6 +304,14 @@ func removeManagedNamespaces(ctx context.Context, conn *matlas.Client, remove []
 			Db:             mn["db"].(string),
 			CustomShardKey: mn["custom_shard_key"].(string),
 		}
+
+		if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
+			addManagedNamespace.IsCustomShardKeyHashed = pointy.Bool(isCustomShardKeyHashed.(bool))
+		}
+
+		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
+			addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
+		}
 		_, _, err := conn.GlobalClusters.DeleteManagedNamespace(ctx, projectID, clusterName, addManagedNamespace)
 
 		if err != nil {
@@ -300,6 +330,14 @@ func addManagedNamespaces(ctx context.Context, conn *matlas.Client, add []interf
 			Collection:     mn["collection"].(string),
 			Db:             mn["db"].(string),
 			CustomShardKey: mn["custom_shard_key"].(string),
+		}
+
+		if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
+			addManagedNamespace.IsCustomShardKeyHashed = pointy.Bool(isCustomShardKeyHashed.(bool))
+		}
+
+		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
+			addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
 		}
 		_, _, err := conn.GlobalClusters.AddManagedNamespace(ctx, projectID, clusterName, addManagedNamespace)
 

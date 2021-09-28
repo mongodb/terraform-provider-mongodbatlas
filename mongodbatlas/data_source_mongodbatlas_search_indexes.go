@@ -102,14 +102,8 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 	searchIndexesMap = make([]map[string]interface{}, len(searchIndexes))
 
 	for i := range searchIndexes {
-		searchIndexCustomAnalyzers, err := flattenSearchIndexCustomAnalyzers(searchIndexes[i].Analyzers)
-		if err != nil {
-			return nil, err
-		}
-
 		searchIndexesMap[i] = map[string]interface{}{
 			"analyzer":         searchIndexes[i].Analyzer,
-			"analyzers":        searchIndexCustomAnalyzers,
 			"collection_name":  searchIndexes[i].CollectionName,
 			"database":         searchIndexes[i].Database,
 			"index_id":         searchIndexes[i].IndexID,
@@ -120,11 +114,19 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 		}
 
 		if searchIndexes[i].Mappings.Fields != nil {
-			searchIndexMappingFields, err := marshallSearchIndexMappingFields(*searchIndexes[i].Mappings.Fields)
+			searchIndexMappingFields, err := marshallSearchIndexMappingsField(*searchIndexes[i].Mappings.Fields)
 			if err != nil {
 				return nil, err
 			}
 			searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
+		}
+
+		if len(searchIndexes[i].Analyzers) > 0 {
+			searchIndexAnalyzers, err := marshallSearchIndexAnalyzers(searchIndexes[i].Analyzers)
+			if err != nil {
+				return nil, err
+			}
+			searchIndexesMap[i]["analyzers"] = searchIndexAnalyzers
 		}
 	}
 

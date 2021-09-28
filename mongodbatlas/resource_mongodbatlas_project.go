@@ -64,6 +64,10 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 					},
 				},
 			},
+			"project_owner_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -77,7 +81,15 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		Name:  d.Get("name").(string),
 	}
 
-	project, _, err := conn.Projects.Create(ctx, projectReq)
+	var createProjectOptions *matlas.CreateProjectOptions
+
+	if projectOwnerID, ok := d.GetOk("project_owner_id"); ok {
+		createProjectOptions = &matlas.CreateProjectOptions{
+			ProjectOwnerID: projectOwnerID.(string),
+		}
+	}
+
+	project, _, err := conn.Projects.Create(ctx, projectReq, createProjectOptions)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorProjectCreate, err))
 	}

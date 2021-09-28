@@ -114,7 +114,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		Delay:      5 * time.Minute,
 	}
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)

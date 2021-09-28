@@ -72,6 +72,7 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"connection_id": {
 				Type:     schema.TypeString,

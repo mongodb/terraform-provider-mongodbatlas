@@ -13,7 +13,8 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "atlaseplink" {
-  project_id            = mongodbatlas_privatelink_endpoint.atlaspl.project_id
-  private_link_id       = mongodbatlas_privatelink_endpoint.atlaspl.private_link_id
-  interface_endpoint_id = aws_vpc_endpoint.ptfe_service.id
+  project_id          = mongodbatlas_privatelink_endpoint.atlaspl.project_id
+  endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
+  private_link_id     = mongodbatlas_privatelink_endpoint.atlaspl.id
+  provider_name       = "AWS"
 }
