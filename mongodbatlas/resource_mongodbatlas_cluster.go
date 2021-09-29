@@ -1168,7 +1168,7 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 		log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
 	}
 
-	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 && !strings.Contains(settings.InstanceSizeName, "NVME") {
+	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
 		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
 			log.Printf(errorClusterSetting, "provider_disk_iops", clusterName, err)
 		}
