@@ -1168,6 +1168,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			replaceRegion := ""
 			originalRegion := ""
+			id := ""
 
 			if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 				if d.HasChange("provider_region_name") {
@@ -1177,13 +1178,25 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 				}
 			}
 
+			if d.HasChange("replication_specs") {
+				// Get original and new object
+				original, _ := d.GetChange("replication_specs")
+				for _, s := range original.(*schema.Set).List() {
+					oldSpecs := s.(map[string]interface{})
+					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
+						id = oldSpecs["id"].(string)
+						break
+					}
+				}
+			}
+
 			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
 			if err != nil {
 				return rSpecs, err
 			}
 
 			rSpec := matlas.ReplicationSpec{
-				ID:            cast.ToString(spec["id"]),
+				ID:            id,
 				NumShards:     pointy.Int64(cast.ToInt64(spec["num_shards"])),
 				ZoneName:      cast.ToString(spec["zone_name"]),
 				RegionsConfig: regionsConfig,
