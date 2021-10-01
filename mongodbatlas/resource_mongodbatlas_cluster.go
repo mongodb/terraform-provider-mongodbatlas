@@ -392,7 +392,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	if providerName != "AWS" {
 		if _, ok := d.GetOk("provider_disk_iops"); ok {
-			return diag.FromErr(fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`"))
+			return diag.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
 
 		if _, ok := d.GetOk("provider_volume_type"); ok {
@@ -1107,11 +1107,12 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 	}
 
 	if d.Get("provider_name") == "AWS" {
-		// Check if the Provider Disk IOS sets in the Terraform configuration.
+		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
-		if v, ok := d.GetOk("provider_disk_iops"); ok {
+		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
+
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 	}
 
