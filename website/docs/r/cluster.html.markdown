@@ -15,8 +15,8 @@ description: |-
 -> **NOTE:** A network container is created for a cluster to reside in if one does not yet exist in the project.  To  use this automatically created container with another resource, such as peering, the `container_id` is exported after creation.
 
 ~> **IMPORTANT:**
-<br> &#8226; Free tier cluster creation (M0) is not supported via API or by this Provider.
-<br> &#8226; Shared tier clusters (M2, M5) cannot be upgraded to higher tiers via API or by this Provider.  WARNING! If you attempt to upgrade from an existing shared tier cluster that you manage with this Provider to a dedicated cluster (M10+) Terraform will see it as a request to destroy the shared tier cluster and as a request to create a dedicated tier cluster, i.e. Terraform will not see it as a request to upgrade.   If you accept the plan in this case the shared tier cluster would be destroyed and you would lose the data on that cluster. Do not attempt to upgrade from the shared to dedicated tier via this Provider, it is not supported!  
+<br> &#8226; Free tier cluster creation (M0) is  supported.
+<br> &#8226; Shared tier clusters (M0, M2, M5) cannot be upgraded to higher tiers via API or by this Provider.  WARNING! If you attempt to upgrade from an existing shared tier cluster that you manage with this Provider to a dedicated cluster (M10+) Terraform will see it as a request to destroy the shared tier cluster and as a request to create a dedicated tier cluster, i.e. Terraform will not see it as a request to upgrade.   If you accept the plan in this case the shared tier cluster would be destroyed and you would lose the data on that cluster. Do not attempt to upgrade from the shared to dedicated tier via this Provider, it is not supported!  
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).   
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
@@ -42,7 +42,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   disk_size_gb                = 100
   provider_instance_size_name = "M40"
@@ -59,7 +59,7 @@ resource "mongodbatlas_cluster" "test" {
   replication_specs {
     num_shards = 1
     regions_config {
-      region_name     = "US_EAST_1"
+      region_name     = "US_EAST"
       electable_nodes = 3
       priority        = 7
       read_only_nodes = 0
@@ -69,7 +69,7 @@ resource "mongodbatlas_cluster" "test" {
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AZURE"
   provider_disk_type_name     = "P6"
   provider_instance_size_name = "M30"
@@ -86,7 +86,7 @@ resource "mongodbatlas_cluster" "test" {
   replication_specs {
     num_shards = 1
     regions_config {
-      region_name     = "US_EAST_1"
+      region_name     = "EASTERN_US"
       electable_nodes = 3
       priority        = 7
       read_only_nodes = 0
@@ -96,7 +96,7 @@ resource "mongodbatlas_cluster" "test" {
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "4.2"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "GCP"
   disk_size_gb                = 40
   provider_instance_size_name = "M30"
@@ -114,7 +114,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   cloud_backup             = true
   cluster_type             = "REPLICASET"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   provider_instance_size_name = "M10"
 
@@ -153,7 +153,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
   cloud_backup            = true
   cluster_type            = "GEOSHARDED"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name               = "AWS"
   provider_instance_size_name = "M30"
 
@@ -180,23 +180,30 @@ resource "mongodbatlas_cluster" "cluster-test" {
   }
 }
 ```
-### Example AWS Shared Tier cluster
+### Example AWS Shared Tier (M2/M5) cluster
 ```hcl
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
-  //M2 must be 2, M5 must be 5
-  disk_size_gb            = "2"
 
-  //Provider Settings "block"
+  # Provider Settings "block"
   provider_name = "TENANT"
   backing_provider_name = "AWS"
   provider_region_name = "US_EAST_1"
   provider_instance_size_name = "M2"
+}
+```
+### Example AWS Free Tier cluster
+```hcl
+resource "mongodbatlas_cluster" "cluster-test" {
+  project_id              = "<YOUR-PROJECT-ID>"
+  name                    = "cluster-test-global"
 
-  //These must be the following values
-  mongo_db_major_version = "4.2"
-  auto_scaling_disk_gb_enabled = "false"
+  # Provider Settings "block"
+  provider_name = "TENANT"
+  backing_provider_name = "AWS"
+  provider_region_name = "US_EAST_1"
+  provider_instance_size_name = "M0"
 }
 ```
 ### Example - Return a Connection String
@@ -205,35 +212,35 @@ AWS Private Endpoint
 output "plstring" {
     value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, aws_vpc_endpoint.ptfe_service.id)
 }
-//Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
+# Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
 ```
 Azure Private Endpoint
 ```hcl
 output "plstring" {
     value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, azurerm_private_endpoint.test.id)
 }
-//Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
+# Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
 ```
 Standard
 ```hcl
 output "standard" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard
 }
-//Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
+# Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
 ```
 Standard srv
 ```hcl
 output "standard_srv" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard_srv
 }
-//Example return string: standard_srv = "mongodb+srv://cluster-atlas.ygo1m.mongodb.net"
+# Example return string: standard_srv = "mongodb+srv://cluster-atlas.ygo1m.mongodb.net"
 ```
 Private with Network peering and Custom DNS AWS enabled
 ```hcl
 output "private" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].private
 }
-//Example return string: private = "mongodb://cluster-atlas-shard-00-00-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02-pri.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
+# Example return string: private = "mongodb://cluster-atlas-shard-00-00-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02-pri.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
 private = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
 Private srv with Network peering and Custom DNS AWS enabled
@@ -241,7 +248,7 @@ Private srv with Network peering and Custom DNS AWS enabled
 output "private_srv" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].private_srv
 }
-//Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
+# Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
 
 ## Argument Reference
@@ -257,7 +264,6 @@ output "private_srv" {
     - `TENANT` - A multi-tenant deployment on one of the supported cloud service providers. Only valid when providerSettings.instanceSizeName is either M2 or M5.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
 * `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources. 
-**Note** free tier (M0) creation is not supported by the Atlas API and hence not supported by this provider.)
 
 * `auto_scaling_disk_gb_enabled` - (Optional) Specifies whether disk auto-scaling is enabled. The default is true.
     - Set to `true` to enable disk auto-scaling.
