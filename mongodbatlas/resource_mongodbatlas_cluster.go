@@ -62,7 +62,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
-				Default:  true,
 				Optional: true,
 			},
 			"auto_scaling_compute_enabled": {
@@ -418,9 +417,8 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT"))
 		}
 
-		autoScaling = &matlas.AutoScaling{
-			DiskGBEnabled: pointy.Bool(false),
-		}
+		autoScaling = nil
+
 		if instanceSizeName, ok := d.GetOk("provider_instance_size_name"); ok {
 			if instanceSizeName == "M2" {
 				if diskSizeGB, ok := d.GetOk("disk_size_gb"); ok {

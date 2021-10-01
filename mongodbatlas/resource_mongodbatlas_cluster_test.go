@@ -1538,7 +1538,6 @@ func testAccMongoDBAtlasClusterConfigTenant(projectID, name, instanceSize, diskS
 		provider_instance_size_name  = "%s"
 		//These must be the following values
  	 	mongo_db_major_version = "%s"
-		auto_scaling_disk_gb_enabled = false
 	  }
 	`, projectID, name, diskSize, instanceSize, majorDBVersion)
 }
