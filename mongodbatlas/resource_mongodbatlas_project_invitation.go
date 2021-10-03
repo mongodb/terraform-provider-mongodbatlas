@@ -45,6 +45,10 @@ func resourceMongoDBAtlasProjectInvitation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"inviter_username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"roles": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -104,6 +108,10 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("error getting `created_at` for Project Invitation (%s): %w", d.Id(), err))
 	}
 
+	if err := d.Set("inviter_username", projectInvitation.InviterUsername); err != nil {
+		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Project Invitation (%s): %w", d.Id(), err))
+	}
+
 	if err := d.Set("roles", projectInvitation.Roles); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `roles` for Project Invitation (%s): %w", d.Id(), err))
 	}
@@ -127,14 +135,8 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 		Username: d.Get("username").(string),
 	}
 
-	invitationRes, resp, err := conn.Projects.InviteUser(ctx, projectID, invitationReq)
+	invitationRes, _, err := conn.Projects.InviteUser(ctx, projectID, invitationReq)
 	if err != nil {
-		// case 404
-		// deleted in the backend case
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
-		}
 		return diag.FromErr(fmt.Errorf("error creating Project invitation for user %s: %w", d.Get("username").(string), err))
 	}
 

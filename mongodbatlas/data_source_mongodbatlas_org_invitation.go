@@ -36,9 +36,16 @@ func dataSourceMongoDBAtlasOrgInvitation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"teams_ids": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"roles": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -81,6 +88,10 @@ func dataSourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Reso
 
 	if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Organization Invitation (%s): %w", d.Id(), err))
+	}
+
+	if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
+		return diag.FromErr(fmt.Errorf("error getting `teams_ids` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
 	if err := d.Set("roles", orgInvitation.Roles); err != nil {

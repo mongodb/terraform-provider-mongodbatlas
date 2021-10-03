@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -27,7 +26,6 @@ func resourceMongoDBAtlasOrgInvitation() *schema.Resource {
 			"org_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"username": {
 				Type:     schema.TypeString,
@@ -45,6 +43,17 @@ func resourceMongoDBAtlasOrgInvitation() *schema.Resource {
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"inviter_username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"teams_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"roles": {
 				Type:     schema.TypeSet,
@@ -105,6 +114,14 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
+	if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
+		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Organization Invitation (%s): %w", d.Id(), err))
+	}
+
+	if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
+		return diag.FromErr(fmt.Errorf("error getting `teams_ids` for Organization Invitation (%s): %w", d.Id(), err))
+	}
+
 	if err := d.Set("roles", orgInvitation.Roles); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %w", d.Id(), err))
 	}
@@ -125,17 +142,12 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 
 	invitationReq := &matlas.Invitation{
 		Roles:    createOrgStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		TeamIDs:  createOrgStringListFromSetSchema(d.Get("teams_ids").(*schema.Set)),
 		Username: d.Get("username").(string),
 	}
 
-	invitationRes, resp, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
+	invitationRes, _, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
 	if err != nil {
-		// case 404
-		// deleted in the backend case
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
-		}
 		return diag.FromErr(fmt.Errorf("error creating Organization invitation for user %s: %w", d.Get("username").(string), err))
 	}
 
