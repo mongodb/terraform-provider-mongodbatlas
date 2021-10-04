@@ -1,8 +1,49 @@
 # Changelog
 
+## [v1.0.2-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.2-pre.1) (2021-10-04)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.1...v1.0.2-pre.1)
+
+**Fixed bugs:**
+
+- Error: error getting search index information: json: cannot unmarshal array into Go struct field IndexMapping.mappings.fields of type mongodbatlas.IndexField [\#545](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/545)
+- Regression: Data Source for mongodbatlas\_cluster makes terraform hang indefinitely using version 1.0 [\#521](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/521)
+- Enabling encryption at rest with any provider for a Cluster will throw error [\#517](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/517)
+- realm trigger causes provider to authenticate with atlas even if realm triggers are not in use [\#512](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/512)
+- Adding IP to access List failed when lot of entries [\#470](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/470)
+
+**Closed issues:**
+
+- Datalake configuration at creation time [\#561](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/561)
+- Nested map variable works if defined in module consumer but not if defined in module itself [\#559](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/559)
+- Getting blocked by IP when trying to create a project / cluster [\#557](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/557)
+
+**Merged pull requests:**
+
+- Roll up for documentation fixes [\#576](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/576) ([themantissa](https://github.com/themantissa))
+- INTMDB-259: Fix issue when create a tenant cluster without auto\_scaling\_disk\_gb [\#575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/575) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-203: Fix IOPS restriction on NVME clusters [\#574](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/574) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-254: Fix replication\_specs behaviour when update cluster [\#573](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/573) ([abner-dou](https://github.com/abner-dou))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.37.10 to 0.37.11 [\#572](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/572) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.7.1 to 2.8.0 [\#571](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/571) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.37.8 to 0.37.10 [\#569](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/569) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-256: Fixes a bug for updated a role in cloud access authorization [\#567](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/567) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-245: Added an example for encryption at rest using azure with a cluster [\#566](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/566) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-221: Added projectOwnerID to project resource [\#564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/564) ([abner-dou](https://github.com/abner-dou))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.37.7 to 0.37.8 [\#563](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/563) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-211: Add new advanced shard key options in global cluster resource [\#562](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/562) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-252: Added two parameters for cluster advanced configuration [\#558](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/558) ([coderGo93](https://github.com/coderGo93))
+- Fix typo in import search index error [\#556](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/556) ([stefanosala](https://github.com/stefanosala))
+- INTMDB-230: added  property to maintenance window rs ds [\#552](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/552) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-249: Lint and fix linting for examples [\#538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/538) ([gssbzn](https://github.com/gssbzn))
+
 ## [v1.0.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.1) (2021-09-02)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.1-pre.1...v1.0.1)
+
+**Merged pull requests:**
+
+-  tag version 1.0.1 for release [\#553](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/553) ([coderGo93](https://github.com/coderGo93))
 
 ## [v1.0.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.1-pre.1) (2021-09-01)
 
@@ -16,7 +57,6 @@
 
 - Not able to obtain CSRS hostnames from mongodbatlas\_cluster resource [\#543](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/543)
 - Cloud Provider Access Setup for Datalake [\#486](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/486)
-- Cluster region does not change after cluster creation [\#478](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/478)
 - Terraform: Unable to fetch connection strings when using 'data' resource for existing cluster [\#422](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/422)
 - SDK framework update v2.0.0+ [\#408](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/408)
 - Issues with resource and API design for Cloud Provider Snapshot Backup Policy [\#222](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/222)
