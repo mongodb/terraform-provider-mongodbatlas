@@ -141,8 +141,8 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 	orgID := d.Get("org_id").(string)
 
 	invitationReq := &matlas.Invitation{
-		Roles:    createOrgStringListFromSetSchema(d.Get("roles").(*schema.Set)),
-		TeamIDs:  createOrgStringListFromSetSchema(d.Get("teams_ids").(*schema.Set)),
+		Roles:    expandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		TeamIDs:  expandStringListFromSetSchema(d.Get("teams_ids").(*schema.Set)),
 		Username: d.Get("username").(string),
 	}
 
