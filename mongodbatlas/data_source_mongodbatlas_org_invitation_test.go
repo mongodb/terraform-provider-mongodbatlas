@@ -49,6 +49,6 @@ func testAccDataSourceMongoDBAtlasOrgInvitationConfig(orgID, username string, ro
 			org_id   = mongodbatlas_org_invitation.test.org_id
 			username = mongodbatlas_org_invitation.test.username
 		}`, orgID, username,
-		strings.ReplaceAll(fmt.Sprintf("%+q", roles), " ", ","),
+		strings.Join(roles, ","),
 	)
 }

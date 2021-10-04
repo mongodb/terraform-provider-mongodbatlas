@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"testing"
@@ -32,7 +31,7 @@ func TestAccResourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectInvitationConfig(projectID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectInvitationExists(resourceName, &invitation),
+					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(&invitation, initialRole),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -47,7 +46,7 @@ func TestAccResourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectInvitationConfig(projectID, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectInvitationExists(resourceName, &invitation),
+					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
 					testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(&invitation, updateRoles),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -99,7 +98,7 @@ func TestAccResourceMongoDBAtlasProjectInvitation_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasProjectInvitationExists(resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -118,9 +117,9 @@ func testAccCheckMongoDBAtlasProjectInvitationExists(resourceName string, invita
 			return fmt.Errorf("no ID is set")
 		}
 
-		log.Printf("[DEBUG] projectID: %s", projectID)
-		log.Printf("[DEBUG] username: %s", username)
-		log.Printf("[DEBUG] invitationID: %s", invitationID)
+		t.Logf("projectID: %s", projectID)
+		t.Logf("username: %s", username)
+		t.Logf("invitationID: %s", invitationID)
 
 		invitationResp, _, err := conn.Projects.Invitation(context.Background(), projectID, invitationID)
 		if err == nil {
@@ -199,6 +198,6 @@ func testAccMongoDBAtlasProjectInvitationConfig(projectID, username string, role
 			username   = "%s"
 			roles  		 = %s
 		}`, projectID, username,
-		strings.ReplaceAll(fmt.Sprintf("%+q", roles), " ", ","),
+		strings.Join(roles, ","),
 	)
 }

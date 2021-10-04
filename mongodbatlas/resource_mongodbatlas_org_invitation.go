@@ -183,7 +183,7 @@ func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.Reso
 	invitationID := ids["invitation_id"]
 
 	invitationReq := &matlas.Invitation{
-		Roles: createOrgStringListFromSetSchema(d.Get("roles").(*schema.Set)),
+		Roles: expandStringListFromSetSchema(d.Get("roles").(*schema.Set)),
 	}
 
 	_, _, err := conn.Organizations.UpdateInvitationByID(ctx, orgID, invitationID, invitationReq)
@@ -244,13 +244,4 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	username = parts[2]
 
 	return
-}
-
-func createOrgStringListFromSetSchema(list *schema.Set) []string {
-	res := make([]string, list.Len())
-	for i, v := range list.List() {
-		res[i] = v.(string)
-	}
-
-	return res
 }
