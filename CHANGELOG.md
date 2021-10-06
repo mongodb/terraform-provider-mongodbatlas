@@ -1,5 +1,18 @@
 # Changelog
 
+## [v1.0.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.2) (2021-10-06)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.2-pre.1...v1.0.2)
+
+**Closed issues:**
+
+- gcp cluster doc issue [\#568](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/568)
+- mongodbatlas\_auditing documentation mismatch [\#555](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/555)
+
+**Merged pull requests:**
+
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.37.11 to 0.37.12 [\#578](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/578) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.0.2-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.2-pre.1) (2021-10-04)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.1...v1.0.2-pre.1)
@@ -20,6 +33,7 @@
 
 **Merged pull requests:**
 
+- INTMDB-246: pre-release 1.0.2-pre.1 [\#577](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/577) ([abner-dou](https://github.com/abner-dou))
 - Roll up for documentation fixes [\#576](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/576) ([themantissa](https://github.com/themantissa))
 - INTMDB-259: Fix issue when create a tenant cluster without auto\_scaling\_disk\_gb [\#575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/575) ([abner-dou](https://github.com/abner-dou))
 - INTMDB-203: Fix IOPS restriction on NVME clusters [\#574](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/574) ([abner-dou](https://github.com/abner-dou))
