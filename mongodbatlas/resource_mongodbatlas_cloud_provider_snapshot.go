@@ -2,11 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -82,6 +80,7 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_cloud_backup_snapshot",
 	}
 }
 
@@ -277,20 +276,4 @@ func resourceMongoDBAtlasCloudProviderSnapshotImportState(ctx context.Context, d
 	}
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func splitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
-
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 4 {
-		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
-	}
-
-	return &matlas.SnapshotReqPathParameters{
-		GroupID:     parts[1],
-		ClusterName: parts[2],
-		SnapshotID:  parts[3],
-	}, nil
 }

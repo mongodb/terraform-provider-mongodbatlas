@@ -84,6 +84,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "This data source is deprecated. Please transition to mongodbatlas_cloud_backup_snapshots as soon as possible",
 	}
 }
 
@@ -116,29 +117,4 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(ctx context.Context, d *sc
 	d.SetId(resource.UniqueId())
 
 	return nil
-}
-
-func flattenCloudProviderSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]interface{} {
-	var results []map[string]interface{}
-
-	if len(cloudProviderSnapshots) > 0 {
-		results = make([]map[string]interface{}, len(cloudProviderSnapshots))
-
-		for k, cloudProviderSnapshot := range cloudProviderSnapshots {
-			results[k] = map[string]interface{}{
-				"id":                 cloudProviderSnapshot.ID,
-				"created_at":         cloudProviderSnapshot.CreatedAt,
-				"description":        cloudProviderSnapshot.Description,
-				"expires_at":         cloudProviderSnapshot.ExpiresAt,
-				"master_key_uuid":    cloudProviderSnapshot.MasterKeyUUID,
-				"mongod_version":     cloudProviderSnapshot.MongodVersion,
-				"snapshot_type":      cloudProviderSnapshot.SnapshotType,
-				"status":             cloudProviderSnapshot.Status,
-				"storage_size_bytes": cloudProviderSnapshot.StorageSizeBytes,
-				"type":               cloudProviderSnapshot.Type,
-			}
-		}
-	}
-
-	return results
 }

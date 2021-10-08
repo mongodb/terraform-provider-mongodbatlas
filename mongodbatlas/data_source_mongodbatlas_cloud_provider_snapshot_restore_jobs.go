@@ -107,6 +107,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "This data source is deprecated. Please transition to mongodbatlas_cloud_backup_snapshot_restore_jobs as soon as possible",
 	}
 }
 
@@ -138,34 +139,4 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobsRead(ctx context.Cont
 	d.SetId(resource.UniqueId())
 
 	return nil
-}
-
-func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []*matlas.CloudProviderSnapshotRestoreJob) []map[string]interface{} {
-	var results []map[string]interface{}
-
-	if len(cloudProviderSnapshotRestoreJobs) > 0 {
-		results = make([]map[string]interface{}, len(cloudProviderSnapshotRestoreJobs))
-
-		for k, cloudProviderSnapshotRestoreJob := range cloudProviderSnapshotRestoreJobs {
-			results[k] = map[string]interface{}{
-				"id":                        cloudProviderSnapshotRestoreJob.ID,
-				"cancelled":                 cloudProviderSnapshotRestoreJob.Cancelled,
-				"created_at":                cloudProviderSnapshotRestoreJob.CreatedAt,
-				"delivery_type":             cloudProviderSnapshotRestoreJob.DeliveryType,
-				"delivery_url":              cloudProviderSnapshotRestoreJob.DeliveryURL,
-				"expired":                   cloudProviderSnapshotRestoreJob.Expired,
-				"expires_at":                cloudProviderSnapshotRestoreJob.ExpiresAt,
-				"finished_at":               cloudProviderSnapshotRestoreJob.FinishedAt,
-				"snapshot_id":               cloudProviderSnapshotRestoreJob.SnapshotID,
-				"target_project_id":         cloudProviderSnapshotRestoreJob.TargetGroupID,
-				"target_cluster_name":       cloudProviderSnapshotRestoreJob.TargetClusterName,
-				"timestamp":                 cloudProviderSnapshotRestoreJob.Timestamp,
-				"oplog_ts":                  cloudProviderSnapshotRestoreJob.OplogTs,
-				"point_in_time_utc_seconds": cloudProviderSnapshotRestoreJob.PointInTimeUTCSeconds,
-				"oplog_inc":                 cloudProviderSnapshotRestoreJob.OplogInc,
-			}
-		}
-	}
-
-	return results
 }

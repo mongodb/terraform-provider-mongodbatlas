@@ -6,6 +6,8 @@ description: |-
     Provides an Cloud Backup Snapshot resource.
 ---
 
+**WARNING:** This resource is deprecated, use `mongodbatlas_cloud_backup_snapshot`
+
 # mongodbatlas_cloud_provider_snapshot
 
 `mongodbatlas_cloud_provider_snapshot` provides a resource to take a cloud backup snapshot on demand.
