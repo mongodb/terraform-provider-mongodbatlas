@@ -837,12 +837,11 @@ func TestUpgradeCloudBackupSnapshot(t *testing.T) {
 	})
 
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
-	// Remove states
+
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.project_test", projectID)
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cluster.cluster_test", fmt.Sprintf("%s-%s", projectID, cluster))
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cloud_backup_snapshot.test", fmt.Sprintf("%s-%s-%s", projectID, cluster, snapshotID))
 	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cloud_backup_snapshot_restore_job.test", fmt.Sprintf("%s-%s-%s", projectID, cluster, restoreJobID))
-	// Run `terraform apply`. Fail the test if there are any errors.
 
 	terraform.Plan(t, terraformOptionsSecond)
 }

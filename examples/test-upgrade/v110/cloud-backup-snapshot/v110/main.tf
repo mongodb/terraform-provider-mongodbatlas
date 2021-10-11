@@ -18,17 +18,17 @@ resource "mongodbatlas_cluster" "cluster_test" {
 }
 
 
-resource "mongodbatlas_cloud_backup_snapshot" "test" {
+resource "mongodbatlas_cloud_provider_snapshot" "test" {
   project_id        = mongodbatlas_cluster.cluster_test.project_id
   cluster_name      = mongodbatlas_cluster.cluster_test.name
   description       = "My description"
   retention_in_days = "1"
 }
 
-resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-  project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
-  cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-  snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id
+resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+  project_id   = mongodbatlas_cloud_provider_snapshot.test.project_id
+  cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+  snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
 
   delivery_type_config {
     automated           = true
