@@ -56,6 +56,16 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - Current status of the snapshot. One of the following values: queued, inProgress, completed, failed.
 * `storage_size_bytes` - Specifies the size of the snapshot in bytes.
 * `type` - Specifies the type of cluster: replicaSet or shardedCluster.
+* `cloud_provider` - Cloud provider that stores this snapshot.
+* `members` - Block of List of snapshots and the cloud provider where the snapshots are stored. See below
+* `replication_set_name` - Label given to the replica set from which Atlas took this snapshot.
+* `snapshot_ids` - Unique identifiers of the snapshots created for the shards and config server for a sharded cluster.
+
+### members
+
+* `cloud_provider` - Cloud provider that stores this snapshot.
+* `id` - Unique identifier for the sharded cluster snapshot.
+* `replication_set_name` - Label given to a shard or config server from which Atlas took this snapshot.
 
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-all-backups/)

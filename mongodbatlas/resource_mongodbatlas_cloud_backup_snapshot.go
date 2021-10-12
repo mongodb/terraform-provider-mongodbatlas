@@ -82,6 +82,41 @@ func resourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"cloud_provider": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"members": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"replication_set_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"replication_set_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"snapshot_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -97,7 +132,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.
 		ClusterName: ids["cluster_name"],
 	}
 
-	snapshotReq, resp, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+	snapshot, resp, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -107,40 +142,56 @@ func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error getting snapshot Information: %s", err))
 	}
 
-	if err = d.Set("snapshot_id", snapshotReq.ID); err != nil {
+	if err = d.Set("snapshot_id", snapshot.ID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_id` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("created_at", snapshotReq.CreatedAt); err != nil {
+	if err = d.Set("created_at", snapshot.CreatedAt); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `created_at` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("expires_at", snapshotReq.ExpiresAt); err != nil {
+	if err = d.Set("expires_at", snapshot.ExpiresAt); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expires_at` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("master_key_uuid", snapshotReq.MasterKeyUUID); err != nil {
+	if err = d.Set("master_key_uuid", snapshot.MasterKeyUUID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `master_key_uuid` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("mongod_version", snapshotReq.MongodVersion); err != nil {
+	if err = d.Set("mongod_version", snapshot.MongodVersion); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `mongod_version` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("snapshot_type", snapshotReq.SnapshotType); err != nil {
+	if err = d.Set("snapshot_type", snapshot.SnapshotType); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_type` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("status", snapshotReq.Status); err != nil {
+	if err = d.Set("status", snapshot.Status); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("storage_size_bytes", snapshotReq.StorageSizeBytes); err != nil {
+	if err = d.Set("storage_size_bytes", snapshot.StorageSizeBytes); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `storage_size_bytes` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("type", snapshotReq.Type); err != nil {
+	if err = d.Set("type", snapshot.Type); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `type` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("cloud_provider", snapshot.CloudProvider); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `cloud_provider` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("members", flattenCloudMembers(snapshot.Members)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("replication_set_name", snapshot.ReplicaSetName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `replication_set_name` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("snapshot_ids", snapshot.SnapshotsIds); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_ids` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
 	return nil
@@ -294,4 +345,36 @@ func splitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error)
 		ClusterName: parts[2],
 		SnapshotID:  parts[3],
 	}, nil
+}
+
+func flattenCloudMember(apiObject *matlas.Member) map[string]interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	tfMap["cloud_provider"] = apiObject.CloudProvider
+	tfMap["id"] = apiObject.ID
+	tfMap["replication_set_name"] = apiObject.ReplicaSetName
+
+	return tfMap
+}
+
+func flattenCloudMembers(apiObjects []*matlas.Member) []interface{} {
+	if len(apiObjects) == 0 {
+		return nil
+	}
+
+	var tfList []interface{}
+
+	for _, apiObject := range apiObjects {
+		if apiObject == nil {
+			continue
+		}
+
+		tfList = append(tfList, flattenCloudMember(apiObject))
+	}
+
+	return tfList
 }

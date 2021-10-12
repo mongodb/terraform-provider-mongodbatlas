@@ -61,6 +61,41 @@ func dataSourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"cloud_provider": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"members": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"replication_set_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"replication_set_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"snapshot_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -74,48 +109,64 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schem
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
-	snapshotRes, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
+	snapshot, _, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshot Information: %s", err))
 	}
 
-	if err = d.Set("created_at", snapshotRes.CreatedAt); err != nil {
+	if err = d.Set("created_at", snapshot.CreatedAt); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `created_at` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("description", snapshotRes.Description); err != nil {
+	if err = d.Set("description", snapshot.Description); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `description` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("expires_at", snapshotRes.ExpiresAt); err != nil {
+	if err = d.Set("expires_at", snapshot.ExpiresAt); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expires_at` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("master_key_uuid", snapshotRes.MasterKeyUUID); err != nil {
+	if err = d.Set("master_key_uuid", snapshot.MasterKeyUUID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `master_key_uuid` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("mongod_version", snapshotRes.MongodVersion); err != nil {
+	if err = d.Set("mongod_version", snapshot.MongodVersion); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `mongod_version` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("snapshot_type", snapshotRes.SnapshotType); err != nil {
+	if err = d.Set("snapshot_type", snapshot.SnapshotType); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_type` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("status", snapshotRes.Status); err != nil {
+	if err = d.Set("status", snapshot.Status); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("storage_size_bytes", snapshotRes.StorageSizeBytes); err != nil {
+	if err = d.Set("storage_size_bytes", snapshot.StorageSizeBytes); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `storage_size_bytes` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("type", snapshotRes.Type); err != nil {
+	if err = d.Set("type", snapshot.Type); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `type` for cloudProviderSnapshot (%s): %s", d.Id(), err))
 	}
 
-	d.SetId(snapshotRes.ID)
+	if err = d.Set("cloud_provider", snapshot.CloudProvider); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `cloud_provider` for snapshot (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("members", flattenCloudMembers(snapshot.Members)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("replication_set_name", snapshot.ReplicaSetName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `replication_set_name` for snapshot (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("snapshot_ids", snapshot.SnapshotsIds); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_ids` for snapshot (%s): %s", d.Id(), err))
+	}
+
+	d.SetId(snapshot.ID)
 
 	return nil
 }
