@@ -63,6 +63,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 			"auto_scaling_compute_enabled": {
 				Type:     schema.TypeBool,
