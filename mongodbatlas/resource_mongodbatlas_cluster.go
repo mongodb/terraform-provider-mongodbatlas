@@ -371,11 +371,16 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
+		DiskGBEnabled: pointy.Bool(true),
 		Compute: &matlas.Compute{
 			Enabled:          &computeEnabled,
 			ScaleDownEnabled: &scaleDownEnabled,
 		},
+	}
+
+	diskEnabled, diskEnabledOK := d.GetOk("auto_scaling_disk_gb_enabled")
+	if diskEnabledOK {
+		autoScaling.DiskGBEnabled = pointy.Bool(diskEnabled.(bool))
 	}
 
 	// validate cluster_type conditional
@@ -413,7 +418,8 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	tenantDisksize := pointy.Float64(0)
 	if providerName == "TENANT" {
-		if diskGBEnabled := d.Get("auto_scaling_disk_gb_enabled"); diskGBEnabled.(bool) {
+
+		if diskEnabledTenant, diskEnabledTenantOK := d.GetOk("auto_scaling_disk_gb_enabled"); diskEnabledTenantOK && diskEnabledTenant.(bool) {
 			return diag.FromErr(fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT"))
 		}
 
