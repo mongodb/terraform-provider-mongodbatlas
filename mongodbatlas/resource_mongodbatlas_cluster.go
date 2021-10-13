@@ -418,7 +418,6 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	tenantDisksize := pointy.Float64(0)
 	if providerName == "TENANT" {
-
 		if diskEnabledTenant, diskEnabledTenantOK := d.GetOk("auto_scaling_disk_gb_enabled"); diskEnabledTenantOK && diskEnabledTenant.(bool) {
 			return diag.FromErr(fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT"))
 		}
