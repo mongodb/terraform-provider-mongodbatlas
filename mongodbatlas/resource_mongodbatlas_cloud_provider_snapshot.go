@@ -81,6 +81,10 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"timeout": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
 		},
 	}
 }
@@ -159,17 +163,25 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(ctx context.Context, d *sch
 		RetentionInDays: d.Get("retention_in_days").(int),
 	}
 
+	var timeout time.Duration
+
+	timeout, err := time.ParseDuration(d.Get("timeout").(string))
+	if err != nil {
+		// sets default timeout if the timeout cannot be parsed
+		timeout = 10 * time.Minute
+	}
+
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), conn),
-		Timeout:    10 * time.Minute,
+		Timeout:    timeout,
 		MinTimeout: 10 * time.Second,
 		Delay:      3 * time.Minute,
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
