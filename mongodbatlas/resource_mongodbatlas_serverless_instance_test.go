@@ -117,7 +117,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName st
 	}
 }
 
-func testAccMongoDBAtlasServerlessInstanceConfig(projectID string, name string) string {
+func testAccMongoDBAtlasServerlessInstanceConfig(projectID, name string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_serverless_instance" "test" {
 			project_id   = "%[1]s"

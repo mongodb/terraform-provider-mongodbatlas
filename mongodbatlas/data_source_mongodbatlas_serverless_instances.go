@@ -73,7 +73,6 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) ([]map[st
 	serverlessInstancesMap = make([]map[string]interface{}, len(serverlessInstances))
 
 	for i := range serverlessInstances {
-
 		serverlessInstancesMap[i] = map[string]interface{}{
 			"connection_strings_standard_srv": serverlessInstances[i].ConnectionStrings.StandardSrv,
 			"create_date":                     serverlessInstances[i].CreateDate,

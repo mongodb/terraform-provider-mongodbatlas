@@ -29,7 +29,6 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 }
 
 func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-
 	return nil
 }
 
