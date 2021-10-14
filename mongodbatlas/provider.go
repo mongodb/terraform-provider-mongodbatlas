@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"log"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -55,94 +56,109 @@ func Provider() *schema.Provider {
 				Description: "MongoDB Realm Base URL",
 			},
 		},
-
-		DataSourcesMap: map[string]*schema.Resource{
-			"mongodbatlas_custom_db_role":                        dataSourceMongoDBAtlasCustomDBRole(),
-			"mongodbatlas_custom_db_roles":                       dataSourceMongoDBAtlasCustomDBRoles(),
-			"mongodbatlas_database_user":                         dataSourceMongoDBAtlasDatabaseUser(),
-			"mongodbatlas_database_users":                        dataSourceMongoDBAtlasDatabaseUsers(),
-			"mongodbatlas_project":                               dataSourceMongoDBAtlasProject(),
-			"mongodbatlas_projects":                              dataSourceMongoDBAtlasProjects(),
-			"mongodbatlas_cluster":                               dataSourceMongoDBAtlasCluster(),
-			"mongodbatlas_clusters":                              dataSourceMongoDBAtlasClusters(),
-			"mongodbatlas_cloud_provider_snapshot":               dataSourceMongoDBAtlasCloudProviderSnapshot(),
-			"mongodbatlas_cloud_provider_snapshots":              dataSourceMongoDBAtlasCloudProviderSnapshots(),
-			"mongodbatlas_network_container":                     dataSourceMongoDBAtlasNetworkContainer(),
-			"mongodbatlas_network_containers":                    dataSourceMongoDBAtlasNetworkContainers(),
-			"mongodbatlas_network_peering":                       dataSourceMongoDBAtlasNetworkPeering(),
-			"mongodbatlas_network_peerings":                      dataSourceMongoDBAtlasNetworkPeerings(),
-			"mongodbatlas_cloud_provider_snapshot_restore_job":   dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
-			"mongodbatlas_cloud_provider_snapshot_restore_jobs":  dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs(),
-			"mongodbatlas_maintenance_window":                    dataSourceMongoDBAtlasMaintenanceWindow(),
-			"mongodbatlas_auditing":                              dataSourceMongoDBAtlasAuditing(),
-			"mongodbatlas_team":                                  dataSourceMongoDBAtlasTeam(),
-			"mongodbatlas_teams":                                 dataSourceMongoDBAtlasTeam(),
-			"mongodbatlas_global_cluster_config":                 dataSourceMongoDBAtlasGlobalCluster(),
-			"mongodbatlas_alert_configuration":                   dataSourceMongoDBAtlasAlertConfiguration(),
-			"mongodbatlas_x509_authentication_database_user":     dataSourceMongoDBAtlasX509AuthDBUser(),
-			"mongodbatlas_privatelink_endpoint":                  dataSourceMongoDBAtlasPrivateLinkEndpoint(),
-			"mongodbatlas_privatelink_endpoint_service":          dataSourceMongoDBAtlasPrivateEndpointServiceLink(),
-			"mongodbatlas_cloud_provider_snapshot_backup_policy": dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
-			"mongodbatlas_cloud_backup_schedule":                 dataSourceMongoDBAtlasCloudBackupSchedule(),
-			"mongodbatlas_third_party_integrations":              dataSourceMongoDBAtlasThirdPartyIntegrations(),
-			"mongodbatlas_third_party_integration":               dataSourceMongoDBAtlasThirdPartyIntegration(),
-			"mongodbatlas_project_ip_access_list":                dataSourceMongoDBAtlasProjectIPAccessList(),
-			"mongodbatlas_cloud_provider_access":                 dataSourceMongoDBAtlasCloudProviderAccessList(),
-			"mongodbatlas_cloud_provider_access_setup":           dataSourceMongoDBAtlasCloudProviderAccessSetup(),
-			"mongodbatlas_custom_dns_configuration_cluster_aws":  dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
-			"mongodbatlas_online_archive":                        dataSourceMongoDBAtlasOnlineArchive(),
-			"mongodbatlas_online_archives":                       dataSourceMongoDBAtlasOnlineArchives(),
-			"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
-			"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
-			"mongodbatlas_search_index":                          dataSourceMongoDBAtlasSearchIndex(),
-			"mongodbatlas_search_indexes":                        dataSourceMongoDBAtlasSearchIndexes(),
-			"mongodbatlas_serverless_instance":                   dataSourceMongoDBAtlasServerlessInstance(),
-			"mongodbatlas_serverless_instances":                  dataSourceMongoDBAtlasServerlessInstances(),
-			"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
-			"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
-			"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
-			"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
-		},
-
-		ResourcesMap: map[string]*schema.Resource{
-			"mongodbatlas_custom_db_role":                        resourceMongoDBAtlasCustomDBRole(),
-			"mongodbatlas_database_user":                         resourceMongoDBAtlasDatabaseUser(),
-			"mongodbatlas_project":                               resourceMongoDBAtlasProject(),
-			"mongodbatlas_cluster":                               resourceMongoDBAtlasCluster(),
-			"mongodbatlas_cloud_provider_snapshot":               resourceMongoDBAtlasCloudProviderSnapshot(),
-			"mongodbatlas_network_container":                     resourceMongoDBAtlasNetworkContainer(),
-			"mongodbatlas_cloud_provider_snapshot_restore_job":   resourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
-			"mongodbatlas_network_peering":                       resourceMongoDBAtlasNetworkPeering(),
-			"mongodbatlas_encryption_at_rest":                    resourceMongoDBAtlasEncryptionAtRest(),
-			"mongodbatlas_private_ip_mode":                       resourceMongoDBAtlasPrivateIPMode(),
-			"mongodbatlas_maintenance_window":                    resourceMongoDBAtlasMaintenanceWindow(),
-			"mongodbatlas_auditing":                              resourceMongoDBAtlasAuditing(),
-			"mongodbatlas_team":                                  resourceMongoDBAtlasTeam(),
-			"mongodbatlas_teams":                                 resourceMongoDBAtlasTeam(),
-			"mongodbatlas_global_cluster_config":                 resourceMongoDBAtlasGlobalCluster(),
-			"mongodbatlas_alert_configuration":                   resourceMongoDBAtlasAlertConfiguration(),
-			"mongodbatlas_x509_authentication_database_user":     resourceMongoDBAtlasX509AuthDBUser(),
-			"mongodbatlas_privatelink_endpoint":                  resourceMongoDBAtlasPrivateLinkEndpoint(),
-			"mongodbatlas_privatelink_endpoint_service":          resourceMongoDBAtlasPrivateEndpointServiceLink(),
-			"mongodbatlas_cloud_provider_snapshot_backup_policy": resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
-			"mongodbatlas_third_party_integration":               resourceMongoDBAtlasThirdPartyIntegration(),
-			"mongodbatlas_project_ip_access_list":                resourceMongoDBAtlasProjectIPAccessList(),
-			"mongodbatlas_cloud_provider_access":                 resourceMongoDBAtlasCloudProviderAccess(),
-			"mongodbatlas_online_archive":                        resourceMongoDBAtlasOnlineArchive(),
-			"mongodbatlas_custom_dns_configuration_cluster_aws":  resourceMongoDBAtlasCustomDNSConfiguration(),
-			"mongodbatlas_ldap_configuration":                    resourceMongoDBAtlasLDAPConfiguration(),
-			"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
-			"mongodbatlas_cloud_provider_access_setup":           resourceMongoDBAtlasCloudProviderAccessSetup(),
-			"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
-			"mongodbatlas_search_index":                          resourceMongoDBAtlasSearchIndex(),
-			"mongodbatlas_serverless_instance":                   resourceMongoDBAtlasServerlessInstance(),
-			"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
-			"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
-			"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
-		},
-
+		DataSourcesMap:       getDataSourcesMap(),
+		ResourcesMap:         getResourcesMap(),
 		ConfigureContextFunc: providerConfigure,
 	}
+}
+
+func getDataSourcesMap() map[string]*schema.Resource {
+	dataSourcesMap := map[string]*schema.Resource{
+		"mongodbatlas_custom_db_role":                        dataSourceMongoDBAtlasCustomDBRole(),
+		"mongodbatlas_custom_db_roles":                       dataSourceMongoDBAtlasCustomDBRoles(),
+		"mongodbatlas_database_user":                         dataSourceMongoDBAtlasDatabaseUser(),
+		"mongodbatlas_database_users":                        dataSourceMongoDBAtlasDatabaseUsers(),
+		"mongodbatlas_project":                               dataSourceMongoDBAtlasProject(),
+		"mongodbatlas_projects":                              dataSourceMongoDBAtlasProjects(),
+		"mongodbatlas_cluster":                               dataSourceMongoDBAtlasCluster(),
+		"mongodbatlas_clusters":                              dataSourceMongoDBAtlasClusters(),
+		"mongodbatlas_cloud_provider_snapshot":               dataSourceMongoDBAtlasCloudProviderSnapshot(),
+		"mongodbatlas_cloud_provider_snapshots":              dataSourceMongoDBAtlasCloudProviderSnapshots(),
+		"mongodbatlas_network_container":                     dataSourceMongoDBAtlasNetworkContainer(),
+		"mongodbatlas_network_containers":                    dataSourceMongoDBAtlasNetworkContainers(),
+		"mongodbatlas_network_peering":                       dataSourceMongoDBAtlasNetworkPeering(),
+		"mongodbatlas_network_peerings":                      dataSourceMongoDBAtlasNetworkPeerings(),
+		"mongodbatlas_cloud_provider_snapshot_restore_job":   dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
+		"mongodbatlas_cloud_provider_snapshot_restore_jobs":  dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs(),
+		"mongodbatlas_maintenance_window":                    dataSourceMongoDBAtlasMaintenanceWindow(),
+		"mongodbatlas_auditing":                              dataSourceMongoDBAtlasAuditing(),
+		"mongodbatlas_team":                                  dataSourceMongoDBAtlasTeam(),
+		"mongodbatlas_teams":                                 dataSourceMongoDBAtlasTeam(),
+		"mongodbatlas_global_cluster_config":                 dataSourceMongoDBAtlasGlobalCluster(),
+		"mongodbatlas_alert_configuration":                   dataSourceMongoDBAtlasAlertConfiguration(),
+		"mongodbatlas_x509_authentication_database_user":     dataSourceMongoDBAtlasX509AuthDBUser(),
+		"mongodbatlas_privatelink_endpoint":                  dataSourceMongoDBAtlasPrivateLinkEndpoint(),
+		"mongodbatlas_privatelink_endpoint_service":          dataSourceMongoDBAtlasPrivateEndpointServiceLink(),
+		"mongodbatlas_cloud_provider_snapshot_backup_policy": dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
+		"mongodbatlas_cloud_backup_schedule":                 dataSourceMongoDBAtlasCloudBackupSchedule(),
+		"mongodbatlas_third_party_integrations":              dataSourceMongoDBAtlasThirdPartyIntegrations(),
+		"mongodbatlas_third_party_integration":               dataSourceMongoDBAtlasThirdPartyIntegration(),
+		"mongodbatlas_project_ip_access_list":                dataSourceMongoDBAtlasProjectIPAccessList(),
+		"mongodbatlas_cloud_provider_access":                 dataSourceMongoDBAtlasCloudProviderAccessList(),
+		"mongodbatlas_cloud_provider_access_setup":           dataSourceMongoDBAtlasCloudProviderAccessSetup(),
+		"mongodbatlas_custom_dns_configuration_cluster_aws":  dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
+		"mongodbatlas_online_archive":                        dataSourceMongoDBAtlasOnlineArchive(),
+		"mongodbatlas_online_archives":                       dataSourceMongoDBAtlasOnlineArchives(),
+		"mongodbatlas_ldap_configuration":                    dataSourceMongoDBAtlasLDAPConfiguration(),
+		"mongodbatlas_ldap_verify":                           dataSourceMongoDBAtlasLDAPVerify(),
+		"mongodbatlas_search_index":                          dataSourceMongoDBAtlasSearchIndex(),
+		"mongodbatlas_search_indexes":                        dataSourceMongoDBAtlasSearchIndexes(),
+		"mongodbatlas_data_lake":                             dataSourceMongoDBAtlasDataLake(),
+		"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
+		"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
+		"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
+	}
+
+	if enableBetaFeatures := os.Getenv("MONGODB_ATLAS_ENABLE_BETA"); enableBetaFeatures == "true" {
+		dataSourcesMap["mongodbatlas_serverless_instance"] = dataSourceMongoDBAtlasServerlessInstance()
+		dataSourcesMap["mongodbatlas_serverless_instances"] = dataSourceMongoDBAtlasServerlessInstances()
+	}
+
+	return dataSourcesMap
+}
+
+func getResourcesMap() map[string]*schema.Resource {
+	resourcesMap := map[string]*schema.Resource{
+		"mongodbatlas_custom_db_role":                        resourceMongoDBAtlasCustomDBRole(),
+		"mongodbatlas_database_user":                         resourceMongoDBAtlasDatabaseUser(),
+		"mongodbatlas_project":                               resourceMongoDBAtlasProject(),
+		"mongodbatlas_cluster":                               resourceMongoDBAtlasCluster(),
+		"mongodbatlas_cloud_provider_snapshot":               resourceMongoDBAtlasCloudProviderSnapshot(),
+		"mongodbatlas_network_container":                     resourceMongoDBAtlasNetworkContainer(),
+		"mongodbatlas_cloud_provider_snapshot_restore_job":   resourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
+		"mongodbatlas_network_peering":                       resourceMongoDBAtlasNetworkPeering(),
+		"mongodbatlas_encryption_at_rest":                    resourceMongoDBAtlasEncryptionAtRest(),
+		"mongodbatlas_private_ip_mode":                       resourceMongoDBAtlasPrivateIPMode(),
+		"mongodbatlas_maintenance_window":                    resourceMongoDBAtlasMaintenanceWindow(),
+		"mongodbatlas_auditing":                              resourceMongoDBAtlasAuditing(),
+		"mongodbatlas_team":                                  resourceMongoDBAtlasTeam(),
+		"mongodbatlas_teams":                                 resourceMongoDBAtlasTeam(),
+		"mongodbatlas_global_cluster_config":                 resourceMongoDBAtlasGlobalCluster(),
+		"mongodbatlas_alert_configuration":                   resourceMongoDBAtlasAlertConfiguration(),
+		"mongodbatlas_x509_authentication_database_user":     resourceMongoDBAtlasX509AuthDBUser(),
+		"mongodbatlas_privatelink_endpoint":                  resourceMongoDBAtlasPrivateLinkEndpoint(),
+		"mongodbatlas_privatelink_endpoint_service":          resourceMongoDBAtlasPrivateEndpointServiceLink(),
+		"mongodbatlas_cloud_provider_snapshot_backup_policy": resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
+		"mongodbatlas_third_party_integration":               resourceMongoDBAtlasThirdPartyIntegration(),
+		"mongodbatlas_project_ip_access_list":                resourceMongoDBAtlasProjectIPAccessList(),
+		"mongodbatlas_cloud_provider_access":                 resourceMongoDBAtlasCloudProviderAccess(),
+		"mongodbatlas_online_archive":                        resourceMongoDBAtlasOnlineArchive(),
+		"mongodbatlas_custom_dns_configuration_cluster_aws":  resourceMongoDBAtlasCustomDNSConfiguration(),
+		"mongodbatlas_ldap_configuration":                    resourceMongoDBAtlasLDAPConfiguration(),
+		"mongodbatlas_ldap_verify":                           resourceMongoDBAtlasLDAPVerify(),
+		"mongodbatlas_cloud_provider_access_setup":           resourceMongoDBAtlasCloudProviderAccessSetup(),
+		"mongodbatlas_cloud_provider_access_authorization":   resourceMongoDBAtlasCloudProviderAccessAuthorization(),
+		"mongodbatlas_search_index":                          resourceMongoDBAtlasSearchIndex(),
+		"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
+		"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
+		"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
+	}
+
+	if enableBetaFeatures := os.Getenv("MONGODB_ATLAS_ENABLE_BETA"); enableBetaFeatures == "true" {
+		resourcesMap["mongodbatlas_serverless_instance"] = resourceMongoDBAtlasServerlessInstance()
+	}
+
+	return resourcesMap
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {

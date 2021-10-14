@@ -20,7 +20,7 @@ func TestAccResourceMongoDBAtlasServerlessInstance_basic(t *testing.T) {
 		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckBetaFeatures(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -42,8 +42,9 @@ func TestAccResourceMongoDBAtlasServerlessInstance_importBasic(t *testing.T) {
 		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckBetaFeatures(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{

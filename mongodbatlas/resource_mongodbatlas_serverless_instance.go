@@ -29,6 +29,7 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 }
 
 func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
+	log.Printf("[DEBUG] Serverless Instance Update not Implemented on MONGODB ATLAS API")
 	return nil
 }
 

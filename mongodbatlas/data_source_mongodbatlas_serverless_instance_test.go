@@ -17,7 +17,7 @@ func TestAccDataSourceMongoDBAtlasServerlessInstance_byName(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckBetaFeatures(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
