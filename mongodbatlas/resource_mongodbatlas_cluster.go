@@ -379,11 +379,6 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		},
 	}
 
-	diskEnabled, diskEnabledOK := d.GetOk("auto_scaling_disk_gb_enabled")
-	if diskEnabledOK {
-		autoScaling.DiskGBEnabled = pointy.Bool(diskEnabled.(bool))
-	}
-
 	// validate cluster_type conditional
 	if _, ok := d.GetOk("replication_specs"); ok {
 		if _, ok1 := d.GetOk("cluster_type"); !ok1 {
