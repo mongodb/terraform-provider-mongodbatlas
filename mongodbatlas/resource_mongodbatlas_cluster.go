@@ -372,7 +372,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(true),
+		DiskGBEnabled: pointy.Bool(d.Get("auto_scaling_disk_gb_enabled").(bool)),
 		Compute: &matlas.Compute{
 			Enabled:          &computeEnabled,
 			ScaleDownEnabled: &scaleDownEnabled,
