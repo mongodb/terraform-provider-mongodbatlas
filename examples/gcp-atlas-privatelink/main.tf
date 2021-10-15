@@ -4,11 +4,13 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
   region        = var.gcp_region
 }
 
+# Create a Google Network
 resource "google_compute_network" "default" {
   project = var.gcp_project
   name    = "my-network"
 }
 
+# Create a Google Sub Network
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
   name          = "my-subnet"
@@ -17,6 +19,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
+# Create a Google 50 Addresses
 resource "google_compute_address" "default" {
   count        = 50
   project      = google_compute_subnetwork.default.project
@@ -29,6 +32,7 @@ resource "google_compute_address" "default" {
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
+# Creates a 50 Forwarding rules
 resource "google_compute_forwarding_rule" "default" {
   count                 = 50
   project               = var.gcp_project
@@ -61,14 +65,14 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 }
 
 data "mongodbatlas_privatelink_endpoint" "test" {
-  project_id    = mongodbatlas_privatelink_endpoint_service.test.project_id
-  provider_name = "GCP"
-  private_link_id        = mongodbatlas_privatelink_endpoint.test.private_link_id
+  project_id      = mongodbatlas_privatelink_endpoint_service.test.project_id
+  provider_name   = "GCP"
+  private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
 }
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id    = mongodbatlas_privatelink_endpoint_service.test.project_id
-  provider_name = "GCP"
-  private_link_id        = mongodbatlas_privatelink_endpoint.test.private_link_id
-  endpoint_service_id        = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
+  provider_name       = "GCP"
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
 }
