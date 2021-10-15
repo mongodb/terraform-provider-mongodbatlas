@@ -1,0 +1,57 @@
+# Example - Microsoft Azure and MongoDB Atlas Private Endpoint
+
+This project aims to provide an example of using Azure and MongoDB Atlas together.
+
+
+## Dependencies
+
+* Terraform v0.13
+* Google account 
+* A MongoDB Atlas account 
+
+```
+Terraform v0.13.0
++ provider registry.terraform.io/hashicorp/google 
++ provider registry.terraform.io/terraform-providers/mongodbatlas 
+```
+
+## Usage
+
+**1\. Ensure your Google credentials are set up.**
+
+1. Install the GCloud SDK by following the steps from the [official GCP documentation](https://cloud.google.com/sdk/docs/install).
+2. Run the command `gcloud init` and this will take you to the default browser and perform the authentication.
+3. Once authenticated, it will appear an input to choose the project:
+
+**2\. TFVARS**
+
+Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
+
+**3\. Review the Terraform plan. **
+
+Execute the below command and ensure you are happy with the plan.
+
+``` bash
+$ terraform plan
+```
+This project currently does the below deployments:
+
+- MongoDB Atlas GCP Private Endpoint
+- Google resource Compute Network, SubNetwork, Address and Forwarding Rule
+- GCP-MongoDB Private Link
+
+**4\. Execute the Terraform apply.**
+
+Now execute the plan to provision the AWS resources.
+
+``` bash
+$ terraform apply
+```
+
+**5\. Destroy the resources.**
+
+Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Azure and Atlas charges.
+
+``` bash
+$ terraform destroy
+```
