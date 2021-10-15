@@ -63,7 +63,8 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				//	DiffSuppressFunc: validateAutoScalingEnableDiff,
+				Computed: true,
+				//DiffSuppressFunc: validateAutoScalingEnableDiff,
 			},
 			"auto_scaling_compute_enabled": {
 				Type:     schema.TypeBool,
@@ -378,12 +379,12 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			ScaleDownEnabled: &scaleDownEnabled,
 		},
 	}
-	/*
-		diskEnabled, diskEnabledOK := d.GetOk("auto_scaling_disk_gb_enabled")
-		if diskEnabledOK {
-			autoScaling.DiskGBEnabled = pointy.Bool(diskEnabled.(bool))
-		}
-	*/
+
+	diskEnabled, diskEnabledOK := d.GetOk("auto_scaling_disk_gb_enabled")
+	if diskEnabledOK {
+		autoScaling.DiskGBEnabled = pointy.Bool(diskEnabled.(bool))
+	}
+
 	// validate cluster_type conditional
 	if _, ok := d.GetOk("replication_specs"); ok {
 		if _, ok1 := d.GetOk("cluster_type"); !ok1 {
