@@ -64,7 +64,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				//DiffSuppressFunc: validateAutoScalingEnableDiff,
 			},
 			"auto_scaling_compute_enabled": {
 				Type:     schema.TypeBool,
@@ -1592,12 +1591,4 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 			},
 		},
 	}
-}
-
-func validateAutoScalingEnableDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	if old == "" && newStr == "true" {
-		return true
-	}
-
-	return false
 }
