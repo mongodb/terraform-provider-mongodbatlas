@@ -141,6 +141,42 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointAzure_import(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasPrivateLinkEndpointGCP_basic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_privatelink_endpoint.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		region       = "us-central1"
+		providerName = "GCP"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "region"),
+
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivateLinkEndpointImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasPrivateLinkEndpointImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]

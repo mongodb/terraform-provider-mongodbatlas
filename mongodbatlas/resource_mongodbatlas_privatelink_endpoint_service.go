@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -26,9 +27,9 @@ const (
 
 func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
-		ReadContext:   resourceMongoDBAtlasPrivateEndpointServiceLinkRead,
-		DeleteContext: resourceMongoDBAtlasPrivateEndpointServiceLinkDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasPrivateEndpointServiceLinkCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateEndpointServiceLinkRead,
+		DeleteWithoutTimeout: resourceMongoDBAtlasPrivateEndpointServiceLinkDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasPrivateEndpointServiceLinkImportState,
 		},
@@ -42,7 +43,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE", "GCP"}, false),
 			},
 			"private_link_id": {
 				Type:     schema.TypeString,
@@ -63,9 +64,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Computed: true,
 			},
 			"private_endpoint_ip_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"gcp_project_id", "endpoints"},
 			},
 			"private_endpoint_resource_id": {
 				Type:     schema.TypeString,
@@ -87,6 +89,46 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"endpoint_group_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"gcp_project_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"private_endpoint_ip_address"},
+			},
+			"endpoints": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"private_endpoint_ip_address"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"endpoint_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"ip_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"service_attachment_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"gcp_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -97,10 +139,38 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 	endpointServiceID := d.Get("endpoint_service_id").(string)
+	pEIA, pEIAOk := d.GetOk("private_endpoint_ip_address")
+	gPI, gPIOk := d.GetOk("gcp_project_id")
+	e, eOk := d.GetOk("endpoints")
 
-	request := &matlas.InterfaceEndpointConnection{
-		ID:                       endpointServiceID,
-		PrivateEndpointIPAddress: d.Get("private_endpoint_ip_address").(string),
+	request := &matlas.InterfaceEndpointConnection{}
+
+	if providerName == "AWS" {
+		request.ID = endpointServiceID
+	}
+	if providerName == "AZURE" {
+		if !pEIAOk {
+			diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
+		}
+		request.ID = endpointServiceID
+	}
+	if providerName == "GCP" {
+		if !gPIOk || !eOk {
+			diag.FromErr(errors.New("`gcp_project_id`, `endpoints` must be set when `provider_name` is `GCP`"))
+		}
+		request.EndpointGroupName = endpointServiceID
+	}
+
+	if pEIAOk {
+		request.PrivateEndpointIPAddress = pEIA.(string)
+	}
+
+	if gPIOk {
+		request.GCPProjectID = gPI.(string)
+	}
+
+	if eOk {
+		request.Endpoints = expandGCPEndpoints(e.([]interface{}))
 	}
 
 	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, request)
@@ -109,7 +179,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
+		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
 		Timeout:    1 * time.Hour,
@@ -163,8 +233,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
-	if err := d.Set("azure_status", privateEndpoint.AzureStatus); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
+	if providerName == "AZURE" {
+		if err := d.Set("azure_status", privateEndpoint.Status); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
+		}
 	}
 
 	if err := d.Set("interface_endpoint_id", privateEndpoint.InterfaceEndpointID); err != nil {
@@ -185,6 +257,16 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
+	}
+
+	if err := d.Set("endpoints", flattenGCPEndpoints(privateEndpoint.Endpoints)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
+	}
+
+	if providerName == "GCP" {
+		if err := d.Set("gcp_status", privateEndpoint.Status); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
+		}
 	}
 
 	return nil
@@ -279,11 +361,11 @@ func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Clie
 			return nil, "", err
 		}
 
-		if strings.EqualFold(providerName, "azure") {
-			if i.AzureStatus != "AVAILABLE" {
-				return "", i.AzureStatus, nil
+		if strings.EqualFold(providerName, "azure") || strings.EqualFold(providerName, "gcp") {
+			if i.Status != "AVAILABLE" {
+				return "", i.Status, nil
 			}
-			return i, i.AzureStatus, nil
+			return i, i.Status, nil
 		}
 		if i.AWSConnectionStatus != "AVAILABLE" {
 			return "", i.AWSConnectionStatus, nil
@@ -291,4 +373,82 @@ func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Clie
 
 		return i, i.AWSConnectionStatus, nil
 	}
+}
+
+func expandGCPEndpoint(tfMap map[string]interface{}) *matlas.GCPEndpoint {
+	if tfMap == nil {
+		return nil
+	}
+
+	apiObject := &matlas.GCPEndpoint{}
+
+	if v, ok := tfMap["endpoint_name"]; ok {
+		apiObject.EndpointName = cast.ToString(v)
+	}
+	if v, ok := tfMap["ip_address"]; ok {
+		apiObject.IPAddress = cast.ToString(v)
+	}
+
+	return apiObject
+}
+
+func expandGCPEndpoints(tfList []interface{}) []*matlas.GCPEndpoint {
+	if len(tfList) == 0 {
+		return nil
+	}
+
+	var apiObjects []*matlas.GCPEndpoint
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]interface{})
+
+		if !ok {
+			continue
+		}
+
+		apiObject := expandGCPEndpoint(tfMap)
+
+		if apiObject == nil {
+			continue
+		}
+
+		apiObjects = append(apiObjects, apiObject)
+	}
+
+	return apiObjects
+}
+
+func flattenGCPEndpoint(apiObject *matlas.GCPEndpoint) map[string]interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	log.Printf("[DEBIG] apiObject : %+v", apiObject)
+
+	tfMap["endpoint_name"] = apiObject.EndpointName
+	tfMap["ip_address"] = apiObject.IPAddress
+	tfMap["status"] = apiObject.Status
+	tfMap["service_attachment_name"] = apiObject.ServiceAttachmentName
+
+	return tfMap
+}
+
+func flattenGCPEndpoints(apiObjects []*matlas.GCPEndpoint) []interface{} {
+	if len(apiObjects) == 0 {
+		return nil
+	}
+
+	var tfList []interface{}
+
+	for _, apiObject := range apiObjects {
+		if apiObject == nil {
+			continue
+		}
+
+		tfList = append(tfList, flattenGCPEndpoint(apiObject))
+	}
+
+	return tfList
 }

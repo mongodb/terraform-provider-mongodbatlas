@@ -61,6 +61,24 @@ func dataSourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"endpoint_group_names": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"region_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_attachment_names": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -108,6 +126,18 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schem
 
 	if err := d.Set("status", privateEndpoint.Status); err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", privateLinkID, err))
+	}
+
+	if err := d.Set("endpoint_group_names", privateEndpoint.EndpointGroupNames); err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "endpoint_group_names", privateLinkID, err))
+	}
+
+	if err := d.Set("region_name", privateEndpoint.RegionName); err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "region_name", privateLinkID, err))
+	}
+
+	if err := d.Set("service_attachment_names", privateEndpoint.ServiceAttachmentNames); err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

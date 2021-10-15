@@ -32,9 +32,9 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 ## Argument Reference
 
 * `project_id` - Required 	Unique identifier for the project.
-* `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS` or `AZURE`.
+* `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
-Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws) and [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
+Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
   
   AWS:
   * `us-east-1`
@@ -93,6 +93,36 @@ AZURE:
   * `uaenorth`
   * `uaecentral`
 
+GCP:
+* `us-central1`
+* `us-east1`
+* `us-east4`
+* `northamerica-northeast1`
+* `southamerica-east1`
+* `southcentralus`
+* `us-west1`
+* `us-west2`
+* `us-west3`
+* `us-west4`
+* `asia-east1`
+* `asia-east2`
+* `asia-northeast1`
+* `asia-northeast2`
+* `asia-northeast3`
+* `asia-southeast1`
+* `asia-south1`
+* `asia-south2`
+* `australia-southeast1`
+* `australia-southeast2`
+* `asia-southeast2`
+* `europe-west1`
+* `europe-north1`
+* `europe-west2`
+* `europe-west3`
+* `europe-west4`
+* `europe-west6`
+* `europe-central2`
+
 
 ## Attributes Reference
 
@@ -105,7 +135,9 @@ In addition to all arguments above, the following attributes are exported:
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
 * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
 * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
-* `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
+* `endpoint_group_names` - GCP network endpoint groups corresponding to the Private Service Connect endpoint service.
+* `region_name` - GCP region for the Private Service Connect endpoint service.
+* `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service. Returns an empty list while Atlas creates the service attachments.
 * `status` - Status of the AWS PrivateLink connection or Status of the Azure Private Link Service. Atlas returns one of the following values:
   AWS:
     * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.
@@ -117,6 +149,11 @@ In addition to all arguments above, the following attributes are exported:
     * `INITIATING` 	Atlas is creating the load balancer and the Private Link Service.
     * `FAILED` 	Atlas failed to create the load balancer and the Private Link service.
     * `DELETING` 	Atlas is deleting the Private Link service.
+  GCP:
+    * `AVAILABLE` 	Atlas created the load balancer and the GCP Private Service Connect service.
+    * `INITIATING` 	Atlas is creating the load balancer and the GCP Private Service Connect service.
+    * `FAILED`  	Atlas failed to create the load balancer and the GCP Private Service Connect service.
+    * `DELETING` 	Atlas is deleting the GCP Private Service Connect service.
 
 ## Import
 Private Endpoint Service can be imported using project ID, private link ID, provider name and region, in the format `{project_id}-{private_link_id}-{provider_name}-{region}`, e.g.
