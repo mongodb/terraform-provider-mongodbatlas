@@ -379,8 +379,8 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		},
 	}
 
-	diskEnabled, diskEnabledOK := d.GetOk("auto_scaling_disk_gb_enabled")
-	if diskEnabledOK {
+	diskEnabled := d.Get("auto_scaling_disk_gb_enabled")
+	if diskEnabled != nil {
 		autoScaling.DiskGBEnabled = pointy.Bool(diskEnabled.(bool))
 	}
 
