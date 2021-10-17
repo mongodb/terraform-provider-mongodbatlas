@@ -38,12 +38,7 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 		return diag.Errorf("project_id must be configured")
 	}
 
-	options := &matlas.ListOptions{
-		/*	PageNum:      d.Get("page_num").(int),
-			ItemsPerPage: d.Get("items_per_page").(int),
-
-		*/
-	}
+	options := &matlas.ListOptions{}
 
 	serverlessInstances, _, err := conn.ServerlessInstances.List(ctx, projectID.(string), options)
 	if err != nil {

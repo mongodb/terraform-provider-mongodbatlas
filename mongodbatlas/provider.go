@@ -9,12 +9,17 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+)
+
+var (
+	ProviderEnableBeta, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
 )
 
 // Provider returns the provider to be use by the code.
@@ -109,7 +114,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
 	}
 
-	if enableBetaFeatures := os.Getenv("MONGODB_ATLAS_ENABLE_BETA"); enableBetaFeatures == "true" {
+	if ProviderEnableBeta {
 		dataSourcesMap["mongodbatlas_serverless_instance"] = dataSourceMongoDBAtlasServerlessInstance()
 		dataSourcesMap["mongodbatlas_serverless_instances"] = dataSourceMongoDBAtlasServerlessInstances()
 	}
@@ -154,7 +159,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
 	}
 
-	if enableBetaFeatures := os.Getenv("MONGODB_ATLAS_ENABLE_BETA"); enableBetaFeatures == "true" {
+	if ProviderEnableBeta {
 		resourcesMap["mongodbatlas_serverless_instance"] = resourceMongoDBAtlasServerlessInstance()
 	}
 
