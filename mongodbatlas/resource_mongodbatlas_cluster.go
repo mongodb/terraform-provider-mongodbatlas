@@ -62,8 +62,8 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
+				Default:  true,
 				Optional: true,
-				Computed: true,
 			},
 			"auto_scaling_compute_enabled": {
 				Type:     schema.TypeBool,
@@ -372,16 +372,15 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: pointy.Bool(true),
 		Compute: &matlas.Compute{
 			Enabled:          &computeEnabled,
 			ScaleDownEnabled: &scaleDownEnabled,
 		},
 	}
 
-	diskEnabled := d.Get("auto_scaling_disk_gb_enabled")
-	if diskEnabled != nil {
-		autoScaling.DiskGBEnabled = pointy.Bool(diskEnabled.(bool))
+	diskEnable, ok := d.GetOk("auto_scaling_disk_gb_enabled")
+	if ok {
+		autoScaling.DiskGBEnabled = pointy.Bool(diskEnable.(bool))
 	}
 
 	// validate cluster_type conditional
@@ -419,10 +418,6 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	tenantDisksize := pointy.Float64(0)
 	if providerName == "TENANT" {
-		if diskEnabledTenant, diskEnabledTenantOK := d.GetOk("auto_scaling_disk_gb_enabled"); diskEnabledTenantOK && diskEnabledTenant.(bool) {
-			return diag.FromErr(fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT"))
-		}
-
 		autoScaling = nil
 
 		if instanceSizeName, ok := d.GetOk("provider_instance_size_name"); ok {
@@ -598,10 +593,6 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "cluster_id", clusterName, err))
 	}
 
-	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
-	}
-
 	if err := d.Set("auto_scaling_compute_enabled", cluster.AutoScaling.Compute.Enabled); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "auto_scaling_compute_enabled", clusterName, err))
 	}
@@ -728,6 +719,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 
 		if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterSetting, "container_id", clusterName, err))
+		}
+
+		if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
 		}
 	}
 
