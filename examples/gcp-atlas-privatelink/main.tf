@@ -63,16 +63,3 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
   depends_on = [google_compute_forwarding_rule.default]
 }
-
-data "mongodbatlas_privatelink_endpoint" "test" {
-  project_id      = mongodbatlas_privatelink_endpoint_service.test.project_id
-  provider_name   = "GCP"
-  private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
-}
-
-data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
-  provider_name       = "GCP"
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
-}
