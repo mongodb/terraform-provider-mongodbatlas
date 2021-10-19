@@ -1,6 +1,6 @@
-# Example - Microsoft Azure and MongoDB Atlas Private Endpoint
+# Example - GCP and MongoDB Atlas Private Endpoint
 
-This project aims to provide an example of using Azure and MongoDB Atlas together.
+This project aims to provide an example of using GCP and MongoDB Atlas together.
 
 
 ## Dependencies
@@ -50,7 +50,7 @@ $ terraform apply
 
 **5\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Azure and Atlas charges.
+Once you are finished your testing, ensure you destroy the resources to avoid unnecessary GCP and Atlas charges.
 
 ``` bash
 $ terraform destroy
