@@ -84,6 +84,7 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 			"timeout": {
 				Type:     schema.TypeString,
 				Required: false,
+				Default:  "10m",
 			},
 		},
 	}
@@ -167,8 +168,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(ctx context.Context, d *sch
 
 	timeout, err := time.ParseDuration(d.Get("timeout").(string))
 	if err != nil {
-		// sets default timeout if the timeout cannot be parsed
-		timeout = 10 * time.Minute
+		return diag.FromErr(err)
 	}
 
 	stateConf := &resource.StateChangeConf{
