@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_org_invitation
 
-`mongodbatlas_org_invitation` provides an Organization Invitation resource. This represents an iIvitation for an Atlas User within an Atlas Organization.
+`mongodbatlas_org_invitation` provides an Organization Invitation resource. This represents an invitation for an Atlas User within an Atlas Organization.
 
 Each Invitation for an Atlas User has a set of roles that provide access to an Organization.
 
@@ -26,7 +26,7 @@ The roles that can be utilized can be found in the [MongoDB Documentation](https
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
   org_id      = "<ORG-ID>"
-  roles       = [ "GROUP_DATA_ACCESS_READ_WRITE" ]
+  roles       = [ "ORG_OWNER" ]
 }
 ```
 
@@ -34,7 +34,7 @@ resource "mongodbatlas_org_invitation" "test0" {
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
   org_id      = "<ORG-ID>"
-  roles       = [ "GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY" ]
+  roles       = [ "ORG_MEMBER", "ORG_BILLING_ADMIN" ]
 }
 ```
 
@@ -43,7 +43,7 @@ resource "mongodbatlas_org_invitation" "test1" {
   username    = "test1-acc-username"
   org_id      = "<ORG-ID>"
   teams_ids   = [ "<TEAM-0-ID>", "<TEAM-1-ID>" ]
-  roles       = [ "GROUP_READ_ONLY" ]
+  roles       = [ "ORG_MEMBER" ]
 }
 ```
 
