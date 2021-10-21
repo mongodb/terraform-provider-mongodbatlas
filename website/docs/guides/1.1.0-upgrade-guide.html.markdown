@@ -17,12 +17,10 @@ The Terraform MongoDB Atlas Provider version 1.0.0 has a number of new and excit
 
 ## Migration from Cloud Provider Snapshot to Cloud Backup Snapshot
 
-There are two ways to upgrade from v1.0.2 to v1.1.0 with the existing resources `mongodbatlas_cloud_provider_snapshot_backup_policy`
-perform the following steps
+There are two possible options to upgrade from v1.0.2 to v1.1.0 from the existing resources `mongodbatlas_cloud_provider_snapshot_backup_policy` to the new ones
 
-**NOTE** before doing any terraform state change please do a backup
 
-### Remove the existing and import the new resource
+### Option 1:  Remove the existing and import the new resource
 
 1. Remove your existing `mongodbatlas_cloud_provider_snapshot` resources from terraform state
    **NOTE** before doing any terraform state change please do a backup
@@ -54,7 +52,7 @@ Terraform has compared your real infrastructure against your configuration and f
 so no changes are needed.
 ```
 
-### Replace the name of resource in terraform state
+### Option2: Replace the name of resource in terraform state
 
 1. Replace then name of the state in your existing `mongodbatlas_cloud_provider_snapshot` with `mongodbatlas_cloud_provider_snapshot` in terraform state file (`terraform.tfstate`).
    **NOTE** before doing any terraform state change please do a backup
