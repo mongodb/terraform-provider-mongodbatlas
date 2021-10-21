@@ -59,6 +59,52 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_basicTenant(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasAdvancedCluster_singleProvider(t *testing.T) {
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		rName        = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(projectID, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"replication_specs"},
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasAdvancedCluster_multicloud(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
@@ -86,6 +132,53 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_multicloud(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, rNameUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"replication_specs"},
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasAdvancedCluster_multicloudSharded(t *testing.T) {
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(projectID, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(projectID, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -183,6 +276,32 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, projectID, name)
 }
 
+func testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(projectID, name string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+  }
+}
+	`, projectID, name)
+}
+
 func testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, name string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -212,6 +331,42 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name = "GCP"
       priority      = 6
       region_name   = "NORTH_AMERICA_NORTHEAST_1"
+    }
+  }
+}
+	`, projectID, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(projectID, name string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  cluster_type = "SHARDED"
+
+  replication_specs {
+    num_shards = 1
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M30"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+    region_configs {
+      electable_specs {
+        instance_size = "M30"
+        node_count    = 2
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
     }
   }
 }
