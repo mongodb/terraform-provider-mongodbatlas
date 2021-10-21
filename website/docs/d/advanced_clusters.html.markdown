@@ -55,17 +55,15 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Advanced Cluster
 
-* `cluster_type` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size.
-* `backup_enabled` - Flag that indicates whether the cluster can perform backups.
-* `bi_connector` - Configuration settings applied to BI Connector for Atlas on this cluster.
+* `bi_connector` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector).
 * `cluster_type` - Type of the cluster that you want to create.
 * `disk_size_gb` - Capacity, in gigabytes, of the host's root volume.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE.
-* `labels` - Configuration for the collection of key-value pairs that tag and categorize the cluster.
+* `labels` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels).
 * `mongo_db_major_version` - Version of the cluster to deploy.
-* `pit_enabled` - - Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - Configuration for cluster regions and the hardware provisioned in them.
-* `root_cert_type` - - Certificate Authority that MongoDB Atlas clusters use.
+* `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
+* `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
+* `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use.
 * `version_release_system` - Method by which this cluster maintains the MongoDB versions.
 
 
@@ -86,26 +84,28 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 
 ### replication_specs
 
-* `num_shards` - Number of shards to deploy in the specified zone, defult 1.
-* `region_configs` - Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region.
+* `num_shards` - Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED.
+* `region_configs` - Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
 * `zone_name` - Name for the zone in a Global Cluster.
 
 
 ### region_configs
 
-* `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region.
-* `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster.
+* `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs)
+* `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster. See [below](#auto_scaling)
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
-* `priority` -  Election priority of the region. For regions with only read-only nodes, set this value to 0.
+* `priority` -  Election priority of the region.
 * `provider_name` - Cloud service provider on which the servers are provisioned.
-* `read_only_specs` - Hardware specifications for read-only nodes in the region.
+* `read_only_specs` - Hardware specifications for read-only nodes in the region. See [below](#specs)
 * `region_name` - Physical location of your MongoDB cluster.
 
-### analytics_specs, electable_specs, read_only_specs
+### specs
 
 * `disk_iops` - Target throughput (IOPS) desired for AWS storage attached to your cluster.
 * `ebs_volume_type` - Type of storage you want to attach to your AWS-provisioned cluster.
+  * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
+  * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - Hardware specification for the instance sizes in this region.
 * `node_count` - Number of read-only nodes for Atlas to deploy to the region.
 
