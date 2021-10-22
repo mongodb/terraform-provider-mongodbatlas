@@ -400,19 +400,13 @@ func expandGCPEndpoints(tfList []interface{}) []*matlas.GCPEndpoint {
 	var apiObjects []*matlas.GCPEndpoint
 
 	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]interface{})
-
-		if !ok {
-			continue
+		if tfMap, ok := tfMapRaw.(map[string]interface{}); ok {
+			apiObject := expandGCPEndpoint(tfMap)
+			if apiObject == nil {
+				continue
+			}
+			apiObjects = append(apiObjects, apiObject)
 		}
-
-		apiObject := expandGCPEndpoint(tfMap)
-
-		if apiObject == nil {
-			continue
-		}
-
-		apiObjects = append(apiObjects, apiObject)
 	}
 
 	return apiObjects
