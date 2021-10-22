@@ -268,6 +268,9 @@ output "private_srv" {
 * `auto_scaling_disk_gb_enabled` - (Optional) Specifies whether disk auto-scaling is enabled. The default is true.
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
+  
+-> **NOTE:** If `provider_name` is set to `TENANT`, the parameter `auto_scaling_disk_gb_enabled` will be ignored.
+
 * `auto_scaling_compute_enabled` - (Optional) Specifies whether cluster tier auto-scaling is enabled. The default is false.
     - Set to `true` to enable cluster tier auto-scaling. If enabled, you must specify a value for `providerSettings.autoScaling.compute.maxInstanceSize`.
     - Set to `false` to disable cluster tier auto-scaling.

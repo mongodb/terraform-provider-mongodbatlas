@@ -43,6 +43,7 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "auto_scaling_disk_gb_enabled", "true"),
 				),
 			},
 		},
@@ -68,7 +69,6 @@ func testAccDataSourceMongoDBAtlasClusterConfig(projectID, name, backupEnabled s
 		    }
 
 			provider_backup_enabled      = %s
-			auto_scaling_disk_gb_enabled = true
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
