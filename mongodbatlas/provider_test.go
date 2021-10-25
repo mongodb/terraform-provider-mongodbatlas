@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -56,7 +57,8 @@ func testAccPreCheck(t *testing.T) {
 }
 
 func testAccPreCheckBetaFeatures(t *testing.T) {
-	if enableFeatures := os.Getenv("MONGODB_ATLAS_ENABLE_BETA"); enableFeatures != "true" {
+	enableFeatures, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
+	if !enableFeatures {
 		t.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set to `true` in order to run beta features")
 	}
 }

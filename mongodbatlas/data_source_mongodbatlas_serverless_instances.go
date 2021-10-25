@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -29,8 +30,6 @@ func dataSourceMongoDBAtlasServerlessInstances() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, projectIDOK := d.GetOk("project_id")
 
@@ -38,14 +37,17 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 		return diag.Errorf("project_id must be configured")
 	}
 
-	options := &matlas.ListOptions{}
+	options := &matlas.ListOptions{
+		ItemsPerPage: 500,
+		IncludeCount: true,
+	}
 
-	serverlessInstances, _, err := conn.ServerlessInstances.List(ctx, projectID.(string), options)
+	serverlessInstances, err := getServerlessList(meta, ctx, projectID.(string), options, 0)
 	if err != nil {
 		return diag.Errorf("error getting serverless instances information: %s", err)
 	}
 
-	flatServerlessInstances, err := flattenServerlessInstances(serverlessInstances.Results)
+	flatServerlessInstances, err := flattenServerlessInstances(serverlessInstances)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -57,6 +59,31 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 	d.SetId(resource.UniqueId())
 
 	return nil
+}
+
+func getServerlessList(meta interface{}, ctx context.Context, projectID string, options *matlas.ListOptions, obtainedItemsCount int) ([]*matlas.Cluster, error) {
+	// Get client connection.
+	var list []*matlas.Cluster
+	options.PageNum += 1
+	conn := meta.(*MongoDBClient).Atlas
+
+	serverlessInstances, _, err := conn.ServerlessInstances.List(ctx, projectID, options)
+	if err != nil {
+		return list, fmt.Errorf("error getting serverless instances information: %s", err)
+	}
+
+	list = append(list, serverlessInstances.Results...)
+	obtainedItemsCount += len(serverlessInstances.Results)
+
+	if serverlessInstances.TotalCount > options.ItemsPerPage && obtainedItemsCount < serverlessInstances.TotalCount {
+		instances, err := getServerlessList(meta, ctx, projectID, options, obtainedItemsCount)
+		if err != nil {
+			return list, fmt.Errorf("error getting serverless instances information: %s", err)
+		}
+		list = append(list, instances...)
+	}
+
+	return list, nil
 }
 
 func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) ([]map[string]interface{}, error) {

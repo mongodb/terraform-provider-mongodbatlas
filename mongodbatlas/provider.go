@@ -24,7 +24,7 @@ var (
 
 // Provider returns the provider to be use by the code.
 func Provider() *schema.Provider {
-	return &schema.Provider{
+	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
 				Type:     schema.TypeString,
@@ -65,6 +65,8 @@ func Provider() *schema.Provider {
 		ResourcesMap:         getResourcesMap(),
 		ConfigureContextFunc: providerConfigure,
 	}
+	addBetaFeatures(provider)
+	return provider
 }
 
 func getDataSourcesMap() map[string]*schema.Resource {
@@ -113,12 +115,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
 		"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
 	}
-
-	if ProviderEnableBeta {
-		dataSourcesMap["mongodbatlas_serverless_instance"] = dataSourceMongoDBAtlasServerlessInstance()
-		dataSourcesMap["mongodbatlas_serverless_instances"] = dataSourceMongoDBAtlasServerlessInstances()
-	}
-
 	return dataSourcesMap
 }
 
@@ -158,12 +154,16 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 		"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
 	}
-
-	if ProviderEnableBeta {
-		resourcesMap["mongodbatlas_serverless_instance"] = resourceMongoDBAtlasServerlessInstance()
-	}
-
 	return resourcesMap
+}
+
+func addBetaFeatures(provider *schema.Provider) {
+	if ProviderEnableBeta {
+		provider.ResourcesMap["mongodbatlas_serverless_instance"] = resourceMongoDBAtlasServerlessInstance()
+
+		provider.DataSourcesMap["mongodbatlas_serverless_instance"] = dataSourceMongoDBAtlasServerlessInstance()
+		provider.DataSourcesMap["mongodbatlas_serverless_instances"] = dataSourceMongoDBAtlasServerlessInstances()
+	}
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
