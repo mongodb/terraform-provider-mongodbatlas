@@ -66,6 +66,38 @@ func TestAccResourceMongoDBAtlasSearchIndex_withMapping(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasSearchIndex_withSynonyms(t *testing.T) {
+	var (
+		index           matlas.SearchIndex
+		resourceName    = "mongodbatlas_search_index.test"
+		clusterName     = acctest.RandomWithPrefix("test-acc-index")
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name            = "name_test"
+		updatedAnalyzer = "lucene.standard"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasSearchIndexConfigSynonyms(projectID, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.analyzer", "lucene.simple"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.name", "synonym_test"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.source_collection", "collection_test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
 	var (
 		index        matlas.SearchIndex
@@ -154,7 +186,7 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 		resource "mongodbatlas_search_index" "test" {
 			project_id         = mongodbatlas_cluster.aws_conf.project_id
 			cluster_name       = mongodbatlas_cluster.aws_conf.name
-			analyzer = "lucene.standard"
+			analyzer = "lucene.simple"
 			collection_name = "collection_test"
 			database = "database_test"
 			mappings_dynamic = "true"
@@ -254,6 +286,53 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 				}
 			}]
 			EOF
+		}
+	
+	
+	`, projectID, clusterName)
+}
+
+func testAccMongoDBAtlasSearchIndexConfigSynonyms(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "test_cluster" {
+			project_id   = "%[1]s"
+			name         = "%[2]s"
+			disk_size_gb = 10
+
+			cluster_type = "REPLICASET"
+			replication_specs {
+			  num_shards = 1
+			  regions_config {
+				 region_name     = "US_EAST_2"
+				 electable_nodes = 3
+				 priority        = 7
+				 read_only_nodes = 0
+			   }
+			}
+
+			backup_enabled               = false
+			auto_scaling_disk_gb_enabled = false
+
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+
+		}
+
+		resource "mongodbatlas_search_index" "test" {
+			project_id         = mongodbatlas_cluster.test_cluster.project_id
+			cluster_name       = mongodbatlas_cluster.test_cluster.name
+			analyzer = "lucene.standard"
+			collection_name = "collection_test"
+			database = "database_test"
+			mappings_dynamic = "true"
+			name = "name_test"
+			search_analyzer = "lucene.standard"
+			synonyms {
+				analyzer = "lucene.simple"
+				name = "synonym_test"
+				source_collection = "collection_test"
+			}
 		}
 	
 	

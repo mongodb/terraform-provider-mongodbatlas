@@ -30,6 +30,11 @@ func TestAccDataSourceMongoDBAtlasSearchIndex_byID(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "collection_name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "database"),
 					resource.TestCheckResourceAttrSet(datasourceName, "search_analyzer"),
+					resource.TestCheckResourceAttrSet(datasourceName, "synonyms.#"),
+					resource.TestCheckResourceAttr(datasourceName, "synonyms.#", "1"),
+					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.analyzer", "lucene.simple"),
+					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.name", "synonym_test"),
+					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.source_collection", "collection_test"),
 				),
 			},
 		},
@@ -45,5 +50,5 @@ func testAccMongoDBAtlasSearchIndexDSConfig(projectID, clusterName string) strin
 			project_id          = mongodbatlas_search_index.test.project_id
 			index_id 			= mongodbatlas_search_index.test.index_id
 		}
-	`, testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName))
+	`, testAccMongoDBAtlasSearchIndexConfigSynonyms(projectID, clusterName))
 }

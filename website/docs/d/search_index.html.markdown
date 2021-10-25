@@ -35,11 +35,15 @@ data "mongodbatlas_search_index" "test" {
 * `name` - Name of the index.
 * `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index.
 * `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index (this is an array of objects).
-* `collection_name` - (Required) Name of the collection the index is on.
-* `database` - (Required) Name of the database the collection is in.
+* `collection_name` - Name of the collection the index is on.
+* `database` - Name of the database the collection is in.
 * `mappings_dynamic` - Flag indicating whether the index uses dynamic or static mappings.
 * `mappings_fields` - Object containing one or more field specifications.
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index.
+* `synonyms` - 	Synonyms mapping definition to use in this index.
+* `synonyms.#.name` - Name of the [synonym mapping definition](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-ref).
+* `synonyms.#.source_collection` - Name of the source MongoDB collection for the synonyms.
+* `synonyms.#.analyzer` - Name of the [analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use with this synonym mapping. If `mappings.dynamic` is `true`, Atlas uses the default analyzer, [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer), for synonym mapping. 
 
 
 
