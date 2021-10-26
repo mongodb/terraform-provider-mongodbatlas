@@ -47,10 +47,7 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 		return diag.Errorf("error getting serverless instances information: %s", err)
 	}
 
-	flatServerlessInstances, err := flattenServerlessInstances(serverlessInstances)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	flatServerlessInstances := flattenServerlessInstances(serverlessInstances)
 
 	if err := d.Set("results", flatServerlessInstances); err != nil {
 		return diag.Errorf("error setting `results` for serverless instances: %s", err)
@@ -86,11 +83,11 @@ func getServerlessList(meta interface{}, ctx context.Context, projectID string, 
 	return list, nil
 }
 
-func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) ([]map[string]interface{}, error) {
+func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[string]interface{} {
 	var serverlessInstancesMap []map[string]interface{}
 
 	if len(serverlessInstances) == 0 {
-		return nil, nil
+		return nil
 	}
 	serverlessInstancesMap = make([]map[string]interface{}, len(serverlessInstances))
 
@@ -109,5 +106,5 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) ([]map[st
 		}
 	}
 
-	return serverlessInstancesMap, nil
+	return serverlessInstancesMap
 }
