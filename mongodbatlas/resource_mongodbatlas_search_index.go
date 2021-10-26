@@ -372,9 +372,7 @@ func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]interface{} 
 
 	synonymsDoc := map[string]interface{}{}
 
-	vSynonyms, vSynonymsOK := d.GetOk("synonyms")
-
-	if vSynonymsOK {
+	if vSynonyms, vSynonymsOK := d.GetOk("synonyms"); vSynonymsOK {
 		for _, s := range vSynonyms.(*schema.Set).List() {
 			synonym := s.(map[string]interface{})
 
