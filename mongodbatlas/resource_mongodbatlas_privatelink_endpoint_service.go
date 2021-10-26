@@ -145,31 +145,21 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 
 	request := &matlas.InterfaceEndpointConnection{}
 
-	if providerName == "AWS" {
+	switch providerName {
+	case "AWS":
 		request.ID = endpointServiceID
-	}
-	if providerName == "AZURE" {
+	case "AZURE":
 		if !pEIAOk {
-			diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
+			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		request.ID = endpointServiceID
-	}
-	if providerName == "GCP" {
+		request.PrivateEndpointIPAddress = pEIA.(string)
+	case "GCP":
 		if !gPIOk || !eOk {
-			diag.FromErr(errors.New("`gcp_project_id`, `endpoints` must be set when `provider_name` is `GCP`"))
+			return diag.FromErr(errors.New("`gcp_project_id`, `endpoints` must be set when `provider_name` is `GCP`"))
 		}
 		request.EndpointGroupName = endpointServiceID
-	}
-
-	if pEIAOk {
-		request.PrivateEndpointIPAddress = pEIA.(string)
-	}
-
-	if gPIOk {
 		request.GCPProjectID = gPI.(string)
-	}
-
-	if eOk {
 		request.Endpoints = expandGCPEndpoints(e.([]interface{}))
 	}
 
