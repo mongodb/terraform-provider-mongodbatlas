@@ -1,11 +1,11 @@
 # Example - GCP and MongoDB Atlas Private Endpoint
 
-This project aims to provide an example of using GCP and MongoDB Atlas together.
+This project aims to provide an example of setting up GCP Private Service Connect with MongoDB Atlas.
 
 
 ## Dependencies
 
-* Terraform v0.13
+* Terraform v0.13+
 * Google account 
 * A MongoDB Atlas account 
 
@@ -22,7 +22,20 @@ Terraform v0.13.0
 1. Install the GCloud SDK by following the steps from the [official GCP documentation](https://cloud.google.com/sdk/docs/install).
 2. Run the command `gcloud init` and this will take you to the default browser and perform the authentication.
 3. Once authenticated, it will appear an input to choose the project:
+```
+⇒  gcloud init
+You are logged in as: [user@example.com].
 
+Pick cloud project to use: 
+ [1] project1
+ [2] project2
+...
+
+Please enter numeric choice or text value (must exactly match list item): 1
+
+Your Google Cloud SDK is configured and ready to use!
+
+```
 **2\. TFVARS**
 
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
@@ -38,7 +51,7 @@ This project currently does the below deployments:
 
 - MongoDB Atlas GCP Private Endpoint
 - Google resource Compute Network, SubNetwork, Address and Forwarding Rule
-- GCP-MongoDB Private Link
+- Google Private Service Connect (PSC)-MongoDB Private Link
 
 **4\. Execute the Terraform apply.**
 

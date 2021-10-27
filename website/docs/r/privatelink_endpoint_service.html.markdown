@@ -98,7 +98,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create a Google 50 Addresses
+# Create Google 50 Addresses
 resource "google_compute_address" "default" {
   count        = 50
   project      = google_compute_subnetwork.default.project
@@ -111,7 +111,7 @@ resource "google_compute_address" "default" {
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Creates a 50 Forwarding rules
+# Create 50 Forwarding rules
 resource "google_compute_forwarding_rule" "default" {
   count                 = 50
   project               = var.gcp_project
