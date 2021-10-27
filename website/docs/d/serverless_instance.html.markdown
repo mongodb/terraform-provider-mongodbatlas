@@ -9,6 +9,10 @@ Provides a Serverless Instance.
 # mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` describe a single serverless instance. This represents a single serverless instance that have been created.
+> **NOTE:**  Serverless instances are in a preview release and do not support some Atlas features at this time.
+For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
+> In order to use this datasource in Terraform you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true`.
+ 
 
 > **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
