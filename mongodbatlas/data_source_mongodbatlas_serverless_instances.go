@@ -30,7 +30,6 @@ func dataSourceMongoDBAtlasServerlessInstances() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
 	projectID, projectIDOK := d.GetOk("project_id")
 
 	if !(projectIDOK) {
@@ -42,7 +41,7 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 		IncludeCount: true,
 	}
 
-	serverlessInstances, err := getServerlessList(meta, ctx, projectID.(string), options, 0)
+	serverlessInstances, err := getServerlessList(ctx, meta, projectID.(string), options, 0)
 	if err != nil {
 		return diag.Errorf("error getting serverless instances information: %s", err)
 	}
@@ -58,10 +57,10 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 	return nil
 }
 
-func getServerlessList(meta interface{}, ctx context.Context, projectID string, options *matlas.ListOptions, obtainedItemsCount int) ([]*matlas.Cluster, error) {
+func getServerlessList(ctx context.Context, meta interface{}, projectID string, options *matlas.ListOptions, obtainedItemsCount int) ([]*matlas.Cluster, error) {
 	// Get client connection.
 	var list []*matlas.Cluster
-	options.PageNum += 1
+	options.PageNum++
 	conn := meta.(*MongoDBClient).Atlas
 
 	serverlessInstances, _, err := conn.ServerlessInstances.List(ctx, projectID, options)
@@ -73,7 +72,7 @@ func getServerlessList(meta interface{}, ctx context.Context, projectID string, 
 	obtainedItemsCount += len(serverlessInstances.Results)
 
 	if serverlessInstances.TotalCount > options.ItemsPerPage && obtainedItemsCount < serverlessInstances.TotalCount {
-		instances, err := getServerlessList(meta, ctx, projectID, options, obtainedItemsCount)
+		instances, err := getServerlessList(ctx, meta, projectID, options, obtainedItemsCount)
 		if err != nil {
 			return list, fmt.Errorf("error getting serverless instances information: %s", err)
 		}
