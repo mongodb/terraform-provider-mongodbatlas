@@ -83,7 +83,8 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 			},
 			"timeout": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
+				ForceNew: true,
 				Default:  "10m",
 			},
 		},
