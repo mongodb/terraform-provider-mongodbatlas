@@ -160,7 +160,6 @@ func getResourcesMap() map[string]*schema.Resource {
 	return resourcesMap
 }
 
-
 func addBetaFeatures(provider *schema.Provider) {
 	if ProviderEnableBeta {
 		provider.ResourcesMap["mongodbatlas_serverless_instance"] = resourceMongoDBAtlasServerlessInstance()
