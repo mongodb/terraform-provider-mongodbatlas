@@ -20,8 +20,8 @@ Terraform v0.13.0
 **1\. Ensure your Google credentials are set up.**
 
 1. Install the GCloud SDK by following the steps from the [official GCP documentation](https://cloud.google.com/sdk/docs/install).
-2. Run the command `gcloud init` and this will take you to the default browser and perform the authentication.
-3. Once authenticated, it will appear an input to choose the project. After is chosen it will appear a message about SDK is configured:
+2. Run the command `gcloud init` and authenticate with GCP.
+3. Once authenticated you will need to select a project to use. After you select a project a success message will appear, see the example below. You are then ready to proceed.
 ```
 ⇒  gcloud init
 You are logged in as: [user@example.com].
