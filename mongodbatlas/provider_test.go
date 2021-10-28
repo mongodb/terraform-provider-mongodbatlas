@@ -2,15 +2,15 @@ package mongodbatlas
 
 import (
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-google/google"
 	"github.com/terraform-providers/terraform-provider-aws/aws"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
@@ -21,7 +21,9 @@ const (
 )
 
 var testAccProviders map[string]*schema.Provider
+
 var testAccProviderFactories map[string]func() (*schema.Provider, error)
+
 var testAccProvider *schema.Provider
 
 func init() {
@@ -51,6 +53,13 @@ func testAccPreCheck(t *testing.T) {
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
 		t.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+}
+
+func testAccPreCheckBetaFeatures(t *testing.T) {
+	enableFeatures, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
+	if !enableFeatures {
+		t.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set to `true` in order to run beta features")
 	}
 }
 

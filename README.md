@@ -25,6 +25,14 @@ To use a released provider in your Terraform environment, run [`terraform init`]
 
 Documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
 
+## Beta Features
+In order to use and/or test beta resources and datasources in this provider you'll neet to set the environment variable `MONGODB_ATLAS_ENABLE_BETA` to true.
+
+
+```bash
+export MONGODB_ATLAS_ENABLE_BETA = true
+```
+
 ## Developing the Provider
 
 If you wish to work on the provider, you'll first need [Go](https://golang.org/doc/install) installed on your machine (please check the [requirements](#Requirements) before proceeding).
