@@ -139,7 +139,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshots information: %s", err))
 	}
 
-	if err := d.Set("results", flattenCloudProviderSnapshots(cloudProviderSnapshots.Results)); err != nil {
+	if err := d.Set("results", flattenCloudBackupSnapshots(cloudProviderSnapshots.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -152,7 +152,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *sche
 	return nil
 }
 
-func flattenCloudProviderSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]interface{} {
+func flattenCloudBackupSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]interface{} {
 	var results []map[string]interface{}
 
 	if len(cloudProviderSnapshots) > 0 {
