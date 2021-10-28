@@ -47,13 +47,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSnapshotRestoreJob_basic(t *testing.T
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"retention_in_days", "snapshot_id"},
-			},
 		},
 	})
 }
