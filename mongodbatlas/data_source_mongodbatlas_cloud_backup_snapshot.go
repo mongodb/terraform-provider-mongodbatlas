@@ -78,14 +78,14 @@ func dataSourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"replication_set_name": {
+						"replica_set_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"replication_set_name": {
+			"replica_set_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -158,8 +158,8 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", d.Id(), err))
 	}
 
-	if err = d.Set("replication_set_name", snapshot.ReplicaSetName); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `replication_set_name` for snapshot (%s): %s", d.Id(), err))
+	if err = d.Set("replica_set_name", snapshot.ReplicaSetName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("snapshot_ids", snapshot.SnapshotsIds); err != nil {

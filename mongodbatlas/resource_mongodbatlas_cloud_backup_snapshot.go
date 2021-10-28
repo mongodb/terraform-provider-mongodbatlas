@@ -99,14 +99,14 @@ func resourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"replication_set_name": {
+						"replica_set_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"replication_set_name": {
+			"replica_set_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -186,8 +186,8 @@ func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("replication_set_name", snapshot.ReplicaSetName); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `replication_set_name` for snapshot (%s): %s", ids["snapshot_id"], err))
+	if err = d.Set("replica_set_name", snapshot.ReplicaSetName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
 	if err = d.Set("snapshot_ids", snapshot.SnapshotsIds); err != nil {
@@ -356,7 +356,7 @@ func flattenCloudMember(apiObject *matlas.Member) map[string]interface{} {
 
 	tfMap["cloud_provider"] = apiObject.CloudProvider
 	tfMap["id"] = apiObject.ID
-	tfMap["replication_set_name"] = apiObject.ReplicaSetName
+	tfMap["replica_set_name"] = apiObject.ReplicaSetName
 
 	return tfMap
 }

@@ -92,14 +92,14 @@ func dataSourceMongoDBAtlasCloudBackupSnapshots() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"replication_set_name": {
+									"replica_set_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
 								},
 							},
 						},
-						"replication_set_name": {
+						"replica_set_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -160,20 +160,20 @@ func flattenCloudProviderSnapshots(cloudProviderSnapshots []*matlas.CloudProvide
 
 		for k, cloudProviderSnapshot := range cloudProviderSnapshots {
 			results[k] = map[string]interface{}{
-				"id":                   cloudProviderSnapshot.ID,
-				"created_at":           cloudProviderSnapshot.CreatedAt,
-				"description":          cloudProviderSnapshot.Description,
-				"expires_at":           cloudProviderSnapshot.ExpiresAt,
-				"master_key_uuid":      cloudProviderSnapshot.MasterKeyUUID,
-				"mongod_version":       cloudProviderSnapshot.MongodVersion,
-				"snapshot_type":        cloudProviderSnapshot.SnapshotType,
-				"status":               cloudProviderSnapshot.Status,
-				"storage_size_bytes":   cloudProviderSnapshot.StorageSizeBytes,
-				"type":                 cloudProviderSnapshot.Type,
-				"cloud_provider":       cloudProviderSnapshot.CloudProvider,
-				"members":              flattenCloudMembers(cloudProviderSnapshot.Members),
-				"replication_set_name": cloudProviderSnapshot.ReplicaSetName,
-				"snapshot_ids":         cloudProviderSnapshot.SnapshotsIds,
+				"id":                 cloudProviderSnapshot.ID,
+				"created_at":         cloudProviderSnapshot.CreatedAt,
+				"description":        cloudProviderSnapshot.Description,
+				"expires_at":         cloudProviderSnapshot.ExpiresAt,
+				"master_key_uuid":    cloudProviderSnapshot.MasterKeyUUID,
+				"mongod_version":     cloudProviderSnapshot.MongodVersion,
+				"snapshot_type":      cloudProviderSnapshot.SnapshotType,
+				"status":             cloudProviderSnapshot.Status,
+				"storage_size_bytes": cloudProviderSnapshot.StorageSizeBytes,
+				"type":               cloudProviderSnapshot.Type,
+				"cloud_provider":     cloudProviderSnapshot.CloudProvider,
+				"members":            flattenCloudMembers(cloudProviderSnapshot.Members),
+				"replica_set_name":   cloudProviderSnapshot.ReplicaSetName,
+				"snapshot_ids":       cloudProviderSnapshot.SnapshotsIds,
 			}
 		}
 	}

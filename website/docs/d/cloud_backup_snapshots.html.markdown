@@ -58,14 +58,14 @@ In addition to all arguments above, the following attributes are exported:
 * `type` - Specifies the type of cluster: replicaSet or shardedCluster.
 * `cloud_provider` - Cloud provider that stores this snapshot.
 * `members` - Block of List of snapshots and the cloud provider where the snapshots are stored. See below
-* `replication_set_name` - Label given to the replica set from which Atlas took this snapshot.
+* `replica_set_name` - Label given to the replica set from which Atlas took this snapshot.
 * `snapshot_ids` - Unique identifiers of the snapshots created for the shards and config server for a sharded cluster.
 
 ### members
 
 * `cloud_provider` - Cloud provider that stores this snapshot.
 * `id` - Unique identifier for the sharded cluster snapshot.
-* `replication_set_name` - Label given to a shard or config server from which Atlas took this snapshot.
+* `replica_set_name` - Label given to a shard or config server from which Atlas took this snapshot.
 
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-all-backups/)
