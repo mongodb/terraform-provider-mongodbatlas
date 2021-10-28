@@ -71,6 +71,8 @@ func Provider() *schema.Provider {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
+		"mongodbatlas_advanced_cluster":                      dataSourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_advanced_clusters":                     dataSourceMongoDBAtlasAdvancedClusters(),
 		"mongodbatlas_custom_db_role":                        dataSourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_custom_db_roles":                       dataSourceMongoDBAtlasCustomDBRoles(),
 		"mongodbatlas_database_user":                         dataSourceMongoDBAtlasDatabaseUser(),
@@ -120,6 +122,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
+		"mongodbatlas_advanced_cluster":                      resourceMongoDBAtlasAdvancedCluster(),
 		"mongodbatlas_custom_db_role":                        resourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_database_user":                         resourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_project":                               resourceMongoDBAtlasProject(),
@@ -156,6 +159,7 @@ func getResourcesMap() map[string]*schema.Resource {
 	}
 	return resourcesMap
 }
+
 
 func addBetaFeatures(provider *schema.Provider) {
 	if ProviderEnableBeta {
