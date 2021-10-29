@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: search index"
-sidebar_current: "docs-mongodbatlas-search-index"
+sidebar_current: "docs-mongodbatlas-datasource-search-index"
 description: |-
 Describes a Search Index.
 ---

@@ -311,51 +311,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"advanced_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"fail_index_key_too_long": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-						"javascript_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-						"minimum_enabled_tls_protocol": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"no_table_scan": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-						"oplog_size_mb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"sample_size_bi_connector": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"sample_refresh_interval_bi_connector": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -436,7 +392,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	if providerName != "AWS" {
 		if _, ok := d.GetOk("provider_disk_iops"); ok {
-			return diag.FromErr(fmt.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`"))
+			return diag.Errorf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`")
 		}
 
 		if _, ok := d.GetOk("provider_volume_type"); ok {
@@ -458,13 +414,8 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	tenantDisksize := pointy.Float64(0)
 	if providerName == "TENANT" {
-		if diskGBEnabled := d.Get("auto_scaling_disk_gb_enabled"); diskGBEnabled.(bool) {
-			return diag.FromErr(fmt.Errorf("`auto_scaling_disk_gb_enabled` cannot be true when provider name is TENANT"))
-		}
+		autoScaling = nil
 
-		autoScaling = &matlas.AutoScaling{
-			DiskGBEnabled: pointy.Bool(false),
-		}
 		if instanceSizeName, ok := d.GetOk("provider_instance_size_name"); ok {
 			if instanceSizeName == "M2" {
 				if diskSizeGB, ok := d.GetOk("disk_size_gb"); ok {
@@ -638,10 +589,6 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "cluster_id", clusterName, err))
 	}
 
-	if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
-	}
-
 	if err := d.Set("auto_scaling_compute_enabled", cluster.AutoScaling.Compute.Enabled); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "auto_scaling_compute_enabled", clusterName, err))
 	}
@@ -768,6 +715,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 
 		if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterSetting, "container_id", clusterName, err))
+		}
+
+		if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
 		}
 	}
 
@@ -1151,11 +1102,12 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 	}
 
 	if d.Get("provider_name") == "AWS" {
-		// Check if the Provider Disk IOS sets in the Terraform configuration.
+		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
-		if v, ok := d.GetOk("provider_disk_iops"); ok {
+		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
+
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 	}
 
@@ -1212,6 +1164,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			replaceRegion := ""
 			originalRegion := ""
+			id := ""
 
 			if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 				if d.HasChange("provider_region_name") {
@@ -1221,13 +1174,25 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 				}
 			}
 
+			if d.HasChange("replication_specs") {
+				// Get original and new object
+				original, _ := d.GetChange("replication_specs")
+				for _, s := range original.(*schema.Set).List() {
+					oldSpecs := s.(map[string]interface{})
+					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
+						id = oldSpecs["id"].(string)
+						break
+					}
+				}
+			}
+
 			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
 			if err != nil {
 				return rSpecs, err
 			}
 
 			rSpec := matlas.ReplicationSpec{
-				ID:            cast.ToString(spec["id"]),
+				ID:            id,
 				NumShards:     pointy.Int64(cast.ToInt64(spec["num_shards"])),
 				ZoneName:      cast.ToString(spec["zone_name"]),
 				RegionsConfig: regionsConfig,
@@ -1304,6 +1269,14 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
+		res.DefaultReadConcern = cast.ToString(p["default_read_concern"])
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.default_write_concern"); ok {
+		res.DefaultWriteConcern = cast.ToString(p["default_write_concern"])
+	}
+
 	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
 		res.FailIndexKeyTooLong = pointy.Bool(cast.ToBool(p["fail_index_key_too_long"]))
 	}
@@ -1342,6 +1315,8 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas
 func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
+			"default_read_concern":                 p.DefaultReadConcern,
+			"default_write_concern":                p.DefaultWriteConcern,
 			"fail_index_key_too_long":              cast.ToBool(p.FailIndexKeyTooLong),
 			"javascript_enabled":                   cast.ToBool(p.JavascriptEnabled),
 			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
@@ -1549,4 +1524,62 @@ func isEqualProviderAutoScalingMaxInstanceSize(k, old, newStr string, d *schema.
 		}
 	}
 	return true
+}
+
+func clusterAdvancedConfigurationSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
 }

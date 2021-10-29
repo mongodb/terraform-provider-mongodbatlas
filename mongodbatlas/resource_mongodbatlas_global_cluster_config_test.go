@@ -27,7 +27,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false"),
+				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "false", "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
@@ -36,6 +36,26 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.CA"),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
+					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "true", "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "true"),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "false"),
+					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "false", "true"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_custom_shard_key_hashed", "false"),
+					resource.TestCheckResourceAttr(resourceName, "managed_namespaces.0.is_shard_key_unique", "true"),
 					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 1),
 				),
 			},
@@ -86,7 +106,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false"),
+				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "false", "false"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -143,7 +163,7 @@ func testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName string)
 func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.GlobalCluster, managedNamespacesCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if len(globalCluster.ManagedNamespaces) != managedNamespacesCount {
-			return fmt.Errorf("bad managed namespaces: %s", globalCluster.ManagedNamespaces)
+			return fmt.Errorf("bad managed namespaces: %v", globalCluster.ManagedNamespaces)
 		}
 
 		return nil
@@ -176,7 +196,7 @@ func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled string) string {
+func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled, isCustomShard, isShardKeyUnique string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test" {
 			project_id              = "%s"
@@ -218,9 +238,11 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 			cluster_name = mongodbatlas_cluster.test.name
 
 			managed_namespaces {
-				db               = "mydata"
-				collection       = "publishers"
-				custom_shard_key = "city"
+				db               		   = "mydata"
+				collection       		   = "publishers"
+				custom_shard_key		   = "city"
+				is_custom_shard_key_hashed = "%s"
+				is_shard_key_unique 	   = "%s"
 			}
 
 			custom_zone_mappings {
@@ -228,7 +250,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled strin
 				zone     = "Zone 1"
 			}
 		}
-	`, projectID, name, backupEnabled)
+	`, projectID, name, backupEnabled, isCustomShard, isShardKeyUnique)
 }
 
 func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backupEnabled string) string {

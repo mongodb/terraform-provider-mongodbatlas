@@ -39,6 +39,16 @@ func dataSourceMongoDBAtlasGlobalCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"is_custom_shard_key_hashed": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"is_shard_key_unique": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
