@@ -10,9 +10,9 @@ description: |-
 
 `mongodbatlas_project_invitation` invites a user to join an Atlas project.
 
-Each Invitation for an Atlas User has a set of roles that provide access to a Project in an Organization.
+Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
-The roles that can be utilised can be found in the [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#project-roles), which map to:
+The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#project-roles) describes the roles a user can have, which map to:
 
 * GROUP_OWNER
 * GROUP_CLUSTER_MANAGER
