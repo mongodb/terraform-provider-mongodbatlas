@@ -74,13 +74,91 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 }
 ```
 
+## Example with GCP
+
+```hcl
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id    = var.project_id
+  provider_name = "GCP"
+  region        = var.gcp_region
+}
+
+# Create a Google Network
+resource "google_compute_network" "default" {
+  project = var.gcp_project
+  name    = "my-network"
+}
+
+# Create a Google Sub Network
+resource "google_compute_subnetwork" "default" {
+  project       = google_compute_network.default.project
+  name          = "my-subnet"
+  ip_cidr_range = "10.0.0.0/16"
+  region        = var.gcp_region
+  network       = google_compute_network.default.id
+}
+
+# Create Google 50 Addresses
+resource "google_compute_address" "default" {
+  count        = 50
+  project      = google_compute_subnetwork.default.project
+  name         = "tf-test${count.index}"
+  subnetwork   = google_compute_subnetwork.default.id
+  address_type = "INTERNAL"
+  address      = "10.0.42.${count.index}"
+  region       = var.gcp_region
+
+  depends_on = [mongodbatlas_privatelink_endpoint.test]
+}
+
+# Create 50 Forwarding rules
+resource "google_compute_forwarding_rule" "default" {
+  count                 = 50
+  project               = var.gcp_project
+  region                = var.gcp_region
+  name                  = "tf-test${count.index}"
+  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
+  ip_address            = google_compute_address.default[count.index].id
+  network               = google_compute_network.default.id
+  load_balancing_scheme = ""
+}
+
+
+resource "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name       = "GCP"
+  endpoint_service_id = google_compute_network.default.name
+  gcp_project_id      = var.gcp_project
+
+  dynamic "endpoints" {
+    for_each = mongodbatlas_privatelink_endpoint.test.service_attachment_names
+
+    content {
+      ip_address    = google_compute_address.default[endpoints.key].address
+      endpoint_name = google_compute_address.default[endpoints.key].name
+    }
+  }
+
+  depends_on = [google_compute_forwarding_rule.default]
+}
+
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
 * `private_link_id` - (Required) Unique identifier of the `AWS` or `AZURE` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS` or `AZURE` resource.
-* `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS` or `AZURE`.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource.
+* `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface you created in your Azure VNet. Only for `AZURE`.
+* `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. Only for `GCP`.
+* `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP`. See below.
+
+### `endpoints`
+* `ip_address` - (Optional) Private IP address of the endpoint you created in GCP.
+* `endpoint_name` - (Optional) Forwarding rule that corresponds to the endpoint you created in GCP.
+
 
 ## Attributes Reference
 
@@ -107,6 +185,16 @@ In addition to all arguments above, the following attributes are exported:
   * `AVAILABLE` - Atlas approved the connection to your private endpoint.
   * `FAILED` - Atlas failed to accept the connection your private endpoint.
   * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
+* `gcp_status` - Status of the interface endpoint for GCP.
+  Returns one of the following values:
+  * `INITIATING` - Atlas has not yet accepted the connection to your private endpoint.
+  * `AVAILABLE` - Atlas approved the connection to your private endpoint.
+  * `FAILED` - Atlas failed to accept the connection your private endpoint.
+  * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
+* `endpoint_group_name` - (Optional) Unique identifier of the endpoint group. The endpoint group encompasses all of the endpoints that you created in GCP.
+* `endpoints` - Collection of individual private endpoints that comprise your network endpoint group.
+  * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
+  * `service_attachment_name` - Unique alphanumeric and special character strings that identify the service attachment associated with the endpoint.
 
 ## Import
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.
