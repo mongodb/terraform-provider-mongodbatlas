@@ -247,7 +247,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schem
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
 		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID),
-		Timeout:    10 * time.Minute,
+		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
