@@ -1,16 +1,14 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_job"
-sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot_restore_job"
+page_title: "MongoDB Atlas: cloud_backup_snapshot_restore_job"
+sidebar_current: "docs-mongodbatlas-resource-cloud_backup_snapshot_restore_job"
 description: |-
     Provides a Cloud Backup Snapshot Restore Job resource.
 ---
 
-**WARNING:** This resource is deprecated, use `mongodbatlas_cloud_backup_snapshot_restore_job`
+# mongodbatlas_cloud_backup_snapshot_restore_job
 
-# mongodbatlas_cloud_provider_snapshot_restore_job
-
-`mongodbatlas_cloud_provider_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job can be one of three types: 
+`mongodbatlas_cloud_backup_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job can be one of three types: 
 * **automated:** Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId.
 
 * **download:** Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. The contents of the archive contain the data files for your Atlas cluster.
@@ -25,7 +23,7 @@ description: |-
 
 ### Example automated delivery type.
 
-```hcl
+```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
     project_id   = "5cf5a45a9ccf6400e60981b6"
     name         = "MyCluster"
@@ -45,7 +43,7 @@ description: |-
     retention_in_days = 1
   }
 
-  resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+  resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
     project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
@@ -54,13 +52,12 @@ description: |-
       target_cluster_name = "MyCluster"
       target_project_id   = "5cf5a45a9ccf6400e60981b6"
     }
-    depends_on = [mongodbatlas_cloud_provider_snapshot.test]
   }
 ```
 
 ### Example download delivery type.
 
-```hcl
+```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
     project_id   = "5cf5a45a9ccf6400e60981b6"
     name         = "MyCluster"
@@ -80,7 +77,7 @@ description: |-
     retention_in_days = 1
   }
   
-  resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+  resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
     project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
@@ -95,7 +92,7 @@ description: |-
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
 * `snapshot_id` - (Required) Unique identifier of the snapshot to restore.
-* `delivery_type` - (Required) Type of restore job to create. Possible values are: **download** or **automated**, only one must be set it in ``true``.
+* `delivery_type_config` - (Required) Type of restore job to create. Possible values are: **download** or **automated**, only one must be set it in ``true``.
 
 ### Download
 Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. 
@@ -145,7 +142,7 @@ In addition to all arguments above, the following attributes are exported:
 Cloud Backup Snapshot Restore Job entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-JOBID`, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_provider_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
+$ terraform import mongodbatlas_cloud_backup_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/restores/)

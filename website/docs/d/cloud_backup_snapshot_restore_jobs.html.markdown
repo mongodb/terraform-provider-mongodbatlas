@@ -1,16 +1,14 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_jobs"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_jobs"
+page_title: "MongoDB Atlas: cloud_backup_snapshot_restore_jobs"
+sidebar_current: "docs-mongodbatlas-datasource-cloud_backup_snapshot_restore_jobs"
 description: |-
     Provides a Cloud Backup Snapshot Restore Jobs Datasource.
 ---
 
-**WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshots_restore_jobs`
+# mongodbatlas_cloud_backup_snapshot_restore_jobs
 
-# mongodbatlas_cloud_provider_snapshot_restore_jobs
-
-`mongodbatlas_cloud_provider_snapshot_restore_jobs` provides a Cloud Backup Snapshot Restore Jobs datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
+`mongodbatlas_cloud_backup_snapshot_restore_jobs` provides a Cloud Backup Snapshot Restore Jobs datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -18,27 +16,27 @@ description: |-
 First create a snapshot of the desired cluster. Then request that snapshot be restored in an automated fashion to the designated cluster and project.
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id          = "5cf5a45a9ccf6400e60981b6"
   cluster_name      = "MyCluster"
   description       = "MyDescription"
   retention_in_days = 1
 }
 
-resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   project_id     = "5cf5a45a9ccf6400e60981b6"
   cluster_name = "MyCluster"
-  snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
-  delivery_type {
+  snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id
+  delivery_type_config {
     automated = true
     target_cluster_name = "MyCluster"
     target_project_id     = "5cf5a45a9ccf6400e60981b6"
   }
 }
 
-data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
-  project_id     = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
-  cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
+data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {
+  project_id     = mongodbatlas_cloud_backup_snapshot_restore_job.test.project_id
+  cluster_name = mongodbatlas_cloud_backup_snapshot_restore_job.test.cluster_name
   page_num = 1
   items_per_page = 5
 }

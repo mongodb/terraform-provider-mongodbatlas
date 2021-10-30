@@ -1,33 +1,31 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot"
+page_title: "MongoDB Atlas: cloud_backup_snapshot"
+sidebar_current: "docs-mongodbatlas-datasource-cloud_backup_snapshot"
 description: |-
-    Provides an Cloud Backup Snapshot Datasource.
+    Provides a Cloud Backup Snapshot Datasource.
 ---
 
-**WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshot`
+# mongodbatlas_cloud_backup_snapshot
 
-# mongodbatlas_cloud_provider_snapshot
-
-`mongodbatlas_cloud_provider_snapshot` provides an Cloud Backup Snapshot datasource. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.
+`mongodbatlas_cloud_backup_snapshot` provides an Cloud Backup Snapshot datasource. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   group_id          = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"
   description       = "SomeDescription"
   retention_in_days = 1
 }
 
-data "mongodbatlas_cloud_provider_snapshot" "test" {
+data "mongodbatlas_cloud_backup_snapshot" "test" {
   snapshot_id  = "5d1285acd5ec13b6c2d1726a"
-  group_id     = mongodbatlas_cloud_provider_snapshot.test.group_id
-  cluster_name = mongodbatlas_cloud_provider_snapshot.test.cluster_name
+  group_id     = mongodbatlas_cloud_backup_snapshot.test.group_id
+  cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
 }
 ```
 
@@ -51,5 +49,15 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - Current status of the snapshot. One of the following values: queued, inProgress, completed, failed.
 * `storage_size_bytes` - Specifies the size of the snapshot in bytes.
 * `type` - Specifies the type of cluster: replicaSet or shardedCluster.
+* `cloud_provider` - Cloud provider that stores this snapshot.
+* `members` - Block of List of snapshots and the cloud provider where the snapshots are stored. See below
+* `replica_set_name` - Label given to the replica set from which Atlas took this snapshot.
+* `snapshot_ids` - Unique identifiers of the snapshots created for the shards and config server for a sharded cluster. 
+
+### members
+
+* `cloud_provider` - Cloud provider that stores this snapshot.
+* `id` - Unique identifier for the sharded cluster snapshot.
+* `replica_set_name` - Label given to a shard or config server from which Atlas took this snapshot.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-one-backup/)

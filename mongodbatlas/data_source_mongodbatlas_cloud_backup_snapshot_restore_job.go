@@ -6,13 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
+func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead,
+		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -89,11 +88,10 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob() *schema.Resource {
 				Computed: true,
 			},
 		},
-		DeprecationMessage: "This data source is deprecated. Please transition to mongodbatlas_cloud_backup_snapshot_restore_job as soon as possible",
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{

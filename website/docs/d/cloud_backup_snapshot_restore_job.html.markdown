@@ -1,16 +1,14 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot_restore_jobs"
-sidebar_current: "docs-mongodbatlas-datasource-cloud_provider_snapshot_restore_jobs"
+page_title: "MongoDB Atlas: cloud_backup_snapshot_restore_job"
+sidebar_current: "docs-mongodbatlas-datasource-cloud_backup_snapshot_restore_job"
 description: |-
-    Provides a Cloud Backup Snapshot Restore Jobs Datasource.
+    Provides a Cloud Backup Snapshot Restore Job Datasource.
 ---
 
-**WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshots_restore_jobs`
+# mongodbatlas_cloud_backup_snapshot_restore_job
 
-# mongodbatlas_cloud_provider_snapshot_restore_jobs
-
-`mongodbatlas_cloud_provider_snapshot_restore_jobs` provides a Cloud Backup Snapshot Restore Jobs datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
+`mongodbatlas_cloud_backup_snapshot_restore_job` provides a Cloud Backup Snapshot Restore Job datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -18,17 +16,17 @@ description: |-
 First create a snapshot of the desired cluster. Then request that snapshot be restored in an automated fashion to the designated cluster and project.
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id          = "5cf5a45a9ccf6400e60981b6"
   cluster_name      = "MyCluster"
   description       = "MyDescription"
   retention_in_days = 1
 }
 
-resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
+resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   project_id     = "5cf5a45a9ccf6400e60981b6"
   cluster_name = "MyCluster"
-  snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
+  snapshot_id  = "${mongodbatlas_cloud_backup_snapshot.test.id}"
   delivery_type {
     automated = true
     target_cluster_name = "MyCluster"
@@ -36,29 +34,22 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
   }
 }
 
-data "mongodbatlas_cloud_provider_snapshot_restore_jobs" "test" {
-  project_id     = mongodbatlas_cloud_provider_snapshot_restore_job.test.project_id
-  cluster_name = mongodbatlas_cloud_provider_snapshot_restore_job.test.cluster_name
-  page_num = 1
-  items_per_page = 5
+data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+  project_id     = mongodbatlas_cloud_backup_snapshot_restore_job.test.project_id
+  cluster_name = mongodbatlas_cloud_backup_snapshot_restore_job.test.cluster_name
+  job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
-* `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve restore jobs.
-* `page_num` - (Optional)  	The page to return. Defaults to `1`.
-* `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
+* `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve the restore job.
+* `job_id` - (Required) The unique identifier of the restore job to retrieve.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-
-* `results` - Includes cloudProviderSnapshotRestoreJob object for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
-
-### CloudProviderSnapshotRestoreJob
 
 * `cancelled` -	Indicates whether the restore job was canceled.
 * `created_at` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
@@ -76,5 +67,4 @@ In addition to all arguments above, the following attributes are exported:
 * `oplogInc` - Oplog operation number from which to you want to restore this snapshot. 
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
 
-
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/get-all-restore-jobs/)
+For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/get-one-restore-job/)

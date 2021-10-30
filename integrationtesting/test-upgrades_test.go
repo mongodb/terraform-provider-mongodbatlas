@@ -793,6 +793,59 @@ func TestUpgradeEncryptionAtRestGCP(t *testing.T) {
 	terraform.Plan(t, terraformOptionsSecond)
 }
 
+func TestUpgradeCloudBackupSnapshot(t *testing.T) {
+	t.Parallel()
+
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+		clusterName = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+	// Construct the terraform options with default retryable errors to handle the most common
+	// retryable errors in terraform testing.
+	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: "../examples/test-upgrade/v110/cloud-backup-snapshot/v102",
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"cluster_name": clusterName,
+		},
+	})
+
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created.
+	defer terraform.Destroy(t, terraformOptions)
+
+	// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
+	terraform.InitAndApply(t, terraformOptions)
+
+	projectID := terraform.Output(t, terraformOptions, "project_id")
+	cluster := terraform.Output(t, terraformOptions, "cluster_name")
+	snapshotID := terraform.Output(t, terraformOptions, "snapshot_id")
+	restoreJobID := terraform.Output(t, terraformOptions, "snapshot_restore_job_id")
+
+	tempTestFolder := CleanUpState(t, "examples/test-upgrade/v110/cloud-backup-snapshot/v110")
+
+	terraformOptionsSecond := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: tempTestFolder,
+		Vars: map[string]interface{}{
+			"project_name": projectName,
+			"org_id":       orgID,
+			"cluster_name": clusterName,
+		},
+	})
+
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "init", fmt.Sprintf("--plugin-dir=%s", localPluginPath))
+
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_project.project_test", projectID)
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cluster.cluster_test", fmt.Sprintf("%s-%s", projectID, cluster))
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cloud_backup_snapshot.test", fmt.Sprintf("%s-%s-%s", projectID, cluster, snapshotID))
+	terraform.RunTerraformCommand(t, terraformOptionsSecond, "import", "mongodbatlas_cloud_backup_snapshot_restore_job.test", fmt.Sprintf("%s-%s-%s", projectID, cluster, restoreJobID))
+
+	terraform.Plan(t, terraformOptionsSecond)
+}
+
 // This func means that the terraform state will be always clean to avoid error about resource already used
 func CleanUpState(t *testing.T, path string) string {
 	// Root folder where terraform files should be (relative to the test folder)

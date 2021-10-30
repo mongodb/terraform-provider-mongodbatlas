@@ -7,13 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
+func dataSourceMongoDBAtlasCloudBackupSnapshots() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudProviderSnapshotsRead,
+		ReadContext: dataSourceMongoDBAtlasCloudBackupSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -76,6 +75,41 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"members": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cloud_provider": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"replica_set_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"replica_set_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"snapshot_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -84,11 +118,10 @@ func dataSourceMongoDBAtlasCloudProviderSnapshots() *schema.Resource {
 				Computed: true,
 			},
 		},
-		DeprecationMessage: "This data source is deprecated. Please transition to mongodbatlas_cloud_backup_snapshots as soon as possible",
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -106,7 +139,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshots information: %s", err))
 	}
 
-	if err := d.Set("results", flattenCloudProviderSnapshots(cloudProviderSnapshots.Results)); err != nil {
+	if err := d.Set("results", flattenCloudBackupSnapshots(cloudProviderSnapshots.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -119,7 +152,7 @@ func dataSourceMongoDBAtlasCloudProviderSnapshotsRead(ctx context.Context, d *sc
 	return nil
 }
 
-func flattenCloudProviderSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]interface{} {
+func flattenCloudBackupSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]interface{} {
 	var results []map[string]interface{}
 
 	if len(cloudProviderSnapshots) > 0 {
@@ -137,6 +170,10 @@ func flattenCloudProviderSnapshots(cloudProviderSnapshots []*matlas.CloudProvide
 				"status":             cloudProviderSnapshot.Status,
 				"storage_size_bytes": cloudProviderSnapshot.StorageSizeBytes,
 				"type":               cloudProviderSnapshot.Type,
+				"cloud_provider":     cloudProviderSnapshot.CloudProvider,
+				"members":            flattenCloudMembers(cloudProviderSnapshot.Members),
+				"replica_set_name":   cloudProviderSnapshot.ReplicaSetName,
+				"snapshot_ids":       cloudProviderSnapshot.SnapshotsIds,
 			}
 		}
 	}

@@ -2,25 +2,27 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
+func resourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasCloudProviderSnapshotCreate,
-		ReadContext:   resourceMongoDBAtlasCloudProviderSnapshotRead,
-		DeleteContext: resourceMongoDBAtlasCloudProviderSnapshotDelete,
+		CreateContext: resourceMongoDBAtlasCloudBackupSnapshotCreate,
+		ReadContext:   resourceMongoDBAtlasCloudBackupSnapshotRead,
+		DeleteContext: resourceMongoDBAtlasCloudBackupSnapshotDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasCloudProviderSnapshotImportState,
+			StateContext: resourceMongoDBAtlasCloudBackupSnapshotImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -39,9 +41,10 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				ForceNew: true,
 			},
 			"retention_in_days": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"created_at": {
 				Type:     schema.TypeString,
@@ -79,12 +82,46 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"cloud_provider": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"members": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"replica_set_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"replica_set_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"snapshot_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
-		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_cloud_backup_snapshot",
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -95,7 +132,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotRead(ctx context.Context, d *schem
 		ClusterName: ids["cluster_name"],
 	}
 
-	snapshotReq, resp, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
+	snapshot, resp, err := conn.CloudProviderSnapshots.GetOneCloudProviderSnapshot(context.Background(), requestParameters)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -105,46 +142,62 @@ func resourceMongoDBAtlasCloudProviderSnapshotRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error getting snapshot Information: %s", err))
 	}
 
-	if err = d.Set("snapshot_id", snapshotReq.ID); err != nil {
+	if err = d.Set("snapshot_id", snapshot.ID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_id` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("created_at", snapshotReq.CreatedAt); err != nil {
+	if err = d.Set("created_at", snapshot.CreatedAt); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `created_at` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("expires_at", snapshotReq.ExpiresAt); err != nil {
+	if err = d.Set("expires_at", snapshot.ExpiresAt); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expires_at` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("master_key_uuid", snapshotReq.MasterKeyUUID); err != nil {
+	if err = d.Set("master_key_uuid", snapshot.MasterKeyUUID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `master_key_uuid` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("mongod_version", snapshotReq.MongodVersion); err != nil {
+	if err = d.Set("mongod_version", snapshot.MongodVersion); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `mongod_version` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("snapshot_type", snapshotReq.SnapshotType); err != nil {
+	if err = d.Set("snapshot_type", snapshot.SnapshotType); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_type` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("status", snapshotReq.Status); err != nil {
+	if err = d.Set("status", snapshot.Status); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `status` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("storage_size_bytes", snapshotReq.StorageSizeBytes); err != nil {
+	if err = d.Set("storage_size_bytes", snapshot.StorageSizeBytes); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `storage_size_bytes` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
-	if err = d.Set("type", snapshotReq.Type); err != nil {
+	if err = d.Set("type", snapshot.Type); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `type` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("cloud_provider", snapshot.CloudProvider); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `cloud_provider` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("members", flattenCloudMembers(snapshot.Members)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("replica_set_name", snapshot.ReplicaSetName); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", ids["snapshot_id"], err))
+	}
+
+	if err = d.Set("snapshot_ids", snapshot.SnapshotsIds); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `snapshot_ids` for snapshot (%s): %s", ids["snapshot_id"], err))
 	}
 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -183,7 +236,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(ctx context.Context, d *sch
 	stateConf = &resource.StateChangeConf{
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
-		Refresh:    resourceCloudProviderSnapshotRefreshFunc(ctx, requestParameters, conn),
+		Refresh:    resourceCloudBackupSnapshotRefreshFunc(ctx, requestParameters, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 60 * time.Second,
 		Delay:      1 * time.Minute,
@@ -201,10 +254,10 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(ctx context.Context, d *sch
 		"snapshot_id":  snapshot.ID,
 	}))
 
-	return resourceMongoDBAtlasCloudProviderSnapshotRead(ctx, d, meta)
+	return resourceMongoDBAtlasCloudBackupSnapshotRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -223,7 +276,7 @@ func resourceMongoDBAtlasCloudProviderSnapshotDelete(ctx context.Context, d *sch
 	return nil
 }
 
-func resourceCloudProviderSnapshotRefreshFunc(ctx context.Context, requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) resource.StateRefreshFunc {
+func resourceCloudBackupSnapshotRefreshFunc(ctx context.Context, requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
 
@@ -244,7 +297,7 @@ func resourceCloudProviderSnapshotRefreshFunc(ctx context.Context, requestParame
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderSnapshotImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters, err := splitSnapshotImportID(d.Id())
@@ -276,4 +329,52 @@ func resourceMongoDBAtlasCloudProviderSnapshotImportState(ctx context.Context, d
 	}
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
+	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
+
+	parts := re.FindStringSubmatch(id)
+
+	if len(parts) != 4 {
+		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
+	}
+
+	return &matlas.SnapshotReqPathParameters{
+		GroupID:     parts[1],
+		ClusterName: parts[2],
+		SnapshotID:  parts[3],
+	}, nil
+}
+
+func flattenCloudMember(apiObject *matlas.Member) map[string]interface{} {
+	if apiObject == nil {
+		return nil
+	}
+
+	tfMap := map[string]interface{}{}
+
+	tfMap["cloud_provider"] = apiObject.CloudProvider
+	tfMap["id"] = apiObject.ID
+	tfMap["replica_set_name"] = apiObject.ReplicaSetName
+
+	return tfMap
+}
+
+func flattenCloudMembers(apiObjects []*matlas.Member) []interface{} {
+	if len(apiObjects) == 0 {
+		return nil
+	}
+
+	var tfList []interface{}
+
+	for _, apiObject := range apiObjects {
+		if apiObject == nil {
+			continue
+		}
+
+		tfList = append(tfList, flattenCloudMember(apiObject))
+	}
+
+	return tfList
 }

@@ -116,6 +116,10 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_data_lakes":                            dataSourceMongoDBAtlasDataLakes(),
 		"mongodbatlas_event_trigger":                         dataSourceMongoDBAtlasEventTrigger(),
 		"mongodbatlas_event_triggers":                        dataSourceMongoDBAtlasEventTriggers(),
+		"mongodbatlas_cloud_backup_snapshot":                 dataSourceMongoDBAtlasCloudBackupSnapshot(),
+		"mongodbatlas_cloud_backup_snapshots":                dataSourceMongoDBAtlasCloudBackupSnapshots(),
+		"mongodbatlas_cloud_backup_snapshot_restore_job":     dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob(),
+		"mongodbatlas_cloud_backup_snapshot_restore_jobs":    dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobs(),
 	}
 	return dataSourcesMap
 }
@@ -156,6 +160,8 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_data_lake":                             resourceMongoDBAtlasDataLake(),
 		"mongodbatlas_event_trigger":                         resourceMongoDBAtlasEventTriggers(),
 		"mongodbatlas_cloud_backup_schedule":                 resourceMongoDBAtlasCloudBackupSchedule(),
+		"mongodbatlas_cloud_backup_snapshot":                 resourceMongoDBAtlasCloudBackupSnapshot(),
+		"mongodbatlas_cloud_backup_snapshot_restore_job":     resourceMongoDBAtlasCloudBackupSnapshotRestoreJob(),
 	}
 	return resourcesMap
 }

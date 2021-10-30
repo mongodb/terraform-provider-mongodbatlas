@@ -1,23 +1,21 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: cloud_provider_snapshot"
-sidebar_current: "docs-mongodbatlas-resource-cloud_provider_snapshot"
+page_title: "MongoDB Atlas: cloud_backup_snapshot"
+sidebar_current: "docs-mongodbatlas-resource-cloud_backup_snapshot"
 description: |-
-    Provides an Cloud Backup Snapshot resource.
+    Provides a Cloud Backup Snapshot resource.
 ---
 
-**WARNING:** This resource is deprecated, use `mongodbatlas_cloud_backup_snapshot`
+# mongodbatlas_cloud_backup_snapshot
 
-# mongodbatlas_cloud_provider_snapshot
-
-`mongodbatlas_cloud_provider_snapshot` provides a resource to take a cloud backup snapshot on demand.
+`mongodbatlas_cloud_backup_snapshot` provides a resource to take a cloud backup snapshot on demand.
 On-demand snapshots happen immediately, unlike scheduled snapshots which occur at regular intervals. If there is already an on-demand snapshot with a status of queued or inProgress, you must wait until Atlas has completed the on-demand snapshot before taking another.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
 
-```hcl
+```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
     project_id   = "5cf5a45a9ccf6400e60981b6"
     name         = "MyCluster"
@@ -30,17 +28,17 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
     cloud_backup                = true   // enable cloud backup snapshots
   }
 
-  resource "mongodbatlas_cloud_provider_snapshot" "test" {
+  resource "mongodbatlas_cloud_backup_snapshot" "test" {
     project_id        = mongodbatlas_cluster.my_cluster.project_id
     cluster_name      = mongodbatlas_cluster.my_cluster.name
     description       = "myDescription"
     retention_in_days = 1
   }
   
-  resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
-    project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-    cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-    snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+    project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+    cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+    snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
     delivery_type {
       download = true
     }
@@ -69,13 +67,23 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - Current status of the snapshot. One of the following values will be returned: queued, inProgress, completed, failed.
 * `storage_size_bytes` - Specifies the size of the snapshot in bytes.
 * `type` - Specifies the type of cluster: replicaSet or shardedCluster.
+* `cloud_provider` - Cloud provider that stores this snapshot. Atlas returns this parameter when `type` is `replicaSet`.
+* `members` - Block of List of snapshots and the cloud provider where the snapshots are stored. Atlas returns this parameter when `type` is `shardedCluster`. See below
+* `replica_set_name` - Label given to the replica set from which Atlas took this snapshot. Atlas returns this parameter when `type` is `replicaSet`.
+* `snapshot_ids` - Unique identifiers of the snapshots created for the shards and config server for a sharded cluster. Atlas returns this parameter when `type` is `shardedCluster`. These identifiers should match those given in the `members[n].id` parameters. This allows you to map a snapshot to its shard or config server name.
+
+### members
+
+* `cloud_provider` - Cloud provider that stores this snapshot.
+* `id` - Unique identifier for the sharded cluster snapshot.
+* `replica_set_name` - Label given to a shard or config server from which Atlas took this snapshot.
 
 ## Import
 
 Cloud Backup Snapshot entries can be imported using project project_id, cluster_name and snapshot_id (Unique identifier of the snapshot), in the format `PROJECTID-CLUSTERNAME-SNAPSHOTID`, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_provider_snapshot.test 5d0f1f73cf09a29120e173cf-MyClusterTest-5d116d82014b764445b2f9b5
+$ terraform import mongodbatlas_cloud_backup_snapshot.test 5d0f1f73cf09a29120e173cf-MyClusterTest-5d116d82014b764445b2f9b5
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/backups/)
