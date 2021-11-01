@@ -54,7 +54,7 @@ data "mongodbatlas_search_index" "test" {
 * `synonyms` - 	Synonyms mapping definition to use in this index.
 * `synonyms.#.name` - Name of the [synonym mapping definition](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-ref).
 * `synonyms.#.source_collection` - Name of the source MongoDB collection for the synonyms.
-* `synonyms.#.analyzer` - Name of the [analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use with this synonym mapping. If `mappings.dynamic` is `true`, Atlas uses the default analyzer, [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer), for synonym mapping.
+* `synonyms.#.analyzer` - Name of the [analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use with this synonym mapping.
 
 
 
