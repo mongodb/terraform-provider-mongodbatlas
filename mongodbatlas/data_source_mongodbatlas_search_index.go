@@ -62,6 +62,26 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 			Optional:         true,
 			DiffSuppressFunc: validateSearchIndexMappingDiff,
 		},
+		"synonyms": {
+			Type:     schema.TypeSet,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"analyzer": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"source_collection": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 		"status": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -124,6 +144,10 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 
 	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
 		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
+		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
 	if searchIndex.Mappings.Fields != nil {

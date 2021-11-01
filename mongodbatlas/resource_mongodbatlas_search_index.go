@@ -76,6 +76,26 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Optional:         true,
 			DiffSuppressFunc: validateSearchIndexMappingDiff,
 		},
+		"synonyms": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"analyzer": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"source_collection": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+				},
+			},
+		},
 		"status": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -184,6 +204,11 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.Mappings.Fields = &mappingFields
 	}
 
+	if d.HasChange("synonyms") {
+		synonyms := expandSearchIndexSynonyms(d)
+		searchIndex.Synonyms = synonyms
+	}
+
 	searchIndex.IndexID = ""
 	_, _, err = conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
 	if err != nil {
@@ -253,6 +278,10 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
+		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
+	}
+
 	if searchIndex.Mappings.Fields != nil {
 		searchIndexMappingFields, err := marshallSearchIndexMappingsField(*searchIndex.Mappings.Fields)
 		if err != nil {
@@ -265,6 +294,21 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	}
 
 	return nil
+}
+
+func flattenSearchIndexSynonyms(synonyms []map[string]interface{}) []map[string]interface{} {
+	synonymsMap := make([]map[string]interface{}, 0)
+
+	for _, s := range synonyms {
+		sourceCollection := s["source"].(map[string]interface{})
+		synonym := map[string]interface{}{
+			"name":              s["name"],
+			"analyzer":          s["analyzer"],
+			"source_collection": sourceCollection["collection"],
+		}
+		synonymsMap = append(synonymsMap, synonym)
+	}
+	return synonymsMap
 }
 
 func marshallSearchIndexAnalyzers(fields []map[string]interface{}) (string, error) {
@@ -306,6 +350,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: d.Get("search_analyzer").(string),
 		Status:         d.Get("status").(string),
+		Synonyms:       expandSearchIndexSynonyms(d),
 	}
 
 	dbSearchIndexRes, _, err := conn.Search.CreateIndex(ctx, projectID, clusterName, searchIndexRequest)
@@ -320,6 +365,26 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	}))
 
 	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
+}
+
+func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]interface{} {
+	var synonymsList []map[string]interface{}
+
+	synonymsDoc := map[string]interface{}{}
+
+	if vSynonyms, vSynonymsOK := d.GetOk("synonyms"); vSynonymsOK {
+		for _, s := range vSynonyms.(*schema.Set).List() {
+			synonym := s.(map[string]interface{})
+
+			synonymsDoc["name"] = synonym["name"]
+			synonymsDoc["analyzer"] = synonym["analyzer"]
+			synonymsDoc["source"] = map[string]interface{}{
+				"collection": synonym["source_collection"],
+			}
+			synonymsList = append(synonymsList, synonymsDoc)
+		}
+	}
+	return synonymsList
 }
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
