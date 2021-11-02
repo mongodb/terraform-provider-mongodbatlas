@@ -1,4 +1,4 @@
-name: 'Automated Acceptances Tests'
+name: 'Automated Acceptance Tests'
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  acceptances-tests:
+  acceptance-tests:
     if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
