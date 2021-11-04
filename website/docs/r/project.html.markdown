@@ -19,7 +19,6 @@ resource "mongodbatlas_project" "test" {
   name   = "project-name"
   org_id = "<ORG_ID>"
   project_owner_id = "<OWNER_ACCOUNT_ID>"
-  with_default_alerts_settings = false
 
   teams {
     team_id    = "5e0fa8c99ccf641c722fe645"
