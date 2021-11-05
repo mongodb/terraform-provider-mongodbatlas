@@ -394,21 +394,21 @@ func expandCustomZoneMapping(tfMap map[string]interface{}) *matlas.CustomZoneMap
 }
 
 func expandCustomZoneMappings(tfList []interface{}) []matlas.CustomZoneMapping {
-	if len(tfList) == 0 {
-		return nil
-	}
+	if len(tfList) > 0 {
+		var apiObjects []matlas.CustomZoneMapping
 
-	var apiObjects []matlas.CustomZoneMapping
-
-	for _, tfMapRaw := range tfList {
-		if tfMap, ok := tfMapRaw.(map[string]interface{}); ok {
-			apiObject := expandCustomZoneMapping(tfMap)
-			if apiObject == nil {
-				continue
+		for _, tfMapRaw := range tfList {
+			if tfMap, ok := tfMapRaw.(map[string]interface{}); ok {
+				apiObject := expandCustomZoneMapping(tfMap)
+				if apiObject == nil {
+					continue
+				}
+				apiObjects = append(apiObjects, *apiObject)
 			}
-			apiObjects = append(apiObjects, *apiObject)
 		}
+
+		return apiObjects
 	}
 
-	return apiObjects
+	return nil
 }

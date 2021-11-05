@@ -127,7 +127,8 @@ func TestAccResourceMongoDBAtlasGlobalCluster_database(t *testing.T) {
 		name         = acctest.RandomWithPrefix("test-acc-global")
 	)
 
-	customZone := `custom_zone_mappings {
+	customZone := `
+  custom_zone_mappings {
     location = "US"
     zone     = "US"
   }
@@ -139,7 +140,8 @@ func TestAccResourceMongoDBAtlasGlobalCluster_database(t *testing.T) {
     location = "DE"
     zone     = "DE"
   }`
-	customZoneUpdated := `custom_zone_mappings {
+	customZoneUpdated := `
+  custom_zone_mappings {
     location = "US"
     zone     = "US"
   }
