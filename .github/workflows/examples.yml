@@ -27,6 +27,15 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: 1.16
+      - name: go build
+        run: go build -o terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 .
+      - name: override plugin
+        run: |
+          # For newer versions
+          mkdir -p ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/$(go env GOOS)_$(go env GOARCH)/
+          cp terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/$(go env GOOS)_$(go env GOARCH)/
+      - name: replace names of provider for local development
+        run: grep --include=\*.tf -rnl './examples' -e 'source = "mongodb/mongodbatlas"'  | xargs  sed -i s@mongodb/mongodbatlas@hashicorp/mongodbatlas-dev@g
       - uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: ${{ matrix.terraform_version }}

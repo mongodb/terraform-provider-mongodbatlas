@@ -31,13 +31,13 @@ resource "mongodbatlas_search_index" "test" {
 ### Advanced (with custom analyzers)
 ```hcl
 resource "mongodbatlas_search_index" "test" {
- project_id         = "%[1]s"
- cluster_name       = "%[2]s"
- analyzer = "lucene.standard"
- collectionName = "collection_test"
- database = "database_test"
- mappings_dynamic = false
- mappings_fields = <<-EOF
+  project_id = "%[1]s"
+  cluster_name = "%[2]s"
+  analyzer = "lucene.standard"
+  collectionName = "collection_test"
+  database = "database_test"
+  mappings_dynamic = false
+  mappings_fields = <<-EOF
 {
       "address": {
         "type": "document",
@@ -69,9 +69,9 @@ resource "mongodbatlas_search_index" "test" {
       }
 }
 EOF
- name = "name_test"
- searchAnalyzer = "lucene.standard"
- analyzers = <<-EOF
+  name = "name_test"
+  searchAnalyzer = "lucene.standard"
+  analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
   "char_filters": {
@@ -90,6 +90,12 @@ EOF
     	}
   }]
 EOF
+  synonyms {
+    analyzer = "lucene.simple"
+    name = "synonym_test"
+    source_collection = "collection_test"
+  }
+}
 ```
 
 ## Argument Reference
@@ -166,7 +172,7 @@ EOF
   ```
 
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
-
+* `synonyms` - Synonyms mapping definition to use in this index.
 
 ### Analyzers
 An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/) prepares a set of documents to be indexed by performing a series of operations to transform, filter, and group sequences of characters. You can define a custom analyzer to suit your specific indexing needs.
@@ -345,12 +351,32 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
       If omitted, defaults to `true`.
     * [trim](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-trim-tf-ref) - Trims leading and trailing whitespace from tokens.
 
-
-
 > **NOTE:** Do not use [daitchMokotoffSoundex](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-daitchmokotoffsoundex-tf-ref) token filter in operators where `fuzzy` is enabled. Atlas Search supports the `fuzzy` option for the following operators:
 >* [autocomplete](https://docs.atlas.mongodb.com/reference/atlas-search/autocomplete/#std-label-autocomplete-ref)
 >* [term (Deprecated)](https://docs.atlas.mongodb.com/reference/atlas-search/term/#std-label-term-ref)
 >* [text](https://docs.atlas.mongodb.com/reference/atlas-search/text/#std-label-text-ref)
+
+
+
+### Synonyms
+Synonyms mapping definition to use in the index.
+* `name` - (Required) Name of the [synonym mapping definition](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-ref). Name must be unique in this index definition and it can't be an empty string.
+* `source_collection` - (Required) Name of the source MongoDB collection for the synonyms. Documents in this collection must be in the format described in the [Synonyms Source Collection Documents](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-coll-spec).
+* `analyzer` - (Required) Name of the [analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use with this synonym mapping. Atlas Search doesn't support these [custom analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) tokenizers and token filters in [analyzers used in synonym mappings](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#options):
+    * [nGram](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-ngram-tokenizer-ref) Tokenizer
+    * [edgeGram](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-edgegram-tokenizer-ref) Tokenizers
+    * [daitchMokotoffSoundex](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-daitchmokotoffsoundex-tf-ref) token filter
+    * [nGram](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-ngram-tf-ref) token filter
+    * [edgeGram](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-edgegram-tf-ref) token filter
+    * [shingle](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-shingle-tf-ref) token filter
+
+```hcl
+  synonyms {
+   analyzer = "lucene.simple"
+   name = "synonym_test"
+   source_collection = "collection_test"
+  }
+```
 
 
 

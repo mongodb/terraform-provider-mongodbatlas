@@ -2,11 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -81,7 +79,14 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"timeout": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "10m",
+			},
 		},
+		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_cloud_backup_snapshot",
 	}
 }
 
@@ -159,17 +164,24 @@ func resourceMongoDBAtlasCloudProviderSnapshotCreate(ctx context.Context, d *sch
 		RetentionInDays: d.Get("retention_in_days").(int),
 	}
 
+	var timeout time.Duration
+
+	timeout, err := time.ParseDuration(d.Get("timeout").(string))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, d.Get("cluster_name").(string), d.Get("project_id").(string), conn),
-		Timeout:    10 * time.Minute,
+		Timeout:    timeout,
 		MinTimeout: 10 * time.Second,
 		Delay:      3 * time.Minute,
 	}
 
 	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -277,20 +289,4 @@ func resourceMongoDBAtlasCloudProviderSnapshotImportState(ctx context.Context, d
 	}
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func splitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
-	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
-
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 4 {
-		return nil, errors.New("import format error: to import a snapshot, use the format {project_id}-{cluster_name}-{snapshot_id}")
-	}
-
-	return &matlas.SnapshotReqPathParameters{
-		GroupID:     parts[1],
-		ClusterName: parts[2],
-		SnapshotID:  parts[3],
-	}, nil
 }
