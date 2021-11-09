@@ -1177,11 +1177,17 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			if d.HasChange("replication_specs") {
 				// Get original and new object
+				var oldSpecs map[string]interface{}
 				original, _ := d.GetChange("replication_specs")
 				for _, s := range original.(*schema.Set).List() {
-					oldSpecs := s.(map[string]interface{})
+					oldSpecs = s.(map[string]interface{})
+					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
+						id = oldSpecs["id"].(string)
+						break
+					}
+				}
+				if id == "" && oldSpecs != nil {
 					id = oldSpecs["id"].(string)
-					break
 				}
 			}
 
