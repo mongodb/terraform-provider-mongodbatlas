@@ -297,8 +297,8 @@ func expandActionResources(resources *schema.Set) []matlas.Resource {
 	for k, v := range resources.List() {
 		resourceMap := v.(map[string]interface{})
 		actionResources[k] = matlas.Resource{
-			Db:         resourceMap["database_name"].(string),
-			Collection: resourceMap["collection_name"].(string),
+			DB:         pointy.String(resourceMap["database_name"].(string)),
+			Collection: pointy.String(resourceMap["collection_name"].(string)),
 			Cluster:    pointy.Bool(cast.ToBool(resourceMap["cluster"])),
 		}
 	}
@@ -328,8 +328,8 @@ func flattenActionResources(resources []matlas.Resource) []map[string]interface{
 			})
 		} else {
 			actionResourceList = append(actionResourceList, map[string]interface{}{
-				"database_name":   v.Db,
-				"collection_name": v.Collection,
+				"database_name":   cast.ToString(v.DB),
+				"collection_name": cast.ToString(v.Collection),
 			})
 		}
 	}

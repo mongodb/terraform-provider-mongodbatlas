@@ -73,7 +73,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "INSERT",
 				Resources: []matlas.Resource{{
-					Db: fmt.Sprintf("b_test-acc-ddb_name-%s", acctest.RandString(5)),
+					DB: pointy.String(fmt.Sprintf("b_test-acc-ddb_name-%s", acctest.RandString(5))),
 				}},
 			}},
 		},
@@ -93,7 +93,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		Actions: []matlas.Action{{
 			Action: "UPDATE",
 			Resources: []matlas.Resource{{
-				Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+				DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 			}},
 		}},
 	}
@@ -104,7 +104,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			Actions: []matlas.Action{{
 				Action: "FIND",
 				Resources: []matlas.Resource{{
-					Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+					DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 				}},
 			}},
 		},
@@ -124,7 +124,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		Actions: []matlas.Action{{
 			Action: "REMOVE",
 			Resources: []matlas.Resource{{
-				Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+				DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 			}},
 		}},
 	}
@@ -238,10 +238,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -249,7 +249,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -263,10 +263,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -274,7 +274,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -294,7 +294,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -302,10 +302,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -313,10 +313,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -330,7 +330,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -489,10 +489,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 				Action: "REMOVE",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -500,7 +500,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -514,7 +514,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 				Action: "UPDATE",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -522,10 +522,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 				Action: "FIND",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -533,10 +533,10 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) 
 				Action: "INSERT",
 				Resources: []matlas.Resource{
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 					{
-						Db: fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5)),
+						DB: pointy.String(fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 					},
 				},
 			},
@@ -735,9 +735,9 @@ func testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(projectID string, 
 			}
 		}
 	`, projectID,
-		inheritedRole[0].RoleName, inheritedRole[0].Actions[0].Action, inheritedRole[0].Actions[0].Resources[0].Db,
+		inheritedRole[0].RoleName, inheritedRole[0].Actions[0].Action, *inheritedRole[0].Actions[0].Resources[0].DB,
 		inheritedRole[1].RoleName, inheritedRole[1].Actions[0].Action, *inheritedRole[1].Actions[0].Resources[0].Cluster,
-		testRole.RoleName, testRole.Actions[0].Action, testRole.Actions[0].Resources[0].Db,
+		testRole.RoleName, testRole.Actions[0].Action, *testRole.Actions[0].Resources[0].DB,
 	)
 }
 
@@ -758,7 +758,7 @@ func testAccMongoDBAtlasCustomDBRolesConfigMultiple(projectID string, inheritedR
 						collection_name = ""
 						database_name   = "%s"
 					}
-			`, r.Db)
+			`, *r.DB)
 			}
 
 			// get the actions and set the resources

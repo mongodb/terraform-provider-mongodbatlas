@@ -66,7 +66,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) 
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasCloudProviderSnapshotImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"retention_in_days"},
+				ImportStateVerifyIgnore: []string{"retention_in_days", "timeout"},
 			},
 		},
 	})
