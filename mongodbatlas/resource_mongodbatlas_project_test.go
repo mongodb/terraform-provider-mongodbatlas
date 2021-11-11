@@ -223,10 +223,11 @@ func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasProjectImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"with_default_alerts_settings"},
 			},
 		},
 	})
