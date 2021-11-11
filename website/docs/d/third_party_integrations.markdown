@@ -16,13 +16,13 @@ applied across the project.
 ## Example Usage
 
 ```hcl
-resource "third_party_integration" "test_pager_duty" {
+resource "mongodbatlas_third_party_integration" "test_pager_duty" {
     project_id = "<PROJECT-ID>"
 	type = "PAGER_DUTY"
 	service_key = "<PAGER-DUTY-SERVICE-KEY>"
 }
 	
-resource "third_party_integration" "test_flowdock" {
+resource "mongodbatlas_third_party_integration" "test_flowdock" {
 	project_id = "<PROJECT-ID>"
 	type = "FLOWDOCK"
 	flow_name = "<FLOW-NAME>"
