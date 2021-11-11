@@ -17,10 +17,10 @@ import (
 
 func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasServerlessInstanceCreate,
-		ReadContext:   resourceMongoDBAtlasServerlessInstanceRead,
-		UpdateContext: resourceMongoDBAtlasServerlessInstanceUpdate,
-		DeleteContext: resourceMongoDBAtlasServerlessInstanceDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasServerlessInstanceCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasServerlessInstanceRead,
+		UpdateWithoutTimeout: resourceMongoDBAtlasServerlessInstanceUpdate,
+		DeleteWithoutTimeout: resourceMongoDBAtlasServerlessInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasServerlessInstanceImportState,
 		},
@@ -138,7 +138,7 @@ func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Cluster to be destroyed")
+	log.Println("[INFO] Waiting for MongoDB Serverless Instance to be destroyed")
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
@@ -176,7 +176,7 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 			return nil
 		}
 
-		return diag.Errorf("error getting search index information: %s", err)
+		return diag.Errorf("error getting serverless instance information: %s", err)
 	}
 
 	if err := d.Set("id", serverlessInstance.ID); err != nil {
@@ -253,7 +253,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
+		return diag.Errorf("error creating MongoDB Serverless Instance: %s", err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{

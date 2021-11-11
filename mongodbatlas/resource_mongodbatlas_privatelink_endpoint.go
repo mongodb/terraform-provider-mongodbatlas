@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -26,9 +25,9 @@ const (
 
 func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivateLinkEndpointCreate,
-		ReadContext:   resourceMongoDBAtlasPrivateLinkEndpointRead,
-		DeleteContext: resourceMongoDBAtlasPrivateLinkEndpointDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointCreate,
+		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateLinkEndpointRead,
+		DeleteWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasPrivateLinkEndpointImportState,
 		},
