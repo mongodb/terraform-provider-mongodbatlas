@@ -36,7 +36,7 @@ test: fmtcheck
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout 300m -cover -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: fmt
 fmt:

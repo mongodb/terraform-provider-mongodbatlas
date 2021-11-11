@@ -17,10 +17,10 @@ import (
 
 func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasServerlessInstanceCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasServerlessInstanceRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasServerlessInstanceUpdate,
-		DeleteWithoutTimeout: resourceMongoDBAtlasServerlessInstanceDelete,
+		CreateContext: resourceMongoDBAtlasServerlessInstanceCreate,
+		ReadContext:   resourceMongoDBAtlasServerlessInstanceRead,
+		UpdateContext: resourceMongoDBAtlasServerlessInstanceUpdate,
+		DeleteContext: resourceMongoDBAtlasServerlessInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasServerlessInstanceImportState,
 		},

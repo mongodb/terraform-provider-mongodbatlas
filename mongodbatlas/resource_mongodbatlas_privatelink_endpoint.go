@@ -25,9 +25,9 @@ const (
 
 func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
-		CreateWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointCreate,
-		ReadWithoutTimeout:   resourceMongoDBAtlasPrivateLinkEndpointRead,
-		DeleteWithoutTimeout: resourceMongoDBAtlasPrivateLinkEndpointDelete,
+		CreateContext: resourceMongoDBAtlasPrivateLinkEndpointCreate,
+		ReadContext:   resourceMongoDBAtlasPrivateLinkEndpointRead,
+		DeleteContext: resourceMongoDBAtlasPrivateLinkEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasPrivateLinkEndpointImportState,
 		},
