@@ -1,4 +1,5 @@
 TEST?=$$(go list ./... | grep -v /integrationtesting)
+ACCTEST_TIMEOUT?=300m
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=mongodbatlas
 
