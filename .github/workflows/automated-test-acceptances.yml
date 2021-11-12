@@ -79,4 +79,5 @@ jobs:
           GCP_KEY_VERSION_RESOURCE_ID: ${{ secrets.GCP_KEY_VERSION_RESOURCE_ID }}
           CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
         run: make testacc
