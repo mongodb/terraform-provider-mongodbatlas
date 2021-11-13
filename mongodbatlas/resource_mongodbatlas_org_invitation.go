@@ -98,7 +98,7 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("org_id", orgInvitation.GroupID); err != nil {
+	if err := d.Set("org_id", orgInvitation.OrgID); err != nil {
 		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
 	}
 

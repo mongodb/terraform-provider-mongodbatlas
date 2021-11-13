@@ -16,7 +16,7 @@ import (
 func TestAccResourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 	var (
 		invitation   matlas.Invitation
-		resourceName = "mongodbatlas_project_invitations.test"
+		resourceName = "mongodbatlas_project_invitation.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"GROUP_OWNER"}
@@ -64,7 +64,7 @@ func TestAccResourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasProjectInvitation_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project_invitations.test"
+		resourceName = "mongodbatlas_project_invitation.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"GROUP_OWNER"}
@@ -187,17 +187,17 @@ func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) r
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["invitation_id"]), nil
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"]), nil
 	}
 }
 
 func testAccMongoDBAtlasProjectInvitationConfig(projectID, username string, roles []string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_invitations" "test" {
-			project_id = "%s"
-			username   = "%s"
-			roles  		 = %s
+		resource "mongodbatlas_project_invitation" "test" {
+			project_id = %[1]q
+			username   = %[2]q
+			roles  	 = ["%[3]s"]
 		}`, projectID, username,
-		strings.Join(roles, ","),
+		strings.Join(roles, `", "`),
 	)
 }

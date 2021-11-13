@@ -12,7 +12,7 @@ import (
 
 func TestAccDataSourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 	var (
-		dataSourceName = "mongodbatlas_project_invitations.test"
+		dataSourceName = "mongodbatlas_project_invitation.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name           = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole    = []string{"GROUP_OWNER"}
@@ -40,15 +40,16 @@ func TestAccDataSourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 func testAccDataSourceMongoDBAtlasProjectInvitationConfig(projectID, username string, roles []string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_invitation" "test" {
-			project_id	= "%s"
-			username  	= "%s"
-			roles  			= %s
+			project_id = %[1]q
+			username   = %[2]q
+			roles  	 = ["%[3]s"]
 		}
 
 		data "mongodbatlas_project_invitation" "test" {
-			project_id = mongodbatlas_project_invitation.test.projectID
-			username 	 = mongodbatlas_project_invitation.test.username
+			project_id    = mongodbatlas_project_invitation.test.project_id
+			username 	  = mongodbatlas_project_invitation.test.username
+			invitation_id = mongodbatlas_project_invitation.test.invitation_id
 		}`, projectID, username,
-		strings.Join(roles, ","),
+		strings.Join(roles, `", "`),
 	)
 }

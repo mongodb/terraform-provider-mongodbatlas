@@ -16,7 +16,7 @@ import (
 func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 	var (
 		invitation   matlas.Invitation
-		resourceName = "mongodbatlas_org_invitations.test"
+		resourceName = "mongodbatlas_org_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"ORG_OWNER"}
@@ -36,9 +36,8 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, initialRole),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", name),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
 			{
@@ -49,7 +48,6 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasOrgInvitationRoleAttribute(&invitation, updateRoles),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
 				),
 			},
@@ -59,9 +57,10 @@ func TestAccResourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasOrgInvitation_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_invitations.test"
+		resourceName = "mongodbatlas_org_invitation.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
+		initialRole  = []string{"ORG_OWNER"}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,16 +69,16 @@ func TestAccResourceMongoDBAtlasOrgInvitation_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasOrgInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, []string{"mongodbatlas.testing@gmail.com"}),
+				Config: testAccMongoDBAtlasOrgInvitationConfig(orgID, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "usernames.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "username"),
+					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
 
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "username", name),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
 			{
@@ -179,17 +178,17 @@ func testAccCheckMongoDBAtlasOrgInvitationStateIDFunc(resourceName string) resou
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["invitation_id"]), nil
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["username"]), nil
 	}
 }
 
 func testAccMongoDBAtlasOrgInvitationConfig(orgID, username string, roles []string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_invitations" "test" {
-			org_id = "%s"
-			username   = "%s"
-			roles  		 = %s
+		resource "mongodbatlas_org_invitation" "test" {
+			org_id   = %[1]q
+			username = %[2]q
+			roles  	 = ["%[3]s"]
 		}`, orgID, username,
-		strings.Join(roles, ","),
+		strings.Join(roles, `", "`),
 	)
 }
