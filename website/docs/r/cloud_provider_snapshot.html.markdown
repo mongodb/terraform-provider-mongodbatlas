@@ -35,6 +35,7 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
     cluster_name      = mongodbatlas_cluster.my_cluster.name
     description       = "myDescription"
     retention_in_days = 1
+    timeout           = "10m"
   }
   
   resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
@@ -53,6 +54,7 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots you want to retrieve.
 * `description` - (Required) Description of the on-demand snapshot.
 * `retention_in_days` - (Required) The number of days that Atlas should retain the on-demand snapshot. Must be at least 1.
+* `timeout`- (Optional) The duration of time to wait to finish the on-demand snapshot. The timeout value is definded by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Default value for the timeout is `10m`
 
 ## Attributes Reference
 

@@ -103,10 +103,96 @@ func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "false", "false"),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasGlobalClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"custom_zone_mappings"},
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasGlobalCluster_database(t *testing.T) {
+	var (
+		globalConfig matlas.GlobalCluster
+		resourceName = "mongodbatlas_global_cluster_config.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name         = acctest.RandomWithPrefix("test-acc-global")
+	)
+
+	customZone := `
+  custom_zone_mappings {
+    location = "US"
+    zone     = "US"
+  }
+  custom_zone_mappings {
+    location = "IE"
+    zone     = "EU"
+  }
+  custom_zone_mappings {
+    location = "DE"
+    zone     = "DE"
+  }`
+	customZoneUpdated := `
+  custom_zone_mappings {
+    location = "US"
+    zone     = "US"
+  }
+  custom_zone_mappings {
+    location = "IE"
+    zone     = "EU"
+  }
+  custom_zone_mappings {
+    location = "DE"
+    zone     = "DE"
+  }
+  custom_zone_mappings {
+    location = "JP"
+    zone     = "JP"
+  }`
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasGlobalClusterWithDBConfig(projectID, name, "false", customZone),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.US"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 5),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasGlobalClusterWithDBConfig(projectID, name, "false", customZoneUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasGlobalClusterExists(resourceName, &globalConfig),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_namespaces.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mappings.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.%"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.US"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.IE"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.DE"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_zone_mapping.JP"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", name),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					testAccCheckMongoDBAtlasGlobalClusterAttributes(&globalConfig, 5),
+				),
 			},
 			{
 				ResourceName:            resourceName,
@@ -294,4 +380,105 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 			}
 		}
 	`, projectID, name, backupEnabled)
+}
+
+func testAccMongoDBAtlasGlobalClusterWithDBConfig(projectID, name, backupEnabled, zones string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_database_user" "test" {
+  username           = "horizonv2-sg"
+  password           = "password testing something"
+  project_id         = %[1]q
+  auth_database_name = "admin"
+
+  roles {
+    role_name     = "readWrite"
+    database_name = "horizonv2-sg"
+  }
+}
+
+resource "mongodbatlas_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  disk_size_gb = 80
+  cloud_backup = %[3]s
+  cluster_type = "GEOSHARDED"
+
+  // Provider Settings "block"
+  provider_name               = "AWS"
+  provider_instance_size_name = "M30"
+
+  replication_specs {
+    zone_name  = "US"
+    num_shards = 1
+    regions_config {
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+  replication_specs {
+    zone_name  = "EU"
+    num_shards = 1
+    regions_config {
+      region_name     = "EU_WEST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+  replication_specs {
+    zone_name  = "DE"
+    num_shards = 1
+    regions_config {
+      region_name     = "EU_NORTH_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+  replication_specs {
+    zone_name  = "JP"
+    num_shards = 1
+    regions_config {
+      region_name     = "AP_NORTHEAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+}
+
+resource "mongodbatlas_global_cluster_config" "test" {
+  project_id = mongodbatlas_cluster.test.project_id
+  cluster_name = mongodbatlas_cluster.test.name
+
+  managed_namespaces {
+    db               = "horizonv2-sg"
+    collection       = "entitlements.entitlement"
+    custom_shard_key = "orgId"
+  }
+  managed_namespaces {
+    db               = "horizonv2-sg"
+    collection       = "entitlements.homesitemapping"
+    custom_shard_key = "orgId"
+  }
+  managed_namespaces {
+    db               = "horizonv2-sg"
+    collection       = "entitlements.site"
+    custom_shard_key = "orgId"
+  }
+  managed_namespaces {
+    db               = "horizonv2-sg"
+    collection       = "entitlements.userDesktopMapping"
+    custom_shard_key = "orgId"
+  }
+  managed_namespaces {
+    db               = "horizonv2-sg"
+    collection       = "session"
+    custom_shard_key = "orgId"
+  }
+  %s
+}
+	`, projectID, name, backupEnabled, zones)
 }

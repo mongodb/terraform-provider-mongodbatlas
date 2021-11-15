@@ -37,6 +37,7 @@ resource "mongodbatlas_project" "test" {
 * `name` - (Required) The name of the project you want to create. (Cannot be changed via this Provider after creation.)
 * `org_id` - (Required) The ID of the organization you want to create the project within.
 * `project_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user account to be granted the [Project Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Project-Owner) role on the specified project. If you set this parameter, it overrides the default value of the oldest [Organization Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Organization-Owner).
+* `with_default_alerts_settings` - (Optional) It allows users to disable the creation of the default alert settings. By default, this flag is set to true.
 
 ### Teams
 Teams attribute is optional
