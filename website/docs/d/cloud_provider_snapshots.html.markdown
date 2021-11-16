@@ -17,7 +17,7 @@ description: |-
 ## Example Usage
 
 ```hcl
-resource "mongodbatlas_cloud_provider_snapshots" "test" {
+resource "mongodbatlas_cloud_provider_snapshot" "test" {
   group_id          = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"
   description       = "SomeDescription"
