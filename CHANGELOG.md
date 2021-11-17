@@ -1,6 +1,49 @@
 # Changelog
 
-## [v1.0.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.2) (2021-10-06)
+## [v1.1.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.0-pre.1) (2021-11-17)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.2...v1.1.0-pre.1)
+
+**Fixed bugs:**
+
+- Plugin crash when changing value of iam\_assumed\_role\_arn for resource mongodbatlas\_cloud\_provider\_access\_authorization [\#565](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/565)
+- terraform-provider-mongodbatlas\_v1.0.1 crashes after creating mongodbatlas\_cloud\_provider\_access\_authorization resource [\#554](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/554)
+- INVALID\_CLUSTER\_CONFIGURATION when adding new regions [\#550](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/550)
+
+**Closed issues:**
+
+- update\_snapshots is not getting set on Atlas while using "mongodbatlas\_cloud\_backup\_schedule" tf resource  [\#594](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/594)
+- Race condition when destroying cluster and disabling encryption at rest on the project-level [\#518](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/518)
+- Scaling max/min is applied each time with disabled autoscaling [\#482](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/482)
+- Documentation: Update contribution readme for developing the provider for terraform +14 newer [\#466](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/466)
+
+**Merged pull requests:**
+
+- INTMDB:273: Fix replication\_specs update error [\#607](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/607) ([abner-dou](https://github.com/abner-dou))
+- Update cloud\_provider\_snapshots.html.markdown [\#605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/605) ([nhuray](https://github.com/nhuray))
+- Fix docs for third party data source. [\#604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/604) ([jkodroff](https://github.com/jkodroff))
+- Fix timeout in acctest [\#602](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/602) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-270: fix issue with project resource importer test [\#601](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/601) ([abner-dou](https://github.com/abner-dou))
+- Update MDB version info [\#600](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/600) ([themantissa](https://github.com/themantissa))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.38.2 to 0.38.4 [\#599](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/599) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-271: Fixing a bug and improving for custom zone mappings in global cluster config [\#597](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/597) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-275: Changed the pointer in some paremeters for custom db role [\#596](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/596) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-270: Added  'with\_default\_alerts\_settings' to project resource [\#595](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/595) ([abner-dou](https://github.com/abner-dou))
+- Fix backup option from provider\_backup\_enabled to cloud\_backup [\#592](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/592) ([paikend](https://github.com/paikend))
+- INTMDB-222: Added Synonyms to Search Index RS and DS [\#591](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/591) ([abner-dou](https://github.com/abner-dou))
+- Fix typo: mongodbatlast =\> mongodbatlas [\#589](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/589) ([sonlexqt](https://github.com/sonlexqt))
+- Chore\(deps\): Bump github.com/go-test/deep from 1.0.7 to 1.0.8 [\#587](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/587) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-260: Added GCP feature for Private Endpoint [\#586](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/586) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-227:Create new Resource and Datasource for Serverless Instance [\#585](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/585) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-269: Fix issue with default auto\_scaling\_disk\_gb\_enabled value [\#584](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/584) ([abner-dou](https://github.com/abner-dou))
+- fixes failing snapshots because timeout is too short [\#583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/583) ([ebostijancic](https://github.com/ebostijancic))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.38.1 to 0.38.2 [\#582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/582) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-239: Added new resource/datasource and deprecate for cloud backup snapshot and restore job [\#581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/581) ([coderGo93](https://github.com/coderGo93))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.37.12 to 0.38.1 [\#580](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/580) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-216: Added resource and datasource\(s\) of Advanced Cluster [\#570](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/570) ([coderGo93](https://github.com/coderGo93))
+- Add Organisation and Project invitations [\#560](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/560) ([beergeek](https://github.com/beergeek))
+
+## [v1.0.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.2) (2021-10-07)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.2-pre.1...v1.0.2)
 
@@ -11,6 +54,7 @@
 
 **Merged pull requests:**
 
+- INTMDB-246: Release v1.0.2 [\#579](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/579) ([abner-dou](https://github.com/abner-dou))
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.37.11 to 0.37.12 [\#578](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/578) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v1.0.2-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.0.2-pre.1) (2021-10-04)
@@ -344,7 +388,7 @@
 **Closed issues:**
 
 - Deleting a user from mongo atlas results in a 404 error, not that user getting re-created [\#360](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/360)
-- Replace "mongodbatlas\_project\_ip\_whitelist" resource/datasource/docs references with "mongodbatlas\_project\_ip\_accesslist" to reflect API/UI change. [\#358](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/358)
+- Replace "mongodbatlas\_project\_ip\_whitelist" resource/datasource/docs references with "mongodbatlast\_project\_ip\_accesslist" to reflect API/UI change. [\#358](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/358)
 - Quick start for provider is not quick and comes with side effect about `replication_factor` field [\#356](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/356)
 - mongodbatlas\_database\_user resource's id attribute does not have the username value [\#348](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/348)
 - Mongodbatlas documentation issue with Data Sources [\#347](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/347)
