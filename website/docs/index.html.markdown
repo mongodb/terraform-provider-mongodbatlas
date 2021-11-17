@@ -8,7 +8,7 @@ description: |-
 
 # MongoDB Atlas Provider
 
-You can use the MongoDB Atlas provider to interact with the resources supported by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas). 
+You can use the MongoDB Atlas provider to interact with the resources supported by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
 The provider needs to be configured with the proper credentials before it can be used.
 
 Use the navigation to the left to read about the available provider resources and data sources.
@@ -29,13 +29,16 @@ provider "mongodbatlas" {
 
 ## Configure Atlas Programmatic Access
 
-In order to set up authentication with the MongoDB Atlas provider a programmatic API key must be generated for MongoDB Atlas with the appropriate permissions and IP access list entries.
-The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s) and IP access.
-Be aware, not all API resources require an IP access list by default, but one can set Atlas to require IP access entries for all API resources, see the [organization settings documentation](https://docs.atlas.mongodb.com/tutorial/manage-organization-settings/#require-ip-access-list-for-public-api) for more info.
+In order to set up authentication with the MongoDB Atlas provider a programmatic API key must be generated for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/) and IP access list entry.
+The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and IP access.  
+
+Role: If unsure which role level to grant your key we suggest creating an Organizaton API Key with an Organization Owner role as that will ensure you have sufficent access for all actions.
+
+IP access list: Not all API resources require an IP access list by default but some do, such as backup, hence we highly suggest adding an IP access list as soon as possible.  See [Require IP Access List for Public API](https://docs.atlas.mongodb.com/tutorial/manage-organization-settings/#require-ip-access-list-for-public-api) for more info.
 
 ## Authenticate the Provider
 
-The MongoDB Atlas provider offers a flexible means of providing credentials for authentication. 
+The MongoDB Atlas provider offers a flexible means of providing credentials for authentication.
 You can use any the following methods:
 
 ### Environment Variables
@@ -77,7 +80,7 @@ Consider the risks, especially the inadvertent submission of a configuration fil
 
 ## Argument Reference
 
-In addition to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html) 
+In addition to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html)
 (e.g. `alias` and `version`), the MongoDB Atlas `provider` supports the following arguments:
 
 * `public_key` - (Optional) This is the public key of your MongoDB Atlas API key pair. It must be
@@ -104,10 +107,9 @@ For more information on configuring and managing programmatic API Keys see the [
 
 ## Examples from MongoDB and the Community
 
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples) 
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
-Have a good example you've created and want to share? 
+Have a good example you've created and want to share?
 Let us know the details via an [issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
 or submit a PR of your work to add it to the `examples` directory in our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/).
-

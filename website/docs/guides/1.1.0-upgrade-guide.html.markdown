@@ -8,72 +8,86 @@ MongoDB Atlas Provider 1.1.0: Upgrade and Information Guide
 
 # MongoDB Atlas Provider 1.1.0: Upgrade and Information Guide
 
-The Terraform MongoDB Atlas Provider version 1.0.0 has a number of new and exciting features and changes.
+The Terraform MongoDB Atlas Provider version 1.1.0 has a number of new and exciting features and changes.
 
-* Cloud Backup Snapshot replaces the now deprecated Cloud Provider Snapshot.
-* Cloud Backup Snapshot Restore Job replaces the now deprecated Cloud Provider Snapshot Restore Job.
+New Features:
+
+* Multi-cloud deployments can now be managed with [`mongodbatlas_advanced_clusters`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_clusters)
+* Invitations can now be managed with
+[`mongodbatlas_org_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/org_invitation) and [`mongodbatlas_project_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation)
+* Projects created with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)` can now have a default owner set with `project_owner_id`
+* [`mongodbatlas_privatelink_endpoint`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) and [`mongodbatlas_privatelink_endpoint_service`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service) now support Google Cloud'd Private Service Connect
+* Projects created with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)` can now have default alert creation disabled by setting `with_default_alerts_settings` to false.
+* [`mongodbatlas_search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) now supports synonyms.
+* Atlas Serverless deployments, now in preview, can now be created with [`mongodbatlas_serverless_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_instance)
+
+Changes:
+In addition, there are changes that will require modifications to your Terraform configuration between earlier versions of the provider and this one.
+
+* `mongodbatlas_cloud_backup_snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_snapshot) replaces the now deprecated `mongodbatlas_cloud_provider_snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot).
+* `mongodbatlas_cloud_backup_snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_snapshot_restore_job) replaces the now deprecated `mongodbatlas_cloud_provider_snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_restore_job).
 
 1.1.0 also includes general improvements and bug fixes. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
 
 ## Migration from Cloud Provider Snapshot to Cloud Backup Snapshot
 
-There are two possible options to upgrade from v1.0.2 to v1.1.0 from the existing resources `mongodbatlas_cloud_provider_snapshot_backup_policy` to the new ones
+The term Cloud Provider has been deprecated in favor of the term Cloud Backup.  In order to support this change within the Terraform provider, related resources and data sources with the older terminology have been deprecated and new resources and data sources added to support the new terminology.  In order to upgrade from the previous resources to the new you'll need to select from one of the following two options:
 
+### Option 1: Replace the name of resource in terraform state
+
+1. Replace the name of the deprecated provider `mongodbatlas_cloud_provider_snapshot` with the new name `mongodbatlas_cloud_backup_snapshot` in the Terraform state file (`terraform.tfstate`).  Do the same for `mongodbatlas_cloud_provider_snapshot_restore_job` and `mongodbatlas_cloud_backup_snapshot_restore_job`
+   **NOTE** Before performing any Terraform state change please backup your state.
+
+2. Upgrade the provider to v1.1.0
+
+3. Run a `terraform plan` to ensure no changes are detected
+
+```bash
+terraform plan
+
+(...)
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no differences,
+so no changes are needed.
+```
 
 ### Option 1:  Remove the existing and import the new resource
 
-1. Remove your existing `mongodbatlas_cloud_provider_snapshot` resources from terraform state
-   **NOTE** before doing any terraform state change please do a backup
+1. Remove your existing `mongodbatlas_cloud_provider_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` resources from the Terraform state file
+   **NOTE** Before performing any Terraform state change please backup your state.
 
 ```bash
 $ terraform state rm mongodbatlas_cloud_provider_snapshot.test
+$ terraform state rm mongodbatlas_cloud_provider_snapshot_restore_job.test
+
 ```
 
-2. Change the version of provider to the v1.1.0
+2. Upgrade the provider to v1.1.0
 
-3. In order to import the new resource, you must first change your Terraform configuration file, replacing `mongodbatlas_cloud_provider_snapshot_backup_policy` with `mongodbatlas_cloud_backup_schedule`. See the example shared above or find more information in the [mongodbatlas_cloud_backup_schedule](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule)
+3. Change your Terraform configuration file, replacing `mongodbatlas_cloud_provider_snapshot` with ``mongodbatlas_cloud_backup_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` with `mongodbatlas_cloud_backup_snapshot_restore_job`
 
-4. Perform an import of your existing `mongodbatlas_cloud_provider_snapshot` to `mongodbatlas_cloud_backup_snapshot`
+4. Import your existing `mongodbatlas_cloud_provider_snapshot` to `mongodbatlas_cloud_backup_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` to `mongodbatlas_cloud_backup_snapshot_restore_job`
 ```bash
     terraform import mongodbatlas_cloud_backup_snapshot.test <project_id>-<cluster_name>-<snapshot_id>
 ```
+```bash
+    terraform import mongodbatlas_cloud_backup_snapshot_restore_job.test <project_id>-<cluster_name>-<job_id>
+```
 
-5. Do a terraform plan (no changes detected)
+5. Run a `terraform plan` to ensure no changes are detected
 
 ```bash
 terraform plan
 
 (...)
 
-
 No changes. Your infrastructure matches the configuration.
 
 Terraform has compared your real infrastructure against your configuration and found no differences,
 so no changes are needed.
 ```
-
-### Option 2: Replace the name of resource in terraform state
-
-1. Replace then name of the state in your existing `mongodbatlas_cloud_provider_snapshot` with `mongodbatlas_cloud_provider_snapshot` in terraform state file (`terraform.tfstate`).
-   **NOTE** before doing any terraform state change please do a backup
-
-2. Change the version of provider to the v1.1.0
-
-3. Do a terraform plan (no changes detected)
-
-```bash
-terraform plan
-
-(...)
-
-
-No changes. Your infrastructure matches the configuration.
-
-Terraform has compared your real infrastructure against your configuration and found no differences,
-so no changes are needed.
-```
-
-**NOTE** Doc links for [mongodbatlas_cloud_backup_snapshot](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_snapshot)
 
 ### Helpful Links
 
