@@ -84,7 +84,7 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 	}
 }
 
-func getProjectApiKeys(ctx context.Context, conn *matlas.Client, orgID, projectID string) ([]*apiKey, error) {
+func getProjectAPIKeys(ctx context.Context, conn *matlas.Client, orgID, projectID string) ([]*apiKey, error) {
 	apiKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, &matlas.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("error getting project's teams assigned (%s): %s", projectID, err)
 	}
 
-	apiKeys, err := getProjectApiKeys(ctx, conn, project.OrgID, project.ID)
+	apiKeys, err := getProjectAPIKeys(ctx, conn, project.OrgID, project.ID)
 	if err != nil {
 		return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
 	}
