@@ -135,7 +135,7 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				fmt.Printf("[WARN] error getting project's teams assigned (%s): %s", project.ID, err)
 			}
 
-			apiKeys, err := getProjectApiKeys(conn, ctx, project.OrgID, project.ID)
+			apiKeys, err := getProjectApiKeys(ctx, conn, project.OrgID, project.ID)
 			if err != nil {
 				fmt.Printf("[WARN] error getting project's api keys (%s): %s", project.ID, err)
 			}
