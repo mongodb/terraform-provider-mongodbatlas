@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.1.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.0) (2021-11-18)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.1.0-pre.1...v1.1.0)
+
+**Merged pull requests:**
+
+- Guide and minor main page changes for 1.1.0 [\#609](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/609) ([themantissa](https://github.com/themantissa))
+
 ## [v1.1.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.0-pre.1) (2021-11-17)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.0.2...v1.1.0-pre.1)
@@ -19,6 +27,7 @@
 
 **Merged pull requests:**
 
+- INTMDB-264: pre-release v1.1.0 [\#608](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/608) ([abner-dou](https://github.com/abner-dou))
 - INTMDB:273: Fix replication\_specs update error [\#607](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/607) ([abner-dou](https://github.com/abner-dou))
 - Update cloud\_provider\_snapshots.html.markdown [\#605](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/605) ([nhuray](https://github.com/nhuray))
 - Fix docs for third party data source. [\#604](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/604) ([jkodroff](https://github.com/jkodroff))
