@@ -29,7 +29,7 @@ provider "mongodbatlas" {
 
 ## Configure Atlas Programmatic Access
 
-In order to set up authentication with the MongoDB Atlas provider a programmatic API key must be generated for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/) and IP access list entry.
+In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/) and IP access list entries.
 The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and IP access.  
 
 Role: If unsure which role level to grant your key we suggest creating an Organization API Key with an Organization Owner role as that will ensure you have sufficient access for all actions.
