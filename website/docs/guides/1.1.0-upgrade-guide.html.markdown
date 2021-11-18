@@ -55,8 +55,8 @@ so no changes are needed.
 
 ### Option 1:  Remove the existing and import the new resource
 
-1. Remove your existing `mongodbatlas_cloud_provider_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` resources from the Terraform state file
-   **NOTE** Before performing any Terraform state change please backup your state.
+1. Remove your existing `mongodbatlas_cloud_provider_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` resources from the Terraform state file.
+   **NOTE** Before performing any Terraform state change, please backup your state.
 
 ```bash
 $ terraform state rm mongodbatlas_cloud_provider_snapshot.test
