@@ -31,7 +31,7 @@ In addition, there are changes that will require modifications to your Terraform
 
 ## Migration from Cloud Provider Snapshot to Cloud Backup Snapshot
 
-The term Cloud Provider has been deprecated in favor of the term Cloud Backup.  In order to support this change within the Terraform provider, related resources and data sources with the older terminology have been deprecated and new resources and data sources added to support the new terminology.  In order to upgrade from the previous resources to the new you'll need to select from one of the following two options:
+The term **Cloud Provider** has been deprecated in favor of the term **Cloud Backup**.  In order to support this change within the Terraform provider, related resources and data sources with the older terminology have been deprecated and new resources and data sources have been added to support the new terminology.  In order to upgrade from the previous resources to the new you'll need to select from one of the following two options:
 
 ### Option 1: Replace the name of resource in terraform state
 
