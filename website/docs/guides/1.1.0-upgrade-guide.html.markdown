@@ -22,18 +22,21 @@ New Features:
 * You can now create Atlas Serverless deployments (available as a preview feature) with [`mongodbatlas_serverless_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_instance).
 
 Changes:
-In addition, there are changes that will require modifications to your Terraform configuration between earlier versions of the provider and this one.
 
-* `mongodbatlas_cloud_backup_snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_snapshot) replaces the now deprecated `mongodbatlas_cloud_provider_snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot).
-* `mongodbatlas_cloud_backup_snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_snapshot_restore_job) replaces the now deprecated `mongodbatlas_cloud_provider_snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_restore_job).
+Version 1.1.0 deprecates the following resources:
+
+* [`mongodbatlas_cloud_provider_snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot)
+* [`mongodbatlas_cloud_provider_snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_restore_job)
+
+If your Terraform configuration uses these resources, see [Migration from Cloud Provider Snapshot to Cloud Backup Snapshot](#migration-from-cloud-provider-snapshot-to-cloud-backup-snapshot) to migrate to the new resources **before you upgrade**.  These resources will be removed in a future major version.
 
 1.1.0 also includes general improvements and bug fixes. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
 
 ## Migration from Cloud Provider Snapshot to Cloud Backup Snapshot
 
-The term **Cloud Provider** has been deprecated in favor of the term **Cloud Backup**.  In order to support this change within the Terraform provider, related resources and data sources with the older terminology have been deprecated and new resources and data sources have been added to support the new terminology.  In order to upgrade from the previous resources to the new you'll need to select from one of the following two options:
+The term **Cloud Provider** has been deprecated in favor of the term **Cloud Backup**.  In order to support this change within the Terraform provider, related resources and data sources with the older terminology have been deprecated and new resources and data sources have been added to support the new terminology.  The deprecated resources and data sources will be removed in a future major version.   We recommend migrating to the new resources as soon as possible by selecting a method from one of the following two options:
 
-### Option 1: Replace the name of resource in terraform state
+### Option 1: Replace the name of resource in Terraform state
 
 1. Replace the name of the deprecated resource `mongodbatlas_cloud_provider_snapshot` with the new name `mongodbatlas_cloud_backup_snapshot` in the Terraform state file (`terraform.tfstate`).  Do the same for `mongodbatlas_cloud_provider_snapshot_restore_job` and `mongodbatlas_cloud_backup_snapshot_restore_job`.
    **NOTE** Before performing any Terraform state change, please backup your state.
@@ -53,7 +56,7 @@ Terraform has compared your real infrastructure against your configuration and f
 so no changes are needed.
 ```
 
-### Option 1:  Remove the existing and import the new resource
+### Option 2:  Remove the deprecated and import the new resources
 
 1. Remove your existing `mongodbatlas_cloud_provider_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` resources from the Terraform state file.
    **NOTE** Before performing any Terraform state change, please backup your state.
