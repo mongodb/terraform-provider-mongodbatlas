@@ -34,7 +34,7 @@ The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
 
-IP access list: Not all API resources require an IP access list by default but some do, such as backup, hence we highly suggest adding an IP access list as soon as possible.  See [Require IP Access List for Public API](https://docs.atlas.mongodb.com/tutorial/manage-organization-settings/#require-ip-access-list-for-public-api) for more info.
+**IP access list**: Some API resources, such as backup resources, require an IP access list by default. We highly suggest that you add an IP access list as soon as possible.  See [Require IP Access List for Public API](https://docs.atlas.mongodb.com/tutorial/manage-organization-settings/#require-ip-access-list-for-public-api) for more info.
 
 ## Authenticate the Provider
 
