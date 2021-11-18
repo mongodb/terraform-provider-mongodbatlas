@@ -64,7 +64,7 @@ $ terraform state rm mongodbatlas_cloud_provider_snapshot_restore_job.test
 
 ```
 
-2. Upgrade the provider to v1.1.0
+2. Upgrade the provider to v1.1.0.
 
 3. Change your Terraform configuration file, replacing `mongodbatlas_cloud_provider_snapshot` with ``mongodbatlas_cloud_backup_snapshot` and `mongodbatlas_cloud_provider_snapshot_restore_job` with `mongodbatlas_cloud_backup_snapshot_restore_job`
 
