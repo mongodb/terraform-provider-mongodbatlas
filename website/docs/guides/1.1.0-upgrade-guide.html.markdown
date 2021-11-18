@@ -12,14 +12,14 @@ The Terraform MongoDB Atlas Provider version 1.1.0 has a number of new and excit
 
 New Features:
 
-* Multi-cloud deployments can now be managed with [`mongodbatlas_advanced_clusters`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_clusters)
-* Invitations can now be managed with
-[`mongodbatlas_org_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/org_invitation) and [`mongodbatlas_project_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation)
-* Projects created with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)` can now have a default owner set with `project_owner_id`
-* [`mongodbatlas_privatelink_endpoint`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) and [`mongodbatlas_privatelink_endpoint_service`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service) now support Google Cloud'd Private Service Connect
-* Projects created with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)` can now have default alert creation disabled by setting `with_default_alerts_settings` to false.
+* You can now manage multi-cloud deployments with [`mongodbatlas_advanced_clusters`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_clusters).
+* You can now manage invitations with
+[`mongodbatlas_org_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/org_invitation) and [`mongodbatlas_project_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation).
+* You can now use `project_owner_id` to set a default owner of projects that you create with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
+* [`mongodbatlas_privatelink_endpoint`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) and [`mongodbatlas_privatelink_endpoint_service`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service) now support private endpoints on Google Cloud with Private Service Connect.
+* You can now set `with_default_alerts_settings` to `false` to disable the default alerts when you create projects with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
 * [`mongodbatlas_search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) now supports synonyms.
-* Atlas Serverless deployments, now in preview, can now be created with [`mongodbatlas_serverless_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_instance)
+* You can now create Atlas Serverless deployments (available as a preview feature) with [`mongodbatlas_serverless_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_instance).
 
 Changes:
 In addition, there are changes that will require modifications to your Terraform configuration between earlier versions of the provider and this one.
