@@ -36,7 +36,7 @@ The term Cloud Provider has been deprecated in favor of the term Cloud Backup.  
 ### Option 1: Replace the name of resource in terraform state
 
 1. Replace the name of the deprecated resource `mongodbatlas_cloud_provider_snapshot` with the new name `mongodbatlas_cloud_backup_snapshot` in the Terraform state file (`terraform.tfstate`).  Do the same for `mongodbatlas_cloud_provider_snapshot_restore_job` and `mongodbatlas_cloud_backup_snapshot_restore_job`.
-   **NOTE** Before performing any Terraform state change please backup your state.
+   **NOTE** Before performing any Terraform state change, please backup your state.
 
 2. Upgrade the provider to v1.1.0
 
