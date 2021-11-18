@@ -40,7 +40,7 @@ The term **Cloud Provider** has been deprecated in favor of the term **Cloud Bac
 
 2. Upgrade the provider to v1.1.0.
 
-3. Run a `terraform plan` to ensure no changes are detected
+3. Run a `terraform plan` to ensure no changes are detected.
 
 ```bash
 terraform plan
