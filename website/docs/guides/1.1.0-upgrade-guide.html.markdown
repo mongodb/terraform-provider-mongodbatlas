@@ -76,7 +76,7 @@ $ terraform state rm mongodbatlas_cloud_provider_snapshot_restore_job.test
     terraform import mongodbatlas_cloud_backup_snapshot_restore_job.test <project_id>-<cluster_name>-<job_id>
 ```
 
-5. Run a `terraform plan` to ensure no changes are detected
+5. Run a `terraform plan` to ensure no changes are detected.
 
 ```bash
 terraform plan
