@@ -6,13 +6,13 @@ description: |-
 MongoDB Atlas Provider 1.1.0: Upgrade and Information Guide
 ---
 
-# MongoDB Atlas Provider 1.1.0: Upgrade and Information Guide
+# MongoDB Atlas Provider 1.1.0/1.1.1: Upgrade and Information Guide
 
 The Terraform MongoDB Atlas Provider version 1.1.0 has a number of new and exciting features and changes.
 
 New Features:
 
-* You can now manage multi-cloud deployments with [`mongodbatlas_advanced_clusters`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_clusters).
+* You can now manage multi-cloud deployments with [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster).
 * You can now manage invitations with
 [`mongodbatlas_org_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/org_invitation) and [`mongodbatlas_project_invitation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation).
 * You can now use `project_owner_id` to set a default owner of projects that you create with [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
