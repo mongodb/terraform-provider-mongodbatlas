@@ -477,7 +477,7 @@ func expandTriggerEventProcessorAWSEventBridge(p []interface{}) map[string]inter
 
 func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interface{}) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
-	if eventProcessor != nil {
+	if eventProcessor != nil && eventProcessor["AWS_EVENTBRIDGE"] != nil {
 		event := eventProcessor["AWS_EVENTBRIDGE"].(map[string]interface{})
 		config := event["config"].(map[string]interface{})
 		mapEvent := map[string]interface{}{
@@ -488,7 +488,6 @@ func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interf
 				},
 			},
 		}
-
 		results = append(results, mapEvent)
 	}
 
