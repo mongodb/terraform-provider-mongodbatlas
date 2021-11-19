@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas Provider 1.0.0: Upgrade and Information Guide"
-sidebar_current: "docs-mongodbatlas-guides-100-upgrade-guide"
+page_title: "MongoDB Atlas Provider 1.1.0: Upgrade and Information Guide"
+sidebar_current: "docs-mongodbatlas-guides-110-upgrade-guide"
 description: |-
 MongoDB Atlas Provider 1.1.0: Upgrade and Information Guide
 ---
