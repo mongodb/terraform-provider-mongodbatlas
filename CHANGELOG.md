@@ -1,11 +1,24 @@
 # Changelog
 
+## [v1.1.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.1) (2021-11-19)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.1.0...v1.1.1)
+
+**Closed issues:**
+
+- Cannot update the default backup schedule policy without defining API Key access IPs. [\#610](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/610)
+
+**Merged pull requests:**
+
+- Fix documentation v1.1.0 [\#612](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/612) ([abner-dou](https://github.com/abner-dou))
+
 ## [v1.1.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.0) (2021-11-18)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.1.0-pre.1...v1.1.0)
 
 **Merged pull requests:**
 
+- INTMDB-264: Release v1.1.0 [\#611](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/611) ([abner-dou](https://github.com/abner-dou))
 - Guide and minor main page changes for 1.1.0 [\#609](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/609) ([themantissa](https://github.com/themantissa))
 
 ## [v1.1.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.0-pre.1) (2021-11-17)
