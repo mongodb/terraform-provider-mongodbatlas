@@ -92,16 +92,6 @@ Terraform has compared your real infrastructure against your configuration and f
 so no changes are needed.
 ```
 
-## Using Beta Features
-
-Now `mongodbatlas` provider support beta features setting the environment variable `MONGODB_ATLAS_ENABLE_BETA=true`.
-
-In this release, the only beta resources and features are: 
-
-- mongodbatlas_serverless_instance
-- mongodbatlas_serverless_instance
-- mongodbatlas_serverless_instances
-
 ### Helpful Links
 
 * [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
