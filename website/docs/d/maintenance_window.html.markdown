@@ -14,7 +14,7 @@ description: |-
 
 ## Examples Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_maintenance_window" "test" {
   project_id  = "<your-project-id>"
   day_of_week = 3
@@ -28,7 +28,7 @@ data "mongodbatlas_maintenance_window" "test" {
 ```
 
 
-```hcl
+```terraform
 resource "mongodbatlas_maintenance_window" "test" {
   project_id  = "<your-project-id>"
   start_asap  = true 

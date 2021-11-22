@@ -15,7 +15,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_alert_configuration" "test" {
   project_id = "<PROJECT-ID>"
   event_type = "OUTSIDE_METRIC_THRESHOLD"
@@ -53,7 +53,7 @@ data "mongodbatlas_alert_configuration" "test" {
 
 -> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/
 
-```hcl
+```terraform
 resource "mongodbatlas_alert_configuration" "test" {
   project_id = "<PROJECT-ID>"
   event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"

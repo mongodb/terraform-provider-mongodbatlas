@@ -67,7 +67,7 @@ From terraform version 0.14, we can override provider use for development purpos
 
 Just create a `.trfc` file to hold the configuration to override terraform local configuration
 
-```hcl
+```terraform
 provider_installation {
 
   dev_overrides {

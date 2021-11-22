@@ -13,7 +13,7 @@ Provides a Search Index resource.
 ## Example Usage
 
 ### Basic 
-```hcl
+```terraform
 resource "mongodbatlas_search_index" "test" {
   name   = "project-name"
   project_id = "<PROJECT_ID>"
@@ -29,7 +29,7 @@ resource "mongodbatlas_search_index" "test" {
 ```
 
 ### Advanced (with custom analyzers)
-```hcl
+```terraform
 resource "mongodbatlas_search_index" "test" {
   project_id = "%[1]s"
   cluster_name = "%[2]s"
@@ -137,7 +137,7 @@ EOF
 * `mappings_dynamic` - Indicates whether the index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`
 
 * `mappings_fields` - attribute is required when `mappings_dynamic` is true. This field needs to be a JSON string in order to be decoded correctly.
-  ```hcl
+  ```terraform
     mappings_fields = <<-EOF
     {
     "address": {
@@ -183,7 +183,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * `builtin`
     * `mongodb`
 * `char_filters` - Array containing zero or more character filters. Always require a `type` field, and some take additional options as well
-  ```hcl
+  ```terraform
   "char_filters":{
    "type": "<FILTER_TYPE>",
    "ADDITIONAL_OPTION": VALUE
@@ -193,7 +193,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * [htmlStrip](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-htmlStrip-ref) - Strips out HTML constructs
         * `type` - (Required) Must be `htmlStrip`
         * `ignored_tags`- a list of HTML tags to exclude from filtering
-        ```hcl
+        ```terraform
           analyzers = <<-EOF [{
             "name": "analyzer_test",
             "char_filters":{
@@ -206,7 +206,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * [mapping](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-mapping-ref) - Applies user-specified normalization mappings to characters. Based on Lucene's [MappingCharFilter](https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html)
       An object containing a comma-separated list of mappings. A mapping indicates that one character or group of characters should be substituted for another, in the format `<original> : <replacement>`
       ### Example
-        ```hcl
+        ```terraform
         analyzers = <<-EOF [{
           "name":"name_analyzer",        
           "type": "mapping",
@@ -221,7 +221,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
 
 
 * `tokenizer` - (Required) Tokenizer to use. Determines how Atlas Search splits up text into discrete chunks of indexing. Always require a type field, and some take additional options as well.
-    ```hcl
+    ```terraform
     "tokenizer":{
     "type": "<tokenizer-type>",
     "ADDITIONAL_OPTIONS": VALUE
@@ -255,7 +255,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
         *  `max_token_length` - The maximum number of characters in one token.
 
 * `tokenFilters` - Array containing zero or more token filters. Always require a type field, and some take additional options as well:
-  ```hcl
+  ```terraform
   "token_filters":{
     "type": "<FILTER_TYPE>",
     "ADDITIONAL-OPTIONS": VALUE
@@ -370,7 +370,7 @@ Synonyms mapping definition to use in the index.
     * [edgeGram](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-edgegram-tf-ref) token filter
     * [shingle](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-shingle-tf-ref) token filter
 
-```hcl
+```terraform
   synonyms {
    analyzer = "lucene.simple"
    name = "synonym_test"

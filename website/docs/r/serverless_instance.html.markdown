@@ -17,7 +17,7 @@ For a full list of unsupported features, see [Serverless Instance Limitations](h
 ## Example Usage
 
 ### Basic
-```hcl
+```terraform
 resource "mongodbatlas_serverless_instance" "test" {
   project_id   = "<PROJECT_ID>"
   name         = "<SERVERLESS_INSTANCE_NAME>"

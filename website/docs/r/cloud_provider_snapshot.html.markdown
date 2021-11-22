@@ -17,7 +17,7 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
 
 ## Example Usage
 
-```hcl
+```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
     project_id   = "5cf5a45a9ccf6400e60981b6"
     name         = "MyCluster"

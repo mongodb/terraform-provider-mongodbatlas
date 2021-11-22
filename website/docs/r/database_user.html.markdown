@@ -18,7 +18,7 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ## Example Usages
 
-```hcl
+```terraform
 resource "mongodbatlas_database_user" "test" {
   username           = "test-acc-username"
   password           = "test-acc-password"
@@ -53,7 +53,7 @@ resource "mongodbatlas_database_user" "test" {
 ```
 
 
-```hcl
+```terraform
 resource "mongodbatlas_database_user" "test" {
   username           = "test-acc-username"
   x509_type          = "MANAGED"
@@ -77,7 +77,7 @@ resource "mongodbatlas_database_user" "test" {
 }
 ```
 
-```hcl
+```terraform
 resource "mongodbatlas_database_user" "test" {
   username           = aws_iam_role.test.arn
   project_id         = "<PROJECT-ID>"

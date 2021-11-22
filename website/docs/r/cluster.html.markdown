@@ -24,7 +24,7 @@ description: |-
 
 ### Example AWS cluster
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
@@ -51,7 +51,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
 ### Example Azure cluster.
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
@@ -78,7 +78,7 @@ resource "mongodbatlas_cluster" "test" {
 
 ### Example GCP cluster
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "test"
@@ -105,7 +105,7 @@ resource "mongodbatlas_cluster" "test" {
 
 ### Example Multi Region cluster
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id               = "<YOUR-PROJECT-ID>"
   name                     = "cluster-test-multi-region"
@@ -144,7 +144,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
 ### Example Global cluster
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
@@ -181,7 +181,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example AWS Shared Tier (M2/M5) cluster
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
@@ -194,7 +194,7 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example AWS Free Tier cluster
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
@@ -208,35 +208,35 @@ resource "mongodbatlas_cluster" "cluster-test" {
 ```
 ### Example - Return a Connection String
 AWS Private Endpoint
-```hcl
+```terraform
 output "plstring" {
     value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, aws_vpc_endpoint.ptfe_service.id)
 }
 # Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
 ```
 Azure Private Endpoint
-```hcl
+```terraform
 output "plstring" {
     value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, azurerm_private_endpoint.test.id)
 }
 # Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
 ```
 Standard
-```hcl
+```terraform
 output "standard" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard
 }
 # Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
 ```
 Standard srv
-```hcl
+```terraform
 output "standard_srv" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard_srv
 }
 # Example return string: standard_srv = "mongodb+srv://cluster-atlas.ygo1m.mongodb.net"
 ```
 Private with Network peering and Custom DNS AWS enabled
-```hcl
+```terraform
 output "private" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].private
 }
@@ -244,7 +244,7 @@ output "private" {
 private = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
 Private srv with Network peering and Custom DNS AWS enabled
-```hcl
+```terraform
 output "private_srv" {
     value = mongodbatlas_cluster.cluster-test.connection_strings[0].private_srv
 }
@@ -352,7 +352,7 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 
 ### Multi-Region Cluster 
 
-```hcl
+```terraform
 //Example 3 Multi-Region block
 replication_specs {
     num_shards = 1
@@ -405,7 +405,7 @@ replication_specs {
 
 Specifies BI Connector for Atlas configuration.
  
- ```hcl
+ ```terraform
  bi_connector = {
         enabled         = true
         read_preference = secondary
@@ -433,7 +433,7 @@ Specifies BI Connector for Atlas configuration.
 
 Include **desired options** within advanced_configuration:
 
-```hcl
+```terraform
 // Nest options within advanced_configuration
  advanced_configuration {
    javascript_enabled                   = false
@@ -458,7 +458,7 @@ Include **desired options** within advanced_configuration:
 
 ### Labels
 
- ```hcl
+ ```terraform
  labels {
         key   = "Key 1"
         value = "Value 1"

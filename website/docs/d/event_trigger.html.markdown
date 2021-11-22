@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_event_trigger" "test" {
   project_id = "PROJECT ID"
   app_id = "APPLICATION ID"

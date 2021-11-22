@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_cloud_backup_snapshots" "test" {
   group_id          = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"

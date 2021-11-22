@@ -18,7 +18,7 @@ MongoDB Atlas Team limits: max 250 teams in an organization and max 100 teams pe
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"

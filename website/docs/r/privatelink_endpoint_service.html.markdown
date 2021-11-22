@@ -19,7 +19,7 @@ description: |-
 
 ## Example with AWS
 
-```hcl
+```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT_ID>"
   provider_name = "AWS"
@@ -44,7 +44,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ## Example with Azure
 
-```hcl
+```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = var.project_id
   provider_name = "AZURE"
@@ -76,7 +76,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ## Example with GCP
 
-```hcl
+```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = var.project_id
   provider_name = "GCP"

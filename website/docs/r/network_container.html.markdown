@@ -23,7 +23,7 @@ The following is the maximum number of Network Peering containers per cloud prov
 
 ### Example with AWS
 
-```hcl
+```terraform
   resource "mongodbatlas_network_container" "test" {
     project_id       = "<YOUR-PROJECT-ID>"
     atlas_cidr_block = "10.8.0.0/21"
@@ -35,7 +35,7 @@ The following is the maximum number of Network Peering containers per cloud prov
 
 ### Example with GCP
 
-```hcl
+```terraform
 resource "mongodbatlas_network_container" "test" {
   project_id       = "<YOUR-PROJECT-ID>"
   atlas_cidr_block = "10.8.0.0/21"
@@ -46,7 +46,7 @@ resource "mongodbatlas_network_container" "test" {
 
 ### Example with Azure
 
-```hcl
+```terraform
 resource "mongodbatlas_network_container" "test" {
   project_id       = "<YOUR-PROJECT-ID>"
   atlas_cidr_block = "10.8.0.0/21"

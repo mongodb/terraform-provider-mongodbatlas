@@ -17,7 +17,7 @@ description: |-
 
 ### Basic Example (AWS).
 
-```hcl
+```terraform
 resource "mongodbatlas_network_peering" "test" {
 	accepter_region_name	= "us-east-1"	
 	project_id    			= "<YOUR-PROJEC-ID>"

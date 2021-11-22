@@ -19,7 +19,7 @@ For a full list of unsupported features, see [Serverless Instance Limitations](h
 
 ## Example Usage
 
-```hcl
+```terraform
 data "mongodbatlas_serverless_instances" "data_serverless" {
   project_id = "<PROJECT_ID"
 }

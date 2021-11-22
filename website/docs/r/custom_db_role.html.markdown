@@ -17,7 +17,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_custom_db_role" "test_role" {
   project_id = "<PROJECT-ID>"
   role_name  = "myCustomRole"
@@ -48,7 +48,7 @@ resource "mongodbatlas_custom_db_role" "test_role" {
 
 ## Example Usage with inherited roles
 
-```hcl
+```terraform
 resource "mongodbatlas_custom_db_role" "inherited_role_one" {
   project_id = "<PROJECT-ID>"
   role_name  = "insertRole"

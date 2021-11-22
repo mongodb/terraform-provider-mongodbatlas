@@ -21,7 +21,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 
 resource "mongodbatlas_third_party_integration" "test_flowdock" {
 	project_id = "<PROJECT-ID>"

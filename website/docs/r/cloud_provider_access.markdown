@@ -27,7 +27,7 @@ the initial configuration (create, delete operations). The second resource, `mon
 
 ## Example Usage
 
-```hcl
+```terraform
 
 resource "mongodbatlas_cloud_provider_access" "test_role" {
    project_id = "<PROJECT-ID>"
@@ -58,7 +58,7 @@ resource "mongodbatlas_cloud_provider_access" "test_role" {
 
 Once the resource is created add the field `iam_assumed_role_arn` see [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access) , and execute a new `terraform apply` this will create a PATCH request.
 
-```hcl
+```terraform
 
 resource "mongodbatlas_cloud_provider_access" "test_role" {
    project_id = "<PROJECT-ID>"
@@ -86,7 +86,7 @@ This is the first resource in the two-resource path as described above.
 
 ## Example Usage
 
-```hcl
+```terraform
 
 resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
    project_id = "<PROJECT-ID>"
@@ -125,7 +125,7 @@ This is the second resource in the two-resource path as described above.
 `mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS IAM roles in Atlas.
 
 ## Example Usage
-```hcl
+```terraform
 
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
    project_id = "<PROJECT-ID>"

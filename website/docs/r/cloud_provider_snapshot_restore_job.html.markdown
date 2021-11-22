@@ -25,7 +25,7 @@ description: |-
 
 ### Example automated delivery type.
 
-```hcl
+```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
     project_id   = "5cf5a45a9ccf6400e60981b6"
     name         = "MyCluster"
@@ -60,7 +60,7 @@ description: |-
 
 ### Example download delivery type.
 
-```hcl
+```terraform
   resource "mongodbatlas_cluster" "my_cluster" {
     project_id   = "5cf5a45a9ccf6400e60981b6"
     name         = "MyCluster"

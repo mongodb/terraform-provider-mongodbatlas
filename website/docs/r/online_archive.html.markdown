@@ -17,7 +17,7 @@ description: |-
 ~> **IMPORTANT:** There are fields that are immutable after creation, i.e if `date_field` value does not exist in the collection, the online archive state will be pending forever, and this field cannot be updated, that means a destroy is required, known error `ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD`
 
 ## Example Usages
-```hcl
+```terraform
 resource "mongodbatlas_online_archive" "test" {
     project_id   = var.project_id
     cluster_name = var.cluster_name
@@ -45,7 +45,7 @@ resource "mongodbatlas_online_archive" "test" {
 
 For custom criteria example
 
-```hcl
+```terraform
 resource "mongodbatlas_online_archive" "test" {
     project_id   = var.project_id
     cluster_name = var.cluster_name

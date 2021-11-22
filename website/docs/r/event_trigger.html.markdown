@@ -13,7 +13,7 @@ description: |-
 ## Example Usages
 
 ### Example Usage: Database Trigger with Function
-```hcl
+```terraform
 resource "mongodbatlas_event_trigger" "test" {
   project_id = "PROJECT ID"
   app_id = "APPLICATION ID"
@@ -45,7 +45,7 @@ EOF
 ```
 
 ### Example Usage: Database Trigger with EventBridge
-```hcl
+```terraform
 resource "mongodbatlas_event_trigger" "test" {
   project_id = "PROJECT ID"
   app_id = "APPLICATION ID"
@@ -73,7 +73,7 @@ resource "mongodbatlas_event_trigger" "test" {
 ```
 
 ### Example Usage: Authentication Trigger
-```hcl
+```terraform
 resource "mongodbatlas_event_trigger" "test" {
   project_id = "PROJECT ID"
   app_id = "APPLICATION ID"
@@ -87,7 +87,7 @@ resource "mongodbatlas_event_trigger" "test" {
 ```
 
 ### Example Usage: Scheduled Trigger
-```hcl
+```terraform
 resource "mongodbatlas_event_trigger" "test" {
   project_id = "PROJECT ID"
   app_id = "APPLICATION ID"

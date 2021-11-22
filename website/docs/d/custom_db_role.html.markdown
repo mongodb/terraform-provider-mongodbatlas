@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_custom_db_role" "test_role" {
   project_id = "<PROJECT-ID>"
   role_name  = "myCustomRole"

@@ -22,7 +22,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 
 ## Example Usage
 
-```hcl
+```terraform
   resource "mongodbatlas_maintenance_window" "test" {
     project_id  = "<your-project-id>"
     day_of_week = 3
@@ -31,7 +31,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 
 ```
 
-```hcl
+```terraform
   resource "mongodbatlas_maintenance_window" "test" {
     project_id = "<your-project-id>"
     defer      = true

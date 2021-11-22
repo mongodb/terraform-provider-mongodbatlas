@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT-ID>"
   provider_name = "AWS"

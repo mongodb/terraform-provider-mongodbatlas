@@ -15,7 +15,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_private_ip_mode" "my_private_ip_mode" {
     project_id = "<YOUR PROJECT ID>"
 	enabled    = false

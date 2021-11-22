@@ -29,7 +29,7 @@ For more information see https://docs.atlas.mongodb.com/security-vpc-peering/ an
 ## Example Usage - Container & Peering Connection
 
 ### Global configuration for the following examples
-```hcl
+```terraform
 locals {
   project_id        = <your-project-id>
 
@@ -46,7 +46,7 @@ locals {
 
 ### Example with AWS
 
-```hcl
+```terraform
 # Container example provided but not always required, 
 # see network_container documentation for details. 
 resource "mongodbatlas_network_container" "test" {
@@ -78,7 +78,7 @@ resource "aws_vpc_peering_connection_accepter" "peer" {
 
 ### Example with GCP
 
-```hcl
+```terraform
 
 # Container example provided but not always required, 
 # see network_container documentation for details. 
@@ -149,7 +149,7 @@ resource "mongodbatlas_cluster" "test" {
 
 ### Example with Azure
 
-```hcl
+```terraform
 
 # Ensure you have created the required Azure service principal first, see
 # see https://docs.atlas.mongodb.com/security-vpc-peering/
@@ -207,7 +207,7 @@ resource "mongodbatlas_cluster" "test" {
 You can create a peering connection if an appropriate container for your cloud provider already exists in your project (see the network_container resource for more information).  A container may already exist if you have already created a cluster in your project, if so you may obtain the `container_id` from the cluster resource as shown in the examples below.
 
 ### Example with AWS
-```hcl
+```terraform
 # Create an Atlas cluster, this creates a container if one
 # does not yet exist for this AWS region
 resource "mongodbatlas_cluster" "test" {
@@ -264,7 +264,7 @@ resource "aws_vpc_peering_connection_accepter" "aws_peer" {
 ```
 
 ### Example with GCP
-```hcl
+```terraform
 # Create an Atlas cluster, this creates a container if one
 # does not yet exist for this GCP 
 resource "mongodbatlas_cluster" "test" {
@@ -317,7 +317,7 @@ resource "google_compute_network_peering" "peering" {
 
 ### Example with Azure
 
-```hcl
+```terraform
 
 # Ensure you have created the required Azure service principal first, see
 # see https://docs.atlas.mongodb.com/security-vpc-peering/

@@ -18,7 +18,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "example" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"

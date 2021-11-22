@@ -15,7 +15,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 data "mongodbatlas_data_lakes" "test" {
   project_id = "PROJECT ID"
 }

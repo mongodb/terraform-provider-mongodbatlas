@@ -25,7 +25,7 @@ The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/
 
 ## Example Usages
 
-```hcl
+```terraform
 resource "mongodbatlas_project_invitation" "test" {
   username    = "test-acc-username"
   project_id  = "<PROJECT-ID>"
@@ -33,7 +33,7 @@ resource "mongodbatlas_project_invitation" "test" {
 }
 ```
 
-```hcl
+```terraform
 resource "mongodbatlas_project_invitation" "test" {
   username    = "test-acc-username"
   project_id  = "<PROJECT-ID>"

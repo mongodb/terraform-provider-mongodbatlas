@@ -16,7 +16,7 @@ Each user has a set of roles that provide access to the project’s databases. U
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_database_user" "test" {
   username           = "test-acc-username"
   password           = "test-acc-password"

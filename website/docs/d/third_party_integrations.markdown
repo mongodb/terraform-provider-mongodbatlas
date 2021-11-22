@@ -15,7 +15,7 @@ applied across the project.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_third_party_integration" "test_pager_duty" {
     project_id = "<PROJECT-ID>"
 	type = "PAGER_DUTY"

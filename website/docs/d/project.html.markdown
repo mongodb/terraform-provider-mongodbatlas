@@ -15,7 +15,7 @@ description: |-
 ## Example Usage
 
 ### Using project_id attribute to query
-```hcl
+```terraform
 resource "mongodbatlas_project" "test" {
   name   = "project-name"
   org_id = "<ORG_ID>"
@@ -37,7 +37,7 @@ data "mongodbatlas_project" "test" {
 ```
 
 ### Using name attribute to query
-```hcl
+```terraform
 resource "mongodbatlas_project" "test" {
   name   = "project-name"
   org_id = "<ORG_ID>"
