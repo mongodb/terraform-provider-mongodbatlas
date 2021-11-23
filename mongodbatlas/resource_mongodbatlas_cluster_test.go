@@ -1101,6 +1101,58 @@ func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasCluster_basicAWS_paused(t *testing.T) {
+	var (
+		cluster      matlas.Cluster
+		resourceName = "mongodbatlas_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(projectID, name, true, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(projectID, name, false, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled"},
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -1972,4 +2024,31 @@ func testAccMongoDBAtlasClusterConfigRegions(
 	  }
 	}
 	`, projectID, name, replications)
+}
+
+func testAccMongoDBAtlasClusterConfigAWSPaused(projectID, name string, backupEnabled, paused bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_cluster" "test" {
+  project_id                   = %[1]q
+  name                         = %[2]q
+  disk_size_gb                 = 100
+  cluster_type = "REPLICASET"
+  replication_specs {
+    num_shards = 1
+    regions_config {
+      region_name     = "EU_CENTRAL_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
+    }
+  }
+  cloud_backup                 = %[3]t
+  mongo_db_major_version       = "4.0"
+  paused                       = %[4]t
+  // Provider Settings "block"
+
+  provider_name               = "AWS"
+  provider_instance_size_name = "M30"
+}
+	`, projectID, name, backupEnabled, paused)
 }

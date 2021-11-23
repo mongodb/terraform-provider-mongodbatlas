@@ -349,6 +349,7 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 * `provider_auto_scaling_compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (e.g., M40). Required if `autoScaling.compute.enabled` is `true`.
 
 * `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
+* `paused` (Optional) - Flag that indicates whether the cluster is paused or not. **NOTE** If `paused` is set `true`, it will only last 30 days, after 30 days, it will unpause automatically, to avoid further changes related to `paused` parameter please ignore the parameter with the lifecycle or re-apply to pause again.
 
 ### Multi-Region Cluster 
 
@@ -506,7 +507,6 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `container_id` - The Network Peering Container ID. The id of the container either created programmatically by the user before any clusters existed in the project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.
-* `paused` - Flag that indicates whether the cluster is paused or not.
 * `srv_address` - Connection string for connecting to the Atlas cluster. The +srv modifier forces the connection to use TLS/SSL. See the mongoURI for additional options.
 * `state_name` - Current state of the cluster. The possible states are:
     - IDLE
