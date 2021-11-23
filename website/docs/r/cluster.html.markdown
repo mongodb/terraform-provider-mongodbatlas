@@ -355,33 +355,34 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
   ignore_changes = [paused]
   }`
 
+* `version_release_system` - (Optional) - Method by which this cluster maintains the MongoDB versions. Valid values are `CONTINUOUS` or `LTS` (Long Term Support). This parameter defaults to `LTS`. If you set this parameter to `CONTINUOUS` and set any value for `mongo_db_major_version`, this resource returns an error.
 
 ### Multi-Region Cluster 
 
 ```terraform
 //Example 3 Multi-Region block
 replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-    regions_config {
-      region_name     = "US_EAST_2"
-      electable_nodes = 2
-      priority        = 6
-      read_only_nodes = 0
-    }
-    regions_config {
-      region_name     = "US_WEST_1"
-      electable_nodes = 2
-      priority        = 5
-      read_only_nodes = 2
-    }
+  num_shards = 1
+  regions_config {
+    region_name     = "US_EAST_1"
+    electable_nodes = 3
+    priority        = 7
+    read_only_nodes = 0
+  }
+  regions_config {
+    region_name     = "US_EAST_2"
+    electable_nodes = 2
+    priority        = 6
+    read_only_nodes = 0
+  }
+  regions_config {
+    region_name     = "US_WEST_1"
+    electable_nodes = 2
+    priority        = 5
+    read_only_nodes = 2
   }
 }
+
 ```
 
 **Replication Spec**  - Configuration block for multi-region cluster.

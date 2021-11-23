@@ -120,6 +120,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `container_id` - The Network Peering Container ID.
 
+* `version_release_system` - Method by which this cluster maintains the MongoDB versions.
+
 ### BI Connector
 
 Indicates BI Connector for Atlas configuration.

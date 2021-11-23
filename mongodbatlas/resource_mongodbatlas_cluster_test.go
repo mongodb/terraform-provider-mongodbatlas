@@ -40,6 +40,8 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 				),
 			},
 			{
@@ -54,6 +56,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 				),
 			},
 		},
