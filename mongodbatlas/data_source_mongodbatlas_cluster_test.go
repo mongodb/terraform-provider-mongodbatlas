@@ -50,6 +50,7 @@ func TestAccDataSourceMongoDBAtlasCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "auto_scaling_compute_scale_down_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_auto_scaling_compute_min_instance_size", minSizeInstance),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_auto_scaling_compute_max_instance_size", maxSizeInstance),
+					resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
 				),
 			},
 		},
