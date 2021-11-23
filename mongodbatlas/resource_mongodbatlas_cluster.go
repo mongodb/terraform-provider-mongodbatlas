@@ -563,7 +563,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			Paused: pointy.Bool(v),
 		}
 
-		_, _, err = updateCluster(conn, clusterRequest, ctx, projectID, d.Get("name").(string))
+		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string))
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, d.Get("name").(string), err))
 		}
@@ -884,14 +884,14 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			_, _, err := updateCluster(conn, cluster, ctx, projectID, clusterName)
+			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName)
 			if err != nil {
 				var target *matlas.ErrorResponse
 				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
 					clusterRequest := &matlas.Cluster{
 						Paused: pointy.Bool(false),
 					}
-					_, _, err := updateCluster(conn, clusterRequest, ctx, projectID, clusterName)
+					_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
 					}
@@ -902,7 +902,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
-
 	}
 
 	/*
@@ -926,7 +925,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			Paused: pointy.Bool(true),
 		}
 
-		_, _, err := updateCluster(conn, clusterRequest, ctx, projectID, clusterName)
+		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
@@ -1614,7 +1613,7 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 	}
 }
 
-func updateCluster(conn *matlas.Client, request *matlas.Cluster, ctx context.Context, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
+func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
 	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
 	if err != nil {
 		return nil, nil, err
