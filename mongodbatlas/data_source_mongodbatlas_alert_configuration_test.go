@@ -55,6 +55,31 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_withThreshold(t *testing.T) 
 	})
 }
 
+func TestAccDataSourceMongoDBAtlaAlertConfiguration_withPagerDuty(t *testing.T) {
+	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
+	var (
+		alert          = &matlas.AlertConfiguration{}
+		dataSourceName = "data.mongodbatlas_alert_configuration.test"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		serviceKey     = os.Getenv("PAGER_DUTY_SERVICE_KEY")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(projectID, serviceKey, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDSMongoDBAtlasAlertConfiguration(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
@@ -126,4 +151,25 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID string
 			alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
 		}
 	`, projectID, enabled, threshold)
+}
+
+func testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = %[1]q
+  event_type = "NO_PRIMARY"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name    = "PAGER_DUTY"
+    service_key  = %[2]q
+    delay_min    = 0
+  }
+}
+
+data "mongodbatlas_alert_configuration" "test" {
+  project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
+  alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
+}
+	`, projectID, serviceKey, enabled)
 }
