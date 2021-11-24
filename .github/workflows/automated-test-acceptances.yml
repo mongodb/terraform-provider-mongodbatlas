@@ -80,4 +80,5 @@ jobs:
           CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
           ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
+          PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
         run: make testacc
