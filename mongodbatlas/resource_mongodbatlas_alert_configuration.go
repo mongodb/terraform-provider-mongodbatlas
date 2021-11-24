@@ -24,6 +24,9 @@ const (
 	errorDeleteAlertConf  = "error deleting Alert Configuration information: %s"
 	errorAlertConfSetting = "error setting `%s` for Alert Configuration (%s): %s"
 	errorImportAlertConf  = "couldn't import Alert Configuration (%s) in project %s, error: %s"
+	pagerDuty             = "PAGER_DUTY"
+	opsGenie              = "OPS_GENIE"
+	victorOps             = "VICTOR_OPS"
 )
 
 func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
@@ -270,6 +273,9 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"type_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{"EMAIL", "SMS", pagerDuty, "SLACK",
+								"FLOWDOCK", "DATADOG", opsGenie, victorOps,
+								"WEBHOOK", "USER", "TEAM", "GROUP", "ORG"}, false),
 						},
 						"username": {
 							Type:     schema.TypeString,
@@ -687,8 +693,8 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Noti
 		v := value.(map[string]interface{})
 		if v1, ok := v["interval_min"]; ok && v1.(int) > 0 {
 			typeName := v["type_name"].(string)
-			if strings.EqualFold(typeName, "pager_duty") || strings.EqualFold(typeName, "ops_genie") || strings.EqualFold(typeName, "victor_ops") {
-				return nil, fmt.Errorf(`'interval_min' don't need to be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
+			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
+				return nil, fmt.Errorf(`'interval_min' doesn't need to be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
 			}
 		}
 		notifications[i] = matlas.Notification{
