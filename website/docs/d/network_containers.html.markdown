@@ -17,7 +17,7 @@ description: |-
 
 ### Basic Example.
 
-```hcl
+```terraform
 resource "mongodbatlas_network_container" "test" {
   project_id       = "<YOUR-PROJECT-ID>"
   atlas_cidr_block = "10.8.0.0/21"

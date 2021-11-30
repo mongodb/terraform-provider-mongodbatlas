@@ -22,7 +22,7 @@ The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/
 
 ## Example Usages
 
-```hcl
+```terraform
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
   org_id      = "<ORG-ID>"
@@ -30,7 +30,7 @@ resource "mongodbatlas_org_invitation" "test0" {
 }
 ```
 
-```hcl
+```terraform
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
   org_id      = "<ORG-ID>"
@@ -38,7 +38,7 @@ resource "mongodbatlas_org_invitation" "test0" {
 }
 ```
 
-```hcl
+```terraform
 resource "mongodbatlas_org_invitation" "test1" {
   username    = "test1-acc-username"
   org_id      = "<ORG-ID>"

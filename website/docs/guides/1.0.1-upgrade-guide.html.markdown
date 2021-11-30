@@ -13,7 +13,7 @@ MongoDB Atlas Provider 1.0.1: Upgrade and Information Guide
 To update from v1.0.0 to v1.0.1 you need to set `analyzers` field as a JSON string.
 
 Old Usage: 
-```hcl
+```terraform
 resource "mongodbatlas_search_index" "test" {
   project_id         = mongodbatlas_cluster.aws_conf.project_id
   cluster_name       = mongodbatlas_cluster.aws_conf.name
@@ -47,7 +47,7 @@ resource "mongodbatlas_search_index" "test" {
 ```
 
 New Usage:
-```hcl
+```terraform
 resource "mongodbatlas_search_index" "test" {
   project_id = mongodbatlas_cluster.aws_conf.project_id
   cluster_name = mongodbatlas_cluster.aws_conf.name

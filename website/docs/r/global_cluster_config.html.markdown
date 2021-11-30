@@ -18,7 +18,7 @@ description: |-
 
 ### Example Global cluster
 
-```hcl
+```terraform
 	resource "mongodbatlas_cluster" "test" {
 		project_id              = "<YOUR-PROJECT-ID>"
 		name                    = "<CLUSTER-NAME>"
@@ -74,7 +74,7 @@ description: |-
 
 ### Example Global cluster config
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"

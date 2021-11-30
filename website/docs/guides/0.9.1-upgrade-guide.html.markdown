@@ -15,7 +15,7 @@ perform the following steps
 
 1. Add the new `mongodbatlas_cloud_provider_access_setup` to your configuration file 
 
-```hcl
+```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "unique" {
    project_id = "<PROJECT-ID>"
    provider_name = "AWS"
@@ -31,7 +31,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "unique" {
 
 3. Add the mongodbatlas_cloud_provider_access_authorization to the configuration file
 
-```hcl
+```terraform
 resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
 
   project_id = mongodbatlas_cloud_provider_access_setup.unique.project_id

@@ -15,7 +15,7 @@ description: |-
 
 ## Example Usage
 
-```hcl 
+```terraform 
 data "mongodbatlas_online_archives" "test" {
     project_id   = var.project_id
     cluster_name = var.cluster_name

@@ -257,7 +257,7 @@ Thanks to user feedback we redesigned the `mongodbatlas_cloud_provider_snapshot_
 
 `mongodbatlas_cloud_provider_snapshot_backup_policy` Example - Previous Resource - Deprecated
 
-```hcl
+```terraform
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
   project_id   = mongodbatlas_cluster.my_cluster.project_id
   cluster_name = mongodbatlas_cluster.my_cluster.name
@@ -308,7 +308,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 `mongodbatlas_cloud_backup_schedule` Example - New Resource
 
-```hcl
+```terraform
 resource "mongodbatlas_cloud_backup_schedule" "test" {
   project_id   = mongodbatlas_cluster.my_cluster.project_id
   cluster_name = mongodbatlas_cluster.my_cluster.name

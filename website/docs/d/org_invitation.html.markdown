@@ -12,7 +12,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_org_invitation" "test" {
   username    = "test-acc-username"
   org_id      = "<ORG-ID>"

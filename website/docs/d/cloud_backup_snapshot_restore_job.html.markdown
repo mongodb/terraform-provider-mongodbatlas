@@ -15,7 +15,7 @@ description: |-
 ## Example Usage
 First create a snapshot of the desired cluster. Then request that snapshot be restored in an automated fashion to the designated cluster and project.
 
-```hcl
+```terraform
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id          = "5cf5a45a9ccf6400e60981b6"
   cluster_name      = "MyCluster"

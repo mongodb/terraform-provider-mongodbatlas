@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
@@ -28,7 +28,7 @@ data "mongodbatlas_teams" "test" {
 
 ```
 
-```hcl
+```terraform
 resource "mongodbatlas_teams" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"

@@ -15,7 +15,7 @@ Describes a Search Index.
 
 ## Example Usage
 
-```hcl
+```terraform
 data "mongodbatlas_search_index" "test" {
   index_id   = "<INDEX_ID"
   project_id = "<PROJECT_ID>"

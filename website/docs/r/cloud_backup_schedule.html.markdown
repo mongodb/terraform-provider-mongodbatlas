@@ -19,7 +19,7 @@ In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in 
 
 You can create a new cluster with `cloud_backup` enabled and then immediately overwrite the default cloud backup policy that Atlas creates by default at the same time with this example.
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
@@ -59,7 +59,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with no policy items to remove the default policy that Atlas creates when you enable Cloud Backup. This allows you to then create a policy when you are ready to via Terraform.
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
@@ -88,7 +88,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 If you followed the example to Create a Cluster with Cloud Backup Enabled but No Policy Items and then want to add policy items later to the `mongodbatlas_cloud_backup_schedule` this example shows how.
 
 The cluster already exists with `cloud_backup` enabled
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"

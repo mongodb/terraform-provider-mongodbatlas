@@ -18,7 +18,7 @@ Speaking of changes, see [CHANGELOG](https://github.com/mongodb/terraform-provid
 
 ## Example Usage
 
-```hcl
+```terraform
 # Configure the MongoDB Atlas Provider
 provider "mongodbatlas" {
   public_key = var.mongodbatlas_public_key
@@ -47,7 +47,7 @@ You can also provide your credentials via the environment variables,
 `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY`,
 for your public and private MongoDB Atlas programmatic API key pair respectively:
 
-```hcl
+```terraform
 provider "mongodbatlas" {}
 ```
 
@@ -68,7 +68,7 @@ then `MCLI_PUBLIC_API_KEY` and `MCLI_PRIVATE_API_KEY` are also supported.
 Static credentials can be provided by adding the following attributes in-line in the MongoDB Atlas provider block, 
 either directly or via input variable/local value:
 
-```hcl
+```terraform
 provider "mongodbatlas" {
   public_key = "atlas_public_api_key" #required
   private_key  = "atlas_private_api_key" #required

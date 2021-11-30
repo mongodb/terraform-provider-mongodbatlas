@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usages
 
-```hcl
+```terraform
 resource "mongodbatlas_project_invitation" "test" {
   username    = "test-acc-username"
   project_id  = "<PROJECT-ID>"

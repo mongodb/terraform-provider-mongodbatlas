@@ -19,7 +19,7 @@ When you remove an entry from the access list, existing connections from the rem
 ## Example Usage
 
 ### Using CIDR Block
-```hcl
+```terraform
 resource "mongodbatlas_project_ip_access_list" "test" {
   project_id = "<PROJECT-ID>"
   cidr_block = "1.2.3.4/32"
@@ -33,7 +33,7 @@ data "mongodbatlas_project_ip_access_list" "test" {
 ```
 
 ### Using IP Address
-```hcl
+```terraform
 resource "mongodbatlas_project_ip_access_list" "test" {
   project_id = "<PROJECT-ID>"
   ip_address = "2.3.4.5"
@@ -47,7 +47,7 @@ data "mongodbatlas_project_ip_access_list" "test" {
 ```
 
 ### Using an AWS Security Group
-```hcl
+```terraform
 resource "mongodbatlas_network_container" "test" {
   project_id       = "<PROJECT-ID>"
   atlas_cidr_block = "192.168.208.0/21"

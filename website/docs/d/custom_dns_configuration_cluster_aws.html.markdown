@@ -15,7 +15,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_custom_dns_configuration_cluster_aws" "test" {
 	project_id                  = "<project-id>"
 	enabled                     = true

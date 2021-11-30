@@ -14,7 +14,7 @@ description: |-
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "mongodbatlas_database_user" "test" {
   username      = "test-acc-username"
   password      = "test-acc-password"

@@ -15,7 +15,7 @@ description: |-
 ## Example Usages
 
 ### Example Usage: Generate an Atlas-managed X.509 certificate for a MongoDB user
-```hcl
+```terraform
 resource "mongodbatlas_database_user" "user" {
   project_id    = "<PROJECT-ID>"
   username      = "myUsername"
@@ -46,7 +46,7 @@ data "mongodbatlas_x509_authentication_database_user" "test" {
 ```
 
 ### Example Usage: Save a customer-managed X.509 configuration for an Atlas project
-```hcl
+```terraform
 resource "mongodbatlas_x509_authentication_database_user" "test" {
   project_id        = "<PROJECT-ID>"
   customer_x509_cas = <<-EOT

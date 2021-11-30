@@ -19,7 +19,7 @@ When Cloud Backup is enabled for a cluster MongoDB Atlas automatically creates a
 
 ## Example Usage - Create a Cluster and Modify the 4 Default Policies Simultaneously
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
@@ -84,7 +84,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 ## Example Usage - Create a Cluster and Modify 3 Default Policies and Remove 1 Default Policy Simultaneously
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
@@ -151,7 +151,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 ## Example Usage - Remove 3 Default Policies Items After the Cluster Has Already Been Created and Modify One Policy
 
-```hcl
+```terraform
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
