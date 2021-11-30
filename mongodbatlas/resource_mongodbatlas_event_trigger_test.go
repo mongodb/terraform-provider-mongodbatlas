@@ -378,6 +378,62 @@ func TestAccResourceMongoDBAtlasEventTriggerSchedule_eventProcessor(t *testing.T
 	})
 }
 
+func TestAccResourceMongoDBAtlasEventTriggerFunction_basic(t *testing.T) {
+	SkipTest(t)
+	var (
+		resourceName = "mongodbatlas_event_trigger.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		appID        = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp    = realm.EventTrigger{}
+	)
+	event := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "SCHEDULED",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			Schedule: "0 8 * * *",
+		},
+	}
+	eventUpdated := realm.EventTriggerRequest{
+		Name:       acctest.RandomWithPrefix("test-acc"),
+		Type:       "SCHEDULED",
+		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
+		Disabled:   pointy.Bool(false),
+		Config: &realm.EventTriggerConfig{
+			Schedule: "0 8 * * *",
+		},
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID, &event),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID, &eventUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
@@ -566,4 +622,19 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, a
 		}
 	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, *eventTrigger.Disabled, eventTrigger.Config.Schedule,
 		awsAccID, awsRegion)
+}
+
+func testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID string, eventTrigger *realm.EventTriggerRequest) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_event_trigger" "test" {
+  project_id      = %[1]q
+  app_id          = %[2]q
+  name            = %[3]q
+  type            = %[4]q
+  function_id     = %[5]q
+  disabled        = %[6]t
+  config_schedule = %[7]q
+}
+	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID,
+		*eventTrigger.Disabled, eventTrigger.Config.Schedule)
 }
