@@ -62,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use. 
-* `version_release_system` - Method by which this cluster maintains the MongoDB versions. 
+* `version_release_system` - Release cadence that Atlas uses for this cluster.
 
 
 ### bi_connector
