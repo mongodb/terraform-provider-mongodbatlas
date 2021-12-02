@@ -130,6 +130,11 @@ This parameter defaults to false.
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
 * `root_cert_type` - (Optional) - Certificate Authority that MongoDB Atlas clusters use. You can specify ISRGROOTX1 (for ISRG Root X1).
 * `version_release_system` - (Optional) - Method by which this cluster maintains the MongoDB versions. Valid values are `CONTINUOUS` or `LTS` (Long Term Support). This parameter defaults to `LTS`. If you set this parameter to `CONTINUOUS` and set any value for `mongo_db_major_version`, this resource returns an error.
+* `paused` (Optional) - Flag that indicates whether the cluster is paused or not. You can pause M10 or larger clusters.  You cannot initiate pausing for a shared/tenant tier cluster.  See [Considerations for Paused Clusters](https://docs.atlas.mongodb.com/pause-terminate-cluster/#considerations-for-paused-clusters)  
+  **NOTE** Pause lasts for up to 30 days. If you don't resume the cluster within 30 days, Atlas resumes the cluster.  When the cluster resumption happens Terraform will flag the changed state.  If you wish to keep the cluster paused, reapply your Terraform configuration.   If you prefer to allow the automated change of state to unpaused use:
+  `lifecycle {
+  ignore_changes = [paused]
+  }`
 
 
 ### bi_connector
@@ -275,7 +280,6 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
     - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
-* `paused` - Flag that indicates whether the cluster is paused or not.
 * `state_name` - Current state of the cluster. The possible states are:
     - IDLE
     - CREATING

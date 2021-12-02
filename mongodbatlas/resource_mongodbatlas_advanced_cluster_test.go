@@ -199,6 +199,54 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_multicloudSharded(t *testing.T) 
 	})
 }
 
+func TestAccResourceMongoDBAtlasAdvancedCluster_Paused(t *testing.T) {
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		rName        = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"replication_specs"},
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -371,4 +419,31 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 	`, projectID, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, name string, paused bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  cluster_type = "REPLICASET"
+  paused       = %[3]t
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+  }
+}
+	`, projectID, name, paused)
 }

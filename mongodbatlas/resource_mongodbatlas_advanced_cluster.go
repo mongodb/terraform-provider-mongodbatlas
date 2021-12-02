@@ -135,7 +135,8 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			},
 			"paused": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  false,
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
@@ -344,6 +345,18 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
 	}
 
+	// To pause a cluster
+	if v := d.Get("paused").(bool); v {
+		request = &matlas.AdvancedCluster{
+			Paused: pointy.Bool(v),
+		}
+
+		_, _, err = updateAdvancedCluster(ctx, conn, request, projectID, d.Get("name").(string))
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, d.Get("name").(string), err))
+		}
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":   cluster.ID,
 		"project_id":   projectID,
@@ -505,26 +518,37 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	// Has changes
-	if !reflect.DeepEqual(cluster, matlas.AdvancedCluster{}) {
-		_, _, err := conn.AdvancedClusters.Update(ctx, projectID, clusterName, cluster)
+	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
+		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
+			_, _, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName)
+			if err != nil {
+				var target *matlas.ErrorResponse
+				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
+					clusterRequest := &matlas.AdvancedCluster{
+						Paused: pointy.Bool(false),
+					}
+					_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+					}
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 		}
 	}
 
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    3 * time.Hour,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
+	if d.Get("paused").(bool) {
+		clusterRequest := &matlas.AdvancedCluster{
+			Paused: pointy.Bool(true),
+		}
 
-	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		}
 	}
 
 	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
@@ -953,4 +977,28 @@ func replicationSpecsHashSet(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].(*schema.Set)))
 	buf.WriteString(m["zone_name"].(string))
 	return HashCodeString(buf.String())
+}
+
+func updateAdvancedCluster(ctx context.Context, conn *matlas.Client, request *matlas.AdvancedCluster, projectID, name string) (*matlas.AdvancedCluster, *matlas.Response, error) {
+	cluster, resp, err := conn.AdvancedClusters.Update(ctx, projectID, name, request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
 }
