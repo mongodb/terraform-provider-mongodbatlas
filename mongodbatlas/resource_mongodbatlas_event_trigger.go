@@ -271,6 +271,9 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	if v, ok := d.GetOk("config_full_document"); ok {
 		eventTriggerConfig.FullDocument = pointy.Bool(v.(bool))
 	}
+	if v, ok := d.GetOk("config_full_document_before"); ok {
+		eventTriggerConfig.FullDocumentBeforeChange = pointy.Bool(v.(bool))
+	}
 	if oksch {
 		eventTriggerConfig.Schedule = sche.(string)
 	}
@@ -364,9 +367,11 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 	if err = d.Set("config_full_document", resp.Config.FullDocument); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err))
 	}
+
 	if err = d.Set("config_full_document_before", resp.Config.FullDocumentBeforeChange); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document_before", projectID, appID, err))
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_full_document", projectID, appID, err))
 	}
+
 	if err = d.Set("config_schedule", resp.Config.Schedule); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule", projectID, appID, err))
 	}
@@ -411,6 +416,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		eventTriggerConfig.Match = cast.ToStringMap(d.Get("config_match").(string))
 		eventTriggerConfig.Project = cast.ToStringMap(d.Get("config_project").(string))
 		eventTriggerConfig.FullDocument = pointy.Bool(d.Get("config_full_document").(bool))
+		eventTriggerConfig.FullDocumentBeforeChange = pointy.Bool(d.Get("config_full_document_before").(bool))
 	}
 	if typeTrigger == "AUTHENTICATION" {
 		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)
