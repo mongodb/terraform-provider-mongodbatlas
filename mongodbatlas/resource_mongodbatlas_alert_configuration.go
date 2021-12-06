@@ -20,9 +20,13 @@ import (
 const (
 	errorCreateAlertConf  = "error creating Alert Configuration information: %s"
 	errorReadAlertConf    = "error getting Alert Configuration information: %s"
+	errorUpdateAlertConf  = "error updating Alert Configuration information: %s"
 	errorDeleteAlertConf  = "error deleting Alert Configuration information: %s"
 	errorAlertConfSetting = "error setting `%s` for Alert Configuration (%s): %s"
 	errorImportAlertConf  = "couldn't import Alert Configuration (%s) in project %s, error: %s"
+	pagerDuty             = "PAGER_DUTY"
+	opsGenie              = "OPS_GENIE"
+	victorOps             = "VICTOR_OPS"
 )
 
 func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
@@ -269,6 +273,9 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"type_name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{"EMAIL", "SMS", pagerDuty, "SLACK",
+								"FLOWDOCK", "DATADOG", opsGenie, victorOps,
+								"WEBHOOK", "USER", "TEAM", "GROUP", "ORG"}, false),
 						},
 						"username": {
 							Type:     schema.TypeString,
@@ -309,8 +316,13 @@ func resourceMongoDBAtlasAlertConfigurationCreate(ctx context.Context, d *schema
 		Matchers:        expandAlertConfigurationMatchers(d),
 		MetricThreshold: expandAlertConfigurationMetricThresholdConfig(d),
 		Threshold:       expandAlertConfigurationThresholdConfig(d),
-		Notifications:   expandAlertConfigurationNotification(d),
 	}
+
+	notifications, err := expandAlertConfigurationNotification(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorCreateAlertConf, err))
+	}
+	req.Notifications = notifications
 
 	resp, _, err := conn.AlertConfigurations.Create(ctx, projectID, req)
 	if err != nil {
@@ -412,7 +424,11 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(ctx context.Context, d *schema
 	}
 
 	if d.HasChange("notification") {
-		req.Notifications = expandAlertConfigurationNotification(d)
+		notifications, err := expandAlertConfigurationNotification(d)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorUpdateAlertConf, err))
+		}
+		req.Notifications = notifications
 	}
 
 	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
@@ -424,7 +440,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(ctx context.Context, d *schema
 	}
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorReadAlertConf, err))
+		return diag.FromErr(fmt.Errorf(errorUpdateAlertConf, err))
 	}
 
 	return resourceMongoDBAtlasAlertConfigurationRead(ctx, d, meta)
@@ -670,11 +686,17 @@ func flattenAlertConfigurationThresholdConfig(m *matlas.Threshold) []interface{}
 	return []interface{}{}
 }
 
-func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notification {
+func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Notification, error) {
 	notifications := make([]matlas.Notification, len(d.Get("notification").([]interface{})))
 
 	for i, value := range d.Get("notification").([]interface{}) {
 		v := value.(map[string]interface{})
+		if v1, ok := v["interval_min"]; ok && v1.(int) > 0 {
+			typeName := v["type_name"].(string)
+			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
+				return nil, fmt.Errorf(`'interval_min' doesn't need to be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
+			}
+		}
 		notifications[i] = matlas.Notification{
 			APIToken:            cast.ToString(v["api_token"]),
 			ChannelName:         cast.ToString(v["channel_name"]),
@@ -701,7 +723,7 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) []matlas.Notif
 		}
 	}
 
-	return notifications
+	return notifications, nil
 }
 
 func flattenAlertConfigurationNotifications(notifications []matlas.Notification) []map[string]interface{} {

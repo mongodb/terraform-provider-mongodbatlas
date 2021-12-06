@@ -288,6 +288,81 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_DataDog(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasAlertConfiguration_PagerDuty(t *testing.T) {
+	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		serviceKey   = os.Getenv("PAGER_DUTY_SERVICE_KEY")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(projectID, serviceKey, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasAlertConfiguration_OpsGenie(t *testing.T) {
+	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		apiKey       = os.Getenv("OPS_GENIE_API_KEY")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(projectID, apiKey, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasAlertConfiguration_VictorOps(t *testing.T) {
+	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		apiKey       = os.Getenv("VICTOR_OPS_API_KEY")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(projectID, apiKey, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *matlas.AlertConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -577,4 +652,54 @@ resource "mongodbatlas_alert_configuration" "test" {
   }
 }
 	`, projectID, enabled, dataDogAPIKey, dataDogRegion)
+}
+
+func testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = %[1]q
+  event_type = "NO_PRIMARY"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name    = "PAGER_DUTY"
+    service_key  = %[2]q
+    delay_min    = 0
+  }
+}
+	`, projectID, serviceKey, enabled)
+}
+
+func testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(projectID, apiKey string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = %[1]q
+  event_type = "NO_PRIMARY"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name          = "OPS_GENIE"
+    ops_genie_api_key  = %[2]q
+    ops_genie_region   = "US"
+    delay_min          = 0
+  }
+}
+	`, projectID, apiKey, enabled)
+}
+
+func testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(projectID, apiKey string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = %[1]q
+  event_type = "NO_PRIMARY"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name              = "VICTOR_OPS"
+    victor_ops_api_key     = %[2]q
+    victor_ops_routing_key = "testing"
+    delay_min              = 0
+  }
+}
+	`, projectID, apiKey, enabled)
 }
