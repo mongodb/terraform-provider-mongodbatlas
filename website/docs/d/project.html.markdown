@@ -86,8 +86,8 @@ The following are valid roles:
   * `GROUP_DATA_ACCESS_READ_WRITE`
   * `GROUP_DATA_ACCESS_READ_ONLY`
   * `GROUP_CLUSTER_MANAGER`
-* `api_keys.#.api_key_id` - The unique identifier of the api key you want to associate with the project. The api key and project must share the same parent organization.
-* `api_keys.#.role_names` - Each string in the array represents a project role assigned to the api key.
+* `api_keys.#.api_key_id` - The unique identifier of the programmatic API key you want to associate with the project. The programmatic API key and project must share the same parent organization.
+* `api_keys.#.role_names` - Each string in the array represents a project role assigned to the programmatic API key.
 The following are valid roles:
   * `GROUP_OWNER`
   * `GROUP_READ_ONLY`

@@ -63,14 +63,13 @@ Teams attribute is optional
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
-### Api Keys
-api_keys attribute is optional
+### Programmatic API Keys
+api_keys allows one to assign an existing organization programmatic API key to a Project. The api_keys attribute is optional.
 
-~> **NOTE:** Atlas limits the number of api keys to a maximum of 500 api keys per organization.
 
-* `api_key_id` - (Required) The unique identifier of the api key you want to associate with the project.
+* `api_key_id` - (Required) The unique identifier of the Programmatic API key you want to associate with the Project.  The Programmatic API key and Project must share the same parent organization.
 
-* `role_names` - (Required) Each string in the array represents a project role you want to assign to the api key. You must specify an array even if you are only associating a single role with the api key.
+* `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
  The following are valid roles:
   * `GROUP_OWNER`
   * `GROUP_READ_ONLY`
