@@ -80,7 +80,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 * `auto_scaling_disk_gb_enabled` - Indicates whether disk auto-scaling is enabled.
 * `auto_scaling_compute_enabled` - Specifies whether cluster tier auto-scaling is enabled. The default is false.
-* `auto_scaling_compute_scale_down_enabled` -  Set to `true` to enable the cluster tier to scale down.
+* `auto_scaling_compute_scale_down_enabled` -  * `auto_scaling_compute_scale_down_enabled` - Specifies whether cluster tier auto-down-scaling is enabled.
 * `backup_enabled` - Legacy Option, Indicates whether Atlas continuous backups are enabled for the cluster.
 * `bi_connector` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details. **DEPRECATED** Use `bi_connector_config` instead.
 * `bi_connector_config` - Indicates BI Connector for Atlas configuration on this cluster. BI Connector for Atlas is only available for M10+ clusters. See [BI Connector](#bi-connector) below for more details.

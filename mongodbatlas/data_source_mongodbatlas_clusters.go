@@ -349,6 +349,8 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 		}
 
 		result := map[string]interface{}{
+			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
+			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"auto_scaling_disk_gb_enabled":            clusters[i].BackupEnabled,
 			"backup_enabled":                          clusters[i].BackupEnabled,
 			"provider_backup_enabled":                 clusters[i].ProviderBackupEnabled,
@@ -368,22 +370,20 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"srv_address":                             clusters[i].SrvAddress,
 			"state_name":                              clusters[i].StateName,
 			"replication_factor":                      clusters[i].ReplicationFactor,
-			"backing_provider_name":                   clusters[i].ProviderSettings.BackingProviderName,
-			"provider_disk_iops":                      clusters[i].ProviderSettings.DiskIOPS,
-			"provider_disk_type_name":                 clusters[i].ProviderSettings.DiskTypeName,
-			"provider_encrypt_ebs_volume":             clusters[i].ProviderSettings.EncryptEBSVolume,
-			"provider_instance_size_name":             clusters[i].ProviderSettings.InstanceSizeName,
-			"provider_name":                           clusters[i].ProviderSettings.ProviderName,
-			"provider_region_name":                    clusters[i].ProviderSettings.RegionName,
-			"bi_connector":                            flattenBiConnector(clusters[i].BiConnector),
-			"bi_connector_config":                     flattenBiConnectorConfig(clusters[i].BiConnector),
-			"replication_specs":                       flattenReplicationSpecs(clusters[i].ReplicationSpecs),
-			"labels":                                  flattenLabels(clusters[i].Labels),
-			"snapshot_backup_policy":                  snapshotBackupPolicy,
-			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
-			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"provider_auto_scaling_compute_min_instance_size": clusters[i].ProviderSettings.AutoScaling.Compute.MinInstanceSize,
 			"provider_auto_scaling_compute_max_instance_size": clusters[i].ProviderSettings.AutoScaling.Compute.MaxInstanceSize,
+			"backing_provider_name":                           clusters[i].ProviderSettings.BackingProviderName,
+			"provider_disk_iops":                              clusters[i].ProviderSettings.DiskIOPS,
+			"provider_disk_type_name":                         clusters[i].ProviderSettings.DiskTypeName,
+			"provider_encrypt_ebs_volume":                     clusters[i].ProviderSettings.EncryptEBSVolume,
+			"provider_instance_size_name":                     clusters[i].ProviderSettings.InstanceSizeName,
+			"provider_name":                                   clusters[i].ProviderSettings.ProviderName,
+			"provider_region_name":                            clusters[i].ProviderSettings.RegionName,
+			"bi_connector":                                    flattenBiConnector(clusters[i].BiConnector),
+			"bi_connector_config":                             flattenBiConnectorConfig(clusters[i].BiConnector),
+			"replication_specs":                               flattenReplicationSpecs(clusters[i].ReplicationSpecs),
+			"labels":                                          flattenLabels(clusters[i].Labels),
+			"snapshot_backup_policy":                          snapshotBackupPolicy,
 		}
 		results = append(results, result)
 	}
