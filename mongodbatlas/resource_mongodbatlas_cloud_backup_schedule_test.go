@@ -26,58 +26,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(projectID, clusterName, &matlas.PolicyItem{
-					FrequencyInterval: 1,
-					RetentionUnit:     "days",
-					RetentionValue:    1,
-				}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(projectID, clusterName, &matlas.PolicyItem{
-					FrequencyInterval: 2,
-					RetentionUnit:     "days",
-					RetentionValue:    3,
-				}),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "3"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccResourceMongoDBAtlasCloudBackupSchedule_noPolicies(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
@@ -240,6 +188,58 @@ func TestAccResourceMongoDBAtlasCloudBackupScheduleImport_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasCloudBackupSchedule_azure(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(projectID, clusterName, &matlas.PolicyItem{
+					FrequencyInterval: 1,
+					RetentionUnit:     "days",
+					RetentionValue:    1,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(projectID, clusterName, &matlas.PolicyItem{
+					FrequencyInterval: 2,
+					RetentionUnit:     "days",
+					RetentionValue:    3,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "3"),
 				),
 			},
 			{
@@ -456,11 +456,10 @@ func testAccMongoDBAtlasCloudBackupScheduleBasicConfig(projectID, clusterName st
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = %[1]q
   name         = %[2]q
-  disk_size_gb = 5
 
   // Provider Settings "block"
-  provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
+  provider_name               = "AZURE"
+  provider_region_name        = "US_EAST_2"
   provider_instance_size_name = "M10"
   cloud_backup                = true //enable cloud provider snapshots
 }
