@@ -416,9 +416,16 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		req.Policies = []matlas.Policy{policy}
 	}
 
-	req.ReferenceHourOfDay = pointy.Int64(cast.ToInt64(d.Get("reference_hour_of_day")))
-	req.ReferenceMinuteOfHour = pointy.Int64(cast.ToInt64(d.Get("reference_minute_of_hour")))
-	req.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
+	if v, ok := d.GetOk("reference_hour_of_day"); ok {
+		req.ReferenceHourOfDay = pointy.Int64(cast.ToInt64(v))
+	}
+	if v, ok := d.GetOk("reference_minute_of_hour"); ok {
+		req.ReferenceMinuteOfHour = pointy.Int64(cast.ToInt64(v))
+	}
+	if v, ok := d.GetOk("restore_window_days"); ok {
+		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(v))
+	}
+
 	value := pointy.Bool(d.Get("update_snapshots").(bool))
 	if *value {
 		req.UpdateSnapshots = value
@@ -426,7 +433,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 
 	_, _, err = conn.CloudProviderSnapshotBackupPolicies.Update(context.Background(), projectID, clusterName, req)
 	if err != nil {
-		return fmt.Errorf(errorSnapshotBackupScheduleUpdate, err)
+		return err
 	}
 
 	return nil
