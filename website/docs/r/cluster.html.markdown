@@ -349,6 +349,12 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 * `provider_auto_scaling_compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (e.g., M40). Required if `autoScaling.compute.enabled` is `true`.
 
 * `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
+* `paused` (Optional) - Flag that indicates whether the cluster is paused or not. You can pause M10 or larger clusters.  You cannot initiate pausing for a shared/tenant tier cluster.  See [Considerations for Paused Clusters](https://docs.atlas.mongodb.com/pause-terminate-cluster/#considerations-for-paused-clusters)  
+  **NOTE** Pause lasts for up to 30 days. If you don't resume the cluster within 30 days, Atlas resumes the cluster.  When the cluster resumption happens Terraform will flag the changed state.  If you wish to keep the cluster paused, reapply your Terraform configuration.   If you prefer to allow the automated change of state to unpaused use:
+  `lifecycle {
+  ignore_changes = [paused]
+  }`
+
 
 ### Multi-Region Cluster 
 
@@ -506,7 +512,6 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `container_id` - The Network Peering Container ID. The id of the container either created programmatically by the user before any clusters existed in the project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.
-* `paused` - Flag that indicates whether the cluster is paused or not.
 * `srv_address` - Connection string for connecting to the Atlas cluster. The +srv modifier forces the connection to use TLS/SSL. See the mongoURI for additional options.
 * `state_name` - Current state of the cluster. The possible states are:
     - IDLE

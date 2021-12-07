@@ -302,7 +302,8 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"paused": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  false,
 			},
 			"srv_address": {
 				Type:     schema.TypeString,
@@ -553,6 +554,18 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, cluster.Name, err))
 			}
+		}
+	}
+
+	// To pause a cluster
+	if v := d.Get("paused").(bool); v {
+		clusterRequest = &matlas.Cluster{
+			Paused: pointy.Bool(v),
+		}
+
+		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string))
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, d.Get("name").(string), err))
 		}
 	}
 
@@ -870,25 +883,25 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
-		_, _, err := conn.Clusters.Update(ctx, projectID, clusterName, cluster)
+		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
+			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName)
+			if err != nil {
+				var target *matlas.ErrorResponse
+				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
+					clusterRequest := &matlas.Cluster{
+						Paused: pointy.Bool(false),
+					}
+					_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
+					}
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
-	}
-
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    3 * time.Hour,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 	}
 
 	/*
@@ -904,6 +917,17 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName, err))
 				}
 			}
+		}
+	}
+
+	if d.Get("paused").(bool) {
+		clusterRequest := &matlas.Cluster{
+			Paused: pointy.Bool(true),
+		}
+
+		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 	}
 
@@ -1587,4 +1611,28 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
+	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
 }
