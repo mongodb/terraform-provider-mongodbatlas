@@ -21,4 +21,5 @@ jobs:
       - name: Test
         env:
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
+          MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
         run: make test
