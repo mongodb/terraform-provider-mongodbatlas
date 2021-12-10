@@ -45,7 +45,6 @@ func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   pointy.Bool(false),
 		},
 	}
 
@@ -55,14 +54,14 @@ func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE"`, &event),
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE"`, &event, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated),
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, &eventUpdated, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -500,7 +499,7 @@ func testAccCheckMongoDBAtlasEventTriggerImportStateIDFunc(resourceName string) 
 	}
 }
 
-func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest) string {
+func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest, fullDoc, fullDocBefore bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
 			project_id = %[1]q
@@ -513,6 +512,8 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, ope
 			config_database = %[8]q
 			config_collection = %[9]q
 			config_service_id = %[10]q
+			config_full_document = %[11]t
+			config_full_document_before = %[12]t
 			config_match = <<-EOF
 			{
 			  "updateDescription.updatedFields": {
@@ -523,7 +524,7 @@ func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, ope
 }
 	`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, operationTypes,
 		eventTrigger.Config.Database, eventTrigger.Config.Collection,
-		eventTrigger.Config.ServiceID)
+		eventTrigger.Config.ServiceID, fullDoc, fullDocBefore)
 }
 
 func testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, operationTypes, awsAccID, awsRegion string, eventTrigger *realm.EventTriggerRequest) string {
