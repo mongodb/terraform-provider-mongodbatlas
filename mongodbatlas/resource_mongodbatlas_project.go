@@ -1,6 +1,7 @@
 package mongodbatlas
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 
@@ -92,6 +93,7 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 						},
 					},
 				},
+				Set: apiKeysHashSet,
 			},
 		},
 	}
@@ -427,4 +429,11 @@ func getStateAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, remove
 	removedAPIKeys = rAPIKeys.List()
 
 	return
+}
+
+func apiKeysHashSet(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(m["api_key_id"].(string))
+	return HashCodeString(buf.String())
 }
