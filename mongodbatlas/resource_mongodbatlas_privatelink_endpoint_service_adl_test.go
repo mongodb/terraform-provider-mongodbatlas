@@ -12,9 +12,9 @@ import (
 
 func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T) {
 	var (
-		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.adl-test"
+		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		endpointID    = "1"
+		endpointID    = "vpce-jjg5e24qp93513h03"
 		commentOrigin = "this is a comment for adl private link endpoint"
 		commentUpdate = "this is a comment for adl private link endpoint [UPDATED]"
 	)
@@ -51,10 +51,9 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T
 
 func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_importBasic(t *testing.T) {
 	var (
-		//privateLink   = matlas.PrivateLinkEndpointADL{}
 		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		endpointID    = ""
+		endpointID    = "vpce-jjg5e24qp93513h03"
 		commentOrigin = "this is a comment for adl private link endpoint"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,16 +61,15 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_importBasic(t *tes
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
-			/*	{
+			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, commentOrigin),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLExists(resourceName, &privateLink),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "type", "DATA_LAKE"),
-					resource.TestCheckResourceAttr(resourceName, "provider", "AWS"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "comment", commentOrigin),
 				),
-			},*/
+			},
 			{
 				Config:            testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, commentOrigin),
 				ResourceName:      resourceName,
@@ -104,7 +102,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy(state *terrafo
 
 func testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint_service_adl" "adl_test" {
+		resource "mongodbatlas_privatelink_endpoint_service_adl" "test" {
 			project_id   = "%[1]s"
 			endpoint_id  = "%[2]s"
 			comment      = "%[3]s"

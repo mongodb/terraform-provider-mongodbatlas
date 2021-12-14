@@ -9,10 +9,9 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T) {
-	//SkipTestExtCred(t)
 	datasourceName := "data.mongodbatlas_privatelink_endpoint_service_adl.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID := "1"
+	endpointID := "vpce-jjg5e24qp93513h03"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },

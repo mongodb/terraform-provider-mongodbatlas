@@ -39,13 +39,11 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADL() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Default:      "AWS",
 				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
 			},
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Default:      "DATA_LAKE",
 				ValidateFunc: validation.StringInSlice([]string{"DATA_LAKE"}, false),
 			},
 			"comment": {
