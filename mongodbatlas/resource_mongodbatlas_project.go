@@ -77,7 +77,6 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 			"api_keys": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_key_id": {
