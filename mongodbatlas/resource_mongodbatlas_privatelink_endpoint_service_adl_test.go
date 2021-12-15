@@ -91,7 +91,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy(state *terrafo
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		privateLink, _, err := conn.PrivateLinkEndpointsADL.Get(context.Background(), ids["project_id"], ids["endpoint_id"])
+		privateLink, _, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 		if err == nil && privateLink != nil {
 			return fmt.Errorf("endpoint_id (%s) still exists", ids["endpoint_id"])
 		}
@@ -127,7 +127,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLExists(resourceName st
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.PrivateLinkEndpointsADL.Get(context.Background(), ids["project_id"], ids["endpoint_id"])
+		_, _, err := conn.DataLakes.GetPrivateLinkEndpoint(context.Background(), ids["project_id"], ids["endpoint_id"])
 		if err == nil {
 			return nil
 		}

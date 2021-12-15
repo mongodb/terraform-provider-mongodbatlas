@@ -72,7 +72,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADLRead(ctx context.Contex
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	privateLinkEndpoints, _, err := conn.PrivateLinkEndpointsADL.List(ctx, projectID)
+	privateLinkEndpoints, _, err := conn.DataLakes.ListPrivateLinkEndpoint(ctx, projectID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting privateLinkEndpoints information: %s", err))
 	}
@@ -108,7 +108,7 @@ func flattenADLPrivateEndpointLinks(links []*matlas.Link) []map[string]interface
 	return linksList
 }
 
-func flattenADLPrivateLinkEndpoints(privateLinks []*matlas.PrivateLinkEndpointADL) []map[string]interface{} {
+func flattenADLPrivateLinkEndpoints(privateLinks []*matlas.PrivateLinkEndpointDataLake) []map[string]interface{} {
 	var results []map[string]interface{}
 
 	if len(privateLinks) > 0 {

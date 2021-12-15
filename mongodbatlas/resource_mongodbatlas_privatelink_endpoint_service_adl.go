@@ -61,7 +61,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLUpdate(ctx context.Context
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	privateLink, _, err := conn.PrivateLinkEndpointsADL.Get(ctx, projectID, endpointID)
+	privateLink, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
 		return diag.Errorf("error getting private link endpoint information: %s", err)
 	}
@@ -70,7 +70,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLUpdate(ctx context.Context
 		privateLink.Comment = d.Get("comment").(string)
 	}
 
-	_, _, err = conn.PrivateLinkEndpointsADL.Create(context.Background(), projectID, privateLink)
+	_, _, err = conn.DataLakes.CreatePrivateLinkEndpoint(context.Background(), projectID, privateLink)
 	if err != nil {
 		return diag.Errorf("error updating private link endpoint (%s): %s", privateLink.EndpointID, err)
 	}
@@ -83,14 +83,14 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLCreate(ctx context.Context
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
-	privateLinkRequest := &matlas.PrivateLinkEndpointADL{
+	privateLinkRequest := &matlas.PrivateLinkEndpointDataLake{
 		EndpointID: d.Get("endpoint_id").(string),
 		Type:       d.Get("type").(string),
 		Provider:   d.Get("provider_name").(string),
 		Comment:    d.Get("comment").(string),
 	}
 
-	_, _, err := conn.PrivateLinkEndpointsADL.Create(ctx, projectID, privateLinkRequest)
+	_, _, err := conn.DataLakes.CreatePrivateLinkEndpoint(ctx, projectID, privateLinkRequest)
 	if err != nil {
 		return diag.Errorf(errorADLServiceEndpointAdd, privateLinkRequest.EndpointID, err)
 	}
@@ -111,7 +111,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context, 
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	privateLinkResponse, _, err := conn.PrivateLinkEndpointsADL.Get(ctx, projectID, endpointID)
+	privateLinkResponse, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -151,7 +151,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLDelete(ctx context.Context
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	_, err := conn.PrivateLinkEndpointsADL.Delete(ctx, projectID, endpointID)
+	_, err := conn.DataLakes.DeletePrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
 		return diag.Errorf("error deleting adl private link endpoint(%s): %s", endpointID, err)
 	}
@@ -170,7 +170,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLImportState(ctx context.Co
 	projectID := parts[0]
 	endpointID := parts[1]
 
-	_, _, err := conn.PrivateLinkEndpointsADL.Get(ctx, projectID, endpointID)
+	_, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't adl private link endpoint (%s) in projectID (%s) , error: %s", endpointID, projectID, err)
 	}

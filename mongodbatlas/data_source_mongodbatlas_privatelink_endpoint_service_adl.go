@@ -42,7 +42,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	privateLinkResponse, _, err := conn.PrivateLinkEndpointsADL.Get(ctx, projectID, endpointID)
+	privateLinkResponse, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
