@@ -97,7 +97,7 @@ func getProjectAPIKeys(ctx context.Context, conn *matlas.Client, orgID, projectI
 		for _, role := range key.Roles {
 			// ProjectAPIKeys.List returns all API keys of the Project, including the org and project roles
 			// For more details: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/
-			if !strings.HasPrefix(role.RoleName, "ORG_") {
+			if !strings.HasPrefix(role.RoleName, "ORG_") && role.GroupID == projectID {
 				roles = append(roles, role.RoleName)
 			}
 		}
