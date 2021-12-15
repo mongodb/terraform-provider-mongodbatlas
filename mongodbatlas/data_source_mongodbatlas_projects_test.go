@@ -20,6 +20,9 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
+	if len(apiKeysIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
@@ -64,6 +67,9 @@ func TestAccDataSourceMongoDBAtlasProjects_withPagination(t *testing.T) {
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
+	if len(apiKeysIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.Test(t, resource.TestCase{
