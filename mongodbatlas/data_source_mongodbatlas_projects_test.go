@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"testing"
@@ -114,7 +113,6 @@ func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []
 		%s
 		data "mongodbatlas_projects" "test" {}
 	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams, apiKeys))
-	log.Printf("[DEBUG] config: %s", config)
 	return config
 }
 
