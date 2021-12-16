@@ -54,6 +54,7 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -103,6 +104,7 @@ func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
