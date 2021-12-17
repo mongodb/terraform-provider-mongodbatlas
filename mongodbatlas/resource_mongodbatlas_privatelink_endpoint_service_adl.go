@@ -101,7 +101,6 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLCreate(ctx context.Context
 	}))
 
 	return resourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx, d, meta)
-
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

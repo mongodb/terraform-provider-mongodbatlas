@@ -67,7 +67,6 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADL() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADLRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
