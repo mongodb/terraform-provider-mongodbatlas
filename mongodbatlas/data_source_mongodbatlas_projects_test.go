@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"testing"
@@ -19,6 +18,9 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
+	if len(apiKeysIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -52,6 +54,7 @@ func TestAccDataSourceMongoDBAtlasProjects_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -64,6 +67,9 @@ func TestAccDataSourceMongoDBAtlasProjects_withPagination(t *testing.T) {
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
+	if len(apiKeysIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.Test(t, resource.TestCase{
@@ -98,6 +104,7 @@ func TestAccDataSourceMongoDBAtlasProjects_withPagination(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -108,7 +115,6 @@ func testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID string, teams []
 		%s
 		data "mongodbatlas_projects" "test" {}
 	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams, apiKeys))
-	log.Printf("[DEBUG] config: %s", config)
 	return config
 }
 

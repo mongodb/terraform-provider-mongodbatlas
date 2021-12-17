@@ -12,11 +12,13 @@ import (
 
 func TestAccDataSourceMongoDBAtlasClusters_basic(t *testing.T) {
 	var (
-		cluster        matlas.Cluster
-		resourceName   = "mongodbatlas_cluster.basic_ds"
-		dataSourceName = "data.mongodbatlas_clusters.basic_ds"
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name           = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cluster         matlas.Cluster
+		resourceName    = "mongodbatlas_cluster.basic_ds"
+		dataSourceName  = "data.mongodbatlas_clusters.basic_ds"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name            = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		minSizeInstance = "M20"
+		maxSizeInstance = "M80"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,7 +27,7 @@ func TestAccDataSourceMongoDBAtlasClusters_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, "true"),
+				Config: testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, "true", "true", "true", minSizeInstance, maxSizeInstance),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -39,14 +41,16 @@ func TestAccDataSourceMongoDBAtlasClusters_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.name"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.labels.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.auto_scaling_compute_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.auto_scaling_compute_scale_down_enabled", "false"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, backupEnabled string) string {
+func testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, backupEnabled, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "basic_ds" {
 			project_id   = "%s"
@@ -69,7 +73,7 @@ func testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, backupEnabled 
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
+			provider_instance_size_name = "M40"
 
 			labels {
 				key   = "key 1"
@@ -79,10 +83,15 @@ func testAccDataSourceMongoDBAtlasClustersConfig(projectID, name, backupEnabled 
 				key   = "key 2"
 				value = "value 2"
 			}
+
+		auto_scaling_compute_enabled            = %s
+		auto_scaling_compute_scale_down_enabled = %s
+		provider_auto_scaling_compute_min_instance_size = "%s"
+		provider_auto_scaling_compute_max_instance_size = "%s"
 		}
 
 		data "mongodbatlas_clusters" "basic_ds" {
 			project_id = mongodbatlas_cluster.basic_ds.project_id
 		}
-	`, projectID, name, backupEnabled)
+	`, projectID, name, backupEnabled, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName)
 }
