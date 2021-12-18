@@ -416,13 +416,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		req.Policies = []matlas.Policy{policy}
 	}
 
-	if v, ok := d.GetOk("reference_hour_of_day"); ok {
+	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
 		req.ReferenceHourOfDay = pointy.Int64(cast.ToInt64(v))
 	}
-	if v, ok := d.GetOk("reference_minute_of_hour"); ok {
+	if v, ok := d.GetOkExists("reference_minute_of_hour"); ok {
 		req.ReferenceMinuteOfHour = pointy.Int64(cast.ToInt64(v))
 	}
-	if v, ok := d.GetOk("restore_window_days"); ok {
+	if v, ok := d.GetOkExists("restore_window_days"); ok {
 		req.RestoreWindowDays = pointy.Int64(cast.ToInt64(v))
 	}
 
