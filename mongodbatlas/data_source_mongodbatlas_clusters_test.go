@@ -44,6 +44,7 @@ func TestAccDataSourceMongoDBAtlasClusters_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "results.0.labels.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.0.auto_scaling_compute_enabled", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "results.0.auto_scaling_compute_scale_down_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.version_release_system", "LTS"),
 				),
 			},
 		},
