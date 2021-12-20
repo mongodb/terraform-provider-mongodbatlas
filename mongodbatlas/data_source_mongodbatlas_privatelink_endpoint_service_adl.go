@@ -46,9 +46,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if strings.Contains(err.Error(), "404") {
 			d.SetId("")
 			return nil
 		}
