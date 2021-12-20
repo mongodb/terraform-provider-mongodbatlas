@@ -120,6 +120,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `container_id` - The Network Peering Container ID.
 
+* `version_release_system` - Release cadence that Atlas uses for this cluster.
+
 ### BI Connector
 
 Indicates BI Connector for Atlas configuration.
