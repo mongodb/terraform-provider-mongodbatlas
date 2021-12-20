@@ -110,16 +110,18 @@ func flattenADLPrivateEndpointLinks(links []*matlas.Link) []map[string]interface
 func flattenADLPrivateLinkEndpoints(privateLinks []*matlas.PrivateLinkEndpointDataLake) []map[string]interface{} {
 	var results []map[string]interface{}
 
-	if len(privateLinks) > 0 {
-		results = make([]map[string]interface{}, len(privateLinks))
+	if len(privateLinks) == 0 {
+		return results
+	}
 
-		for k, privateLink := range privateLinks {
-			results[k] = map[string]interface{}{
-				"endpoint_id":   privateLink.EndpointID,
-				"type":          privateLink.Type,
-				"provider_name": privateLink.Provider,
-				"comment":       privateLink.Comment,
-			}
+	results = make([]map[string]interface{}, len(privateLinks))
+
+	for k, privateLink := range privateLinks {
+		results[k] = map[string]interface{}{
+			"endpoint_id":   privateLink.EndpointID,
+			"type":          privateLink.Type,
+			"provider_name": privateLink.Provider,
+			"comment":       privateLink.Comment,
 		}
 	}
 
