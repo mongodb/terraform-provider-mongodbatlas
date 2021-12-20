@@ -2,14 +2,13 @@ package mongodbatlas
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -85,45 +84,48 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 	if err != nil {
 		// case 404
 		// deleted in the backend case
-		var target *matlas.ErrorResponse
-		if errors.As(err, &target) && target.ErrorCode == "NOT_FOUND" {
-			d.SetId("")
+
+		if strings.Contains(err.Error(), "404") {
+			accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), username, orgID)
+			if !accepted {
+				d.SetId("")
+			}
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf("error getting Organization Invitation information: %w", err))
+		return diag.Errorf("error getting Organization Invitation information: %s", err)
 	}
 
 	if err := d.Set("username", orgInvitation.Username); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("org_id", orgInvitation.OrgID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `expires_at` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `expires_at` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `created_at` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `created_at` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `inviter_username` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `inviter_username` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `teams_ids` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `teams_ids` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("roles", orgInvitation.Roles); err != nil {
-		return diag.FromErr(fmt.Errorf("error getting `roles` for Organization Invitation (%s): %w", d.Id(), err))
+		return diag.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -148,7 +150,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 
 	invitationRes, _, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Organization invitation for user %s: %w", d.Get("username").(string), err))
+		return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -169,7 +171,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 
 	_, err := conn.Organizations.DeleteInvitation(ctx, orgID, invitationID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting Organization invitation for user %s: %w", username, err))
+		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}
 
 	return nil
@@ -188,7 +190,7 @@ func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.Reso
 
 	_, _, err := conn.Organizations.UpdateInvitationByID(ctx, orgID, invitationID, invitationReq)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error updating Organization invitation for user %s: for %w", username, err))
+		return diag.Errorf("error updating Organization invitation for user %s: for %s", username, err)
 	}
 
 	return resourceMongoDBAtlasOrgInvitationRead(ctx, d, meta)
@@ -203,7 +205,7 @@ func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema
 
 	orgInvitations, _, err := conn.Organizations.Invitations(ctx, orgID, nil)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import Organization invitations, error: %w", err)
+		return nil, fmt.Errorf("couldn't import Organization invitations, error: %s", err)
 	}
 
 	for _, orgInvitation := range orgInvitations {
@@ -212,13 +214,13 @@ func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema
 		}
 
 		if err := d.Set("username", orgInvitation.Username); err != nil {
-			return nil, fmt.Errorf("error getting `username` for Organization Invitation (%s): %w", username, err)
+			return nil, fmt.Errorf("error getting `username` for Organization Invitation (%s): %s", username, err)
 		}
 		if err := d.Set("org_id", orgInvitation.GroupID); err != nil {
-			return nil, fmt.Errorf("error getting `org_id` for Organization Invitation (%s): %w", username, err)
+			return nil, fmt.Errorf("error getting `org_id` for Organization Invitation (%s): %s", username, err)
 		}
 		if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
-			return nil, fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %w", username, err)
+			return nil, fmt.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", username, err)
 		}
 		d.SetId(encodeStateID(map[string]string{
 			"username":      username,
@@ -244,4 +246,19 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	username = parts[2]
 
 	return
+}
+
+func validateOrgInvitationAlreadyAccepted(ctx context.Context, conn *MongoDBClient, username, orgID string) (bool, error) {
+	user, _, err := conn.Atlas.AtlasUsers.GetByName(ctx, username)
+	if err != nil {
+		return false, err
+	}
+
+	for _, role := range user.Roles {
+		if role.OrgID == orgID {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

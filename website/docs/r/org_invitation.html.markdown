@@ -69,9 +69,13 @@ In addition to the arguments, this resource exports the following attributes:
 * `invitation_id` - Unique 24-hexadecimal digit string that identifies the invitation in Atlas.
 * `inviter_username` - Atlas user who invited `username` to the organization.
 
+> **NOTE**: If the user declines the invitation or accepts and leave the organization, terraform provider will send again the invitation if you don't remove the invitation from the resource definition.
+
+
 ## Import
 
 Import a user's invitation to an organization by separating the `org_id` and the `username` with a hyphen:
+
 
 ```
 $ terraform import mongodbatlas_org_invitation.my_user 1112222b3bf99403840e8934-my_user@mongodb.com
