@@ -20,7 +20,7 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
 	if len(apiKeysIds) < 2 {
-		t.Fatal("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
+		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,6 +54,7 @@ func TestAccDataSourceMongoDBAtlasProject_byID(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -66,6 +67,9 @@ func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
+	if len(apiKeysIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -100,6 +104,7 @@ func TestAccDataSourceMongoDBAtlasProject_byName(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -345,6 +346,12 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"version_release_system": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "LTS",
+				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
+			},
 		},
 	}
 }
@@ -519,6 +526,10 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 
 	if n, ok := d.GetOk("num_shards"); ok {
 		clusterRequest.NumShards = pointy.Int64(cast.ToInt64(n))
+	}
+
+	if v, ok := d.GetOk("version_release_system"); ok {
+		clusterRequest.VersionReleaseSystem = v.(string)
 	}
 
 	cluster, _, err := conn.Clusters.Create(ctx, projectID, clusterRequest)
@@ -720,6 +731,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "labels", clusterName, err))
 	}
 
+	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "version_release_system", clusterName, err))
+	}
+
 	if providerName != "TENANT" {
 		containers, _, err := conn.Containers.List(ctx, projectID,
 			&matlas.ContainersListOptions{ProviderName: providerName})
@@ -861,6 +876,10 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	if d.HasChange("num_shards") {
 		cluster.NumShards = pointy.Int64(cast.ToInt64(d.Get("num_shards")))
+	}
+
+	if d.HasChange("version_release_system") {
+		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
 	}
 
 	if d.HasChange("labels") {

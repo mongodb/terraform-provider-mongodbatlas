@@ -355,33 +355,36 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
   ignore_changes = [paused]
   }`
 
-
+* `version_release_system` - (Optional) - Release cadence that Atlas uses for this cluster. This parameter defaults to `LTS`. If you set this field to `CONTINUOUS`, you must omit the `mongo_db_major_version` field. Atlas accepts:
+  - `CONTINUOUS`:  Atlas creates your cluster using the most recent MongoDB release. Atlas automatically updates your cluster to the latest major and rapid MongoDB releases as they become available.
+  - `LTS`: Atlas creates your cluster using the latest patch release of the MongoDB version that you specify in the mongoDBMajorVersion field. Atlas automatically updates your cluster to subsequent patch releases of this MongoDB version. Atlas doesn't update your cluster to newer rapid or major MongoDB releases as they become available.
+  
 ### Multi-Region Cluster 
 
 ```terraform
 //Example 3 Multi-Region block
 replication_specs {
-    num_shards = 1
-    regions_config {
-      region_name     = "US_EAST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-    regions_config {
-      region_name     = "US_EAST_2"
-      electable_nodes = 2
-      priority        = 6
-      read_only_nodes = 0
-    }
-    regions_config {
-      region_name     = "US_WEST_1"
-      electable_nodes = 2
-      priority        = 5
-      read_only_nodes = 2
-    }
+  num_shards = 1
+  regions_config {
+    region_name     = "US_EAST_1"
+    electable_nodes = 3
+    priority        = 7
+    read_only_nodes = 0
+  }
+  regions_config {
+    region_name     = "US_EAST_2"
+    electable_nodes = 2
+    priority        = 6
+    read_only_nodes = 0
+  }
+  regions_config {
+    region_name     = "US_WEST_1"
+    electable_nodes = 2
+    priority        = 5
+    read_only_nodes = 2
   }
 }
+
 ```
 
 **Replication Spec**  - Configuration block for multi-region cluster.
