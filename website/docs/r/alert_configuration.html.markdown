@@ -263,7 +263,7 @@ List of notifications to send when an alert condition is detected.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
-* `Roles` - Optional. The following roles grant privileges within a project.
+* `roles` - Optional. If you include this field, Atlas sends alerts only to users assigned the roles you specify in the array. If you omit this field, Atlas sends alerts to users assigned any role. Set this value if you set `type_name` to `ORG` or `GROUP`.
   Accepted values are:
 
     | Project roles                   | Organization roles  |

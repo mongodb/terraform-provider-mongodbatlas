@@ -241,16 +241,6 @@ Notifications to send when an alert condition is detected.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 
-* `Roles` - The following roles grant privileges within a project.
-
-    | Project roles                   | Organization roles  |
-    |:----------                      |:-----------         |
-    | `GROUP_CHARTS_ADMIN`            | `ORG_OWNER`         |
-    | `GROUP_CLUSTER_MANAGER`         | `ORG_MEMBER`        |
-    | `GROUP_DATA_ACCESS_ADMIN`       | `ORG_GROUP_CREATOR` |
-    | `GROUP_DATA_ACCESS_READ_ONLY`   | `ORG_BILLING_ADMIN` |
-    | `GROUP_DATA_ACCESS_READ_WRITE`  | `ORG_READ_ONLY`     |
-    | `GROUP_OWNER`                   |                     |
-    | `GROUP_READ_ONLY`               |                     |
+* `roles` - Atlas role in current Project or Organization. Atlas returns this value if you set `type_name` to `ORG` or `GROUP`.
 
 See detailed information for arguments and attributes: [MongoDB API Alert Configuration](https://docs.atlas.mongodb.com/reference/api/alert-configurations-get-config/)
