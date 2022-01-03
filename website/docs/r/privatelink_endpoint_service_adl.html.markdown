@@ -3,13 +3,13 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: privatelink_endpoint_service_adl"
 sidebar_current: "docs-mongodbatlas-resource-privatelink-endpoint-service-adl"
 description: |-
-Provides DataLake and Online Archive private link endpoint.
+Provides an Atlas Data Lake and Online Archive PrivateLink endpoint.
 ---
 
 
 # privatelink_endpoint_service_adl
 
-`privatelink_endpoint_service_adl` Describe a DataLake and Online Archive private link endpoint resource.
+`privatelink_endpoint_service_adl` Provides an Atlas Data Lake (ADL) and Online Archive PrivateLink endpoint resource.   The same configuration will provide a PrivateLink connection for either Atlas Data Lake or Online Archive.
 
 ## Example Usage
 

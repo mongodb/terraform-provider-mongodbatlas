@@ -51,7 +51,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context
 			return nil
 		}
 
-		return diag.Errorf("error getting adl private link endpoint  information: %s", err)
+		return diag.Errorf("error getting ADL PrivateLink Endpoint Information: %s", err)
 	}
 
 	if err := d.Set("endpoint_id", privateLinkResponse.EndpointID); err != nil {

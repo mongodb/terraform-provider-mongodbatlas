@@ -3,12 +3,12 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: privatelink_endpoints_service_adl"
 sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoints-service-adl"
 description: |-
-Describes the list of all DataLake and Online Archive private link endpoints.
+Describes the list of all Atlas Data Lake and Online Archive PrivateLink endpoints.
 ---
 
 # privatelink_endpoints_service_adl
 
-`privatelink_endpoints_service_adl` Describes the list of all DataLake and Online Archive private link endpoints.
+`privatelink_endpoints_service_adl` Describes the list of all Atlas Data Lake (ADL) and Online Archive PrivateLink endpoints resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -20,7 +20,7 @@ Describes the list of all DataLake and Online Archive private link endpoints.
 resource "mongodbatlas_privatelink_endpoint_service_adl" "adl_test" {
   project_id   = "<PROJECT_ID>"
   endpoint_id  = "<ENDPOINT_ID>"
-  comment      = "comments for private link endpoint adl"
+  comment      = "Comment for PrivateLink endpoint ADL"
   type		 = "DATA_LAKE"
   provider_name	 = "AWS"
 }
@@ -51,8 +51,8 @@ Each object in the `links` array represents an online archive with the following
 Each object in the `results` array represents an online archive with the following attributes:
 
 * `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
-* `type` - Human-readable label that identifies the resource associated with this private endpoint. Value is `DATA_LAKE`.
-* `provider_name` - Human-readable label that identifies the cloud provider for this endpoint. Value is AWS.
+* `type` - Human-readable label that identifies the type of resource to associate with this private endpoint.
+* `provider_name` - Human-readable label that identifies the cloud provider for this endpoint.
 * `comment` - Human-readable string to associate with this private endpoint.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/online-archive-get-all-for-cluster/) Documentation for more information.

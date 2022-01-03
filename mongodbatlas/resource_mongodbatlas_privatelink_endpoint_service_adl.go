@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	errorADLServiceEndpointAdd = "error adding MongoDB ADL Private Link Endpoint Connection(%s): %s"
+	errorADLServiceEndpointAdd = "error adding MongoDB ADL PrivateLink Endpoint Connection(%s): %s"
 )
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADL() *schema.Resource {
@@ -63,7 +63,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLUpdate(ctx context.Context
 
 	privateLink, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
-		return diag.Errorf("error getting private link endpoint information: %s", err)
+		return diag.Errorf("error getting ADL PrivateLink Endpoint Information: %s", err)
 	}
 
 	if d.HasChange("comment") {
@@ -72,7 +72,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLUpdate(ctx context.Context
 
 	_, _, err = conn.DataLakes.CreatePrivateLinkEndpoint(context.Background(), projectID, privateLink)
 	if err != nil {
-		return diag.Errorf("error updating private link endpoint (%s): %s", privateLink.EndpointID, err)
+		return diag.Errorf("error updating ADL PrivateLink endpoint (%s): %s", privateLink.EndpointID, err)
 	}
 
 	return resourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx, d, meta)

@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -73,19 +72,19 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADLRead(ctx context.Contex
 
 	privateLinkEndpoints, _, err := conn.DataLakes.ListPrivateLinkEndpoint(ctx, projectID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting privateLinkEndpoints information: %s", err))
+		return diag.Errorf("error getting ADL PrivateLink Endpoints Information: %s", err)
 	}
 
 	if err := d.Set("links", flattenADLPrivateEndpointLinks(privateLinkEndpoints.Links)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
+		return diag.Errorf("error setting `results`: %s", err)
 	}
 
 	if err := d.Set("results", flattenADLPrivateLinkEndpoints(privateLinkEndpoints.Results)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
+		return diag.Errorf("error setting `results`: %s", err)
 	}
 
 	if err := d.Set("total_count", privateLinkEndpoints.TotalCount); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `total_count`: %s", err))
+		return diag.Errorf("error setting `total_count`: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())
