@@ -71,6 +71,10 @@ In addition to the arguments, this resource exports the following attributes:
 
 > **NOTE**: If the user declines the invitation or accepts and leave the organization, terraform provider will send again the invitation if you don't remove the invitation from the resource definition.
 
+> **NOTE**: The provider also will validate 3 cases:
+>* If the user haven't accepted the invitation, nothing happens.
+>* If the user already belongs to the organization, the provider will remove the invitation from the state, but it's necessary to remove from the terraform resource definition.
+>* If the user is not a member of the organization or rejected the invitation, the provider will try to send again the invitation (unless the invitation get removed from the terraform resource definition). 
 
 ## Import
 
