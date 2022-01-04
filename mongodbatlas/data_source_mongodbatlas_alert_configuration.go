@@ -198,6 +198,10 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"team_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"type_name": {
 							Type:     schema.TypeString,
 							Computed: true,
