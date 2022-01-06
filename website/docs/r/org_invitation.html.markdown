@@ -69,12 +69,10 @@ In addition to the arguments, this resource exports the following attributes:
 * `invitation_id` - Unique 24-hexadecimal digit string that identifies the invitation in Atlas.
 * `inviter_username` - Atlas user who invited `username` to the organization.
 
-> **NOTE**: If the user declines the invitation or accepts the invitation and then leaves the organization, the  provider will re-add the invitation the invitation if the resource definition is not removed from the Terraform configuration.
-
-> **NOTE**: The provider also will validate 3 cases:
->* If the user haven't accepted the invitation, nothing happens.
->* If the user already belongs to the organization, the provider will remove the invitation from the state, but it's necessary to remove from the terraform resource configuration.
->* If the user is not a member of the organization or rejected the invitation, the provider will try to send again the invitation (unless the invitation get removed from the terraform resource configuration). 
+> **NOTE**: Possible provider behavior depending on the invitee's action:
+>* If the user has not yet accepted the invitation, the provider leaves the invitation as is.
+>* If the user has accepted the invitation and is now an organization member, the provider will remove the invitation from the Terraform state.  The invitation must then be removed from the Terraform resource configuration.
+>* If the user accepts the invitation and then leaves the organization, the provider will re-add the invitation if the resource definition is not removed from the Terraform configuration.
 
 ## Import
 
