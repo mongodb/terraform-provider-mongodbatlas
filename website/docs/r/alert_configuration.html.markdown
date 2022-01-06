@@ -244,6 +244,7 @@ List of notifications to send when an alert condition is detected.
 * `service_key` - PagerDuty service key. Required for the PAGER_DUTY notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `sms_enabled` - Flag indicating if text message notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
 * `team_id` - Unique identifier of a team.
+* `team_name` - Label for the team that receives this notification.
 * `type_name` - Type of alert notification.
   Accepted values are:
     - `DATADOG`

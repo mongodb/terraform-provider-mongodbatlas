@@ -270,6 +270,10 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"team_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"type_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -748,6 +752,7 @@ func flattenAlertConfigurationNotifications(notifications []matlas.Notification)
 			"service_key":            notifications[i].ServiceKey,
 			"sms_enabled":            notifications[i].SMSEnabled,
 			"team_id":                notifications[i].TeamID,
+			"team_name":              notifications[i].TeamName,
 			"type_name":              notifications[i].TypeName,
 			"username":               notifications[i].Username,
 			"victor_ops_api_key":     notifications[i].VictorOpsAPIKey,
