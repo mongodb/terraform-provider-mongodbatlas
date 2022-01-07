@@ -77,6 +77,48 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+### Create an alert with two notifications using Email and SMS
+
+
+```terraform
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = "PROJECT ID"
+  event_type = "OUTSIDE_METRIC_THRESHOLD"
+  enabled    = true
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = false
+    email_enabled = true
+    roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
+  }
+
+  notification {
+    type_name     = "ORG"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = true
+    email_enabled = false
+  }
+
+  matcher {
+    field_name = "HOSTNAME_AND_PORT"
+    operator   = "EQUALS"
+    value      = "SECONDARY"
+  }
+
+  metric_threshold_config {
+    metric_name = "ASSERT_REGULAR"
+    operator    = "LESS_THAN"
+    threshold   = 99.0
+    units       = "RAW"
+    mode        = "AVERAGE"
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
@@ -183,7 +225,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
       - `DAYS`
 
 ### Notifications
-Notifications to send when an alert condition is detected.
+List of notifications to send when an alert condition is detected.
 
 * `api_token` - Slack API token. Required for the SLACK notifications type. If the token later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
 * `channel_name` - Slack channel name. Required for the SLACK notifications type.
@@ -202,6 +244,7 @@ Notifications to send when an alert condition is detected.
 * `service_key` - PagerDuty service key. Required for the PAGER_DUTY notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `sms_enabled` - Flag indicating if text message notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
 * `team_id` - Unique identifier of a team.
+* `team_name` - Label for the team that receives this notification.
 * `type_name` - Type of alert notification.
   Accepted values are:
     - `DATADOG`

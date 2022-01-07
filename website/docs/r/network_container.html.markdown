@@ -8,10 +8,10 @@ description: |-
 
 # mongodbatlas_network_container
 
-`mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. The resource requires your Project ID.  Each cloud provider requires slightly different attributes so read the argument reference carefully. 
+`mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. The resource requires your Project ID.  Each cloud provider requires slightly different attributes so read the argument reference carefully.
 
  Network peering container is a general term used to describe any cloud providers' VPC/VNet concept.  Containers only need to be created if the peering connection to the cloud provider will be created before the first cluster that requires the container.  If the cluster has been/will be created first Atlas automatically creates the required container per the "containers per cloud provider" information that follows (in this case you can obtain the container id from the cluster resource attribute `container_id`).
- 
+
 The following is the maximum number of Network Peering containers per cloud provider:
 <br> &#8226;  GCP -  One container per project.
 <br> &#8226;  AWS and Azure - One container per cloud provider region.
@@ -64,7 +64,7 @@ resource "mongodbatlas_network_container" "test" {
   * Lower bound: 192.168.0.0 -	Upper bound:192.168.255.255 -	Prefix:	192.168/16
 
     **Atlas locks this value** if an M10+ cluster or a Network Peering connection already exists. To modify the CIDR block, ensure there are no M10+ clusters in the project and no other Network Peering connections in the project.
-    
+
     **Important**: Atlas limits the number of MongoDB nodes per Network Peering connection based on the CIDR block and the region selected for the project. Contact [MongoDB Support](https://www.mongodb.com/contact?tck=docs_atlas) for any questions on Atlas limits of MongoDB nodes per Network Peering connection.
 
 * `provider_name`  - (Required GCP and AZURE, Optional but recommended for AWS) Cloud provider for this Network Peering connection.  Accepted values are GCP, AWS, AZURE. If omitted, Atlas sets this parameter to AWS.
@@ -81,16 +81,22 @@ In addition to all arguments above, the following attributes are exported:
 * `container_id` - The Network Peering Container ID.
 * `id` - Terraform's unique identifier used internally for state management.
 * `provisioned` - Indicates whether the project has Network Peering connections deployed in the container.
-**AWS ONLY:** 
+
+**AWS ONLY:**
+
 * `region_name` - Atlas name for AWS region where the Atlas container resides.
 * `vpc_id` - Unique identifier of Atlas' AWS VPC.
+
 **CGP ONLY:**
+
 * `gcp_project_id` - Unique identifier of the GCP project in which the network peer resides. Returns null. This value is populated once you create a new network peering connection with the network peering resource.
 * `network_name` - Unique identifier of the Network Peering connection in the Atlas project. Returns null. This value is populated once you create a new network peering connection with the network peering resource.
+
 **AZURE ONLY:**
+
 * `region` - Azure region where the Atlas container resides.
 * `azure_subscription_id` - Unique identifier of the Azure subscription in which the VNet resides.
-* * `vnet_name` - 	The name of the Azure VNet. Returns null. This value is populated once you create a new network peering connection with the network peering resource.
+* `vnet_name` - 	The name of the Azure VNet. Returns null. This value is populated once you create a new network peering connection with the network peering resource.
 
 
 ## Import
