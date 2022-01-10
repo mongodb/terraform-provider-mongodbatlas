@@ -98,8 +98,6 @@ func TestAccDataSourceMongoDBAtlasCluster_advancedConf(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
-					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
