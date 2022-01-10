@@ -210,7 +210,7 @@ Notifications to send when an alert condition is detected.
 * `datadog_region` - Region that indicates which API URL to use. Accepted regions are: `US`, `EU`. The default Datadog region is US.
 * `delay_min` - Number of minutes to wait after an alert condition is detected before sending out the first notification.
 * `email_address` - Email address to which alert notifications are sent. Required for the EMAIL notifications type.
-* `email_enabled` - Flag indicating if email notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
+* `email_enabled` - Flag indicating email notifications should be sent. Atlas returns this value if `type_name` is set  to `ORG`, `GROUP`, or `USER`.
 * `flowdock_api_token` - The Flowdock personal API token. Required for the `FLOWDOCK` notifications type. If the token later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
 * `flow_name` - Flowdock flow name in lower-case letters. Required for the `FLOWDOCK` notifications type
 * `interval_min` - Number of minutes to wait between successive notifications for unacknowledged alerts that are not resolved. The minimum value is 5.
@@ -219,7 +219,7 @@ Notifications to send when an alert condition is detected.
 * `ops_genie_region` - Region that indicates which API URL to use. Accepted regions are: `US` ,`EU`. The default Opsgenie region is US.
 * `org_name` - Flowdock organization name in lower-case letters. This is the name that appears after www.flowdock.com/app/ in the URL string. Required for the FLOWDOCK notifications type.
 * `service_key` - PagerDuty service key. Required for the PAGER_DUTY notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
-* `sms_enabled` - Flag indicating if text message notifications should be sent. Configurable for `ORG`, `GROUP`, and `USER` notifications types.
+* `sms_enabled` - Flag indicating text notifications should be sent. Atlas returns this value if `type_name` is set to `ORG`, `GROUP`, or `USER`.
 * `team_id` - Unique identifier of a team.
 * `team_name` - Label for the team that receives this notification.
 * `type_name` - Type of alert notification.
@@ -242,16 +242,6 @@ Notifications to send when an alert condition is detected.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 
-* `Roles` - The following roles grant privileges within a project.
-
-    | Project roles                   | Organization roles  |
-    |:----------                      |:-----------         |
-    | `GROUP_CHARTS_ADMIN`            | `ORG_OWNER`         |
-    | `GROUP_CLUSTER_MANAGER`         | `ORG_MEMBER`        |
-    | `GROUP_DATA_ACCESS_ADMIN`       | `ORG_GROUP_CREATOR` |
-    | `GROUP_DATA_ACCESS_READ_ONLY`   | `ORG_BILLING_ADMIN` |
-    | `GROUP_DATA_ACCESS_READ_WRITE`  | `ORG_READ_ONLY`     |
-    | `GROUP_OWNER`                   |                     |
-    | `GROUP_READ_ONLY`               |                     |
+* `roles` - Atlas role in current Project or Organization. Atlas returns this value if you set `type_name` to `ORG` or `GROUP`.
 
 See detailed information for arguments and attributes: [MongoDB API Alert Configuration](https://docs.atlas.mongodb.com/reference/api/alert-configurations-get-config/)
