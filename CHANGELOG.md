@@ -1,5 +1,45 @@
 # Changelog
 
+# [v1.2.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.2.0-pre.1) (2022-01-12)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.1.1...v1.2.0-pre.1)
+
+**Closed issues:**
+
+- mongodbatlas\_teams provides a Team resource [\#649](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/649)
+- terraform-provider-mongodbatlas\_v0.8.0 plugin: panic: runtime error: invalid memory address or nil pointer dereference [\#644](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/644)
+- backup snapshot and restore not working automated  [\#642](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/642)
+- Delete default alerts [\#628](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/628)
+- Cannot set multiple notifications for an alert [\#626](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/626)
+- `error deleting MongoDB Network Peering Container`, even though Container exists [\#603](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/603)
+- PRIVATE\_ENDPOINT\_SERVICE\_ALREADY\_EXISTS\_FOR\_REGION [\#590](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/590)
+- INVALID\_CLUSTER\_CONFIGURATION when modifying a cluster to use replication\_specs \(eg for multi-region\) [\#588](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/588)
+
+**Merged pull requests:**
+
+- INTMDB-5: added parameter team name for alert configurations  [\#648](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/648) ([coderGo93](https://github.com/coderGo93))
+- Fix markdown formatting in network\_container.html.markdown [\#647](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/647) ([pmacey](https://github.com/pmacey))
+- INTMDB-15: Added parameter advanced conf for cluster datasource [\#646](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/646) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-284: Updated docs in alert configuration resource and datasource [\#645](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/645) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-285: Fix org\_invitations issue [\#643](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/643) ([abner-dou](https://github.com/abner-dou))
+- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.9.0 to 2.10.1 [\#641](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/641) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-263: Create Resource and Datasource for private\_link\_endpoint\_adl [\#640](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/640) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-287: Fixes the issues in project api keys [\#639](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/639) ([coderGo93](https://github.com/coderGo93))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.38.5 to 0.38.8 [\#638](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/638) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-283: Fixes a bug about optional parameters in Cloud Backup Schedule [\#631](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/631) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-281: Fix realm event trigger issue [\#630](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/630) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-282: Updated test and docs for alert configuration using notifications [\#629](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/629) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-280: Fix cluster datasource scaling issue [\#627](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/627) ([abner-dou](https://github.com/abner-dou))
+- INTMDB-272: Validate using interval\_min for PagerDuty, VictorOps, GenieOps [\#624](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/624) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-276: Added VersionReleaseSystem parameter for resource/datasource\(s\) of cluster [\#623](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/623) ([coderGo93](https://github.com/coderGo93))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.38.4 to 0.38.5 [\#622](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/622) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.8.0 to 2.9.0 [\#621](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/621) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-24: Change computed paused to optional [\#620](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/620) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-257: Changed 'hcl' markdown tag to 'terraform' tag [\#619](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/619) ([abner-dou](https://github.com/abner-dou))
+- Fix link in update guide and add version [\#615](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/615) ([themantissa](https://github.com/themantissa))
+- INTMDB-279: Fixes a bug where it crashes when importing a trigger [\#614](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/614) ([coderGo93](https://github.com/coderGo93))
+- mongodbatlas-project resource: add api\_keys attribute [\#504](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/504) ([tetianakravchenko](https://github.com/tetianakravchenko))
+
 ## [v1.1.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.1) (2021-11-19)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.1.0...v1.1.1)
@@ -10,6 +50,7 @@
 
 **Merged pull requests:**
 
+- Release v1.1.1 [\#613](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/613) ([abner-dou](https://github.com/abner-dou))
 - Fix documentation v1.1.0 [\#612](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/612) ([abner-dou](https://github.com/abner-dou))
 
 ## [v1.1.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.1.0) (2021-11-18)
