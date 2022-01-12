@@ -29,6 +29,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"advanced_configuration": clusterAdvancedConfigurationSchemaComputed(),
 						"auto_scaling_disk_gb_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -352,7 +353,11 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			log.Printf("[WARN] Error setting `snapshot_backup_policy` for the cluster(%s): %s", clusters[i].ID, err)
 		}
 
+		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
+		log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+
 		result := map[string]interface{}{
+			"advanced_configuration":                  flattenProcessArgs(processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"auto_scaling_disk_gb_enabled":            clusters[i].BackupEnabled,

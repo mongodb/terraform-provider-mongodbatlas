@@ -21,6 +21,7 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"advanced_configuration": clusterAdvancedConfigurationSchemaComputed(),
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -444,6 +445,18 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "version_release_system", clusterName, err))
 	}
 
+	/*
+		Get the advaced configuration options and set up to the terraform state
+	*/
+	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, clusterName, err))
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "advanced_configuration", clusterName, err))
+	}
+
 	// Get the snapshot policy and set the data
 	snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, d, conn, projectID, clusterName)
 	if err != nil {
@@ -457,4 +470,51 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 	d.SetId(cluster.ID)
 
 	return nil
+}
+
+func clusterAdvancedConfigurationSchemaComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
 }
