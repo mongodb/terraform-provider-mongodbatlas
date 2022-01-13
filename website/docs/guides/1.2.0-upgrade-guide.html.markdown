@@ -12,9 +12,10 @@ The Terraform MongoDB Atlas Provider version 1.2.0 has a number of new and excit
 
 New Features:
 
-* Now supports Private Link for Atlas Data Lake and Online Archive [`mongodbatlas_privatelink_endpoint_service_adl`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_adl).
+* Now supports Private Link for Atlas Data Lake and Online Archive [`mongodbatlas_privatelink_endpoint_service_adl`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_adl)
 * You can now pause clusters [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster)
 * You can now add an existing API key to a project [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)
+* Adds version_release_system to the [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) resource and data source
 
 Changes:
 
