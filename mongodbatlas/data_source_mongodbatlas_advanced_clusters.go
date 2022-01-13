@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -24,6 +25,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"advanced_configuration": clusterAdvancedConfigurationSchemaComputed(),
 						"backup_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -221,7 +223,12 @@ func flattenAdvancedClusters(ctx context.Context, d *schema.ResourceData, conn *
 	results := make([]map[string]interface{}, 0)
 
 	for i := range clusters {
+
+		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
+		log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+
 		result := map[string]interface{}{
+			"advanced_configuration":      flattenProcessArgs(processArgs),
 			"backup_enabled":              clusters[i].BackupEnabled,
 			"bi_connector":                flattenBiConnectorConfig(clusters[i].BiConnector),
 			"cluster_type":                clusters[i].ClusterType,
