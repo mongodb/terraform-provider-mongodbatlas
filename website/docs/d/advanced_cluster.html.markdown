@@ -63,7 +63,7 @@ In addition to all arguments above, the following attributes are exported:
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use. 
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
-* `advanced_advanced_configurationconfiguration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
+* `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 
 
 ### bi_connector
