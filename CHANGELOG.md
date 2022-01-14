@@ -1,6 +1,11 @@
 # Changelog
 
-# [v1.2.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.2.0-pre.1) (2022-01-12)
+## [v1.2.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.2.0) (2022-01-14)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.2.0-pre.1...v1.2.0)
+
+
+## [v1.2.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.2.0-pre.1) (2022-01-13)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.1.1...v1.2.0-pre.1)
 
@@ -17,6 +22,8 @@
 
 **Merged pull requests:**
 
+- Re-branch from 651 due to conflict of docs fixes [\#654](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/654) ([themantissa](https://github.com/themantissa))
+- INTMDB-268: Pre-release v1.2.0 [\#650](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/650) ([abner-dou](https://github.com/abner-dou))
 - INTMDB-5: added parameter team name for alert configurations  [\#648](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/648) ([coderGo93](https://github.com/coderGo93))
 - Fix markdown formatting in network\_container.html.markdown [\#647](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/647) ([pmacey](https://github.com/pmacey))
 - INTMDB-15: Added parameter advanced conf for cluster datasource [\#646](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/646) ([coderGo93](https://github.com/coderGo93))
