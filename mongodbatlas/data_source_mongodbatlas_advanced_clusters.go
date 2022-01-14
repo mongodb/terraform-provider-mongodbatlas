@@ -223,7 +223,6 @@ func flattenAdvancedClusters(ctx context.Context, d *schema.ResourceData, conn *
 	results := make([]map[string]interface{}, 0)
 
 	for i := range clusters {
-
 		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
 		log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 
