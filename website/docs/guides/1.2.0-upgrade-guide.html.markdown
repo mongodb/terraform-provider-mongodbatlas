@@ -1,4 +1,4 @@
---
+---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas Provider 1.2.0: Upgrade and Information Guide"
 sidebar_current: "docs-mongodbatlas-guides-120-upgrade-guide"
