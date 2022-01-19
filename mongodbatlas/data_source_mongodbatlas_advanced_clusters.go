@@ -212,19 +212,21 @@ func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenAdvancedClusters(ctx, d, conn, clusters.Results)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, clusters.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []*matlas.AdvancedCluster) []map[string]interface{} {
+func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	for i := range clusters {
 		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
-		log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+		if err != nil {
+			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+		}
 
 		result := map[string]interface{}{
 			"advanced_configuration":      flattenProcessArgs(processArgs),

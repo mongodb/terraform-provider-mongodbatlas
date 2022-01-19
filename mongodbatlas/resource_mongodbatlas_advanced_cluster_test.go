@@ -256,6 +256,8 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		processArgs  = &matlas.ProcessArgs{
+			DefaultReadConcern:               "available",
+			DefaultWriteConcern:              "1",
 			FailIndexKeyTooLong:              pointy.Bool(true),
 			JavascriptEnabled:                pointy.Bool(true),
 			MinimumEnabledTLSProtocol:        "TLS1_1",
@@ -265,6 +267,8 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 			SampleSizeBIConnector:            pointy.Int64(110),
 		}
 		processArgsUpdated = &matlas.ProcessArgs{
+			DefaultReadConcern:               "available",
+			DefaultWriteConcern:              "0",
 			FailIndexKeyTooLong:              pointy.Bool(true),
 			JavascriptEnabled:                pointy.Bool(true),
 			MinimumEnabledTLSProtocol:        "TLS1_2",
@@ -300,6 +304,76 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasAdvancedCluster_DefaultWrite(t *testing.T) {
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		processArgs  = &matlas.ProcessArgs{
+			DefaultReadConcern:               "available",
+			DefaultWriteConcern:              "1",
+			JavascriptEnabled:                pointy.Bool(true),
+			MinimumEnabledTLSProtocol:        "TLS1_1",
+			NoTableScan:                      pointy.Bool(false),
+			OplogSizeMB:                      pointy.Int64(1000),
+			SampleRefreshIntervalBIConnector: pointy.Int64(310),
+			SampleSizeBIConnector:            pointy.Int64(110),
+		}
+		processArgsUpdated = &matlas.ProcessArgs{
+			DefaultReadConcern:               "available",
+			DefaultWriteConcern:              "majority",
+			JavascriptEnabled:                pointy.Bool(true),
+			MinimumEnabledTLSProtocol:        "TLS1_2",
+			NoTableScan:                      pointy.Bool(false),
+			OplogSizeMB:                      pointy.Int64(1000),
+			SampleRefreshIntervalBIConnector: pointy.Int64(310),
+			SampleSizeBIConnector:            pointy.Int64(110),
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(projectID, rName, processArgs),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(projectID, rNameUpdated, processArgsUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_read_concern", "available"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.default_write_concern", "majority"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -551,4 +625,44 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, projectID, name,
 		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(projectID, name string, p *matlas.ProcessArgs) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id             = %[1]q
+  name                   = %[2]q
+  cluster_type           = "REPLICASET"
+  mongo_db_major_version = "4.4"
+
+   replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+  }
+
+  advanced_configuration  {
+    javascript_enabled                   = %[3]t
+    minimum_enabled_tls_protocol         = %[4]q
+    no_table_scan                        = %[5]t
+    oplog_size_mb                        = %[6]d
+    sample_size_bi_connector			 = %[7]d
+    sample_refresh_interval_bi_connector = %[8]d
+    default_read_concern                 = %[9]q
+    default_write_concern                = %[10]q
+  }
+}
+
+	`, projectID, name, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
+		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern)
 }

@@ -580,11 +580,11 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	/*
-		Check if advanced configuration option has a changes to update it
+		Update advanced configuration options if needed
 	*/
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
-		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
+		if aclist, ok := ac.([]interface{}); ok && len(aclist) > 0 {
 			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
