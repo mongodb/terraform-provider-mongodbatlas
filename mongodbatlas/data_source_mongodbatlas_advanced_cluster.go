@@ -17,6 +17,7 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"advanced_configuration": clusterAdvancedConfigurationSchemaComputed(),
 			"backup_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -266,6 +267,18 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "version_release_system", clusterName, err))
+	}
+
+	/*
+		Get the advaced configuration options and set up to the terraform state
+	*/
+	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, clusterName, err))
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
 	d.SetId(cluster.ID)

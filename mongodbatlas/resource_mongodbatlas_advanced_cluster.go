@@ -22,11 +22,13 @@ import (
 )
 
 const (
-	errorClusterAdvancedCreate  = "error creating MongoDB ClusterAdvanced: %s"
-	errorClusterAdvancedRead    = "error reading MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedDelete  = "error deleting MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedUpdate  = "error updating MongoDB ClusterAdvanced (%s): %s"
-	errorClusterAdvancedSetting = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	errorClusterAdvancedCreate             = "error creating MongoDB ClusterAdvanced: %s"
+	errorClusterAdvancedRead               = "error reading MongoDB ClusterAdvanced (%s): %s"
+	errorClusterAdvancedDelete             = "error deleting MongoDB ClusterAdvanced (%s): %s"
+	errorClusterAdvancedUpdate             = "error updating MongoDB ClusterAdvanced (%s): %s"
+	errorClusterAdvancedSetting            = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
+	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 )
 
 func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
@@ -244,6 +246,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Default:      "LTS",
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
+			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 		},
 	}
 }
@@ -325,6 +328,14 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		request.VersionReleaseSystem = v.(string)
 	}
 
+	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
+	// before that the cluster is created
+	if oplogSizeMB, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
+		if cast.ToInt64(oplogSizeMB) <= 0 {
+			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0"))
+		}
+	}
+
 	cluster, _, err := conn.AdvancedClusters.Create(ctx, projectID, request)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
@@ -343,6 +354,22 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+	}
+
+	/*
+		So far, the cluster has created correctly, so we need to set up
+		the advanced configuration option to attach it
+	*/
+	ac, ok := d.GetOk("advanced_configuration")
+	if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+
+		if ok {
+			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, cluster.Name, err))
+			}
+		}
 	}
 
 	// To pause a cluster
@@ -457,6 +484,18 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
 
+	/*
+		Get the advaced configuration options and set up to the terraform state
+	*/
+	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfRead, clusterName, err))
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
+	}
+
 	return nil
 }
 
@@ -537,6 +576,22 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		})
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		}
+	}
+
+	/*
+		Update advanced configuration options if needed
+	*/
+	if d.HasChange("advanced_configuration") {
+		ac := d.Get("advanced_configuration")
+		if aclist, ok := ac.([]interface{}); ok && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, clusterName, err))
+				}
+			}
 		}
 	}
 
