@@ -170,6 +170,13 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 											},
 										},
 									},
+									"region_configs_container_ids": {
+										Type: schema.TypeMap,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+										Computed: true,
+									},
 									"zone_name": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -212,20 +219,24 @@ func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf("error reading advanced cluster list for project(%s): %s", projectID, err))
 	}
 
-	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, clusters.Results)); err != nil {
+	if err := d.Set("results", flattenAdvancedClusters(ctx, conn, clusters.Results, d)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "results", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster) []map[string]interface{} {
+func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]interface{} {
 	results := make([]map[string]interface{}, 0)
 
 	for i := range clusters {
 		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
+		}
+		replicationSpecs, err := flattenAdvancedReplicationSpecs(clusters[i].ReplicationSpecs, nil, ctx, d, conn)
+		if err != nil {
+			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", clusters[i].ID, err)
 		}
 
 		result := map[string]interface{}{
@@ -243,7 +254,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 			"name":                        clusters[i].Name,
 			"paused":                      clusters[i].Paused,
 			"pit_enabled":                 clusters[i].PitEnabled,
-			"replication_specs":           flattenAdvancedReplicationSpecs(clusters[i].ReplicationSpecs, nil),
+			"replication_specs":           replicationSpecs,
 			"root_cert_type":              clusters[i].RootCertType,
 			"state_name":                  clusters[i].StateName,
 			"version_release_system":      clusters[i].VersionReleaseSystem,

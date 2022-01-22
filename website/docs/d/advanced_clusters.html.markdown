@@ -87,6 +87,7 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 
 * `num_shards` - Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED.
 * `region_configs` - Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
+* `region_configs_container_ids` - A key-value map for Network Peering Container ID with syntax as `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `zone_name` - Name for the zone in a Global Cluster.
 
 
