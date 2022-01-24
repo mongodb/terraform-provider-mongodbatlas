@@ -234,7 +234,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}
-		replicationSpecs, err := flattenAdvancedReplicationSpecs(clusters[i].ReplicationSpecs, nil, ctx, d, conn)
+		replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, clusters[i].ReplicationSpecs, nil, d, conn)
 		if err != nil {
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", clusters[i].ID, err)
 		}

@@ -475,7 +475,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(cluster.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), ctx, d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), d, conn)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -845,7 +845,8 @@ func expandRegionConfigAutoScaling(tfList []interface{}) *matlas.AdvancedAutoSca
 	return apiObject
 }
 
-func flattenAdvancedReplicationSpec(apiObject *matlas.AdvancedReplicationSpec, tfMapObject map[string]interface{}, ctx context.Context, d *schema.ResourceData, conn *matlas.Client) (map[string]interface{}, error) {
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, tfMapObject map[string]interface{},
+	d *schema.ResourceData, conn *matlas.Client) (map[string]interface{}, error) {
 	if apiObject == nil {
 		return nil, nil
 	}
@@ -854,14 +855,14 @@ func flattenAdvancedReplicationSpec(apiObject *matlas.AdvancedReplicationSpec, t
 	tfMap["num_shards"] = apiObject.NumShards
 	tfMap["id"] = apiObject.ID
 	if tfMapObject != nil {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(apiObject.RegionConfigs, tfMapObject["region_configs"].(*schema.Set).List(), ctx, d, conn)
+		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].(*schema.Set).List(), d, conn)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
 		tfMap["region_configs_container_ids"] = containerIds
 	} else {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(apiObject.RegionConfigs, nil, ctx, d, conn)
+		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
 		if err != nil {
 			return nil, err
 		}
@@ -873,7 +874,8 @@ func flattenAdvancedReplicationSpec(apiObject *matlas.AdvancedReplicationSpec, t
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecs(apiObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{}, ctx context.Context, d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, error) {
+func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{},
+	d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, error) {
 	if len(apiObjects) == 0 {
 		return nil, nil
 	}
@@ -887,13 +889,13 @@ func flattenAdvancedReplicationSpecs(apiObjects []*matlas.AdvancedReplicationSpe
 
 		if len(tfMapObjects) > 0 {
 			tfMapObject := tfMapObjects[i].(map[string]interface{})
-			object, err := flattenAdvancedReplicationSpec(apiObject, tfMapObject, ctx, d, conn)
+			object, err := flattenAdvancedReplicationSpec(ctx, apiObject, tfMapObject, d, conn)
 			if err != nil {
 				return nil, err
 			}
 			tfList = append(tfList, object)
 		} else {
-			object, err := flattenAdvancedReplicationSpec(apiObject, nil, ctx, d, conn)
+			object, err := flattenAdvancedReplicationSpec(ctx, apiObject, nil, d, conn)
 			if err != nil {
 				return nil, err
 			}
@@ -938,7 +940,8 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegion
 	return tfMap
 }
 
-func flattenAdvancedReplicationSpecRegionConfigs(apiObjects []*matlas.AdvancedRegionConfig, tfMapObjects []interface{}, ctx context.Context, d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, map[string]string, error) {
+func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, tfMapObjects []interface{},
+	d *schema.ResourceData, conn *matlas.Client) (tfResult []map[string]interface{}, containersIDs map[string]string, err error) {
 	if len(apiObjects) == 0 {
 		return nil, nil, nil
 	}
@@ -965,7 +968,8 @@ func flattenAdvancedReplicationSpecRegionConfigs(apiObjects []*matlas.AdvancedRe
 				return nil, nil, err
 			}
 			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
-				containerIds[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result //Will print as "providerName:regionName" = "containerId" in terraform show
+				// Will print as "providerName:regionName" = "containerId" in terraform show
+				containerIds[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result
 			}
 		}
 	}

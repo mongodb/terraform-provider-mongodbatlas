@@ -260,7 +260,7 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(cluster.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), ctx, d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), d, conn)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
