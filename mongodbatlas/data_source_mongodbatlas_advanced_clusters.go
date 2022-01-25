@@ -170,7 +170,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 											},
 										},
 									},
-									"region_configs_container_ids": {
+									"container_id": {
 										Type: schema.TypeMap,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,

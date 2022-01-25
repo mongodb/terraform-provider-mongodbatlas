@@ -222,7 +222,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 								},
 							},
 						},
-						"region_configs_container_ids": {
+						"container_id": {
 							Type: schema.TypeMap,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -860,14 +860,14 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.Advan
 			return nil, err
 		}
 		tfMap["region_configs"] = object
-		tfMap["region_configs_container_ids"] = containerIds
+		tfMap["container_id"] = containerIds
 	} else {
 		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
 		if err != nil {
 			return nil, err
 		}
 		tfMap["region_configs"] = object
-		tfMap["region_configs_container_ids"] = containerIds
+		tfMap["container_id"] = containerIds
 	}
 	tfMap["zone_name"] = apiObject.ZoneName
 
