@@ -140,7 +140,10 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 
 	apiKeys, err := getProjectAPIKeys(ctx, conn, project.OrgID, project.ID)
 	if err != nil {
-		return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
+		var target *matlas.ErrorResponse
+		if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
+			return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
+		}
 	}
 
 	if err := d.Set("org_id", project.OrgID); err != nil {

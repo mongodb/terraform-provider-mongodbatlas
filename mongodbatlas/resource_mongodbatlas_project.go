@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -168,7 +169,10 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 
 	apiKeys, err := getProjectAPIKeys(ctx, conn, projectRes.OrgID, projectRes.ID)
 	if err != nil {
-		return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
+		var target *matlas.ErrorResponse
+		if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
+			return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
+		}
 	}
 
 	if err := d.Set("name", projectRes.Name); err != nil {
