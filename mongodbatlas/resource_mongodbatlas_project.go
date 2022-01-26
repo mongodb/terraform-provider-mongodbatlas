@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -173,6 +174,7 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 		if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
 			return diag.Errorf("error getting project's api keys (%s): %s", projectID, err)
 		}
+		log.Println("[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
 
 	if err := d.Set("name", projectRes.Name); err != nil {
