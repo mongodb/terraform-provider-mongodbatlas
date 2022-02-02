@@ -15,7 +15,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.project_id
 
-  aws_kms = {
+  aws_kms_config {
     enabled                = true
     customer_master_key_id = var.customer_master_key
     region                 = var.atlas_region

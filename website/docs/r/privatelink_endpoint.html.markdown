@@ -25,7 +25,7 @@ description: |-
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT-ID>"
   provider_name = "AWS/AZURE"
-  region        = "us-east-1"
+  region        = "US_EAST_1"
 }
 ```
 

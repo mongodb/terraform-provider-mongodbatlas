@@ -18,7 +18,7 @@ description: |-
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT_ID>"
   provider_name = "AWS"
-  region        = "us-east-1"
+  region        = "US_EAST_1"
 }
 
 resource "aws_vpc_endpoint" "ptfe_service" {
