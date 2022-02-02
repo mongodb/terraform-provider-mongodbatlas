@@ -33,7 +33,7 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 					[]string{
 						"mongodbatlas.testing@gmail.com",
 						"antonio.cabrera@digitalonus.com",
-						"marin.salinas@digitalonus.com",
+						"edgar.lopez@digitalonus.com",
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -47,7 +47,7 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
 					[]string{
-						"marin.salinas@digitalonus.com",
+						"edgar.lopez@digitalonus.com",
 						"antonio.cabrera@digitalonus.com",
 					},
 				),
@@ -62,7 +62,7 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
 					[]string{
-						"marin.salinas@digitalonus.com",
+						"edgar.lopez@digitalonus.com",
 						"mongodbatlas.testing@gmail.com",
 						"antonio.cabrera@digitalonus.com",
 					},
