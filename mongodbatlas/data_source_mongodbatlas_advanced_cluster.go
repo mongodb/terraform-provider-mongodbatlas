@@ -162,6 +162,13 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 								},
 							},
 						},
+						"container_id": {
+							Type: schema.TypeMap,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Computed: true,
+						},
 						"zone_name": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -253,7 +260,12 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	if err := d.Set("replication_specs", flattenAdvancedReplicationSpecs(cluster.ReplicationSpecs, nil)); err != nil {
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), d, conn)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "replication_specs", clusterName, err))
+	}
+
+	if err := d.Set("replication_specs", replicationSpecs); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
