@@ -155,7 +155,7 @@ aws = {
 
 New usage:
 ```terraform
-aws_config {
+aws {
   iam_assumed_role_arn = aws_iam_role.test_role.arn
 }
 ```
@@ -184,9 +184,9 @@ delivery_type_config   {
 
 ### Encryption at rest
 - Fields Affected:
-    - aws_kms (deprecated), use aws_kms instead
-    - azure_key_vault (deprecated), use azure_key_vault instead
-    - google_cloud_kms (deprecated), use google_cloud_kms instead
+    - aws_kms (deprecated), use aws_kms_config instead
+    - azure_key_vault (deprecated), use azure_key_vault_config instead
+    - google_cloud_kms (deprecated), use google_cloud_kms_config instead
 
 Old usage:
 ```terraform
