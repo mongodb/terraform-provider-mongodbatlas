@@ -230,6 +230,7 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 				if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
 					return diag.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
 				}
+				log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err
 			}
 		}
 
