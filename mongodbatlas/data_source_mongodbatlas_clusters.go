@@ -356,6 +356,16 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
 		log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 
+		var containerID string
+		if clusters[i].ProviderSettings != nil && clusters[i].ProviderSettings.ProviderName != "TENANT" {
+			containers, _, err := conn.Containers.List(ctx, clusters[i].GroupID,
+				&matlas.ContainersListOptions{ProviderName: clusters[i].ProviderSettings.ProviderName})
+			if err != nil {
+				log.Printf(errorClusterRead, clusters[i].Name, err)
+			}
+
+			containerID = getContainerID(containers, &clusters[i])
+		}
 		result := map[string]interface{}{
 			"advanced_configuration":                  flattenProcessArgs(processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
@@ -394,6 +404,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"labels":                                          flattenLabels(clusters[i].Labels),
 			"snapshot_backup_policy":                          snapshotBackupPolicy,
 			"version_release_system":                          clusters[i].VersionReleaseSystem,
+			"container_id":                                    containerID,
 		}
 		results = append(results, result)
 	}

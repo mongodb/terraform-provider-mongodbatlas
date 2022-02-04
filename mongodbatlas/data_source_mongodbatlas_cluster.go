@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCluster() *schema.Resource {
@@ -443,6 +444,18 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "version_release_system", clusterName, err))
+	}
+
+	if cluster.ProviderSettings != nil && cluster.ProviderSettings.ProviderName != "TENANT" {
+		containers, _, err := conn.Containers.List(ctx, projectID,
+			&matlas.ContainersListOptions{ProviderName: cluster.ProviderSettings.ProviderName})
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
+		}
+
+		if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterSetting, "container_id", clusterName, err))
+		}
 	}
 
 	/*
