@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -219,7 +221,25 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 	orgID := ids["org_id"]
 	id := ids["id"]
 
-	_, err := conn.Teams.RemoveTeamFromOrganization(ctx, orgID, id)
+	err := resource.RetryContext(ctx, 1*time.Hour, func() *resource.RetryError {
+		_, err := conn.Teams.RemoveTeamFromOrganization(ctx, orgID, id)
+		if err != nil {
+			var target *matlas.ErrorResponse
+			if errors.As(err, &target) && target.ErrorCode == "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT" {
+				projectID, err := getProjectIDByTeamID(ctx, conn, id)
+				if err != nil {
+					return resource.NonRetryableError(err)
+				}
+
+				_, err = conn.Teams.RemoveTeamFromProject(ctx, projectID, id)
+				if err != nil {
+					return resource.NonRetryableError(fmt.Errorf(errorTeamDelete, id, err))
+				}
+				return resource.RetryableError(fmt.Errorf("will retry again"))
+			}
+		}
+		return nil
+	})
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamDelete, id, err))
 	}
@@ -266,4 +286,27 @@ func expandStringListFromSetSchema(list *schema.Set) []string {
 	}
 
 	return res
+}
+
+func getProjectIDByTeamID(ctx context.Context, conn *matlas.Client, teamID string) (string, error) {
+	options := &matlas.ListOptions{}
+	projects, _, err := conn.Projects.GetAllProjects(ctx, options)
+	if err != nil {
+		return "", fmt.Errorf("error getting projects information: %s", err)
+	}
+
+	for _, project := range projects.Results {
+		teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, project.ID)
+		if err != nil {
+			return "", fmt.Errorf("error getting teams from project information: %s", err)
+		}
+
+		for _, team := range teams.Results {
+			if team.TeamID == teamID {
+				return project.ID, nil
+			}
+		}
+	}
+
+	return "", nil
 }
