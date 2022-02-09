@@ -9,8 +9,11 @@ import (
 )
 
 func TestAccDatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets_basic(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		bucketName     = os.Getenv("AWS_S3_BUCKET")
+		iamRoleID      = os.Getenv("IAM_ROLE_ID")
 		datasourceName = "mongodbatlas_cloud_backup_snapshot_export_buckets"
 	)
 
@@ -19,7 +22,7 @@ func TestAccDatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets_basic(t *test
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportBucketsConfig(projectID),
+				Config: testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportBucketsConfig(projectID, bucketName, iamRoleID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "iam_role_id"),
@@ -32,23 +35,18 @@ func TestAccDatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets_basic(t *test
 	})
 }
 
-func testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportBucketsConfig(projectID string) string {
+func testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportBucketsConfig(projectID, iamRoleID, bucketName string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_provider_access" "test" {
-		project_id = "%[1]s"
-		provider_name = "AWS"
-	 }
-
 	resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 			project_id   = "%[1]s"
 			
-    	  	iam_role_id = mongodbatlas_cloud_provider_access.test.role_id
-       		bucket_name = "example-bucket"
+    	  	iam_role_id = "%[2]s"
+       		bucket_name = "%[3]s"
        		cloud_provider = "AWS"
 		}
 
 data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
-  project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
+  project_id   = mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
 }
-	`, projectID)
+	`, projectID, iamRoleID, bucketName)
 }
