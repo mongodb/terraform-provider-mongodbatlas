@@ -30,3 +30,4 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
   bucket_name = aws_s3_bucket.test_bucket.bucket
   cloud_provider = "AWS"
 }
+
