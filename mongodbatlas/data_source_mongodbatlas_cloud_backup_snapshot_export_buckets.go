@@ -89,16 +89,18 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Con
 func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnapshotExportBucket) []map[string]interface{} {
 	var results []map[string]interface{}
 
-	if len(buckets) > 0 {
-		results = make([]map[string]interface{}, len(buckets))
+	if len(buckets) == 0 {
+		return results
+	}
 
-		for k, bucket := range buckets {
-			results[k] = map[string]interface{}{
-				"id":             bucket.ID,
-				"bucket_name":    bucket.BucketName,
-				"cloud_provider": bucket.CloudProvider,
-				"iam_role_id":    bucket.IAMRoleID,
-			}
+	results = make([]map[string]interface{}, len(buckets))
+
+	for k, bucket := range buckets {
+		results[k] = map[string]interface{}{
+			"id":             bucket.ID,
+			"bucket_name":    bucket.BucketName,
+			"cloud_provider": bucket.CloudProvider,
+			"iam_role_id":    bucket.IAMRoleID,
 		}
 	}
 
