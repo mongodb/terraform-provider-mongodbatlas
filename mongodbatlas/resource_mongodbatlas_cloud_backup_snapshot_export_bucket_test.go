@@ -124,13 +124,11 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketImportStateIDFunc(resourc
 
 func testAccMongoDBAtlasBackupSnapshotExportBucketConfig(projectID, bucketName, iamRoleID string) string {
 	return fmt.Sprintf(`
-
 	resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-			project_id   = "%[1]s"
-			
-    	  	iam_role_id = "%[3]s"
-       		bucket_name = "%[2]s"
+			project_id     = "%[1]s"
+    	  	iam_role_id    = "%[3]s"
+       		bucket_name    = "%[2]s"
        		cloud_provider = "AWS"
-		}
+    }
 	`, projectID, bucketName, iamRoleID)
 }

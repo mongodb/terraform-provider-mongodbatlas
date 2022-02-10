@@ -24,10 +24,10 @@ resource "aws_s3_bucket" "test_bucket" {
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-  project_id   = var.project_id
+  project_id = var.project_id
 
-  iam_role_id =  mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  bucket_name = aws_s3_bucket.test_bucket.bucket
+  iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+  bucket_name    = aws_s3_bucket.test_bucket.bucket
   cloud_provider = "AWS"
 }
 
