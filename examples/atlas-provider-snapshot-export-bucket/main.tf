@@ -15,7 +15,6 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 
 resource "aws_s3_bucket" "test_bucket" {
   bucket = "mongo-test-bucket-1"
-  acl    = "private"
 
   tags = {
     Name        = "My bucket"
