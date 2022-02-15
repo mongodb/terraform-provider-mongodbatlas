@@ -13,9 +13,9 @@ func TestAccDataSourceMongoDBAtlasCloudBackupSnapshotExportJob_basic(t *testing.
 	SkipTestExtCred(t)
 	var (
 		snapshotExportJob matlas.CloudProviderSnapshotExportJob
-		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		bucketName           = os.Getenv("AWS_S3_BUCKET")
-		iamRoleID            = os.Getenv("IAM_ROLE_ID")
+		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		bucketName        = os.Getenv("AWS_S3_BUCKET")
+		iamRoleID         = os.Getenv("IAM_ROLE_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

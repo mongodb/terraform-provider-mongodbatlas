@@ -27,11 +27,10 @@ resource "mongodbatlas_cluster" "my_cluster" {
   name         = "MyCluster"
   disk_size_gb = 1
 
-  //Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
   provider_instance_size_name = "M10"
-  cloud_backup                = true // enable cloud backup snapshots
+  cloud_backup                = true
 }
 
 resource "mongodbatlas_cloud_backup_snapshot" "test" {

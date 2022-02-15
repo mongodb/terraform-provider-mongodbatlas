@@ -32,7 +32,7 @@ func TestResourceCloudBackupSnapshotExportJob(t *testing.T) {
 			"private_key": privateKey,
 			"access_key":  awsAccess,
 			"secret_key":  awsSecret,
-			"aws_region":      awsRegion,
+			"aws_region":  awsRegion,
 		},
 	})
 

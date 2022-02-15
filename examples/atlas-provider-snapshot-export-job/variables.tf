@@ -18,7 +18,3 @@ variable "secret_key" {
   description = "The secret key for AWS Account"
   default     = ""
 }
-variable "aws_region" {
-  default     = ""
-  description = "AWS Region"
-}
