@@ -608,8 +608,8 @@ github.com/grpc-ecosystem/grpc-gateway v1.12.1/go.mod h1:8XEsbTttt/W+VvjtQhLACqC
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/gruntwork-io/go-commons v0.8.0 h1:k/yypwrPqSeYHevLlEDmvmgQzcyTwrlZGRaxEM6G0ro=
 github.com/gruntwork-io/go-commons v0.8.0/go.mod h1:gtp0yTtIBExIZp7vyIV9I0XQkVwiQZze678hvDXof78=
-github.com/gruntwork-io/terratest v0.40.0 h1:B/NEcdd7ds2LD7zVoAUz4J/TN3khLT/K3i72qs6/5j0=
-github.com/gruntwork-io/terratest v0.40.0/go.mod h1:CjHsEgP1Pe987X5N8K5qEqCuLtu1bqERGIAF8bTj1s0=
+github.com/gruntwork-io/terratest v0.40.1 h1:xh9wniVkV0FujoEy56zWRylhmJEeu1gnKZGYf8+br9E=
+github.com/gruntwork-io/terratest v0.40.1/go.mod h1:CjHsEgP1Pe987X5N8K5qEqCuLtu1bqERGIAF8bTj1s0=
 github.com/hashicorp/aws-sdk-go-base v0.7.1 h1:7s/aR3hFn74tYPVihzDyZe7y/+BorN70rr9ZvpV3j3o=
 github.com/hashicorp/aws-sdk-go-base v0.7.1/go.mod h1:2fRjWDv3jJBeN6mVWFHV6hFTNeFBx2gpDLQaZNxUVAY=
 github.com/hashicorp/consul/api v1.1.0/go.mod h1:VmuI/Lkw1nC05EYQWNKwWGbkg+FbDBtguAZLlVdkD9Q=
