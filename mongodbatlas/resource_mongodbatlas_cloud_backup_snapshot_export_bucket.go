@@ -30,6 +30,10 @@ func returnCloudBackupSnapshotExportBucketSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"export_bucket_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"project_id": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -103,8 +107,8 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context
 		return diag.Errorf("error getting snapshot export backup information: %s", err)
 	}
 
-	if err := d.Set("id", exportBackup.ID); err != nil {
-		return diag.Errorf("error setting `is` for snapshot export bucket (%s): %s", d.Id(), err)
+	if err := d.Set("export_bucket_id", exportBackup.ID); err != nil {
+		return diag.Errorf("error setting `export_bucket_id` for snapshot export bucket (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("bucket_name", exportBackup.BucketName); err != nil {

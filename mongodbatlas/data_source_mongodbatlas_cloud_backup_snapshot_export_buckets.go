@@ -30,7 +30,7 @@ func datasourceMongoDBAtlasCloudBackupSnapshotExportBuckets() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
+						"export_bucket_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -97,10 +97,10 @@ func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnap
 
 	for k, bucket := range buckets {
 		results[k] = map[string]interface{}{
-			"id":             bucket.ID,
-			"bucket_name":    bucket.BucketName,
-			"cloud_provider": bucket.CloudProvider,
-			"iam_role_id":    bucket.IAMRoleID,
+			"export_bucket_id": bucket.ID,
+			"bucket_name":      bucket.BucketName,
+			"cloud_provider":   bucket.CloudProvider,
+			"iam_role_id":      bucket.IAMRoleID,
 		}
 	}
 

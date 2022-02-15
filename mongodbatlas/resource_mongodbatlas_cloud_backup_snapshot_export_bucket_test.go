@@ -14,7 +14,7 @@ import (
 func TestAccResourceMongoDBAtlasBackupSnapshotExportBucket_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		snapshotExportBackup matlas.CloudProviderSnapshotExportBucket
+		snapshotExportBucket matlas.CloudProviderSnapshotExportBucket
 		resourceName         = "mongodbatlas_cloud_backup_snapshot_export_bucket.test"
 		projectID            = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		bucketName           = os.Getenv("AWS_S3_BUCKET")
@@ -28,7 +28,7 @@ func TestAccResourceMongoDBAtlasBackupSnapshotExportBucket_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasBackupSnapshotExportBucketConfig(projectID, bucketName, iamRoleID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName, &snapshotExportBackup),
+					testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName, &snapshotExportBucket),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "bucket_name", "example-bucket"),
 					resource.TestCheckResourceAttr(resourceName, "cloud_provider", "AWS"),
@@ -65,7 +65,7 @@ func TestAccResourceMongoDBAtlasBackupSnapshotExportBucket_importBasic(t *testin
 	})
 }
 
-func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName string, snapshotExportBackup *matlas.CloudProviderSnapshotExportBucket) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName string, snapshotExportBucket *matlas.CloudProviderSnapshotExportBucket) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -82,11 +82,11 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketExists(resourceName strin
 
 		response, _, err := conn.CloudProviderSnapshotExportBuckets.Get(context.Background(), ids["project_id"], ids["id"])
 		if err == nil {
-			*snapshotExportBackup = *response
+			*snapshotExportBucket = *response
 			return nil
 		}
 
-		return fmt.Errorf("snapshot export backup (%s) does not exist", ids["id"])
+		return fmt.Errorf("snapshot export bucket (%s) does not exist", ids["id"])
 	}
 }
 
@@ -102,7 +102,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportBucketDestroy(state *terraform.
 
 		snapshotExportBucket, _, err := conn.CloudProviderSnapshotExportBuckets.Get(context.Background(), ids["project_id"], ids["id"])
 		if err == nil && snapshotExportBucket != nil {
-			return fmt.Errorf("snapshot export backup (%s) still exists", ids["id"])
+			return fmt.Errorf("snapshot export bucket (%s) still exists", ids["id"])
 		}
 	}
 

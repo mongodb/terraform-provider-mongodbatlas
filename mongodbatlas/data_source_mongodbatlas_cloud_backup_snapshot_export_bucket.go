@@ -16,6 +16,10 @@ func datasourceMongoDBAtlasCloudBackupSnapshotExportBucket() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"export_bucket_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -45,6 +49,10 @@ func datasourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Conte
 	bucket, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, bucketID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting CloudProviderSnapshotExportBuckets Information: %s", err))
+	}
+
+	if err = d.Set("export_bucket_id", bucket.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `export_bucket_id` for CloudProviderSnapshotExportBuckets (%s): %s", d.Id(), err))
 	}
 
 	if err = d.Set("bucket_name", bucket.BucketName); err != nil {
