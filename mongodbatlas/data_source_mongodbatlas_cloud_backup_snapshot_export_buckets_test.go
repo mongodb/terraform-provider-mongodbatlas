@@ -37,16 +37,14 @@ func TestAccDatasourceMongoDBAtlasCloudBackupSnapshotExportBuckets_basic(t *test
 
 func testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportBucketsConfig(projectID, iamRoleID, bucketName string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-			project_id   = "%[1]s"
-			
-    	  	iam_role_id = "%[2]s"
-       		bucket_name = "%[3]s"
-       		cloud_provider = "AWS"
-		}
+resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
+  project_id   = "%[1]s"
+  iam_role_id = "%[2]s"
+  bucket_name = "%[3]s"
+  cloud_provider = "AWS"
+}
 
 data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
   project_id   = mongodbatlas_cloud_backup_snapshot_export_bucket.test.project_id
-}
-	`, projectID, iamRoleID, bucketName)
+}`, projectID, iamRoleID, bucketName)
 }

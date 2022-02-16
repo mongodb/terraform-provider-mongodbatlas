@@ -7,7 +7,7 @@ description: |-
 ---
 
 # mongodbatlas_cloud_backup_snapshot_export_Job
-`mongodbatlas_cloud_backup_snapshot_export_job` datasource allows you to retrieve all the snapshot export jobs for the specified project and cluster.
+`mongodbatlas_cloud_backup_snapshot_export_job` datasource allows you to retrieve a snapshot export job for the specified project and cluster.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.

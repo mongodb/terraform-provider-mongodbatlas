@@ -124,13 +124,10 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobImportStateIDFunc(resourceNa
 
 func testAccMongoDBAtlasBackupSnapshotExportJobConfig(projectID, bucketName, iamRoleID string) string {
 	return fmt.Sprintf(`
-
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = var.project_id
   name         = "MyCluster"
   disk_size_gb = 1
-
-  //Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
   provider_instance_size_name = "M10"
@@ -145,10 +142,10 @@ resource "mongodbatlas_cloud_backup_snapshot" "test" {
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-			project_id     = "%[1]s"
-    	  	iam_role_id    = "%[3]s"
-       		bucket_name    = "%[2]s"
-       		cloud_provider = "AWS"
+  project_id     = "%[1]s"
+  iam_role_id    = "%[3]s"
+  bucket_name    = "%[2]s"
+  cloud_provider = "AWS"
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
@@ -157,11 +154,9 @@ resource "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
   snapshot_id = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
   export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
 
-
   custom_data {
     key   = "exported by"
     value = "myName"
   }
-}
-	`, projectID, bucketName, iamRoleID)
+}`, projectID, bucketName, iamRoleID)
 }

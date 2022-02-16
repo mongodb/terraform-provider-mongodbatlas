@@ -7,7 +7,7 @@ description: |-
 ---
 
 # mongodbatlas_cloud_backup_snapshot_export_job
-`mongodbatlas_cloud_backup_snapshot_export_job` resource allows you to retrieve all the buckets for the specified project. 
+`mongodbatlas_cloud_backup_snapshot_export_job` resource allows you to create a cloud backup snapshot export job for the specified project. 
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
@@ -41,8 +41,8 @@ resource "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project which contains the Atlas cluster whose snapshot you want to export.
 * `cluster_name` - (Required) Name of the Atlas cluster whose snapshot you want to export.
-* `snapshot_id` - (Required) Unique identifier of the Cloud Backup snapshot to export.
-* `export_bucket_id` - (Required) Unique identifier of the AWS bucket to export the Cloud Backup snapshot to.
+* `snapshot_id` - (Required) Unique identifier of the Cloud Backup snapshot to export. If necessary, use the [Get All Cloud Backups](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-all-backups/) API to retrieve the list of snapshot IDs for a cluster or use the data source [mongodbatlas_cloud_cloud_backup_snapshots](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/cloud_backup_snapshots)
+* `export_bucket_id` - (Required) Unique identifier of the AWS bucket to export the Cloud Backup snapshot to. If necessary, use the [Get All Snapshot Export Buckets](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/get-all-export-buckets/) API to retrieve the IDs of all available export buckets for a project or use the data source [mongodbatlas_cloud_backup_snapshot_export_buckets](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/backup_snapshot_export_buckets)
 * `custom_data` - (Optional) Custom data to include in the metadata file named `.complete` that Atlas uploads to the bucket when the export job finishes. Custom data can be specified as key and value pairs.
 
 ### Custom Data

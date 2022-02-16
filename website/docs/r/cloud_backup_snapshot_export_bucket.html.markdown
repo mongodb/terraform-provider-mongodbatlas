@@ -7,7 +7,7 @@ description: |-
 ---
 
 # mongodbatlas_cloud_backup_snapshot_export_bucket
-`mongodbatlas_cloud_backup_snapshot_export_bucket` resource allows you to retrieve all the buckets for the specified project. 
+`mongodbatlas_cloud_backup_snapshot_export_bucket` resource allows you to create an export snapshot bucket for the specified project. 
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
