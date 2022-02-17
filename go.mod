@@ -12,6 +12,6 @@ require (
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.4.1
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20210625132053-af2d5c0ad54f
-	go.mongodb.org/atlas v0.14.1-0.20220104180936-6afea6036494
+	go.mongodb.org/atlas v0.15.1-0.20220215171307-4b760c3c624f
 	go.mongodb.org/realm v0.1.0
 )

@@ -124,6 +124,10 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_snapshots":                dataSourceMongoDBAtlasCloudBackupSnapshots(),
 		"mongodbatlas_cloud_backup_snapshot_restore_job":     dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob(),
 		"mongodbatlas_cloud_backup_snapshot_restore_jobs":    dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobs(),
+		"mongodbatlas_cloud_backup_snapshot_export_bucket":   datasourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
+		"mongodbatlas_cloud_backup_snapshot_export_buckets":  datasourceMongoDBAtlasCloudBackupSnapshotExportBuckets(),
+		"mongodbatlas_cloud_backup_snapshot_export_job":      datasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
+		"mongodbatlas_cloud_backup_snapshot_export_jobs":     datasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
 	}
 	return dataSourcesMap
 }
@@ -169,6 +173,8 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_org_invitation":                        resourceMongoDBAtlasOrgInvitation(),
 		"mongodbatlas_cloud_backup_snapshot":                 resourceMongoDBAtlasCloudBackupSnapshot(),
 		"mongodbatlas_cloud_backup_snapshot_restore_job":     resourceMongoDBAtlasCloudBackupSnapshotRestoreJob(),
+		"mongodbatlas_cloud_backup_snapshot_export_bucket":   resourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
+		"mongodbatlas_cloud_backup_snapshot_export_job":      resourceMongoDBAtlasCloudBackupSnapshotExportJob(),
 	}
 	return resourcesMap
 }
