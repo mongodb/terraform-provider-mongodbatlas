@@ -1,9 +1,49 @@
 # Changelog
 
+## [v1.3.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.0-pre.1) (2022-22-02)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.2.0...v1.3.0-pre.1)
+
+**Closed issues:**
+
+- Auto scaling of storage cannot be disabled for mongodbatlas\_advanced\_cluster via "disk\_gb\_enabled" [\#677](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/677)
+- Can't create M0 free tier on Azure [\#675](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/675)
+- Error: error creating MongoDB Cluster: unexpected EOF [\#674](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/674)
+- attempting to assign api key to resource `mongodbatlas_project` results in `Error: Unsupported block type` [\#671](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/671)
+- Error in documentation page : aws\_kms -\> aws\_kms\_config [\#666](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/666)
+- Accepting organization invitation causes 404 [\#636](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/636)
+- Alert configuration state is not stable [\#632](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/632)
+- mongodbatlas\_cloud\_backup\_schedule with Azure results in "restore window days" mandatory [\#625](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/625)
+- incorrect values from `mongodbatlas_cluster` and `mongodbatlas_clusters` datasources [\#618](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/618)
+- mongodb atlas network container atlas cidr block value and real  value is not mached [\#617](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/617)
+- config\_full\_document\_before not working in EventTriggers [\#616](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/616)
+- Hitting timing issue when trying to integrate with `aws` provider's `aws_iam_access_key` resource [\#127](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/127)
+
+**Merged pull requests:**
+
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.40.1 to 0.40.2 [\#679](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/679) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.40.0 to 0.40.1 [\#678](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/678) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-299: Support Cloud Backup Export Jobs [\#673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/673) ([abner-dou](https://github.com/abner-dou))
+- Chore\(deps\): Bump octokit/request-action from 2.1.0 to 2.1.4 [\#672](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/672) ([dependabot[bot]](https://github.com/apps/dependabot))
+- update the documentations for new changes [\#670](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/670) ([nikhil-mongo](https://github.com/nikhil-mongo))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.38.9 to 0.40.0 [\#669](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/669) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-298: fixes a bug where you couldn't delete a team in team resource [\#668](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/668) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-297: set the container id to avoid null in state of data source cluster\(s\) [\#667](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/667) ([coderGo93](https://github.com/coderGo93))
+- fixed typo in mongodbatlas\_teams sidebar [\#665](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/665) ([MartinCanovas](https://github.com/MartinCanovas))
+- INTMDB-295: Fixes a bug about unauthorized error in project resource [\#664](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/664) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-293: Added container\_id in advanced cluster [\#663](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/663) ([coderGo93](https://github.com/coderGo93))
+- INTMDB-294: \[Terraform\] Address security warnings from dependabot [\#661](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/661) ([thetonymaster](https://github.com/thetonymaster))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.38.8 to 0.38.9 [\#660](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/660) ([dependabot[bot]](https://github.com/apps/dependabot))
+- INTMDB-290: Added advanced configuration for datasource/resource of advanced cluster [\#658](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/658) ([coderGo93](https://github.com/coderGo93))
+- Fix 1.2 upgrade/info guide formatting error [\#657](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/657) ([themantissa](https://github.com/themantissa))
+
 ## [v1.2.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.2.0) (2022-01-14)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.2.0-pre.1...v1.2.0)
 
+**Merged pull requests:**
+
+- INTMDB-268: Release v1.2.0 [\#656](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/656) ([abner-dou](https://github.com/abner-dou))
 
 ## [v1.2.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.2.0-pre.1) (2022-01-13)
 
@@ -16,7 +56,6 @@
 - backup snapshot and restore not working automated  [\#642](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/642)
 - Delete default alerts [\#628](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/628)
 - Cannot set multiple notifications for an alert [\#626](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/626)
-- `error deleting MongoDB Network Peering Container`, even though Container exists [\#603](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/603)
 - PRIVATE\_ENDPOINT\_SERVICE\_ALREADY\_EXISTS\_FOR\_REGION [\#590](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/590)
 - INVALID\_CLUSTER\_CONFIGURATION when modifying a cluster to use replication\_specs \(eg for multi-region\) [\#588](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/588)
 
