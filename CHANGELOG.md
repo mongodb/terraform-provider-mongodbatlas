@@ -1,6 +1,15 @@
 # Changelog
 
-## [v1.3.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.0-pre.1) (2022-22-02)
+## [v1.3.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.0) (2022-02-23)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.3.0-pre.1...v1.3.0)
+
+**Merged pull requests:**
+
+- Create 1.3.0-upgrade-guide.html.markdown [\#682](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/682) ([themantissa](https://github.com/themantissa))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.40.2 to 0.40.3 [\#681](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/681) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v1.3.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.0-pre.1) (2022-02-22)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.2.0...v1.3.0-pre.1)
 
@@ -21,6 +30,7 @@
 
 **Merged pull requests:**
 
+- INTMDB-291: pre-release v1.3.0 [\#680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/680) ([abner-dou](https://github.com/abner-dou))
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.40.1 to 0.40.2 [\#679](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/679) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.40.0 to 0.40.1 [\#678](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/678) ([dependabot[bot]](https://github.com/apps/dependabot))
 - INTMDB-299: Support Cloud Backup Export Jobs [\#673](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/673) ([abner-dou](https://github.com/abner-dou))
