@@ -842,6 +842,9 @@ func expandRegionConfigAutoScaling(tfList []interface{}) *matlas.AdvancedAutoSca
 		apiObject3.MaxInstanceSize = v.(string)
 	}
 
+	apiObject.DiskGB = apiObject2
+	apiObject.Compute = apiObject3
+
 	return apiObject
 }
 
