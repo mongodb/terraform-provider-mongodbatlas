@@ -822,30 +822,30 @@ func expandRegionConfigAutoScaling(tfList []interface{}) *matlas.AdvancedAutoSca
 
 	tfMap, _ := tfList[0].(map[string]interface{})
 
-	apiObject := &matlas.AdvancedAutoScaling{}
-	apiObject2 := &matlas.DiskGB{}
-	apiObject3 := &matlas.Compute{}
+	advancedAutoScaling := &matlas.AdvancedAutoScaling{}
+	diskGB := &matlas.DiskGB{}
+	compute := &matlas.Compute{}
 
 	if v, ok := tfMap["disk_gb_enabled"]; ok {
-		apiObject2.Enabled = pointy.Bool(v.(bool))
+		diskGB.Enabled = pointy.Bool(v.(bool))
 	}
 	if v, ok := tfMap["compute_enabled"]; ok {
-		apiObject3.Enabled = pointy.Bool(v.(bool))
+		compute.Enabled = pointy.Bool(v.(bool))
 	}
 	if v, ok := tfMap["compute_scale_down_enabled"]; ok {
-		apiObject3.ScaleDownEnabled = pointy.Bool(v.(bool))
+		compute.ScaleDownEnabled = pointy.Bool(v.(bool))
 	}
 	if v, ok := tfMap["compute_min_instance_size"]; ok {
-		apiObject3.MinInstanceSize = v.(string)
+		compute.MinInstanceSize = v.(string)
 	}
 	if v, ok := tfMap["compute_max_instance_size"]; ok {
-		apiObject3.MaxInstanceSize = v.(string)
+		compute.MaxInstanceSize = v.(string)
 	}
 
-	apiObject.DiskGB = apiObject2
-	apiObject.Compute = apiObject3
+	advancedAutoScaling.DiskGB = diskGB
+	advancedAutoScaling.Compute = compute
 
-	return apiObject
+	return advancedAutoScaling
 }
 
 func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, tfMapObject map[string]interface{},

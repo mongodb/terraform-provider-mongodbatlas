@@ -386,6 +386,50 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_DefaultWrite(t *testing.T) {
 	})
 }
 
+func TestAccMongoDBAtlasAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.T) {
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		autoScaling  = &matlas.AutoScaling{
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(true)},
+			DiskGBEnabled: pointy.Bool(true),
+		}
+		autoScalingUpdated = &matlas.AutoScaling{
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(false)},
+			DiskGBEnabled: pointy.Bool(false),
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(projectID, rName, autoScaling),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.auto_scaling.compute_enabled", "true"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(projectID, rNameUpdated, autoScalingUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.auto_scaling.compute_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -665,4 +709,38 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 	`, projectID, name, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(projectID, name string, p *matlas.AutoScaling) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id             = %[1]q
+  name                   = %[2]q
+  cluster_type           = "REPLICASET"
+  mongo_db_major_version = "4.4"
+
+   replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+	  auto_scaling {
+        compute_enabled = %[3]t
+        disk_gb_enabled = %[4]t
+	  }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+  }
+
+
+}
+
+	`, projectID, name, *p.Compute.Enabled, *p.DiskGBEnabled)
 }
