@@ -293,6 +293,39 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 	}
 }
 
+func TestAccResourceMongoDBAtlasProject_CreateWithAdvancedCluster(t *testing.T) {
+	var (
+		project             matlas.Project
+		cluster             matlas.AdvancedCluster
+		clusterResourceName = "mongodbatlas_advanced_cluster.test"
+		resourceName        = "mongodbatlas_project.test"
+		clusterName         = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName         = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID      = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		clusterCount        = "1"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithAdvancedCluster(projectName, orgID, projectOwnerID, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasAdvancedClusterExists(clusterResourceName, &cluster),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if project.Name != projectName {
@@ -395,4 +428,19 @@ func testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID
 			with_default_alerts_settings = false
 		}
 	`, projectName, orgID, projectOwnerID)
+}
+
+func testAccMongoDBAtlasProjectConfigWithAdvancedCluster(projectName, orgID, projectOwnerID, clusterName string) string {
+	cluster := testAccMongoDBAtlasAdvancedClusterConfigSingleProvider("mongodbatlas_project.test.id", clusterName)
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   			 = "%[1]s"
+			org_id 			 = "%[2]s"
+		    project_owner_id = "%[3]s"
+			with_default_alerts_settings = false
+		}
+
+		%s
+	`, projectName, orgID, projectOwnerID, cluster)
 }
