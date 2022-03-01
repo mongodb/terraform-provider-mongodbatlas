@@ -5,8 +5,11 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -292,12 +295,60 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	_, err := conn.Projects.Delete(ctx, projectID)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"DELETING", "PENDING", "REPEATING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceProjectClustersDeleteRefreshFunc(ctx, projectID, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 30 * time.Second,
+		Delay:      0,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+
+	if err == nil {
+		_, err = conn.Projects.Delete(ctx, projectID)
+	}
+
 	if err != nil {
 		return diag.Errorf(errorProjectDelete, projectID, err)
 	}
 
 	return nil
+}
+
+func resourceProjectClustersDeleteRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		c, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		}
+		if err != nil && resp.StatusCode == 404 {
+			return c, "IDLE", nil
+		}
+		if err != nil && resp.StatusCode == 503 {
+			return c, "PENDING", nil
+		}
+
+		if c.TotalCount == 0 {
+			return c, "IDLE", nil
+		}
+
+		for _, v := range c.Results {
+			if v.StateName != "DELETING" {
+				return c, "IDLE", nil
+			}
+		}
+
+		log.Printf("[DEBUG] status for MongoDB project: %s: %s", projectID, "DELETING")
+
+		return c, "DELETING", nil
+	}
 }
 
 func expandTeamsSet(teams *schema.Set) []*matlas.ProjectTeam {

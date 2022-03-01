@@ -21,6 +21,7 @@ website/node_modules
 *~
 .*.swp
 .idea
+.vscode
 *.iml
 *.test
 *.iml
