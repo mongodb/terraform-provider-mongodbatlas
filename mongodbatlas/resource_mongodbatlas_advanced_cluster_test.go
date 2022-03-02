@@ -466,9 +466,9 @@ func testAccCheckMongoDBAtlasAdvancedClusterAttributes(cluster *matlas.AdvancedC
 	}
 }
 
-func testAccCheckMongoDBAtlasAdvancedClusterScaling(cluster *matlas.AdvancedCluster, compute_enabled bool) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasAdvancedClusterScaling(cluster *matlas.AdvancedCluster, computeEnabled bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled != compute_enabled {
+		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled != computeEnabled {
 			return fmt.Errorf("compute_enabled: %d", cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled)
 		}
 
