@@ -732,6 +732,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	  auto_scaling {
         compute_enabled = %[3]t
         disk_gb_enabled = %[4]t
+		compute_max_instance_size = 3
 	  }
       provider_name = "AWS"
       priority      = 7
