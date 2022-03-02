@@ -394,12 +394,12 @@ func TestAccMongoDBAtlasAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *tes
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		autoScaling  = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(true)},
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(false), MaxInstanceSize: ""},
 			DiskGBEnabled: pointy.Bool(true),
 		}
 		autoScalingUpdated = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(false)},
-			DiskGBEnabled: pointy.Bool(false),
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(true), MaxInstanceSize: "M20"},
+			DiskGBEnabled: pointy.Bool(true),
 		}
 	)
 
@@ -414,7 +414,7 @@ func TestAccMongoDBAtlasAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *tes
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.auto_scaling.compute_enabled", "true"),
+					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScaling.Compute.Enabled),
 				),
 			},
 			{
@@ -423,7 +423,7 @@ func TestAccMongoDBAtlasAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *tes
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.auto_scaling.compute_enabled", "false"),
+					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
 				),
 			},
 		},
@@ -460,6 +460,16 @@ func testAccCheckMongoDBAtlasAdvancedClusterAttributes(cluster *matlas.AdvancedC
 	return func(s *terraform.State) error {
 		if cluster.Name != name {
 			return fmt.Errorf("bad name: %s", cluster.Name)
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckMongoDBAtlasAdvancedClusterScaling(cluster *matlas.AdvancedCluster, compute_enabled bool) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled != compute_enabled {
+			return fmt.Errorf("compute_enabled: %d", cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled)
 		}
 
 		return nil
@@ -732,7 +742,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	  auto_scaling {
         compute_enabled = %[3]t
         disk_gb_enabled = %[4]t
-		compute_max_instance_size = 3
+		compute_max_instance_size = %[5]q
 	  }
       provider_name = "AWS"
       priority      = 7
@@ -743,5 +753,5 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 }
 
-	`, projectID, name, *p.Compute.Enabled, *p.DiskGBEnabled)
+	`, projectID, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
