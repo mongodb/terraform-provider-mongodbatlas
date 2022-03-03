@@ -344,11 +344,13 @@ func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 			return nil, "RETRY", nil
 		}
 
-		if clusters.TotalCount > 0 {
-			for _, v := range clusters.Results {
-				if v.StateName != "DELETING" {
-					return dependents, "IDLE", nil
-				}
+		if dependents.AdvancedClusters.TotalCount == 0 {
+			return dependents, "IDLE", nil
+		}
+
+		for _, v := range dependents.AdvancedClusters.Results {
+			if v.StateName != "DELETING" {
+				return dependents, "IDLE", nil
 			}
 		}
 
