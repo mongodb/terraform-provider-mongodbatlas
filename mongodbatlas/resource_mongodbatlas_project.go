@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -100,6 +99,11 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 			},
 		},
 	}
+}
+
+// Resources that need to be cleaned up before a project can be deleted
+type AtlastProjectDependents struct {
+	AdvancedClusters *matlas.AdvancedClustersResponse
 }
 
 func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -296,9 +300,9 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 	projectID := d.Id()
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETING", "PENDING", "REPEATING"},
+		Pending:    []string{"DELETING", "PENDING", "RETRY"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceProjectClustersDeleteRefreshFunc(ctx, projectID, conn),
+		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      0,
@@ -306,9 +310,11 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 
 	_, err := stateConf.WaitForStateContext(ctx)
 
-	if err == nil {
-		_, err = conn.Projects.Delete(ctx, projectID)
+	if err != nil {
+		log.Printf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error())
 	}
+
+	_, err = conn.Projects.Delete(ctx, projectID)
 
 	if err != nil {
 		return diag.Errorf(errorProjectDelete, projectID, err)
@@ -317,37 +323,38 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 	return nil
 }
 
-func resourceProjectClustersDeleteRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+/*
+	This assumes the project CRUD outcome will be the same for any non-zero number of dependents
+
+	If all dependents are deleting, wait to try and delete
+	Otherwise, consider the aggregate dependents idle.
+
+	If we get a defined error response, return that right away
+	Otherwise retry
+*/
+func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		clusters, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		var target *matlas.ErrorResponse
+		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		dependents := AtlastProjectDependents{AdvancedClusters: clusters}
 
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && c == nil && resp == nil {
+		if errors.As(err, &target) {
 			return nil, "", err
-		}
-		if err != nil && resp.StatusCode == 404 {
-			return c, "IDLE", nil
-		}
-		if err != nil && resp.StatusCode == 503 {
-			return c, "PENDING", nil
+		} else if err != nil {
+			return nil, "RETRY", nil
 		}
 
-		if c.TotalCount == 0 {
-			return c, "IDLE", nil
-		}
-
-		for _, v := range c.Results {
-			if v.StateName != "DELETING" {
-				return c, "IDLE", nil
+		if clusters.TotalCount > 0 {
+			for _, v := range clusters.Results {
+				if v.StateName != "DELETING" {
+					return dependents, "IDLE", nil
+				}
 			}
 		}
 
-		log.Printf("[DEBUG] status for MongoDB project: %s: %s", projectID, "DELETING")
+		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", projectID, "DELETING")
 
-		return c, "DELETING", nil
+		return dependents, "DELETING", nil
 	}
 }
 
