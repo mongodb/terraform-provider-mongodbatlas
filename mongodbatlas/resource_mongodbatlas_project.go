@@ -327,10 +327,10 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 	This assumes the project CRUD outcome will be the same for any non-zero number of dependents
 
 	If all dependents are deleting, wait to try and delete
-	Otherwise, consider the aggregate dependents idle.
+	Else consider the aggregate dependents idle.
 
 	If we get a defined error response, return that right away
-	Otherwise retry
+	Else retry
 */
 func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
