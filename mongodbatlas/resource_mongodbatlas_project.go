@@ -319,7 +319,7 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 
 func resourceProjectClustersDeleteRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		c, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		clusters, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
