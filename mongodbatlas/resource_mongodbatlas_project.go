@@ -300,7 +300,7 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 	projectID := d.Id()
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETING", "PENDING", "RETRY"},
+		Pending:    []string{"DELETING", "RETRY"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
 		Timeout:    30 * time.Minute,
