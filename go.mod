@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/go-test/deep v1.0.8
-	github.com/gruntwork-io/terratest v0.40.5
+	github.com/gruntwork-io/terratest v0.40.6
 	github.com/hashicorp/hcl/v2 v2.10.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/hashicorp/terraform-provider-google v1.20.1-0.20210625223728-379bcb41c06b
