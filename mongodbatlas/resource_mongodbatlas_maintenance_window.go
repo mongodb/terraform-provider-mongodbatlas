@@ -101,13 +101,6 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 		}
 	}
 
-	if autoDeferValue := d.Get("auto_defer").(bool); autoDeferValue {
-		_, err := conn.MaintenanceWindows.AutoDefer(ctx, projectID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
-		}
-	}
-
 	maintenanceWindowReq := &matlas.MaintenanceWindow{}
 
 	if dayOfWeek, ok := d.GetOk("day_of_week"); ok {
@@ -129,6 +122,13 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 	_, err := conn.MaintenanceWindows.Update(ctx, projectID, maintenanceWindowReq)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
+	}
+
+	if autoDeferValue := d.Get("auto_defer").(bool); autoDeferValue {
+		_, err := conn.MaintenanceWindows.AutoDefer(ctx, projectID)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
+		}
 	}
 
 	d.SetId(projectID)
@@ -194,13 +194,6 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 		}
 	}
 
-	if d.HasChange("auto_defer") {
-		_, err := conn.MaintenanceWindows.AutoDefer(ctx, d.Id())
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, d.Id(), err))
-		}
-	}
-
 	if d.HasChange("day_of_week") {
 		maintenanceWindowReq.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 	}
@@ -220,6 +213,13 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 	_, err := conn.MaintenanceWindows.Update(ctx, d.Id(), maintenanceWindowReq)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, d.Id(), err))
+	}
+
+	if d.HasChange("auto_defer") {
+		_, err := conn.MaintenanceWindows.AutoDefer(ctx, d.Id())
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, d.Id(), err))
+		}
 	}
 
 	return nil
