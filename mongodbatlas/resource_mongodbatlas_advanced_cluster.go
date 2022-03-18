@@ -583,6 +583,9 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 						return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 					}
 				}
+				if errors.As(err, &target) && target.HTTPCode == 400 {
+					return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				}
 			}
 			return nil
 		})
