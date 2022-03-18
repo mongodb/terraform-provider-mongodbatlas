@@ -2,7 +2,7 @@
 
 This directory contains various examples of using the MongoDB Atlas Provider.  Each example has a README containing more details on what the example does and any details required to configure it.
 
-To run any example, clone the repository, edit any required variales and run terraform plan/apply within the example's own directory.
+To run any example, clone the repository, edit any required variables and run terraform plan/apply within the example's own directory.
 
 For example:
 
