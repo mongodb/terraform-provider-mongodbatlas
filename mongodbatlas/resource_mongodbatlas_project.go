@@ -5,8 +5,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -97,6 +99,11 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 			},
 		},
 	}
+}
+
+// Resources that need to be cleaned up before a project can be deleted
+type AtlastProjectDependents struct {
+	AdvancedClusters *matlas.AdvancedClustersResponse
 }
 
 func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -292,12 +299,65 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	_, err := conn.Projects.Delete(ctx, projectID)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"DELETING", "RETRY"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
+		Timeout:    30 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Delay:      0,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+
+	if err != nil {
+		log.Printf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error())
+	}
+
+	_, err = conn.Projects.Delete(ctx, projectID)
+
 	if err != nil {
 		return diag.Errorf(errorProjectDelete, projectID, err)
 	}
 
 	return nil
+}
+
+/*
+	This assumes the project CRUD outcome will be the same for any non-zero number of dependents
+
+	If all dependents are deleting, wait to try and delete
+	Else consider the aggregate dependents idle.
+
+	If we get a defined error response, return that right away
+	Else retry
+*/
+func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		var target *matlas.ErrorResponse
+		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		dependents := AtlastProjectDependents{AdvancedClusters: clusters}
+
+		if errors.As(err, &target) {
+			return nil, "", err
+		} else if err != nil {
+			return nil, "RETRY", nil
+		}
+
+		if dependents.AdvancedClusters.TotalCount == 0 {
+			return dependents, "IDLE", nil
+		}
+
+		for _, v := range dependents.AdvancedClusters.Results {
+			if v.StateName != "DELETING" {
+				return dependents, "IDLE", nil
+			}
+		}
+
+		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", projectID, "DELETING")
+
+		return dependents, "DELETING", nil
+	}
 }
 
 func expandTeamsSet(teams *schema.Set) []*matlas.ProjectTeam {

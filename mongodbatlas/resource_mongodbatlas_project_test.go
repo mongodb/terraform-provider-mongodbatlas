@@ -293,6 +293,37 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 	}
 }
 
+func TestAccResourceMongoDBAtlasProject_CreateWithAdvancedCluster(t *testing.T) {
+	var (
+		project             matlas.Project
+		cluster             matlas.AdvancedCluster
+		clusterResourceName = "mongodbatlas_advanced_cluster.test"
+		resourceName        = "mongodbatlas_project.test"
+		clusterName         = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName         = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID      = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithAdvancedCluster(projectName, orgID, projectOwnerID, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasAdvancedClusterExists(clusterResourceName, &cluster),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if project.Name != projectName {
@@ -391,8 +422,41 @@ func testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID
 		resource "mongodbatlas_project" "test" {
 			name   			 = "%[1]s"
 			org_id 			 = "%[2]s"
-		    project_owner_id = "%[3]s"
+			project_owner_id = "%[3]s"
 			with_default_alerts_settings = false
 		}
 	`, projectName, orgID, projectOwnerID)
+}
+
+func testAccMongoDBAtlasProjectConfigWithAdvancedCluster(projectName, orgID, projectOwnerID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name                         = %[1]q
+			org_id                       = %[2]q
+			project_owner_id             = %[3]q
+			with_default_alerts_settings = false
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.test.id
+			name         = %[4]q
+			cluster_type = "REPLICASET"
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}
+			}
+		}
+	`, projectName, orgID, projectOwnerID, clusterName)
 }
