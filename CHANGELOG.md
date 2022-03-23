@@ -1,4 +1,20 @@
 # Changelog
+## [v1.3.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1-pre.1) (2022-02-23)
+
+**Closed issues:**
+- Advance Cluster resource ignoring the autoscaling options [\#686](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/686)
+- Ensure we handle new flow for project deletion well #688  [\#688](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/688) 
+- Provider did not catch 400 error returned from the API [\#687](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/687)
+- Update timing of autodefer [\#695](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/695)
+
+**Merged pull requests:**
+
+- INTMDB-300: Advance Cluster resource ignoring the autoscaling options [\#686](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/686) ([martinstibbe](https://github.com/martinstibbe))
+- INTMDB-302: Ensure we handle new flow for project deletion well #688  [\#688](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/688) ([evertsd](https://github.com/evertsd))
+-  INTMDB-303: Provider did not catch 400 error returned from the API [\#687](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/687) ([martinstibbe](https://github.com/martinstibbe))
+- INTMDB-305: Update timing of autodefer [\#695](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/695) ([martinstibbe](https://github.com/martinstibbe))
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.3.1...v1.3.1-pre.1)
 
 ## [v1.3.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.0) (2022-02-23)
 
