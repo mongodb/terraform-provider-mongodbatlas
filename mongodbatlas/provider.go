@@ -224,15 +224,19 @@ func decodeStateID(stateID string) map[string]string {
 		if err != nil {
 			log.Printf("[WARN] error decoding state ID: %s", err)
 		}
-
+		log.Printf("[INFO] [decodedString] ===> %s", string(decodedString))
 		return string(decodedString)
 	}
 	decodedValues := make(map[string]string)
 	encodedValues := strings.Split(stateID, "-")
 
 	for _, value := range encodedValues {
-		log.Printf("[INFO] ===> %s", value)
+		log.Printf("[INFO] [value] ===> %s", value)
 		keyValue := strings.Split(value, ":")
+		log.Printf("[INFO] [value 0] ===> %s", keyValue[0])
+		log.Printf("[INFO] [value 1] ===> %s", keyValue[1])
+		log.Printf("[INFO] [dvalue 0] ===> %s", decode(keyValue[0]))
+		log.Printf("[INFO] [dvalue 1] ===> %s", decode(keyValue[1]))
 		decodedValues[decode(keyValue[0])] = decode(keyValue[1])
 	}
 
