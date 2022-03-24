@@ -179,6 +179,9 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
+
+	log.Printf("[INFO] ===> %s", d.Id())
+
 	ids := decodeStateID(d.Id())
 
 	return diag.FromErr(resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
