@@ -261,7 +261,7 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
-
+	log.Print("[INFO] [resourceMongoDBAtlasIPAccessListImportState]")
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a peer, use the format {project_id}-{access_list_entry}")
@@ -278,6 +278,11 @@ func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.
 	if err := d.Set("project_id", projectID); err != nil {
 		log.Printf("[WARN] Error setting project_id for (%s): %s", projectID, err)
 	}
+
+	log.Printf("[INFO] [SetId] ===> %s", encodeStateID(map[string]string{
+		"project_id": projectID,
+		"entry":      entry,
+	}))
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
