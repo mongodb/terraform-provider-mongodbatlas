@@ -186,6 +186,7 @@ func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.
 
 	return diag.FromErr(resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
 		if _, err := ids["error"]; err {
+			d.SetId("")
 			return nil
 		}
 
