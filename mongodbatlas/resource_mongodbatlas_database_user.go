@@ -135,6 +135,12 @@ func resourceMongoDBAtlasDatabaseUserRead(ctx context.Context, d *schema.Resourc
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
+
+	if _, err := ids["error"]; err {
+		d.SetId("")
+		return nil
+	}
+
 	projectID := ids["project_id"]
 	username := ids["username"]
 	authDatabaseName := ids["auth_database_name"]

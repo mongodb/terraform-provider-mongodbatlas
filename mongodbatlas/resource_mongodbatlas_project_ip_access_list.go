@@ -179,9 +179,6 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-
-	log.Printf("[INFO] [resourceMongoDBAtlasProjectIPAccessListRead] ===> %s", d.Id())
-
 	ids := decodeStateID(d.Id())
 
 	return diag.FromErr(resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
@@ -266,7 +263,7 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 
 func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
-	log.Print("[INFO] [resourceMongoDBAtlasIPAccessListImportState]")
+
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a peer, use the format {project_id}-{access_list_entry}")
