@@ -185,6 +185,10 @@ func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.
 	ids := decodeStateID(d.Id())
 
 	return diag.FromErr(resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
+		if _, err := ids["error"]; err {
+			return nil
+		}
+
 		accessList, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			switch {

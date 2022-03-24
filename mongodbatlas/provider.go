@@ -233,6 +233,10 @@ func decodeStateID(stateID string) map[string]string {
 	for _, value := range encodedValues {
 		log.Printf("[INFO] [value] ===> %s", value)
 		keyValue := strings.Split(value, ":")
+		if len(keyValue) < 2 {
+			decodedValues["error"] = "Invalid value"
+			return decodedValues
+		}
 		log.Printf("[INFO] [value 0] ===> %s", keyValue[0])
 		log.Printf("[INFO] [value 1] ===> %s", keyValue[1])
 		log.Printf("[INFO] [dvalue 0] ===> %s", decode(keyValue[0]))
