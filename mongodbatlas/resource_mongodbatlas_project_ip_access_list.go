@@ -281,11 +281,6 @@ func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.
 		log.Printf("[WARN] Error setting project_id for (%s): %s", projectID, err)
 	}
 
-	log.Printf("[INFO] [SetId] ===> %s", encodeStateID(map[string]string{
-		"project_id": projectID,
-		"entry":      entry,
-	}))
-
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"entry":      entry,
