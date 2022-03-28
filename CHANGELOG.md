@@ -1,4 +1,8 @@
 # Changelog
+
+## [v1.3.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1) (2022-03-28)
+
+- INTMDB-306: [Terraform] Release bug fix version 1.3.1
 ## [v1.3.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1-pre.1) (2022-02-23)
 
 **Closed issues:**
