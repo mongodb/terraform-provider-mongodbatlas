@@ -141,7 +141,6 @@ func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceMongoDBAtlasAuditingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
