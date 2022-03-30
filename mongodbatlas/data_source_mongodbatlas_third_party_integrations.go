@@ -176,8 +176,8 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.Name = name.(string)
 	}
 
-	if microsoftTeamsWebhookUrl, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
-		out.MicrosoftTeamsWebhookURL = microsoftTeamsWebhookUrl.(string)
+	if microsoftTeamsWebhookURL, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
+		out.MicrosoftTeamsWebhookURL = microsoftTeamsWebhookURL.(string)
 	}
 
 	if userName, ok := in.GetOk("user_name"); ok {
