@@ -64,22 +64,28 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID 
 
 func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]interface{} {
 	out := map[string]interface{}{
-		"type":         integration.Type,
-		"license_key":  integration.LicenseKey,
-		"account_id":   integration.AccountID,
-		"write_token":  integration.WriteToken,
-		"read_token":   integration.ReadToken,
-		"api_key":      integration.APIKey,
-		"region":       integration.Region,
-		"service_key":  integration.ServiceKey,
-		"api_token":    integration.APIToken,
-		"team_name":    integration.TeamName,
-		"channel_name": integration.ChannelName,
-		"routing_key":  integration.RoutingKey,
-		"flow_name":    integration.FlowName,
-		"org_name":     integration.OrgName,
-		"url":          integration.URL,
-		"secret":       integration.Secret,
+		"type":                        integration.Type,
+		"license_key":                 integration.LicenseKey,
+		"account_id":                  integration.AccountID,
+		"write_token":                 integration.WriteToken,
+		"read_token":                  integration.ReadToken,
+		"api_key":                     integration.APIKey,
+		"region":                      integration.Region,
+		"service_key":                 integration.ServiceKey,
+		"api_token":                   integration.APIToken,
+		"team_name":                   integration.TeamName,
+		"channel_name":                integration.ChannelName,
+		"routing_key":                 integration.RoutingKey,
+		"flow_name":                   integration.FlowName,
+		"org_name":                    integration.OrgName,
+		"url":                         integration.URL,
+		"secret":                      integration.Name,
+		"name":                        integration.Secret,
+		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
+		"user_name":                   integration.UserName,
+		"service_duscovery":           integration.ServiceDiscovery,
+		"scheme":                      integration.Scheme,
+		"enabled":                     integration.Enabled,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -164,6 +170,30 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 
 	if secret, ok := in.GetOk("secret"); ok {
 		out.Secret = secret.(string)
+	}
+
+	if secret, ok := in.GetOk("secret"); ok {
+		out.Secret = secret.(string)
+	}
+
+	if name, ok := in.GetOk("name"); ok {
+		out.Name = name.(string)
+	}
+
+	if microsoftTeamsWebhookUrl, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
+		out.MicrosoftTeamsWebhookURL = microsoftTeamsWebhookUrl.(string)
+	}
+
+	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
+		out.ServiceDiscovery = serviceDiscovery.(string)
+	}
+
+	if scheme, ok := in.GetOk("scheme"); ok {
+		out.Scheme = scheme.(string)
+	}
+
+	if enabled, ok := in.GetOk("enabled"); ok {
+		out.Enabled = enabled.(string)
 	}
 
 	return out
