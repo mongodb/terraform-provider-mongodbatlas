@@ -1223,6 +1223,8 @@ go.mongodb.org/atlas v0.15.1-0.20220215171307-4b760c3c624f h1:IvKkFdSSBLC5kqB1X8
 go.mongodb.org/atlas v0.15.1-0.20220215171307-4b760c3c624f/go.mod h1:lQhRHIxc6jQHEK3/q9WLu/SdBkPj2fQYhjLGUF6Z3U8=
 go.mongodb.org/atlas v0.15.1-0.20220330015822-18ef33419ce7 h1:nJjUIAkZMJ07WCYDlvqnZPPfOkGUdKJj1m9nPOggibw=
 go.mongodb.org/atlas v0.15.1-0.20220330015822-18ef33419ce7/go.mod h1:lQhRHIxc6jQHEK3/q9WLu/SdBkPj2fQYhjLGUF6Z3U8=
+go.mongodb.org/atlas v0.15.1-0.20220403193624-86b34ba344cd h1:JzkNgRp8xLbm16DJP28+oGf0P765Nl2Xp8yERZ8O/y0=
+go.mongodb.org/atlas v0.15.1-0.20220403193624-86b34ba344cd/go.mod h1:lQhRHIxc6jQHEK3/q9WLu/SdBkPj2fQYhjLGUF6Z3U8=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=

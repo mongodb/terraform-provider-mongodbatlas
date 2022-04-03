@@ -83,6 +83,7 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 		"name":                        integration.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
 		"user_name":                   integration.UserName,
+		"password":                    integration.Password,
 		"service_duscovery":           integration.ServiceDiscovery,
 		"scheme":                      integration.Scheme,
 		"enabled":                     integration.Enabled,
@@ -184,6 +185,10 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.UserName = userName.(string)
 	}
 
+	if password, ok := in.GetOk("password"); ok {
+		out.Password = password.(string)
+	}
+
 	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
 		out.ServiceDiscovery = serviceDiscovery.(string)
 	}
@@ -193,7 +198,7 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 	}
 
 	if enabled, ok := in.GetOk("enabled"); ok {
-		out.Enabled = enabled.(string)
+		out.Enabled = enabled.(bool)
 	}
 
 	return out
@@ -281,6 +286,6 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 	}
 
 	if d.HasChange("enabled") {
-		integration.Enabled = d.Get("enabled").(string)
+		integration.Enabled = d.Get("enabled").(bool)
 	}
 }
