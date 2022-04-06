@@ -68,6 +68,14 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 				Computed: true,
 			},
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceMongoDBAtlasCloudProviderAccessV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceMongoDBAtlasCloudProviderAccessStateUpgradeV0,
+				Version: 0,
+			},
+		},
 	}
 }
 
@@ -247,4 +255,54 @@ func splitCloudProviderAccessID(id string) (projectID, providerName, roleID stri
 	projectID, providerName, roleID = parts[1], parts[2], parts[3]
 
 	return
+}
+
+func resourceMongoDBAtlasCloudProviderAccessV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"project_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"provider_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+			},
+			"atlas_aws_account_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"atlas_assumed_role_external_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"authorized_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"created_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"iam_assumed_role_arn": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"role_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"feature_usages": {
+				Type:     schema.TypeList,
+				Elem:     featureUsagesSchemaV0(),
+				Computed: true,
+			},
+		},
+	}
+}
+
+func resourceMongoDBAtlasCloudProviderAccessStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	rawState["feature_usages"] = []interface{}{map[string]interface{}{}}
+	return rawState, nil
 }
