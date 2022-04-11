@@ -79,12 +79,11 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 		"flow_name":                   integration.FlowName,
 		"org_name":                    integration.OrgName,
 		"url":                         integration.URL,
-		"secret":                      integration.Name,
-		"name":                        integration.Secret,
+		"secret":                      integration.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
 		"user_name":                   integration.UserName,
 		"password":                    integration.Password,
-		"service_duscovery":           integration.ServiceDiscovery,
+		"service_discovery":           integration.ServiceDiscovery,
 		"scheme":                      integration.Scheme,
 		"enabled":                     integration.Enabled,
 	}
@@ -171,10 +170,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 
 	if secret, ok := in.GetOk("secret"); ok {
 		out.Secret = secret.(string)
-	}
-
-	if name, ok := in.GetOk("name"); ok {
-		out.Name = name.(string)
 	}
 
 	if microsoftTeamsWebhookURL, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
@@ -265,16 +260,16 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 		integration.Secret = d.Get("secret").(string)
 	}
 
-	if d.HasChange("name") {
-		integration.Name = d.Get("name").(string)
-	}
-
 	if d.HasChange("microsoft_teams_webhook_url") {
 		integration.MicrosoftTeamsWebhookURL = d.Get("microsoft_teams_webhook_url").(string)
 	}
 
 	if d.HasChange("user_name") {
 		integration.UserName = d.Get("user_name").(string)
+	}
+
+	if d.HasChange("password") {
+		integration.Password = d.Get("password").(string)
 	}
 
 	if d.HasChange("service_discovery") {

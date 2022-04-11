@@ -31,8 +31,8 @@ var requiredPerType = map[string][]string{
 	"VICTOR_OPS":      {"api_key"},
 	"FLOWDOCK":        {"flow_name", "api_token", "org_name"},
 	"WEBHOOK":         {"url"},
-	"MICROSOFT_TEAMS": {"name", "microsoft_teams_webhook_url"},
-	"PROMETHEUS":      {"user_name", "service_discovery", "scheme", "enabled"},
+	"MICROSOFT_TEAMS": {"microsoft_teams_webhook_url"},
+	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
 }
 
 func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
@@ -124,17 +124,17 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Optional:  true,
 				Sensitive: true,
 			},
-			"name": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Optional:  true,
-			},
 			"microsoft_teams_webhook_url": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Optional:  true,
 			},
 			"user_name": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Optional:  true,
+			},
+			"password": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Optional:  true,
