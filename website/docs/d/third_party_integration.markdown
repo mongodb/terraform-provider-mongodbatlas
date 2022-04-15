@@ -77,10 +77,10 @@ Additional values based on Type
    * `url` - Your webhook URL.
    * `secret` - An optional field for your webhook secret.
 * `MICROSOFT_TEAMS`
-   * `name` - Your Microsoft Teams incoming webhook name.
    * `microsoft_teams_webhook_url` -  Your Microsoft Teams incoming webhook URL.
  * `PROMETHEUS`
     * `user_name` - Your Prometheus username.
+    * `password` - Your Prometheus password.
     * `service_discovery` - Indicates which service discovery method is used, either file or http.
     * `scheme` - Your Prometheus protocol scheme configured for requests.
     * `enabled` - Whether your cluster has Prometheus enabled.
