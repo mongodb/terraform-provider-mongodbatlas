@@ -85,7 +85,7 @@ const (
 	}
 	`
 
-	MICROSOFT_TEAMS = `
+	MICROSOFTTEAMS = `
 	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
 		type = "%[3]s"
@@ -223,7 +223,7 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.Integration.Type,
 			config.Integration.URL,
 		)
-	case "MICROSOFT_TEAMS":
+	case "MICROSOFTTEAMS":
 		return fmt.Sprintf(WEBHOOK,
 			config.Name,
 			config.ProjectID,
