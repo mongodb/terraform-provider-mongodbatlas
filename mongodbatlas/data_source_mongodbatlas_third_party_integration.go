@@ -125,7 +125,7 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Optional: true,
 			},
 			"enabled": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 		},
