@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -124,14 +125,38 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Cont
 func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client *matlas.Client, projectID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		p, resp, err := client.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(ctx, projectID)
+		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
+
 		if err != nil {
-			if resp.Response.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return "", "DELETED", nil
 			}
 
-			return nil, "REJECTED", err
+			return nil, "REPEATING", err
 		}
 
-		return p, "Ok", nil
+		for _, c := range clusters {
+			s, resp, err := client.Clusters.Status(ctx, projectID, c.Name)
+
+			if err != nil && strings.Contains(err.Error(), "reset by peer") {
+				return nil, "REPEATING", nil
+			}
+
+			if err != nil {
+				if resp.StatusCode == 404 {
+					return "", "DELETED", nil
+				}
+				if resp.StatusCode == 503 {
+					return "", "PENDING", nil
+				}
+				return nil, "REPEATING", err
+			}
+
+			if s.ChangeStatus == matlas.ChangeStatusPending {
+				return clusters, "PENDING", nil
+			}
+		}
+
+		return clusters, "APPLIED", nil
 	}
 }
