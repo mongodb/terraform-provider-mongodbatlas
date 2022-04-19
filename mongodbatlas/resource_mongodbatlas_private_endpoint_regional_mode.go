@@ -124,7 +124,6 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Cont
 
 func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client *matlas.Client, projectID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		p, resp, err := client.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(ctx, projectID)
 		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
 
 		if err != nil {
