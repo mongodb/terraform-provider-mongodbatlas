@@ -91,7 +91,7 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
 	optionals := []string{"license_key", "account_id", "write_token",
 		"read_token", "api_key", "region", "service_key", "api_token",
-		"team_name", "channel_name", "flow_name", "org_name", "url", "secret"}
+		"team_name", "channel_name", "flow_name", "org_name", "url", "secret", "password"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {

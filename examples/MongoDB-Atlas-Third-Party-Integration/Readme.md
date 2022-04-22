@@ -1,16 +1,17 @@
-# Example - A basic example to start with the MongoDB Atlas and Terraform
+# Example - A basic example configuring MongoDB Atlas Third Party Integrations and Terraform
 
 This project aims to provide a very straight-forward example of setting up Terraform with MongoDB Atlas. This will create the following resources in MongoDB Atlas:
 
 - Atlas Project
-- MongoDB Cluster - M10
-- Database User
-- IP Access List
+- Microst Teams Third Party Integration
+- Prometheus Third Party Integration
 
-You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provider's region name.
-[Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
-[Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
-[Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
+
+You can refer to the MongoDB Atlas documentation to know about the parameters that support Third Party Integrations.
+
+[Prometheus](https://www.mongodb.com/docs/atlas/tutorial/prometheus-integration/#std-label-httpsd-prometheus-config)
+
+[Microsoft Teams](https://www.mongodb.com/docs/atlas/tutorial/integrate-msft-teams/)
 
 ## Dependencies
 
@@ -46,9 +47,8 @@ $ terraform plan
 This project currently creates the below deployments:
 
 - Atlas Project
-- MongoDB cluster - M10
-- Database User
-- IP Access list
+- Microst Teams Third Party Integration
+- Prometheus Third Party Integration
 
 **3\. Execute the Terraform apply.**
 
@@ -66,43 +66,3 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 $ terraform destroy
 ```
 
-**Important Point**
-
-You can fetch the connection string as per the use case by following the MongoDB Atlas documentation on [Connect to your cluster](https://docs.atlas.mongodb.com/tutorial/connect-to-your-cluster/index.html).
-
-Or to fetch the connection string using terraform follow the below steps:
-
-```hcl
-output "atlasclusterstring" {
-    value = mongodbatlas_cluster.cluster.connection_strings
-}
-```
-**Outputs:**
-```hcl
-atlasclusterstring = [
-  {
-    "aws_private_link" = {
-      "vpce-0ebb76559e8affc96" = "mongodb://pl-0-us-east-1.za3fb.mongodb.net:1024,pl-0-us-east-1.za3fb.mongodb.net:1025,pl-0-us-east-1.za3fb.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=atlas-d177ke-shard-0"
-    }
-    "aws_private_link_srv" = {
-      "vpce-0ebb76559e8affc96" = "mongodb+srv://mongodb-atlas-pl-0.za3fb.mongodb.net"
-    }
-    "private" = ""
-    "private_srv" = ""
-    "standard" = "mongodb://mongodb-atlas-shard-00-00.za3fb.mongodb.net:27017,mongodb-atlas-shard-00-01.za3fb.mongodb.net:27017,mongodb-atlas-shard-00-02.za3fb.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-d177ke-shard-0"
-    "standard_srv" = "mongodb+srv://mongodb-atlas.za3fb.mongodb.net"
-  },
-]
-```
-
-To fetch a particular connection string, use the **lookup()** function of terraform as below:
-
-```
-output "plstring" {
-    value = lookup(mongodbatlas_cluster.cluster.connection_strings[0].aws_private_link_srv, aws_vpc_endpoint.ptfe_service.id)
-}
-```
-**Output:**
-```
-plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
-```

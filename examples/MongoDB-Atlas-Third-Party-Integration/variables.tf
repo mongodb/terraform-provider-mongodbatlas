@@ -14,38 +14,18 @@ variable "project_name" {
   type        = string
   description = "The MongoDB Atlas Project Name"
 }
-variable "cluster_name" {
+variable "user_name" {
   type        = string
-  description = "The MongoDB Atlas Cluster Name"
+  description = "The Prometheus User Name"
+  default     = "puser"
 }
-variable "cloud_provider" {
+variable "password" {
   type        = string
-  description = "The cloud provider to use, must be AWS, GCP or AZURE"
+  description = "The Prometheus Password"
+  default     = "ppassword"
 }
-variable "region" {
+variable "microsoft_teams_webhook_url" {
   type        = string
-  description = "MongoDB Atlas Cluster Region, must be a region for the provider given"
+  description = "The Microsoft Teams Webhook URL"
+  default     = "https://yourcompany.webhook.office.com/webhookb2/zzz@yyy/IncomingWebhook/xyz"
 }
-variable "mongodbversion" {
-  type        = string
-  description = "The Major MongoDB Version"
-}
-variable "dbuser" {
-  type        = string
-  description = "MongoDB Atlas Database User Name"
-}
-variable "dbuser_password" {
-  type        = string
-  description = "MongoDB Atlas Database User Password"
-}
-variable "database_name" {
-  type        = string
-  description = "The database in the cluster to limit the database user to, the database does not have to exist yet"
-}
-variable "ip_address" {
-  type        = string
-  description = "The IP address that the cluster will be accessed from, can also be a CIDR range or AWS security group"
-}
-
-
-
