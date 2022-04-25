@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	errorPrivateEndpointRegionalModeRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
-	errorPrivateEndpointRegionalModeSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
+	errorPrivateEndpointRegionalModeRead    = "error reading MongoDB Group `%s Private Endpoints Regional Mode: %s"
+	errorPrivateEndpointRegionalModeSetting = "error setting `%s` on MongoDB Group `%s` Private Endpoints Regional Mode: %s"
 )
 
 func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
@@ -25,7 +25,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 		UpdateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate,
 		DeleteContext: schema.NoopContext,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivateLinkEndpointImportState,
+			StateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -58,7 +58,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d 
 	}
 
 	if err := d.Set("enabled", setting.Enabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "enabled", projectID, err))
+		return diag.FromErr(fmt.Errorf(errorPrivateEndpointRegionalModeSetting, "enabled", projectID, err))
 	}
 
 	return nil
@@ -136,8 +136,8 @@ func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client 
 			return nil, "REPEATING", err
 		}
 
-		for _, c := range clusters {
-			s, resp, err := client.Clusters.Status(ctx, projectID, c.Name)
+		for i := range clusters {
+			s, resp, err := client.Clusters.Status(ctx, projectID, clusters[i].Name)
 
 			if err != nil && strings.Contains(err.Error(), "reset by peer") {
 				return nil, "REPEATING", nil
