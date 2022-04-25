@@ -41,7 +41,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 
 func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint_service_adl" "test" {
+		resource "mongodbatlas_private_endpoint_regional_mode" "test" {
 			project_id   = "%[1]s"
 			enabled      = "%[2]b"
 		}
