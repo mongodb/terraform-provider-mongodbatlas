@@ -82,8 +82,8 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETING"},
-		Target:     []string{"DELETED", "FAILED"},
+		Pending:    []string{"PENDING", "REPEATING"},
+		Target:     []string{"APPLIED"},
 		Refresh:    resourcePrivateEndpointRegionalModeRefreshFunc(ctx, conn, projectID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
@@ -127,8 +127,9 @@ func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client 
 		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
 
 		if err != nil {
+			// For our purposes, no clusters is equivalent to all changes having been APPLIED
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return "", "DELETED", nil
+				return "", "APPLIED", nil
 			}
 
 			return nil, "REPEATING", err
@@ -143,7 +144,8 @@ func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client 
 
 			if err != nil {
 				if resp.StatusCode == 404 {
-					return "", "DELETED", nil
+					// The cluster no longer exists, consider this equivalent to status APPLIED
+					continue
 				}
 				if resp.StatusCode == 503 {
 					return "", "PENDING", nil
@@ -156,6 +158,7 @@ func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client 
 			}
 		}
 
+		// If all clusters were properly read, and none are PENDING, all changes have been APPLIED.
 		return clusters, "APPLIED", nil
 	}
 }
