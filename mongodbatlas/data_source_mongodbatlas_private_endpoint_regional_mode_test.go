@@ -3,47 +3,42 @@ package mongodbatlas
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T) {
-	datasourceName := "data.mongodbatlas_privatelink_endpoint_service_adl.test"
+func TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
+	datasourceName := "data.mongodbatlas_private_endpoint_regional_mode.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID := "vpce-jjg5e24qp93513h03"
+	enabled := true
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointADLDataSourceConfig(projectID, endpointID),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeDataSourceConfig(projectID, enabled),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLExists(datasourceName),
-					resource.TestCheckResourceAttr(datasourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(datasourceName, "type", "DATA_LAKE"),
-					resource.TestCheckResourceAttr(datasourceName, "provider_name", "AWS"),
-					resource.TestCheckResourceAttr(datasourceName, "comment", "private link adl comment"),
+					resource.TestCheckResourceAttr(datasourceName, "enabled", strconv.FormatBool(enabled)),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointADLDataSourceConfig(projectID, endpointID string) string {
+func testAccMongoDBAtlasPrivateEndpointRegionalModeDataSourceConfig(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint_service_adl" "test" {
-			project_id   = "%[1]s"
-			endpoint_id  = "%[2]s"
-			comment      = "private link adl comment"
-			type		 = "DATA_LAKE"
-			provider_name	 = "AWS"
+		resource "mongodbatlas_private_endpoint_regional_mode" "test" {
+			project_id = "%[1]s"
+			enabled    = "%[2]b"
 		}
 
-		data "mongodbatlas_privatelink_endpoint_service_adl" "test" {
-			project_id      = mongodbatlas_privatelink_endpoint_service_adl.test.project_id
-			endpoint_id = mongodbatlas_privatelink_endpoint_service_adl.test.endpoint_id
+		data "mongodbatlas_private_endpoint_regional_mode" "test" {
+			project_id      = mongodbatlas_private_endpoint_regional_mode.test.project_id
+			endpoint_id = mongodbatlas_private_endpoint_regional_mode.test.enabled
 		}
-	`, projectID, endpointID)
+	`, projectID, enabled)
 }
