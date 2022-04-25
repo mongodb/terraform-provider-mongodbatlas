@@ -10,7 +10,7 @@ import (
 
 func dataSourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivateLinkEndpointRegionalModeRead,
+		ReadContext: dataSourceMongoDBAtlasPrivateEndpointRegionalModeRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -46,7 +46,7 @@ func dataSourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, 
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"project_id":  projectID
+		"project_id": projectID,
 	}))
 
 	return nil

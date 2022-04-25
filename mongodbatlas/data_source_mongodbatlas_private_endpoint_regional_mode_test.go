@@ -21,7 +21,7 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeDataSourceConfig(projectID, enabled),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLExists(datasourceName),
+					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(datasourceName),
 					resource.TestCheckResourceAttr(datasourceName, "enabled", strconv.FormatBool(enabled)),
 				),
 			},
@@ -33,12 +33,12 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeDataSourceConfig(projectID st
 	return fmt.Sprintf(`
 		resource "mongodbatlas_private_endpoint_regional_mode" "test" {
 			project_id = "%[1]s"
-			enabled    = "%[2]b"
+			enabled    = "%[2]t"
 		}
 
 		data "mongodbatlas_private_endpoint_regional_mode" "test" {
-			project_id      = mongodbatlas_private_endpoint_regional_mode.test.project_id
-			endpoint_id = mongodbatlas_private_endpoint_regional_mode.test.enabled
+			project_id  = mongodbatlas_private_endpoint_regional_mode.test.project_id
+			enabled = mongodbatlas_private_endpoint_regional_mode.test.enabled
 		}
 	`, projectID, enabled)
 }

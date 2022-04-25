@@ -23,6 +23,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 	return &schema.Resource{
 		ReadContext:   resourceMongoDBAtlasPrivateEndpointRegionalModeRead,
 		UpdateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate,
+		DeleteContext: schema.NoopContext,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasPrivateLinkEndpointImportState,
 		},
