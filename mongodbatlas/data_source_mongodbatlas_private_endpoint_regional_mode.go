@@ -45,9 +45,7 @@ func dataSourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, 
 		return diag.Errorf("error setting `enabled` for enabled (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
-		"project_id": projectID,
-	}))
+	d.SetId(projectID)
 
 	return nil
 }

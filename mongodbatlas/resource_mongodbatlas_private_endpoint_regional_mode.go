@@ -21,6 +21,7 @@ const (
 
 func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 	return &schema.Resource{
+		CreateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeCreate,
 		ReadContext:   resourceMongoDBAtlasPrivateEndpointRegionalModeRead,
 		UpdateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate,
 		DeleteContext: schema.NoopContext,
@@ -41,11 +42,21 @@ func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 	}
 }
 
+func resourceMongoDBAtlasPrivateEndpointRegionalModeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	d.SetId(d.Get("project_id").(string))
+	err := resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx, d, meta)
+
+	if err != nil {
+		return err
+	}
+
+	return resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx, d, meta)
+}
+
 func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
-	projectID := ids["project_id"]
+	projectID := d.Id()
 
 	setting, resp, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
 	if err != nil {
@@ -67,13 +78,12 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
-	ids := decodeStateID(d.Id())
-	projectID := ids["project_id"]
+	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
 
 	_, resp, err := conn.PrivateEndpoints.UpdateRegionalizedPrivateEndpointSetting(ctx, projectID, enabled)
 	if err != nil {
-		if resp.Response.StatusCode == 404 {
+		if resp != nil && resp.Response.StatusCode == 404 {
 			return nil
 		}
 
@@ -116,9 +126,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Cont
 		log.Printf(errorPrivateLinkEndpointsSetting, "enabled", projectID, err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
-		"project_id": projectID,
-	}))
+	d.SetId(projectID)
 
 	return []*schema.ResourceData{d}, nil
 }
