@@ -24,7 +24,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 		CreateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeCreate,
 		ReadContext:   resourceMongoDBAtlasPrivateEndpointRegionalModeRead,
 		UpdateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate,
-		DeleteContext: schema.NoopContext,
+		DeleteContext: resourceMongoDBAtlasPrivateEndpointRegionalModeDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasPrivateEndpointRegionalModeImportState,
 		},
@@ -105,6 +105,12 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, projectID, err))
 	}
+
+	return nil
+}
+
+func resourceMongoDBAtlasPrivateEndpointRegionalModeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	d.SetId("")
 
 	return nil
 }

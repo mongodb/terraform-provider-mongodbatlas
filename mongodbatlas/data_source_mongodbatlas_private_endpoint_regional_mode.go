@@ -38,7 +38,7 @@ func dataSourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, 
 			return nil
 		}
 
-		return diag.Errorf("error getting ADL PrivateLink Endpoint Information: %s", err)
+		return diag.Errorf("error getting private endpoint regional mode: %s", err)
 	}
 
 	if err := d.Set("enabled", setting.Enabled); err != nil {
