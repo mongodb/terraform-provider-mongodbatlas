@@ -20,11 +20,11 @@ resource "mongodbatlas_search_index" "test" {
   cluster_name = "<CLUSTER_NAME>"
   
   analyzer = "lucene.standard"
-  collectionName = "collection_test"
+  collection_name = "collection_test"
   database = "database_test"
   mappings_dynamic = true
   
-  searchAnalyzer = "lucene.standard"
+  search_analyzer = "lucene.standard"
 }
 ```
 
@@ -34,7 +34,7 @@ resource "mongodbatlas_search_index" "test" {
   project_id = "%[1]s"
   cluster_name = "%[2]s"
   analyzer = "lucene.standard"
-  collectionName = "collection_test"
+  collection_name = "collection_test"
   database = "database_test"
   mappings_dynamic = false
   mappings_fields = <<-EOF
@@ -70,7 +70,7 @@ resource "mongodbatlas_search_index" "test" {
 }
 EOF
   name = "name_test"
-  searchAnalyzer = "lucene.standard"
+  search_analyzer = "lucene.standard"
   analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
@@ -254,7 +254,7 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
         * `type` - Must be `uaxUrlEmail`
         *  `max_token_length` - The maximum number of characters in one token.
 
-* `tokenFilters` - Array containing zero or more token filters. Always require a type field, and some take additional options as well:
+* `token_filters` - Array containing zero or more token filters. Always require a type field, and some take additional options as well:
   ```terraform
   "token_filters":{
     "type": "<FILTER_TYPE>",
