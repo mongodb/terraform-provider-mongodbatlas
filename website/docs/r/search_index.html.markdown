@@ -20,11 +20,11 @@ resource "mongodbatlas_search_index" "test" {
   cluster_name = "<CLUSTER_NAME>"
   
   analyzer = "lucene.standard"
-  collectionName = "collection_test"
+  collection_name = "collection_test"
   database = "database_test"
   mappings_dynamic = true
   
-  searchAnalyzer = "lucene.standard"
+  search_analyzer = "lucene.standard"
 }
 ```
 
@@ -70,7 +70,7 @@ resource "mongodbatlas_search_index" "test" {
 }
 EOF
   name = "name_test"
-  searchAnalyzer = "lucene.standard"
+  search_analyzer = "lucene.standard"
   analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
