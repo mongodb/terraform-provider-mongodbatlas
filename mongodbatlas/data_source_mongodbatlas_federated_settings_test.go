@@ -4,69 +4,68 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceMongoDBAtlasFederatedSettings_basic(t *testing.T) {
-	SkipTestExtCred(t)
 	var (
-		federatedSettings matlas.FederatedSettings
-		resourceName      = "data.mongodbatlas_federated_settings.test"
-		orgID             = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		dataSourceName = "data.mongodbatlas_cloud_federated_settings.config"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name           = "Terraform Official Testing for Federation"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { checkFederatedSettings(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID),
+				Config: testAccDSMongoDBAtlasFederatedSettingsConfig(orgID, name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName, &federatedSettings),
-
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "identity_provider_status"),
-					resource.TestCheckResourceAttrSet(resourceName, "has_role_mappings"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "identity_provider_id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID string) string {
+func testAccDSMongoDBAtlasFederatedSettingsConfig(orgID, name string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_federated_settings" "test" {
-			org_id = "%[1]s"
-		}
-`, orgID)
+	data "mongodbatlas_cloud_federated_settings" "federated_settings" {
+		org_id = "%s"
+		name = "%s"
+	  }
+
+	`, orgID, name)
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federatedSettings *matlas.FederatedSettings) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+func testAccCheckMongoDBAtlasFederatedSettingsDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_cloud_federated_settings" {
+			continue
 		}
 
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-
-		federatedSettingsRes, _, err := conn.FederatedSettings.Get(context.Background(), rs.Primary.Attributes["org_id"])
+		// Try to find the cluster
+		globalConfig, _, err := conn.FederatedSettings.Get(context.Background(), rs.Primary.Attributes["org_id"])
 		if err != nil {
-			return fmt.Errorf("FederatedSettings (%s) does not exist", rs.Primary.ID)
+			if strings.Contains(err.Error(), fmt.Sprintf("No federated settings identity provider %s exists in org %s", rs.Primary.Attributes["identity_provider_id"], rs.Primary.Attributes["org_id"])) {
+				return nil
+			}
+
+			return err
 		}
 
-		federatedSettings = federatedSettingsRes
-
-		return nil
+		if len(globalConfig.IdentityProviderID) > 0 || len(globalConfig.IdentityProviderStatus) > 0 {
+			return fmt.Errorf("Federated settings identity provider(%s) still exists", rs.Primary.Attributes["identity_provider_id"])
+		}
 	}
+
+	return nil
 }

@@ -76,13 +76,13 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
 	if !federationSettingsIDOk {
-		return diag.FromErr(errors.New("federation_settings_id must be configured"))
+		return diag.FromErr(errors.New("either federation_settings_id must be configured"))
 	}
 
 	orgID, orgIDOk := d.GetOk("org_id")
 
 	if !orgIDOk {
-		return diag.FromErr(errors.New("org_id must be configured"))
+		return diag.FromErr(errors.New("either org_id must be configured"))
 	}
 
 	options := &matlas.ListOptions{
@@ -90,13 +90,13 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedSettings.ListRoleMappings(ctx, federationSettingsID.(string), orgID.(string), options)
+	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedSettingsOrganizationRoleMapping.List(ctx, options, federationSettingsID.(string), orgID.(string))
 	if err != nil {
-		return diag.Errorf("error getting federatedSettings Role Mapping: assigned (%s): %s", federationSettingsID, err)
+		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
 
 	if err := d.Set("results", flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMappings)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings Role Mapping:: %s", err))
+		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
 	}
 
 	d.SetId(federationSettingsID.(string))

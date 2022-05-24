@@ -15,8 +15,14 @@ func dataSourceMongoDBAtlasFederatedSettings() *schema.Resource {
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"name"},
+			},
+			"name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"org_id"},
 			},
 			"federated_domains": {
 				Type:     schema.TypeList,
@@ -50,18 +56,30 @@ func dataSourceMongoDBAtlasFederatedSettingsRead(ctx context.Context, d *schema.
 	conn := meta.(*MongoDBClient).Atlas
 
 	orgID, orgIDOk := d.GetOk("org_id")
+	name, nameOk := d.GetOk("name")
 
-	if !orgIDOk {
-		return diag.FromErr(errors.New("org_id must be configured"))
+	if !orgIDOk && !nameOk {
+		return diag.FromErr(errors.New("either org_id or name must be configured"))
 	}
 
 	var (
-		err error
-		org *matlas.Organization
+		err  error
+		org  *matlas.Organization
+		orgs *matlas.Organizations
 	)
 
 	if orgIDOk {
 		org, _, err = conn.Organizations.Get(ctx, orgID.(string))
+	} else {
+		orgs, _, err = conn.Organizations.List(ctx, nil)
+		if err != nil {
+			return diag.Errorf("Organizations.List returned error: %v", err)
+		}
+		for _, o := range orgs.Results {
+			if o.Name == name.(string) {
+				org, _, err = conn.Organizations.Get(ctx, o.ID)
+			}
+		}
 	}
 
 	if err != nil {

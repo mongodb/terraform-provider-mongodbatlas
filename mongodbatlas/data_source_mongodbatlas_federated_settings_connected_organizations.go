@@ -142,7 +142,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.
 		return diag.FromErr(errors.New("either federation_settings_id must be configured"))
 	}
 
-	federatedSettingsConnectedOrganizations, _, err := conn.FederatedSettings.ListConnectedOrgs(ctx, federationSettingsID.(string), options)
+	federatedSettingsConnectedOrganizations, _, err := conn.FederatedSettingsConnectedOrganization.List(ctx, options, federationSettingsID.(string))
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings connected organizations assigned (%s): %s", federationSettingsID, err)
 	}
