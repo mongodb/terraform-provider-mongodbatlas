@@ -56,8 +56,46 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(projectID, clusterName
 			enabled      = %[2]t
 		}
 
-		%[3]s
-	`, projectID, enabled, testAccMongoDBAtlasClusterConfigGlobal(projectID, clusterName, "false"))
+		resource "mongodbatlas_cluster" "global_cluster" {
+			project_id              = %[1]q
+			name                    = %[3]q
+			disk_size_gb            = 80
+			num_shards              = 1
+			backup_enabled          = %[4]s
+			provider_backup_enabled = true
+			cluster_type            = "GEOSHARDED"
+
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M30"
+
+			replication_specs {
+				zone_name  = "Zone 1"
+				num_shards = 2
+				regions_config {
+				region_name     = "US_EAST_1"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+				}
+			}
+
+			replication_specs {
+				zone_name  = "Zone 2"
+				num_shards = 2
+				regions_config {
+				region_name     = "US_EAST_2"
+				electable_nodes = 3
+				priority        = 7
+				read_only_nodes = 0
+				}
+			}
+
+			depends_on = [
+				mongodbatlas_private_endpoint_regional_mode.test
+			]
+		}
+	`, projectID, enabled, clusterName, "false")
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {

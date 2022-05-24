@@ -98,7 +98,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 		Refresh:    resourcePrivateEndpointRegionalModeRefreshFunc(ctx, conn, projectID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		Delay:      10 * time.Second,
 	}
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
