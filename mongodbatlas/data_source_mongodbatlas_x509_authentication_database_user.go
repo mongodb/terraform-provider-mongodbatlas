@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
@@ -66,7 +67,8 @@ func dataSourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Res
 	username := d.Get("username").(string)
 
 	if username != "" {
-		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
+		options := &matlas.ListOptions{}
+		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, options)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}

@@ -142,7 +142,8 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 	)
 
 	if username != "" {
-		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
+		options := &matlas.ListOptions{}
+		certificates, _, err = conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, options)
 		if err != nil {
 			// new resource missing
 			reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -200,7 +201,8 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schem
 	projectID := parts[0]
 
 	if username != "" {
-		_, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
+		options := &matlas.ListOptions{}
+		_, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, options)
 		if err != nil {
 			return nil, fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
