@@ -96,4 +96,11 @@ The following are valid roles:
   * `GROUP_DATA_ACCESS_READ_ONLY`
   * `GROUP_CLUSTER_MANAGER`
 
+
+* `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in cluster metrics collection for the project.
+* `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.
+* `is_performance_advisor_enabled` - Flag that indicates whether to enable Performance Advisor and Profiler for the project. If enabled, you can analyze database logs to recommend performance improvements.
+* `is_realtime_performance_panel_enabled` - Flag that indicates whether to enable Real Time Performance Panel for the project. If enabled, you can see real time metrics from your MongoDB database.
+* `is_schema_advisor_enabled` - Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the Performance Advisor and the Data Explorer.
+  
 See [MongoDB Atlas API - Project](https://docs.atlas.mongodb.com/reference/api/project-get-one/) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.

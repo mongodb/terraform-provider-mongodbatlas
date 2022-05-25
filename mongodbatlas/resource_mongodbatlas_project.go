@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -97,6 +98,31 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 					},
 				},
 			},
+			"is_collect_database_specifics_statistics_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"is_data_explorer_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"is_performance_advisor_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"is_realtime_performance_panel_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"is_schema_advisor_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -151,6 +177,23 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	projectSettings := *&matlas.ProjectSettings{}
+
+	projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = pointy.Bool(d.Get("is_collect_database_specifics_statistics_enabled").(bool))
+
+	projectSettings.IsDataExplorerEnabled = pointy.Bool(d.Get("is_data_explorer_enabled").(bool))
+
+	projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(d.Get("is_performance_advisor_enabled").(bool))
+
+	projectSettings.IsRealtimePerformancePanelEnabled = pointy.Bool(d.Get("is_realtime_performance_panel_enabled").(bool))
+
+	projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(d.Get("is_schema_advisor_enabled").(bool))
+
+	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, &projectSettings)
+	if err != nil {
+		return diag.Errorf("error updating project's settings assigned (%s): %s", project.ID, err)
+	}
+
 	d.SetId(project.ID)
 
 	return resourceMongoDBAtlasProjectRead(ctx, d, meta)
@@ -184,6 +227,11 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 		log.Println("[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
 
+	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
+	if err != nil {
+		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
+	}
+
 	if err := d.Set("name", projectRes.Name); err != nil {
 		return diag.Errorf(errorProjectSetting, `name`, projectID, err)
 	}
@@ -206,6 +254,22 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 
 	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
 		return diag.Errorf(errorProjectSetting, `api_keys`, projectID, err)
+	}
+
+	if err := d.Set("is_collect_database_specifics_statistics_enabled", projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_collect_database_specifics_statistics_enabled`, projectID, err)
+	}
+	if err := d.Set("is_data_explorer_enabled", projectSettings.IsDataExplorerEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_data_explorer_enabled`, projectID, err)
+	}
+	if err := d.Set("is_performance_advisor_enabled", projectSettings.IsPerformanceAdvisorEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_performance_advisor_enabled`, projectID, err)
+	}
+	if err := d.Set("is_realtime_performance_panel_enabled", projectSettings.IsRealtimePerformancePanelEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_realtime_performance_panel_enabled`, projectID, err)
+	}
+	if err := d.Set("is_schema_advisor_enabled", projectSettings.IsSchemaAdvisorEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_schema_advisor_enabled`, projectID, err)
 	}
 
 	return nil
@@ -292,6 +356,34 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
+
+	if err != nil {
+		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
+	}
+
+	if d.HasChange("is_collect_database_specifics_statistics_enabled") {
+		projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = pointy.Bool(d.Get("is_collect_database_specifics_statistics_enabled").(bool))
+	}
+
+	if d.HasChange("is_data_explorer_enabled") {
+		projectSettings.IsDataExplorerEnabled = pointy.Bool(d.Get("is_data_explorer_enabled").(bool))
+	}
+	if d.HasChange("is_performance_advisor_enabled") {
+		projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(d.Get("is_performance_advisor_enabled").(bool))
+	}
+	if d.HasChange("is_realtime_performance_panel_enabled") {
+		projectSettings.IsRealtimePerformancePanelEnabled = pointy.Bool(d.Get("is_realtime_performance_panel_enabled").(bool))
+	}
+	if d.HasChange("is_schema_advisor_enabled") {
+		projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(d.Get("is_schema_advisor_enabled").(bool))
+	}
+	if d.HasChange("is_collect_database_specifics_statistics_enabled") || d.HasChange("is_data_explorer_enabled") || d.HasChange("is_performance_advisor_enabled") || d.HasChange("is_realtime_performance_panel_enabled") || d.HasChange("is_schema_advisor_enabled") {
+		_, _, err := conn.Projects.UpdateProjectSettings(ctx, projectID, projectSettings)
+		if err != nil {
+			return diag.Errorf("error updating project's settings assigned (%s): %s", projectID, err)
+		}
+	}
 	return resourceMongoDBAtlasProjectRead(ctx, d, meta)
 }
 
