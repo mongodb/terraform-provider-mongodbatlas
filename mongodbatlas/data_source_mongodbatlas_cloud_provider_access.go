@@ -144,3 +144,18 @@ func featureToSchema(feature *matlas.FeatureUsage) map[string]interface{} {
 		"feature_id":   feature.FeatureID,
 	}
 }
+
+func featureUsagesSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"feature_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"feature_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
