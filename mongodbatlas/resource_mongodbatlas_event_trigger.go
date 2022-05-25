@@ -196,6 +196,10 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"unordered": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -280,6 +284,10 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 
 	if v, ok := d.GetOk("event_processors"); ok {
 		eventTriggerReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("unordered"); ok {
+		eventTriggerConfig.Unordered = pointy.Bool(v.(bool))
 	}
 
 	eventTriggerReq.Config = eventTriggerConfig
@@ -378,6 +386,9 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 	if err = d.Set("config_schedule_type", resp.Config.ScheduleType); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err))
 	}
+	if err = d.Set("unordered", resp.Config.Unordered); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "unordered", projectID, appID, err))
+	}
 	if err = d.Set("event_processors", flattenTriggerEventProcessorAWSEventBridge(resp.EventProcessors)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err))
 	}
@@ -417,6 +428,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		eventTriggerConfig.Project = cast.ToStringMap(d.Get("config_project").(string))
 		eventTriggerConfig.FullDocument = pointy.Bool(d.Get("config_full_document").(bool))
 		eventTriggerConfig.FullDocumentBeforeChange = pointy.Bool(d.Get("config_full_document_before").(bool))
+		eventTriggerConfig.Unordered = pointy.Bool(d.Get("unordered").(bool))
 	}
 	if typeTrigger == "AUTHENTICATION" {
 		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)
