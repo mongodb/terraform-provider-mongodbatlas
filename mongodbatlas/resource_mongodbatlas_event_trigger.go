@@ -198,6 +198,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 			},
 			"unordered": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
 		},
