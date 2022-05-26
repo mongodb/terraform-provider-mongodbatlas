@@ -66,7 +66,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettingsOrganizationRoleMapping.Get(context.Background(), federationSettingsID, orgID, roleMappingID)
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -146,7 +146,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 		}
 	}
 
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettingsOrganizationRoleMapping.Create(context.Background(), federationSettingsID, orgID, body)
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.CreateRoleMapping(context.Background(), federationSettingsID, orgID, body)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -176,7 +176,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 	roleMappingID := ids["role_mapping_id"]
 	groupID := d.Get("group_id").(string)
 
-	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedSettingsOrganizationRoleMapping.Get(context.Background(), federationSettingsID, orgID, roleMappingID)
+	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -210,7 +210,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 		}
 	}
 
-	_, _, err = conn.FederatedSettingsOrganizationRoleMapping.Update(ctx, federationSettingsID, orgID, roleMappingID, federatedSettingsOrganizationRoleMappingUpdate)
+	_, _, err = conn.FederatedSettings.UpdateRoleMapping(ctx, federationSettingsID, orgID, roleMappingID, federatedSettingsOrganizationRoleMappingUpdate)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -226,7 +226,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingDelete(ctx cont
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	_, err := conn.FederatedSettingsOrganizationRoleMapping.Delete(ctx, federationSettingsID, orgID, roleMappingID)
+	_, err := conn.FederatedSettings.DeleteRoleMapping(ctx, federationSettingsID, orgID, roleMappingID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -242,7 +242,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, err
 	}
 
-	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedSettingsOrganizationRoleMapping.Get(context.Background(), *federationSettingsID, *orgID, *roleMappingID)
+	federatedSettingsOrganizationRoleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), *federationSettingsID, *orgID, *roleMappingID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", *roleMappingID, *federationSettingsID, err)
 	}

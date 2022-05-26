@@ -91,7 +91,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 		ItemsPerPage: d.Get("items_per_page").(int),
 	}
 
-	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedSettingsOrganizationRoleMapping.List(ctx, options, federationSettingsID.(string), orgID.(string))
+	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedSettings.ListRoleMapping(ctx, options, federationSettingsID.(string), orgID.(string))
 	if err != nil {
 		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
 	}
