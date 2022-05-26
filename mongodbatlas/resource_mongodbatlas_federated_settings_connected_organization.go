@@ -54,7 +54,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	federatedSettingsConnectedOrganization, resp, err := conn.FederatedSettings.GetConnectedOrgs(context.Background(), federationSettingsID, orgID)
+	federatedSettingsConnectedOrganization, resp, err := conn.FederatedSettings.GetConnectedOrg(context.Background(), federationSettingsID, orgID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -89,7 +89,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedSettings.GetConnectedOrgs(context.Background(), federationSettingsID, orgID)
+	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedSettings.GetConnectedOrg(context.Background(), federationSettingsID, orgID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -104,7 +104,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 		federatedSettingsConnectedOrganizationUpdate.DomainAllowList = cast.ToStringSlice(domainAllowList)
 	}
 
-	_, _, err = conn.FederatedSettings.UpdateConnectedOrgs(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate)
+	_, _, err = conn.FederatedSettings.UpdateConnectedOrg(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -119,7 +119,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.C
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	_, err := conn.FederatedSettings.DeleteConnectedOrgs(ctx, federationSettingsID, orgID)
+	_, err := conn.FederatedSettings.DeleteConnectedOrg(ctx, federationSettingsID, orgID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -134,7 +134,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx cont
 		return nil, err
 	}
 
-	federatedSettingsConnectedOrganization, _, err := conn.FederatedSettings.GetConnectedOrgs(context.Background(), *federationSettingsID, *orgID)
+	federatedSettingsConnectedOrganization, _, err := conn.FederatedSettings.GetConnectedOrg(context.Background(), *federationSettingsID, *orgID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *orgID, *federationSettingsID, err)
 	}
