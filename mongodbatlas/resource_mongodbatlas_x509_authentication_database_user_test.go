@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccResourceMongoDBAtlasX509AuthDBUser_basic(t *testing.T) {
@@ -185,8 +184,7 @@ func testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName string) resource.
 
 		ids := decodeStateID(rs.Primary.ID)
 		if ids["current_certificate"] != "" {
-			options := &matlas.ListOptions{}
-			if _, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], options); err == nil {
+			if _, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil); err == nil {
 				return nil
 			}
 
@@ -212,8 +210,7 @@ func testAccCheckMongoDBAtlasX509AuthDBUserDestroy(s *terraform.State) error {
 		ids := decodeStateID(rs.Primary.ID)
 
 		if ids["current_certificate"] != "" {
-			options := &matlas.ListOptions{}
-			_, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], options)
+			_, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil)
 			if err == nil {
 				/*
 					There is no way to remove one user certificate so until this comes it will keep in this way
