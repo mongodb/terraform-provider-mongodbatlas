@@ -67,7 +67,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
 
-	federatedSettingsConnectedOrganization, resp, err := conn.FederatedSettingsIdentityProvider.Get(context.Background(), federationSettingsID, oktaIdpID)
+	federatedSettingsConnectedOrganization, resp, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -110,7 +110,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["okta_idp_id"]
 
-	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedSettingsIdentityProvider.Get(context.Background(), federationSettingsID, oktaIdpID)
+	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -137,7 +137,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 
 	federatedSettingsConnectedOrganizationUpdate.PemFileInfo = nil
 
-	_, _, err = conn.FederatedSettingsIdentityProvider.Update(ctx, federationSettingsID, oktaIdpID, federatedSettingsConnectedOrganizationUpdate)
+	_, _, err = conn.FederatedSettings.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, federatedSettingsConnectedOrganizationUpdate)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -157,7 +157,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return nil, err
 	}
 
-	federatedSettingsIdentityProvider, _, err := conn.FederatedSettingsIdentityProvider.Get(context.Background(), *federationSettingsID, *oktaIdpID)
+	federatedSettingsIdentityProvider, _, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), *federationSettingsID, *oktaIdpID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *oktaIdpID, *federationSettingsID, err)
 	}
