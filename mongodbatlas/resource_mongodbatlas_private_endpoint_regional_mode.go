@@ -98,7 +98,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 		Refresh:    resourcePrivateEndpointRegionalModeRefreshFunc(ctx, conn, projectID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
-		Delay:      10 * time.Second,
+		Delay:      3 * time.Second,
 	}
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -151,6 +151,10 @@ func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client 
 		}
 
 		for i := range clusters {
+			if clusters[i].StateName == "UPDATING" {
+				return clusters, "PENDING", nil
+			}
+
 			s, resp, err := client.Clusters.Status(ctx, projectID, clusters[i].Name)
 
 			if err != nil && strings.Contains(err.Error(), "reset by peer") {
