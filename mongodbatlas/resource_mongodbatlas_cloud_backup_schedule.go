@@ -500,7 +500,6 @@ func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[st
 }
 
 func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string]interface{} {
-
 	exportList := make([]map[string]interface{}, 0)
 	test := matlas.CloudProviderSnapshotBackupPolicy{}
 	if test.Export != roles.Export {
