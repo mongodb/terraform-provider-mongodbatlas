@@ -177,7 +177,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	projectSettings := *&matlas.ProjectSettings{}
+	projectSettings := &matlas.ProjectSettings{}
 
 	projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = pointy.Bool(d.Get("is_collect_database_specifics_statistics_enabled").(bool))
 
@@ -189,7 +189,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 	projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(d.Get("is_schema_advisor_enabled").(bool))
 
-	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, &projectSettings)
+	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings)
 	if err != nil {
 		return diag.Errorf("error updating project's settings assigned (%s): %s", project.ID, err)
 	}
@@ -378,7 +378,8 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 	if d.HasChange("is_schema_advisor_enabled") {
 		projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(d.Get("is_schema_advisor_enabled").(bool))
 	}
-	if d.HasChange("is_collect_database_specifics_statistics_enabled") || d.HasChange("is_data_explorer_enabled") || d.HasChange("is_performance_advisor_enabled") || d.HasChange("is_realtime_performance_panel_enabled") || d.HasChange("is_schema_advisor_enabled") {
+	if d.HasChange("is_collect_database_specifics_statistics_enabled") || d.HasChange("is_data_explorer_enabled") ||
+		d.HasChange("is_performance_advisor_enabled") || d.HasChange("is_realtime_performance_panel_enabled") || d.HasChange("is_schema_advisor_enabled") {
 		_, _, err := conn.Projects.UpdateProjectSettings(ctx, projectID, projectSettings)
 		if err != nil {
 			return diag.Errorf("error updating project's settings assigned (%s): %s", projectID, err)
