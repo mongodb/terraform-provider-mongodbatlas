@@ -66,7 +66,7 @@ func dataSourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Res
 	username := d.Get("username").(string)
 
 	if username != "" {
-		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username)
+		certificates, _, err := conn.X509AuthDBUsers.GetUserCertificates(ctx, projectID, username, nil)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
