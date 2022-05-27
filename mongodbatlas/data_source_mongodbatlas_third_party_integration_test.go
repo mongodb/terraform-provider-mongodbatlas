@@ -84,6 +84,27 @@ const (
 		url = "%[4]s"	
 	}
 	`
+
+	MICROSOFTTEAMS = `
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
+		project_id = "%[2]s"
+		type = "%[3]s"
+		microsoft_teams_webhook_url = "%[4]s"	
+	}
+	`
+
+	PROMETHEUS = `
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
+		project_id = "%[2]s"
+		type = "%[3]s"
+		user_name = "%[4]s"	
+		password  = "%[5]s"
+		service_discovery = "%[6]s" 
+		scheme = "%[7]s"
+		enabled = "%[8]s"
+	}
+	`
+
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	numeric  = "0123456789"
 	alphaNum = alphabet + numeric
@@ -201,6 +222,24 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.ProjectID,
 			config.Integration.Type,
 			config.Integration.URL,
+		)
+	case "MICROSOFTTEAMS":
+		return fmt.Sprintf(WEBHOOK,
+			config.Name,
+			config.ProjectID,
+			config.Integration.Type,
+			config.Integration.MicrosoftTeamsWebhookURL,
+		)
+	case "PROMETHEUS":
+		return fmt.Sprintf(WEBHOOK,
+			config.Name,
+			config.ProjectID,
+			config.Integration.Type,
+			config.Integration.UserName,
+			config.Integration.Password,
+			config.Integration.ServiceDiscovery,
+			config.Integration.Scheme,
+			config.Integration.Enabled,
 		)
 	default:
 		return fmt.Sprintf(Unknown3rdParty,
