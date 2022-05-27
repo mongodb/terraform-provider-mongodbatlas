@@ -40,6 +40,8 @@ data "mongodbatlas_third_party_integration" "test" {
      * VICTOR_OPS
      * FLOWDOCK
      * WEBHOOK
+     * MICROSOFT_TEAMS
+     * PROMETHEUS
 
 
 ## Attributes Reference
@@ -74,5 +76,13 @@ Additional values based on Type
 * `WEBHOOK`
    * `url` - Your webhook URL.
    * `secret` - An optional field for your webhook secret.
+* `MICROSOFT_TEAMS`
+   * `microsoft_teams_webhook_url` -  Your Microsoft Teams incoming webhook URL.
+ * `PROMETHEUS`
+    * `user_name` - Your Prometheus username.
+    * `password` - Your Prometheus password.
+    * `service_discovery` - Indicates which service discovery method is used, either file or http.
+    * `scheme` - Your Prometheus protocol scheme configured for requests.
+    * `enabled` - Whether your cluster has Prometheus enabled.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/third-party-integration-settings-get-one/) Documentation for more information.
