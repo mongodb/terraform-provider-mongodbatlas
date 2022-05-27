@@ -45,6 +45,30 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"auto_export_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"use_org_and_group_names_in_export_prefix": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"export": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"export_bucket_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"policy_item_hourly": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -193,11 +217,18 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
-
+	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.UseOrgAndGroupNamesInExportPrefix); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
+	}
+	if err := d.Set("auto_export_enabled", backupPolicy.AutoExportEnabled); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
 	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
-
+	if err := d.Set("export", flattenExport(*backupPolicy)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
 	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
@@ -214,6 +245,9 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
+	if err := d.Set("export", flattenExport(*backupPolicy)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
+	}
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,

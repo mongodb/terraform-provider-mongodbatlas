@@ -62,6 +62,9 @@ In addition to all arguments above, the following attributes are exported:
 * `policy_item_weekly` - Weekly policy item
 * `policy_item_monthly` - Monthly policy item
 
+### Export
+* `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
+* `frequency_type` - Frequency associated with the export snapshot item.
 ### Policy Item Hourly
 *
 * `id` - Unique identifier of the backup policy item.

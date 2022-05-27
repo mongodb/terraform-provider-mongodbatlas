@@ -50,6 +50,35 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"auto_export_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"use_org_and_group_names_in_export_prefix": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"export": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"export_bucket_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"policy_item_hourly": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -273,6 +302,10 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 
+	if err := d.Set("export", flattenExport(*backupPolicy)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
+
 	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
@@ -372,6 +405,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	policy := matlas.Policy{}
 	policyItem := matlas.PolicyItem{}
 	var policiesItem []matlas.PolicyItem
+	export := matlas.Export{}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]interface{})
@@ -408,6 +442,15 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
 		policyItem.RetentionValue = itemObj["retention_value"].(int)
 		policiesItem = append(policiesItem, policyItem)
+	}
+
+	if v, ok := d.GetOk("export"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		export.ExportBucketID = itemObj["export_bucket_id"].(string)
+		export.FrequencyType = itemObj["frequency_type"].(string)
+
+		req.Export = &export
 	}
 
 	policy.ID = resp.Policies[0].ID
@@ -454,4 +497,17 @@ func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[st
 	}
 
 	return policyItems
+}
+
+func flattenExport(roles matlas.CloudProviderSnapshotBackupPolicy) []map[string]interface{} {
+
+	exportList := make([]map[string]interface{}, 0)
+	test := matlas.CloudProviderSnapshotBackupPolicy{}
+	if test.Export != roles.Export {
+		exportList = append(exportList, map[string]interface{}{
+			"frequency_type":   roles.Export.FrequencyType,
+			"export_bucket_id": roles.Export.ExportBucketID,
+		})
+	}
+	return exportList
 }
