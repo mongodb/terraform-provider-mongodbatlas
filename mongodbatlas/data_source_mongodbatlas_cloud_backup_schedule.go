@@ -226,7 +226,7 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 	if err := d.Set("id_policy", backupPolicy.Policies[0].ID); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
-	if err := d.Set("export", flattenExport(*backupPolicy)); err != nil {
+	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
@@ -245,7 +245,7 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
 
-	if err := d.Set("export", flattenExport(*backupPolicy)); err != nil {
+	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
 	}
 	d.SetId(encodeStateID(map[string]string{

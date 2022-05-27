@@ -302,7 +302,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 
-	if err := d.Set("export", flattenExport(*backupPolicy)); err != nil {
+	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 
@@ -499,7 +499,7 @@ func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[st
 	return policyItems
 }
 
-func flattenExport(roles matlas.CloudProviderSnapshotBackupPolicy) []map[string]interface{} {
+func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string]interface{} {
 
 	exportList := make([]map[string]interface{}, 0)
 	test := matlas.CloudProviderSnapshotBackupPolicy{}
