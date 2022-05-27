@@ -35,7 +35,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
 data "mongodbatlas_cluster" "cluster-atlas" {
   project_id = var.atlasprojectid
   name       = mongodbatlas_cluster.cluster-atlas.name
-  depends_on = [mongodbatlas_privatelink_endpoint_service.atlaseplink]
+  depends_on = [mongodbatlas_privatelink_endpoint_service.atlaseplink, mongodbatlas_private_endpoint_regional_mode.test]
 }
 
 output "atlasclusterstring" {
