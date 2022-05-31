@@ -1,50 +1,41 @@
-data "mongodbatlas_federated_settings" "federated_settings" {
-  org_id = var.org_id
-}
-data "mongodbatlas_federated_settings_identity_providers" "identity_provider" {
-  federation_settings_id = data.mongodbatlas_federated_settings.federated_settings.id
+data "mongodbatlas_cloud_federated_settings" "federated_settings" {
+  org_id = "627a968f7f7f7f76f14"
 }
 
-data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
-  federation_settings_id = data.mongodbatlas_federated_settings.federated_settings.id
+data "mongodbatlas_cloud_federated_settings_identity_providers" "identitty_provider" {
+  federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
 }
 
-data "mongodbatlas_federated_settings_org_role_mappings" "org_role_mapping" {
-  federation_settings_id = data.mongodbatlas_federated_settings.federated_settings.id
-  org_id                 = var.org_id
+data "mongodbatlas_cloud_federated_settings_org_configs" "org_configs_ds" {
+  federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
 }
-resource "mongodbatlas_federated_settings_org_role_mapping" "org_role_mapping" {
-  federation_settings_id = data.mongodbatlas_federated_settings.federated_settings.id
-  org_id                 = var.org_id
-  external_group_name    = "newgroup"
 
-  role_assignments {
-    group_id = var.group_id
-    roles    = ["GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_DATA_ACCESS_READ_ONLY"]
-  }
+data "mongodbatlas_cloud_federated_settings_org_role_mappings" "org_connections" {
+  federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
+  org_id                 = "627a968f7f7f7f76f14"
+}
+resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_role_mapping" {
+  federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
+  org_id                 = "627a968f7f7f7f76f14"
 
-  role_assignments {
-    org_id = var.org_id
-    roles  = ["ORG_OWNER", "ORG_MEMBER"]
-  }
+  external_group_name = "newgroup"
+
+  organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
+  group_id           = "628aa2f7f7f7f7b098b81b8"
+  group_roles        = ["GROUP_OWNER", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_DATA_ACCESS_READ_WRITE", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_DATA_ACCESS_READ_ONLY", "GROUP_READ_ONLY"]
 
 }
-resource "mongodbatlas_federated_settings_org_config" "org_connections_import" {
-  federation_settings_id     = data.mongodbatlas_federated_settings.federated_settings.id
-  org_id                     = var.org_id
-  identity_provider_id       = var.identity_provider_id
+resource "mongodbatlas_cloud_federated_settings_org_config" "org_connections_import" {
+  federation_settings_id     = data.mongodbatlas_cloud_federated_settings.federated_settings.id
+  org_id                     = "627a968f7f7f7f76f14"
   domain_restriction_enabled = false
   domain_allow_list          = ["yourdomain.com"]
 }
 
-resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
-  federation_settings_id       = data.mongodbatlas_federated_settings.federated_settings.id
-  name                         = var.name
-  associated_domains           = ["yourdomain.com"]
-  sso_debug_enabled            = true
-  status                       = "ACTIVE"
-  sso_url                      = "https://mysso.oktapreview.com/app/mysso_terrafssotesdev_1/exk1f7f7f7fk5wp50h8/sso/saml"
-  issuer_uri                   = "http://www.okta.com/exk1f716hf7f750h8"
-  request_binding              = "HTTP-POST"
-  response_signature_algorithm = "SHA-256"
+resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_provider" {
+  federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
+  name                   = "mongodb_federation_test"
+  associated_domains     = ["yourdomain.com"]
+  sso_debug_enabled      = true
+  status                 = "ACTIVE"
 }
