@@ -184,7 +184,7 @@ func testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName string) resource.
 
 		ids := decodeStateID(rs.Primary.ID)
 		if ids["current_certificate"] != "" {
-			if _, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"]); err == nil {
+			if _, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil); err == nil {
 				return nil
 			}
 
@@ -210,7 +210,7 @@ func testAccCheckMongoDBAtlasX509AuthDBUserDestroy(s *terraform.State) error {
 		ids := decodeStateID(rs.Primary.ID)
 
 		if ids["current_certificate"] != "" {
-			_, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"])
+			_, _, err := conn.X509AuthDBUsers.GetUserCertificates(context.Background(), ids["project_id"], ids["username"], nil)
 			if err == nil {
 				/*
 					There is no way to remove one user certificate so until this comes it will keep in this way
