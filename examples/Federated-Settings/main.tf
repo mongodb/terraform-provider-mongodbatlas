@@ -1,8 +1,7 @@
 data "mongodbatlas_cloud_federated_settings" "federated_settings" {
   org_id = "627a968f7f7f7f76f14"
 }
-
-data "mongodbatlas_cloud_federated_settings_identity_providers" "identitty_provider" {
+data "mongodbatlas_cloud_federated_settings_identity_providers" "identity_provider" {
   federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
 }
 
@@ -10,7 +9,7 @@ data "mongodbatlas_cloud_federated_settings_org_configs" "org_configs_ds" {
   federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
 }
 
-data "mongodbatlas_cloud_federated_settings_org_role_mappings" "org_connections" {
+data "mongodbatlas_cloud_federated_settings_org_role_mappings" "org_role_mapping" {
   federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
   org_id                 = "627a968f7f7f7f76f14"
 }
