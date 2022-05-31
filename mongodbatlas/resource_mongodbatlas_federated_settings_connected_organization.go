@@ -50,6 +50,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
+	if d.Id() == "" {
+		d.SetId("")
+		return nil
+	}
 	ids := decodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
