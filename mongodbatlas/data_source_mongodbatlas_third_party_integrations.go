@@ -64,28 +64,33 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID 
 
 func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]interface{} {
 	out := map[string]interface{}{
-		"type":         integration.Type,
-		"license_key":  integration.LicenseKey,
-		"account_id":   integration.AccountID,
-		"write_token":  integration.WriteToken,
-		"read_token":   integration.ReadToken,
-		"api_key":      integration.APIKey,
-		"region":       integration.Region,
-		"service_key":  integration.ServiceKey,
-		"api_token":    integration.APIToken,
-		"team_name":    integration.TeamName,
-		"channel_name": integration.ChannelName,
-		"routing_key":  integration.RoutingKey,
-		"flow_name":    integration.FlowName,
-		"org_name":     integration.OrgName,
-		"url":          integration.URL,
-		"secret":       integration.Secret,
+		"type":              integration.Type,
+		"license_key":       integration.LicenseKey,
+		"account_id":        integration.AccountID,
+		"write_token":       integration.WriteToken,
+		"read_token":        integration.ReadToken,
+		"api_key":           integration.APIKey,
+		"region":            integration.Region,
+		"service_key":       integration.ServiceKey,
+		"api_token":         integration.APIToken,
+		"team_name":         integration.TeamName,
+		"channel_name":      integration.ChannelName,
+		"routing_key":       integration.RoutingKey,
+		"flow_name":         integration.FlowName,
+		"org_name":          integration.OrgName,
+		"url":               integration.URL,
+		"username":          integration.UserName,
+		"password":          integration.Password,
+		"service_discovery": integration.ServiceDiscovery,
+		"enabled":           integration.Enabled,
+		"secret":            integration.Secret,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
 	optionals := []string{"license_key", "account_id", "write_token",
 		"read_token", "api_key", "region", "service_key", "api_token",
-		"team_name", "channel_name", "flow_name", "org_name", "url", "secret"}
+		"team_name", "channel_name", "flow_name", "org_name", "url",
+		"username", "password", "service_discovery", "enabled", "secret"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
@@ -162,6 +167,22 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.URL = url.(string)
 	}
 
+	if userName, ok := in.GetOk("username"); ok {
+		out.UserName = userName.(string)
+	}
+
+	if password, ok := in.GetOk("password"); ok {
+		out.Password = password.(string)
+	}
+
+	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
+		out.ServiceDiscovery = serviceDiscovery.(string)
+	}
+
+	if enabled, ok := in.GetOk("enabled"); ok {
+		out.Enabled = enabled.(bool)
+	}
+
 	if secret, ok := in.GetOk("secret"); ok {
 		out.Secret = secret.(string)
 	}
@@ -224,6 +245,22 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 
 	if d.HasChange("url") {
 		integration.URL = d.Get("url").(string)
+	}
+
+	if d.HasChange("username") {
+		integration.UserName = d.Get("username").(string)
+	}
+
+	if d.HasChange("password") {
+		integration.Password = d.Get("password").(string)
+	}
+
+	if d.HasChange("service_discovery") {
+		integration.ServiceDiscovery = d.Get("service_discovery").(string)
+	}
+
+	if d.HasChange("enabled") {
+		integration.Enabled = d.Get("enabled").(bool)
 	}
 
 	if d.HasChange("secret") {

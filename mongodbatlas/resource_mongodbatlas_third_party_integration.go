@@ -19,6 +19,7 @@ var integrationTypes = []string{
 	"VICTOR_OPS",
 	"FLOWDOCK",
 	"WEBHOOK",
+	"PROMETHEUS",
 }
 
 var requiredPerType = map[string][]string{
@@ -29,6 +30,7 @@ var requiredPerType = map[string][]string{
 	"VICTOR_OPS": {"api_key"},
 	"FLOWDOCK":   {"flow_name", "api_token", "org_name"},
 	"WEBHOOK":    {"url"},
+	"PROMETHEUS": {"username", "password", "service_discovery", "enabled"},
 }
 
 func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
@@ -113,6 +115,23 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 			},
 			"url": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"username": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"password": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"service_discovery": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"enabled": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 			"secret": {
