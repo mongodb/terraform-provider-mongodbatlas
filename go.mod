@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/go-test/deep v1.0.8
-	github.com/gruntwork-io/terratest v0.40.10
+	github.com/gruntwork-io/terratest v0.40.12
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.16.0
 	github.com/hashicorp/terraform-provider-google v1.20.1-0.20210625223728-379bcb41c06b
 	github.com/mongodb-forks/digest v1.0.4
