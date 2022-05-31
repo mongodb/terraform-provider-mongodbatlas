@@ -1,20 +1,20 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_federated_settings_identity_providers"
-sidebar_current: "docs-mongodbatlas-datasource-federated-settings-identity-providers"
+page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_identity_providers"
+sidebar_current: "docs-mongodbatlas-datasource-federated_settings_identity_provider"
 description: |-
-    Provides a federated settings Organization Identity Provider datasource.
+    Provides an Federated Settings Organization Role Mapping Datasource.
 ---
 
-# mongodbatlas_federated_settings_identity_providers
+# mongodbatlas_cloud_federated_settings_identity_provider
 
-`mongodbatlas_federated_settings_identity_provider` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
+`mongodbatlas_cloud_federated_settings_identity_provider` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
 
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
+resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_provider" {
   federation_settings_id     = "627a9687f7f7f7f774de306f14"
   name = "mongodb_federation_test"
   associated_domains           = ["yourdomain.com"]
@@ -22,8 +22,8 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
   status = "ACTIVE"
 }
 
-data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
-  federation_settings_id = mongodbatlas_federated_settings_identity_provider.identity_provider.id
+data "mongodbatlas_cloud_federated_settings_identity_providers" "identitty_provider" {
+  federation_settings_id = mongodbatlas_cloud_federated_settings_identity_provider.identity_provider.id
   page_num = 1
   items_per_page = 5
 }
@@ -51,14 +51,14 @@ In addition to all arguments above, the following attributes are exported:
 * `associated_orgs` - List that contains the configured domains from which users can log in for this IdP.
 * `domain_allow_list` - List that contains the approved domains from which organization users can log in.
 * `domain_restriction_enabled` - Flag that indicates whether domain restriction is enabled for the connected organization.
-* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `org_id` - Unique 24-hexadecimal digit string that identifies the connected organization.
 * `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
 * `id` - Unique 24-hexadecimal digit string that identifies this role mapping.
 * `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
-* `group_id` - Unique identifier of the project to which you want the role mapping to apply.
+* `group_id` - Unique identifier of the project that owns this Role Mapping Configuration.
 * `role` - Specifies the Role that is attached to the Role Mapping.
 ### User Conflicts
 * `email_address` - Email address of the the user that conflicts with selected domains.
@@ -69,7 +69,7 @@ In addition to all arguments above, the following attributes are exported:
 * `audience_uri` - Identifier for the intended audience of the SAML Assertion.
 * `display_name` - Human-readable label that identifies the IdP.
 * `issuer_uri` - Identifier for the issuer of the SAML Assertion.
-* `idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
+* `okta_idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
 ### Pem File Info - List that contains the file information, including: start date, and expiration date for the identity provider's PEM-encoded public key certificate.
 * `not_after` - Expiration  Date.
 * `not_before` - Start Date.
