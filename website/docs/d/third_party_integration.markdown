@@ -40,7 +40,6 @@ data "mongodbatlas_third_party_integration" "test" {
      * VICTOR_OPS
      * FLOWDOCK
      * WEBHOOK
-     * PROMETHEUS
 
 
 ## Attributes Reference
@@ -56,7 +55,7 @@ Additional values based on Type
   * `service_key` - Your Service Key.
 * `DATADOG`
    * `api_key` - Your API Key.
-   * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.
+   * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    
 * `NEW_RELIC`
    * `license_key` - Your License Key.
    * `account_id`  - Unique identifier of your New Relic account.
@@ -75,10 +74,5 @@ Additional values based on Type
 * `WEBHOOK`
    * `url` - Your webhook URL.
    * `secret` - An optional field for your webhook secret.
-* `PROMETHEUS`
-  * `username` - Your Prometheus username.
-  * `password` - Your Prometheus password.
-  * `service_discovery` - Indicates which Prometheus service discovery method is used, either `file` or `http`.
-  * `enabled` - Whether your cluster has Prometheus enabled.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/third-party-integration-settings-get-one/) Documentation for more information.

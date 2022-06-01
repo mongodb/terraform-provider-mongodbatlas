@@ -36,7 +36,7 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations
-* `type`       - (Required) Third-Party Integration Settings type
+* `type`       - (Required) Third-Party Integration Settings type 
      * PAGER_DUTY
      * DATADOG
      * NEW_RELIC
@@ -44,7 +44,6 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * VICTOR_OPS
      * FLOWDOCK
      * WEBHOOK
-     * PROMETHEUS
 
 Additional values based on Type
 
@@ -52,7 +51,7 @@ Additional values based on Type
   * `service_key` - Your Service Key.
 * `DATADOG`
    * `api_key` - Your API Key.
-   * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.
+   * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    
 * `NEW_RELIC`
    * `license_key` - Your License Key.
    * `account_id`  - Unique identifier of your New Relic account.
@@ -71,11 +70,6 @@ Additional values based on Type
 * `WEBHOOK`
    * `url` - Your webhook URL.
    * `secret` - An optional field for your webhook secret.
-* `PROMETHEUS`
-  * `username` - Your Prometheus username.
-  * `password` - Your Prometheus password.
-  * `service_discovery` - Indicates which Prometheus service discovery method is used, either `file` or `http`.
-  * `enabled` - Whether your cluster has Prometheus enabled.
 
 ## Attributes Reference
 
