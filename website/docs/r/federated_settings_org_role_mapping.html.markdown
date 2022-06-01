@@ -1,6 +1,6 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: auditing"
+page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_org_role_mapping"
 sidebar_current: "docs-mongodbatlas-resource-federated-settings-org-role-mapping"
 description: |-
     Provides an Federated settings Role Mapping Resource.

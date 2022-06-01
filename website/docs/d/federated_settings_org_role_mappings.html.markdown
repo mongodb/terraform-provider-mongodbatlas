@@ -1,14 +1,14 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_role_mappings"
-sidebar_current: "docs-mongodbatlas-datasource-federated_settings-role-mappings"
+page_title: "MongoDB Atlas: mongodbatlas_cloud_federated-settings_role_mappings"
+sidebar_current: "docs-mongodbatlas-datasource-federated-settings-role-mappings"
 description: |-
     Provides an Federated settings Role Mapping Datasource.
 ---
 
-# mongodbatlas_cloud_federated_settings_identity_provider
+# mongodbatlas_cloud_federated_settings_org_role_mappings
 
-`mongodbatlas_cloud_federated_settings_identity_provider` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
+`mongodbatlas_cloud_federated_settings_org_role_mappings` provides an Federated Settings Org Role Mapping datasource. Atlas Cloud Federated Settings Org Role Mapping provides federated settings outputs for the configured Org Role Mapping.
 
 
 ## Example Usage
@@ -45,7 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 * `results` - Includes cloudProviderSnapshot object for each item detailed in the results array section.
 * `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
 
-### FederatedSettingsOrgRoleAssignmets
+### FederatedSettingsOrgRoleMappings
 
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
 * `id` - Unique 24-hexadecimal digit string that identifies this role mapping.
