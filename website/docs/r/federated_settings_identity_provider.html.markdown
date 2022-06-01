@@ -1,6 +1,6 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: auditing"
+page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_identity_provider"
 sidebar_current: "docs-mongodbatlas-cloud-federated-settings-identity-provider"
 description: |-
     Provides an Federated Settings Identity Provider Resource.

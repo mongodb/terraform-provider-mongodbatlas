@@ -1,7 +1,7 @@
 ---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_org_config"
-sidebar_current: "docs-mongodbatlas-resource-federated_settings_org_config"
+sidebar_current: "docs-mongodbatlas-resource-federated-settings-org-config"
 description: |-
     Provides an Federated Settings Organization Configuration.
 ---
