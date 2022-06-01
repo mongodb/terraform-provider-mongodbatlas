@@ -100,6 +100,11 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"secret": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
 			"username": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -116,11 +121,6 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-			},
-			"secret": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
 			},
 		},
 	}

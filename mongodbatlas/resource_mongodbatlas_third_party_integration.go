@@ -117,6 +117,11 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"secret": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
 			"username": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -133,11 +138,6 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-			},
-			"secret": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
 			},
 		},
 	}

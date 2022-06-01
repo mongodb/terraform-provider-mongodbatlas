@@ -79,18 +79,18 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 		"flow_name":         integration.FlowName,
 		"org_name":          integration.OrgName,
 		"url":               integration.URL,
+		"secret":            integration.Secret,
 		"username":          integration.UserName,
 		"password":          integration.Password,
 		"service_discovery": integration.ServiceDiscovery,
 		"enabled":           integration.Enabled,
-		"secret":            integration.Secret,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
 	optionals := []string{"license_key", "account_id", "write_token",
 		"read_token", "api_key", "region", "service_key", "api_token",
 		"team_name", "channel_name", "flow_name", "org_name", "url",
-		"username", "password", "service_discovery", "enabled", "secret"}
+		"secret", "username", "password", "service_discovery", "enabled"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
@@ -167,6 +167,10 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.URL = url.(string)
 	}
 
+	if secret, ok := in.GetOk("secret"); ok {
+		out.Secret = secret.(string)
+	}
+
 	if userName, ok := in.GetOk("username"); ok {
 		out.UserName = userName.(string)
 	}
@@ -181,10 +185,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 
 	if enabled, ok := in.GetOk("enabled"); ok {
 		out.Enabled = enabled.(bool)
-	}
-
-	if secret, ok := in.GetOk("secret"); ok {
-		out.Secret = secret.(string)
 	}
 
 	return out
@@ -247,6 +247,10 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 		integration.URL = d.Get("url").(string)
 	}
 
+	if d.HasChange("secret") {
+		integration.Secret = d.Get("secret").(string)
+	}
+
 	if d.HasChange("username") {
 		integration.UserName = d.Get("username").(string)
 	}
@@ -261,9 +265,5 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 
 	if d.HasChange("enabled") {
 		integration.Enabled = d.Get("enabled").(bool)
-	}
-
-	if d.HasChange("secret") {
-		integration.Secret = d.Get("secret").(string)
 	}
 }
