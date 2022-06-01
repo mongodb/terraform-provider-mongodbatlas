@@ -44,6 +44,7 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * VICTOR_OPS
      * FLOWDOCK
      * WEBHOOK
+     * PROMETHEUS
 
 Additional values based on Type
 
@@ -70,6 +71,11 @@ Additional values based on Type
 * `WEBHOOK`
    * `url` - Your webhook URL.
    * `secret` - An optional field for your webhook secret.
+* `PROMETHEUS`
+   * `username` - Your Prometheus username.
+   * `password` - Your Prometheus password.
+   * `service_discovery` - Indicates which Prometheus service discovery method is used, either `file` or `http`.
+   * `enabled` - Whether your cluster has Prometheus enabled.
 
 ## Attributes Reference
 
