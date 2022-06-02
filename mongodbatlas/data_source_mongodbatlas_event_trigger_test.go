@@ -31,6 +31,7 @@ func TestAccDataSourceMongoDBAtlasEventTrigger_basic(t *testing.T) {
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
 			FullDocument:   pointy.Bool(false),
+			Unordered:      pointy.Bool(true),
 		},
 	}
 
@@ -58,6 +59,7 @@ func testAccMongoDBAtlasDataSourceEventTriggerConfig(projectID, appID, operation
 			type = %[4]q
 			function_id = %[5]q
 			disabled = %[6]t
+			unordered = %[7]t
 			config_operation_types = [%s]
 			config_database = %[8]q
 			config_collection = %[9]q
@@ -70,7 +72,7 @@ func testAccMongoDBAtlasDataSourceEventTriggerConfig(projectID, appID, operation
 			app_id = mongodbatlas_event_trigger.test.app_id
 			trigger_id = mongodbatlas_event_trigger.test.id
 		}
-`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, operationTypes,
+`, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, *eventTrigger.Config.Unordered, operationTypes,
 		eventTrigger.Config.Database, eventTrigger.Config.Collection,
 		eventTrigger.Config.ServiceID)
 }
