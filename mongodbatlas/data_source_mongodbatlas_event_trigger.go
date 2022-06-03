@@ -122,6 +122,10 @@ func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"unordered": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -190,6 +194,9 @@ func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.Resou
 	}
 	if err = d.Set("config_schedule_type", eventResp.Config.ScheduleType); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "config_schedule_type", projectID, appID, err))
+	}
+	if err = d.Set("unordered", eventResp.Config.Unordered); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "unordered", projectID, appID, err))
 	}
 	if err = d.Set("event_processors", flattenTriggerEventProcessorAWSEventBridge(eventResp.EventProcessors)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersSetting, "event_processors", projectID, appID, err))
