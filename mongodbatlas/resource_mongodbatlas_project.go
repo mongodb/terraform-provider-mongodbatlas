@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
