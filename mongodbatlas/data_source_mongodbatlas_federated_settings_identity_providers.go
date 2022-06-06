@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -271,30 +270,31 @@ func flattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string]interface{} {
 	var associatedOrgsMap []map[string]interface{}
 
-	if len(associatedOrgs) > 0 {
-		associatedOrgsMap = make([]map[string]interface{}, len(associatedOrgs))
+	if len(associatedOrgs) == 0 {
+		return nil
+	}
+	associatedOrgsMap = make([]map[string]interface{}, len(associatedOrgs))
 
-		for i := range associatedOrgs {
-			if associatedOrgs[i].UserConflicts == nil {
-				associatedOrgsMap[i] = map[string]interface{}{
-					"domain_allow_list":          associatedOrgs[i].DomainAllowList,
-					"domain_restriction_enabled": associatedOrgs[i].DomainRestrictionEnabled,
-					"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
-					"org_id":                     associatedOrgs[i].OrgID,
-					"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
-					"role_mappings":              flattenRoleMappings(associatedOrgs[i].RoleMappings),
-					"user_conflicts":             nil,
-				}
-			} else {
-				associatedOrgsMap[i] = map[string]interface{}{
-					"domain_allow_list":          associatedOrgs[i].DomainAllowList,
-					"domain_restriction_enabled": associatedOrgs[i].DomainRestrictionEnabled,
-					"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
-					"org_id":                     associatedOrgs[i].OrgID,
-					"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
-					"role_mappings":              flattenRoleMappings(associatedOrgs[i].RoleMappings),
-					"user_conflicts":             flattenUserConflicts(*associatedOrgs[i].UserConflicts),
-				}
+	for i := range associatedOrgs {
+		if associatedOrgs[i].UserConflicts == nil {
+			associatedOrgsMap[i] = map[string]interface{}{
+				"domain_allow_list":          associatedOrgs[i].DomainAllowList,
+				"domain_restriction_enabled": associatedOrgs[i].DomainRestrictionEnabled,
+				"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
+				"org_id":                     associatedOrgs[i].OrgID,
+				"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
+				"role_mappings":              flattenRoleMappings(associatedOrgs[i].RoleMappings),
+				"user_conflicts":             nil,
+			}
+		} else {
+			associatedOrgsMap[i] = map[string]interface{}{
+				"domain_allow_list":          associatedOrgs[i].DomainAllowList,
+				"domain_restriction_enabled": associatedOrgs[i].DomainRestrictionEnabled,
+				"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
+				"org_id":                     associatedOrgs[i].OrgID,
+				"post_auth_role_grants":      associatedOrgs[i].PostAuthRoleGrants,
+				"role_mappings":              flattenRoleMappings(associatedOrgs[i].RoleMappings),
+				"user_conflicts":             flattenUserConflicts(*associatedOrgs[i].UserConflicts),
 			}
 		}
 	}
@@ -305,17 +305,18 @@ func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string
 func flattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]interface{} {
 	var userConflictsMap []map[string]interface{}
 
-	if len(userConflicts) > 0 {
-		userConflictsMap = make([]map[string]interface{}, len(userConflicts))
+	if len(userConflicts) == 0 {
+		return nil
+	}
+	userConflictsMap = make([]map[string]interface{}, len(userConflicts))
 
-		for i := range userConflicts {
-			userConflictsMap[i] = map[string]interface{}{
-				"email_address":          userConflicts[i].EmailAddress,
-				"federation_settings_id": userConflicts[i].FederationSettingsID,
-				"first_name":             userConflicts[i].FirstName,
-				"last_name":              userConflicts[i].LastName,
-				"user_id":                userConflicts[i].UserID,
-			}
+	for i := range userConflicts {
+		userConflictsMap[i] = map[string]interface{}{
+			"email_address":          userConflicts[i].EmailAddress,
+			"federation_settings_id": userConflicts[i].FederationSettingsID,
+			"first_name":             userConflicts[i].FirstName,
+			"last_name":              userConflicts[i].LastName,
+			"user_id":                userConflicts[i].UserID,
 		}
 	}
 
