@@ -61,7 +61,14 @@ In addition to all arguments above, the following attributes are exported:
 * `policy_item_daily` - Daily policy item
 * `policy_item_weekly` - Weekly policy item
 * `policy_item_monthly` - Monthly policy item
+* `auto_export_enabled` - Flag that indicates whether automatic export of cloud backup snapshots to the AWS bucket is enabled. Value can be one of the following:
 
+    true - enables automatic export of cloud backup snapshots to the AWS bucket
+    false - disables automatic export of cloud backup snapshots to the AWS bucket (default)
+* `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your S3 bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
+### Export
+* `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
+* `frequency_type` - Frequency associated with the export snapshot item.
 ### Policy Item Hourly
 *
 * `id` - Unique identifier of the backup policy item.

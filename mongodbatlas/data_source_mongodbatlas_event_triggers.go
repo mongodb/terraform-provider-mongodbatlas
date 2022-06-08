@@ -131,6 +131,10 @@ func dataSourceMongoDBAtlasEventTriggers() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"unordered": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -190,6 +194,7 @@ func flattenEventTriggers(eventTriggers []realm.EventTrigger) []map[string]inter
 				"config_schedule":             eventTriggers[i].Config.Schedule,
 				"config_schedule_type":        eventTriggers[i].Config.ScheduleType,
 				"event_processors":            flattenTriggerEventProcessorAWSEventBridge(eventTriggers[i].EventProcessors),
+				"unordered":                   eventTriggers[i].Config.Unordered,
 			}
 		}
 	}

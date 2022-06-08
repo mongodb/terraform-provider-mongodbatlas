@@ -157,7 +157,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState(ctx context.
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": *projectID,
-		"name":       *id,
+		"id":         *id,
 	}))
 
 	return []*schema.ResourceData{d}, nil

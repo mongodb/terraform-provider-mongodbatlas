@@ -66,6 +66,7 @@ In addition to all arguments above, the following attributes are exported:
 * `config_match` - A [$match](https://docs.mongodb.com/manual/reference/operator/aggregation/match/) expression document that MongoDB Realm includes in the underlying change stream pipeline for the trigger.
 * `config_project` - A [$project](https://docs.mongodb.com/manual/reference/operator/aggregation/project/) expression document that Realm uses to filter the fields that appear in change event objects.
 * `config_full_document` - If true, indicates that `UPDATE` change events should include the most current [majority-committed](https://docs.mongodb.com/manual/reference/read-concern-majority/) version of the modified document in the fullDocument field.
+* `unordered` - Sort order for `DATABASE` type.
 * `config_schedule` - A [cron expression](https://docs.mongodb.com/realm/triggers/cron-expressions/) that defines the trigger schedule.
 * `event_processors` - An object where each field name is an event processor ID and each value is an object that configures its corresponding event processor.
 * `event_processors.0.aws_eventbridge.config_account_id` - AWS Account ID.

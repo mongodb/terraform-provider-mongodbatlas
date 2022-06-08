@@ -204,6 +204,33 @@ func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultSettings(t *testin
 	})
 }
 
+func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
+	var (
+		project        matlas.Project
+		resourceName   = "mongodbatlas_project.test"
+		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+				),
+			},
+		},
+	})
+}
+
 func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_project.test"
@@ -424,6 +451,22 @@ func testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID
 			org_id 			 = "%[2]s"
 			project_owner_id = "%[3]s"
 			with_default_alerts_settings = false
+		}
+	`, projectName, orgID, projectOwnerID)
+}
+
+func testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, orgID, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   			 = "%[1]s"
+			org_id 			 = "%[2]s"
+			project_owner_id = "%[3]s"
+			with_default_alerts_settings = false
+			is_collect_database_specifics_statistics_enabled = false
+			is_data_explorer_enabled = false
+			is_performance_advisor_enabled = false
+			is_realtime_performance_panel_enabled = false
+			is_schema_advisor_enabled = false
 		}
 	`, projectName, orgID, projectOwnerID)
 }
