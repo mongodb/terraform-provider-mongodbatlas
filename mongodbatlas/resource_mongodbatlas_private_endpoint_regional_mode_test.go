@@ -15,9 +15,25 @@ import (
 
 func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_private_endpoint_regional_mode.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName  = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+		endpointResourceSuffix = "atlasple"
+		resourceSuffix         = "atlasrm"
+		resourceName           = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
+
+		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
+
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		providerName    = "AWS"
+		region          = os.Getenv("AWS_REGION")
+		vpcID           = os.Getenv("AWS_VPC_ID")
+		subnetID        = os.Getenv("AWS_SUBNET_ID")
+		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+
+		clusterName = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+	)
+
+	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
+		awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, endpointResourceSuffix,
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -26,7 +42,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(projectID, clusterName, false),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
@@ -36,7 +52,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(projectID, clusterName, true),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
@@ -49,53 +65,36 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 	})
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(projectID, clusterName string, enabled bool) string {
+func testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, projectID, regionalModeResourceName, privateLinkResourceName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_private_endpoint_regional_mode" "test" {
-			project_id   = %[1]q
-			enabled      = %[2]t
-		}
-
-		resource "mongodbatlas_cluster" "global_cluster" {
-			project_id              = %[1]q
-			name                    = %[3]q
-			disk_size_gb            = 80
-			num_shards              = 1
-			backup_enabled          = %[4]s
-			provider_backup_enabled = true
-			cluster_type            = "GEOSHARDED"
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M30"
-
-			replication_specs {
-				zone_name  = "Zone 1"
-				num_shards = 2
-				regions_config {
-				region_name     = "US_EAST_1"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-			}
-
-			replication_specs {
-				zone_name  = "Zone 2"
-				num_shards = 2
-				regions_config {
-				region_name     = "US_EAST_2"
-				electable_nodes = 3
-				priority        = 7
-				read_only_nodes = 0
-				}
-			}
-
+		data "mongodbatlas_cluster" %[1]q {
+			project_id = %[2]q
+			name       = mongodbatlas_cluster.%[1]s.name
 			depends_on = [
-				mongodbatlas_private_endpoint_regional_mode.test
+				mongodbatlas_private_endpoint_regional_mode.%[3]s,
+				mongodbatlas_privatelink_endpoint_service.%[4]s
 			]
 		}
-	`, projectID, enabled, clusterName, "false")
+	`, clusterResourceName, projectID, regionalModeResourceName, privateLinkResourceName)
+}
+
+func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectID, clusterName, endpointResources, endpointResourceName string, enabled bool) string {
+	clusterResourceName := "global_cluster"
+	clusterResource := testAccMongoDBAtlasClusterConfigGlobal(clusterResourceName, projectID, clusterName, "false")
+	clusterData := testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, projectID, resourceName, endpointResourceName)
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
+			project_id   = %[2]q
+			enabled      = %[3]t
+		}
+
+		%[4]s
+
+		%[5]s
+
+		%[6]s
+	`, resourceName, projectID, enabled, clusterResource, clusterData, endpointResources)
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {

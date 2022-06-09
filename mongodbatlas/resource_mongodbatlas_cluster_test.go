@@ -524,10 +524,11 @@ func TestAccResourceMongoDBAtlasCluster_MultiRegion(t *testing.T) {
 
 func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
 	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.global_cluster"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name         = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
+		cluster        matlas.Cluster
+		resourceSuffix = "global_cluster"
+		resourceName   = fmt.Sprintf("mongodbatlas_cluster.%s", resourceSuffix)
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		name           = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -536,7 +537,7 @@ func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigGlobal(projectID, name, "false"),
+				Config: testAccMongoDBAtlasClusterConfigGlobal(resourceSuffix, projectID, name, "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
@@ -1537,9 +1538,9 @@ func testAccMongoDBAtlasClusterConfigMultiRegion(projectID, name, backupEnabled,
 	`, projectID, name, backupEnabled, regionsConfig)
 }
 
-func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled string) string {
+func testAccMongoDBAtlasClusterConfigGlobal(resourceName, projectID, name, backupEnabled string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "global_cluster" {
+		resource "mongodbatlas_cluster" %q {
 			project_id              = "%s"
 			name                    = "%s"
 			disk_size_gb            = 80
@@ -1574,7 +1575,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(projectID, name, backupEnabled strin
 				}
 			}
 		}
-	`, projectID, name, backupEnabled)
+	`, resourceName, projectID, name, backupEnabled)
 }
 
 func testAccMongoDBAtlasClusterConfigTenant(projectID, name, instanceSize, diskSize, majorDBVersion string) string {

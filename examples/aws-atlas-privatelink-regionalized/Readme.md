@@ -1,7 +1,10 @@
-# Example - AWS and Atlas PrivateLink with Terraform
+# Example - AWS and Atlas PrivateLink Regionalized Mode with Terraform
 
-This project aims to provide a very straight-forward example of setting up PrivateLink connection between AWS and MongoDB Atlas.
+This project aims to provide a very straight-forward example of setting up PrivateLink connection between AWS and MongoDB Atlas. Using `mongodbatlas_private_endpoint_regional_mode` to determine if it's enabled or not.
 
+## Gotchas
+- Ensure `mongodbatlas_cluster` depends_on `mongodbatlas_private_endpoint_regional_mode`
+- Despite properly output, connection strings _are not applied_ properly to `mongodbatlas_cluster` when changing regional mode enabled.
 
 ## Dependencies
 

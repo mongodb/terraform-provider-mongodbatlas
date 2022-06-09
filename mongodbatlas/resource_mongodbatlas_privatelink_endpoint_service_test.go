@@ -13,7 +13,8 @@ import (
 func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_privatelink_endpoint_service.test"
+		resourceSuffix = "test"
+		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -33,7 +34,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testin
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
-					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
+					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
@@ -49,7 +50,8 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testin
 func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_privatelink_endpoint_service.test"
+		resourceSuffix = "test"
+		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -69,7 +71,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_import(t *testing.
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
-					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID,
+					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointServiceExists(resourceName),
@@ -144,7 +146,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy(s *terraform.Stat
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID string) string {
+func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, serviceResourceName string) string {
 	return fmt.Sprintf(`
 		provider "aws" {
 			region        = "%[5]s"
@@ -167,11 +169,11 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey
 			
 		}
 
-		resource "mongodbatlas_privatelink_endpoint_service" "test" {
+		resource "mongodbatlas_privatelink_endpoint_service" %[9]q {
 			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-			endpoint_service_id       =  aws_vpc_endpoint.ptfe_service.id
-			private_link_id = mongodbatlas_privatelink_endpoint.test.id
-			provider_name = "%[4]s"
+			endpoint_service_id   =  aws_vpc_endpoint.ptfe_service.id
+			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
+			provider_name         = "%[4]s"
 		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID)
+	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, serviceResourceName)
 }
