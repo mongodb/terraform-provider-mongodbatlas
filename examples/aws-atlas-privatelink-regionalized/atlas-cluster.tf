@@ -9,10 +9,10 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
     zone_name  = "Zone 1"
     num_shards = 2
     regions_config {
-    region_name     = "US_EAST_1"
-    electable_nodes = 3
-    priority        = 7
-    read_only_nodes = 0
+      region_name     = "US_EAST_1"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
     }
   }
 
@@ -20,10 +20,10 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
     zone_name  = "Zone 2"
     num_shards = 2
     regions_config {
-    region_name     = "US_EAST_2"
-    electable_nodes = 3
-    priority        = 7
-    read_only_nodes = 0
+      region_name     = "US_EAST_2"
+      electable_nodes = 3
+      priority        = 7
+      read_only_nodes = 0
     }
   }
   # Provider settings

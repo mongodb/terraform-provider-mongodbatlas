@@ -1,6 +1,6 @@
 resource "mongodbatlas_private_endpoint_regional_mode" "test" {
-  project_id   = var.atlasprojectid
-  enabled      = false
+  project_id = var.atlasprojectid
+  enabled    = false
 }
 
 resource "mongodbatlas_privatelink_endpoint" "atlaspl" {
