@@ -23,6 +23,9 @@ The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
 
+~> **IMPORTANT:**
+This resource is specifically to mange the invitations, not the user beyond that. Once the invite is accepted, the resource will be missing from the state. Unless the `resource` block is removed, Terraform will attempt to create the invite again on the next apply.
+
 ## Example Usages
 
 ```terraform
@@ -64,6 +67,9 @@ In addition to all arguments above, the following attributes are exported:
 * `inviter_username` - Atlas user who invited `username` to the project.
 
 ## Import
+
+~> **IMPORTANT:**
+A project invitation can **not** be imported once it has been accepted.
 
 Import a user's invitation to a project by separating the `project_id` and the `username` with a hyphen:
 
