@@ -20,6 +20,9 @@ The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/
 * ORG_READ_ONLY
 * ORG_MEMBER
 
+~> **IMPORTANT:**
+This resource is specifically to mange the invitations, not the user beyond that. Once the invite is accepted, the resource will be missing from the state. Unless the `resource` block is removed, Terraform will attempt to create the invite again on the next apply.
+
 ## Example Usages
 
 ```terraform
@@ -75,6 +78,9 @@ In addition to the arguments, this resource exports the following attributes:
 >* If the user accepts the invitation and then leaves the organization, the provider will re-add the invitation if the resource definition is not removed from the Terraform configuration.
 
 ## Import
+
+~> **IMPORTANT:**
+A project invitation can **not** be imported once it has been accepted.
 
 Import a user's invitation to an organization by separating the `org_id` and the `username` with a hyphen:
 
