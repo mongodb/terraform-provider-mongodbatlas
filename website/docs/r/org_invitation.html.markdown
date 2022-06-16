@@ -78,7 +78,7 @@ In addition to the arguments, this resource exports the following attributes:
 ## Import
 
 ~> **IMPORTANT:**
-A project invitation can **not** be imported once it has been accepted.
+An organization invitation can **not** be imported once it has been accepted.
 
 Import a user's invitation to an organization by separating the `org_id` and the `username` with a hyphen:
 
