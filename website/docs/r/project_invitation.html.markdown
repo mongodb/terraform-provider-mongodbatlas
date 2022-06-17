@@ -23,7 +23,7 @@ The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
 
-~> **IMPORTANT:** This resource is specifically to mange the invitations, not the user beyond that. Possible provider behavior depending on the invitee's action:
+~> **IMPORTANT:** This resource is only for managing invitations, not for managing the Atlas User being invited. Possible provider behavior depending on the invitee's action:
 * If the user has not yet accepted the invitation, the provider leaves the invitation as is.
 * If the user has accepted the invitation and is now a project member, the provider will remove the invitation from the Terraform state.  The invitation must then be removed from the Terraform resource configuration.
 * If the user accepts the invitation and then leaves the project, the provider will re-add the invitation if the resource definition is not removed from the Terraform configuration.
