@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/mwielbut/pointy"
+	"github.com/openlyinc/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 

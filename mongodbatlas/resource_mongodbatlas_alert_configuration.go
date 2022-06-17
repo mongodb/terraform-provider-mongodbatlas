@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mwielbut/pointy"
+	"github.com/openlyinc/pointy"
 	"github.com/spf13/cast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
