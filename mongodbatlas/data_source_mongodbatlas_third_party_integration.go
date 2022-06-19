@@ -109,6 +109,22 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_discovery": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"scheme": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }

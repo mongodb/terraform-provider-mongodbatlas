@@ -45,6 +45,7 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * FLOWDOCK
      * WEBHOOK
      * MICROSOFT_TEAMS
+     * PROMETHEUS
 
 Additional values based on `Type`
 
@@ -73,11 +74,20 @@ Additional values based on `Type`
    * `secret` - An optional field for your webhook secret.
 * `MICROSOFT_TEAMS`
    * `microsoft_teams_webook_url` - Your Microsoft Teams incoming webhook URL.
+* `PROMETHEUS`
+   * `username` - Your Prometheus username.
+   * `password` - Your Prometheus password.
+   * `service_discovery` - Indicates which Prometheus service discovery method is used, either `file` or `http`.
+   * `enabled` - Whether your cluster has Prometheus enabled.
 
 ## Attributes Reference
 
 * `id` - Unique identifier used by terraform for internal management, which can also be used to import.
 
+Additional values based on `Type`
+
+* `PROMETHEUS`
+   * `scheme` - Your Prometheus protocol scheme configured for requests.
 ## Import
 
 Third-Party Integration Settings can be imported using project ID and the integration type, in the format `project_id`-`type`, e.g.

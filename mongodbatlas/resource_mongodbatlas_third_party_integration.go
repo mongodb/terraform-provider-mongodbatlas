@@ -20,6 +20,7 @@ var integrationTypes = []string{
 	"FLOWDOCK",
 	"WEBHOOK",
 	"MICROSOFT_TEAMS",
+	"PROMETHEUS",
 }
 
 var requiredPerType = map[string][]string{
@@ -31,6 +32,7 @@ var requiredPerType = map[string][]string{
 	"FLOWDOCK":        {"flow_name", "api_token", "org_name"},
 	"WEBHOOK":         {"url"},
 	"MICROSOFT_TEAMS": {"microsoft_teams_webhook_url"},
+	"PROMETHEUS":      {"username", "password", "service_discovery", "enabled"},
 }
 
 func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
@@ -126,6 +128,28 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"username": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"password": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+			"service_discovery": {
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Optional: true,
+			},
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"scheme": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -184,7 +208,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 
 	for key, val := range integrationMap {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `%s` for third party integration (%s): %s", key, d.Id(), err))
+			return diag.FromErr(fmt.Errorf("error setting `%s` to `%s` for third party integration (%s): %s", key, val, d.Id(), err))
 		}
 	}
 

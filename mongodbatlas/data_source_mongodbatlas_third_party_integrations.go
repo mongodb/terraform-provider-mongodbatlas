@@ -81,6 +81,10 @@ func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]i
 		"url":                         integration.URL,
 		"secret":                      integration.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
+		"username":                    integration.UserName,
+		"service_discovery":           integration.ServiceDiscovery,
+		"scheme":                      integration.Scheme,
+		"enabled":                     integration.Enabled,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -169,6 +173,22 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 
 	if microsoftTeamsWebhookUrl, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
 		out.MicrosoftTeamsWebhookURL = microsoftTeamsWebhookUrl.(string)
+	}
+
+	if username, ok := in.GetOk("username"); ok {
+		out.UserName = username.(string)
+	}
+
+	if password, ok := in.GetOk("password"); ok {
+		out.Password = password.(string)
+	}
+
+	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
+		out.ServiceDiscovery = serviceDiscovery.(string)
+	}
+
+	if enabled, ok := in.GetOk("enabled"); ok {
+		out.Enabled = enabled.(bool)
 	}
 
 	return out
