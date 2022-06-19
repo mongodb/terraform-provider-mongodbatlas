@@ -2,12 +2,11 @@ package mongodbatlas
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"math/big"
 	"os"
 	"testing"
-
-	"crypto/rand"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -82,6 +81,14 @@ const (
 		project_id = "%[2]s"
 		type = "%[3]s"
 		url = "%[4]s"	
+	}
+	`
+
+	MICROSOFT_TEAMS = `
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
+		project_id = "%[2]s"
+		type = "%[3]s"
+		microsoft_teams_webhook_url = "%[4]s"
 	}
 	`
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -201,6 +208,13 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.ProjectID,
 			config.Integration.Type,
 			config.Integration.URL,
+		)
+	case "MICROSOFT_TEAMS":
+		return fmt.Sprintf(MICROSOFT_TEAMS,
+			config.Name,
+			config.ProjectID,
+			config.Integration.Type,
+			config.Integration.MicrosoftTeamsWebhookURL,
 		)
 	default:
 		return fmt.Sprintf(Unknown3rdParty,

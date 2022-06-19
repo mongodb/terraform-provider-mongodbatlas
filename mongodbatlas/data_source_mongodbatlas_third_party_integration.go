@@ -105,6 +105,10 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Sensitive: true,
 				Computed:  true,
 			},
+			"microsoft_teams_webhook_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }

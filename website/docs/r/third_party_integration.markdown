@@ -44,8 +44,9 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * VICTOR_OPS
      * FLOWDOCK
      * WEBHOOK
+     * MICROSOFT_TEAMS
 
-Additional values based on Type
+Additional values based on `Type`
 
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
@@ -70,6 +71,8 @@ Additional values based on Type
 * `WEBHOOK`
    * `url` - Your webhook URL.
    * `secret` - An optional field for your webhook secret.
+* `MICROSOFT_TEAMS`
+   * `microsoft_teams_webook_url` - Your Microsoft Teams incoming webhook URL.
 
 ## Attributes Reference
 
