@@ -26,6 +26,7 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
 
 data "mongodbatlas_third_party_integration" "test" {
 	project_id = mongodbatlas_third_party_integration.test_flowdock.project_id
+	type       = "FLOWDOCK"
 }
 ```
 
