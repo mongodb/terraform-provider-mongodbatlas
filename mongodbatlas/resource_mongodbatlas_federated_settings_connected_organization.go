@@ -31,6 +31,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource 
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"identity_provider_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"domain_allow_list": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -106,6 +110,11 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 	if d.HasChange("domain_allow_list") {
 		domainAllowList := d.Get("domain_allow_list")
 		federatedSettingsConnectedOrganizationUpdate.DomainAllowList = cast.ToStringSlice(domainAllowList)
+	}
+
+	if d.HasChange("identity_provider_id") {
+		identityProviderID := d.Get("identity_provider_id").(string)
+		federatedSettingsConnectedOrganizationUpdate.IdentityProviderID = identityProviderID
 	}
 
 	_, _, err = conn.FederatedSettings.UpdateConnectedOrg(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate)

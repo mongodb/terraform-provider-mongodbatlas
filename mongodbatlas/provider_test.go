@@ -198,3 +198,11 @@ func checkLDAP(t *testing.T) {
 		t.Fatal("`MONGODB_ATLAS_LDAP_HOSTNAME`, `MONGODB_ATLAS_LDAP_USERNAME`, `MONGODB_ATLAS_LDAP_PASSWORD` and `MONGODB_ATLAS_LDAP_PORT` must be set for ldap configuration/verify acceptance testing")
 	}
 }
+
+func checkFederatedSettings(t *testing.T) {
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_PROJECT_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" {
+		t.Fatal("`MONGODB_ATLAS_FEDERATED_PROJECT_ID`, `MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings configuration/verify acceptance testing")
+	}
+}
