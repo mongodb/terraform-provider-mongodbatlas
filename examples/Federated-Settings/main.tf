@@ -16,7 +16,6 @@ data "mongodbatlas_cloud_federated_settings_org_role_mappings" "org_role_mapping
 resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_role_mapping" {
   federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
   org_id                 = var.org_id
-  identity_provider_id   = var.identity_provider_id
   external_group_name    = "newgroup"
 
   organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
@@ -27,6 +26,7 @@ resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_role_mapp
 resource "mongodbatlas_cloud_federated_settings_org_config" "org_connections_import" {
   federation_settings_id     = data.mongodbatlas_cloud_federated_settings.federated_settings.id
   org_id                     = var.org_id
+  identity_provider_id       = var.identity_provider_id
   domain_restriction_enabled = false
   domain_allow_list          = ["yourdomain.com"]
 }
