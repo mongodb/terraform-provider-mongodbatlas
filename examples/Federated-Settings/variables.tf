@@ -20,3 +20,9 @@ variable "name" {
   description = "MongoDB Identity Provider Name"
   default     = "mongodb_federation_test"
 }
+
+variable "identity_provider_id" {
+  type        = string
+  description = "MongoDB Identity Provider ID"
+  default     = "5754gdhgd758"
+}
