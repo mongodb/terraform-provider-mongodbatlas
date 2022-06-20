@@ -224,7 +224,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 	}
 
 	if !federationSettingsIDOk {
-		return diag.FromErr(errors.New("either federation_settings_id must be configured"))
+		return diag.FromErr(errors.New("Federation_settings_id must be configured"))
 	}
 
 	federatedSettingsIdentityProviders, _, err := conn.FederatedSettings.ListIdentityProviders(ctx, federationSettingsID.(string), options)

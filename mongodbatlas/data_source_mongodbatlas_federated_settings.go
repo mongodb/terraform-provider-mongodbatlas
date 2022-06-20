@@ -15,14 +15,8 @@ func dataSourceMongoDBAtlasFederatedSettings() *schema.Resource {
 		ReadContext: dataSourceMongoDBAtlasFederatedSettingsRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"name"},
-			},
-			"name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"org_id"},
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"federated_domains": {
 				Type:     schema.TypeList,

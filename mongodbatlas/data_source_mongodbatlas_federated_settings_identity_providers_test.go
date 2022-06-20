@@ -6,25 +6,27 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProviders_basic(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName        = "data.mongodbatlas_federated_settings_identity_providers.test"
+		resourceName        = "data.mongodbatlas_cloud_federated_settings_identity_providers.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
+		//CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(federatedSettingsID),
+				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
+					testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
@@ -36,9 +38,9 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProviders_basic(t *te
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(federatedSettingsID string) string {
+func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_federated_settings_identity_providers" "test" {
+		data "mongodbatlas_cloud_federated_settings_identity_providers" "test" {
 			federation_settings_id = "%[1]s"
 			page_num = 1
 			items_per_page = 100
@@ -46,7 +48,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(feder
 `, federatedSettingsID)
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
