@@ -16,8 +16,8 @@ data "mongodbatlas_cloud_federated_settings_org_role_mappings" "org_role_mapping
 resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_role_mapping" {
   federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
   org_id                 = var.org_id
-
-  external_group_name = "newgroup"
+  identity_provider_id   = var.identity_provider_id
+  external_group_name    = "newgroup"
 
   organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
   group_id           = var.group_id
