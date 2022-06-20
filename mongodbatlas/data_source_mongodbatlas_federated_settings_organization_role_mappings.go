@@ -76,13 +76,13 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
 
 	if !federationSettingsIDOk {
-		return diag.FromErr(errors.New("either federation_settings_id must be configured"))
+		return diag.FromErr(errors.New("federation_settings_id must be configured"))
 	}
 
 	orgID, orgIDOk := d.GetOk("org_id")
 
 	if !orgIDOk {
-		return diag.FromErr(errors.New("either org_id must be configured"))
+		return diag.FromErr(errors.New("org_id must be configured"))
 	}
 
 	options := &matlas.ListOptions{

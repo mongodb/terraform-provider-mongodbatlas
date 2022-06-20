@@ -6,14 +6,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName        = "data.mongodbatlas_federated_settings_org_role_mappings.test"
+		resourceName        = "data.mongodbatlas_cloud_federated_settings_org_role_mappings.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID               = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 	)
@@ -21,6 +22,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings_basi
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
+		//CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfig(federatedSettingsID, orgID),
@@ -38,7 +40,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings_basi
 
 func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfig(federatedSettingsID, orgID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_federated_settings_org_role_mappings" "test" {
+		data "mongodbatlas_cloud_federated_settings_org_role_mappings" "test" {
 			federation_settings_id = "%[1]s"
 			org_id                 = "%[2]s"
 			page_num = 1
@@ -60,7 +62,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingsExists(res
 			return fmt.Errorf("no ID is set")
 		}
 
-		_, _, err := conn.FederatedSettings.ListRoleMappings(context.Background(), rs.Primary.Attributes["federation_settings_id"], rs.Primary.Attributes["org_id"], nil)
+		_, _, err := conn.FederatedSettings.ListIdentityProviders(context.Background(), rs.Primary.Attributes["federation_settings_id"], nil)
 		if err != nil {
 			return fmt.Errorf("FederatedSettingsOrganizationRoleMappings (%s) does not exist", rs.Primary.ID)
 		}
