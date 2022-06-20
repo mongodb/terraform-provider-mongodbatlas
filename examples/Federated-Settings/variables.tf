@@ -18,5 +18,5 @@ variable "group_id" {
 variable "name" {
   type        = string
   description = "MongoDB Identity Provider Name"
-  default = "mongodb_federation_test"
+  default     = "mongodb_federation_test"
 }
