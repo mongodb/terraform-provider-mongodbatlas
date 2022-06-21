@@ -26,7 +26,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *tes
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName),
+					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
 
 					resource.TestCheckResourceAttrSet(resourceName, "federation_settings_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
@@ -48,7 +48,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federa
 `, federatedSettingsID)
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 

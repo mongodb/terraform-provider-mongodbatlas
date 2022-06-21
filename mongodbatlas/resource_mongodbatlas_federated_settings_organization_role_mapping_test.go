@@ -15,7 +15,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
-		resourceName                             = "mongodbatlas_federated_settings_org_role_mapping.test"
+		resourceName                             = "mongodbatlas_cloud_federated_settings_org_role_mapping.test"
 		federationSettingsID                     = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                                    = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		groupID                                  = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
@@ -23,7 +23,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID),
@@ -32,7 +32,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 					testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName, &federatedSettingsOrganizationRoleMapping),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newtestgroup"),
+					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newgroup"),
 				),
 			},
 		},
@@ -42,7 +42,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
+		resourceName         = "mongodbatlas_cloud_federated_settings_org_role_mapping.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
@@ -65,8 +65,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_importB
 	})
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string,
-	federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string, snapshotExportJob *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -79,17 +78,15 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		response, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(),
-			rs.Primary.Attributes["federation_settings_id"],
-			rs.Primary.Attributes["org_id"],
-			rs.Primary.Attributes["role_mapping_id"])
-		if err == nil {
-			*federatedSettingsOrganizationRoleMapping = *response
+		ids := decodeStateID(rs.Primary.ID)
 
+		response, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		if err == nil {
+			*snapshotExportJob = *response
 			return nil
 		}
 
-		return fmt.Errorf("role mapping (%s) does not exist", rs.Primary.Attributes["role_mapping_id"])
+		return fmt.Errorf("role mapping (%s) does not exist", ids["role_mapping_id"])
 	}
 }
 
@@ -97,15 +94,15 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
-		if rs.Type != "mongodbatlas_federated_settings_org_role_mapping" {
+		if rs.Type != "mongodbatlas_cloud_federated_settings_org_role_mapping" {
 			continue
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		roleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
-		if err == nil && roleMapping != nil {
-			return fmt.Errorf("role mapping (%s) still exists", ids["okta_idp_id"])
+		snapshotExportBucket, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		if err == nil && snapshotExportBucket != nil {
+			return fmt.Errorf("identity provider (%s) still exists", ids["idp_id"])
 		}
 	}
 
@@ -127,19 +124,14 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState
 
 func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
+	resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "test" {
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
-		external_group_name    = "newtestgroup"
-		role_assignments {
-			org_id = "%[2]s"
-			roles  = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
-		}
-		
-		  role_assignments {
-			group_id = "%[3]s"
-			roles    = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
-		}
-
+		external_group_name    = "newgroup"
+	  
+		organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
+		//group_id           = "%[3]s"
+		//group_roles        = ["GROUP_OWNER", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_DATA_ACCESS_READ_WRITE", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_DATA_ACCESS_READ_ONLY", "GROUP_READ_ONLY"]
+	  
 	  }`, federationSettingsID, orgID, groupID)
 }
