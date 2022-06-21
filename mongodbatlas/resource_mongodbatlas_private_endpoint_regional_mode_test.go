@@ -22,18 +22,15 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		providerName    = "AWS"
-		region          = os.Getenv("AWS_REGION")
-		vpcID           = os.Getenv("AWS_VPC_ID")
-		subnetID        = os.Getenv("AWS_SUBNET_ID")
-		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		providerName = "AWS"
+		region       = os.Getenv("AWS_REGION")
 
 		clusterName = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 	)
 
-	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
-		awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, endpointResourceSuffix,
+	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
+		awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,7 +42,8 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
+					resource.TestCheckResourceAttrSet("mongodbatlas_cluster.global_cluster", "connection_strings"),
+					// testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -55,7 +53,8 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
-					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
+					resource.TestCheckResourceAttrSet("mongodbatlas_cluster.global_cluster", "connection_strings"),
+					// testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
