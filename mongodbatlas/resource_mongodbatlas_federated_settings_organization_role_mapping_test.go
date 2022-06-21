@@ -23,7 +23,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID),
@@ -130,8 +130,8 @@ func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federatio
 		external_group_name    = "newgroup"
 	  
 		organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
-		//group_id           = "%[3]s"
-		//group_roles        = ["GROUP_OWNER", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_DATA_ACCESS_READ_WRITE", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_DATA_ACCESS_READ_ONLY", "GROUP_READ_ONLY"]
+		group_id           = "%[3]s"
+		group_roles        = ["GROUP_OWNER", "GROUP_CLUSTER_MANAGER"]
 	  
 	  }`, federationSettingsID, orgID, groupID)
 }
