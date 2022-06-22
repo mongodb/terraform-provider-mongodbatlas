@@ -7,8 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource {
@@ -169,38 +167,4 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 	d.SetId(federatedSettingsConnectedOrganization.OrgID)
 
 	return nil
-}
-
-func flattenFederatedSettingsOrganizationConfig(federatedSettingsConnectedOrganizations matlas.FederatedSettingsConnectedOrganizations) []map[string]interface{} {
-	var federatedSettingsConnectedOrganizationsMap []map[string]interface{}
-
-	if (federatedSettingsConnectedOrganizations.TotalCount) > 0 {
-		federatedSettingsConnectedOrganizationsMap = make([]map[string]interface{}, federatedSettingsConnectedOrganizations.TotalCount)
-
-		for i := range federatedSettingsConnectedOrganizations.Results {
-			if federatedSettingsConnectedOrganizations.Results[i].UserConflicts == nil {
-				federatedSettingsConnectedOrganizationsMap[i] = map[string]interface{}{
-					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,
-					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.Results[i].DomainRestrictionEnabled,
-					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
-					"org_id":                     federatedSettingsConnectedOrganizations.Results[i].OrgID,
-					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.Results[i].PostAuthRoleGrants,
-					"role_mappings":              flattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
-					"user_conflicts":             nil,
-				}
-			} else {
-				federatedSettingsConnectedOrganizationsMap[i] = map[string]interface{}{
-					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,
-					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.Results[i].DomainRestrictionEnabled,
-					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
-					"org_id":                     federatedSettingsConnectedOrganizations.Results[i].OrgID,
-					"post_auth_role_grants":      federatedSettingsConnectedOrganizations.Results[i].PostAuthRoleGrants,
-					"role_mappings":              flattenRoleMappings(federatedSettingsConnectedOrganizations.Results[i].RoleMappings),
-					"user_conflicts":             flattenUserConflicts(*federatedSettingsConnectedOrganizations.Results[i].UserConflicts),
-				}
-			}
-		}
-	}
-
-	return federatedSettingsConnectedOrganizationsMap
 }
