@@ -62,7 +62,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingsExists(res
 			return fmt.Errorf("no ID is set")
 		}
 
-		_, _, err := conn.FederatedSettings.ListIdentityProviders(context.Background(), rs.Primary.Attributes["federation_settings_id"], nil)
+		_, _, err := conn.FederatedSettings.ListRoleMappings(context.Background(), rs.Primary.Attributes["federation_settings_id"], rs.Primary.Attributes["org_id"], nil)
 		if err != nil {
 			return fmt.Errorf("FederatedSettingsOrganizationRoleMappings (%s) does not exist", rs.Primary.ID)
 		}

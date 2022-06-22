@@ -65,7 +65,8 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_importB
 	})
 }
 
-func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string, snapshotExportJob *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string,
+	federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -78,15 +79,16 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
-		response, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		response, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(),
+			rs.Primary.Attributes["federation_settings_id"],
+			rs.Primary.Attributes["org_id"],
+			rs.Primary.Attributes["role_mapping_id"])
 		if err == nil {
-			*snapshotExportJob = *response
+			*federatedSettingsOrganizationRoleMapping = *response
 			return nil
 		}
 
-		return fmt.Errorf("role mapping (%s) does not exist", ids["role_mapping_id"])
+		return fmt.Errorf("role mapping (%s) does not exist", rs.Primary.Attributes["role_mapping_id"])
 	}
 }
 

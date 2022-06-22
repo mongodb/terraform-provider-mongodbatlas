@@ -93,11 +93,11 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 
 	federatedSettingsOrganizationRoleMappings, _, err := conn.FederatedSettings.ListRoleMappings(ctx, federationSettingsID.(string), orgID.(string), options)
 	if err != nil {
-		return diag.Errorf("error getting federatedSettings IdentityProviders assigned (%s): %s", federationSettingsID, err)
+		return diag.Errorf("error getting federatedSettings Role Mapping: assigned (%s): %s", federationSettingsID, err)
 	}
 
 	if err := d.Set("results", flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMappings)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings IdentityProviders: %s", err))
+		return diag.FromErr(fmt.Errorf("error setting `result` for federatedSettings Role Mapping:: %s", err))
 	}
 
 	d.SetId(federationSettingsID.(string))

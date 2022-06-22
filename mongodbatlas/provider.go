@@ -129,8 +129,11 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_snapshot_export_job":            datasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
 		"mongodbatlas_cloud_backup_snapshot_export_jobs":           datasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
 		"mongodbatlas_cloud_federated_settings":                    dataSourceMongoDBAtlasFederatedSettings(),
+		"mongodbatlas_cloud_federated_settings_identity_provider":  dataSourceMongoDBAtlasFederatedSettingsIdentityProvider(),
 		"mongodbatlas_cloud_federated_settings_identity_providers": dataSourceMongoDBAtlasFederatedSettingsIdentityProviders(),
+		"mongodbatlas_cloud_federated_settings_org_config":         dataSourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_cloud_federated_settings_org_configs":        dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs(),
+		"mongodbatlas_cloud_federated_settings_org_role_mapping":   dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_cloud_federated_settings_org_role_mappings":  dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
 	}
 	return dataSourcesMap
