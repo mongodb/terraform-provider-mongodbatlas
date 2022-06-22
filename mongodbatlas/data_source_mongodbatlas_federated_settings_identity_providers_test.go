@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProviders_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName        = "data.mongodbatlas_cloud_federated_settings_identity_providers.test"
@@ -24,7 +24,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *tes
 		//CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID),
+				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(federatedSettingsID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedSettingsIdentityProvidersExists(resourceName),
 
@@ -38,7 +38,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *tes
 	})
 }
 
-func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID string) string {
+func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProvidersConfig(federatedSettingsID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_cloud_federated_settings_identity_providers" "test" {
 			federation_settings_id = "%[1]s"

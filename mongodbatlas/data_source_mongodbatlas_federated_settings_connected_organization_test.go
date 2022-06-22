@@ -6,14 +6,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName        = "data.mongodbatlas_federated_settings_org_config.test"
+		resourceName        = "data.mongodbatlas_cloud_federated_settings_org_config.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID               = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 	)
@@ -39,7 +40,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationConfig_basic(t *t
 
 func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigConfig(federatedSettingsID, orgID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_federated_settings_org_config" "test" {
+		data "mongodbatlas_cloud_federated_settings_org_config" "test" {
 			federation_settings_id = "%[1]s"
 			org_id = "%[2]s"
 
