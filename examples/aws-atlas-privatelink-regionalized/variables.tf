@@ -21,7 +21,12 @@ variable "atlas_region_west" {
   default     = "US_WEST_1"
   description = "Atlas Region West"
 }
-variable "aws_region" {
+variable "aws_region_east" {
   default     = "us-east-1"
-  description = "AWS Region"
+  description = "AWS Region East"
+}
+
+variable "aws_region_west" {
+  default     = "us-west-1"
+  description = "AWS Region West"
 }

@@ -18,19 +18,11 @@ resource "aws_route" "primary-internet_access" {
 }
 
 # Subnet-A
-resource "aws_subnet" "primary-az1" {
-  vpc_id                  = aws_vpc.primary.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_region}a"
-}
-
-# Subnet-B
-resource "aws_subnet" "primary-az2" {
+resource "aws_subnet" "primary" {
   vpc_id                  = aws_vpc.primary.id
   cidr_block              = "10.0.2.0/24"
-  map_public_ip_on_launch = false
-  availability_zone       = "${var.aws_region}b"
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region_east}a"
 }
 
 /*Security-Group
