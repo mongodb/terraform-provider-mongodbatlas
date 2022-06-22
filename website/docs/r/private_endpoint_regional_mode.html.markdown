@@ -70,7 +70,7 @@ data "mongodbatlas_cluster" "cluster-atlas" {
 }
 
 resource "mongodbatlas_privatelink_endpoint" "test_west" {
-  project_id    = "<PROJECT_ID>"
+  project_id    = var.atlasprojectid
   provider_name = "AWS"
   region        = "US_WEST_1"
 }
@@ -92,7 +92,7 @@ resource "aws_vpc_endpoint" "test_west" {
 }
 
 resource "mongodbatlas_privatelink_endpoint" "test_east" {
-  project_id    = "<PROJECT_ID>"
+  project_id    = "var.atlasprojectid
   provider_name = "AWS"
   region        = "US_WEST_1"
 }
