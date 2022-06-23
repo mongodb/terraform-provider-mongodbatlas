@@ -130,10 +130,16 @@ func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federatio
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
 		external_group_name    = "newgroup"
-	  
-		organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
-		group_id           = "%[3]s"
-		group_roles        = ["GROUP_OWNER", "GROUP_CLUSTER_MANAGER"]
-	  
+  	  
+		role_assignments {
+			org_id ="%[2]s"
+			roles     = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
+		  }
+		
+		  role_assignments {
+			group_id = "%[3]s"
+			roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
+		  }
+
 	  }`, federationSettingsID, orgID, groupID)
 }

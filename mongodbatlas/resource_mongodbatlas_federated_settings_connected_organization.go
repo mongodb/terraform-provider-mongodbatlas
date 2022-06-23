@@ -42,9 +42,50 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource 
 					Type: schema.TypeString,
 				},
 			},
+			"post_auth_role_grants": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"domain_restriction_enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
+			},
+			"user_conflicts": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"email_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"federation_settings_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"first_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"last_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"user_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -82,6 +123,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting domain allow list (%s): %s", d.Id(), err))
 	}
 
+	if err := d.Set("post_auth_role_grants", federatedSettingsConnectedOrganization.PostAuthRoleGrants); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting post_auth_role_grants (%s): %s", d.Id(), err))
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
 		"org_id":                 orgID,
@@ -115,6 +160,11 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 	if d.HasChange("identity_provider_id") {
 		identityProviderID := d.Get("identity_provider_id").(string)
 		federatedSettingsConnectedOrganizationUpdate.IdentityProviderID = identityProviderID
+	}
+
+	if d.HasChange("post_auth_role_grants") {
+		postAuthRoleGrants := d.Get("post_auth_role_grants")
+		federatedSettingsConnectedOrganizationUpdate.PostAuthRoleGrants = cast.ToStringSlice(postAuthRoleGrants)
 	}
 
 	_, _, err = conn.FederatedSettings.UpdateConnectedOrg(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate)
