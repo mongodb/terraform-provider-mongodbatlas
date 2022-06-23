@@ -270,7 +270,7 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 			analyzers = <<-EOF
 						[{
 				"name": "index_analyzer_test_name",
-				"char_filters": {
+				"charFilters": {
 					"type": "mapping",
 					"mappings": {"\\" : "/"}
 				},
@@ -279,7 +279,7 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 					"min_gram": 2,
 					"max_gram": 5
 				},
-				"token_filters": {
+				"tokenFilters": {
 				"type": "length",
 				"min": 20,
 				"max": 33
