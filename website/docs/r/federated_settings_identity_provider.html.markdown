@@ -38,11 +38,11 @@ In addition to all arguments above, the following attributes are exported:
 
 ### FederatedSettingsIdentityProvider
 
-* `okta_idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
+* `idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
 
 ## Import
 
-Identity Provider must be imported using federation_settings_id-okta_idp_id, e.g.
+Identity Provider must be imported using federation_settings_id-idp_id, e.g.
 
 ```
 $ terraform import mongodbatlas_cloud_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk1297
