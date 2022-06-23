@@ -229,31 +229,12 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, fmt.Errorf("error setting role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
-	orgRoles := []string{}
-	groupRoles := []string{}
-
-	for i := range federatedSettingsOrganizationRoleMapping.RoleAssignments {
-		if federatedSettingsOrganizationRoleMapping.RoleAssignments[i].GroupID == "" {
-			if err := d.Set("org_id", federatedSettingsOrganizationRoleMapping.RoleAssignments[i].OrgID); err != nil {
-				return nil, fmt.Errorf("error setting org id (%s): %s", d.Id(), err)
-			}
-			orgRoles = append(orgRoles, federatedSettingsOrganizationRoleMapping.RoleAssignments[i].Role)
-		}
-
-		if federatedSettingsOrganizationRoleMapping.RoleAssignments[i].OrgID == "" {
-			if err := d.Set("group_id", federatedSettingsOrganizationRoleMapping.RoleAssignments[i].GroupID); err != nil {
-				return nil, fmt.Errorf("error setting group id  (%s): %s", d.Id(), err)
-			}
-			groupRoles = append(groupRoles, federatedSettingsOrganizationRoleMapping.RoleAssignments[i].Role)
-		}
+	if err := d.Set("org_id", *orgID); err != nil {
+		return nil, fmt.Errorf("error setting role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("organization_roles", orgRoles); err != nil {
-		return nil, fmt.Errorf("error setting org roles (%s): %s", d.Id(), err)
-	}
-
-	if err := d.Set("group_roles", groupRoles); err != nil {
-		return nil, fmt.Errorf("error setting group roles (%s): %s", d.Id(), err)
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecal(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+		return nil, fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
