@@ -8,7 +8,8 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"go.mongodb.org/atlas/mongodbatlas"
+
+	mongodbatlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -31,26 +32,36 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Reso
 				Type:     schema.TypeString,
 				Required: true,
 			},
+
 			"external_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"organization_roles": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"group_id": {
+			"id": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
-			"group_roles": {
+			"role_assignments": {
 				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"group_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"org_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"roles": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
 				},
 			},
 		},
@@ -82,25 +93,8 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 		return diag.FromErr(fmt.Errorf("error setting external group name (%s): %s", d.Id(), err))
 	}
 
-	orgRoles := []string{}
-	groupRoles := []string{}
-
-	for i := range federatedSettingsOrganizationRoleMapping.RoleAssignments {
-		if federatedSettingsOrganizationRoleMapping.RoleAssignments[i].GroupID == "" {
-			orgRoles = append(orgRoles, federatedSettingsOrganizationRoleMapping.RoleAssignments[i].Role)
-		}
-
-		if federatedSettingsOrganizationRoleMapping.RoleAssignments[i].OrgID == "" {
-			groupRoles = append(groupRoles, federatedSettingsOrganizationRoleMapping.RoleAssignments[i].Role)
-		}
-	}
-
-	if err := d.Set("organization_roles", orgRoles); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting org roles (%s): %s", d.Id(), err))
-	}
-
-	if err := d.Set("group_roles", groupRoles); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting group roles (%s): %s", d.Id(), err))
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecal(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -115,38 +109,34 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
-	federationSettingsID := d.Get("federation_settings_id").(string)
-	orgID := d.Get("org_id").(string)
-	groupID := d.Get("group_id").(string)
+	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
+
+	if !federationSettingsIDOk {
+		return diag.FromErr(errors.New("federation_settings_id must be configured"))
+	}
+
+	orgID, orgIDOk := d.GetOk("org_id")
+
+	if !orgIDOk {
+		return diag.FromErr(errors.New("org_id must be configured"))
+	}
 
 	externalGroupName := d.Get("external_group_name").(string)
 
 	body := &mongodbatlas.FederatedSettingsOrganizationRoleMapping{}
+
+	ra := []*mongodbatlas.RoleAssignments{}
+
 	body.ExternalGroupName = externalGroupName
+	roleAssignments := expandRoleAssignments(d)
 
-	for _, role := range d.Get("organization_roles").(*schema.Set).List() {
-		roleAssignment := mongodbatlas.RoleAssignments{}
-		roleAssignment.Role = role.(string)
-
-		roleAssignment.OrgID = orgID
-		roleAssignment.GroupID = ""
-		if roleAssignment.Role != "" {
-			body.RoleAssignments = append(body.RoleAssignments, &roleAssignment)
-		}
+	for i := range roleAssignments {
+		ra = append(ra, &roleAssignments[i])
 	}
 
-	for _, role := range d.Get("group_roles").(*schema.Set).List() {
-		roleAssignment := mongodbatlas.RoleAssignments{}
-		roleAssignment.Role = role.(string)
+	body.RoleAssignments = ra
 
-		roleAssignment.OrgID = ""
-		roleAssignment.GroupID = groupID
-		if roleAssignment.Role != "" {
-			body.RoleAssignments = append(body.RoleAssignments, &roleAssignment)
-		}
-	}
-
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.CreateRoleMapping(context.Background(), federationSettingsID, orgID, body)
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.CreateRoleMapping(context.Background(), federationSettingsID.(string), orgID.(string), body)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -159,8 +149,8 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"federation_settings_id": federationSettingsID,
-		"org_id":                 orgID,
+		"federation_settings_id": federationSettingsID.(string),
+		"org_id":                 orgID.(string),
 		"role_mapping_id":        federatedSettingsOrganizationRoleMapping.ID,
 	}))
 
@@ -174,7 +164,6 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
-	groupID := d.Get("group_id").(string)
 
 	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
 	if err != nil {
@@ -186,30 +175,19 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 		federatedSettingsOrganizationRoleMappingUpdate.ExternalGroupName = externalGroupName
 	}
 
-	federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = nil
+	if d.HasChange("role_assignments") {
+		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = nil
 
-	for _, role := range d.Get("organization_roles").(*schema.Set).List() {
-		roleAssignment := mongodbatlas.RoleAssignments{}
-		roleAssignment.Role = role.(string)
+		ra := []*mongodbatlas.RoleAssignments{}
 
-		roleAssignment.OrgID = orgID
-		roleAssignment.GroupID = ""
-		if roleAssignment.Role != "" {
-			federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = append(federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments, &roleAssignment)
+		roleAssignments := expandRoleAssignments(d)
+
+		for i := range roleAssignments {
+			ra = append(ra, &roleAssignments[i])
 		}
+
+		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = ra
 	}
-
-	for _, role := range d.Get("group_roles").(*schema.Set).List() {
-		roleAssignment := mongodbatlas.RoleAssignments{}
-		roleAssignment.Role = role.(string)
-
-		roleAssignment.OrgID = ""
-		roleAssignment.GroupID = groupID
-		if roleAssignment.Role != "" {
-			federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = append(federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments, &roleAssignment)
-		}
-	}
-
 	_, _, err = conn.FederatedSettings.UpdateRoleMapping(ctx, federationSettingsID, orgID, roleMappingID, federatedSettingsOrganizationRoleMappingUpdate)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
@@ -301,4 +279,104 @@ func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federatio
 	roleMappingID = &parts[3]
 
 	return
+}
+
+func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignments {
+	var roleAssignmentsReturn []mongodbatlas.RoleAssignments
+
+	if v, ok := d.GetOk("role_assignments"); ok {
+		if rs := v.(*schema.Set); rs.Len() > 0 {
+			roleAssignments := []mongodbatlas.RoleAssignments{}
+			roleAssignment := mongodbatlas.RoleAssignments{}
+
+			for _, r := range rs.List() {
+				roleMap := r.(map[string]interface{})
+
+				for _, role := range roleMap["roles"].(*schema.Set).List() {
+					roleAssignment.OrgID = roleMap["org_id"].(string)
+					roleAssignment.GroupID = roleMap["group_id"].(string)
+					roleAssignment.Role = role.(string)
+					roleAssignments = append(roleAssignments, roleAssignment)
+				}
+				roleAssignmentsReturn = roleAssignments
+			}
+		}
+	}
+
+	return roleAssignmentsReturn
+}
+
+func flattenRoleAssignmentsSpecal(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
+	var roleAssignmentsMap []map[string]interface{}
+	if len(roleAssignments) > 0 {
+		counterGroup := make(map[string]int)
+		for _, row := range roleAssignments {
+			if row.GroupID != "" {
+				counterGroup[row.GroupID]++
+			}
+		}
+
+		distinctGroup := make([]string, len(counterGroup))
+		i := 0
+		for k := range counterGroup {
+			distinctGroup[i] = k
+			i++
+		}
+
+		counterOrg := make(map[string]int)
+		for _, row := range roleAssignments {
+			if row.OrgID != "" {
+				counterOrg[row.OrgID]++
+			}
+		}
+
+		distinctOrg := make([]string, len(counterOrg))
+		idx := 0
+		for k := range counterOrg {
+			distinctOrg[idx] = k
+			idx++
+		}
+
+		roleAssignmentsMap = make([]map[string]interface{}, len(counterOrg)+len(counterGroup))
+		var rolesOrg []string
+		var rolesGroup []string
+
+		mapIdx := 0
+
+		for _, ov := range distinctOrg {
+			for idx := range roleAssignments {
+				if roleAssignments[idx].OrgID == ov {
+					rolesOrg = append(rolesOrg, roleAssignments[idx].Role)
+				}
+			}
+			roleAssignmentsMap[mapIdx] = map[string]interface{}{
+				"group_id": "",
+				"org_id":   ov,
+				"roles":    rolesOrg,
+			}
+			mapIdx++
+		}
+
+		for _, ov := range distinctGroup {
+			for idx := range roleAssignments {
+				if roleAssignments[idx].GroupID == ov {
+					rolesGroup = append(rolesGroup, roleAssignments[idx].Role)
+				}
+			}
+			roleAssignmentsMap[mapIdx] = map[string]interface{}{
+				"group_id": ov,
+				"org_id":   "",
+				"roles":    rolesGroup,
+			}
+			mapIdx++
+		}
+
+		/*	if len(roleAssignments) > 0 {
+			sort.Slice(roleAssignmentsMap, func(i, j int) bool {
+				return true
+			})
+		}*/
+	}
+
+	return roleAssignmentsMap
 }

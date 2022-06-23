@@ -18,9 +18,15 @@ resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_role_mapp
   org_id                 = var.org_id
   external_group_name    = "newgroup"
 
-  organization_roles = ["ORG_OWNER", "ORG_MEMBER"]
-  group_id           = var.group_id
-  group_roles        = ["GROUP_OWNER", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_DATA_ACCESS_READ_WRITE", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_DATA_ACCESS_READ_ONLY", "GROUP_READ_ONLY"]
+  role_assignments {
+    group_id = var.group_id
+    roles    = ["GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_DATA_ACCESS_READ_ONLY"]
+  }
+
+  role_assignments {
+    org_id = var.org_id
+    roles  = ["ORG_OWNER", "ORG_MEMBER"]
+  }
 
 }
 resource "mongodbatlas_cloud_federated_settings_org_config" "org_connections_import" {
