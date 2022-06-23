@@ -351,12 +351,6 @@ func flattenRoleAssignmentsSpecal(roleAssignments []*mongodbatlas.RoleAssignment
 			}
 			mapIdx++
 		}
-
-		/*	if len(roleAssignments) > 0 {
-			sort.Slice(roleAssignmentsMap, func(i, j int) bool {
-				return true
-			})
-		}*/
 	}
 
 	return roleAssignmentsMap
