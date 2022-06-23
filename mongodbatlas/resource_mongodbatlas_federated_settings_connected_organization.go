@@ -53,40 +53,6 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource 
 				Type:     schema.TypeBool,
 				Required: true,
 			},
-			"user_conflicts": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"email_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"federation_settings_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"first_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"last_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"user_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -216,6 +182,10 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx cont
 
 	if err := d.Set("org_id", federatedSettingsConnectedOrganization.OrgID); err != nil {
 		return nil, fmt.Errorf("error setting org id (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("identity_provider_id", federatedSettingsConnectedOrganization.IdentityProviderID); err != nil {
+		return nil, fmt.Errorf("error setting identity provider id (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
