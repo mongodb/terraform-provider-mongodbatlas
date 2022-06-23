@@ -16,10 +16,22 @@ description: |-
 resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_group_role_mapping_import" {
   federation_settings_id = "627a9687f7f7f7f774de306f14"
   org_id                 = "627a9683e7f7f7ff7fe306f14"
-  group_id               = "628aa20d7f7f7f7f7098b81b8"
   external_group_name    = "myGrouptest"
-  organization_roles     = ["ORG_OWNER", "ORG_MEMBER", "ORG_BILLING_ADMIN", "ORG_GROUP_CREATOR", "ORG_READ_ONLY"]
-  group_roles            = ["GROUP_OWNER","GROUP_CLUSTER_MANAGER","GROUP_DATA_ACCESS_ADMIN","GROUP_DATA_ACCESS_READ_WRITE","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY","GROUP_READ_ONLY"]
+
+  role_assignments {
+    org_id = "627a9683e7f7f7ff7fe306f14"
+    roles     = ["ORG_MEMBER","ORG_GROUP_CREATOR","ORG_BILLING_ADMIN"]
+  }
+
+  role_assignments {
+    group_id = "628aa20d7f7f7f7f7098b81b8"
+    roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
+  }
+
+  role_assignments {
+    group_id = "628aa20d7f7f7f7f7078b81b8"
+    roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY","GROUP_DATA_ACCESS_READ_WRITE"]
+  }
 }
 ```
 
@@ -30,7 +42,7 @@ resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_group_rol
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
 * `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
 * `group_id` - Unique identifier of the project that owns this Role Mapping Configuration.
-* `role` - Specifies the Role that is attached to the Role Mapping.
+* `roles` - Specifies the Roles that are attached to the Role Mapping.
 
 ## Attributes Reference
 

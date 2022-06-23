@@ -19,6 +19,7 @@ resource "mongodbatlas_cloud_federated_settings_org_config" "org_connection" {
   org_id                     = "627a9683ea7ff7f74de306f14"
   domain_restriction_enabled = false
   domain_allow_list          = ["mydomain.com"]
+  dentity_provider_id = "0oad4fas87jL7f75Xnk1297"
 }
 
 data "mongodbatlas_cloud_federated_settings_org_configs" "org_configs_ds" {
