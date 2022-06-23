@@ -17,6 +17,7 @@ import (
 const (
 	errorPrivateEndpointRegionalModeRead    = "error reading MongoDB Group `%s Private Endpoints Regional Mode: %s"
 	errorPrivateEndpointRegionalModeSetting = "error setting `%s` on MongoDB Group `%s` Private Endpoints Regional Mode: %s"
+	errorPrivateEndpointRegionalModeUpdate  = "error updating MongoDB Group `%s` Private Endpoints Regional Mode: %s"
 )
 
 func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
@@ -65,11 +66,11 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeRead(ctx context.Context, d 
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorPrivateEndpointRegionalModeRead, projectID, err))
+		return diag.Errorf(errorPrivateEndpointRegionalModeRead, projectID, err)
 	}
 
 	if err := d.Set("enabled", setting.Enabled); err != nil {
-		return diag.FromErr(fmt.Errorf(errorPrivateEndpointRegionalModeSetting, "enabled", projectID, err))
+		return diag.Errorf(errorPrivateEndpointRegionalModeSetting, "enabled", projectID, err)
 	}
 
 	return nil
@@ -87,10 +88,10 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, projectID, err))
+		return diag.Errorf(errorPrivateEndpointRegionalModeUpdate, projectID, err)
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
+	log.Println("[INFO] Waiting for MongoDB Clusters' Private Endpoints to be updated")
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"PENDING", "REPEATING"},
@@ -103,7 +104,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, projectID, err))
+		return diag.Errorf(errorPrivateEndpointRegionalModeUpdate, projectID, err)
 	}
 
 	return nil
@@ -121,15 +122,15 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Cont
 
 	setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(ctx, projectID)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import regional mode for project %s error: %s", projectID, err)
+		return nil, fmt.Errorf("couldn't import Private Endpoint Regional Mode for project %s error: %s", projectID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		log.Printf(errorPrivateLinkEndpointsSetting, "project_id", projectID, err)
+		log.Printf(errorPrivateEndpointRegionalModeSetting, "project_id", projectID, err)
 	}
 
 	if err := d.Set("enabled", setting.Enabled); err != nil {
-		log.Printf(errorPrivateLinkEndpointsSetting, "enabled", projectID, err)
+		log.Printf(errorPrivateEndpointRegionalModeSetting, "enabled", projectID, err)
 	}
 
 	d.SetId(projectID)
