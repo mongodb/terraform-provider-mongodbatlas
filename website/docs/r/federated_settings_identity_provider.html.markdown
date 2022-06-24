@@ -18,17 +18,27 @@ resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_pro
   associated_domains           = ["yourdomain.com"]
   sso_debug_enabled = true
   status = "ACTIVE"
+  sso_url = "https://mysso.oktapreview.com/app/mysso_terraformtestsso/exk17q7f7f7f7f50h8/sso/saml"
+  issuer_uri = "http://www.okta.com/exk17q7f7f7f7fp50h8"
+  request_binding = "HTTP-POST"
+  response_signature_algorithm = "SHA-256"
 }
 ```
 
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `name` - Human-readable label that identifies the identity provider.
-* `associated_domains` - List that contains the domains associated with the identity provider.
-* `sso_debug_enabled` - Flag that indicates whether the identity provider has SSO debug enabled.
-* `status`- String enum that indicates whether the identity provider is active or not.
-Accepted values are ACTIVE or INACTIVE.
+* `name` - (Required) Human-readable label that identifies the identity provider.
+* `associated_domains` - (Required) List that contains the domains associated with the identity provider.
+* `sso_debug_enabled` - (Required) Flag that indicates whether the identity provider has SSO debug enabled.
+* `status`- (Required) String enum that indicates whether the identity provider is active or not. Accepted values are ACTIVE or INACTIVE.
+* `issuer_uri` - (Required) Identifier for the issuer of the SAML Assertion.
+* `sso_url` - (Required) URL of the receiver of the SAML AuthNRequest.
+* `request_binding` - (Required) SAML Authentication Request Protocol binding used to send the AuthNRequest. Atlas supports the following binding values:
+    - HTTP POST
+    - HTTP REDIRECT
+* `response_signature_algorithm` - (Required) Algorithm used to encrypt the IdP signature. Atlas supports the following signature algorithm values:
+    - SHA-1
 
 
 ## Attributes Reference
