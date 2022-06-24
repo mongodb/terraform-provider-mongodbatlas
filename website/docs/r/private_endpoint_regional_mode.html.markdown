@@ -122,7 +122,7 @@ resource "aws_vpc_endpoint" "test_east" {
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.
+* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized). 
 * `mongodbatlas_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/privatelink_endpoint_service.html.markdown#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/privatelink_endpoint_service.html.markdown#example-with-azure)
