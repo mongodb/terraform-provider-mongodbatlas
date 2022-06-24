@@ -117,7 +117,11 @@ resource "aws_vpc_endpoint" "test_east" {
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project.
-* `enabled` - (Optional) Flag that indicates whether the regionalized private endpoitn setting is enabled for the project.
+* `enabled` - (Optional) Flag that indicates whether the regionalized private endpoint setting is enabled for the project.   Set this value to true to create more than one private endpoint in a cloud provider region to connect to multi-region and global Atlas sharded clusters. You can enable this setting only if your Atlas project contains no replica sets. You can't disable this setting if you have:
+   * More than one private endpoint in more than one region, or
+   * More than one private endpoint in one region and one private endpoint in one or more regions.
+You can create only sharded clusters when you enable the regionalized private endpoint setting. You can't create replica sets.
+
 
 ## Additional Reference
 
