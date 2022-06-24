@@ -129,8 +129,8 @@ You can create only sharded clusters when you enable the regionalized private en
 In addition to the example shown above, keep in mind:
 * `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized). 
 * `mongodbatlas_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
-* For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/privatelink_endpoint_service.html.markdown#example-with-gcp)
-* For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/privatelink_endpoint_service.html.markdown#example-with-azure)
+* For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
+* For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)
 
 ## Import
 Private Endpoint Regional Mode can be imported using project id in format `{project_id}`, e.g.
