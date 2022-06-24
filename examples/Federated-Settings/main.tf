@@ -38,9 +38,13 @@ resource "mongodbatlas_cloud_federated_settings_org_config" "org_connections_imp
 }
 
 resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_provider" {
-  federation_settings_id = data.mongodbatlas_cloud_federated_settings.federated_settings.id
-  name                   = var.name
-  associated_domains     = ["yourdomain.com"]
-  sso_debug_enabled      = true
-  status                 = "ACTIVE"
+  federation_settings_id       = data.mongodbatlas_cloud_federated_settings.federated_settings.id
+  name                         = var.name
+  associated_domains           = ["yourdomain.com"]
+  sso_debug_enabled            = true
+  status                       = "ACTIVE"
+  sso_url                      = "https://mysso.oktapreview.com/app/mysso_terrafssotesdev_1/exk1f7f7f7fk5wp50h8/sso/saml"
+  issuer_uri                   = "http://www.okta.com/exk1f716hf7f750h8"
+  request_binding              = "HTTP-POST"
+  response_signature_algorithm = "SHA-256"
 }
