@@ -17,12 +17,10 @@ description: |-
 ```terraform
 resource "private_endpoint_regional_mode" "test" {
   project_id    = "<PROJECT-ID>"
-  enabled       = true
 }
 
 data "private_endpoint_regional_mode" "test" {
 	project_id = private_endpoint_regional_mode.test.project_id
-	enabled    = true
 }
 ```
 

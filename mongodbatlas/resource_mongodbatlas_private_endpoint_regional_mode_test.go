@@ -52,6 +52,12 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
@@ -62,23 +68,23 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 	})
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, projectID, regionalModeResourceName, privateLinkResourceName string) string {
+func testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, regionalModeResourceName, privateLinkResourceName string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_cluster" %[1]q {
-			project_id = %[2]q
+			project_id = mongodbatlas_cluster.%[1]s.project_id
 			name       = mongodbatlas_cluster.%[1]s.name
 			depends_on = [
-				mongodbatlas_private_endpoint_regional_mode.%[3]s,
-				mongodbatlas_privatelink_endpoint_service.%[4]s
+				mongodbatlas_privatelink_endpoint_service.%[3]s,
+				mongodbatlas_private_endpoint_regional_mode.%[2]s
 			]
 		}
-	`, clusterResourceName, projectID, regionalModeResourceName, privateLinkResourceName)
+	`, clusterResourceName, regionalModeResourceName, privateLinkResourceName)
 }
 
 func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectID, clusterName, endpointResources, endpointResourceName string, enabled bool) string {
 	clusterResourceName := "global_cluster"
 	clusterResource := testAccMongoDBAtlasClusterConfigGlobal(clusterResourceName, projectID, clusterName, "false")
-	clusterData := testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, projectID, resourceName, endpointResourceName)
+	clusterData := testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceName, resourceName, endpointResourceName)
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
@@ -96,6 +102,7 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectI
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		fmt.Printf("==========================================================================\n")
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -132,8 +139,6 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 
 		rs, ok := s.RootModule().Resources["mongodbatlas_cluster.global_cluster"]
 
-		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
-
 		if !ok {
 			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s)", clusterName, projectID)
 		}
@@ -147,6 +152,9 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 
 		cluster, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
 
+		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
+		fmt.Printf("cluster.ConnectionStrings %#v \n", flattenConnectionStrings(cluster.ConnectionStrings))
+
 		if rsPrivateEndpointCount != len(cluster.ConnectionStrings.PrivateEndpoint) {
 			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")
 		}
@@ -158,9 +166,6 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 		if rs.Primary.Attributes["connection_strings.0.standard_srv"] != cluster.ConnectionStrings.StandardSrv {
 			return fmt.Errorf("Cluster standard connection_string does not match resource")
 		}
-
-		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
-		fmt.Printf("cluster.ConnectionStrings %#v \n", flattenConnectionStrings(cluster.ConnectionStrings))
 
 		return nil
 	}

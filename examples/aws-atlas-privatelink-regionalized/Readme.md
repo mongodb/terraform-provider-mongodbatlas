@@ -4,7 +4,7 @@ This project aims to provide a very straight-forward example of setting up Priva
 
 ## Gotchas
 - Ensure `mongodbatlas_cluster` depends_on `mongodbatlas_private_endpoint_regional_mode`
-- Despite properly output, connection strings _are not applied_ properly to `mongodbatlas_cluster` when changing regional mode enabled.
+- Despite being properly output, connection strings _may not be applied_ to `mongodbatlas_cluster` resource when changing regional mode enabled. This means the connection_strings may not exist in terraform state until the next `terraform apply`.
 
 ## Dependencies
 

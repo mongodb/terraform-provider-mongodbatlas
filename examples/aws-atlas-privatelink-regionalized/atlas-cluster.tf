@@ -3,7 +3,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   name                         = "cluster-atlas"
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "5.0"
   cluster_type                 = "GEOSHARDED"
   replication_specs {
     zone_name  = "Zone 1"

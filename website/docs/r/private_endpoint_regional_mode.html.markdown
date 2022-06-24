@@ -8,7 +8,7 @@ description: |-
 
 # private_endpoint_regional_mode
 
-`mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a the regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
+`mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
   * Organization Owner
@@ -31,7 +31,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   name                         = "cluster-atlas"
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.2"
+  mongo_db_major_version       = "5.0"
   cluster_type                 = "GEOSHARDED"
   replication_specs {
     zone_name  = "Zone 1"
