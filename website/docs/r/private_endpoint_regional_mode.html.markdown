@@ -16,6 +16,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
+~> **WARNING:**Your [connection strings](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/#std-label-connstring-privatelink) to existing multi-region and global sharded clusters change when you enable this setting.  You must update your applications to use the new connection strings. This might cause downtime.
 
 ## Example AWS Global Cluster with multiple Private Endpoint
 
@@ -117,15 +118,19 @@ resource "aws_vpc_endpoint" "test_east" {
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project.
-* `enabled` - (Optional) Flag that indicates whether the regionalized private endpoitn setting is enabled for the project.
+* `enabled` - (Optional) Flag that indicates whether the regionalized private endpoint setting is enabled for the project.   Set this value to true to create more than one private endpoint in a cloud provider region to connect to multi-region and global Atlas sharded clusters. You can enable this setting only if your Atlas project contains no replica sets. You can't disable this setting if you have:
+   * More than one private endpoint in more than one region, or
+   * More than one private endpoint in one region and one private endpoint in one or more regions.
+You can create only sharded clusters when you enable the regionalized private endpoint setting. You can't create replica sets.
+
 
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.
+* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized). 
 * `mongodbatlas_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
-* For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/privatelink_endpoint_service.html.markdown#example-with-gcp)
-* For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/privatelink_endpoint_service.html.markdown#example-with-azure)
+* For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
+* For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)
 
 ## Import
 Private Endpoint Regional Mode can be imported using project id in format `{project_id}`, e.g.
