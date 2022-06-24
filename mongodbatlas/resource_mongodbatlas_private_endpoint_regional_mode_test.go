@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -22,18 +22,15 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		providerName    = "AWS"
-		region          = os.Getenv("AWS_REGION")
-		vpcID           = os.Getenv("AWS_VPC_ID")
-		subnetID        = os.Getenv("AWS_SUBNET_ID")
-		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		providerName = "AWS"
+		region       = os.Getenv("AWS_REGION")
 
 		clusterName = fmt.Sprintf("test-acc-global-%s", acctest.RandString(10))
 	)
 
-	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(
-		awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, endpointResourceSuffix,
+	endpointResources := testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(
+		awsAccessKey, awsSecretKey, projectID, providerName, region, endpointResourceSuffix,
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,19 +132,36 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 
 		rs, ok := s.RootModule().Resources["mongodbatlas_cluster.global_cluster"]
 
+		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
+
 		if !ok {
 			return fmt.Errorf("Could not find resource state for cluster (%s) on project (%s)", clusterName, projectID)
 		}
 
-		cluster, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
+		var rsPrivateEndpointCount int
+		var err error
 
-		if reflect.DeepEqual(rs.Primary.Attributes["connection_strings"], flattenConnectionStrings(cluster.ConnectionStrings)) {
-			return nil
+		if rsPrivateEndpointCount, err = strconv.Atoi(rs.Primary.Attributes["connection_strings.0.private_endpoint.#"]); err != nil {
+			return fmt.Errorf("Connection strings private endpoint count is not a number")
 		}
 
-		fmt.Printf("resource.Primary.Attributes['connection_strings'] %#v \n", rs.Primary.Attributes["connection_strings"])
+		cluster, _, _ := conn.Clusters.Get(context.Background(), projectID, clusterName)
+
+		if rsPrivateEndpointCount != len(cluster.ConnectionStrings.PrivateEndpoint) {
+			return fmt.Errorf("Cluster PrivateEndpoint count does not match resource")
+		}
+
+		if rs.Primary.Attributes["connection_strings.0.standard"] != cluster.ConnectionStrings.Standard {
+			return fmt.Errorf("Cluster standard connection_string does not match resource")
+		}
+
+		if rs.Primary.Attributes["connection_strings.0.standard_srv"] != cluster.ConnectionStrings.StandardSrv {
+			return fmt.Errorf("Cluster standard connection_string does not match resource")
+		}
+
+		fmt.Printf("testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate %#v \n", rs.Primary.Attributes)
 		fmt.Printf("cluster.ConnectionStrings %#v \n", flattenConnectionStrings(cluster.ConnectionStrings))
 
-		return fmt.Errorf("Connection strings not equal in resource state and response from apif or cluster (%s) on project (%s)", clusterName, projectID)
+		return nil
 	}
 }

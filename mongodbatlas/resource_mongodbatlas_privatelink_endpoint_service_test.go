@@ -177,3 +177,83 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigCompleteAWS(awsAccessKey
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, serviceResourceName)
 }
+
+func testAccMongoDBAtlasPrivateLinkEndpointServiceConfigUnmanagedAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName string) string {
+	return fmt.Sprintf(`
+		provider "aws" {
+			region     = "%[5]s"
+			access_key = "%[1]s"
+			secret_key = "%[2]s"
+		}
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = "%[3]s"
+			provider_name = "%[4]s"
+			region        = "%[5]s"
+		}
+		resource "aws_vpc_endpoint" "ptfe_service" {
+			vpc_id             = aws_vpc.primary.id
+			service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
+			vpc_endpoint_type  = "Interface"
+			subnet_ids         = [aws_subnet.primary-az1.id]
+			security_group_ids = [aws_security_group.primary_default.id]
+			
+		}
+		resource "mongodbatlas_privatelink_endpoint_service" %[6]q {
+			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			endpoint_service_id   =  aws_vpc_endpoint.ptfe_service.id
+			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
+			provider_name         = %[4]q
+		}
+		resource "aws_vpc" "primary" {
+			cidr_block           = "10.0.0.0/16"
+			enable_dns_hostnames = true
+			enable_dns_support   = true
+		}
+
+		resource "aws_internet_gateway" "primary" {
+			vpc_id = aws_vpc.primary.id
+		}
+
+		resource "aws_route" "primary-internet_access" {
+			route_table_id         = aws_vpc.primary.main_route_table_id
+			destination_cidr_block = "0.0.0.0/0"
+			gateway_id             = aws_internet_gateway.primary.id
+		}
+		  
+		  # Subnet-A
+		  resource "aws_subnet" "primary-az1" {
+			vpc_id                  = aws_vpc.primary.id
+			cidr_block              = "10.0.1.0/24"
+			map_public_ip_on_launch = true
+			availability_zone       = "%[5]sa"
+		  }
+		  
+		  # Subnet-B
+		  resource "aws_subnet" "primary-az2" {
+			vpc_id                  = aws_vpc.primary.id
+			cidr_block              = "10.0.2.0/24"
+			map_public_ip_on_launch = false
+			availability_zone       = "%[5]sb"
+		  }
+		  
+		  resource "aws_security_group" "primary_default" {
+			name_prefix = "default-"
+			description = "Default security group for all instances in vpc"
+			vpc_id      = aws_vpc.primary.id
+			ingress {
+			  from_port = 0
+			  to_port   = 0
+			  protocol  = "tcp"
+			  cidr_blocks = [
+				"0.0.0.0/0",
+			  ]
+			}
+			egress {
+			  from_port   = 0
+			  to_port     = 0
+			  protocol    = "-1"
+			  cidr_blocks = ["0.0.0.0/0"]
+			}
+		  }
+	`, awsAccessKey, awsSecretKey, projectID, providerName, region, serviceResourceName)
+}
