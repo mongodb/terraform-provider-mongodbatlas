@@ -31,6 +31,18 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"issuer_uri": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"request_binding": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"response_signature_algorithm": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"associated_domains": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -40,6 +52,10 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
 			},
 			"sso_debug_enabled": {
 				Type:     schema.TypeBool,
+				Required: true,
+			},
+			"sso_url": {
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"status": {
@@ -67,7 +83,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["idp_id"]
 
-	federatedSettingsConnectedOrganization, resp, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
+	federatedSettingsIdentityProvider, resp, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -79,20 +95,36 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error getting federated settings identity provider: %s", err))
 	}
 
-	if err := d.Set("sso_debug_enabled", federatedSettingsConnectedOrganization.SsoDebugEnabled); err != nil {
+	if err := d.Set("sso_debug_enabled", federatedSettingsIdentityProvider.SsoDebugEnabled); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting sso debug enabled (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("associated_domains", federatedSettingsConnectedOrganization.AssociatedDomains); err != nil {
+	if err := d.Set("associated_domains", federatedSettingsIdentityProvider.AssociatedDomains); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting associated domains list (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("idp_id", federatedSettingsConnectedOrganization.OktaIdpID); err != nil {
+	if err := d.Set("idp_id", federatedSettingsIdentityProvider.OktaIdpID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting OktaIdpID (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("status", federatedSettingsConnectedOrganization.Status); err != nil {
+	if err := d.Set("status", federatedSettingsIdentityProvider.Status); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting Status (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("issuer_uri", federatedSettingsIdentityProvider.IssuerURI); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting issuer uri (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("request_binding", federatedSettingsIdentityProvider.RequestBinding); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting request binding (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("response_signature_algorithm", federatedSettingsIdentityProvider.ResponseSignatureAlgorithm); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting response signature algorithm (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoURL); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting sso url (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -110,34 +142,54 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	federationSettingsID := ids["federation_settings_id"]
 	oktaIdpID := ids["idp_id"]
 
-	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
+	federatedSettingsIdentityProviderUpdate, _, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
 
 	if d.HasChange("sso_debug_enabled") {
 		ssoDebugEnabled := d.Get("sso_debug_enabled").(bool)
-		federatedSettingsConnectedOrganizationUpdate.SsoDebugEnabled = &ssoDebugEnabled
+		federatedSettingsIdentityProviderUpdate.SsoDebugEnabled = &ssoDebugEnabled
 	}
 
 	if d.HasChange("associated_domains") {
 		associatedDomains := d.Get("associated_domains")
-		federatedSettingsConnectedOrganizationUpdate.AssociatedDomains = cast.ToStringSlice(associatedDomains)
+		federatedSettingsIdentityProviderUpdate.AssociatedDomains = cast.ToStringSlice(associatedDomains)
 	}
 
 	if d.HasChange("name") {
 		identityName := d.Get("name").(string)
-		federatedSettingsConnectedOrganizationUpdate.DisplayName = identityName
+		federatedSettingsIdentityProviderUpdate.DisplayName = identityName
 	}
 
 	if d.HasChange("status") {
 		status := d.Get("status").(string)
-		federatedSettingsConnectedOrganizationUpdate.Status = status
+		federatedSettingsIdentityProviderUpdate.Status = status
 	}
 
-	federatedSettingsConnectedOrganizationUpdate.PemFileInfo = nil
+	if d.HasChange("issuer_uri") {
+		status := d.Get("issuer_uri").(string)
+		federatedSettingsIdentityProviderUpdate.IssuerURI = status
+	}
 
-	_, _, err = conn.FederatedSettings.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, federatedSettingsConnectedOrganizationUpdate)
+	if d.HasChange("request_binding") {
+		status := d.Get("request_binding").(string)
+		federatedSettingsIdentityProviderUpdate.RequestBinding = status
+	}
+
+	if d.HasChange("response_signature_algorithm") {
+		status := d.Get("response_signature_algorithm").(string)
+		federatedSettingsIdentityProviderUpdate.ResponseSignatureAlgorithm = status
+	}
+
+	if d.HasChange("sso_url") {
+		status := d.Get("sso_url").(string)
+		federatedSettingsIdentityProviderUpdate.SsoURL = status
+	}
+
+	federatedSettingsIdentityProviderUpdate.PemFileInfo = nil
+
+	_, _, err = conn.FederatedSettings.UpdateIdentityProvider(ctx, federationSettingsID, oktaIdpID, federatedSettingsIdentityProviderUpdate)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings identity provider (%s): %s", federationSettingsID, err))
 	}
@@ -172,6 +224,22 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 
 	if err := d.Set("associated_domains", federatedSettingsIdentityProvider.AssociatedDomains); err != nil {
 		return nil, fmt.Errorf("error setting associaed domains list (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("issuer_uri", federatedSettingsIdentityProvider.IssuerURI); err != nil {
+		return nil, fmt.Errorf("error setting issuer uri (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("request_binding", federatedSettingsIdentityProvider.RequestBinding); err != nil {
+		return nil, fmt.Errorf("error setting request binding (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("response_signature_algorithm", federatedSettingsIdentityProvider.ResponseSignatureAlgorithm); err != nil {
+		return nil, fmt.Errorf("error setting response signature algorithm (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("sso_url", federatedSettingsIdentityProvider.SsoURL); err != nil {
+		return nil, fmt.Errorf("error setting sso url (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
