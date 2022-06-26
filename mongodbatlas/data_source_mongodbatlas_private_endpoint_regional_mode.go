@@ -18,7 +18,7 @@ func dataSourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
 			},
 		},
 	}
