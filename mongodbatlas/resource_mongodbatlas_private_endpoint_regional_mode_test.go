@@ -36,7 +36,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, clusterName, endpointResources, endpointResourceSuffix, false),
@@ -169,4 +169,26 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 
 		return nil
 	}
+}
+
+func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_private_endpoint_regional_mode" {
+			continue
+		}
+
+		setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID)
+
+		if err != nil {
+			return fmt.Errorf("Could not read regionalized private endpoint setting for project %q", rs.Primary.ID)
+		}
+
+		if setting.Enabled != false {
+			return fmt.Errorf("Regionalized private endpoint setting for project %q was not properly disabled", rs.Primary.ID)
+		}
+	}
+
+	return nil
 }

@@ -111,6 +111,12 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 }
 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if err := d.Set("enabled", false); err == nil {
+		resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx, d, meta)
+	} else {
+		log.Printf(errorPrivateEndpointRegionalModeSetting, "enabled", d.Id(), err)
+	}
+
 	d.SetId("")
 
 	return nil
