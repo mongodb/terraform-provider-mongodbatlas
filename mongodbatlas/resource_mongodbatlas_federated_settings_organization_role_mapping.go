@@ -286,6 +286,27 @@ func (ra roleAssignmentsByFields) Less(i, j int) bool {
 	return strings.Compare(ra[i].Role, ra[j].Role) == -1
 }
 
+type roleAssignmentRefsByFields []*mongodbatlas.RoleAssignments
+
+func (ra roleAssignmentRefsByFields) Len() int      { return len(ra) }
+func (ra roleAssignmentRefsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra roleAssignmentRefsByFields) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	return strings.Compare(ra[i].Role, ra[j].Role) == -1
+}
+
 func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignments {
 	var roleAssignmentsReturn []mongodbatlas.RoleAssignments
 
@@ -322,22 +343,16 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignmen
 		return nil
 	}
 
-	var sortableAssignments = make([]mongodbatlas.RoleAssignments, len(roleAssignments))
-
-	for i := range roleAssignments {
-		sortableAssignments = append(sortableAssignments, *(roleAssignments[i]))
-	}
-
-	sort.Sort(roleAssignmentsByFields(sortableAssignments))
+	sort.Sort(roleAssignmentRefsByFields(roleAssignments))
 
 	var flattenedRoleAssignments []map[string]interface{}
 	var roleAssignment = map[string]interface{}{
-		"group_id": sortableAssignments[0].GroupID,
-		"org_id":   sortableAssignments[0].OrgID,
+		"group_id": roleAssignments[0].GroupID,
+		"org_id":   roleAssignments[0].OrgID,
 		"roles":    []string{},
 	}
 
-	for _, row := range sortableAssignments {
+	for _, row := range roleAssignments {
 		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.OrgID) ||
 			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GroupID) {
 			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
@@ -353,10 +368,6 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignmen
 	}
 
 	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
-
-	fmt.Println("\nFlatten Role Assignments Map")
-	fmt.Printf("\n%v\n", flattenedRoleAssignments)
-	fmt.Println()
 
 	return flattenedRoleAssignments
 }

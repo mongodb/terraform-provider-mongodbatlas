@@ -32,7 +32,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 					testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName, &federatedSettingsOrganizationRoleMapping),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newgroup"),
+					resource.TestCheckResourceAttr(resourceName, "external_group_name", "testgroup"),
 				),
 			},
 		},
@@ -138,7 +138,7 @@ func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federatio
 	resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "test" {
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
-		external_group_name    = "newgroup"
+		external_group_name    = "testgroup"
 
 		role_assignments {
 			org_id = "%[2]s"
