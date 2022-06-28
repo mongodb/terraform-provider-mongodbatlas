@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_federated_settings
 
-`mongodbatlas_federated_settings` provides a federated settings data source. Atlas Cloud Federated Settings provides federated settings outputs.
+`mongodbatlas_federated_settings` provides a federated settings data source. Atlas Cloud federated settings provides federated settings outputs.
 
 
 ## Example Usage
