@@ -53,7 +53,7 @@ In addition to all arguments above, the following attributes are exported:
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
 * `id` - Unique 24-hexadecimal digit string that identifies this role mapping.
 * `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
-* `group_id` - Unique identifier of the project that owns this Role Mapping Configuration.
+* `group_id` - Unique identifier of the project to which you want the role mapping to apply.
 * `role` - Specifies the Role that is attached to the Role Mapping.
 ### User Conflicts
 * `email_address` - Email address of the the user that conflicts with selected domains.
