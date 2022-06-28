@@ -30,7 +30,7 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration. 
-* `org_id` - Unique 24-hexadecimal digit string that identifies the connected organization.
+* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 
 ## Attributes Reference
 
