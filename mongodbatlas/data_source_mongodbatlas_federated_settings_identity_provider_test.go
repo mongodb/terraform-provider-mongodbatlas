@@ -11,7 +11,7 @@ import (
 func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName        = "data.mongodbatlas_cloud_federated_settings_identity_provider.test"
+		resourceName        = "data.mongodbatlas_federated_settings_identity_provider.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		idpID               = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 	)
@@ -37,7 +37,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *tes
 
 func testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID, idpID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_cloud_federated_settings_identity_provider" "test" {
+		data "mongodbatlas_federated_settings_identity_provider" "test" {
 			federation_settings_id = "%[1]s"
             identity_provider_id   = "%[2]s"
 		}

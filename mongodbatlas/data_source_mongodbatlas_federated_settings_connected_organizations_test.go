@@ -14,7 +14,7 @@ import (
 func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName        = "data.mongodbatlas_cloud_federated_settings_org_configs.test"
+		resourceName        = "data.mongodbatlas_federated_settings_org_configs.test"
 		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 	)
 
@@ -40,7 +40,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs_basic(t *
 
 func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationConfigsConfig(federatedSettingsID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_cloud_federated_settings_org_configs" "test" {
+		data "mongodbatlas_federated_settings_org_configs" "test" {
 			federation_settings_id = "%[1]s"
 			page_num = 1
 			items_per_page = 100

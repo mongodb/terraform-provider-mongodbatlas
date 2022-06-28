@@ -93,7 +93,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 		return diag.FromErr(fmt.Errorf("error setting external group name (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecal(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
@@ -233,7 +233,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, fmt.Errorf("error setting role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecal(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
 		return nil, fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err)
 	}
 
@@ -287,7 +287,7 @@ func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignment
 	return roleAssignmentsReturn
 }
 
-func flattenRoleAssignmentsSpecal(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
+func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
 	var roleAssignmentsMap []map[string]interface{}
 	if len(roleAssignments) > 0 {
 		counterGroup := make(map[string]int)

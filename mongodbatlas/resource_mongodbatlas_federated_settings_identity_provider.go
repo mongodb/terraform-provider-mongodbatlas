@@ -61,7 +61,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"idp_id": {
+			"okta_idp_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -80,7 +80,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 
 	ids := decodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
-	oktaIdpID := ids["idp_id"]
+	oktaIdpID := ids["okta_idp_id"]
 
 	federatedSettingsIdentityProvider, resp, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
 	if err != nil {
@@ -102,7 +102,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 		return diag.FromErr(fmt.Errorf("error setting associated domains list (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("idp_id", federatedSettingsIdentityProvider.OktaIdpID); err != nil {
+	if err := d.Set("okta_idp_id", federatedSettingsIdentityProvider.OktaIdpID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting OktaIdpID (%s): %s", d.Id(), err))
 	}
 
@@ -128,7 +128,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Conte
 
 	d.SetId(encodeStateID(map[string]string{
 		"federation_settings_id": federationSettingsID,
-		"idp_id":                 oktaIdpID,
+		"okta_idp_id":            oktaIdpID,
 	}))
 
 	return nil
@@ -139,7 +139,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderUpdate(ctx context.Con
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	federationSettingsID := ids["federation_settings_id"]
-	oktaIdpID := ids["idp_id"]
+	oktaIdpID := ids["okta_idp_id"]
 
 	federatedSettingsIdentityProviderUpdate, _, err := conn.FederatedSettings.GetIdentityProvider(context.Background(), federationSettingsID, oktaIdpID)
 	if err != nil {
@@ -243,7 +243,7 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 
 	d.SetId(encodeStateID(map[string]string{
 		"federation_settings_id": *federationSettingsID,
-		"idp_id":                 *oktaIdpID,
+		"okta_idp_id":            *oktaIdpID,
 	}))
 
 	return []*schema.ResourceData{d}, nil

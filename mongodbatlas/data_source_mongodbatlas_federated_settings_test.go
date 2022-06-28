@@ -16,7 +16,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettings_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		federatedSettings matlas.FederatedSettings
-		resourceName      = "data.mongodbatlas_cloud_federated_settings.test"
+		resourceName      = "data.mongodbatlas_federated_settings.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 	)
 
@@ -42,7 +42,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettings_basic(t *testing.T) {
 
 func testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_cloud_federated_settings" "test" {
+		data "mongodbatlas_federated_settings" "test" {
 			org_id = "%[1]s"
 		}
 `, orgID)

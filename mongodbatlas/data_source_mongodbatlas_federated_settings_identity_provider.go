@@ -143,7 +143,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvider() *schema.Resource 
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"idp_id": {
+			"okta_idp_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -239,7 +239,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviderRead(ctx context.Con
 		return diag.FromErr(fmt.Errorf("error setting `issuer_uri` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	if err := d.Set("idp_id", federatedSettingsIdentityProvider.OktaIdpID); err != nil {
+	if err := d.Set("okta_idp_id", federatedSettingsIdentityProvider.OktaIdpID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `idp_id` for federatedSettings IdentityProviders: %s", err))
 	}
 

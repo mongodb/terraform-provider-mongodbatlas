@@ -13,7 +13,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
-		resourceName                             = "data.mongodbatlas_cloud_federated_settings_org_role_mapping.test"
+		resourceName                             = "data.mongodbatlas_federated_settings_org_role_mapping.test"
 		federatedSettingsID                      = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                                    = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		roleMappingID                            = os.Getenv("MONGODB_ATLAS_FEDERATED_ROLE_MAPPING_ID")
@@ -40,7 +40,7 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic
 
 func testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingConfig(federatedSettingsID, orgID, roleMappingID string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_cloud_federated_settings_org_role_mapping" "test" {
+		data "mongodbatlas_federated_settings_org_role_mapping" "test" {
 			federation_settings_id = "%[1]s"
 			org_id                 = "%[2]s"
 			role_mapping_id        = "%[3]s"

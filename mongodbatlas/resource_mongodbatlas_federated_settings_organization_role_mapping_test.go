@@ -15,7 +15,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
-		resourceName                             = "mongodbatlas_cloud_federated_settings_org_role_mapping.test"
+		resourceName                             = "mongodbatlas_federated_settings_org_role_mapping.test"
 		federationSettingsID                     = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                                    = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		groupID                                  = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
@@ -32,7 +32,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 					testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName, &federatedSettingsOrganizationRoleMapping),
 					resource.TestCheckResourceAttr(resourceName, "federation_settings_id", federationSettingsID),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newgroup"),
+					resource.TestCheckResourceAttr(resourceName, "external_group_name", "newtestgroup"),
 				),
 			},
 		},
@@ -42,7 +42,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName         = "mongodbatlas_cloud_federated_settings_org_role_mapping.test"
+		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
@@ -96,7 +96,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
-		if rs.Type != "mongodbatlas_cloud_federated_settings_org_role_mapping" {
+		if rs.Type != "mongodbatlas_federated_settings_org_role_mapping" {
 			continue
 		}
 
@@ -104,7 +104,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 
 		roleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
 		if err == nil && roleMapping != nil {
-			return fmt.Errorf("role mapping (%s) still exists", ids["idp_id"])
+			return fmt.Errorf("role mapping (%s) still exists", ids["okta_idp_id"])
 		}
 	}
 
@@ -126,10 +126,10 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState
 
 func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "test" {
+	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
-		external_group_name    = "newgroup"
+		external_group_name    = "newtestgroup"
   	  
 		role_assignments {
 			org_id ="%[2]s"

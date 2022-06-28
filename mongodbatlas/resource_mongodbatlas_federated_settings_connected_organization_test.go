@@ -15,7 +15,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationConfig_basic(t *tes
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsIdentityProvider matlas.FederatedSettingsConnectedOrganization
-		resourceName                      = "mongodbatlas_cloud_federated_settings_org_config.test"
+		resourceName                      = "mongodbatlas_federated_settings_org_config.test"
 		federationSettingsID              = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
 		idpID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
@@ -50,10 +50,10 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationConfig_basic(t *tes
 func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName         = "mongodbatlas_cloud_federated_settings_org_config.test"
+		resourceName         = "mongodbatlas_federated_settings_org_config.test"
 		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
 		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
-		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -113,7 +113,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigImportStateIDFun
 
 func testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, identityProviderID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_federated_settings_org_config" "test" {
+	resource "mongodbatlas_federated_settings_org_config" "test" {
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
 		domain_restriction_enabled = false
