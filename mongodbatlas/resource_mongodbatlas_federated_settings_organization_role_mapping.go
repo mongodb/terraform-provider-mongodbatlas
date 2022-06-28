@@ -335,7 +335,7 @@ func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignment
 }
 
 func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
-	if len(roleAssignments) <= 0 {
+	if len(roleAssignments) == 0 {
 		return nil
 	}
 
