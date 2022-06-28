@@ -102,9 +102,9 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(sta
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		snapshotExportBucket, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
-		if err == nil && snapshotExportBucket != nil {
-			return fmt.Errorf("identity provider (%s) still exists", ids["idp_id"])
+		roleMapping, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(), ids["federation_settings_id"], ids["org_id"], ids["role_mapping_id"])
+		if err == nil && roleMapping != nil {
+			return fmt.Errorf("role mapping (%s) still exists", ids["idp_id"])
 		}
 	}
 

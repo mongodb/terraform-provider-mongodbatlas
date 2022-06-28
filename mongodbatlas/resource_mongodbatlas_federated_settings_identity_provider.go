@@ -254,7 +254,7 @@ func splitFederatedSettingsIdentityProviderImportID(id string) (federationSettin
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 3 {
-		err = errors.New("import format error: to import a Federated SettingsIdentity Provider, use the format {federation_settings_id}-{org_id}-{okta_idp_id}")
+		err = errors.New("import format error: to import a Federated SettingsIdentity Provider, use the format {federation_settings_id}-{okta_idp_id}")
 		return
 	}
 
