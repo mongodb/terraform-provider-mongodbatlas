@@ -12,7 +12,7 @@ The Terraform MongoDB Atlas Provider version 1.4.0 has a number of new and excit
 
 New Features:
 
-* Now supports Federated Settings, for [`mongodbatlas_cloud_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/mongodbatlas_cloud_federated_settings_identity_provider)  [`mongodbatlas_cloud_federated_settings_org_role_mapping`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/mongodbatlas_cloud_federated_settings_org_role_mapping) and [`mongodbatlas_cloud_federated_settings_org_config`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/mmongodbatlas_cloud_federated_settings_org_config)
+* Now supports Federated Settings, for [`mongodbatlas_federated_settings_identity_provider`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/mongodbatlas_federated_settings_identity_provider)  [`mongodbatlas_federated_settings_org_role_mapping`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/mongodbatlas_federated_settings_org_role_mapping) and [`mongodbatlas_federated_settings_org_config`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/mmongodbatlas_federated_settings_org_config)
 
 
 Changes:

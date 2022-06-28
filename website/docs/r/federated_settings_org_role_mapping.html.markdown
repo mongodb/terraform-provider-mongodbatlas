@@ -1,19 +1,19 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_org_role_mapping"
+page_title: "MongoDB Atlas: mongodbatlas_federated_settings_org_role_mapping"
 sidebar_current: "docs-mongodbatlas-resource-federated-settings-org-role-mapping"
 description: |-
     Provides an Federated settings Role Mapping Resource.
 ---
 
-# mongodbatlas_cloud_federated_settings_org_role_mapping
+# mongodbatlas_federated_settings_org_role_mapping
 
-`mongodbatlas_cloud_federated_settings_org_role_mapping` provides an Role Mapping resource. This allows organization role mapping to be created.
+`mongodbatlas_federated_settings_org_role_mapping` provides an Role Mapping resource. This allows organization role mapping to be created.
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_group_role_mapping_import" {
+resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapping_import" {
   federation_settings_id = "627a9687f7f7f7f774de306f14"
   org_id                 = "627a9683e7f7f7ff7fe306f14"
   external_group_name    = "myGrouptest"
@@ -54,7 +54,7 @@ In addition to all arguments above, the following attributes are exported:
 FederatedSettingsOrgRoleMapping must be imported using federation_settings_id-org_id-role_mapping_id, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_federated_settings_org_role_mapping.org_group_role_mapping_import 6287a663c7f7f7f71c441c6c-627a96837f7f7f7e306f14-628ae97f7f7468ea3727
+$ terraform import mongodbatlas_federated_settings_org_role_mapping.org_group_role_mapping_import 6287a663c7f7f7f71c441c6c-627a96837f7f7f7e306f14-628ae97f7f7468ea3727
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)

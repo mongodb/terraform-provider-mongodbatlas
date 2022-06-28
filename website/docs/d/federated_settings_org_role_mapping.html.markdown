@@ -1,20 +1,20 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated-settings_role_mapping"
+page_title: "MongoDB Atlas: mongodbatlas_federated-settings_role_mapping"
 sidebar_current: "docs-mongodbatlas-datasource-federated-settings-role-mapping"
 description: |-
     Provides an Federated settings Role Mapping Datasource.
 ---
 
-# mongodbatlas_cloud_federated_settings_org_role_mapping
+# mongodbatlas_federated_settings_org_role_mapping
 
-`mongodbatlas_cloud_federated_settings_org_role_mapping` provides an Federated Settings Org Role Mapping datasource. Atlas Cloud Federated Settings Org Role Mapping provides federated settings outputs for the configured Org Role Mapping.
+`mongodbatlas_federated_settings_org_role_mapping` provides an Federated Settings Org Role Mapping datasource. Atlas Cloud Federated Settings Org Role Mapping provides federated settings outputs for the configured Org Role Mapping.
 
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_group_role_mapping_import" {
+resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapping_import" {
   federation_settings_id = ""
   org_id                 = "627a9683e7f7f7ff7fe306f14"
   group_id               = "628aa20d7f7f7f7f7098b81b8"
@@ -23,8 +23,8 @@ resource "mongodbatlas_cloud_federated_settings_org_role_mapping" "org_group_rol
   group_roles            = ["GROUP_OWNER","GROUP_CLUSTER_MANAGER","GROUP_DATA_ACCESS_ADMIN","GROUP_DATA_ACCESS_READ_WRITE","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY","GROUP_READ_ONLY"]
 }
 
-data "mongodbatlas_cloud_federated_settings_org_role_mapping" "role_mapping" {
-  federation_settings_id = mongodbatlas_cloud_federated_settings_org_role_mapping.org_group_role_mapping_import.id
+data "mongodbatlas_federated_settings_org_role_mapping" "role_mapping" {
+  federation_settings_id = mongodbatlas_federated_settings_org_role_mapping.org_group_role_mapping_import.id
   org_id                 = "627a9683e7f7f7ff7fe306f14"
   role_mapping_id        = "627a9673e7f7f7ff7fe306f14"
 }

@@ -1,28 +1,28 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_org_configs"
+page_title: "MongoDB Atlas: mongodbatlas_federated_settings_org_configs"
 sidebar_current: "docs-mongodbatlas-datasource-federated-settings-org-configs"
 description: |-
     Provides an Federated Settings Organization Configurations.
 ---
 
-# mongodbatlas_cloud_federated_settings_org_configs
+# mongodbatlas_federated_settings_org_configs
 
-`mongodbatlas_cloud_federated_settings_org_configs` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
+`mongodbatlas_federated_settings_org_configs` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
 
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cloud_federated_settings_org_config" "org_connections" {
+resource "mongodbatlas_federated_settings_org_config" "org_connections" {
   federation_settings_id     = "627a9687f7f7f7f774de306f14"
   org_id                     = "627a9683ea7ff7f74de306f14"
   domain_restriction_enabled = false
   domain_allow_list          = ["mydomain.com"]
 }
 
-data "mongodbatlas_cloud_federated_settings_org_configs" "org_configs_ds" {
-  federation_settings_id = data.mongodbatlas_cloud_federated_settings_org_config.org_connections.id
+data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
+  federation_settings_id = data.mongodbatlas_federated_settings_org_config.org_connections.id
 }
 ```
 

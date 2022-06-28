@@ -1,18 +1,18 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_identity_provider"
-sidebar_current: "docs-mongodbatlas-cloud-federated-settings-identity-provider"
+page_title: "MongoDB Atlas: mongodbatlas_federated_settings_identity_provider"
+sidebar_current: "docs-mongodbatlas-federated-settings-identity-provider"
 description: |-
     Provides an Federated Settings Identity Provider Resource.
 ---
 
-# mongodbatlas_cloud_federated_settings_identity_provider
+# mongodbatlas_federated_settings_identity_provider
 
-`mongodbatlas_cloud_federated_settings_identity_provider` provides an Atlas Cloud Federated Settings Identity Provider resource provides a subset of settings to be maintained post import of the existing resource.
+`mongodbatlas_federated_settings_identity_provider` provides an Atlas Cloud Federated Settings Identity Provider resource provides a subset of settings to be maintained post import of the existing resource.
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_provider" {
+resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
   federation_settings_id     = "627a9687f7f7f7f774de306f14"
   name = "mongodb_federation_test"
   associated_domains           = ["yourdomain.com"]
@@ -55,7 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 Identity Provider must be imported using federation_settings_id-idp_id, e.g.
 
 ```
-$ terraform import mongodbatlas_cloud_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk1297
+$ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk1297
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)

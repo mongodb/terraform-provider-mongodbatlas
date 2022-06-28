@@ -1,20 +1,20 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings"
+page_title: "MongoDB Atlas: mongodbatlas_federated_settings"
 sidebar_current: "docs-mongodbatlas-datasource-federated-settings"
 description: |-
     Provides an Federated Settings datasource.
 ---
 
-# mongodbatlas_cloud_federated_settings
+# mongodbatlas_federated_settings
 
-`mongodbatlas_cloud_federated_settings` provides an Federated Settings datasource. Atlas Cloud Federated Settings provides federated settings outputs.
+`mongodbatlas_federated_settings` provides an Federated Settings datasource. Atlas Cloud Federated Settings provides federated settings outputs.
 
 
 ## Example Usage
 
 ```terraform
-data "mongodbatlas_cloud_federated_settings" "settings" {
+data "mongodbatlas_federated_settings" "settings" {
   org_id = "627a9683e7f7f7ff7fe306f14"
 }
 ```

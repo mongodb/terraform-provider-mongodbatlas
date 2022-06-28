@@ -1,20 +1,20 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: mongodbatlas_cloud_federated_settings_identity_provider"
+page_title: "MongoDB Atlas: mongodbatlas_federated_settings_identity_provider"
 sidebar_current: "docs-mongodbatlas-datasource-federated-settings-identity-provider"
 description: |-
     Provides an Federated Settings Organization Identity Provider Datasource.
 ---
 
-# mongodbatlas_cloud_federated_settings_identity_provider
+# mongodbatlas_federated_settings_identity_provider
 
-`mongodbatlas_cloud_federated_settings_identity_provider` provides an Federated Settings Identity Provider datasource. Atlas Cloud Federated Settings Identity Provider provides federated settings outputs for the configured Identity Provider.
+`mongodbatlas_federated_settings_identity_provider` provides an Federated Settings Identity Provider datasource. Atlas Cloud Federated Settings Identity Provider provides federated settings outputs for the configured Identity Provider.
 
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_provider" {
+resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
   federation_settings_id     = "627a9687f7f7f7f774de306f14"
   name = "mongodb_federation_test"
   associated_domains           = ["yourdomain.com"]
@@ -22,8 +22,8 @@ resource "mongodbatlas_cloud_federated_settings_identity_provider" "identity_pro
   status = "ACTIVE"
 }
 
-data "mongodbatlas_cloud_federated_settings_identity_provider" "identitty_provider" {
-  federation_settings_id = mongodbatlas_cloud_federated_settings_identity_provider.identity_provider.id
+data "mongodbatlas_federated_settings_identity_provider" "identitty_provider" {
+  federation_settings_id = mongodbatlas_federated_settings_identity_provider.identity_provider.id
   identity_provider_id   = "0oad47f7fXnk1297"
 }
 
