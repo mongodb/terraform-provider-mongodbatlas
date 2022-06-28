@@ -85,6 +85,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 			rs.Primary.Attributes["role_mapping_id"])
 		if err == nil {
 			*federatedSettingsOrganizationRoleMapping = *response
+
 			return nil
 		}
 
@@ -130,16 +131,15 @@ func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federatio
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
 		external_group_name    = "newtestgroup"
-  	  
 		role_assignments {
-			org_id ="%[2]s"
-			roles     = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
-		  }
+			org_id = "%[2]s"
+			roles  = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
+		}
 		
 		  role_assignments {
 			group_id = "%[3]s"
-			roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
-		  }
+			roles    = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
+		}
 
 	  }`, federationSettingsID, orgID, groupID)
 }

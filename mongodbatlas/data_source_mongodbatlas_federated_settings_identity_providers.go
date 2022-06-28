@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -355,7 +357,38 @@ func flattenFederatedSettingsCertificates(certificates []*matlas.Certificates) [
 	return certificatesMap
 }
 
+type mRoleAssignment []*matlas.RoleAssignments
+
+func (ra mRoleAssignment) Len() int      { return len(ra) }
+func (ra mRoleAssignment) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+func (ra mRoleAssignment) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	return ra[i].Role < ra[j].Role
+}
+
+type roleMappingsByGroupName []*matlas.RoleMappings
+
+func (ra roleMappingsByGroupName) Len() int      { return len(ra) }
+func (ra roleMappingsByGroupName) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra roleMappingsByGroupName) Less(i, j int) bool {
+	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
+}
+
 func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]interface{} {
+	sort.Sort(roleMappingsByGroupName(roleMappings))
+
 	var roleMappingsMap []map[string]interface{}
 
 	if len(roleMappings) > 0 {
@@ -374,6 +407,8 @@ func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]inter
 }
 
 func flattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[string]interface{} {
+	sort.Sort(mRoleAssignment(roleAssignments))
+
 	var roleAssignmentsMap []map[string]interface{}
 
 	if len(roleAssignments) > 0 {

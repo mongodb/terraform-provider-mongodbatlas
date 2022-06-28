@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -78,6 +80,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 	roleMappingID := ids["role_mapping_id"]
 
 	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
+
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -262,6 +265,48 @@ func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federatio
 	return
 }
 
+type roleAssignmentsByFields []mongodbatlas.RoleAssignments
+
+func (ra roleAssignmentsByFields) Len() int      { return len(ra) }
+func (ra roleAssignmentsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra roleAssignmentsByFields) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	return ra[i].Role < ra[j].Role
+}
+
+type roleAssignmentRefsByFields []*mongodbatlas.RoleAssignments
+
+func (ra roleAssignmentRefsByFields) Len() int      { return len(ra) }
+func (ra roleAssignmentRefsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra roleAssignmentRefsByFields) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	return ra[i].Role < ra[j].Role
+}
+
 func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignments {
 	var roleAssignmentsReturn []mongodbatlas.RoleAssignments
 
@@ -284,74 +329,41 @@ func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignment
 		}
 	}
 
+	sort.Sort(roleAssignmentsByFields(roleAssignmentsReturn))
+
 	return roleAssignmentsReturn
 }
 
 func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
-	var roleAssignmentsMap []map[string]interface{}
-	if len(roleAssignments) > 0 {
-		counterGroup := make(map[string]int)
-		for _, row := range roleAssignments {
-			if row.GroupID != "" {
-				counterGroup[row.GroupID]++
-			}
-		}
-
-		distinctGroup := make([]string, len(counterGroup))
-		i := 0
-		for k := range counterGroup {
-			distinctGroup[i] = k
-			i++
-		}
-
-		counterOrg := make(map[string]int)
-		for _, row := range roleAssignments {
-			if row.OrgID != "" {
-				counterOrg[row.OrgID]++
-			}
-		}
-
-		distinctOrg := make([]string, len(counterOrg))
-		idx := 0
-		for k := range counterOrg {
-			distinctOrg[idx] = k
-			idx++
-		}
-
-		roleAssignmentsMap = make([]map[string]interface{}, len(counterOrg)+len(counterGroup))
-		var rolesOrg []string
-		var rolesGroup []string
-
-		mapIdx := 0
-
-		for _, ov := range distinctOrg {
-			for idx := range roleAssignments {
-				if roleAssignments[idx].OrgID == ov {
-					rolesOrg = append(rolesOrg, roleAssignments[idx].Role)
-				}
-			}
-			roleAssignmentsMap[mapIdx] = map[string]interface{}{
-				"group_id": "",
-				"org_id":   ov,
-				"roles":    rolesOrg,
-			}
-			mapIdx++
-		}
-
-		for _, ov := range distinctGroup {
-			for idx := range roleAssignments {
-				if roleAssignments[idx].GroupID == ov {
-					rolesGroup = append(rolesGroup, roleAssignments[idx].Role)
-				}
-			}
-			roleAssignmentsMap[mapIdx] = map[string]interface{}{
-				"group_id": ov,
-				"org_id":   "",
-				"roles":    rolesGroup,
-			}
-			mapIdx++
-		}
+	if len(roleAssignments) == 0 {
+		return nil
 	}
 
-	return roleAssignmentsMap
+	sort.Sort(roleAssignmentRefsByFields(roleAssignments))
+
+	var flattenedRoleAssignments []map[string]interface{}
+	var roleAssignment = map[string]interface{}{
+		"group_id": roleAssignments[0].GroupID,
+		"org_id":   roleAssignments[0].OrgID,
+		"roles":    []string{},
+	}
+
+	for _, row := range roleAssignments {
+		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.OrgID) ||
+			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GroupID) {
+			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
+
+			roleAssignment = map[string]interface{}{
+				"group_id": row.GroupID,
+				"org_id":   row.OrgID,
+				"roles":    []string{},
+			}
+		}
+
+		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.Role)
+	}
+
+	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
+
+	return flattenedRoleAssignments
 }
