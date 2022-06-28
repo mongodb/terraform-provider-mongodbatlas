@@ -334,9 +334,7 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignmen
 	var roleAssignment = map[string]interface{}{
 		"group_id": sortableAssignments[0].GroupID,
 		"org_id":   sortableAssignments[0].OrgID,
-		"roles": []string{
-			sortableAssignments[0].Role,
-		},
+		"roles":    []string{},
 	}
 
 	for _, row := range sortableAssignments {
@@ -353,6 +351,8 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignmen
 
 		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.Role)
 	}
+
+	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
 
 	fmt.Println("\nFlatten Role Assignments Map")
 	fmt.Printf("\n%v\n", flattenedRoleAssignments)
