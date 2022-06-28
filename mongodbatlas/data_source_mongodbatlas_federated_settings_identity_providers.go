@@ -423,9 +423,5 @@ func flattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[str
 		}
 	}
 
-	fmt.Print("DataSource.flattenRoleAssignments -- end of method")
-	fmt.Printf("%v", roleAssignmentsMap)
-	fmt.Print("======================================================================")
-
 	return roleAssignmentsMap
 }

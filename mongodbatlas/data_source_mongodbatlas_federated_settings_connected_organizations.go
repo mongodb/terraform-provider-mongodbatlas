@@ -163,8 +163,6 @@ func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrgan
 		federatedSettingsConnectedOrganizationsMap = make([]map[string]interface{}, federatedSettingsConnectedOrganizations.TotalCount)
 
 		for i := range federatedSettingsConnectedOrganizations.Results {
-			fmt.Print("flattenFederatedSettingsOrganizationConfigs")
-			fmt.Print("======================================================================")
 			if federatedSettingsConnectedOrganizations.Results[i].UserConflicts == nil {
 				federatedSettingsConnectedOrganizationsMap[i] = map[string]interface{}{
 					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,

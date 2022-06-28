@@ -331,10 +331,6 @@ func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignment
 
 	sort.Sort(roleAssignmentsByFields(roleAssignmentsReturn))
 
-	fmt.Println("\nExpand Role Assignments Map")
-	fmt.Printf("\n%v\n", roleAssignmentsReturn)
-	fmt.Println()
-
 	return roleAssignmentsReturn
 }
 

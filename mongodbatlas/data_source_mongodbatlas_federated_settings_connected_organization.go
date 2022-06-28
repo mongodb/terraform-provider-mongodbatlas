@@ -151,9 +151,6 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.C
 		return diag.FromErr(fmt.Errorf("error setting `post_auth_role_grants` for federatedSettings IdentityProviders: %s", err))
 	}
 
-	fmt.Print("dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead")
-	fmt.Print("======================================================================")
-
 	if err := d.Set("role_mappings", flattenRoleMappings(federatedSettingsConnectedOrganization.RoleMappings)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `role_mappings` for federatedSettings IdentityProviders: %s", err))
 	}
