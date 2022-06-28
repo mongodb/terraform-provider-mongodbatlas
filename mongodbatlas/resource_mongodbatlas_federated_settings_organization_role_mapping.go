@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
@@ -78,6 +80,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 	roleMappingID := ids["role_mapping_id"]
 
 	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedSettings.GetRoleMapping(context.Background(), federationSettingsID, orgID, roleMappingID)
+
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -93,7 +96,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 		return diag.FromErr(fmt.Errorf("error setting external group name (%s): %s", d.Id(), err))
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecal(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err))
 	}
 
@@ -233,7 +236,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx
 		return nil, fmt.Errorf("error setting role mapping in Federation settings (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecal(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
+	if err := d.Set("role_assignments", flattenRoleAssignmentsSpecial(federatedSettingsOrganizationRoleMapping.RoleAssignments)); err != nil {
 		return nil, fmt.Errorf("error setting role_assignments (%s): %s", d.Id(), err)
 	}
 
@@ -262,6 +265,27 @@ func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federatio
 	return
 }
 
+type roleAssignmentsByFields []mongodbatlas.RoleAssignments
+
+func (ra roleAssignmentsByFields) Len() int      { return len(ra) }
+func (ra roleAssignmentsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra roleAssignmentsByFields) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].OrgID, ra[j].OrgID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	compareVal = strings.Compare(ra[i].GroupID, ra[j].GroupID)
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	return strings.Compare(ra[i].Role, ra[j].Role) == -1
+}
+
 func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignments {
 	var roleAssignmentsReturn []mongodbatlas.RoleAssignments
 
@@ -284,9 +308,60 @@ func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignment
 		}
 	}
 
+	sort.Sort(roleAssignmentsByFields(roleAssignmentsReturn))
+
+	fmt.Println("\nExpand Role Assignments Map")
+	fmt.Printf("\n%v\n", roleAssignmentsReturn)
+	fmt.Println()
+
 	return roleAssignmentsReturn
 }
 
+func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
+	if len(roleAssignments) <= 0 {
+		return nil
+	}
+
+	var sortableAssignments = make([]mongodbatlas.RoleAssignments, len(roleAssignments))
+
+	for i := range roleAssignments {
+		sortableAssignments = append(sortableAssignments, *(roleAssignments[i]))
+	}
+
+	sort.Sort(roleAssignmentsByFields(sortableAssignments))
+
+	var flattenedRoleAssignments []map[string]interface{}
+	var roleAssignment = map[string]interface{}{
+		"group_id": sortableAssignments[0].GroupID,
+		"org_id":   sortableAssignments[0].OrgID,
+		"roles": []string{
+			sortableAssignments[0].Role,
+		},
+	}
+
+	for _, row := range sortableAssignments {
+		if (roleAssignment["org_id"] != "" && roleAssignment["org_id"] != row.OrgID) ||
+			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GroupID) {
+			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
+
+			roleAssignment = map[string]interface{}{
+				"group_id": row.GroupID,
+				"org_id":   row.OrgID,
+				"roles":    []string{},
+			}
+		}
+
+		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.Role)
+	}
+
+	fmt.Println("\nFlatten Role Assignments Map")
+	fmt.Printf("\n%v\n", flattenedRoleAssignments)
+	fmt.Println()
+
+	return flattenedRoleAssignments
+}
+
+/*
 func flattenRoleAssignmentsSpecal(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
 	var roleAssignmentsMap []map[string]interface{}
 	if len(roleAssignments) > 0 {
@@ -353,5 +428,11 @@ func flattenRoleAssignmentsSpecal(roleAssignments []*mongodbatlas.RoleAssignment
 		}
 	}
 
+	fmt.Println("\nRole Assignments Map")
+	fmt.Printf("\n%v\n", roleAssignmentsMap)
+	fmt.Println()
+
 	return roleAssignmentsMap
 }
+
+*/

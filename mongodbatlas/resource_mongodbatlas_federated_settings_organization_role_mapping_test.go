@@ -79,12 +79,21 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 			return fmt.Errorf("no ID is set")
 		}
 
+		fmt.Println()
+		fmt.Printf("%v", rs.Primary.Attributes)
+		fmt.Println()
+
 		response, _, err := conn.FederatedSettings.GetRoleMapping(context.Background(),
 			rs.Primary.Attributes["federation_settings_id"],
 			rs.Primary.Attributes["org_id"],
 			rs.Primary.Attributes["role_mapping_id"])
 		if err == nil {
 			*federatedSettingsOrganizationRoleMapping = *response
+
+			fmt.Println("FederatedSettings.GetRoleMapping")
+			fmt.Printf("%v", response)
+			fmt.Println()
+
 			return nil
 		}
 
@@ -130,16 +139,16 @@ func testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federatio
 		federation_settings_id = "%[1]s"
 		org_id                 = "%[2]s"
 		external_group_name    = "newgroup"
-  	  
+
 		role_assignments {
-			org_id ="%[2]s"
-			roles     = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
-		  }
+			org_id = "%[2]s"
+			roles  = ["ORG_MEMBER","ORG_GROUP_CREATOR"]
+		}
 		
 		  role_assignments {
 			group_id = "%[3]s"
-			roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
-		  }
+			roles    = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
+		}
 
 	  }`, federationSettingsID, orgID, groupID)
 }
