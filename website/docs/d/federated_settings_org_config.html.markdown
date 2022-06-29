@@ -41,7 +41,7 @@ In addition to all arguments above, the following attributes are exported:
 * `domain_allow_list` - List that contains the approved domains from which organization users can log in.
 * `domain_restriction_enabled` - Flag that indicates whether domain restriction is enabled for the connected organization.
 * `identity_provider_id` - Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `post_auth_role_grants` - List that contains the default roles granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
+* `post_auth_role_grants` - List that contains the default [roles](https://www.mongodb.com/docs/atlas/reference/user-roles/#std-label-organization-roles) granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
 
   ### Role_mappings
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
