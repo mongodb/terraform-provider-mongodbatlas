@@ -11,6 +11,8 @@ description: |-
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.
 ## Example Usage
 
+~> **IMPORTANT** You **MUST** import this resource before you can manage it with this provider. 
+
 ```terraform
 resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {
   federation_settings_id     = "627a9687f7f7f7f774de306f14"
