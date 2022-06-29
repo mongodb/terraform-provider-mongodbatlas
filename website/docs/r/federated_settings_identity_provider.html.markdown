@@ -52,7 +52,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Identity Provider must be imported using federation_settings_id-idp_id, e.g.
+Identity Provider **must** be imported before using federation_settings_id-idp_id, e.g.
 
 ```
 $ terraform import mongodbatlas_federated_settings_identity_provider.identity_provider 6287a663c660f52b1c441c6c-0oad4fas87jL5Xnk1297
