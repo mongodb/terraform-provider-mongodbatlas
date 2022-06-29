@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_federated_settings_identity_provider
 
-`mongodbatlas_federated_settings_identity_provider` provides an Federated Settings Identity Provider datasource. Atlas Cloud Federated Settings Identity Provider provides federated settings outputs for the configured Identity Provider.
+`mongodbatlas_federated_settings_identity_provider` provides a federated settings identity provider data source. Atlas federated settings identity provider provides federated settings outputs for the configured identity provider.
 
 
 ## Example Usage
@@ -20,9 +20,13 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
   associated_domains           = ["yourdomain.com"]
   sso_debug_enabled = true
   status = "ACTIVE"
+  sso_url = "https://mysso.oktapreview.com/app/mysso_terraformtest_1/exk177f7f7f70h8/sso/saml"
+  issuer_uri = "http://www.okta.com/exk17f7f7f7f7p50h8"
+  request_binding = "HTTP-POST"
+  response_signature_algorithm = "SHA-256"
 }
 
-data "mongodbatlas_federated_settings_identity_provider" "identitty_provider" {
+data "mongodbatlas_federated_settings_identity_provider" "identity_provider_ds" {
   federation_settings_id = mongodbatlas_federated_settings_identity_provider.identity_provider.id
   identity_provider_id   = "0oad47f7fXnk1297"
 }
@@ -32,7 +36,7 @@ data "mongodbatlas_federated_settings_identity_provider" "identitty_provider" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `identity_provider_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration. 
+* `identity_provider_id` - (Required) Unique 20-hexadecimal digit string that identifies the IdP. 
 
 ## Attributes Reference
 
@@ -43,7 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `acs_url` - Assertion consumer service URL to which the IdP sends the SAML response.
 * `associated_domains` - List that contains the configured domains from which users can log in for this IdP.
-* `associated_orgs` - List that contains the configured domains from which users can log in for this IdP.
+* `associated_orgs` - List that contains the organizations from which users can log in for this IdP.
 * `domain_allow_list` - List that contains the approved domains from which organization users can log in.
 * `domain_restriction_enabled` - Flag that indicates whether domain restriction is enabled for the connected organization.
 * `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
