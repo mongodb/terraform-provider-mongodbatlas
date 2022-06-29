@@ -13,6 +13,8 @@ description: |-
 
 ## Example Usage
 
+~> **IMPORTANT** You **MUST** import this resource before you can manage it with this provider. 
+
 ```terraform
 resource "mongodbatlas_federated_settings_org_config" "org_connection" {
   federation_settings_id     = "627a9687f7f7f7f774de306f14"
