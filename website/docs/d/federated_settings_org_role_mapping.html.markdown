@@ -15,12 +15,25 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapping_import" {
-  federation_settings_id = ""
+  federation_settings_id = data.mongodbatlas_federated_settings.federated_settings.id
   org_id                 = "627a9683e7f7f7ff7fe306f14"
-  group_id               = "628aa20d7f7f7f7f7098b81b8"
-  external_group_name    = "myGrouptest"
-  organization_roles     = ["ORG_OWNER", "ORG_MEMBER", "ORG_BILLING_ADMIN", "ORG_GROUP_CREATOR", "ORG_READ_ONLY"]
-  group_roles            = ["GROUP_OWNER","GROUP_CLUSTER_MANAGER","GROUP_DATA_ACCESS_ADMIN","GROUP_DATA_ACCESS_READ_WRITE","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY","GROUP_READ_ONLY"]
+
+  external_group_name = "myGrouptest"
+
+  role_assignments {
+    org_id = "627a9683e7f7f7ff7fe306f14"
+    roles     = ["ORG_MEMBER","ORG_GROUP_CREATOR","ORG_BILLING_ADMIN"]
+  }
+
+  role_assignments {
+    group_id = "628aa20db7f7f7f98b81b8"
+    roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY"]
+  }
+
+  role_assignments {
+    group_id = "62b477f7f7f7f5e741489c"
+    roles     = ["GROUP_OWNER","GROUP_DATA_ACCESS_ADMIN","GROUP_SEARCH_INDEX_EDITOR","GROUP_DATA_ACCESS_READ_ONLY","GROUP_DATA_ACCESS_READ_WRITE"]
+  }
 }
 
 data "mongodbatlas_federated_settings_org_role_mapping" "role_mapping" {
