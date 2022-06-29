@@ -30,16 +30,14 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration. 
-* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `domain_allow_list` - List that contains the approved domains from which organization users can log in.
+* `domain_restriction_enabled` - (Required) Flag that indicates whether domain restriction is enabled for the connected organization.
+* `identity_provider_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-
-### FederatedSettingsOrgConfig
-          
-* `domain_allow_list` - List that contains the approved domains from which organization users can log in.
-* `domain_restriction_enabled` - Flag that indicates whether domain restriction is enabled for the connected organization.
 
 ## Import
 
