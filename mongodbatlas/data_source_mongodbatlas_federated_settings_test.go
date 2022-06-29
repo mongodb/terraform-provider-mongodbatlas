@@ -23,7 +23,6 @@ func TestAccDataSourceMongoDBAtlasFederatedSettings_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
-		//CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID),

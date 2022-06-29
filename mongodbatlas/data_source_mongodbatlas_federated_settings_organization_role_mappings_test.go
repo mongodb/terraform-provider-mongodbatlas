@@ -6,9 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings_basic(t *testing.T) {
@@ -22,7 +21,6 @@ func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings_basi
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
-		//CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsOrganizationRoleMappingsConfig(federatedSettingsID, orgID),

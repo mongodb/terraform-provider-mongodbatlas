@@ -10,10 +10,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
-	mongodbatlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Resource {
@@ -126,9 +124,9 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 
 	externalGroupName := d.Get("external_group_name").(string)
 
-	body := &mongodbatlas.FederatedSettingsOrganizationRoleMapping{}
+	body := &matlas.FederatedSettingsOrganizationRoleMapping{}
 
-	ra := []*mongodbatlas.RoleAssignments{}
+	ra := []*matlas.RoleAssignments{}
 
 	body.ExternalGroupName = externalGroupName
 	roleAssignments := expandRoleAssignments(d)
@@ -181,7 +179,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 	if d.HasChange("role_assignments") {
 		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = nil
 
-		ra := []*mongodbatlas.RoleAssignments{}
+		ra := []*matlas.RoleAssignments{}
 
 		roleAssignments := expandRoleAssignments(d)
 
@@ -265,7 +263,7 @@ func splitFederatedSettingsOrganizationRoleMappingImportID(id string) (federatio
 	return
 }
 
-type roleAssignmentsByFields []mongodbatlas.RoleAssignments
+type roleAssignmentsByFields []matlas.RoleAssignments
 
 func (ra roleAssignmentsByFields) Len() int      { return len(ra) }
 func (ra roleAssignmentsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -286,7 +284,7 @@ func (ra roleAssignmentsByFields) Less(i, j int) bool {
 	return ra[i].Role < ra[j].Role
 }
 
-type roleAssignmentRefsByFields []*mongodbatlas.RoleAssignments
+type roleAssignmentRefsByFields []*matlas.RoleAssignments
 
 func (ra roleAssignmentRefsByFields) Len() int      { return len(ra) }
 func (ra roleAssignmentRefsByFields) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -307,13 +305,13 @@ func (ra roleAssignmentRefsByFields) Less(i, j int) bool {
 	return ra[i].Role < ra[j].Role
 }
 
-func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignments {
-	var roleAssignmentsReturn []mongodbatlas.RoleAssignments
+func expandRoleAssignments(d *schema.ResourceData) []matlas.RoleAssignments {
+	var roleAssignmentsReturn []matlas.RoleAssignments
 
 	if v, ok := d.GetOk("role_assignments"); ok {
 		if rs := v.(*schema.Set); rs.Len() > 0 {
-			roleAssignments := []mongodbatlas.RoleAssignments{}
-			roleAssignment := mongodbatlas.RoleAssignments{}
+			roleAssignments := []matlas.RoleAssignments{}
+			roleAssignment := matlas.RoleAssignments{}
 
 			for _, r := range rs.List() {
 				roleMap := r.(map[string]interface{})
@@ -334,7 +332,7 @@ func expandRoleAssignments(d *schema.ResourceData) []mongodbatlas.RoleAssignment
 	return roleAssignmentsReturn
 }
 
-func flattenRoleAssignmentsSpecial(roleAssignments []*mongodbatlas.RoleAssignments) []map[string]interface{} {
+func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []map[string]interface{} {
 	if len(roleAssignments) == 0 {
 		return nil
 	}

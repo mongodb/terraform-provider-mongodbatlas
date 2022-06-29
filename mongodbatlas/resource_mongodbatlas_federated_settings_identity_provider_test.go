@@ -61,7 +61,6 @@ func TestAccResourceMongoDBAtlasFederatedSettingsIdentityProvider_importBasic(t 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { checkFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
-		//CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderDestroy,
 		Steps: []resource.TestStep{
 
 			{

@@ -8,9 +8,8 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/spf13/cast"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
 )
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource {
