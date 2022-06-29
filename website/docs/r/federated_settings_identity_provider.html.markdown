@@ -8,7 +8,7 @@ description: |-
 
 # mongodbatlas_federated_settings_identity_provider
 
-`mongodbatlas_federated_settings_identity_provider` provides an Atlas Cloud Federated Settings Identity Provider resource provides a subset of settings to be maintained post import of the existing resource.
+`mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.
 ## Example Usage
 
 ```terraform
@@ -39,6 +39,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
     - HTTP REDIRECT
 * `response_signature_algorithm` - (Required) Algorithm used to encrypt the IdP signature. Atlas supports the following signature algorithm values:
     - SHA-1
+    - SHA-256
 
 
 ## Attributes Reference
