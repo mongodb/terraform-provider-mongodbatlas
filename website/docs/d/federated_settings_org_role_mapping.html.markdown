@@ -47,16 +47,10 @@ data "mongodbatlas_federated_settings_org_role_mapping" "role_mapping" {
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
 * `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
-* `page_num` - (Optional)  	The page to return. Defaults to `1`.
-* `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-
-* `results` - Includes cloudProviderSnapshot object for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
-
 ### FederatedSettingsOrgRoleMappings
 
 * `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
