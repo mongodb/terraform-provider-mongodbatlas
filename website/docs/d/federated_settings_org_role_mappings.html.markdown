@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: mongodbatlas_federated_settings_role_mappings"
 sidebar_current: "docs-mongodbatlas-datasource-federated-settings-role-mappings"
 description: |-
-    Provides an Federated settings Role Mapping Datasource.
+    Provides a federated settings Role Mapping datasource.
 ---
 
 # mongodbatlas_federated_settings_org_role_mappings

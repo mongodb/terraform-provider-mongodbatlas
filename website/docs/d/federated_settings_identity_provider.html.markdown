@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: mongodbatlas_federated_settings_identity_provider"
 sidebar_current: "docs-mongodbatlas-datasource-federated-settings-identity-provider"
 description: |-
-    Provides an Federated Settings Organization Identity Provider Datasource.
+    Provides a federated settings Organization Identity Provider datasource.
 ---
 
 # mongodbatlas_federated_settings_identity_provider
