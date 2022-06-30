@@ -86,6 +86,26 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 								},
 							},
 						},
+						"is_collect_database_specifics_statistics_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"is_data_explorer_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"is_performance_advisor_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"is_realtime_performance_panel_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"is_schema_advisor_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -139,6 +159,12 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 			if err != nil {
 				fmt.Printf("[WARN] error getting project's api keys (%s): %s", project.ID, err)
 			}
+
+			projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
+			if err != nil {
+				fmt.Printf("[WARN] error getting project's settings assigned (%s): %s", project.ID, err)
+			}
+
 			results[k] = map[string]interface{}{
 				"id":            project.ID,
 				"org_id":        project.OrgID,
@@ -147,6 +173,11 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				"created":       project.Created,
 				"teams":         flattenTeams(teams),
 				"api_keys":      flattenAPIKeys(apiKeys),
+				"is_collect_database_specifics_statistics_enabled": projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled,
+				"is_data_explorer_enabled":                         projectSettings.IsDataExplorerEnabled,
+				"is_performance_advisor_enabled":                   projectSettings.IsPerformanceAdvisorEnabled,
+				"is_realtime_performance_panel_enabled":            projectSettings.IsRealtimePerformancePanelEnabled,
+				"is_schema_advisor_enabled":                        projectSettings.IsSchemaAdvisorEnabled,
 			}
 		}
 	}

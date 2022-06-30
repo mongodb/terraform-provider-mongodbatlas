@@ -96,6 +96,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_global_cluster_config":                 dataSourceMongoDBAtlasGlobalCluster(),
 		"mongodbatlas_alert_configuration":                   dataSourceMongoDBAtlasAlertConfiguration(),
 		"mongodbatlas_x509_authentication_database_user":     dataSourceMongoDBAtlasX509AuthDBUser(),
+		"mongodbatlas_private_endpoint_regional_mode":        dataSourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint":                  dataSourceMongoDBAtlasPrivateLinkEndpoint(),
 		"mongodbatlas_privatelink_endpoint_service":          dataSourceMongoDBAtlasPrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_adl":      dataSourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
@@ -128,6 +129,13 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_snapshot_export_buckets":  datasourceMongoDBAtlasCloudBackupSnapshotExportBuckets(),
 		"mongodbatlas_cloud_backup_snapshot_export_job":      datasourceMongoDBAtlasCloudBackupSnapshotExportJob(),
 		"mongodbatlas_cloud_backup_snapshot_export_jobs":     datasourceMongoDBAtlasCloudBackupSnapshotExportJobs(),
+		"mongodbatlas_federated_settings":                    dataSourceMongoDBAtlasFederatedSettings(),
+		"mongodbatlas_federated_settings_identity_provider":  dataSourceMongoDBAtlasFederatedSettingsIdentityProvider(),
+		"mongodbatlas_federated_settings_identity_providers": dataSourceMongoDBAtlasFederatedSettingsIdentityProviders(),
+		"mongodbatlas_federated_settings_org_config":         dataSourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
+		"mongodbatlas_federated_settings_org_configs":        dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs(),
+		"mongodbatlas_federated_settings_org_role_mapping":   dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
+		"mongodbatlas_federated_settings_org_role_mappings":  dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
 	}
 	return dataSourcesMap
 }
@@ -152,6 +160,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_global_cluster_config":                 resourceMongoDBAtlasGlobalCluster(),
 		"mongodbatlas_alert_configuration":                   resourceMongoDBAtlasAlertConfiguration(),
 		"mongodbatlas_x509_authentication_database_user":     resourceMongoDBAtlasX509AuthDBUser(),
+		"mongodbatlas_private_endpoint_regional_mode":        resourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint":                  resourceMongoDBAtlasPrivateLinkEndpoint(),
 		"mongodbatlas_privatelink_endpoint_service":          resourceMongoDBAtlasPrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_adl":      resourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
@@ -175,6 +184,9 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_snapshot_restore_job":     resourceMongoDBAtlasCloudBackupSnapshotRestoreJob(),
 		"mongodbatlas_cloud_backup_snapshot_export_bucket":   resourceMongoDBAtlasCloudBackupSnapshotExportBucket(),
 		"mongodbatlas_cloud_backup_snapshot_export_job":      resourceMongoDBAtlasCloudBackupSnapshotExportJob(),
+		"mongodbatlas_federated_settings_org_config":         resourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
+		"mongodbatlas_federated_settings_org_role_mapping":   resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
+		"mongodbatlas_federated_settings_identity_provider":  resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
 	}
 	return resourcesMap
 }

@@ -1,4 +1,30 @@
 # Changelog
+
+## [v1.4.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.0-pre.1) (2022-06-29)
+**Closed issues:**
+
+Fix for Add support for cloud export backup to mongodbatlas_cloud_backup_schedule (#740)
+Feature Add: Update the project resource with new settings (#741)
+Feature Add: Feature add: Add support for management of federated authentication configuration
+Feature Add: Add Regionalized Private Endpoint Settings
+Fix for  Potential bug when disabling auditing #705
+Feature Add: Prometheus and Microsoft Team to the Third Party Integration Settings #706
+Fix for Correct import function for snapshot export bucket #714 #715
+Fix for Add support for schema migration #717
+Feature Add: Prometheus and Microsoft Team to the Third Party Integration Settings
+Fix for Cannot import export bucket - bad state id encoding #708
+Error missing expected { when updating the provider #697
+
+**Merged pull requests:**
+
+INTMDB-321: Add support for cloud export backup to mongodbatlas_cloud_backup_schedule (#740)
+INTMDB-313: Update the project resource with new settings (#741)
+INTMDB-301: Feature add: Add support for management of federated authentication configuration
+INTMDB-307: Add Regionalized Private Endpoint Settings
+INTMDB-310: Potential bug when disabling auditing #705
+INTMDB-311: Feature Add: Prometheus and Microsoft Team to the Third Party Integration Settings #706
+INTMDB-315: Correct import function for snapshot export bucket #714 #715
+INTMDB-309: Add support for schema migration #717
 ## [v1.3.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1-pre.1) (2022-02-23)
 
 **Closed issues:**

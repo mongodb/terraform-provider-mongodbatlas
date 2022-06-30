@@ -19,16 +19,20 @@ var integrationTypes = []string{
 	"VICTOR_OPS",
 	"FLOWDOCK",
 	"WEBHOOK",
+	"MICROSOFT_TEAMS",
+	"PROMETHEUS",
 }
 
 var requiredPerType = map[string][]string{
-	"PAGER_DUTY": {"service_key"},
-	"DATADOG":    {"api_key", "region"},
-	"NEW_RELIC":  {"license_key", "account_id", "write_token", "read_token"},
-	"OPS_GENIE":  {"api_key", "region"},
-	"VICTOR_OPS": {"api_key"},
-	"FLOWDOCK":   {"flow_name", "api_token", "org_name"},
-	"WEBHOOK":    {"url"},
+	"PAGER_DUTY":      {"service_key"},
+	"DATADOG":         {"api_key", "region"},
+	"NEW_RELIC":       {"license_key", "account_id", "write_token", "read_token"},
+	"OPS_GENIE":       {"api_key", "region"},
+	"VICTOR_OPS":      {"api_key"},
+	"FLOWDOCK":        {"flow_name", "api_token", "org_name"},
+	"WEBHOOK":         {"url"},
+	"MICROSOFT_TEAMS": {"microsoft_teams_webhook_url"},
+	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
 }
 
 func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
@@ -119,6 +123,34 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+			},
+			"microsoft_teams_webhook_url": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Optional:  true,
+			},
+			"user_name": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Optional:  true,
+			},
+			"password": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Optional:  true,
+			},
+			"service_discovery": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Optional:  true,
+			},
+			"scheme": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}

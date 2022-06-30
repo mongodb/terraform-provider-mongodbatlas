@@ -64,28 +64,34 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID 
 
 func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]interface{} {
 	out := map[string]interface{}{
-		"type":         integration.Type,
-		"license_key":  integration.LicenseKey,
-		"account_id":   integration.AccountID,
-		"write_token":  integration.WriteToken,
-		"read_token":   integration.ReadToken,
-		"api_key":      integration.APIKey,
-		"region":       integration.Region,
-		"service_key":  integration.ServiceKey,
-		"api_token":    integration.APIToken,
-		"team_name":    integration.TeamName,
-		"channel_name": integration.ChannelName,
-		"routing_key":  integration.RoutingKey,
-		"flow_name":    integration.FlowName,
-		"org_name":     integration.OrgName,
-		"url":          integration.URL,
-		"secret":       integration.Secret,
+		"type":                        integration.Type,
+		"license_key":                 integration.LicenseKey,
+		"account_id":                  integration.AccountID,
+		"write_token":                 integration.WriteToken,
+		"read_token":                  integration.ReadToken,
+		"api_key":                     integration.APIKey,
+		"region":                      integration.Region,
+		"service_key":                 integration.ServiceKey,
+		"api_token":                   integration.APIToken,
+		"team_name":                   integration.TeamName,
+		"channel_name":                integration.ChannelName,
+		"routing_key":                 integration.RoutingKey,
+		"flow_name":                   integration.FlowName,
+		"org_name":                    integration.OrgName,
+		"url":                         integration.URL,
+		"secret":                      integration.Secret,
+		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
+		"user_name":                   integration.UserName,
+		"password":                    integration.Password,
+		"service_discovery":           integration.ServiceDiscovery,
+		"scheme":                      integration.Scheme,
+		"enabled":                     integration.Enabled,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
 	optionals := []string{"license_key", "account_id", "write_token",
 		"read_token", "api_key", "region", "service_key", "api_token",
-		"team_name", "channel_name", "flow_name", "org_name", "url", "secret"}
+		"team_name", "channel_name", "flow_name", "org_name", "url", "secret", "password"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
@@ -166,6 +172,30 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.Secret = secret.(string)
 	}
 
+	if microsoftTeamsWebhookURL, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
+		out.MicrosoftTeamsWebhookURL = microsoftTeamsWebhookURL.(string)
+	}
+
+	if userName, ok := in.GetOk("user_name"); ok {
+		out.UserName = userName.(string)
+	}
+
+	if password, ok := in.GetOk("password"); ok {
+		out.Password = password.(string)
+	}
+
+	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
+		out.ServiceDiscovery = serviceDiscovery.(string)
+	}
+
+	if scheme, ok := in.GetOk("scheme"); ok {
+		out.Scheme = scheme.(string)
+	}
+
+	if enabled, ok := in.GetOk("enabled"); ok {
+		out.Enabled = enabled.(bool)
+	}
+
 	return out
 }
 
@@ -228,5 +258,29 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 
 	if d.HasChange("secret") {
 		integration.Secret = d.Get("secret").(string)
+	}
+
+	if d.HasChange("microsoft_teams_webhook_url") {
+		integration.MicrosoftTeamsWebhookURL = d.Get("microsoft_teams_webhook_url").(string)
+	}
+
+	if d.HasChange("user_name") {
+		integration.UserName = d.Get("user_name").(string)
+	}
+
+	if d.HasChange("password") {
+		integration.Password = d.Get("password").(string)
+	}
+
+	if d.HasChange("service_discovery") {
+		integration.ServiceDiscovery = d.Get("service_discovery").(string)
+	}
+
+	if d.HasChange("scheme") {
+		integration.Scheme = d.Get("scheme").(string)
+	}
+
+	if d.HasChange("enabled") {
+		integration.Enabled = d.Get("enabled").(bool)
 	}
 }

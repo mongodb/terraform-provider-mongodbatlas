@@ -81,6 +81,26 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 					},
 				},
 			},
+			"is_collect_database_specifics_statistics_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"is_data_explorer_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"is_performance_advisor_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"is_realtime_performance_panel_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"is_schema_advisor_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -147,6 +167,10 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 		}
 		log.Println("[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
+	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
+	if err != nil {
+		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
+	}
 
 	if err := d.Set("org_id", project.OrgID); err != nil {
 		return diag.Errorf(errorProjectSetting, `org_id`, project.ID, err)
@@ -166,6 +190,21 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
 		return diag.Errorf(errorProjectSetting, `api_keys`, project.ID, err)
+	}
+	if err := d.Set("is_collect_database_specifics_statistics_enabled", projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_collect_database_specifics_statistics_enabled`, project.ID, err)
+	}
+	if err := d.Set("is_data_explorer_enabled", projectSettings.IsDataExplorerEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_data_explorer_enabled`, project.ID, err)
+	}
+	if err := d.Set("is_performance_advisor_enabled", projectSettings.IsPerformanceAdvisorEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_performance_advisor_enabled`, project.ID, err)
+	}
+	if err := d.Set("is_realtime_performance_panel_enabled", projectSettings.IsRealtimePerformancePanelEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_realtime_performance_panel_enabled`, project.ID, err)
+	}
+	if err := d.Set("is_schema_advisor_enabled", projectSettings.IsSchemaAdvisorEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_schema_advisor_enabled`, project.ID, err)
 	}
 
 	d.SetId(project.ID)
