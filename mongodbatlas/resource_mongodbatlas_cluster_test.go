@@ -1248,7 +1248,6 @@ func testAccMongoDBAtlasClusterConfigAWS(projectID, name string, backupEnabled, 
 			cloud_backup                 = %[3]t
 			pit_enabled                  = %[3]t
 			auto_scaling_disk_gb_enabled = %[4]t
-			mongo_db_major_version       = "4.0"
 			// Provider Settings "block"
 
 			provider_name               = "AWS"
@@ -1264,7 +1263,6 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(projectID, name, instanceNa
 			name         = "%[2]s"
 
 			cloud_backup                 = true
-			mongo_db_major_version       = "4.4"
 			// Provider Settings "block"
 			provider_region_name     = "US_EAST_1"
 			provider_name               = "AWS"
@@ -1294,7 +1292,6 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, autoscalingEn
 
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled =  %s
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -1334,7 +1331,6 @@ resource "mongodbatlas_cluster" "advance_conf" {
 
   backup_enabled               = false
   auto_scaling_disk_gb_enabled =  %[3]s
-  mongo_db_major_version       = "4.4"
 
   // Provider Settings "block"
   provider_name               = "AWS"
@@ -1376,7 +1372,6 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartial(projectID, name, autosc
 
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled =  %s
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -1410,7 +1405,6 @@ resource "mongodbatlas_cluster" "advance_conf" {
 
   backup_enabled               = false
   auto_scaling_disk_gb_enabled =  %s
-  mongo_db_major_version       = "4.4"
 
   // Provider Settings "block"
   provider_name               = "AWS"
@@ -1443,7 +1437,6 @@ func testAccMongoDBAtlasClusterConfigAzure(projectID, name, backupEnabled string
 
 			cloud_backup                 = %s
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "AZURE"
@@ -1474,7 +1467,6 @@ func testAccMongoDBAtlasClusterConfigGCP(projectID, name, backupEnabled string) 
 
 			cloud_backup                 = %s
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "GCP"
@@ -1503,7 +1495,6 @@ func testAccMongoDBAtlasClusterConfigGCPWithBiConnector(projectID, name, backupE
 
 			cloud_backup                 = %s
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "GCP"
@@ -1632,7 +1623,6 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
   
 			backup_enabled               = %s
 			auto_scaling_disk_gb_enabled = false
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -1732,7 +1722,6 @@ func testAccMongoDBAtlasClusterConfigAzureWithNetworkPeering(projectID, provider
 		  	}
 
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[2]s"
@@ -1792,7 +1781,6 @@ func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(gcpProjectID, gcpRegi
 		    }
 
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[4]s"
@@ -1821,7 +1809,6 @@ func testAccMongoDBAtlasClusterConfigAzureWithContainerID(projectID, clusterName
 		    }
 
 			auto_scaling_disk_gb_enabled = false
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[3]s"
@@ -1866,7 +1853,6 @@ func testAccMongoDBAtlasClusterConfigAWSWithContainerID(awsAccessKey, awsSecretK
 		    }
 
 			auto_scaling_disk_gb_enabled = false
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[5]s"
@@ -1924,7 +1910,6 @@ func testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion,
 		    }
 
 			auto_scaling_disk_gb_enabled = true
-			mongo_db_major_version       = "4.0"
 
 			// Provider Settings "block"
 			provider_name               = "%[5]s"
@@ -1973,7 +1958,6 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 		auto_scaling_disk_gb_enabled            = %[4]s
 		auto_scaling_compute_enabled            = %[5]s
 		auto_scaling_compute_scale_down_enabled = %[6]s
-		mongo_db_major_version                  = "4.0"
 
 		//Provider Settings "block"
 		provider_name                                   = "AWS"
@@ -1995,7 +1979,6 @@ func testAccMongoDBAtlasClusterConfigGCPRegionName(
   project_id                   = %[1]q
   name                         = %[2]q
   auto_scaling_disk_gb_enabled = true
-  mongo_db_major_version       = "4.4"
   provider_name                = "GCP"
   disk_size_gb                 = 10
   provider_instance_size_name  = "M10"
@@ -2046,7 +2029,6 @@ resource "mongodbatlas_cluster" "test" {
     }
   }
   cloud_backup                 = %[3]t
-  mongo_db_major_version       = "4.0"
   paused                       = %[4]t
   // Provider Settings "block"
 

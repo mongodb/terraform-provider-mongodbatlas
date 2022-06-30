@@ -647,7 +647,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id             = %[1]q
   name                   = %[2]q
   cluster_type           = "REPLICASET"
-  mongo_db_major_version = "4.0"
 
    replication_specs {
     region_configs {
@@ -687,7 +686,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id             = %[1]q
   name                   = %[2]q
   cluster_type           = "REPLICASET"
-  mongo_db_major_version = "4.4"
 
    replication_specs {
     region_configs {
@@ -727,7 +725,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id             = %[1]q
   name                   = %[2]q
   cluster_type           = "REPLICASET"
-  mongo_db_major_version = "4.4"
 
    replication_specs {
     region_configs {
