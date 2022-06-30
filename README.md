@@ -141,6 +141,19 @@ $ export MONGODB_ATLAS_API_KEYS_IDS=<API_KEYS_IDS>
 export SKIP_TEST_EXTERNAL_CREDENTIALS=TRUE
 ```
 
+- For `Federated Settings` resource configuration:
+```sh
+$ export MONGODB_ATLAS_FEDERATION_SETTINGS_ID=<YOUR_FEDERATION_SETTINGS_ID>
+$ export ONGODB_ATLAS_FEDERATED_ORG_ID=<YOUR_FEDERATED_ORG_ID>
+$ export MONGODB_ATLAS_FEDERATED_PROJECT_ID=<YOUR_VPC_FEDERATED_PROJECT_ID>
+$ export MONGODB_ATLAS_FEDERATED_GROUP_ID=<YOUR_FEDERATED_GROUP_ID>
+$ export MONGODB_ATLAS_FEDERATED_ROLE_MAPPING_ID=<YOUR_FEDERATED_ROLE_MAPPING_ID>
+$ export MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID=<YOUR_FEDERATED_OKTA_IDP_ID>
+$ export MONGODB_ATLAS_FEDERATED_SSO_URL=<YOUR_FEDERATED_SSO_URL>
+$ export MONGODB_ATLAS_FEDERATED_ISSUER_URI=<YOUR_FEDERATED_ISSUER_URI>
+```
+~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/
+
 ##### AWS env variables
 
 - For `Network Peering` resource configuration:
