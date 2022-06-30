@@ -173,7 +173,6 @@ resource "mongodbatlas_cluster" "test" {
 
   backup_enabled = false
   auto_scaling_disk_gb_enabled = %[3]t
-  mongo_db_major_version       = "4.0"
 
   advanced_configuration  {
     fail_index_key_too_long              = %[4]t
