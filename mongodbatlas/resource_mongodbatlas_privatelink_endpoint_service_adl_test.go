@@ -16,7 +16,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		endpointID    = "vpce-jjg5e24qp93513h03"
 		commentOrigin = "this is a comment for adl private link endpoint"
-		commentUpdate = "this is a comment for adl private link endpoint [UPDATED]"
+		commentUpdate = "this is a comment for adl private link endpoint UPDATED"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
