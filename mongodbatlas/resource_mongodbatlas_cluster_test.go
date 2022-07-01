@@ -1020,7 +1020,6 @@ func TestAccResourceMongoDBAtlasCluster_basicGCPRegionName(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
-	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -1039,9 +1038,9 @@ func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
 	  }
 	 replication_specs {
 		num_shards = 1
-		zone_name = "germany"
+		zone_name = "us3"
 		regions_config{
-			region_name     = "EU_CENTRAL_1"
+			region_name     = "US_EAST_1"
 			electable_nodes = 3
 			priority        = 7
 			read_only_nodes = 0
