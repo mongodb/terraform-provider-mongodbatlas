@@ -1020,6 +1020,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCPRegionName(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
