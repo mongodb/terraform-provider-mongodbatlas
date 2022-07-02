@@ -15,6 +15,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
+	SkipTest(t)
 	var (
 		team         matlas.Team
 		resourceName = "mongodbatlas_teams.test"

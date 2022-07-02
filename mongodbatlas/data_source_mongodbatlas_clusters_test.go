@@ -65,7 +65,7 @@ func TestAccDataSourceMongoDBAtlasClusters_advancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasClustersConfigAdvancedConf(projectID, name, false, &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(true),
+					FailIndexKeyTooLong:              pointy.Bool(false),
 					JavascriptEnabled:                pointy.Bool(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
 					NoTableScan:                      pointy.Bool(false),
