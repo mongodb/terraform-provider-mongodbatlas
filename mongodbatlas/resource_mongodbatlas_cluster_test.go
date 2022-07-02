@@ -128,7 +128,7 @@ func TestAccResourceMongoDBAtlasCluster_basic_Partial_AdvancedConf(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -144,7 +144,7 @@ func TestAccResourceMongoDBAtlasCluster_basic_Partial_AdvancedConf(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -244,7 +244,7 @@ func TestAccResourceMongoDBAtlasCluster_emptyAdvancedConf(t *testing.T) {
 					SampleSizeBIConnector:            pointy.Int64(110),
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -283,7 +283,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "true"),

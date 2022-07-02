@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
-	SkipTest(t)
+	t.Skip()
 
 	var (
 		endpointResourceSuffix = "atlasple"

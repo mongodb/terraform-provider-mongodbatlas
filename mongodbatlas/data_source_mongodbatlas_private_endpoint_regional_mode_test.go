@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
-	SkipTest(t)
+	t.Skip()
 	resourceName := "mongodbatlas_private_endpoint_regional_mode.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
