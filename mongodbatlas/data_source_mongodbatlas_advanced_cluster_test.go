@@ -81,7 +81,7 @@ func TestAccDataSourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name           = acctest.RandomWithPrefix("test-acc")
 		processArgs    = &matlas.ProcessArgs{
-			FailIndexKeyTooLong:              pointy.Bool(true),
+			FailIndexKeyTooLong:              pointy.Bool(false),
 			JavascriptEnabled:                pointy.Bool(true),
 			MinimumEnabledTLSProtocol:        "TLS1_1",
 			NoTableScan:                      pointy.Bool(false),
