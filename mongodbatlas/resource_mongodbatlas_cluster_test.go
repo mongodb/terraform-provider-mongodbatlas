@@ -117,7 +117,7 @@ func TestAccResourceMongoDBAtlasCluster_basic_Partial_AdvancedConf(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(true),
+					FailIndexKeyTooLong:              pointy.Bool(false),
 					JavascriptEnabled:                pointy.Bool(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
 					NoTableScan:                      pointy.Bool(false),
@@ -174,7 +174,7 @@ func TestAccResourceMongoDBAtlasCluster_basic_DefaultWriteRead_AdvancedConf(t *t
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConfDefaultWriteRead(projectID, name, "false", &matlas.ProcessArgs{
 					DefaultReadConcern:               "available",
 					DefaultWriteConcern:              "1",
-					FailIndexKeyTooLong:              pointy.Bool(true),
+					FailIndexKeyTooLong:              pointy.Bool(false),
 					JavascriptEnabled:                pointy.Bool(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
 					NoTableScan:                      pointy.Bool(false),
@@ -235,7 +235,7 @@ func TestAccResourceMongoDBAtlasCluster_emptyAdvancedConf(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(true),
+					FailIndexKeyTooLong:              pointy.Bool(false),
 					JavascriptEnabled:                pointy.Bool(true),
 					MinimumEnabledTLSProtocol:        "TLS1_1",
 					NoTableScan:                      pointy.Bool(false),
@@ -272,7 +272,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasClusterConfigAdvancedConf(projectID, name, "false", &matlas.ProcessArgs{
-					FailIndexKeyTooLong:              pointy.Bool(true),
+					FailIndexKeyTooLong:              pointy.Bool(false),
 					JavascriptEnabled:                pointy.Bool(true),
 					MinimumEnabledTLSProtocol:        "TLS1_2",
 					NoTableScan:                      pointy.Bool(true),

@@ -258,7 +258,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 		processArgs  = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
-			FailIndexKeyTooLong:              pointy.Bool(true),
+			FailIndexKeyTooLong:              pointy.Bool(false),
 			JavascriptEnabled:                pointy.Bool(true),
 			MinimumEnabledTLSProtocol:        "TLS1_1",
 			NoTableScan:                      pointy.Bool(false),
@@ -269,7 +269,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 		processArgsUpdated = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "0",
-			FailIndexKeyTooLong:              pointy.Bool(true),
+			FailIndexKeyTooLong:              pointy.Bool(false),
 			JavascriptEnabled:                pointy.Bool(true),
 			MinimumEnabledTLSProtocol:        "TLS1_2",
 			NoTableScan:                      pointy.Bool(false),
@@ -289,7 +289,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_1"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
@@ -303,7 +303,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
-					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "true"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.javascript_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.minimum_enabled_tls_protocol", "TLS1_2"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.no_table_scan", "false"),
