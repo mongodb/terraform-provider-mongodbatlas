@@ -3,6 +3,7 @@
 ## [v1.4.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.0-pre.1) (2022-06-29)
 **Closed issues:**
 
+Note: the binary executable for windows/arm64 is not available for this release.  Next release will include.
 Fix for Add support for cloud export backup to mongodbatlas_cloud_backup_schedule (#740)
 Feature Add: Update the project resource with new settings (#741)
 Feature Add: Feature add: Add support for management of federated authentication configuration
