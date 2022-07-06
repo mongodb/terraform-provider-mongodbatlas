@@ -35,11 +35,11 @@ resource "mongodbatlas_project" "test" {
     role_names = ["GROUP_READ_ONLY"]
   }
 
-  is_collect_database_specifics_statistics_enabled = false
-  is_data_explorer_enabled                         = false
+  is_collect_database_specifics_statistics_enabled = true
+  is_data_explorer_enabled                         = true
   is_performance_advisor_enabled                   = true
-  is_realtime_performance_panel_enabled            = false
-  is_schema_advisor_enabled                        = false
+  is_realtime_performance_panel_enabled            = true
+  is_schema_advisor_enabled                        = true
 }
 ```
 
