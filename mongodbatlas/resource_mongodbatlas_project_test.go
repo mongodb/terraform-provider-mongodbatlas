@@ -461,12 +461,12 @@ func testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, or
 			name   			 = "%[1]s"
 			org_id 			 = "%[2]s"
 			project_owner_id = "%[3]s"
-			with_default_alerts_settings = true
-			is_collect_database_specifics_statistics_enabled = true
-			is_data_explorer_enabled = true
-			is_performance_advisor_enabled = true
-			is_realtime_performance_panel_enabled = true
-			is_schema_advisor_enabled = true
+			with_default_alerts_settings = false
+			is_collect_database_specifics_statistics_enabled = false
+			is_data_explorer_enabled = false
+			is_performance_advisor_enabled = false
+			is_realtime_performance_panel_enabled = false
+			is_schema_advisor_enabled = false
 		}
 	`, projectName, orgID, projectOwnerID)
 }
