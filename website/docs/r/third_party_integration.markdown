@@ -50,34 +50,34 @@ Additional values based on Type
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
 * `DATADOG`
-   * `api_key` - Your API Key.
-   * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    
+  * `api_key` - Your API Key.
+  * `region` - Indicates which API URL to use, either US or EU. Datadog will use US by default.    
 * `NEW_RELIC`
-   * `license_key` - Your License Key.
-   * `account_id`  - Unique identifier of your New Relic account.
-   * `write_token` - Your Insights Insert Key.
-   * `read_token`  - Your Insights Query Key.
+  * `license_key` - Your License Key.
+  * `account_id`  - Unique identifier of your New Relic account.
+  * `write_token` - Your Insights Insert Key.
+  * `read_token`  - Your Insights Query Key.
 * `OPS_GENIE`
-   * `api_key` - Your API Key.
-   * `region` -  Indicates which API URL to use, either US or EU. Opsgenie will use US by default.
+  * `api_key` - Your API Key.
+  * `region` -  Indicates which API URL to use, either US or EU. Opsgenie will use US by default.
 * `VICTOR_OPS`
-   * `api_key` - 	Your API Key.
-   * `routing_key` - An optional field for your Routing Key.
+  * `api_key` - 	Your API Key.
+  * `routing_key` - An optional field for your Routing Key.
 * `FLOWDOCK`
-   * `flow_name` - Your Flowdock Flow name.
-   * `api_token` - Your API Token.
-   * `org_name` - Your Flowdock organization name.
+  * `flow_name` - Your Flowdock Flow name.
+  * `api_token` - Your API Token.
+  * `org_name` - Your Flowdock organization name.
 * `WEBHOOK`
-   * `url` - Your webhook URL.
-   * `secret` - An optional field for your webhook secret.
+  * `url` - Your webhook URL.
+  * `secret` - An optional field for your webhook secret.
 * `MICROSOFT_TEAMS`
-   * `microsoft_teams_webhook_url` -  Your Microsoft Teams incoming webhook URL.
- * `PROMETHEUS`
-    * `user_name` - Your Prometheus username.
-    * `password`  - Your Prometheus password.
-    * `service_discovery` - Indicates which service discovery method is used, either file or http.
-    * `scheme` - Your Prometheus protocol scheme configured for requests.
-    * `enabled` - Whether your cluster has Prometheus enabled.
+  * `microsoft_teams_webhook_url` -  Your Microsoft Teams incoming webhook URL.
+* `PROMETHEUS`
+  * `user_name` - Your Prometheus username.
+  * `password`  - Your Prometheus password.
+  * `service_discovery` - Indicates which service discovery method is used, either file or http.
+  * `scheme` - Your Prometheus protocol scheme configured for requests.
+  * `enabled` - Whether your cluster has Prometheus enabled.
 
 ## Attributes Reference
 
