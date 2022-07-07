@@ -1,5 +1,12 @@
 # Changelog
+## [v1.4.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.1) (2022-07-7)
+## What's Changed
 
+* Update CHANGELOG.md by @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/771
+* INTMDB-313: Update project settings default flags by @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/773
+
+
+**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.0...v1.4.1
 ## [v1.4.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.0) (2022-07-5)
 **Closed issues:**
 
