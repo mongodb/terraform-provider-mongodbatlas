@@ -12,7 +12,6 @@ Provides a Serverless Instance resource.
 
 > **NOTE:**  Serverless instances are in a preview release and do not support some Atlas features at this time.
 For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
-> In order to use this resource in Terraform you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true`.
 
 ## Example Usage
 

@@ -136,6 +136,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_configs":        dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs(),
 		"mongodbatlas_federated_settings_org_role_mapping":   dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_org_role_mappings":  dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
+		"mongodbatlas_serverless_instance":                   dataSourceMongoDBAtlasServerlessInstance(),
+		"mongodbatlas_serverless_instances":                  dataSourceMongoDBAtlasServerlessInstances(),
 	}
 	return dataSourcesMap
 }
@@ -187,16 +189,13 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_config":         resourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_federated_settings_org_role_mapping":   resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":  resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
+		"mongodbatlas_serverless_instance":                   resourceMongoDBAtlasServerlessInstance(),
 	}
 	return resourcesMap
 }
 
 func addBetaFeatures(provider *schema.Provider) {
 	if ProviderEnableBeta {
-		provider.ResourcesMap["mongodbatlas_serverless_instance"] = resourceMongoDBAtlasServerlessInstance()
-
-		provider.DataSourcesMap["mongodbatlas_serverless_instance"] = dataSourceMongoDBAtlasServerlessInstance()
-		provider.DataSourcesMap["mongodbatlas_serverless_instances"] = dataSourceMongoDBAtlasServerlessInstances()
 	}
 }
 
