@@ -125,7 +125,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "7"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
