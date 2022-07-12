@@ -1,4 +1,19 @@
 # Changelog
+## [v1.4.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.3) (2022-07-12)
+## Fixed
+
+* INTMDB-335: Add option for multiple weekly monthly schedules @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/784
+* INTMDB-348: autoexport parameter not being set via provider https://jira.mongodb.org/browse/INTMDB-348
+
+**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.1...v1.4.2
+
+## [v1.4.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.2) (2022-07-7)
+## What's Changed
+
+* INTMDB-313: Update project settings default flags by @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/778
+
+**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.1...v1.4.2
+
 ## [v1.4.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.1) (2022-07-7)
 ## What's Changed
 
