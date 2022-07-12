@@ -196,6 +196,9 @@ func getResourcesMap() map[string]*schema.Resource {
 
 func addBetaFeatures(provider *schema.Provider) {
 	if ProviderEnableBeta {
+		// provider.ResourcesMap["mongodbatlas_example"] = resourceMongoDBAtlasExample)
+		// provider.DataSourcesMap["mongodbatlas_example"] = dataSourceMongoDBAtlasExample()
+		return
 	}
 }
 
