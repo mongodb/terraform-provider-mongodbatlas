@@ -18,9 +18,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
-		bucketName   = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,6 +113,25 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.1.retention_value", "4"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		policyName   = acctest.RandomWithPrefix("test-acc")
+		roleName     = acctest.RandomWithPrefix("test-acc")
+		bucketName   = os.Getenv("AWS_S3_BUCKET")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+
+		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName, bucketName),
 				Check: resource.ComposeTestCheckFunc(
@@ -135,7 +151,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 		},
 	})
 }
-
 func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
