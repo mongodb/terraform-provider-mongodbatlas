@@ -139,7 +139,6 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 			},
 			"policy_item_weekly": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -168,7 +167,6 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 			},
 			"policy_item_monthly": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -303,6 +301,10 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 	}
 
 	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
+	}
+
+	if err := d.Set("auto_export_enabled", backupPolicy.AutoExportEnabled); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 
@@ -426,22 +428,26 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		policiesItem = append(policiesItem, policyItem)
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
-		policyItem.FrequencyType = snapshotScheduleWeekly
-		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		policyItem.RetentionValue = itemObj["retention_value"].(int)
-		policiesItem = append(policiesItem, policyItem)
+		items := v.([]interface{})
+		for _, s := range items {
+			itemObj := s.(map[string]interface{})
+			policyItem.FrequencyType = snapshotScheduleWeekly
+			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
+			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+			policyItem.RetentionValue = itemObj["retention_value"].(int)
+			policiesItem = append(policiesItem, policyItem)
+		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
-		policyItem.FrequencyType = snapshotScheduleMonthly
-		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
-		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
-		policyItem.RetentionValue = itemObj["retention_value"].(int)
-		policiesItem = append(policiesItem, policyItem)
+		items := v.([]interface{})
+		for _, s := range items {
+			itemObj := s.(map[string]interface{})
+			policyItem.FrequencyType = snapshotScheduleMonthly
+			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
+			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+			policyItem.RetentionValue = itemObj["retention_value"].(int)
+			policiesItem = append(policiesItem, policyItem)
+		}
 	}
 
 	if v, ok := d.GetOk("export"); ok {
@@ -451,6 +457,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		export.FrequencyType = itemObj["frequency_type"].(string)
 
 		req.Export = &export
+	}
+
+	if d.HasChange("auto_export_enabled") {
+		req.AutoExportEnabled = pointy.Bool(d.Get("auto_export_enabled").(bool))
 	}
 
 	policy.ID = resp.Policies[0].ID
