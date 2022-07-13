@@ -124,7 +124,6 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		policyName   = acctest.RandomWithPrefix("test-acc")
 		roleName     = acctest.RandomWithPrefix("test-acc")
-		bucketName   = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -133,7 +132,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName, bucketName),
+				Config: testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -605,11 +604,16 @@ func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(projectID, clu
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName, bucketName string) string {
+func testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName string) string {
 	return fmt.Sprintf(`
+
+locals {
+	mongodbatlas_project_id = %[1]q
+}
+
 resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = "%s"
-  name         = "%s"
+  project_id   = %[1]q
+  name         = %[2]q
   disk_size_gb = 5
 	  
   // Provider Settings "block"
@@ -617,6 +621,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
   cloud_backup                = true //enable cloud provider snapshots
+  depends_on = ["mongodbatlas_cloud_backup_snapshot_export_bucket.test"]
 }
 	  
 resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -638,17 +643,21 @@ resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
   }
 }
 	  
-data "aws_s3_bucket" "backup" {
-	bucket = %[5]q
-  }
-	  
+resource "aws_s3_bucket" "backup" {
+	bucket = "${local.mongodbatlas_project_id}-s3-mongodb-backups"
+	force_destroy = true
+    object_lock_configuration {
+      object_lock_enabled = "Enabled"
+    }
+}
+  
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = mongodbatlas_cluster.my_cluster.project_id
+  project_id    = %[1]q
   provider_name = "AWS"
 }
 	  
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-  project_id = mongodbatlas_cluster.my_cluster.project_id
+  project_id = %[1]q
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 	  
 	aws {
@@ -657,10 +666,10 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 	  
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
-  project_id = mongodbatlas_cluster.my_cluster.project_id
+  project_id = %[1]q
 	  
   iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  bucket_name    = data.aws_s3_bucket.backup.bucket
+  bucket_name    = aws_s3_bucket.backup.bucket
   cloud_provider = "AWS"
 }
 	  
@@ -706,5 +715,5 @@ resource "aws_iam_role" "test_role" {
 EOF
  
 }
-	`, projectID, clusterName, policyName, roleName, bucketName)
+	`, projectID, clusterName, policyName, roleName)
 }
