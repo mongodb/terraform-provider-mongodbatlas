@@ -49,10 +49,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Serverless Instance can be imported using the group ID and serverless instance id, in the format `GROUP_ID-SERVERLESS_INSTANCE_ID`, e.g.
+Serverless Instance can be imported using the group ID and serverless instance name, in the format `GROUP_ID-SERVERLESS_INSTANCE_NAME`, e.g.
 
 ```
-$ terraform import mongodbatlas_serverless_instance.my_serverless_instance 1112222b3bf99403840e8934-1112222b3bf99403840e8935
+$ terraform import mongodbatlas_serverless_instance.my_serverless_instance 1112222b3bf99403840e8934-My Serverless Instance
 ```
 
 For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.
