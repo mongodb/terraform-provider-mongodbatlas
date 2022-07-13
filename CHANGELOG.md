@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.4.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.3) (2022-07-12)
+## Fixed
+
+* INTMDB-335: Add option for multiple weekly monthly schedules @martinstibbe in [\#784](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/784)
+* INTMDB-348: autoexport parameter not being set via provider [\#784](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/784)
+* INTMDB-323: Removed the requirement to set `MONGODB_ATLAS_ENABLE_BETA` to use serverless and update the docs to match. [\#783](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/783)
+* INTMDB-330 Fixed Serverless Instance Import Documentation. Closes [\#754](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/754)
+* Fix typo in custom_db_role documentation [\#780](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/780)
+* Fix typo in federated_settings_org_configs documentation [\#779](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/779)
+ 
+**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.2...v1.4.3
+
 ## [v1.4.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.2) (2022-07-7)
 ## What's Changed
 
