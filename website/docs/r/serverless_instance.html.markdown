@@ -10,9 +10,8 @@ Provides a Serverless Instance resource.
 
 `mongodbatlas_serverless_instance` provides a Serverless Instance resource. This allows serverless instances to be created.
 
-> **NOTE:**  Serverless instances are in a preview release and do not support some Atlas features at this time.
+> **NOTE:**  Serverless instances do not support some Atlas features at this time.
 For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
-> In order to use this resource in Terraform you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA=true`.
 
 ## Example Usage
 
@@ -49,10 +48,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Serverless Instance can be imported using the group ID and serverless instance id, in the format `GROUP_ID-SERVERLESS_INSTANCE_ID`, e.g.
+Serverless Instance can be imported using the group ID and serverless instance name, in the format `GROUP_ID-SERVERLESS_INSTANCE_NAME`, e.g.
 
 ```
-$ terraform import mongodbatlas_serverless_instance.my_serverless_instance 1112222b3bf99403840e8934-1112222b3bf99403840e8935
+$ terraform import mongodbatlas_serverless_instance.my_serverless_instance 1112222b3bf99403840e8934-My Serverless Instance
 ```
 
 For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.
