@@ -1,4 +1,5 @@
 # Changelog
+
 ## [v1.4.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.3) (2022-07-12)
 ## Fixed
 
