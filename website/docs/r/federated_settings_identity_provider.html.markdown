@@ -48,7 +48,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### FederatedSettingsIdentityProvider
 
-* `idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
+* `okta_idp_id` - Unique 20-hexadecimal digit string that identifies the IdP.
 
 ## Import
 
