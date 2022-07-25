@@ -27,6 +27,7 @@ website/node_modules
 *.test
 *.iml
 *.tfvars
+service-account.json
 log.*
 
 website/vendor
