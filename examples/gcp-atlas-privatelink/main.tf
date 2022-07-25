@@ -44,7 +44,6 @@ resource "google_compute_forwarding_rule" "default" {
   load_balancing_scheme = ""
 }
 
-
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id          = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
