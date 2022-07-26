@@ -14,3 +14,5 @@ require (
 	go.mongodb.org/atlas v0.16.1-0.20220531163122-551edbfb2f27
 	go.mongodb.org/realm v0.1.0
 )
+
+exclude github.com/denis-tingajkin/go-header v0.4.2
