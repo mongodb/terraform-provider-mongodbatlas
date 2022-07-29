@@ -17,7 +17,7 @@ Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-
 
 ## Requirements
 - [Terraform](https://www.terraform.io/downloads.html) 0.13+
-- [Go](https://golang.org/doc/install) 1.16 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.17 (to build the provider plugin)
 
 ## Using the Provider
 
