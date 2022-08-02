@@ -172,6 +172,10 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
 	}
 
+	if err := d.Set("name", project.Name); err != nil {
+		return diag.Errorf(errorProjectSetting, `name`, project.Name, err)
+	}
+
 	if err := d.Set("org_id", project.OrgID); err != nil {
 		return diag.Errorf(errorProjectSetting, `org_id`, project.ID, err)
 	}
