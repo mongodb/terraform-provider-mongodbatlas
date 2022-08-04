@@ -6,7 +6,7 @@ description: |-
     Provides a Global Cluster Configuration resource.
 ---
 
-# mongodbatlas_global_cluster_config
+# Resource: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` provides a Global Cluster Configuration resource.
 

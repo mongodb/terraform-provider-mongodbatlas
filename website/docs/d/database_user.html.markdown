@@ -6,7 +6,7 @@ description: |-
     Describes a Database User.
 ---
 
-# mongodbatlas_database_user
+# Data Source: mongodbatlas_database_user
 
 `mongodbatlas_database_user` describe a Database User. This represents a database user which will be applied to all clusters within the project.
 

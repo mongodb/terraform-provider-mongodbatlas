@@ -6,7 +6,7 @@ description: |-
     Provides a Private Endpoint Regional Mode resource
 ---
 
-# private_endpoint_regional_mode
+# Resource: private_endpoint_regional_mode
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
 

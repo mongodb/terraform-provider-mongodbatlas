@@ -6,7 +6,7 @@ description: |-
     Provides an Atlas Project Invitation resource.
 ---
 
-# mongodbatlas_project_invitation
+# Resource: mongodbatlas_project_invitation
 
 `mongodbatlas_project_invitation` invites a user to join an Atlas project.
 

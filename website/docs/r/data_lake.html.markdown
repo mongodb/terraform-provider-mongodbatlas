@@ -6,7 +6,7 @@ description: |-
     Provides a Data Lake resource.
 ---
 
-# mongodbatlas_data_lake
+# Resource: mongodbatlas_data_lake
 
 `mongodbatlas_data_lake` provides a Data Lake resource.
 

@@ -6,7 +6,7 @@ description: |-
     Provides an Atlas Organization Invitation resource.
 ---
 
-# mongodbatlas_org_invitation
+# Resource: mongodbatlas_org_invitation
 
 `mongodbatlas_org_invitation` invites a user to join an Atlas organization.
 

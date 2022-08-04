@@ -6,7 +6,7 @@ description: |-
     Provides a Event Trigger resource.
 ---
 
-# mongodbatlas_event_trigger
+# Resource: mongodbatlas_event_trigger
 
 `mongodbatlas_event_trigger` provides a Event Trigger resource. 
 

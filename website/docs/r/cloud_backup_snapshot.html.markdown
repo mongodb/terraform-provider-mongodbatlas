@@ -6,7 +6,7 @@ description: |-
     Provides a Cloud Backup Snapshot resource.
 ---
 
-# mongodbatlas_cloud_backup_snapshot
+# Resource: mongodbatlas_cloud_backup_snapshot
 
 `mongodbatlas_cloud_backup_snapshot` provides a resource to take a cloud backup snapshot on demand.
 On-demand snapshots happen immediately, unlike scheduled snapshots which occur at regular intervals. If there is already an on-demand snapshot with a status of queued or inProgress, you must wait until Atlas has completed the on-demand snapshot before taking another.

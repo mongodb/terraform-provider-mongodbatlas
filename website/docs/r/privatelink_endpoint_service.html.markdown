@@ -6,7 +6,7 @@ description: |-
     Provides a Private Endpoint Link resource.
 ---
 
-# mongodbatlas_privatelink_endpoint_service
+# Resource: mongodbatlas_privatelink_endpoint_service
 
 `mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
 

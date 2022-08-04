@@ -6,7 +6,7 @@ description: |-
     Provides a Cloud Backup Snapshot Export Job resource.
 ---
 
-# mongodbatlas_cloud_backup_snapshot_export_job
+# Resource: mongodbatlas_cloud_backup_snapshot_export_job
 `mongodbatlas_cloud_backup_snapshot_export_job` resource allows you to create a cloud backup snapshot export job for the specified project. 
 
 

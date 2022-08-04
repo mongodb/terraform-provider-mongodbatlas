@@ -6,7 +6,7 @@ description: |-
     Describes the list of all the online archives for a cluster
 ---
 
-# mongodbatlas_online_archive
+# Data Source: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` Describes the list of all the online archives for a cluster
 

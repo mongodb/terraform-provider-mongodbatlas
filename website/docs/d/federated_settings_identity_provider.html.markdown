@@ -6,7 +6,7 @@ description: |-
     Provides a federated settings Organization identity provider data source.
 ---
 
-# mongodbatlas_federated_settings_identity_provider
+# Data Source: mongodbatlas_federated_settings_identity_provider
 
 `mongodbatlas_federated_settings_identity_provider` provides a federated settings identity provider data source. Atlas federated settings identity provider provides federated settings outputs for the configured identity provider.
 

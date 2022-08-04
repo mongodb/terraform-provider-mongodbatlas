@@ -6,7 +6,7 @@ description: |-
      Provides a Third-Party Integration Settings resource.
 ---
 
-# mongodbatlas_third_party_integration
+# Resource: mongodbatlas_third_party_integration
 
 `mongodbatlas_third_party_integration` Provides a Third-Party Integration Settings for the given type.
 

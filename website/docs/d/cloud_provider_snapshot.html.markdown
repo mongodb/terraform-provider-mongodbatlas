@@ -8,7 +8,7 @@ description: |-
 
 **WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshot`
 
-# mongodbatlas_cloud_provider_snapshot
+# Data Source: mongodbatlas_cloud_provider_snapshot
 
 `mongodbatlas_cloud_provider_snapshot` provides an Cloud Backup Snapshot datasource. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.
 

@@ -6,7 +6,7 @@ description: |-
     Allows you to get the list of cloud provider access roles
 ---
 
-# mongodbatlas_cloud_provider_access
+# Data Source: mongodbatlas_cloud_provider_access
 
 `mongodbatlas_cloud_provider_access` allows you to get the list of cloud provider access roles, currently only AWS is supported.
 

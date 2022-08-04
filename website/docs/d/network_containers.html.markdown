@@ -6,7 +6,7 @@ description: |-
     Describes all Network Peering Containers in the project.
 ---
 
-# mongodbatlas_network_containers
+# Data Source: mongodbatlas_network_containers
 
 `mongodbatlas_network_containers` describes all Network Peering Containers. The data source requires your Project ID.
 

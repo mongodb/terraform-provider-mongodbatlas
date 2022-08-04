@@ -6,7 +6,7 @@ description: |-
     Provides a Custom DNS Configuration for Atlas Clusters on AWS resource.
 ---
 
-# mongodbatlas_custom_dns_configuration_cluster_aws
+# Resource: mongodbatlas_custom_dns_configuration_cluster_aws
 
 `mongodbatlas_custom_dns_configuration_cluster_aws` provides a Custom DNS Configuration for Atlas Clusters on AWS resource. This represents a Custom DNS Configuration for Atlas Clusters on AWS that can be updated in an Atlas project.
 
