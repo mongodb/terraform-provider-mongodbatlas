@@ -6,7 +6,7 @@ description: |-
     Provides a Private IP Mode resource.
 ---
 
-# mongodbatlas_private_ip_mode
+# Resource: mongodbatlas_private_ip_mode
 
 `mongodbatlas_private_ip_mode` provides a Private IP Mode resource. This allows one to disable Connect via Peering Only mode for a MongoDB Atlas Project.
 

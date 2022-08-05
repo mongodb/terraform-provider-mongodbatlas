@@ -6,7 +6,7 @@ description: |-
 Describes the list of all Atlas Data Lake and Online Archive PrivateLink endpoints.
 ---
 
-# privatelink_endpoints_service_adl
+# Data Source: privatelink_endpoints_service_adl
 
 `privatelink_endpoints_service_adl` Describes the list of all Atlas Data Lake (ADL) and Online Archive PrivateLink endpoints resource.
 

@@ -6,7 +6,7 @@ description: |-
     Describes a Alert Configuration.
 ---
 
-# mongodbatlas_alert_configuration
+# Data Source: mongodbatlas_alert_configuration
 
 `mongodbatlas_alert_configuration` describes an Alert Configuration.
 

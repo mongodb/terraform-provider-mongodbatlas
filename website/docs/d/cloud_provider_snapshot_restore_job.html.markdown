@@ -8,7 +8,7 @@ description: |-
 
 **WARNING:** This datasource is deprecated, use `mongodbatlas_cloud_backup_snapshot_restore_job`
 
-# mongodbatlas_cloud_provider_snapshot_restore_job
+# Data Source: mongodbatlas_cloud_provider_snapshot_restore_job
 
 `mongodbatlas_cloud_provider_snapshot_restore_job` provides a Cloud Backup Snapshot Restore Job datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 

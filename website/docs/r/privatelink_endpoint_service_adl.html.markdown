@@ -7,7 +7,7 @@ Provides an Atlas Data Lake and Online Archive PrivateLink endpoint.
 ---
 
 
-# privatelink_endpoint_service_adl
+# Resource: privatelink_endpoint_service_adl
 
 `privatelink_endpoint_service_adl` Provides an Atlas Data Lake (ADL) and Online Archive PrivateLink endpoint resource.   The same configuration will provide a PrivateLink connection for either Atlas Data Lake or Online Archive.
 

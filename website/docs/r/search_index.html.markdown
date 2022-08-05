@@ -6,7 +6,7 @@ description: |-
 Provides a Search Index resource.
 ---
 
-# mongodbatlas_search_index
+# Resource: mongodbatlas_search_index
 
 `mongodbatlas_search_index` provides a Search Index resource. This allows indexes to be created.
 

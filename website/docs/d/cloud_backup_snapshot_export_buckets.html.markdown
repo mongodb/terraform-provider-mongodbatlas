@@ -6,7 +6,7 @@ description: |-
 Provides a Cloud Backup Snapshot Export Bucket resource.
 ---
 
-# mongodbatlas_cloud_backup_snapshot_export_buckets
+# Data Source: mongodbatlas_cloud_backup_snapshot_export_buckets
 `mongodbatlas_cloud_backup_snapshot_export_buckets` datasource allows you to retrieve all the buckets for the specified project.
 
 

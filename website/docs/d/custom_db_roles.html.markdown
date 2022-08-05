@@ -6,7 +6,7 @@ description: |-
     Describes a Custom DB Roles.
 ---
 
-# mongodbatlas_custom_db_roles
+# Data Source: mongodbatlas_custom_db_roles
 
 `mongodbatlas_custom_db_roles` describe all Custom DB Roles. This represents a custom db roles.
 

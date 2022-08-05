@@ -6,7 +6,7 @@ description: |-
     Provides a Online Archive resource for creation, update, and delete
 ---
 
-# mongodbatlas_online_archive
+# Resource: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` resource provides access to create, edit, pause and resume an online archive for a collection. 
 

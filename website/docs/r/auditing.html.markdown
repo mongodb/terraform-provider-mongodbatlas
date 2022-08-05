@@ -6,7 +6,7 @@ description: |-
     Provides a Auditing resource.
 ---
 
-# mongodbatlas_auditing
+# Resource: mongodbatlas_auditing
 
 `mongodbatlas_auditing` provides an Auditing resource. This allows auditing to be created.
 

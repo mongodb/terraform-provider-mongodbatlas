@@ -7,7 +7,7 @@ Describes an Atlas Data Lake and Online Archive PrivateLink endpoint
 ---
 
 
-# privatelink_endpoint_service_adl
+# Data Source: privatelink_endpoint_service_adl
 
 `privatelink_endpoint_service_adl` Provides an Atlas Data Lake (ADL) and Online Archive PrivateLink endpoint resource.
 

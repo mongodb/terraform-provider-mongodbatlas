@@ -6,7 +6,7 @@ description: |-
     Describes a Team.
 ---
 
-# mongodbatlas_teams
+# Data Source: mongodbatlas_teams
 
 `mongodbatlas_teams` describes a Team. The resource requires your Organization ID, Project ID and Team ID.
 

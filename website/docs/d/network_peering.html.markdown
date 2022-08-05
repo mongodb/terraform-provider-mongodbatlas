@@ -6,7 +6,7 @@ description: |-
     Describes a Network Peering.
 ---
 
-# mongodbatlas_network_peering
+# Data Source: mongodbatlas_network_peering
 
 `mongodbatlas_network_peering` describes a Network Peering Connection.
 

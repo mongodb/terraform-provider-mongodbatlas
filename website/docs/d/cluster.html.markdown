@@ -6,7 +6,7 @@ description: |-
     Describe a Cluster.
 ---
 
-# mongodbatlas_cluster
+# Data Source: mongodbatlas_cluster
 
 `mongodbatlas_cluster` describes a Cluster. The data source requires your Project ID.
 

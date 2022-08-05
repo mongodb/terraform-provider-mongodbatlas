@@ -6,7 +6,7 @@ description: |-
     Provides a Cluster resource.
 ---
 
-# mongodbatlas_cluster
+# Resource: mongodbatlas_cluster
 
 `mongodbatlas_cluster` provides a Cluster resource. The resource lets you create, edit and delete clusters. The resource requires your Project ID.
 

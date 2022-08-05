@@ -6,7 +6,7 @@ description: |-
     Describes a Data Lakes.
 ---
 
-# mongodbatlas_data_lakes
+# Data Source: mongodbatlas_data_lakes
 
 `mongodbatlas_data_lakes` describe all Data Lakes.
 

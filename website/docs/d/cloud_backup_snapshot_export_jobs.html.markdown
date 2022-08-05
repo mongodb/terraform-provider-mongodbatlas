@@ -6,7 +6,7 @@ description: |-
 Provides a Cloud Backup Snapshot Export Jobs resource.
 ---
 
-# mongodbatlas_cloud_backup_snapshot_export_jobs
+# Data Source: mongodbatlas_cloud_backup_snapshot_export_jobs
 `mongodbatlas_cloud_backup_snapshot_export_jobs` datasource allows you to retrieve all the buckets for the specified project.
 
 

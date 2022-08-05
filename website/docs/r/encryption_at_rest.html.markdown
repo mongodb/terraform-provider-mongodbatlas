@@ -6,7 +6,7 @@ description: |-
     Provides an Encryption At Rest resource.
 ---
 
-# mongodbatlas_encryption_at_rest
+# Resource: mongodbatlas_encryption_at_rest
 
 `mongodbatlas_encryption_at_rest` Allows management of encryption at rest for an Atlas project with one of the following providers:
 

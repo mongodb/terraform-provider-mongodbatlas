@@ -6,7 +6,7 @@ description: |-
     Provides an Advanced Cluster resource.
 ---
 
-# mongodbatlas_advanced_cluster
+# Resource: mongodbatlas_advanced_cluster
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters. The resource requires your Project ID.
 

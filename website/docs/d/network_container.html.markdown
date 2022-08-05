@@ -6,7 +6,7 @@ description: |-
     Describes a Cluster resource.
 ---
 
-# mongodbatlas_network_container
+# Data Source: mongodbatlas_network_container
 
 `mongodbatlas_network_container` describes a Network Peering Container. The resource requires your Project ID and container ID.
 

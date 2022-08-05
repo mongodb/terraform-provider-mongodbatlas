@@ -6,7 +6,7 @@ description: |-
     Allows you to get the a single role for cloud provider access setup 
 ---
 
-# mongodbatlas_cloud_provider_access
+# Data Source: mongodbatlas_cloud_provider_access
 
 `mongodbatlas_cloud_provider_access` allows you to get a single role for a provider access role setup, currently only AWS is supported.
 

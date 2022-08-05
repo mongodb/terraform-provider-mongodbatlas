@@ -6,7 +6,7 @@ description: |-
 Provides a Serverless Instance resource.
 ---
 
-# mongodbatlas_serverless_instance
+# Resource: mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` provides a Serverless Instance resource. This allows serverless instances to be created.
 
