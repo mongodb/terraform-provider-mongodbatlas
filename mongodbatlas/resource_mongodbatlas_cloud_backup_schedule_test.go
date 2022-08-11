@@ -124,6 +124,9 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
 		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		policyName   = acctest.RandomWithPrefix("test-acc")
 		roleName     = acctest.RandomWithPrefix("test-acc")
+		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
+		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		region       = os.Getenv("AWS_REGION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -132,7 +135,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName),
+				Config: testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -604,11 +607,17 @@ func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(projectID, clu
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName string) string {
+func testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig(projectID, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region string) string {
 	return fmt.Sprintf(`
 
 locals {
 	mongodbatlas_project_id = %[1]q
+}
+
+provider "aws" {
+	region     = %[7]q
+	access_key = %[5]q
+	secret_key = %[6]q
 }
 
 resource "mongodbatlas_cluster" "my_cluster" {
@@ -618,7 +627,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
 	  
   // Provider Settings "block"
   provider_name               = "AWS"
-  provider_region_name        = "EU_CENTRAL_1"
+  provider_region_name        = "US_WEST_2"
   provider_instance_size_name = "M10"
   cloud_backup                = true //enable cloud provider snapshots
   depends_on = ["mongodbatlas_cloud_backup_snapshot_export_bucket.test"]
@@ -715,5 +724,5 @@ resource "aws_iam_role" "test_role" {
 EOF
  
 }
-	`, projectID, clusterName, policyName, roleName)
+	`, projectID, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region)
 }
