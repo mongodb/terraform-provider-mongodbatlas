@@ -1,5 +1,25 @@
 # Changelog
 
+## [v1.4.4-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/HEAD)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...HEAD)
+
+**Fixed bugs:**
+
+- Documentation: mongodbatlas\_custom\_db\_role \(collection\_name vs. collection\) [\#775](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/775)
+
+**Closed issues:**
+
+- Unable to update members in an existing "mongodbatlas\_teams" as the provider attempts to remove all users first [\#790](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/790)
+- Please elaborate how to acquire PROJECTID and PEERINGID and PROVIDERNAME for import of network peering [\#789](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/789)
+- error: error reading cloud provider access cloud provider access role not found in mongodbatlas, please create it first [\#781](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/781)
+- mongodbatlas\_cloud\_backup\_schedule does not support multiple weekly/monthly policies [\#748](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/748)
+
+**Merged pull requests:**
+
+- Update CONTRIBUTING.md [\#798](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/798) ([themantissa](https://github.com/themantissa))
+- Fix federated\_settings\_identity\_provider attribute name [\#791](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/791) ([florenp](https://github.com/florenp))
+
 ## [v1.4.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.3) (2022-07-12)
 ## Fixed
 
