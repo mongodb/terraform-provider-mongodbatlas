@@ -21,6 +21,7 @@ require (
 	cloud.google.com/go/bigtable v1.10.1 // indirect
 	cloud.google.com/go/storage v1.10.0 // indirect
 	github.com/GoogleCloudPlatform/declarative-resource-client-library v0.0.0-20210623224421-7f5af5003bbb // indirect
+	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
