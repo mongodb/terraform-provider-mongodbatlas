@@ -119,9 +119,9 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 				},
 			})
 			if err != nil {
-				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
-					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
-					strings.Contains(fmt.Sprint(err), "500") {
+				if strings.Contains(err.Error(), "Unexpected error") ||
+					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
+					strings.Contains(err.Error(), "500") {
 					return nil, "pending", nil
 				}
 				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
@@ -134,9 +134,9 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 
 			exists, err := isEntryInProjectAccessList(ctx, conn, projectID, accessListEntry)
 			if err != nil {
-				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
-					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
-					strings.Contains(fmt.Sprint(err), "500") {
+				if strings.Contains(err.Error(), "Unexpected error") ||
+					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
+					strings.Contains(err.Error(), "500") {
 					return nil, "pending", nil
 				}
 				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
@@ -185,9 +185,9 @@ func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.
 		accessList, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			switch {
-			case strings.Contains(fmt.Sprint(err), "500"):
+			case strings.Contains(err.Error(), "500"):
 				return resource.RetryableError(err)
-			case strings.Contains(fmt.Sprint(err), "404"):
+			case strings.Contains(err.Error(), "404"):
 				if !d.IsNewResource() {
 					d.SetId("")
 					return nil
@@ -228,9 +228,9 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 	return diag.FromErr(resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
 		_, err := conn.ProjectIPAccessList.Delete(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
-			if strings.Contains(fmt.Sprint(err), "500") ||
-				strings.Contains(fmt.Sprint(err), "Unexpected error") ||
-				strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") {
+			if strings.Contains(err.Error(), "500") ||
+				strings.Contains(err.Error(), "Unexpected error") ||
+				strings.Contains(err.Error(), "UNEXPECTED_ERROR") {
 				return resource.RetryableError(err)
 			}
 
@@ -239,9 +239,9 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 
 		entry, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
-			if strings.Contains(fmt.Sprint(err), "404") ||
-				strings.Contains(fmt.Sprint(err), "ATLAS_ACCESS_LIST_NOT_FOUND") ||
-				strings.Contains(fmt.Sprint(err), "ATLAS_NETWORK_PERMISSION_ENTRY_NOT_FOUND") {
+			if strings.Contains(err.Error(), "404") ||
+				strings.Contains(err.Error(), "ATLAS_ACCESS_LIST_NOT_FOUND") ||
+				strings.Contains(err.Error(), "ATLAS_NETWORK_PERMISSION_ENTRY_NOT_FOUND") {
 				return nil
 			}
 
@@ -291,9 +291,9 @@ func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projec
 		accessList, resp, err := conn.ProjectIPAccessList.List(ctx, projectID, &matlas.ListOptions{PageNum: currentPage})
 		if err != nil {
 			switch {
-			case strings.Contains(fmt.Sprint(err), "500"):
+			case strings.Contains(err.Error(), "500"):
 				return resource.RetryableError(err)
-			case strings.Contains(fmt.Sprint(err), "404"):
+			case strings.Contains(err.Error(), "404"):
 				return resource.RetryableError(err)
 			default:
 				return resource.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
@@ -324,9 +324,9 @@ func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projec
 		return nil
 	})
 	if err != nil {
-		if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
-			strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
-			strings.Contains(fmt.Sprint(err), "500") {
+		if strings.Contains(err.Error(), "Unexpected error") ||
+			strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
+			strings.Contains(err.Error(), "500") {
 			return exists, nil
 		}
 		return exists, err

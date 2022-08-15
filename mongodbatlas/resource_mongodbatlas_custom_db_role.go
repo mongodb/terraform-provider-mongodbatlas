@@ -117,11 +117,11 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 		Refresh: func() (interface{}, string, error) {
 			customDBRoleRes, _, err := conn.CustomDBRoles.Create(ctx, projectID, customDBRoleReq)
 			if err != nil {
-				if strings.Contains(fmt.Sprint(err), "Unexpected error") ||
-					strings.Contains(fmt.Sprint(err), "UNEXPECTED_ERROR") ||
-					strings.Contains(fmt.Sprint(err), "500") ||
-					strings.Contains(fmt.Sprint(err), "404") ||
-					strings.Contains(fmt.Sprint(err), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
+				if strings.Contains(err.Error(), "Unexpected error") ||
+					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
+					strings.Contains(err.Error(), "500") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
 					return nil, "pending", nil
 				}
 				return nil, "failed", err
@@ -221,8 +221,8 @@ func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.Resou
 		Refresh: func() (interface{}, string, error) {
 			_, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
 			if err != nil {
-				if strings.Contains(fmt.Sprint(err), "404") ||
-					strings.Contains(fmt.Sprint(err), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
+				if strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
 					return "", "deleted", nil
 				}
 				return nil, "failed", err
