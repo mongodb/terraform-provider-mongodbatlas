@@ -335,9 +335,9 @@ func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.Res
 	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
 		if res.StatusCode == http.StatusNotFound ||
-			strings.Contains(fmt.Sprint(err), "BACKUP_CONFIG_NOT_FOUND") ||
-			strings.Contains(fmt.Sprint(err), "Not Found") ||
-			strings.Contains(fmt.Sprint(err), "404") {
+			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
+			strings.Contains(err.Error(), "Not Found") ||
+			strings.Contains(err.Error(), "404") {
 			return []map[string]interface{}{}, nil
 		}
 
