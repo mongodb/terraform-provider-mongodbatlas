@@ -821,7 +821,7 @@ func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, 
 		var scopeType string
 
 		if scope.Type != "" {
-			scopeType = fmt.Sprintf(`type = "%s"`, scope.Type)
+			scopeType = fmt.Sprintf(`type = %q`, scope.Type)
 		}
 
 		scopes += fmt.Sprintf(`
