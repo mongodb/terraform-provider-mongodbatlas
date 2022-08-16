@@ -6,7 +6,7 @@ description: |-
 Describes a Serverless Instances.
 ---
 
-# mongodbatlas_serverless_instances
+# Data Source: mongodbatlas_serverless_instances
 
 `mongodbatlas_serverless_instances` describe all serverless instances. This represents serverless instances that have been created for the specified group id.
 

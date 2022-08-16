@@ -6,7 +6,7 @@ description: |-
     Provides a Cloud Backup Snapshot Restore Job Datasource.
 ---
 
-# mongodbatlas_cloud_backup_snapshot_restore_job
+# Data Source: mongodbatlas_cloud_backup_snapshot_restore_job
 
 `mongodbatlas_cloud_backup_snapshot_restore_job` provides a Cloud Backup Snapshot Restore Job datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 

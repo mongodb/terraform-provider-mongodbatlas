@@ -6,7 +6,7 @@ description: |-
     Describes a LDAP Verify.
 ---
 
-# mongodbatlas_ldap_verify
+# Data Source: mongodbatlas_ldap_verify
 
 `mongodbatlas_ldap_verify` describes a LDAP Verify.
 

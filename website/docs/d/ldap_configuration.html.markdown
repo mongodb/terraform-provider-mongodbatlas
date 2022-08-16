@@ -6,7 +6,7 @@ description: |-
     Describes a LDAP Configuration.
 ---
 
-# mongodbatlas_ldap_configuration
+# Data Source: mongodbatlas_ldap_configuration
 
 `mongodbatlas_ldap_configuration` describes a LDAP Configuration.
 

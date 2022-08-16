@@ -207,7 +207,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
-		maintenanceWindowReq.AutoDeferOnceEnabled = pointy.Bool(d.Get("number_of_deferrals").(bool))
+		maintenanceWindowReq.AutoDeferOnceEnabled = pointy.Bool(d.Get("auto_defer_once_enabled").(bool))
 	}
 
 	_, err := conn.MaintenanceWindows.Update(ctx, d.Id(), maintenanceWindowReq)

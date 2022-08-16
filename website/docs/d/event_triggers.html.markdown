@@ -6,7 +6,7 @@ description: |-
     Describes an Event Triggers.
 ---
 
-# mongodbatlas_event_triggers
+# Data Source: mongodbatlas_event_triggers
 
 `mongodbatlas_event_triggers` describe all Event Triggers.
 

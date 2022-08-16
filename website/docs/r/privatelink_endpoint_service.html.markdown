@@ -6,7 +6,7 @@ description: |-
     Provides a Private Endpoint Link resource.
 ---
 
-# mongodbatlas_privatelink_endpoint_service
+# Resource: mongodbatlas_privatelink_endpoint_service
 
 `mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one interface endpoint to a private endpoint connection in an Atlas project.
 
@@ -114,10 +114,10 @@ resource "google_compute_address" "default" {
 # Create 50 Forwarding rules
 resource "google_compute_forwarding_rule" "default" {
   count                 = 50
-  project               = var.gcp_project
-  region                = var.gcp_region
-  name                  = "tf-test${count.index}"
   target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
+  project               = google_compute_address.default[count.index].project
+  region                = google_compute_address.default[count.index].region
+  name                  = google_compute_address.default[count.index].name
   ip_address            = google_compute_address.default[count.index].id
   network               = google_compute_network.default.id
   load_balancing_scheme = ""
@@ -136,7 +136,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
     content {
       ip_address    = google_compute_address.default[endpoints.key].address
-      endpoint_name = google_compute_address.default[endpoints.key].name
+      endpoint_name = google_compute_forwarding_rule.default[endpoints.key].name
     }
   }
 

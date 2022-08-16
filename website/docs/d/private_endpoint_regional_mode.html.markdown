@@ -6,7 +6,7 @@ description: |-
     Describes a Private Endpoint Regional Mode
 ---
 
-# private_endpoint_regional_mode
+# Data Source: private_endpoint_regional_mode
 
 `private_endpoint_regional_mode` describe a Private Endpoint Regional Mode. This represents a Private Endpoint Regional Mode Connection that wants to retrieve settings of an Atlas project.
 

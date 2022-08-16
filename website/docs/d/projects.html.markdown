@@ -6,7 +6,7 @@ description: |-
     Describes a Projects.
 ---
 
-# mongodbatlas_projects
+# Data Source: mongodbatlas_projects
 
 `mongodbatlas_projects` describe all Projects. This represents projects that have been created.
 

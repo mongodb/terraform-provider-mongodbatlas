@@ -6,7 +6,7 @@ description: |-
     Describes a Private Endpoint Link.
 ---
 
-# mongodbatlas_privatelink_endpoint_service
+# Data Source: mongodbatlas_privatelink_endpoint_service
 
 `mongodbatlas_privatelink_endpoint_service` describe a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
 

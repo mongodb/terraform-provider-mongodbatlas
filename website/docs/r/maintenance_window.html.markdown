@@ -6,7 +6,7 @@ description: |-
     Provides an Maintenance Window resource.
 ---
 
-# mongodbatlas_maintenance_window
+# Resource: mongodbatlas_maintenance_window
 
 `mongodbatlas_maintenance_window` provides a resource to schedule a maintenance window for your MongoDB Atlas Project and/or set to defer a scheduled maintenance up to two times.
 

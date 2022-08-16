@@ -6,7 +6,7 @@ description: |-
     Provides a Network Peering resource.
 ---
 
-# mongodbatlas_network_container
+# Resource: mongodbatlas_network_container
 
 `mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. The resource requires your Project ID.  Each cloud provider requires slightly different attributes so read the argument reference carefully.
 

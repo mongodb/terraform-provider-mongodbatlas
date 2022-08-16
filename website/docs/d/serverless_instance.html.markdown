@@ -6,7 +6,7 @@ description: |-
 Provides a Serverless Instance.
 ---
 
-# mongodbatlas_serverless_instance
+# Data Source: mongodbatlas_serverless_instance
 
 `mongodbatlas_serverless_instance` describe a single serverless instance. This represents a single serverless instance that have been created.
 > **NOTE:**  Serverless instances do not support some Atlas features at this time.

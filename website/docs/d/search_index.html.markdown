@@ -6,7 +6,7 @@ description: |-
 Describes a Search Index.
 ---
 
-# mongodbatlas_search_index
+# Data Source: mongodbatlas_search_index
 
 `mongodbatlas_search_index` describe a single search indexes. This represents a single search index that have been created.
 

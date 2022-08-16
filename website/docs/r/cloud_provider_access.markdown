@@ -6,7 +6,7 @@ description: |-
     Provides a Cloud Provider Access settings resource for registration, authorization, and deauthorization
 ---
 
-# Cloud Provider Access Configuration Paths
+# Resource: Cloud Provider Access Configuration Paths
 
 The MongoDB Atlas provider offers two paths to perform an authorization for a cloud provider role.
 

@@ -750,15 +750,15 @@ func testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, o
 		var roleName, databaseName, collection string
 
 		if role.RoleName != "" {
-			roleName = fmt.Sprintf(`role_name = "%s"`, role.RoleName)
+			roleName = fmt.Sprintf(`role_name = %q`, role.RoleName)
 		}
 
 		if role.DatabaseName != "" {
-			databaseName = fmt.Sprintf(`database_name = "%s"`, role.DatabaseName)
+			databaseName = fmt.Sprintf(`database_name = %q`, role.DatabaseName)
 		}
 
 		if role.CollectionName != "" {
-			collection = fmt.Sprintf(`collection_name = "%s"`, role.CollectionName)
+			collection = fmt.Sprintf(`collection_name = %q`, role.CollectionName)
 		}
 
 		roles += fmt.Sprintf(`
@@ -821,7 +821,7 @@ func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, 
 		var scopeType string
 
 		if scope.Type != "" {
-			scopeType = fmt.Sprintf(`type = "%s"`, scope.Type)
+			scopeType = fmt.Sprintf(`type = %q`, scope.Type)
 		}
 
 		scopes += fmt.Sprintf(`

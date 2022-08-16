@@ -6,7 +6,7 @@ description: |-
     Provides a Global Cluster Configuration resource.
 ---
 
-# mongodbatlas_global_cluster_config
+# Resource: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` provides a Global Cluster Configuration resource.
 
@@ -147,10 +147,10 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Database users can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTER_NAME`, e.g.
+Global Clusters can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTER_NAME`, e.g.
 
 ```
-$ terraform import mongodbatlas_global_cluster_config.config 1112222b3bf99403840e8934-my-cluster
+$ terraform import mongodbatlas_global_cluster_config.config 1112222b3bf99403840e8934-Cluster0
 ```
 
 See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://docs.atlas.mongodb.com/reference/api/global-clusters/)

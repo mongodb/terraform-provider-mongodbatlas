@@ -6,7 +6,7 @@ description: |-
     Provides a Cloud Backup Schedule resource.
 ---
 
-# mongodbatlas_cloud_backup_schedule
+# Resource: mongodbatlas_cloud_backup_schedule
 
 `mongodbatlas_cloud_backup_schedule` provides a cloud backup schedule resource. The resource lets you create, read, update and delete a cloud backup schedule.
 

@@ -6,7 +6,7 @@ description: |-
     Describes all Third-Party Integration Settings in the project.
 ---
 
-# mongodbatlas_third_party_integrations
+# Data Source: mongodbatlas_third_party_integrations
 
 `mongodbatlas_third_party_integrations` describe all Third-Party Integration Settings. This represents two Third-Party services `PAGER_DUTY` and `FLOWDOCK`
 applied across the project. 
