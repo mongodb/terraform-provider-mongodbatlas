@@ -1,6 +1,17 @@
 # Changelog
+## [v1.4.4](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4)
 
-## [v1.4.4-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/HEAD)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...HEAD)
+
+
+- INTMDB-320 | [Terraform] Fix issue with docs/possibly bug with mongodbatlas_global_cluster_config
+- INTMDB-331 | [Terraform] Error in endpoint_name for mongodbatlas_privatelink_endpoint_service [\#753](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/753)
+- INTMDB-351 | [Terraform] project data source not returning name, issue [\#788](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/788)
+- INTMDB-362 | Header Clarifications "Resource" vs "Data Source"
+- INTMDB-331 [Terraform] Error in endpoint_name for mongodbatlas_privatelink_endpoint_service [\#753](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/753)
+- INTMDB-343 [Terraform] Upgrade to go 1.17
+
+## [v1.4.4-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4-pre.1)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...HEAD)
 
