@@ -457,15 +457,15 @@ func validateDeliveryType(dt []interface{}) error {
 
 	pointTimeUTC, pointTimeUTCOk := v["point_in_time_utc_seconds"]
 	isPITSet := pointTimeUTCOk && pointTimeUTC != nil && (pointTimeUTC.(int) > 0)
-	oplogTs, oplogTsOk := v["oplog_ts"]
-	isOpTsSet := oplogTsOk && oplogTs != nil && (oplogTs.(int) > 0)
+	oplogTS, oplogTSOk := v["oplog_ts"]
+	isOpTSSet := oplogTSOk && oplogTS != nil && (oplogTS.(int) > 0)
 	oplogInc, oplogIncOk := v["oplog_inc"]
 	isOpIncSet := oplogIncOk && oplogInc != nil && (oplogInc.(int) > 0)
 
-	if !isPITSet && !(isOpTsSet && isOpIncSet) {
+	if !isPITSet && !(isOpTSSet && isOpIncSet) {
 		return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
 	}
-	if isPITSet && (isOpTsSet || isOpIncSet) {
+	if isPITSet && (isOpTSSet || isOpIncSet) {
 		return fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key)
 	}
 
