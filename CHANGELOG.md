@@ -1,30 +1,25 @@
 # Changelog
-## [v1.4.4](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4)
+## [v1.4.4](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4) (2022-08-18)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...HEAD)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...v1.4.4)
 
+**Fixed:**
 
-- INTMDB-320 | [Terraform] Fix issue with docs/possibly bug with mongodbatlas_global_cluster_config
-- INTMDB-331 | [Terraform] Error in endpoint_name for mongodbatlas_privatelink_endpoint_service [\#753](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/753)
-- INTMDB-351 | [Terraform] project data source not returning name, issue [\#788](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/788)
-- INTMDB-362 | Header Clarifications "Resource" vs "Data Source"
-- INTMDB-331 [Terraform] Error in endpoint_name for mongodbatlas_privatelink_endpoint_service [\#753](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/753)
-- INTMDB-343 [Terraform] Upgrade to go 1.17
+- INTMDB320 - Fix Global Cluster import documentation, in [\#796](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/796)
+- INTMDB-331 - Update GCP documentation, issue [\#753](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/753), in [\#793](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/793)
+- INTMDB-351 - Project data_source reads name, issue [\#788](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/788), in [\#795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/795)
+- INTMDB-362: Header Clarifications "Resource" vs "Data Source" in Documentation, in [\#803])(https://github.com/mongodb/terraform-provider-mongodbatlas/pull/803)
+- INTMDB-343: Update go from 1.16 to 1.17 add windows arm64 build support, in [\#797](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/797)
 
-## [v1.4.4-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4-pre.1)
+## [v1.4.4-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4-pre.1) (2022-08-17)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...HEAD)
-
-**Fixed bugs:**
-
-- Documentation: mongodbatlas\_custom\_db\_role \(collection\_name vs. collection\) [\#775](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/775)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...v1.4.4-pre.1)
 
 **Closed issues:**
 
 - Unable to update members in an existing "mongodbatlas\_teams" as the provider attempts to remove all users first [\#790](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/790)
 - Please elaborate how to acquire PROJECTID and PEERINGID and PROVIDERNAME for import of network peering [\#789](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/789)
 - error: error reading cloud provider access cloud provider access role not found in mongodbatlas, please create it first [\#781](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/781)
-- mongodbatlas\_cloud\_backup\_schedule does not support multiple weekly/monthly policies [\#748](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/748)
 
 **Merged pull requests:**
 
@@ -32,7 +27,10 @@
 - Fix federated\_settings\_identity\_provider attribute name [\#791](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/791) ([florenp](https://github.com/florenp))
 
 ## [v1.4.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.3) (2022-07-12)
-## Fixed
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.2...v1.4.3)
+
+**Fixed:**
 
 * INTMDB-335: Add option for multiple weekly monthly schedules @martinstibbe in [\#784](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/784)
 * INTMDB-348: autoexport parameter not being set via provider [\#784](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/784)
@@ -41,24 +39,29 @@
 * Fix typo in custom_db_role documentation [\#780](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/780)
 * Fix typo in federated_settings_org_configs documentation [\#779](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/779)
  
-**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.2...v1.4.3
 
 ## [v1.4.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.2) (2022-07-7)
-## What's Changed
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.1...v1.4.2)
+
+**Fixed:**
 
 * INTMDB-313: Update project settings default flags by @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/778
 
-**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.1...v1.4.2
-
 ## [v1.4.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.1) (2022-07-7)
-## What's Changed
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.0...v1.4.1)
+
+**Fixed:**
 
 * Update CHANGELOG.md by @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/771
 * INTMDB-313: Update project settings default flags by @martinstibbe in https://github.com/mongodb/terraform-provider-mongodbatlas/pull/773
 
 
-**Full Changelog**: https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.0...v1.4.1
 ## [v1.4.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.0) (2022-07-5)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1...v1.4.0) 
+
 **Closed issues:**
 
 Note: the binary executable for windows/arm64 is not available for this release.  Next release will include.
@@ -83,8 +86,10 @@ Note: the binary executable for windows/arm64 is not available for this release.
 - INTMDB-315: Correct import function for snapshot export bucket [\#715](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/715) ([martinstibbe](https://github.com/martinstibbe))
 - INTMDB-309: Add support for schema migration [\#717](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/717) ([martinstibbe](https://github.com/martinstibbe))
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1...v1.4.0) (2022-07-06)
 ## [v1.4.0-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.0-pre.1) (2022-06-29)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1...v1.4.0-pre.1) 
+
 **Closed issues:**
 
 Note: the binary executable for windows/arm64 is not available for this release.  Next release will include.
@@ -109,8 +114,9 @@ Note: the binary executable for windows/arm64 is not available for this release.
 - INTMDB-315: Correct import function for snapshot export bucket [\#715](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/715) ([martinstibbe](https://github.com/martinstibbe))
 - INTMDB-309: Add support for schema migration [\#717](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/717) ([martinstibbe](https://github.com/martinstibbe))
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1...v1.4.0-pre.1) (2022-07-06)
 ## [v1.3.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1-pre.1) (2022-02-23)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.3.1...v1.3.1-pre.1)
 
 **Closed issues:**
 - Advance Cluster resource ignoring the autoscaling options [\#686](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/686)
@@ -125,9 +131,9 @@ Note: the binary executable for windows/arm64 is not available for this release.
 -  INTMDB-303: Provider did not catch 400 error returned from the API [\#687](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/687) ([martinstibbe](https://github.com/martinstibbe))
 - INTMDB-305: Update timing of autodefer [\#695](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/695) ([martinstibbe](https://github.com/martinstibbe))
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.3.1...v1.3.1-pre.1)
-
 ## [v1.3.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1) (2022-03-28)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.3.1...v1.3.1-pre.1)
 
 - INTMDB-306: [Terraform] Release bug fix version 1.3.1
 ## [v1.3.1-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1-pre.1) (2022-02-23)
@@ -144,8 +150,6 @@ Note: the binary executable for windows/arm64 is not available for this release.
 - INTMDB-302: Ensure we handle new flow for project deletion well #688  [\#688](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/688) ([evertsd](https://github.com/evertsd))
 -  INTMDB-303: Provider did not catch 400 error returned from the API [\#687](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/687) ([martinstibbe](https://github.com/martinstibbe))
 - INTMDB-305: Update timing of autodefer [\#695](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/695) ([martinstibbe](https://github.com/martinstibbe))
-
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.3.1...v1.3.1-pre.1)
 
 ## [v1.3.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.0) (2022-02-23)
 
