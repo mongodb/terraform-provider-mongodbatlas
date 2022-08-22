@@ -104,7 +104,7 @@ Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId.
 Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId. if you want to use automated delivery type, you must to set the following arguments:
 
 * `target_cluster_name` - (Required) 	Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
-* `target_group_id` - (Required) 	Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
+* `target_project_id` - (Required) 	Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
 
 
 ## Attributes Reference
@@ -122,7 +122,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` -	The Terraform's unique identifier used internally for state management.
 * `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
-* `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
+* `target_project_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 * `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot.
