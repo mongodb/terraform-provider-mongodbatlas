@@ -409,58 +409,64 @@ func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapsho
 	return
 }
 
-func validateDeliveryType(d []interface{}) error {
-	if len(d) != 0 {
-		v := d[0].(map[string]interface{})
-		key := "delivery_type_config"
+func validateDeliveryType(dt []interface{}) error {
+	if len(dt) == 0 {
+		return nil
+	}
 
-		_, automated := v["automated"]
-		_, download := v["download"]
-		_, pointInTime := v["point_in_time"]
+	v := dt[0].(map[string]interface{})
+	key := "delivery_type_config"
 
-		if (v["automated"] == true && v["download"] == true && v["point_in_time"] == true) ||
-			(v["automated"] == false && v["download"] == false && v["point_in_time"] == false) ||
-			(!automated && !download && !pointInTime) {
-			return fmt.Errorf("%q you can only submit one type of restore job: automated, download or point_in_time", key)
+	a, aOk := v["automated"]
+	automated := aOk && a != nil && a.(bool)
+	d, dOk := v["download"]
+	download := dOk && d != nil && d.(bool)
+	p, pOk := v["point_in_time"]
+	pointInTime := pOk && p != nil && p.(bool)
+
+	hasDeliveryType := automated || download || pointInTime
+
+	if !hasDeliveryType ||
+		(automated && download) ||
+		(automated && pointInTime) ||
+		(download && pointInTime) {
+		return fmt.Errorf("%q you must submit exactly one type of restore job: automated, download or point_in_time", key)
+	}
+
+	if automated || pointInTime {
+		if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
+			return fmt.Errorf("%q target_cluster_name must be set", key)
 		}
-		if v["automated"] == true && (v["download"] == false || !download) {
-			if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
-				return fmt.Errorf("%q target_cluster_name must be set", key)
-			}
-			if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
-				return fmt.Errorf("%q target_project_id must be set", key)
-			}
+
+		if targetProjectID, ok := v["target_project_id"]; !ok || targetProjectID == "" {
+			return fmt.Errorf("%q target_project_id must be set", key)
 		}
-		if v["download"] == true && (v["automated"] == false || !automated) &&
-			(v["point_in_time"] == false || !pointInTime) {
-			if targetClusterName, ok := v["target_cluster_name"]; ok && targetClusterName != "" {
-				return fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key)
-			}
-			if targetGroupID, ok := v["target_project_id"]; ok && targetGroupID != "" {
-				return fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key)
-			}
+	} else {
+		if targetClusterName, ok := v["target_cluster_name"]; ok && len(targetClusterName.(string)) > 0 {
+			return fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key)
 		}
-		if v["point_in_time"] == true && (v["download"] == false || !download) &&
-			(v["automated"] == false || !automated) {
-			_, oplogTS := v["oplog_ts"]
-			_, pointTimeUTC := v["point_in_time_utc_seconds"]
-			_, oplogInc := v["oplog_inc"]
-			if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
-				return fmt.Errorf("%q target_cluster_name must be set", key)
-			}
-			if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
-				return fmt.Errorf("%q target_project_id must be set", key)
-			}
-			if !pointTimeUTC && !oplogTS && !oplogInc {
-				return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
-			}
-			if (oplogTS && !oplogInc) || (!oplogTS && oplogInc) {
-				return fmt.Errorf("%q if oplog_ts or oplog_inc is provided, oplog_inc and oplog_ts must be set", key)
-			}
-			if pointTimeUTC && (oplogTS || oplogInc) {
-				return fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key)
-			}
+
+		if targetProjectID, ok := v["target_project_id"]; ok && len(targetProjectID.(string)) > 0 {
+			return fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key)
 		}
+	}
+
+	if automated || download {
+		return nil
+	}
+
+	pointTimeUTC, pointTimeUTCOk := v["point_in_time_utc_seconds"]
+	isPITSet := pointTimeUTCOk && pointTimeUTC != nil && (pointTimeUTC.(int) > 0)
+	oplogTS, oplogTSOk := v["oplog_ts"]
+	isOpTSSet := oplogTSOk && oplogTS != nil && (oplogTS.(int) > 0)
+	oplogInc, oplogIncOk := v["oplog_inc"]
+	isOpIncSet := oplogIncOk && oplogInc != nil && (oplogInc.(int) > 0)
+
+	if !isPITSet && !(isOpTSSet && isOpIncSet) {
+		return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
+	}
+	if isPITSet && (isOpTSSet || isOpIncSet) {
+		return fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key)
 	}
 
 	return nil

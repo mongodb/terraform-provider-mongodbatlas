@@ -8,7 +8,7 @@ description: |-
 
 # Resource: mongodbatlas_cloud_backup_snapshot_restore_job
 
-`mongodbatlas_cloud_backup_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job can be one of three types: 
+`mongodbatlas_cloud_backup_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job must define one of three delivery types: 
 * **automated:** Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId.
 
 * **download:** Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. The contents of the archive contain the data files for your Atlas cluster.
@@ -92,17 +92,23 @@ description: |-
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
 * `snapshot_id` - (Required) Unique identifier of the snapshot to restore.
-* `delivery_type_config` - (Required) Type of restore job to create. Possible values are: **download** or **automated**, only one must be set it in ``true``.
+* `delivery_type_config` - (Required) Type of restore job to create. Possible configurations are: **download**, **automated**, or **pointInTime** only one must be set it in ``true``.
+* `delivery_type_config.automated` - Set to `true` to use the automated configuration.
+* `delivery_type_config.download` - Set to `true` to use the download configuration.
+* `delivery_type_config.pointInTime` - Set to `true` to use the pointInTime configuration.
+* `delivery_type_config.target_cluster_name` - Name of the target Atlas cluster to which the restore job restores the snapshot. Required for **automated** and **pointInTime**.
+* `delivery_type_config.target_project_id` - Name of the target Atlas cluster to which the restore job restores the snapshot. Required for **automated** and **pointInTime**.
+* `delivery_type_config.oplog_ts` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot. This is the first part of an Oplog timestamp.
+* `delivery_type_config.oplog_inc` - Optional setting for **pointInTime** configuration. Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp. Used in conjunction with `oplog_ts`.
+* `delivery_type_config.point_in_time_utc_seconds` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot. Used instead of oplog settings.
 
 ### Download
 Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. 
 
 ### Automated
-Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetGroupId. if you want to use automated delivery type, you must to set the following arguments:
+Atlas automatically restores the snapshot with snapshotId to the Atlas cluster with name targetClusterName in the Atlas project with targetProjectId. if you want to use automated delivery type, you must to set the arguments for the afformentioned properties.
 
-* `target_cluster_name` - (Required) 	Name of the target Atlas cluster to which the restore job restores the snapshot. Only required if deliveryType is automated.
-* `target_group_id` - (Required) 	Unique ID of the target Atlas project for the specified targetClusterName. Only required if deliveryType is automated.
-
+### Point in time
 
 ## Attributes Reference
 
@@ -119,7 +125,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` -	The Terraform's unique identifier used internally for state management.
 * `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
-* `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
+* `target_project_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 * `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot.

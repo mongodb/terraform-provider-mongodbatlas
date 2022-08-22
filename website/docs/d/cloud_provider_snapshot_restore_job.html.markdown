@@ -62,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
 * `id` -	The unique identifier of the restore job.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
-* `target_group_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
+* `target_project_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
 * `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
