@@ -104,7 +104,7 @@ In addition to all arguments above, the following attributes are exported:
 
   -> ***IMPORTANT:*** Event Type has many possible values. All current options at available at https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/ Details for both conditional and metric based alerts can be found by selecting the tabs on the [alert config page](https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/) and checking the latest eventTypeName options.
 
-  -> **NOTE:** If `event_type` is set to OUTSIDE_METRIC_THRESHOLD, the metricThreshold field must also be set.
+  -> **NOTE:** If `event_type` is set to `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`, the `metric_threshold_config` field must also be configured.
 
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.
@@ -143,10 +143,10 @@ Rules to apply when matching an object against this alert configuration. Only en
     - `CONFIG`
     - `MONGOS`
 
-### Metric Threshold Config
-The threshold that causes an alert to be triggered. Required if `event_type_name` : "OUTSIDE_METRIC_THRESHOLD".
+### Metric Threshold Config (`metric_threshold_config`)
+The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`.
 
-* `metric_name` - Name of the metric to check. The full list of current options is available [here](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types)
+* `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
 
 * `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
@@ -175,7 +175,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 
 * `mode` - This must be set to AVERAGE. Atlas computes the current metric value as an average.
 
-### Threshold Config
+### Threshold Config (`threshold_config`)
 * `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
