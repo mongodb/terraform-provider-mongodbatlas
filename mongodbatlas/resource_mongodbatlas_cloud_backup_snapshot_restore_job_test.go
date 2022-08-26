@@ -188,8 +188,7 @@ func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(projectID, 
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = %[1]q
   name         = %[2]q
-  disk_size_gb = 5
-
+  
   // Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
@@ -223,8 +222,7 @@ func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(projectID, c
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = %[1]q
   name         = %[2]q
-  disk_size_gb = 5
-
+  
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
   provider_instance_size_name = "M10"
