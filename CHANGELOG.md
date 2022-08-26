@@ -5,7 +5,7 @@
 **Fixed**
 
 - INTMDB-369: Fix parsing of `delivery_type_config` when using `point_in_time` for `cloud_backup_snapshot_restore_job`, in [\#813](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/813)
-- INTMDB-322: Validated serverless alert_configurations and improved documentation on usage, addressing issue [\#722](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/722) in [\#813](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/813)
+- INTMDB-322: Validated serverless alert_configurations and improved documentation on usage, addressing issue [\#722](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/722) in [\#819](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/819)
 
 ## [v1.4.4](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4) (2022-08-18)
 
