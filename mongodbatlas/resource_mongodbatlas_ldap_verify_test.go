@@ -197,8 +197,7 @@ func testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostna
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
 			name         = "%[3]s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"
@@ -226,8 +225,7 @@ func testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, cl
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
 			name         = "%[3]s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"

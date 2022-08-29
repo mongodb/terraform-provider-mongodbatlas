@@ -382,8 +382,7 @@ func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterNa
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -407,8 +406,7 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -453,8 +451,7 @@ func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterNam
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -484,8 +481,7 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(projectID, clusterN
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -556,8 +552,7 @@ func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(projectID, clu
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -623,8 +618,7 @@ provider "aws" {
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = %[1]q
   name         = %[2]q
-  disk_size_gb = 5
-	  
+  	  
   // Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "US_WEST_2"

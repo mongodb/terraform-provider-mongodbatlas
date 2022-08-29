@@ -841,8 +841,7 @@ func testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, 
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "${mongodbatlas_project.test.id}"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_2"

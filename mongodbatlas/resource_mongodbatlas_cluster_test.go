@@ -1768,8 +1768,7 @@ func testAccMongoDBAtlasClusterConfigGCPWithNetworkPeering(gcpProjectID, gcpRegi
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%[3]s"
 			name         = "%[6]s"
-			disk_size_gb = 5
-
+			
             cluster_type = "REPLICASET"
 		    replication_specs {
 			  num_shards = 1
@@ -1840,9 +1839,8 @@ func testAccMongoDBAtlasClusterConfigAWSWithContainerID(awsAccessKey, awsSecretK
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%[3]s"
 			name         = "%[4]s"
-			disk_size_gb = 5
-
-            cluster_type = "REPLICASET"
+			
+			cluster_type = "REPLICASET"
 		    replication_specs {
 			  num_shards = 1
 			  regions_config {
@@ -1897,10 +1895,9 @@ func testAccMongoDBAtlasClusterConfigGCPWithContainerID(gcpProjectID, gcpRegion,
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = "%[3]s"
 			name         = "%[4]s"
-			disk_size_gb = 5
-
+			
             cluster_type = "REPLICASET"
-		    replication_specs {
+			replication_specs {
 			  num_shards = 1
 			  regions_config {
 			     region_name     = "%[6]s"

@@ -64,8 +64,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfig(projectID, cluste
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -92,8 +91,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotsConfigWithPagination(pro
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
