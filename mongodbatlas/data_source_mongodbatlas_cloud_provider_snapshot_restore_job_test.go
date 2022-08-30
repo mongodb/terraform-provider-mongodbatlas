@@ -63,7 +63,6 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 			snapshot_id   = mongodbatlas_cloud_provider_snapshot.test.id
 			delivery_type_config {
 				download = true
-				automated = true
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}

@@ -63,7 +63,6 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   snapshot_id   = mongodbatlas_cloud_backup_snapshot.test.id
   delivery_type_config {
     download = true
-    automated = true
   }
 }
 
