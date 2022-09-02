@@ -451,17 +451,20 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		}
 	}
 
+	if d.HasChange("auto_export_enabled") {
+		req.AutoExportEnabled = pointy.Bool(d.Get("auto_export_enabled").(bool))
+	}
+
 	if v, ok := d.GetOk("export"); ok {
 		item := v.([]interface{})
 		itemObj := item[0].(map[string]interface{})
 		export.ExportBucketID = itemObj["export_bucket_id"].(string)
 		export.FrequencyType = itemObj["frequency_type"].(string)
-
-		req.Export = &export
-	}
-
-	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = pointy.Bool(d.Get("auto_export_enabled").(bool))
+		if *req.AutoExportEnabled {
+			req.Export = &export
+		} else {
+			req.Export = nil
+		}
 	}
 
 	policy.ID = resp.Policies[0].ID
