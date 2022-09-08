@@ -12,14 +12,7 @@ description: |-
 
 Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
-The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#project-roles) describes the roles a user can have, which map to:
-
-* GROUP_OWNER
-* GROUP_CLUSTER_MANAGER
-* GROUP_READ_ONLY
-* GROUP_DATA_ACCESS_ADMIN
-* GROUP_DATA_ACCESS_READ_WRITE
-* GROUP_DATA_ACCESS_READ_ONLY
+The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#project-roles) describes the roles a user can have, the [API Documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/inviteOneMongoDBCloudUserToJoinOneProject) denotes the acceptable values.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
 
@@ -50,13 +43,7 @@ resource "mongodbatlas_project_invitation" "test" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you want to invite a user.
 * `username` - (Required) Email address to which Atlas sent the invitation. The user uses this email address as their Atlas username if they accept this invitation.
-* `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Atlas accepts the following roles:
-  * GROUP_OWNER
-  * GROUP_CLUSTER_MANAGER
-  * GROUP_READ_ONLY
-  * GROUP_DATA_ACCESS_ADMIN
-  * GROUP_DATA_ACCESS_READ_WRITE
-  * GROUP_DATA_ACCESS_READ_ONLY
+* `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Refer to the [Atlas Docs](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/inviteOneMongoDBCloudUserToJoinOneProject) for the list of acceptable roles.
 
 ## Attributes Reference
 
