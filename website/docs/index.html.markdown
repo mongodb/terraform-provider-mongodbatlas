@@ -36,6 +36,7 @@ The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage
 
 **IP access list**: Some API resources, such as backup resources, require an IP access list by default. We highly suggest that you add an IP access list as soon as possible.  See [Require IP Access List for Public API](https://docs.atlas.mongodb.com/tutorial/manage-organization-settings/#require-ip-access-list-for-public-api) for more info.
 
+**API Key List**: Some API resources such as Organization API Access List Entries, Cloud Backup Restores, Cloud Backup Snapshots, Cloud Backup Schedules, Legacy Backups, require an API Key list to utilize this feature. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Authenticate the Provider
 
 The MongoDB Atlas provider offers a flexible means of providing credentials for authentication.

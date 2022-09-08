@@ -12,6 +12,8 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+-> **API Key List**: Some API resources require an API Key list to utilize this feature. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details
+
 In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
 
