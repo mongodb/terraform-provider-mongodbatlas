@@ -1148,7 +1148,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		providerSettings.AutoScaling = &matlas.AutoScaling{Compute: compute}
 	}
 
-	if d.Get("provider_name") == "AWS" {
+	if d.Get("provider_name") == "AWS" || d.Get("provider_name") == "AZURE" {
 		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
 		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
