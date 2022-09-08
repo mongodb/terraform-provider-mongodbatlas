@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -93,6 +94,11 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"continuous_backup_enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
 	}
 }
 
@@ -115,6 +121,10 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 
 	if err := d.Set("name", u.Name); err != nil {
 		log.Printf(errorClusterSetting, "name", u.ID, err)
+	}
+
+	if err := d.Set("continuous_backup_enabled", u.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
+		log.Printf(errorClusterSetting, "continuous_backup_enabled", u.ID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -231,9 +241,14 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 		RegionName:          d.Get("provider_settings_region_name").(string),
 	}
 
+	serverlessBackupOptions := &matlas.ServerlessBackupOptions{
+		ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
+	}
+
 	serverlessInstanceRequest := &matlas.ServerlessCreateRequestParams{
-		Name:             name,
-		ProviderSettings: serverlessProviderSettings,
+		Name:                    name,
+		ProviderSettings:        serverlessProviderSettings,
+		ServerlessBackupOptions: serverlessBackupOptions,
 	}
 
 	_, _, err := conn.ServerlessInstances.Create(ctx, projectID, serverlessInstanceRequest)
