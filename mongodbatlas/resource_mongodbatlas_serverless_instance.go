@@ -225,6 +225,10 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
+		return diag.Errorf("error setting `continuous_backup_enabled` for serverless instance (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 

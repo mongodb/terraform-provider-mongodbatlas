@@ -42,6 +42,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 * `provider_settings_provider_name` - Cloud service provider that applies to the provisioned the serverless instance.
 * `provider_settings_region_name` - Human-readable label that identifies the physical location of your MongoDB serverless instance. The region you choose can affect network latency for clients accessing your databases.
 * `state_name` - Stage of deployment of this serverless instance when the resource made its request.
+* `continuous_backup_enabled` - Flag that indicates whether the serverless instance uses Serverless Continuous Backup.
 
 
 
