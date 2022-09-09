@@ -102,6 +102,7 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[str
 			"provider_settings_region_name":           serverlessInstances[i].ProviderSettings.RegionName,
 			"provider_settings_provider_name":         serverlessInstances[i].ProviderSettings.ProviderName,
 			"state_name":                              serverlessInstances[i].StateName,
+			"continuous_backup_enabled":               serverlessInstances[i].ServerlessBackupOptions.ServerlessContinuousBackupEnabled,
 		}
 	}
 
