@@ -74,8 +74,6 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_Notifications(t *testing.T) {
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_WithMatchers(t *testing.T) {
-	t.Skip() // TODO: Address failures in v1.4.6
-
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -156,8 +154,6 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.
 }
 
 func TestAccResourceMongoDBAtlasAlertConfiguration_whitThresholdUpdated(t *testing.T) {
-	t.Skip() // TODO: Address failures in v1.4.6
-
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -497,7 +493,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(projectID string, e
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id = "%s"
-			event_type = "NO_PRIMARY"
+			event_type = "HOST_DOWN"
 			enabled    = "%t"
 
 			notification {
@@ -608,7 +604,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID s
 			}
 
 			matcher {
-				field_name = "HOSTNAME_AND_PORT"
+				field_name = "REPLICA_SET_NAME"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}
