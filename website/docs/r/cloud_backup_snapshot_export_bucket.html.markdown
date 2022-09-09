@@ -12,6 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Example Usage
 
 ```terraform
