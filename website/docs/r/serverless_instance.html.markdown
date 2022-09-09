@@ -24,7 +24,6 @@ resource "mongodbatlas_serverless_instance" "test" {
   provider_settings_backing_provider_name = "AWS"
   provider_settings_provider_name = "SERVERLESS"
   provider_settings_region_name = "US_EAST_1"
-  continuous_backup_enabled = true
 }
 ```
 
@@ -36,7 +35,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 * `provider_settings_provider_name` - (Required) Cloud service provider that applies to the provisioned the serverless instance.
 * `provider_settings_region_name` - (Required) 	
   Human-readable label that identifies the physical location of your MongoDB serverless instance. The region you choose can affect network latency for clients accessing your databases.
-* `continuous_backup_enabled` - (Optional) Flag that indicates whether the serverless instance uses Serverless Continuous Backup. If this parameter is false, the serverless instance uses Basic Backup. 
+* `continuous_backup_enabled` - (Optional) Flag that indicates whether the serverless instance uses [Serverless Continuous Backup](https://www.mongodb.com/docs/atlas/configure-serverless-backup). If this parameter is false or not used, the serverless instance uses [Basic Backup](https://www.mongodb.com/docs/atlas/configure-serverless-backup).  
 
 ## Attributes Reference
 
