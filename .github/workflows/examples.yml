@@ -26,7 +26,7 @@ jobs:
       - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.18
       - name: go build
         run: go build -o terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 .
       - name: override plugin

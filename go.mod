@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.17
+go 1.18
 
 require (
 	github.com/go-test/deep v1.0.8
