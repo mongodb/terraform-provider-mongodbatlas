@@ -1158,6 +1158,13 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 	}
 
+	if d.Get("provider_name") == "AZURE" {
+		if v, ok := d.GetOk("provider_disk_type_name"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
+			providerSettings.DiskTypeName = cast.ToString(v)
+		}
+		providerSettings.EncryptEBSVolume = pointy.Bool(true)
+	}
+
 	return providerSettings, nil
 }
 
