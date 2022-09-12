@@ -1010,6 +1010,10 @@ func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.Resou
 		log.Printf(errorClusterSetting, "name", u.ID, err)
 	}
 
+	if err := d.Set("cloud_backup", u.ProviderBackupEnabled); err != nil {
+		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":    u.ID,
 		"project_id":    *projectID,
