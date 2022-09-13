@@ -105,6 +105,10 @@ func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 				},
 			},
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Hour),
+			Delete: schema.DefaultTimeout(1 * time.Hour),
+		},
 	}
 }
 
