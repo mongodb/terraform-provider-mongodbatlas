@@ -43,7 +43,7 @@ resource "mongodbatlas_project_invitation" "test" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you want to invite a user.
 * `username` - (Required) Email address to which Atlas sent the invitation. The user uses this email address as their Atlas username if they accept this invitation.
-* `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them.
+* `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Refer to the [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) for information on valid roles.
 
 ## Attributes Reference
 
