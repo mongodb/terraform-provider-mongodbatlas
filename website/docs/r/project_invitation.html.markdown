@@ -12,7 +12,7 @@ description: |-
 
 Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
-The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#project-roles) describes the roles a user can have, the [API Documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/inviteOneMongoDBCloudUserToJoinOneProject) denotes the acceptable values.
+The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the roles which can be assigned to a user.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
 
@@ -43,7 +43,7 @@ resource "mongodbatlas_project_invitation" "test" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you want to invite a user.
 * `username` - (Required) Email address to which Atlas sent the invitation. The user uses this email address as their Atlas username if they accept this invitation.
-* `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Refer to the [Atlas Docs](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/inviteOneMongoDBCloudUserToJoinOneProject) for the list of acceptable roles.
+* `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them.
 
 ## Attributes Reference
 
@@ -54,6 +54,8 @@ In addition to all arguments above, the following attributes are exported:
 * `expires_at` - Timestamp in ISO 8601 date and time format in UTC when the invitation expires. Users have 30 days to accept an invitation.
 * `invitation_id` - Unique 24-hexadecimal digit string that identifies the invitation in Atlas.
 * `inviter_username` - Atlas user who invited `username` to the project.
+
+See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/inviteOneMongoDBCloudUserToJoinOneProject) documentation for more information.
 
 ## Import
 

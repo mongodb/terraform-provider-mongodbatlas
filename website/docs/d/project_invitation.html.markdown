@@ -41,6 +41,6 @@ In addition to the arguments, this data source exports the following attributes:
 * `created_at` - Timestamp in ISO 8601 date and time format in UTC when Atlas sent the invitation.
 * `expires_at` - Timestamp in ISO 8601 date and time format in UTC when the invitation expires. Users have 30 days to accept an invitation.
 * `inviter_username` - Atlas user who invited `username` to the project.
-* `roles` - Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them.
+* `roles` - Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Refer to the [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) for information on valid roles.
 
 See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/inviteOneMongoDBCloudUserToJoinOneProject) documentation for more information.
