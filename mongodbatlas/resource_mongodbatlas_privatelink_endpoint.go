@@ -132,7 +132,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schem
 		Pending:    []string{"INITIATING", "DELETING"},
 		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
 		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateEndpointConn.ID),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
@@ -250,7 +250,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schem
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
 		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
