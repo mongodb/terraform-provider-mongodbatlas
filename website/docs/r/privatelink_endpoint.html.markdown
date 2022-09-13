@@ -35,6 +35,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
+* `timeout`- (Optional) The duration of time to wait to finish the on-demand snapshot. The timeout value is definded by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Default value for the timeout is `1h`
 
 
 ## Attributes Reference
