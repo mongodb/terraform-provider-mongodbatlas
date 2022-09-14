@@ -7,7 +7,6 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -54,14 +53,6 @@ func resourceMongoDBAtlasProjectInvitation() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"GROUP_OWNER",
-						"GROUP_CLUSTER_MANAGER",
-						"GROUP_READ_ONLY",
-						"GROUP_DATA_ACCESS_ADMIN",
-						"GROUP_DATA_ACCESS_READ_WRITE",
-						"GROUP_DATA_ACCESS_READ_ONLY",
-					}, false),
 				},
 			},
 		},
