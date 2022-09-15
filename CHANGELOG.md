@@ -1,6 +1,40 @@
-## [v1.4.5-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/HEAD)
+## [v1.4.6-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.6-pre.1) (2022-09-15)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.4...HEAD)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6-pre.1)
+
+**Fixed**
+- INTMDB-387 - [Terraform] Enable Azure NVME for Atlas Dedicated clusters
+- INTMDB-342 - [Terraform] Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts
+- INTMDB-347 - [Terraform] cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
+- INTMDB-354 - [Terraform] Update docs around what requires an API key access list	
+- INTMDB-363 - [Updated Feature] Add serverless backup to mongodbatlas_serverless_instance
+- INTMDB-379 - [Terraform] Release 1.4.6 (both pre and then GA)	
+- INTMDB-381 - [Terraform] Customer is unable to disable backup auto export
+- INTMDB-383 - [Terraform] Update the BYOK/encryption at rest resource
+- INTMDB-385 - use_org_and_group_names_in_export_prefix is not working for a customer
+- INTMDB-386 - [Terraform] Add new role types to invitation verification	
+- INTMDB-371 - [Terraform] Timeout when creating privatelink_endpoint	
+- INTMDB-372 - [Terraform] Fix failing test for testAccMongoDBAtlasAlertConfigurationConfigWithMatchers	
+- INTMDB-358 - [terraform] Upgrade to go1.18
+- INTMDB-391 - [Terraform] Doc Fix for teams.html.markdown
+
+**Closed issues:**
+-  importing existing cluster does not populate backup status #768 [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
+
+
+**Merged pull requests:**
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.21 to 0.40.22 [\#842](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/842) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+- Rename team.html.markdown into teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838) ([leo-ferlin-sutton](https://github.com/leo-ferlin-sutton))
+
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.20 to 0.40.21 [\#825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/825) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+- Fix create index error msg[\#824](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/824) ([ebouther](https://github.com/ebouther))
+
+
+## [v1.4.5](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.5)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.4...v1.4.5)
 
 **Fixed**
 
