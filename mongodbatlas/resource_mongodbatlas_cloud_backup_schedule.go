@@ -309,6 +309,10 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
 	}
 
+	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.UseOrgAndGroupNamesInExportPrefix); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
+	}
+
 	if err := d.Set("policy_item_hourly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleHourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
@@ -451,17 +455,23 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		}
 	}
 
+	if d.HasChange("auto_export_enabled") {
+		req.AutoExportEnabled = pointy.Bool(d.Get("auto_export_enabled").(bool))
+	}
+
 	if v, ok := d.GetOk("export"); ok {
 		item := v.([]interface{})
 		itemObj := item[0].(map[string]interface{})
 		export.ExportBucketID = itemObj["export_bucket_id"].(string)
 		export.FrequencyType = itemObj["frequency_type"].(string)
-
-		req.Export = &export
+		req.Export = nil
+		if *req.AutoExportEnabled {
+			req.Export = &export
+		}
 	}
 
-	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = pointy.Bool(d.Get("auto_export_enabled").(bool))
+	if d.HasChange("use_org_and_group_names_in_export_prefix") {
+		req.UseOrgAndGroupNamesInExportPrefix = pointy.Bool(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
 	policy.ID = resp.Policies[0].ID

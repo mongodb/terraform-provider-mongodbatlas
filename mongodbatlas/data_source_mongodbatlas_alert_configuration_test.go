@@ -33,8 +33,6 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_basic(t *testing.T) {
 }
 
 func TestAccDataSourceMongoDBAtlaAlertConfiguration_withThreshold(t *testing.T) {
-	t.Skip() // TODO: Address failures in v1.4.6
-
 	var (
 		alert          = &matlas.AlertConfiguration{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
@@ -136,7 +134,7 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID string
 			}
 
 			matcher {
-				field_name = "HOSTNAME_AND_PORT"
+				field_name = "REPLICA_SET_NAME"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}

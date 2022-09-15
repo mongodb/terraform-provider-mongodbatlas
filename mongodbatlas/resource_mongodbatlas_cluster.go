@@ -1010,6 +1010,10 @@ func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.Resou
 		log.Printf(errorClusterSetting, "name", u.ID, err)
 	}
 
+	if err := d.Set("cloud_backup", u.ProviderBackupEnabled); err != nil {
+		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", *name, *projectID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":    u.ID,
 		"project_id":    *projectID,
@@ -1155,6 +1159,13 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 			providerSettings.DiskIOPS = pointy.Int64(cast.ToInt64(v))
 		}
 
+		providerSettings.EncryptEBSVolume = pointy.Bool(true)
+	}
+
+	if d.Get("provider_name") == "AZURE" {
+		if v, ok := d.GetOk("provider_disk_type_name"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
+			providerSettings.DiskTypeName = cast.ToString(v)
+		}
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
 	}
 
