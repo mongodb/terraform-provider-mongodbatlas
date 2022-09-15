@@ -3,13 +3,13 @@
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6-pre.1)
 
 **Fixed**
-- INTMDB-387 - [Terraform] Enable Azure NVME for Atlas Dedicated clusters [\#CLOUDP-96023](https://jira.mongodb.org/browse/CLOUDP-96023)
+- INTMDB-387 - [Terraform] Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
 - INTMDB-342 - [Terraform] Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts  [\#837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/837)
 - INTMDB-347 - [Terraform] cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
 - INTMDB-354 - [Terraform] Update docs around what requires an API key access list [\#834](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/834)
 - INTMDB-363 - [Updated Feature] Add serverless backup to mongodbatlas_serverless_instance [\#830](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/830)
 - INTMDB-379 - [Terraform] Release 1.4.6 (both pre and then GA)	
-- INTMDB-381 - [Terraform] Customer is unable to disable backup auto export [\#HELP-36686](https://jira.mongodb.org/browse/HELP-36686)
+- INTMDB-381 - [Terraform] Customer is unable to disable backup auto export [\#823](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/823)
 - INTMDB-383 - [Terraform] Update the BYOK/encryption at rest resource [\#805](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/805)
 - INTMDB-385 - use_org_and_group_names_in_export_prefix is not working for a customer
 - INTMDB-386 - [Terraform] Add new role types to invitation verification	[\#840](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/840)
