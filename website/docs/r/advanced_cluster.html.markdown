@@ -14,7 +14,7 @@ More information on considerations for using advanced clusters please see [Consi
 
 ~> **IMPORTANT:**
 <br> &#8226; The primary difference between [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) and [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
-<br> &#8226; A minimum oplog retention of 3 hours is required when seeking to change a cluster's class to Local NVMe SSD. 
+<br> &#8226; A minimum oplog retention of 3 hours is required when seeking to change a cluster's class to Local NVMe SSD. To learn more see [`oplogMinRetentionHours`](https://www.mongodb.com/docs/manual/core/replica-set-oplog/#std-label-replica-set-minimum-oplog-size) 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
