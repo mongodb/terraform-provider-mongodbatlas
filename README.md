@@ -256,6 +256,12 @@ The integration tests helps the validation for resources interacting with third 
   go test -tags=integration
 ```
 
+### Autoclose stale issues and PRs
+
+- After 30 days of no activity (no comments or commits are on an issue or PR) we automatically tag it as “stale” and add a message: "This issue has gone 30 days without any activity and meets the project’s definition of ‘stale’. This will be auto-closed if there is no new activity over the next 60 days. If the issue is still relevant and active, you can simply comment with a “bump” to keep it open, or add the “[Status] Not Stale” label. Thanks for keeping our repository healthy!"
+
+- After 60 more days of no activity we automatically close the issue / PR.
+
 ## Thanks
 
 We'd like to thank [Akshay Karle](https://github.com/akshaykarle) for writing the first version of a Terraform Provider for MongoDB Atlas and paving the way for the creation of this one.
