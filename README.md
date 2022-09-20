@@ -17,7 +17,7 @@ Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-
 
 ## Requirements
 - [Terraform](https://www.terraform.io/downloads.html) 0.13+
-- [Go](https://golang.org/doc/install) 1.17 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.18 (to build the provider plugin)
 
 ## Using the Provider
 
@@ -255,6 +255,12 @@ The integration tests helps the validation for resources interacting with third 
   cd integrationtesting
   go test -tags=integration
 ```
+
+### Autoclose stale issues and PRs
+
+- After 30 days of no activity (no comments or commits are on an issue or PR) we automatically tag it as “stale” and add a message: "This issue has gone 30 days without any activity and meets the project’s definition of ‘stale’. This will be auto-closed if there is no new activity over the next 60 days. If the issue is still relevant and active, you can simply comment with a “bump” to keep it open, or add the “[Status] Not Stale” label. Thanks for keeping our repository healthy!"
+
+- After 60 more days of no activity we automatically close the issue / PR.
 
 ## Thanks
 

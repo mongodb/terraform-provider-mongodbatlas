@@ -1,9 +1,51 @@
-# Changelog
+## [v1.4.6](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.6) (2022-09-19)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6)
+
+**Fixed**
+- INTMDB-387 - [Terraform] Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
+- INTMDB-342 - [Terraform] Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts  [\#837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/837)
+- INTMDB-347 - [Terraform] cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
+- INTMDB-354 - [Terraform] Update docs around what requires an API key access list [\#834](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/834)
+- INTMDB-363 - [Updated Feature] Add serverless backup to mongodbatlas_serverless_instance [\#830](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/830)
+- INTMDB-379 - [Terraform] Release 1.4.6 (both pre and then GA)	
+- INTMDB-381 - [Terraform] Customer is unable to disable backup auto export [\#823](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/823)
+- INTMDB-383 - [Terraform] Update the BYOK/encryption at rest resource [\#805](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/805)
+- INTMDB-385 - use_org_and_group_names_in_export_prefix is not working for a customer
+- INTMDB-386 - [Terraform] Add new role types to invitation verification	[\#840](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/840)
+- INTMDB-371 - [Terraform] Timeout when creating privatelink_endpoint [\#806](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/806)
+- INTMDB-372 - [Terraform] Fix failing test for testAccMongoDBAtlasAlertConfigurationConfigWithMatchers	[\#836](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/836)
+- INTMDB-358 - [terraform] Upgrade to go1.18 [\#835](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/835)
+- INTMDB-391 - [Terraform] Doc Fix for teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838)
+
+**Closed issues:**
+-  importing existing cluster does not populate backup status #768 [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
+
+
+**Merged pull requests:**
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.21 to 0.40.22 [\#842](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/842) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+- Rename team.html.markdown into teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838) ([leo-ferlin-sutton](https://github.com/leo-ferlin-sutton))
+
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.20 to 0.40.21 [\#825](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/825) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+- Fix create index error msg[\#824](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/824) ([ebouther](https://github.com/ebouther))
+
+
+## [v1.4.5](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.5)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.4...v1.4.5)
+
+**Fixed**
+
+- INTMDB-369: Fix parsing of `delivery_type_config` when using `point_in_time` for `cloud_backup_snapshot_restore_job`, in [\#813](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/813)
+- INTMDB-322: Validated serverless alert_configurations and improved documentation on usage, addressing issue [\#722](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/722) in [\#819](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/819)
+
 ## [v1.4.4](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.4) (2022-08-18)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...v1.4.4)
 
-**Fixed:**
+**Fixed**
 
 - INTMDB320 - Fix Global Cluster import documentation, in [\#796](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/796)
 - INTMDB-331 - Update GCP documentation, issue [\#753](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/753), in [\#793](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/793)

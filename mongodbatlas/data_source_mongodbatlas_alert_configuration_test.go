@@ -134,7 +134,7 @@ func testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold(projectID string
 			}
 
 			matcher {
-				field_name = "HOSTNAME_AND_PORT"
+				field_name = "REPLICA_SET_NAME"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}

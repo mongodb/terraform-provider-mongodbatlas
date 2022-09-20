@@ -42,8 +42,7 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			disk_size_gb = 5
-
+			
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "US_EAST_1"
@@ -64,7 +63,6 @@ func testAccMongoDBAtlasDataSourceCloudProviderSnapshotRestoreJobConfig(projectI
 			snapshot_id   = mongodbatlas_cloud_provider_snapshot.test.id
 			delivery_type_config {
 				download = true
-				automated = true
 			}
 			depends_on = ["mongodbatlas_cloud_provider_snapshot.test"]
 		}

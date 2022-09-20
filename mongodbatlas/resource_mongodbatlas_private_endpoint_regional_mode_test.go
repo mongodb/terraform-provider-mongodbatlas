@@ -14,7 +14,6 @@ import (
 )
 
 func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
-	SkipTest(t)
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"
@@ -23,7 +22,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) 
 		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
 		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID    = os.Getenv("MONGODB_ATLAS_NETWORK_PROJECT_ID")
 		providerName = "AWS"
 		region       = os.Getenv("AWS_REGION")
 

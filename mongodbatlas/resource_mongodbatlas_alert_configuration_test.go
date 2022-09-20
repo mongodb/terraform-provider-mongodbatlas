@@ -493,7 +493,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithMatchers(projectID string, e
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id = "%s"
-			event_type = "NO_PRIMARY"
+			event_type = "HOST_DOWN"
 			enabled    = "%t"
 
 			notification {
@@ -604,7 +604,7 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(projectID s
 			}
 
 			matcher {
-				field_name = "HOSTNAME_AND_PORT"
+				field_name = "REPLICA_SET_NAME"
 				operator   = "EQUALS"
 				value      = "SECONDARY"
 			}

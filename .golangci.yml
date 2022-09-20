@@ -121,7 +121,12 @@ issues:
     - Using the variable on range scope .* in function literal
     - declaration of ".*" shadows declaration at line .*
     - only one cuddle assignment allowed before if statement
+    - func `testAccMongoDBAtlasThirdPartyIntegrationDataSourceConfig` is unused
+    - func `testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated` is unused
+    - func `testAccMongoDBAtlasAlertConfigurationConfigWithMatchers` is unused
+    - func `testAccDSMongoDBAtlasAlertConfigurationConfigWithThreshold` is unused
     - func `testAccMongoDBAtlasCloudProviderSnapshotRestoreJobConfigPointInTime` is unused
+    - func `testAccMongoDBAtlasCloudBackupScheduleExportPoliciesConfig` is unused
   exclude-rules:
     - path: _test\.go
       linters:

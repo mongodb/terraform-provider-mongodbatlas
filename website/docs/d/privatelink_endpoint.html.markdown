@@ -55,6 +55,6 @@ In addition to all arguments above, the following attributes are exported:
 * `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
 * `endpoint_group_names` - GCP network endpoint groups corresponding to the Private Service Connect endpoint service.
 * `region_name` - GCP region for the Private Service Connect endpoint service.
-* `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service. 
+* `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) Documentation for more information.

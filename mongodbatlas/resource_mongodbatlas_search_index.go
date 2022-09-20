@@ -355,7 +355,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 
 	dbSearchIndexRes, _, err := conn.Search.CreateIndex(ctx, projectID, clusterName, searchIndexRequest)
 	if err != nil {
-		return diag.Errorf("error creating database user: %s", err)
+		return diag.Errorf("error creating index: %s", err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
