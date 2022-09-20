@@ -1,6 +1,6 @@
-## [v1.4.6-pre.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.6-pre.1) (2022-09-15)
+## [v1.4.6](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.6) (2022-09-19)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6-pre.1)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6)
 
 **Fixed**
 - INTMDB-387 - [Terraform] Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
