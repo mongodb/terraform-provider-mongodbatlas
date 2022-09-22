@@ -279,7 +279,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{"EMAIL", "SMS", pagerDuty, "SLACK",
 								"FLOWDOCK", "DATADOG", opsGenie, victorOps,
-								"WEBHOOK", "USER", "TEAM", "GROUP", "ORG"}, false),
+								"WEBHOOK", "USER", "TEAM", "GROUP", "ORG", "MICROSOFT_TEAMS"}, false),
 						},
 						"username": {
 							Type:     schema.TypeString,
@@ -301,6 +301,11 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+						"microsoft_teams_webhook_url": {
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
 						},
 					},
 				},
@@ -724,6 +729,8 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Noti
 			VictorOpsAPIKey:     cast.ToString(v["victor_ops_api_key"]),
 			VictorOpsRoutingKey: cast.ToString(v["victor_ops_routing_key"]),
 			Roles:               cast.ToStringSlice(v["roles"]),
+			MicrosoftTeamsWebhookURL: cast.ToString(v["microsoft_teams_webhook_url"]),
+
 		}
 	}
 
@@ -735,28 +742,29 @@ func flattenAlertConfigurationNotifications(notifications []matlas.Notification)
 
 	for i := range notifications {
 		nts[i] = map[string]interface{}{
-			"api_token":              notifications[i].APIToken,
-			"channel_name":           notifications[i].ChannelName,
-			"datadog_api_key":        notifications[i].DatadogAPIKey,
-			"datadog_region":         notifications[i].DatadogRegion,
-			"delay_min":              notifications[i].DelayMin,
-			"email_address":          notifications[i].EmailAddress,
-			"email_enabled":          notifications[i].EmailEnabled,
-			"flowdock_api_token":     notifications[i].FlowdockAPIToken,
-			"flow_name":              notifications[i].FlowName,
-			"interval_min":           notifications[i].IntervalMin,
-			"mobile_number":          notifications[i].MobileNumber,
-			"ops_genie_api_key":      notifications[i].OpsGenieAPIKey,
-			"ops_genie_region":       notifications[i].OpsGenieRegion,
-			"org_name":               notifications[i].OrgName,
-			"service_key":            notifications[i].ServiceKey,
-			"sms_enabled":            notifications[i].SMSEnabled,
-			"team_id":                notifications[i].TeamID,
-			"team_name":              notifications[i].TeamName,
-			"type_name":              notifications[i].TypeName,
-			"username":               notifications[i].Username,
-			"victor_ops_api_key":     notifications[i].VictorOpsAPIKey,
-			"victor_ops_routing_key": notifications[i].VictorOpsRoutingKey,
+			"api_token":                   notifications[i].APIToken,
+			"channel_name":                notifications[i].ChannelName,
+			"datadog_api_key":             notifications[i].DatadogAPIKey,
+			"datadog_region":              notifications[i].DatadogRegion,
+			"delay_min":                   notifications[i].DelayMin,
+			"email_address":               notifications[i].EmailAddress,
+			"email_enabled":               notifications[i].EmailEnabled,
+			"flowdock_api_token":          notifications[i].FlowdockAPIToken,
+			"flow_name":                   notifications[i].FlowName,
+			"interval_min":                notifications[i].IntervalMin,
+			"mobile_number":               notifications[i].MobileNumber,
+			"ops_genie_api_key":           notifications[i].OpsGenieAPIKey,
+			"ops_genie_region":            notifications[i].OpsGenieRegion,
+			"org_name":                    notifications[i].OrgName,
+			"service_key":                 notifications[i].ServiceKey,
+			"sms_enabled":                 notifications[i].SMSEnabled,
+			"team_id":                     notifications[i].TeamID,
+			"team_name":                   notifications[i].TeamName,
+			"type_name":                   notifications[i].TypeName,
+			"username":                    notifications[i].Username,
+			"victor_ops_api_key":          notifications[i].VictorOpsAPIKey,
+			"victor_ops_routing_key":      notifications[i].VictorOpsRoutingKey,
+			"microsoft_teams_webhook_url": notifications[i].MicrosoftTeamsWebhookURL,
 		}
 
 		// We need to validate it due to the datasource haven't the roles attribute
