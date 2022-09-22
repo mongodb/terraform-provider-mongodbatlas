@@ -260,10 +260,14 @@ List of notifications to send when an alert condition is detected.
     - `USER`
     - `VICTOR_OPS`
     - `WEBHOOK`
+    - `MICROSOFT_TEAMS`
 
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
+* `webhook_secret` - Authentication secret for the `WEBHOOK` notifications type.
+* `webhook_url` - Target URL  for the `WEBHOOK` notifications type.
+* `microsoft_teams_webhook_url` - Microsoft Teams channel incoming webhook URL. Required for the `MICROSOFT_TEAMS` notifications type.
 * `roles` - Optional. One or more roles that receive the configured alert. If you include this field, Atlas sends alerts only to users assigned the roles you specify in the array. If you omit this field, Atlas sends alerts to users assigned any role. This parameter is only valid if `type_name` is set to `ORG`, `GROUP`, or `USER`.
   Accepted values are:
 

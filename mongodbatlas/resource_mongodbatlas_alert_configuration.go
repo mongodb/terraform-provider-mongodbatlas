@@ -307,6 +307,16 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Sensitive: true,
 							Optional:  true,
 						},
+						"webhook_secret": {
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
+						},
+						"webhook_url": {
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
+						},
 					},
 				},
 			},
@@ -730,6 +740,8 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Noti
 			VictorOpsRoutingKey:      cast.ToString(v["victor_ops_routing_key"]),
 			Roles:                    cast.ToStringSlice(v["roles"]),
 			MicrosoftTeamsWebhookURL: cast.ToString(v["microsoft_teams_webhook_url"]),
+			WebhookSecret:            cast.ToString(v["webhook_secret"]),
+			WebhookURL:               cast.ToString(v["webhook_url"]),
 		}
 	}
 
@@ -764,6 +776,8 @@ func flattenAlertConfigurationNotifications(notifications []matlas.Notification)
 			"victor_ops_api_key":          notifications[i].VictorOpsAPIKey,
 			"victor_ops_routing_key":      notifications[i].VictorOpsRoutingKey,
 			"microsoft_teams_webhook_url": notifications[i].MicrosoftTeamsWebhookURL,
+			"webhook_secret":              notifications[i].WebhookSecret,
+			"webhook_url":                 notifications[i].WebhookURL,
 		}
 
 		// We need to validate it due to the datasource haven't the roles attribute
