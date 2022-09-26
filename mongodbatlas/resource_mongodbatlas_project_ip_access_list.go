@@ -84,7 +84,6 @@ func resourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 		},
