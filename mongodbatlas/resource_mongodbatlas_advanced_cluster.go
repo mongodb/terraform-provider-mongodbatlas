@@ -320,6 +320,8 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 		}
 		request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+	} else {
+		request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 	}
 
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
