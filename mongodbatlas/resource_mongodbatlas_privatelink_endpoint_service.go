@@ -130,6 +130,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 				Computed: true,
 			},
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Hour),
+			Delete: schema.DefaultTimeout(2 * time.Hour),
+		},
 	}
 }
 
@@ -172,7 +176,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
 	}
@@ -281,7 +285,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
-			Timeout:    1 * time.Hour,
+			Timeout:    d.Timeout(schema.TimeoutCreate),
 			MinTimeout: 5 * time.Second,
 			Delay:      3 * time.Second,
 		}
