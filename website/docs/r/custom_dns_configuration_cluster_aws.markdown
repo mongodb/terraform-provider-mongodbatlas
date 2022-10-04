@@ -33,7 +33,7 @@ resource "mongodbatlas_custom_dns_configuration_cluster_aws" "test" {
 
 
 ## Import
-Custom DNS Configuration for Atlas Clusters on AWS must be imported using auditing ID, e.g.
+Custom DNS Configuration for Atlas Clusters on AWS must be imported using Project ID, e.g.
 
 ```
 $ terraform import mongodbatlas_custom_dns_configuration_cluster_aws.test 1112222b3bf99403840e8934
