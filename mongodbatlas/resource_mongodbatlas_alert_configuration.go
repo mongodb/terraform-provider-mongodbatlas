@@ -126,23 +126,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 						"units": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"RAW",
-								"BITS",
-								"BYTES",
-								"KILOBITS",
-								"KILOBYTES",
-								"MEGABITS",
-								"MEGABYTES",
-								"GIGABITS",
-								"GIGABYTES",
-								"TERABYTES",
-								"PETABYTES",
-								"MILLISECONDS",
-								"SECONDS",
-								"MINUTES",
-								"HOURS",
-								"DAYS"}, false),
 						},
 						"mode": {
 							Type:     schema.TypeString,
