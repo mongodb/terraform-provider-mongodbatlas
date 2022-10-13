@@ -1,4 +1,4 @@
-# This will Create a Project,  Cluster, cloud backup snapshot and restore job
+# This will Create a Project,  Cluster, cloud provider snapshot and restore job
 
 resource "mongodbatlas_project" "project_test" {
   name   = var.project_name
@@ -13,8 +13,9 @@ resource "mongodbatlas_cluster" "cluster_test" {
   # Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
-  provider_instance_size_name = "M10"
+  provider_instance_size_name = "M5"
   cloud_backup                = true # enable cloud provider snapshots
+  pit_enabled                 = true
 }
 
 
@@ -31,9 +32,9 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
   snapshot_id  = mongodbatlas_cloud_provider_snapshot.test.id
 
   delivery_type_config {
-    automated           = true
-    target_cluster_name = mongodbatlas_cluster.cluster_test.name
-    target_project_id   = mongodbatlas_cluster.cluster_test.project_id
+    point_in_time             = true
+    target_cluster_name       = mongodbatlas_cluster.cluster_test.name
+    target_project_id         = mongodbatlas_cluster.cluster_test.project_id
+    point_in_time_utc_seconds = var.restore_job_ts
   }
 }
-

@@ -10,3 +10,7 @@ variable "cluster_name" {
   description = "Cluster name"
   default     = ""
 }
+variable "point_in_time_utc_seconds" {
+  description = "Point in time timestamp for snapshot_restore_job"
+  default     = ""
+}
