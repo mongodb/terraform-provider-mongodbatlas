@@ -35,6 +35,6 @@ resource "mongodbatlas_cloud_provider_snapshot_restore_job" "test" {
     point_in_time             = true
     target_cluster_name       = mongodbatlas_cluster.cluster_test.name
     target_project_id         = mongodbatlas_cluster.cluster_test.project_id
-    point_in_time_utc_seconds = var.restore_job_ts
+    point_in_time_utc_seconds = var.point_in_time_utc_seconds
   }
 }
