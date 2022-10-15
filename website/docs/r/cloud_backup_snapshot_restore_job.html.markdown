@@ -22,6 +22,10 @@ description: |-
 -> **API Key Access List**: This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
 ## Example Usage
 
+### Examples are hosted alongside the provider source code:
+- A `v1.1.0` compatible [example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v110/cloud-backup-snapshot/v110) with automated backup restore on AWS
+- A `v1.4.6` compatible [example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v146) with point in time restore on AWS.
+
 ### Example automated delivery type.
 
 ```terraform
@@ -87,6 +91,8 @@ description: |-
     }
   }
 ```
+
+
 
 ## Argument Reference
 
