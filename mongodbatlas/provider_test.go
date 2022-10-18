@@ -56,6 +56,15 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
+func testAccPreCheckGov(t *testing.T) {
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_GOV") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY_GOV") == "" ||
+		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
+		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
+		t.Fatal("`MONGODB_ATLAS_PUBLIC_KEY_GOV`, `MONGODB_ATLAS_PRIVATE_KEY_GOV`, `MONGODB_ATLAS_PROJECT_ID_GOV` and `MONGODB_ATLAS_ORG_ID_GOV` must be set for acceptance testing")
+	}
+}
+
 func testAccPreCheckBetaFeatures(t *testing.T) {
 	enableFeatures, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
 	if !enableFeatures {

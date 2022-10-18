@@ -187,7 +187,7 @@ func TestAccResourceMongoDBAtlasGovProject_CreateWithProjectOwner(t *testing.T) 
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckGov(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
