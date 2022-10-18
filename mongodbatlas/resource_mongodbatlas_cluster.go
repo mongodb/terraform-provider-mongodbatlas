@@ -903,14 +903,14 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		var err error
+		var updatedCluster *matlas.Cluster
+		willUpgrade := isUpgradeRequired(d)
 
 		err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			willUpgrade := isUpgradeRequired(d)
-
 			if willUpgrade {
-				_, _, err = upgradeCluster(ctx, conn, cluster, projectID, clusterName)
+				updatedCluster, _, err = upgradeCluster(ctx, conn, cluster, projectID, clusterName)
 			} else {
-				_, _, err = updateCluster(ctx, conn, cluster, projectID, clusterName)
+				updatedCluster, _, err = updateCluster(ctx, conn, cluster, projectID, clusterName)
 			}
 			if err != nil {
 				var target *matlas.ErrorResponse
@@ -931,6 +931,16 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		})
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+
+		if willUpgrade {
+			d.Set("cluster_id", updatedCluster.ID)
+			d.SetId(encodeStateID(map[string]string{
+				"cluster_id":    updatedCluster.ID,
+				"project_id":    projectID,
+				"cluster_name":  cluster.Name,
+				"provider_name": cluster.ProviderSettings.ProviderName,
+			}))
 		}
 	}
 
@@ -1124,6 +1134,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
 		compute            *matlas.Compute
 		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
+		providerName       = cast.ToString(d.Get("provider_name"))
 	)
 
 	if minInstanceSize != 0 && autoScalingEnabled {
@@ -1149,16 +1160,14 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 
 	providerSettings := &matlas.ProviderSettings{
 		InstanceSizeName: cast.ToString(d.Get("provider_instance_size_name")),
-		ProviderName:     cast.ToString(d.Get("provider_name")),
+		ProviderName:     providerName,
 		RegionName:       region,
 		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
 		DiskTypeName:     cast.ToString(d.Get("provider_disk_type_name")),
 	}
 
-	b, bOk := d.GetOk("backing_provider_name")
-
-	if bOk && b != "" {
-		providerSettings.BackingProviderName = cast.ToString(b)
+	if providerName == "TENANT" {
+		providerSettings.BackingProviderName = cast.ToString(d.Get("backing_provider_name"))
 	}
 
 	if autoScalingEnabled {
@@ -1185,8 +1194,10 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 }
 
 func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
-	if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
-		log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
+	if settings.ProviderName == "TENANT" {
+		if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
+			log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
+		}
 	}
 
 	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
@@ -1442,7 +1453,7 @@ func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 	isUpgrade := pName != nName && pName == "TENANT"
 
 	if isUpgrade {
-		d.SetNew("backing_provider_name", nil)
+		d.SetNewComputed("backing_provider_name")
 	} else if pName != nName {
 		d.ForceNew("provider_name")
 	}
