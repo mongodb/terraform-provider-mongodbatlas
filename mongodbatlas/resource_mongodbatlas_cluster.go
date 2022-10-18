@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -161,7 +162,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"provider_name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
 			},
 			"pit_enabled": {
@@ -353,6 +353,12 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 		},
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("provider_name", func(ctx context.Context, old, new, meta any) bool {
+				// If going from TENANT to non-tenant, attempt an upgrade (not new)
+				return old != new && old != "TENANT"
+			}),
+		),
 	}
 }
 
@@ -902,8 +908,16 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
-		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName)
+		var err error
+
+		err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
+			willUpgrade := isUpgradeRequired(d)
+
+			if willUpgrade {
+				_, _, err = upgradeCluster(ctx, conn, cluster, projectID, clusterName)
+			} else {
+				_, _, err = updateCluster(ctx, conn, cluster, projectID, clusterName)
+			}
 			if err != nil {
 				var target *matlas.ErrorResponse
 				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
@@ -1140,12 +1154,17 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 	}
 
 	providerSettings := &matlas.ProviderSettings{
-		BackingProviderName: cast.ToString(d.Get("backing_provider_name")),
-		InstanceSizeName:    cast.ToString(d.Get("provider_instance_size_name")),
-		ProviderName:        cast.ToString(d.Get("provider_name")),
-		RegionName:          region,
-		VolumeType:          cast.ToString(d.Get("provider_volume_type")),
-		DiskTypeName:        cast.ToString(d.Get("provider_disk_type_name")),
+		InstanceSizeName: cast.ToString(d.Get("provider_instance_size_name")),
+		ProviderName:     cast.ToString(d.Get("provider_name")),
+		RegionName:       region,
+		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
+		DiskTypeName:     cast.ToString(d.Get("provider_disk_type_name")),
+	}
+
+	b, bOk := d.GetOk("backing_provider_name")
+
+	if bOk && b != "" {
+		providerSettings.BackingProviderName = cast.ToString(b)
 	}
 
 	if autoScalingEnabled {
@@ -1207,6 +1226,12 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
 		log.Printf(errorClusterSetting, "provider_volume_type", clusterName, err)
 	}
+}
+
+func isUpgradeRequired(d *schema.ResourceData) bool {
+	pName, nName := d.GetChange("provider_name")
+
+	return pName != nName && pName == "TENANT"
 }
 
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
@@ -1647,6 +1672,33 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 
 func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
 	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
+}
+
+func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
+	request.Name = name
+	request.ProviderSettings.BackingProviderName = nil
+
+	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
 	if err != nil {
 		return nil, nil, err
 	}
