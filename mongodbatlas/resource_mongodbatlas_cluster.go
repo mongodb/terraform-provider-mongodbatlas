@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -353,12 +352,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 		},
-		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("provider_name", func(ctx context.Context, old, new, meta any) bool {
-				// If going from TENANT to non-tenant, attempt an upgrade (not new)
-				return old != new && old != "TENANT"
-			}),
-		),
+		CustomizeDiff: resourceClusterCustomizeDiff,
 	}
 }
 
@@ -1442,6 +1436,20 @@ func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 	}
 }
 
+func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	pName, nName := d.GetChange("provider_name")
+
+	isUpgrade := pName != nName && pName == "TENANT"
+
+	if isUpgrade {
+		d.SetNew("backing_provider_name", nil)
+	} else if pName != nName {
+		d.ForceNew("provider_name")
+	}
+
+	return nil
+}
+
 func formatMongoDBMajorVersion(val interface{}) string {
 	if strings.Contains(val.(string), ".") {
 		return val.(string)
@@ -1696,7 +1704,6 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 
 func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
 	request.Name = name
-	request.ProviderSettings.BackingProviderName = nil
 
 	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
 	if err != nil {
