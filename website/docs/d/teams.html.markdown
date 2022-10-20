@@ -15,13 +15,13 @@ description: |-
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_teams" "test" {
+resource "mongodbatlas_team" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
 }
 
-data "mongodbatlas_teams" "test" {
+data "mongodbatlas_team" "test" {
 	org_id     = mongodbatlas_teams.test.org_id
 	team_id    = mongodbatlas_teams.test.team_id
 }
@@ -29,13 +29,13 @@ data "mongodbatlas_teams" "test" {
 ```
 
 ```terraform
-resource "mongodbatlas_teams" "test" {
+resource "mongodbatlas_team" "test" {
   org_id     = "<ORGANIZATION-ID>"
   name       = "myNewTeam"
   usernames  = ["user1", "user2", "user3"]
 }
 
-data "mongodbatlas_teams" "test2" {
+data "mongodbatlas_team" "test2" {
 	org_id     = mongodbatlas_teams.test.org_id
 	name       = mongodbatlas_teams.test.name
 }
