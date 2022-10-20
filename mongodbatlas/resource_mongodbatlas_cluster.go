@@ -938,8 +938,8 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			d.SetId(encodeStateID(map[string]string{
 				"cluster_id":    updatedCluster.ID,
 				"project_id":    projectID,
-				"cluster_name":  cluster.Name,
-				"provider_name": cluster.ProviderSettings.ProviderName,
+				"cluster_name":  updatedCluster.Name,
+				"provider_name": updatedCluster.ProviderSettings.ProviderName,
 			}))
 		}
 	}
@@ -1234,9 +1234,13 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 }
 
 func isUpgradeRequired(d *schema.ResourceData) bool {
-	pName, nName := d.GetChange("provider_name")
+	pInstance, nInstance := d.GetChange("provider_instance_size_name")
 
-	return pName != nName && pName == "TENANT"
+	if pInstance == nInstance {
+		return false
+	}
+
+	return pInstance == "M0" || pInstance == "M2" || pInstance == "M5"
 }
 
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
