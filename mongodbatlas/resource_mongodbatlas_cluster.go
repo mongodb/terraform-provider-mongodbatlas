@@ -934,7 +934,9 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		if willUpgrade {
-			d.Set("cluster_id", updatedCluster.ID)
+			if err := d.Set("cluster_id", updatedCluster.ID); err != nil {
+				return diag.FromErr(fmt.Errorf(errorClusterSetting, "cluster_id", clusterName, err))
+			}
 			d.SetId(encodeStateID(map[string]string{
 				"cluster_id":    updatedCluster.ID,
 				"project_id":    projectID,
@@ -1452,17 +1454,19 @@ func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 }
 
 func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	var err error = nil
 	pName, nName := d.GetChange("provider_name")
 
-	isUpgrade := pName != nName && pName == "TENANT"
+	willProviderChange := pName != nName
+	willLeaveTenant := willProviderChange && pName == "TENANT"
 
-	if isUpgrade {
-		d.SetNewComputed("backing_provider_name")
-	} else if pName != nName {
-		d.ForceNew("provider_name")
+	if willLeaveTenant {
+		err = d.SetNewComputed("backing_provider_name")
+	} else if willProviderChange {
+		err = d.ForceNew("provider_name")
 	}
 
-	return nil
+	return err
 }
 
 func formatMongoDBMajorVersion(val interface{}) string {
