@@ -315,12 +315,10 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		request.EncryptionAtRestProvider = v.(string)
 	}
 
-	if _, ok := d.GetOk("labels"); ok {
-		if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-			return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
-		}
-		request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+	if _, ok := d.GetOk("labels"); ok && containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
+		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 	}
+	request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		request.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
