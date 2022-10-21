@@ -62,3 +62,5 @@ In addition to all arguments above, the following attributes are exported:
 
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://docs.atlas.mongodb.com/reference/api/vpc-get-containers-list/)
+
+-> **NOTE:** See How To Guide [howto](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/guides/howto-guide.html.markdown) to get an existing container ID.

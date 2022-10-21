@@ -119,7 +119,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `replication_specs` - Configuration for cluster regions.  See [Replication Spec](#replication-spec) below for more details.
 
-* `container_id` - The Network Peering Container ID.
+* `container_id` - The Network Peering Container ID. 
+  
+  -> **NOTE:** See How To Guide [howto](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/guides/howto-guide.html.markdown) to get an existing container ID.
 
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 

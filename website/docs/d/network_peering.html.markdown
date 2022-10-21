@@ -12,6 +12,8 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
 
+-> **NOTE:** See How To Guide [howto](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/guides/howto-guide.html.markdown) to get an existing container ID.
+
 
 ## Example Usage
 
