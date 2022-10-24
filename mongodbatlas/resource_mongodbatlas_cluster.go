@@ -1454,7 +1454,7 @@ func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 }
 
 func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	var err error = nil
+	var err error
 	pName, nName := d.GetChange("provider_name")
 
 	willProviderChange := pName != nName

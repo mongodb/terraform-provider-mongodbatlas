@@ -1,6 +1,6 @@
 variable "atlas_org_id" {
   description = "Atlas orgnization id"
-  default = ""
+  default     = ""
 }
 variable "public_key" {
   description = "Public API key to authenticate to Atlas"
@@ -10,13 +10,13 @@ variable "private_key" {
 }
 variable "provider_name" {
   description = "Atlas cluster provider name"
-  default = "AWS"
+  default     = "AWS"
 }
 variable "backing_provider_name" {
   description = "Atlas cluster backing provider name"
-  default = null
+  default     = null
 }
 variable "provider_instance_size_name" {
   description = "Atlas cluster provider instance name"
-  default = "M10"
+  default     = "M10"
 }
