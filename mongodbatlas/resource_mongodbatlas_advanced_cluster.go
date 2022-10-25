@@ -568,6 +568,33 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
 	}
 
+	upgradeRequest := getUpgradeRequest(d)
+
+	if upgradeRequest != nil {
+		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
+			_, _, err := upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
+			if err != nil {
+				var target *matlas.ErrorResponse
+				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
+					clusterRequest := &matlas.AdvancedCluster{
+						Paused: pointy.Bool(false),
+					}
+					_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+					}
+				}
+				if errors.As(err, &target) && target.HTTPCode == 400 {
+					return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		}
+	}
+
 	// Has changes
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
@@ -1077,6 +1104,37 @@ func replicationSpecsHashSet(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].(*schema.Set)))
 	buf.WriteString(m["zone_name"].(string))
 	return schema.HashString(buf.String())
+}
+
+func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
+	if !d.HasChange("replication_specs") {
+		return nil
+	}
+
+	crs, nrs := d.GetChange("replication_specs")
+	cReplicationSpecs := expandAdvancedReplicationSpecs(crs.(*schema.Set).List())
+	nReplicationSpecs := expandAdvancedReplicationSpecs(nrs.(*schema.Set).List())
+
+	if len(cReplicationSpecs) != 1 || len(nReplicationSpecs) != 1 || len(cReplicationSpecs[0].RegionConfigs) != 1 || len(nReplicationSpecs[0].RegionConfigs) != 1 {
+		return nil
+	}
+
+	cRegionConfig := cReplicationSpecs[0].RegionConfigs[0]
+	nRegionConfig := nReplicationSpecs[0].RegionConfigs[0]
+	cInstanceSize := cRegionConfig.ElectableSpecs.InstanceSize
+
+	if cRegionConfig.ElectableSpecs.InstanceSize == nRegionConfig.ElectableSpecs.InstanceSize || !(cInstanceSize == "M0" ||
+		cInstanceSize == "M2" ||
+		cInstanceSize == "M5") {
+		return nil
+	}
+
+	return &matlas.Cluster{
+		ProviderSettings: &matlas.ProviderSettings{
+			ProviderName:     nRegionConfig.ProviderName,
+			InstanceSizeName: nRegionConfig.ElectableSpecs.InstanceSize,
+		},
+	}
 }
 
 func updateAdvancedCluster(ctx context.Context, conn *matlas.Client, request *matlas.AdvancedCluster, projectID, name string) (*matlas.AdvancedCluster, *matlas.Response, error) {
