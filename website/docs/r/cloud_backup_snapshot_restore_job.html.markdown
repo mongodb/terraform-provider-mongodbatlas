@@ -126,9 +126,9 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 ```
 
 ### Available complete examples
-- [Restore from automated backup snapshot](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v110/cloud-backup-snapshot/v110) with automated backup restore on AWS
+- [Restore from automated backup snapshot](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v110/cloud-backup-snapshot/v110)
 - [Restore from backup snapshot download](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v100/design-id-reference/snapshot-restore)
-- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v146)
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-backup-snapshot-restore-job/point-in-time)
 
 ## Argument Reference
 
