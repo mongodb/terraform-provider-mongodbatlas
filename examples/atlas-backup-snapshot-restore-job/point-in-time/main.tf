@@ -6,8 +6,8 @@ resource "mongodbatlas_project" "project_test" {
 }
 
 resource "mongodbatlas_cluster" "cluster_test" {
-  project_id   = mongodbatlas_project.project_test.id
-  name         = var.cluster_name
+  project_id = mongodbatlas_project.project_test.id
+  name       = var.cluster_name
 
   # Provider Settings "block"
   provider_name               = "AWS"
