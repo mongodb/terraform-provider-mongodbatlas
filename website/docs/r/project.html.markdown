@@ -87,7 +87,7 @@ api_keys allows one to assign an existing organization programmatic API key to a
 * `is_performance_advisor_enabled` - (Optional) Flag that indicates whether to enable Performance Advisor and Profiler for the project. If enabled, you can analyze database logs to recommend performance improvements.
 * `is_realtime_performance_panel_enabled` - (Optional) Flag that indicates whether to enable Real Time Performance Panel for the project. If enabled, you can see real time metrics from your MongoDB database.
 * `is_schema_advisor_enabled` - (Optional) Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor) and the [Data Explorer](https://www.mongodb.com/docs/atlas/atlas-ui/#std-label-atlas-ui).
-* `is_mongodbgov_cloud` - (Optional) Enable Government Cloud API [Government Cloud](https://www.mongodb.com/docs/atlas/government/api/#creating-a-project).
+* `region_usage_restrictions` - (Optional) To create a project for government regions [Government Cloud](https://www.mongodb.com/docs/atlas/government/api/#creating-a-project).
   
 ## Attributes Reference
 
