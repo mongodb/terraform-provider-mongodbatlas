@@ -120,7 +120,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `container_id` - The Network Peering Container ID.
 
--> **NOTE:** See How To Guide [howto](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/guides/howto-guide.html.markdown) to get an existing container ID.
+-> **NOTE:** If you need to get an existing container ID see the [How-To Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/howto-guide.html).
 
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 

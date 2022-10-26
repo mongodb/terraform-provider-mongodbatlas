@@ -1,28 +1,30 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas Provider How to Guide"
+page_title: "MongoDB Atlas Provider How-To Guide"
 sidebar_current: "docs-mongodbatlas-guides-how-to-guide"
 description: |-
-MongoDB Atlas Provider : How to Guide
+MongoDB Atlas Provider : How-To Guide
 ---
 
-# MongoDB Atlas Provider: How to Guide
+# MongoDB Atlas Provider: How-To Guide
 
 The Terraform MongoDB Atlas Provider guide to perform common tasks with the provider.
 
-Document for users how to get a pre-existing container id
+##How to Get A Pre-existing Container ID
 
-1) Empty project
+The following is an end to end example of how to get an existing container id. 
 
-2) empty state file
+1) Start with an empty project
 
-3) applied curl to build cluster
+2) Empty state file
 
-4) terraform apply to retrieve container id
+3) Apply a curl command to build cluster
 
-Validated by testing following scenario container_id populated in state after first apply ...
+4) Run `terraform apply` to retrieve the container id
 
-1) create cluster using curl command to simulate non terraform based cluster
+The following illustrates step 3 and 4 above, assuming 1 & 2 were true:
+
+1) Create a cluster using a curl command to simulate non-Terraform created cluster.  This will also create a container.  
 
 ```
 curl --user "pub:priv" --digest \
@@ -32,7 +34,6 @@ curl --user "pub:priv" --digest \
 --data '
 {
   "name": "SingleRegionCluster",
-  "diskSizeGB": 100,
   "numShards": 1,
   "providerSettings": {
     "providerName": "AWS",
@@ -56,7 +57,6 @@ curl --user "pub:priv" --digest \
     }
   ],
   "backupEnabled": false,
-  "providerBackupEnabled": true,
   "autoScaling": {
     "diskGBEnabled": true
   }
@@ -65,7 +65,7 @@ curl --user "pub:priv" --digest \
 
  
 
-2) Apply this terraform to read information from datasources
+2) Then apply this Terraform config to then read the information from the appropriate Data Sources and output the container id.  
 
  
 ```
@@ -91,7 +91,7 @@ container = "62ffe4ecb79e2e007c375935"
 ```
  
 
-Using versions
+This example was tested using versions:
 - darwin_amd64
 - provider registry.terraform.io/hashicorp/aws v4.26.0
 - provider registry.terraform.io/mongodb/mongodbatlas v1.4.3
