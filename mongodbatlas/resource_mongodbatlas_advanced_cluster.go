@@ -21,6 +21,8 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+type acCtxKey string
+
 const (
 	errorClusterAdvancedCreate             = "error creating MongoDB ClusterAdvanced: %s"
 	errorClusterAdvancedRead               = "error reading MongoDB ClusterAdvanced (%s): %s"
@@ -29,8 +31,9 @@ const (
 	errorClusterAdvancedSetting            = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	upgradeRequestCtx                      = "upgradeRequest"
 )
+
+var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
 
 func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 	return &schema.Resource{
@@ -516,7 +519,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *
 	upgradeRequest := getUpgradeRequest(d)
 
 	if upgradeRequest != nil {
-		upgradeCtx := context.WithValue(ctx, upgradeRequestCtx, upgradeRequest)
+		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
 		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
 	}
 
@@ -531,10 +534,10 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 
 	var upgradeResponse *matlas.Cluster
 	var err error
-	upgradeRequest := ctx.Value(upgradeRequestCtx).(*matlas.Cluster)
+	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*matlas.Cluster)
 
 	if upgradeRequest == nil {
-		return diag.FromErr(fmt.Errorf("Upgrade called without an %s in ctx.", upgradeRequestCtx))
+		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
 	}
 
 	err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
