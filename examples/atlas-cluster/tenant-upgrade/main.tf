@@ -14,6 +14,6 @@ resource "mongodbatlas_cluster" "cluster" {
 }
 
 resource "mongodbatlas_project" "project" {
-  name   = "ClusterTenantUpgrade"
+  name   = "TenantUpgradeTest"
   org_id = var.atlas_org_id
 }

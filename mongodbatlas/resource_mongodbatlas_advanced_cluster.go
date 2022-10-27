@@ -29,13 +29,14 @@ const (
 	errorClusterAdvancedSetting            = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	upgradeRequestCtx                      = "upgradeRequest"
 )
 
 func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterUpdate,
+		UpdateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade,
 		DeleteWithoutTimeout: resourceMongoDBAtlasAdvancedClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasAdvancedClusterImportState,
@@ -511,6 +512,64 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
+func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	upgradeRequest := getUpgradeRequest(d)
+
+	if upgradeRequest != nil {
+		upgradeCtx := context.WithValue(ctx, upgradeRequestCtx, upgradeRequest)
+		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
+	}
+
+	return resourceMongoDBAtlasAdvancedClusterUpdate(ctx, d, meta)
+}
+
+func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*MongoDBClient).Atlas
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	var upgradeResponse *matlas.Cluster
+	var err error
+	upgradeRequest := ctx.Value(upgradeRequestCtx).(*matlas.Cluster)
+
+	if upgradeRequest == nil {
+		return diag.FromErr(fmt.Errorf("Upgrade called without an %s in ctx.", upgradeRequestCtx))
+	}
+
+	err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
+		upgradeResponse, _, err = upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
+		if err != nil {
+			var target *matlas.ErrorResponse
+			if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
+				clusterRequest := &matlas.AdvancedCluster{
+					Paused: pointy.Bool(false),
+				}
+				_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
+				if err != nil {
+					return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+				}
+			}
+			if errors.As(err, &target) && target.HTTPCode == 400 {
+				return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"cluster_id":   upgradeResponse.ID,
+		"project_id":   projectID,
+		"cluster_name": clusterName,
+	}))
+
+	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
+}
+
 func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
@@ -566,33 +625,6 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	if d.HasChange("version_release_system") {
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
-	}
-
-	upgradeRequest := getUpgradeRequest(d)
-
-	if upgradeRequest != nil {
-		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			_, _, err := upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
-			if err != nil {
-				var target *matlas.ErrorResponse
-				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
-					clusterRequest := &matlas.AdvancedCluster{
-						Paused: pointy.Bool(false),
-					}
-					_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
-					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-					}
-				}
-				if errors.As(err, &target) && target.HTTPCode == 400 {
-					return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-		}
 	}
 
 	// Has changes
@@ -1133,6 +1165,7 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 		ProviderSettings: &matlas.ProviderSettings{
 			ProviderName:     nRegionConfig.ProviderName,
 			InstanceSizeName: nRegionConfig.ElectableSpecs.InstanceSize,
+			RegionName:       nRegionConfig.RegionName,
 		},
 	}
 }

@@ -15,6 +15,9 @@ More information on considerations for using advanced clusters please see [Consi
 ~> **IMPORTANT:**
 <br> &#8226; The primary difference between [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) and [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
 
+<br> &#8226; Shared tier clusters are supported for single-cloud, see the [Example Tenant Cluster](#Example-Tenant-Cluster) below.
+<br> &#8226; Shared tier cluster tenant upgrade is now supported as well. Any change from shared tier to a different instance size will be considered a tenant upgrade. When upgrading from shared tier, change the `provider_name` from "TENANT" and to your preferred provider, remove `backing_provider_name`, see the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below.
+<br> &#8226; WARNING! On shared tier cluster tenant upgrade, *only* the upgrade changes will be applied. This is done in-order to avoid a corrupt state file in the event that the upgrade succeeds, but subsequent updates fail within the same `terraform apply`. In order to apply any other cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 -> **NOTE:** A network container is created for a advanced cluster to reside in if one does not yet exist in the project.  To  use this automatically created container with another resource, such as peering, the `container_id` is exported after creation.
@@ -62,6 +65,27 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
+      region_name           = "US_EAST_1"
+      priority              = 1
+    }
+  }
+}
+```
+
+### Example Tenant Cluster Upgrade
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      provider_name         = "AWS"
       region_name           = "US_EAST_1"
       priority              = 1
     }
