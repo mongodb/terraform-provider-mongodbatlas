@@ -476,7 +476,7 @@ func testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, pro
 			name   			 = "%[1]s"
 			org_id 			 = "%[2]s"
 		    project_owner_id = "%[3]s"
-			is_mongodbgov_cloud = true
+			region_usage_restrictions = "GOV_REGIONS_ONLY"
 		}
 	`, projectName, orgID, projectOwnerID)
 }
