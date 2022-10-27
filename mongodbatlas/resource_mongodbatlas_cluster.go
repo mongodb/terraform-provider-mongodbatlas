@@ -904,10 +904,10 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		var err error
 		var updatedCluster *matlas.Cluster
-		willUpgrade := isUpgradeRequired(d)
+		isUpgrade := isUpgradeRequired(d)
 
 		err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			if willUpgrade {
+			if isUpgrade {
 				updatedCluster, _, err = upgradeCluster(ctx, conn, cluster, projectID, clusterName)
 			} else {
 				updatedCluster, _, err = updateCluster(ctx, conn, cluster, projectID, clusterName)
@@ -933,10 +933,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 
-		if willUpgrade {
-			if err := d.Set("cluster_id", updatedCluster.ID); err != nil {
-				return diag.FromErr(fmt.Errorf(errorClusterSetting, "cluster_id", clusterName, err))
-			}
+		if isUpgrade {
 			d.SetId(encodeStateID(map[string]string{
 				"cluster_id":    updatedCluster.ID,
 				"project_id":    projectID,
