@@ -177,6 +177,32 @@ func TestAccResourceMongoDBAtlasProject_CreateWithProjectOwner(t *testing.T) {
 	})
 }
 
+func TestAccResourceMongoDBAtlasGovProject_CreateWithProjectOwner(t *testing.T) {
+	var (
+		project        matlas.Project
+		resourceName   = "mongodbatlas_project.test"
+		projectName    = fmt.Sprintf("testacc-project-gov-%s", acctest.RandString(10))
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckGov(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+				),
+			},
+		},
+	})
+}
 func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	var (
 		project        matlas.Project
@@ -440,6 +466,17 @@ func testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projec
 			name   			 = "%[1]s"
 			org_id 			 = "%[2]s"
 		    project_owner_id = "%[3]s"
+		}
+	`, projectName, orgID, projectOwnerID)
+}
+
+func testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   			 = "%[1]s"
+			org_id 			 = "%[2]s"
+		    project_owner_id = "%[3]s"
+			region_usage_restrictions = "GOV_REGIONS_ONLY"
 		}
 	`, projectName, orgID, projectOwnerID)
 }

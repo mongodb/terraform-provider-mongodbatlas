@@ -122,6 +122,11 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Computed: true,
 				Optional: true,
 			},
+			"region_usage_restrictions": {
+				Type:     schema.TypeString,
+				Computed: true,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -139,6 +144,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		OrgID:                     d.Get("org_id").(string),
 		Name:                      d.Get("name").(string),
 		WithDefaultAlertsSettings: pointy.Bool(d.Get("with_default_alerts_settings").(bool)),
+		RegionUsageRestrictions:   d.Get("region_usage_restrictions").(string),
 	}
 
 	var createProjectOptions *matlas.CreateProjectOptions

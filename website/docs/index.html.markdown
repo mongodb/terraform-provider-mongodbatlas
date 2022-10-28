@@ -34,6 +34,19 @@ The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
 
+# Configure MongoDB Atlas for Government
+
+In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
+```terraform
+# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
+provider "mongodbatlas" {
+  public_key = var.mongodbatlas_public_key
+  private_key  = var.mongodbatlas_private_key
+  is_mongodbgov_cloud = true
+}
+# Create the resources
+```
+
 **API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Authenticate the Provider
 

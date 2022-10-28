@@ -101,6 +101,10 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"region_usage_restrictions": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -210,7 +214,9 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 	if err := d.Set("is_schema_advisor_enabled", projectSettings.IsSchemaAdvisorEnabled); err != nil {
 		return diag.Errorf(errorProjectSetting, `is_schema_advisor_enabled`, project.ID, err)
 	}
-
+	if err := d.Set("region_usage_restrictions", project.RegionUsageRestrictions); err != nil {
+		return diag.Errorf(errorProjectSetting, `region_usage_restrictions`, project.ID, err)
+	}
 	d.SetId(project.ID)
 
 	return nil
