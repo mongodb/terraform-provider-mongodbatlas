@@ -109,4 +109,4 @@ $ terraform import mongodbatlas_network_container.my_container 1112222b3bf994038
 
 See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://docs.atlas.mongodb.com/reference/api/vpc-create-container/)
 
--> **NOTE:** See How To Guide [howto](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/guides/howto-guide.html.markdown) to get an existing container ID.
+-> **NOTE:** If you need to get an existing container ID see the [How-To Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/howto-guide.html).
