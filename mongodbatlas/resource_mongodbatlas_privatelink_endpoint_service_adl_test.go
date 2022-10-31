@@ -19,7 +19,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T
 		commentUpdate = "this is a comment for adl private link endpoint UPDATED"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy,
@@ -52,10 +52,10 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_importBasic(t *tes
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		endpointID    = "vpce-jjg5e24qp93513h03"
+		endpointID    = "vpce-jjg5e24qp93513h04"
 		commentOrigin = "this is a comment for adl private link endpoint"
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
