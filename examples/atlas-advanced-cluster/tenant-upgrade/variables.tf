@@ -1,5 +1,5 @@
 variable "atlas_org_id" {
-  description = "Atlas orgnization id"
+  description = "Atlas organization id"
   default     = ""
 }
 variable "public_key" {
@@ -19,8 +19,4 @@ variable "backing_provider_name" {
 variable "provider_instance_size_name" {
   description = "Atlas cluster provider instance name"
   default     = "M10"
-}
-variable "node_count" {
-  description = "Atlas cluster node count"
-  default     = null
 }

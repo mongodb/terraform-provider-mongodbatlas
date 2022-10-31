@@ -14,7 +14,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     region_configs {
       electable_specs {
         instance_size = var.provider_instance_size_name
-        node_count    = var.node_count
       }
       provider_name         = var.provider_name
       backing_provider_name = var.backing_provider_name
@@ -27,9 +26,4 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 resource "mongodbatlas_project" "project" {
   name   = "TenantUpgradeTest"
   org_id = var.atlas_org_id
-}
-
-output "project_name" {
-  value       = mongodbatlas_project.project.name
-  description = "(Expected) Name of the MongoDB Atlas Cluster"
 }

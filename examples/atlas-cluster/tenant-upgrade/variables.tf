@@ -1,5 +1,5 @@
 variable "atlas_org_id" {
-  description = "Atlas orgnization id"
+  description = "Atlas organization id"
   default     = ""
 }
 variable "public_key" {
