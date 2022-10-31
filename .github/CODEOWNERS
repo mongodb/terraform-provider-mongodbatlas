@@ -1,6 +1,9 @@
 # Global rule
 *	@themantissa
 
+# Maintained by the MongoDB APIx1 team
+* @mongodb/APIx1
+
 # examples 
 /examples/**	@nikhil-mongo
 
