@@ -14,7 +14,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		endpointID    = "vpce-jjg5e24qp93513h04"
+		endpointID    = "vpce-jjg5e24qp93513h03"
 		commentOrigin = "this is a comment for adl private link endpoint"
 		commentUpdate = "this is a comment for adl private link endpoint UPDATED"
 	)
@@ -52,7 +52,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_importBasic(t *tes
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		endpointID    = "vpce-jjg5e24qp93513h04"
+		endpointID    = "vpce-jjg5e24qp93513h03"
 		commentOrigin = "this is a comment for adl private link endpoint"
 	)
 	resource.Test(t, resource.TestCase{
