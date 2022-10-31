@@ -13,7 +13,7 @@ For this example, first we'll start out on the shared tier, then upgrade to a de
 
 Utilize the following to execute a working example, replacing the org id, public and private key with your values:
 
-Apply with the following `terraform.tfvars` for shared tier cluster:
+Apply with the following `terraform.tfvars` to first create a shared tier cluster:
 ```
 atlas_org_id                = "627a9687f7f7f7f774de306f14"
 public_key                  = <REDACTED>
