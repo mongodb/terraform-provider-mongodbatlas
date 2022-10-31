@@ -11,7 +11,7 @@ Variables Required:
 
 For this example, first we'll start out on the shared tier, then upgrade to a dedicated tier.
 
-As such, utilize the following example `terraform.tfvars` and pseudo-code to execute a working example:
+Utilize the following to execute a working example, replacing the org id, public and private key with your values:
 
 Apply with the following `terraform.tfvars` for shared tier cluster:
 ```
@@ -23,7 +23,7 @@ backing_provider_name       = "AWS"
 provider_instance_size_name = "M2"
 ```
 
-Apply with the following `terraform.tfvars` to upgrade the shared tier cluster you just created to dedicated tier; replacing the org id, public and private key with your values:
+Apply with the following `terraform.tfvars` to upgrade the shared tier cluster you just created to dedicated tier:
 ```
 atlas_org_id                = "627a9687f7f7f7f774de306f14"
 public_key                  = <REDACTED>
