@@ -17,11 +17,17 @@ description: |-
 ~> **IMPORTANT:**
 <br> &#8226; New Users: If you are not already using `mongodbatlas_cluster` for your deployment we recommend starting with the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster).  `mongodbatlas_advanced_cluster` has all the same functionality as `mongodbatlas_cluster` but also supports multi-cloud clusters.  
 <br> &#8226; Free tier cluster creation (M0) is supported.
-<br> &#8226; Shared tier clusters can now be upgraded to higher tiers via API or by this Provider. WARNING! Any change from shared tier to a different instance size will be considered a tenant upgrade. When upgrading from shared tier, change the `provider_name` from "TENANT" and to your preferred provider, remove `backing_provider_name`, ex:
+<br> &#8226; Shared tier clusters (M0, M2, M5) can be upgraded to dedicated tiers (M10+) via this provider. WARNING WHEN UPGRADING TENANT/SHARED CLUSTERS!!! Any change from shared tier to a different instance size will be considered a tenant upgrade. When upgrading from shared tier to dedicated simply change the `provider_name` from "TENANT"  to your preferred provider (AWS, GCP, AZURE) and remove the variable `backing_provider_name`, for example if you have an existing tenant/shared cluster and want to upgrade your Terraform config should be changed from:
+```
+provider_instance_size_name = "M0"
+provider_name               = "TENANT"
+backing_provider_name       = "AWS"
+```
+To:
 ```
 provider_instance_size_name = "M10"
 provider_name               = "AWS"
-``` 
+```
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).   
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
