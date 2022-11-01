@@ -1,8 +1,5 @@
 # Global rule
 *	@themantissa
 
-# examples 
-/examples/**	@nikhil-mongo
-
-# resources & datasources, provider
-/mongodbatlas/**	@coderGo93 @andreaangiolillo @abner-dou
+# Maintained by the MongoDB APIx1 team
+* @mongodb/APIx1
