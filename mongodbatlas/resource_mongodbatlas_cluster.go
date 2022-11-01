@@ -1233,13 +1233,13 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 }
 
 func isUpgradeRequired(d *schema.ResourceData) bool {
-	pInstance, nInstance := d.GetChange("provider_instance_size_name")
+	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
-	if pInstance == nInstance {
+	if currentSize == updatedSize {
 		return false
 	}
 
-	return pInstance == "M0" || pInstance == "M2" || pInstance == "M5"
+	return currentSize == "M0" || currentSize == "M2" || currentSize == "M5"
 }
 
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
@@ -1452,10 +1452,10 @@ func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 
 func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	var err error
-	pName, nName := d.GetChange("provider_name")
+	currentProvider, updatedProvider := d.GetChange("provider_name")
 
-	willProviderChange := pName != nName
-	willLeaveTenant := willProviderChange && pName == "TENANT"
+	willProviderChange := currentProvider != updatedProvider
+	willLeaveTenant := willProviderChange && currentProvider == "TENANT"
 
 	if willLeaveTenant {
 		err = d.SetNewComputed("backing_provider_name")

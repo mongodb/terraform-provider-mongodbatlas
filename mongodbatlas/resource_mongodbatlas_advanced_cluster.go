@@ -516,9 +516,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	upgradeRequest := getUpgradeRequest(d)
-
-	if upgradeRequest != nil {
+	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
 		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
 		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
 	}
@@ -569,6 +567,17 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
+
+	if d.Get("paused").(bool) {
+		clusterRequest := &matlas.AdvancedCluster{
+			Paused: pointy.Bool(true),
+		}
+
+		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+		}
+	}
 
 	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
 }
@@ -1146,29 +1155,29 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 		return nil
 	}
 
-	crs, nrs := d.GetChange("replication_specs")
-	cReplicationSpecs := expandAdvancedReplicationSpecs(crs.(*schema.Set).List())
-	nReplicationSpecs := expandAdvancedReplicationSpecs(nrs.(*schema.Set).List())
+	cs, ns := d.GetChange("replication_specs")
+	currentSpecs := expandAdvancedReplicationSpecs(cs.(*schema.Set).List())
+	updatedSpecs := expandAdvancedReplicationSpecs(ns.(*schema.Set).List())
 
-	if len(cReplicationSpecs) != 1 || len(nReplicationSpecs) != 1 || len(cReplicationSpecs[0].RegionConfigs) != 1 || len(nReplicationSpecs[0].RegionConfigs) != 1 {
+	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
 		return nil
 	}
 
-	cRegionConfig := cReplicationSpecs[0].RegionConfigs[0]
-	nRegionConfig := nReplicationSpecs[0].RegionConfigs[0]
-	cInstanceSize := cRegionConfig.ElectableSpecs.InstanceSize
+	currentRegion := currentSpecs[0].RegionConfigs[0]
+	updatedRegion := updatedSpecs[0].RegionConfigs[0]
+	currentSize := currentRegion.ElectableSpecs.InstanceSize
 
-	if cRegionConfig.ElectableSpecs.InstanceSize == nRegionConfig.ElectableSpecs.InstanceSize || !(cInstanceSize == "M0" ||
-		cInstanceSize == "M2" ||
-		cInstanceSize == "M5") {
+	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !(currentSize == "M0" ||
+		currentSize == "M2" ||
+		currentSize == "M5") {
 		return nil
 	}
 
 	return &matlas.Cluster{
 		ProviderSettings: &matlas.ProviderSettings{
-			ProviderName:     nRegionConfig.ProviderName,
-			InstanceSizeName: nRegionConfig.ElectableSpecs.InstanceSize,
-			RegionName:       nRegionConfig.RegionName,
+			ProviderName:     updatedRegion.ProviderName,
+			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
+			RegionName:       updatedRegion.RegionName,
 		},
 	}
 }
