@@ -1155,9 +1155,9 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 		return nil
 	}
 
-	cs, ns := d.GetChange("replication_specs")
+	cs, us := d.GetChange("replication_specs")
 	currentSpecs := expandAdvancedReplicationSpecs(cs.(*schema.Set).List())
-	updatedSpecs := expandAdvancedReplicationSpecs(ns.(*schema.Set).List())
+	updatedSpecs := expandAdvancedReplicationSpecs(us.(*schema.Set).List())
 
 	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
 		return nil
