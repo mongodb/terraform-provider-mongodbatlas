@@ -33,7 +33,6 @@
 - Adding a github actions to automatically close stale issues/PRs based on CLOUDP-79100 [\#872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/872)
 - Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.22 to 0.40.24 [\#875](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/875)
 - Update cluster.html.markdown [\#878](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/878)
-- Update teams.html.markdown [\#881](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/881)
 - INTMDB-378: Add link for How To Guide for existing container ID [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - Encryption_at_rest M10+ limit doc update [\#886](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/886)
 - Add APIx1 CODEOWNER [\#894](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/894)
