@@ -900,18 +900,24 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	// Has changes
-	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
-		var err error
-		var updatedCluster *matlas.Cluster
-		isUpgrade := isUpgradeRequired(d)
+	var didUnpauseCluster bool = false
 
-		err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			if isUpgrade {
-				updatedCluster, _, err = upgradeCluster(ctx, conn, cluster, projectID, clusterName)
-			} else {
-				updatedCluster, _, err = updateCluster(ctx, conn, cluster, projectID, clusterName)
-			}
+	if isUpgradeRequired(d) {
+		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName)
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+
+		d.SetId(encodeStateID(map[string]string{
+			"cluster_id":    updatedCluster.ID,
+			"project_id":    projectID,
+			"cluster_name":  updatedCluster.Name,
+			"provider_name": updatedCluster.ProviderSettings.ProviderName,
+		}))
+	} else if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
+		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
+			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName)
 
 			if didErrOnPausedCluster(err) {
 				clusterRequest := &matlas.Cluster{
@@ -919,6 +925,8 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 				}
 
 				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
+
+				didUnpauseCluster = true
 			}
 
 			if err != nil {
@@ -930,15 +938,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-		}
-
-		if isUpgrade {
-			d.SetId(encodeStateID(map[string]string{
-				"cluster_id":    updatedCluster.ID,
-				"project_id":    projectID,
-				"cluster_name":  updatedCluster.Name,
-				"provider_name": updatedCluster.ProviderSettings.ProviderName,
-			}))
 		}
 	}
 
@@ -958,7 +957,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	if d.Get("paused").(bool) {
+	if didUnpauseCluster {
 		clusterRequest := &matlas.Cluster{
 			Paused: pointy.Bool(true),
 		}

@@ -538,25 +538,7 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
 	}
 
-	err = resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-		upgradeResponse, _, err = upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
-		if err != nil {
-			var target *matlas.ErrorResponse
-			if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
-				clusterRequest := &matlas.AdvancedCluster{
-					Paused: pointy.Bool(false),
-				}
-				_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
-				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-				}
-			}
-			if errors.As(err, &target) && target.HTTPCode == 400 {
-				return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-			}
-		}
-		return nil
-	})
+	upgradeResponse, _, err = upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
@@ -567,17 +549,6 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 		"project_id":   projectID,
 		"cluster_name": clusterName,
 	}))
-
-	if d.Get("paused").(bool) {
-		clusterRequest := &matlas.AdvancedCluster{
-			Paused: pointy.Bool(true),
-		}
-
-		_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-		}
-	}
 
 	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
 }
