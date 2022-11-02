@@ -88,6 +88,48 @@ description: |-
   }
 ```
 
+### Example of a point in time restore
+```
+resource "mongodbatlas_cluster" "cluster_test" {
+  project_id   = mongodbatlas_project.project_test.id
+  name         = var.cluster_name
+
+  # Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "US_EAST_1"
+  provider_instance_size_name = "M10"
+  cloud_backup                = true # enable cloud provider snapshots
+  pit_enabled                 = true
+}
+
+
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
+  project_id        = mongodbatlas_cluster.cluster_test.project_id
+  cluster_name      = mongodbatlas_cluster.cluster_test.name
+  description       = "My description"
+  retention_in_days = "1"
+}
+
+resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+  count        = (var.point_in_time_utc_seconds == 0 ? 0 : 1)
+  project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
+  cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.id
+
+  delivery_type_config {
+    point_in_time             = true
+    target_cluster_name       = mongodbatlas_cluster.cluster_test.name
+    target_project_id         = mongodbatlas_cluster.cluster_test.project_id
+    point_in_time_utc_seconds = var.point_in_time_utc_seconds
+  }
+}
+```
+
+### Available complete examples
+- [Restore from automated backup snapshot](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v110/cloud-backup-snapshot/v110)
+- [Restore from backup snapshot download](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/test-upgrade/v100/design-id-reference/snapshot-restore)
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/atlas-backup-snapshot-restore-job/point-in-time)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
@@ -96,7 +138,7 @@ description: |-
 * `delivery_type_config` - (Required) Type of restore job to create. Possible configurations are: **download**, **automated**, or **pointInTime** only one must be set it in ``true``.
 * `delivery_type_config.automated` - Set to `true` to use the automated configuration.
 * `delivery_type_config.download` - Set to `true` to use the download configuration.
-* `delivery_type_config.pointInTime` - Set to `true` to use the pointInTime configuration.
+* `delivery_type_config.pointInTime` - Set to `true` to use the pointInTime configuration. If using pointInTime configuration, you must also specify either `oplog_ts` and `oplog_inc`, or `point_in_time_utc_seconds`.
 * `delivery_type_config.target_cluster_name` - Name of the target Atlas cluster to which the restore job restores the snapshot. Required for **automated** and **pointInTime**.
 * `delivery_type_config.target_project_id` - Name of the target Atlas cluster to which the restore job restores the snapshot. Required for **automated** and **pointInTime**.
 * `delivery_type_config.oplog_ts` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot. This is the first part of an Oplog timestamp.

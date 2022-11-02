@@ -227,6 +227,21 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"microsoft_teams_webhook_url": {
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
+						},
+						"webhook_secret": {
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
+						},
+						"webhook_url": {
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Optional:  true,
+						},
 					},
 				},
 			},

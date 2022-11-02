@@ -39,6 +39,11 @@ testacc: fmtcheck
 	@$(eval VERSION=acc)
 	TF_ACC=1 go test $(TEST) -v -parallel 20 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
 
+.PHONY: testaccgov
+testaccgov: fmtcheck
+	@$(eval VERSION=acc)
+	TF_ACC=1 go test $(TEST) -run 'TestAccResourceMongoDBAtlasGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags=$(LINKER_FLAGS) "
+
 .PHONY: fmt
 fmt:
 	@echo "==> Fixing source code with gofmt..."

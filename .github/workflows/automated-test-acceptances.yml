@@ -83,3 +83,47 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
         run: make testacc
+
+  acceptance-tests-gov:
+    if: ${{ github.event.label.name == 'run-testacc-gov' }}
+    needs: [ authorize ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Acceptance Tests Gov
+        env:
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
+          SKIP_TEST: ${{ secrets.SKIP_TEST }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_GOV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_GOV }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID_GOV }}
+          MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID_GOV }}
+          MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
+          MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
+          MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
+          MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
+          MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
+          MONGODB_ATLAS_LDAP_PORT: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
+          AWS_VPC_CIDR_BLOCK: ${{ secrets.AWS_VPC_CIDR_BLOCK }}
+          AWS_REGION: ${{ secrets.AWS_REGION_GOV }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
+          CA_CERT: ${{ secrets.CA_CERT }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
+          PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
+          MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
+          MONGODB_ATLAS_BASE_URL: ${{ secrets.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID_GOV: ${{ secrets.MONGODB_ATLAS_PROJECT_OWNER_ID_GOV }}
+        run: make testaccgov
+

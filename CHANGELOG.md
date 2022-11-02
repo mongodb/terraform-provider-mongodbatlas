@@ -1,22 +1,62 @@
+## [v1.5.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.5.0) (2022-11-01)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.6...v1.5.0)
+
+**Fixed**
+
+- INTMDB-224	Support AtlasGov with Terraform [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
+- INTMDB-314	Feature add: Add ability to upgrade shared/TENANT tiers for clusters and advanced clusters [\#874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/874)
+- INTMDB-326	Review code/tests and docs for resource_mongodbatlas_search_index [\#891](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/891)
+- INTMDB-334	Determine best path forward for GCP PSC timeouts and implement [\#859](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/859)
+- INTMDB-364	Add support for serverless private endpoints (AWS) [\#314](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/314)
+- INTMDB-370	Docs not complete for cloud_backup_snapshot_restore_job	[\#870](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/870)
+- INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
+- INTMDB-377	Release 1.5 (both pre and then GA) [\#](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/)
+- INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
+- INTMDB-394	MS Teams alert support in terraform provider is missing	[\#](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/)
+- INTMDB-405	Add cluster label to advanced clusters	[\#857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/857)
+- INTMDB-406	MILLION_RPU unit isn't supported by provider #854 [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/854)
+- INTMDB-403    Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
+  
+**Closed issues:**
+- MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
+- MILLION_RPU unit isn't supported by provider not_stale  [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
+
+**Merged pull requests:**
+- Chore(deps): Bump octokit/request-action from 2.1.6 to 2.1.7 [\#868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/868)
+- Docs: fix custom_dns_configuration_cluster_aws [\#860](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/860)
+- INTMDB-403: Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
+- INTMDB-404: mongodbatlas_advanced_cluster doc updates [\#852](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/852)
+- Docs: fix custom_dns_configuration_cluster_aws [\#860](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/860)
+- Relying on atlas api for unit validation on alert configuration [\#862](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/862)
+- INTMD-428: doc update to "mongodbatlas_projects" [\#869](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/869)
+- Adding a github actions to automatically close stale issues/PRs based on CLOUDP-79100 [\#872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/872)
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.22 to 0.40.24 [\#875](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/875)
+- Update cluster.html.markdown [\#878](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/878)
+- INTMDB-378: Add link for How To Guide for existing container ID [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
+- Encryption_at_rest M10+ limit doc update [\#886](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/886)
+- Add APIx1 CODEOWNER [\#894](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/894)
+- Chore(deps): Bump golangci/golangci-lint-action from 3.2.0 to 3.3.0 [\#897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/897)
+
 ## [v1.4.6](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.6) (2022-09-19)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6)
 
 **Fixed**
-- INTMDB-387 - [Terraform] Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
-- INTMDB-342 - [Terraform] Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts  [\#837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/837)
-- INTMDB-347 - [Terraform] cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
-- INTMDB-354 - [Terraform] Update docs around what requires an API key access list [\#834](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/834)
+- INTMDB-387 - Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
+- INTMDB-342 - Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts  [\#837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/837)
+- INTMDB-347 - Cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
+- INTMDB-354 - Update docs around what requires an API key access list [\#834](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/834)
 - INTMDB-363 - [Updated Feature] Add serverless backup to mongodbatlas_serverless_instance [\#830](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/830)
-- INTMDB-379 - [Terraform] Release 1.4.6 (both pre and then GA)	
-- INTMDB-381 - [Terraform] Customer is unable to disable backup auto export [\#823](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/823)
-- INTMDB-383 - [Terraform] Update the BYOK/encryption at rest resource [\#805](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/805)
+- INTMDB-379 - Release 1.4.6 (both pre and then GA)	
+- INTMDB-381 - Customer is unable to disable backup auto export [\#823](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/823)
+- INTMDB-383 - Update the BYOK/encryption at rest resource [\#805](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/805)
 - INTMDB-385 - use_org_and_group_names_in_export_prefix is not working for a customer
-- INTMDB-386 - [Terraform] Add new role types to invitation verification	[\#840](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/840)
-- INTMDB-371 - [Terraform] Timeout when creating privatelink_endpoint [\#806](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/806)
-- INTMDB-372 - [Terraform] Fix failing test for testAccMongoDBAtlasAlertConfigurationConfigWithMatchers	[\#836](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/836)
-- INTMDB-358 - [terraform] Upgrade to go1.18 [\#835](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/835)
-- INTMDB-391 - [Terraform] Doc Fix for teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838)
+- INTMDB-386 - Add new role types to invitation verification	[\#840](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/840)
+- INTMDB-371 - Timeout when creating privatelink_endpoint [\#806](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/806)
+- INTMDB-372 - Fix failing test for testAccMongoDBAtlasAlertConfigurationConfigWithMatchers	[\#836](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/836)
+- INTMDB-358 - Upgrade to go1.18 [\#835](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/835)
+- INTMDB-391 - Doc Fix for teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838)
 
 **Closed issues:**
 -  importing existing cluster does not populate backup status #768 [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
