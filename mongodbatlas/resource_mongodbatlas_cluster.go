@@ -900,7 +900,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	var didUnpauseCluster bool = false
+	var didUnpauseCluster = false
 
 	if isUpgradeRequired(d) {
 		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName)

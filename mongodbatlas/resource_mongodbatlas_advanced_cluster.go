@@ -530,15 +530,13 @@ func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.R
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	var upgradeResponse *matlas.Cluster
-	var err error
 	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*matlas.Cluster)
 
 	if upgradeRequest == nil {
 		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
 	}
 
-	upgradeResponse, _, err = upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
+	upgradeResponse, _, err := upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
