@@ -21,6 +21,8 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+type acCtxKey string
+
 const (
 	errorClusterAdvancedCreate             = "error creating MongoDB ClusterAdvanced: %s"
 	errorClusterAdvancedRead               = "error reading MongoDB ClusterAdvanced (%s): %s"
@@ -31,11 +33,13 @@ const (
 	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 )
 
+var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
+
 func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterCreate,
 		ReadWithoutTimeout:   resourceMongoDBAtlasAdvancedClusterRead,
-		UpdateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterUpdate,
+		UpdateWithoutTimeout: resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade,
 		DeleteWithoutTimeout: resourceMongoDBAtlasAdvancedClusterDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasAdvancedClusterImportState,
@@ -507,6 +511,42 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 	}
 
 	return nil
+}
+
+func resourceMongoDBAtlasAdvancedClusterUpdateOrUpgrade(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if upgradeRequest := getUpgradeRequest(d); upgradeRequest != nil {
+		upgradeCtx := context.WithValue(ctx, upgradeRequestCtxKey, upgradeRequest)
+		return resourceMongoDBAtlasAdvancedClusterUpgrade(upgradeCtx, d, meta)
+	}
+
+	return resourceMongoDBAtlasAdvancedClusterUpdate(ctx, d, meta)
+}
+
+func resourceMongoDBAtlasAdvancedClusterUpgrade(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	conn := meta.(*MongoDBClient).Atlas
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	upgradeRequest := ctx.Value(upgradeRequestCtxKey).(*matlas.Cluster)
+
+	if upgradeRequest == nil {
+		return diag.FromErr(fmt.Errorf("upgrade called without %s in ctx", string(upgradeRequestCtxKey)))
+	}
+
+	upgradeResponse, _, err := upgradeCluster(ctx, conn, upgradeRequest, projectID, clusterName)
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"cluster_id":   upgradeResponse.ID,
+		"project_id":   projectID,
+		"cluster_name": clusterName,
+	}))
+
+	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
 }
 
 func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -1075,6 +1115,38 @@ func replicationSpecsHashSet(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].(*schema.Set)))
 	buf.WriteString(m["zone_name"].(string))
 	return schema.HashString(buf.String())
+}
+
+func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
+	if !d.HasChange("replication_specs") {
+		return nil
+	}
+
+	cs, us := d.GetChange("replication_specs")
+	currentSpecs := expandAdvancedReplicationSpecs(cs.(*schema.Set).List())
+	updatedSpecs := expandAdvancedReplicationSpecs(us.(*schema.Set).List())
+
+	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
+		return nil
+	}
+
+	currentRegion := currentSpecs[0].RegionConfigs[0]
+	updatedRegion := updatedSpecs[0].RegionConfigs[0]
+	currentSize := currentRegion.ElectableSpecs.InstanceSize
+
+	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !(currentSize == "M0" ||
+		currentSize == "M2" ||
+		currentSize == "M5") {
+		return nil
+	}
+
+	return &matlas.Cluster{
+		ProviderSettings: &matlas.ProviderSettings{
+			ProviderName:     updatedRegion.ProviderName,
+			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
+			RegionName:       updatedRegion.RegionName,
+		},
+	}
 }
 
 func updateAdvancedCluster(ctx context.Context, conn *matlas.Client, request *matlas.AdvancedCluster, projectID, name string) (*matlas.AdvancedCluster, *matlas.Response, error) {
