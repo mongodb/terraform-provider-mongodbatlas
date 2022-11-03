@@ -39,4 +39,4 @@ Custom DNS Configuration for Atlas Clusters on AWS must be imported using Projec
 $ terraform import mongodbatlas_custom_dns_configuration_cluster_aws.test 1112222b3bf99403840e8934
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Custom DNS Configuration for Atlas Clusters on AWS](https://docs.atlas.mongodb.com/reference/api/aws-custom-dns)
+See detailed information for arguments and attributes: [MongoDB API Custom DNS Configuration for Atlas Clusters on AWS](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Custom-DNS-for-Atlas-Clusters-Deployed-to-AWS)
