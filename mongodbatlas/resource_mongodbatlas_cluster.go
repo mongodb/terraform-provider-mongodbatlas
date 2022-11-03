@@ -953,7 +953,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instnace_size_name").(string)) {
+	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
 			Paused: pointy.Bool(true),
 		}
