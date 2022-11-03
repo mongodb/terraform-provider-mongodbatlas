@@ -34,7 +34,7 @@ resource "mongodbatlas_project" "test" {
   }
 }
 
-data "mongodbatlas_project" "test" {
+data "mongodbatlas_projects" "test" {
   page_num = 1
   items_per_page = 5
 }

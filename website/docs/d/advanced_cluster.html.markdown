@@ -1,10 +1,10 @@
---
+---
 layout: "mongodbatlas"
 page_title: "MongoDB Atlas: advanced_cluster"
 sidebar_current: "docs-mongodbatlas-datasource-advanced-cluster"
 description: |-
     Describe an Advanced Cluster.
---
+---
 
 # Data Source: mongodbatlas_advanced_cluster
 

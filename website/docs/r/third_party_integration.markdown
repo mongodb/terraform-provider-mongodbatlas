@@ -44,6 +44,8 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * VICTOR_OPS
      * FLOWDOCK
      * WEBHOOK
+     * MICROSOFT_TEAMS
+     * PROMETHEUS
 
 Additional values based on Type
 
