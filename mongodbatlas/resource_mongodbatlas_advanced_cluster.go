@@ -1134,9 +1134,7 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 	updatedRegion := updatedSpecs[0].RegionConfigs[0]
 	currentSize := currentRegion.ElectableSpecs.InstanceSize
 
-	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !(currentSize == "M0" ||
-		currentSize == "M2" ||
-		currentSize == "M5") {
+	if currentRegion.ElectableSpecs.InstanceSize == updatedRegion.ElectableSpecs.InstanceSize || !isSharedTier(currentSize) {
 		return nil
 	}
 
