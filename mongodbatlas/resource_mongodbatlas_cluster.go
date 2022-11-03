@@ -1243,11 +1243,7 @@ func isSharedTier(instanceSize string) bool {
 func isUpgradeRequired(d *schema.ResourceData) bool {
 	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
-	if currentSize == updatedSize {
-		return false
-	}
-
-	return isSharedTier(currentSize.(string))
+	return currentSize != updatedSize && isSharedTier(currentSize.(string))
 }
 
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
