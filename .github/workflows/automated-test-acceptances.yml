@@ -82,6 +82,7 @@ jobs:
           ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
+          MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
         run: make testacc
 
   acceptance-tests-gov:
