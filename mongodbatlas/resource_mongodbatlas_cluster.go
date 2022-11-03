@@ -900,8 +900,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	var didUnpauseCluster = false
-
 	if isUpgradeRequired(d) {
 		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName)
 
@@ -925,8 +923,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 				}
 
 				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
-
-				didUnpauseCluster = true
 			}
 
 			if err != nil {
@@ -957,7 +953,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	if didUnpauseCluster {
+	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instnace_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
 			Paused: pointy.Bool(true),
 		}
@@ -1240,6 +1236,10 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 	}
 }
 
+func isSharedTier(instanceSize string) bool {
+	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
+}
+
 func isUpgradeRequired(d *schema.ResourceData) bool {
 	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
@@ -1247,7 +1247,7 @@ func isUpgradeRequired(d *schema.ResourceData) bool {
 		return false
 	}
 
-	return currentSize == "M0" || currentSize == "M2" || currentSize == "M5"
+	return isSharedTier(currentSize.(string))
 }
 
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
