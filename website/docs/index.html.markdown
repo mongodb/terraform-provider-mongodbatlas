@@ -19,13 +19,25 @@ Speaking of changes, see [CHANGELOG](https://github.com/mongodb/terraform-provid
 ## Example Usage
 
 ```terraform
-# Configure the MongoDB Atlas Provider
+# Configure the MongoDB Atlas Provider for Commerical 
 provider "mongodbatlas" {
   public_key = var.mongodbatlas_public_key
   private_key  = var.mongodbatlas_private_key
 }
 # Create the resources
 ```
+In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
+
+```terraform
+# Configure the MongoDB Atlas Provider for Government 
+provider "mongodbatlas" {
+  public_key = var.mongodbatlas_public_key
+  private_key  = var.mongodbatlas_private_key
+  is_mongodbgov_cloud = true
+}
+# Create the resources
+```
+Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/)  
 
 ## Configure Atlas Programmatic Access
 
