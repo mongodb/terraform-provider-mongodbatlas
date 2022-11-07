@@ -13,7 +13,8 @@ The Terraform MongoDB Atlas Provider version 1.5.0 has a number of new and excit
 New Features:
 * You can now manage AWS Serverless Private Endpoints [`mongodbatlas_serverless_private_endpoints`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_private_endpoints)
 * You can now manage AtlasGov Projects [`mongodbatlas_mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)
-* You can now manage Microsoft Teams Alert Notifications with [`mongodbatlas_mongodbatlas_alert_configuration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/alert_configuration)
+  * To enable the Terraform MongoDB Atlas Provider for use with AtlasGov see [`Getting Started Guide`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#configure-mongodb-atlas-for-government) 
+* You can now manage Microsoft Teams Alert Notifications with [`mongodbatlas_alert_configuration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/alert_configuration)
 
 Changes:
 * You can now upgrade Shared tier clusters to Dedicated [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster),   [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster)
