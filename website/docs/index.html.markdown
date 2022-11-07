@@ -37,7 +37,7 @@ provider "mongodbatlas" {
 }
 # Create the resources
 ```
-Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/)  
+Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
 ## Configure Atlas Programmatic Access
 
