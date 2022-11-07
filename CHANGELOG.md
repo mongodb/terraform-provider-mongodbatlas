@@ -22,11 +22,11 @@ BUG FIXES:
 - INTMDB-405	Add cluster label to advanced clusters	[\#857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/857)
 - INTMDB-406	MILLION_RPU unit isn't supported by provider #854 [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/854)
   
-**Closed Issues:**
+**Closed Issues**
 - MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
 - MILLION_RPU unit isn't supported by provider not_stale  [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
 
-**Merged Pull Requests:**
+**Merged Pull Requests**
 - INTMDB-378: Add link for How To Guide for existing container ID [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - INTMDB-403: Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
 - INTMDB-404: mongodbatlas_advanced_cluster doc updates [\#852](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/852)
