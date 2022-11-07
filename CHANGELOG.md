@@ -12,12 +12,12 @@ ENHANCEMENTS:
 - INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
 - INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - INTMDB-377	Release 1.5 (both pre and then GA) [\#887](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/887)
+- INTMDB-394	MS Teams alert support [\#320](https://github.com/mongodb/go-client-mongodb-atlas/pull/320)
 
 BUG FIXES: 
 - INTMDB-326	Review code/tests and docs for resource_mongodbatlas_search_index [\#891](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/891)
 - INTMDB-334	Determine best path forward for GCP PSC timeouts and implement [\#859](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/859)
 - INTMDB-370	Docs not complete for cloud_backup_snapshot_restore_job	[\#870](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/870)
-- INTMDB-394	MS Teams alert support in terraform provider is missing	[\#320](https://github.com/mongodb/go-client-mongodb-atlas/pull/320)
 - INTMDB-403  Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
 - INTMDB-405	Add cluster label to advanced clusters	[\#857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/857)
 - INTMDB-406	MILLION_RPU unit isn't supported by provider #854 [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/854)
