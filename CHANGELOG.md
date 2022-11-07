@@ -7,7 +7,7 @@
 ENHANCEMENTS: 
 - INTMDB-224	Support AtlasGov with Terraform [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
 - INTMDB-314	Feature add: Add ability to upgrade shared/TENANT tiers for clusters and advanced clusters [\#874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/874)
-- INTMDB-349  New AtlasGov parameter to tell the provider to use the Atlas gov base URL
+- INTMDB-349  New AtlasGov parameter to tell the provider to use the Atlas gov base URL [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
 - INTMDB-364	Add support for serverless private endpoints (AWS) [\#314](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/314)
 - INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
 - INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
