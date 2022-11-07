@@ -3,39 +3,41 @@
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.6...v1.5.0)
 
 **Fixed**
-
+ENHANCEMENTS: 
 - INTMDB-224	Support AtlasGov with Terraform [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
 - INTMDB-314	Feature add: Add ability to upgrade shared/TENANT tiers for clusters and advanced clusters [\#874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/874)
+- INTMDB-349  New AtlasGov parameter to tell the provider to use the Atlas gov base URL
+- INTMDB-364	Add support for serverless private endpoints (AWS) [\#314](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/314)
+- INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
+- INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
+- INTMDB-377	Release 1.5 (both pre and then GA) [\#](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/)
+
+BUG FIXES: 
 - INTMDB-326	Review code/tests and docs for resource_mongodbatlas_search_index [\#891](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/891)
 - INTMDB-334	Determine best path forward for GCP PSC timeouts and implement [\#859](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/859)
-- INTMDB-364	Add support for serverless private endpoints (AWS) [\#314](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/314)
 - INTMDB-370	Docs not complete for cloud_backup_snapshot_restore_job	[\#870](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/870)
-- INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
-- INTMDB-377	Release 1.5 (both pre and then GA) [\#](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/)
-- INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - INTMDB-394	MS Teams alert support in terraform provider is missing	[\#](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/)
+- INTMDB-403  Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
 - INTMDB-405	Add cluster label to advanced clusters	[\#857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/857)
 - INTMDB-406	MILLION_RPU unit isn't supported by provider #854 [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/854)
-- INTMDB-403    Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
   
-**Closed issues:**
+**Closed Issues:**
 - MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
 - MILLION_RPU unit isn't supported by provider not_stale  [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
 
-**Merged pull requests:**
-- Chore(deps): Bump octokit/request-action from 2.1.6 to 2.1.7 [\#868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/868)
-- Docs: fix custom_dns_configuration_cluster_aws [\#860](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/860)
+**Merged Pull Requests:**
+- INTMDB-378: Add link for How To Guide for existing container ID [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - INTMDB-403: Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
 - INTMDB-404: mongodbatlas_advanced_cluster doc updates [\#852](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/852)
+- INTMD-428: doc update to "mongodbatlas_projects" [\#869](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/869)
 - Docs: fix custom_dns_configuration_cluster_aws [\#860](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/860)
 - Relying on atlas api for unit validation on alert configuration [\#862](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/862)
-- INTMD-428: doc update to "mongodbatlas_projects" [\#869](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/869)
 - Adding a github actions to automatically close stale issues/PRs based on CLOUDP-79100 [\#872](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/872)
-- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.22 to 0.40.24 [\#875](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/875)
-- Update cluster.html.markdown [\#878](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/878)
-- INTMDB-378: Add link for How To Guide for existing container ID [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - Encryption_at_rest M10+ limit doc update [\#886](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/886)
+- Update cluster.html.markdown [\#878](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/878)
 - Add APIx1 CODEOWNER [\#894](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/894)
+- Chore(deps): Bump octokit/request-action from 2.1.6 to 2.1.7 [\#868](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/868)
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.22 to 0.40.24 [\#875](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/875)
 - Chore(deps): Bump golangci/golangci-lint-action from 3.2.0 to 3.3.0 [\#897](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/897)
 
 ## [v1.4.6](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.4.6) (2022-09-19)
