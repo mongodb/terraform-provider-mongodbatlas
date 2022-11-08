@@ -19,7 +19,7 @@ Speaking of changes, see [CHANGELOG](https://github.com/mongodb/terraform-provid
 ## Example Usage
 
 ```terraform
-# Configure the MongoDB Atlas Provider for Commercial 
+# Configure the MongoDB Atlas Provider 
 provider "mongodbatlas" {
   public_key = var.mongodbatlas_public_key
   private_key  = var.mongodbatlas_private_key
