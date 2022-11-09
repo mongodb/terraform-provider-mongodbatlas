@@ -12,7 +12,7 @@ The Terraform MongoDB Atlas Provider version 1.6.0 has several new and exciting 
 
 New Features:
 * You can now manage AWS Serverless Private Endpoints [`mongodbatlas_privatelink_endpoint_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless), [`mongodbatlas_privatelink_endpoint_service_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_serverless)
-* You can now manage Cluster Termination Protection [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster), [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) 
+* You can now manage Advanced Cluster/Cluster/Serverless Instance Termination Protection [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster), [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster), [`mongodbatlas_serverless_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_instance)  
 
 
 See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
