@@ -49,7 +49,6 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServerless_importBasic(t *tes
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, commentOrigin),
 				Check: resource.ComposeTestCheckFunc(
-					//resource.TestCheckResourceAttr(resourceName, "provider_name", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},

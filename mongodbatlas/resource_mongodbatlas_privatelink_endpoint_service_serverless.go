@@ -175,7 +175,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessDelete(ctx context.
 			return nil
 		}
 
-		return diag.Errorf("error getting Serverless private link endpoint service information: %s", err)
+		return diag.Errorf(errorServerlessServiceEndpointDelete, endpointID, err)
 	}
 
 	d.SetId("") // Set to null as linked resource will delete servless endpoint
