@@ -1,3 +1,13 @@
+## [v1.6.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.0) (2022-11-14)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
+
+**Fixed**
+
+ENHANCEMENTS: 
+- INTMDB-364 Feature add: AWS Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
+- INTMDB-444 Feature add: Cluster Termination Protection [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
+
 ## [v1.5.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.5.0) (2022-11-07)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.6...v1.5.0)
