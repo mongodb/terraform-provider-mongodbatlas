@@ -30,27 +30,18 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 }
 
 func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	//log.Printf("[DEBUG] Serverless Instance Update not Implemented on MONGODB ATLAS API")
-	//return nil
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
-	/*serverlessProviderSettings := &matlas.ServerlessProviderSettings{
-		BackingProviderName: d.Get("provider_settings_backing_provider_name").(string),
-		ProviderName:        d.Get("provider_settings_provider_name").(string),
-		RegionName:          d.Get("provider_settings_region_name").(string),
-	}*/
 	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") {
 		serverlessBackupOptions := &matlas.ServerlessBackupOptions{
 			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
 		}
 
 		ServerlessUpdateRequestParams := &matlas.ServerlessUpdateRequestParams{
-			//Name:                         name,
-			//ProviderSettings:             serverlessProviderSettings,
 			ServerlessBackupOptions:      serverlessBackupOptions,
 			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
 		}
