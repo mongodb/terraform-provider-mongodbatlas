@@ -15,6 +15,8 @@ More information on considerations for using advanced clusters please see [Consi
 ~> **IMPORTANT:**
 <br> &#8226; The primary difference between [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) and [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) is that `mongodbatlas_advanced_cluster` supports multi-cloud clusters.  We recommend new users start with the `mongodbatlas_advanced_cluster` resource.  
 
+<br> &#8226; Upgrading the shared tier is supported. Any change from a shared tier cluster, aka tenant, to a different instance size will be considered a tenant upgrade. When upgrading from the shared tier, change the `provider_name` from "TENANT" to your preferred provider (AWS, GCP or Azure) and remove the variable `backing_provider_name`.  See the [Example Tenant Cluster Upgrade](#Example-Tenant-Cluster-Upgrade) below.   Note you can upgrade a shared tier cluster only to a single provider M10 or greater.  
+<br> &#8226; WARNING WHEN UPGRADING TENANT/SHARED CLUSTERS!!! When upgrading from the shared tier *only* the upgrade changes will be applied. This is done in-order to avoid a corrupt state file in the event that the upgrade succeeds, but subsequent updates fail within the same `terraform apply`. In order to apply any other cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 -> **NOTE:** A network container is created for a advanced cluster to reside in if one does not yet exist in the project.  To  use this automatically created container with another resource, such as peering, the `container_id` is exported after creation.
@@ -62,6 +64,27 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
+      region_name           = "US_EAST_1"
+      priority              = 1
+    }
+  }
+}
+```
+
+### Example Tenant Cluster Upgrade
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = "PROJECT ID"
+  name         = "NAME OF CLUSTER"
+  cluster_type = "REPLICASET"
+
+  replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      provider_name         = "AWS"
       region_name           = "US_EAST_1"
       priority              = 1
     }
@@ -287,6 +310,15 @@ replication_specs {
 
 * `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to true.
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
+
+~> **IMPORTANT:** If `compute_enabled` is true, then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
+This will cause the value of `instance_size` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back down to the original `instance_size` value.
+To prevent this a lifecycle customization should be used, i.e.:  
+`lifecycle {
+  ignore_changes = [instance_size]
+}`
+After adding the `lifecycle` block to explicitly change `instance_size` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_enabled` : true. If you enable this option, specify a value for `replication_specs.#.region_configs.#.auto_scaling.0.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_enabled` is true.

@@ -161,7 +161,6 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"provider_name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
 			},
 			"pit_enabled": {
@@ -353,6 +352,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 		},
+		CustomizeDiff: resourceClusterCustomizeDiff,
 	}
 }
 
@@ -900,27 +900,38 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	// Has changes
-	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
+	if isUpgradeRequired(d) {
+		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName)
+
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
+		}
+
+		d.SetId(encodeStateID(map[string]string{
+			"cluster_id":    updatedCluster.ID,
+			"project_id":    projectID,
+			"cluster_name":  updatedCluster.Name,
+			"provider_name": updatedCluster.ProviderSettings.ProviderName,
+		}))
+	} else if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
 		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
 			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName)
-			if err != nil {
-				var target *matlas.ErrorResponse
-				if errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER" {
-					clusterRequest := &matlas.Cluster{
-						Paused: pointy.Bool(false),
-					}
-					_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
-					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
-					}
+
+			if didErrOnPausedCluster(err) {
+				clusterRequest := &matlas.Cluster{
+					Paused: pointy.Bool(false),
 				}
-				if errors.As(err, &target) && target.HTTPCode == 400 {
-					return resource.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
-				}
+
+				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
 			}
+
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
+			}
+
 			return nil
 		})
+
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
@@ -942,7 +953,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	if d.Get("paused").(bool) {
+	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
 			Paused: pointy.Bool(true),
 		}
@@ -954,6 +965,16 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
+}
+
+func didErrOnPausedCluster(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var target *matlas.ErrorResponse
+
+	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
 }
 
 func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -1116,6 +1137,7 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		instanceSize       = getInstanceSizeToInt(d.Get("provider_instance_size_name").(string))
 		compute            *matlas.Compute
 		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
+		providerName       = cast.ToString(d.Get("provider_name"))
 	)
 
 	if minInstanceSize != 0 && autoScalingEnabled {
@@ -1140,12 +1162,15 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 	}
 
 	providerSettings := &matlas.ProviderSettings{
-		BackingProviderName: cast.ToString(d.Get("backing_provider_name")),
-		InstanceSizeName:    cast.ToString(d.Get("provider_instance_size_name")),
-		ProviderName:        cast.ToString(d.Get("provider_name")),
-		RegionName:          region,
-		VolumeType:          cast.ToString(d.Get("provider_volume_type")),
-		DiskTypeName:        cast.ToString(d.Get("provider_disk_type_name")),
+		InstanceSizeName: cast.ToString(d.Get("provider_instance_size_name")),
+		ProviderName:     providerName,
+		RegionName:       region,
+		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
+		DiskTypeName:     cast.ToString(d.Get("provider_disk_type_name")),
+	}
+
+	if providerName == "TENANT" {
+		providerSettings.BackingProviderName = cast.ToString(d.Get("backing_provider_name"))
 	}
 
 	if autoScalingEnabled {
@@ -1172,8 +1197,10 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 }
 
 func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
-	if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
-		log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
+	if settings.ProviderName == "TENANT" {
+		if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
+			log.Printf(errorClusterSetting, "backing_provider_name", clusterName, err)
+		}
 	}
 
 	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
@@ -1207,6 +1234,16 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
 		log.Printf(errorClusterSetting, "provider_volume_type", clusterName, err)
 	}
+}
+
+func isSharedTier(instanceSize string) bool {
+	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
+}
+
+func isUpgradeRequired(d *schema.ResourceData) bool {
+	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
+
+	return currentSize != updatedSize && isSharedTier(currentSize.(string))
 }
 
 func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, error) {
@@ -1415,6 +1452,22 @@ func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 
 		return c, c.StateName, nil
 	}
+}
+
+func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	var err error
+	currentProvider, updatedProvider := d.GetChange("provider_name")
+
+	willProviderChange := currentProvider != updatedProvider
+	willLeaveTenant := willProviderChange && currentProvider == "TENANT"
+
+	if willLeaveTenant {
+		err = d.SetNewComputed("backing_provider_name")
+	} else if willProviderChange {
+		err = d.ForceNew("provider_name")
+	}
+
+	return err
 }
 
 func formatMongoDBMajorVersion(val interface{}) string {
@@ -1647,6 +1700,32 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 
 func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
 	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    3 * time.Hour,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
+}
+
+func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
+	request.Name = name
+
+	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
 	if err != nil {
 		return nil, nil, err
 	}

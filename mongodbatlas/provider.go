@@ -14,12 +14,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
 	ProviderEnableBeta, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
+	baseURL               = ""
 )
 
 // Provider returns the provider to be use by the code.
@@ -59,6 +61,11 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MONGODB_REALM_BASE_URL", ""),
 				Description: "MongoDB Realm Base URL",
+			},
+			"is_mongodbgov_cloud": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "MongoDB Atlas Base URL default to gov",
 			},
 		},
 		DataSourcesMap:       getDataSourcesMap(),
@@ -204,10 +211,17 @@ func addBetaFeatures(provider *schema.Provider) {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
+	if *mongodbgovCloud {
+		baseURL = "https://cloud.mongodbgov.com"
+	} else {
+		baseURL = d.Get("base_url").(string)
+	}
+
 	config := Config{
 		PublicKey:    d.Get("public_key").(string),
 		PrivateKey:   d.Get("private_key").(string),
-		BaseURL:      d.Get("base_url").(string),
+		BaseURL:      baseURL,
 		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 

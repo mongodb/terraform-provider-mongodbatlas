@@ -4,14 +4,14 @@ go 1.18
 
 require (
 	github.com/go-test/deep v1.0.8
-	github.com/gruntwork-io/terratest v0.40.22
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.23.0
+	github.com/gruntwork-io/terratest v0.40.24
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.0
 	github.com/hashicorp/terraform-provider-google v1.20.1-0.20210625223728-379bcb41c06b
 	github.com/mongodb-forks/digest v1.0.4
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.0
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20210625132053-af2d5c0ad54f
-	go.mongodb.org/atlas v0.17.1-0.20221014180449-ac6bf94f55ee
+	go.mongodb.org/atlas v0.18.1-0.20221026132354-ca26a1fdb0a6
 	go.mongodb.org/realm v0.1.0
 )
 
@@ -65,7 +65,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hc-install v0.4.0 // indirect
-	github.com/hashicorp/hcl/v2 v2.14.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.14.1 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.17.3 // indirect
 	github.com/hashicorp/terraform-json v0.14.0 // indirect
@@ -97,7 +97,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/oklog/run v1.0.0 // indirect
-	github.com/openlyinc/pointy v1.1.2 // indirect
+	github.com/openlyinc/pointy v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/otp v1.3.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect

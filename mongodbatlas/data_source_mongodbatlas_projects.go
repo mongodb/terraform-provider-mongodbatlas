@@ -106,6 +106,10 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"region_usage_restrictions": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -178,6 +182,7 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				"is_performance_advisor_enabled":                   projectSettings.IsPerformanceAdvisorEnabled,
 				"is_realtime_performance_panel_enabled":            projectSettings.IsRealtimePerformancePanelEnabled,
 				"is_schema_advisor_enabled":                        projectSettings.IsSchemaAdvisorEnabled,
+				"region_usage_restrictions":                        project.RegionUsageRestrictions,
 			}
 		}
 	}
