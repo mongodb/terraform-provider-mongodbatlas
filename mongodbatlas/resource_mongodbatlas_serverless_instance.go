@@ -29,9 +29,53 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	log.Printf("[DEBUG] Serverless Instance Update not Implemented on MONGODB ATLAS API")
-	return nil
+func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	//log.Printf("[DEBUG] Serverless Instance Update not Implemented on MONGODB ATLAS API")
+	//return nil
+	// Get client connection.
+	conn := meta.(*MongoDBClient).Atlas
+	ids := decodeStateID(d.Id())
+	projectID := ids["project_id"]
+	instanceName := ids["name"]
+
+	/*serverlessProviderSettings := &matlas.ServerlessProviderSettings{
+		BackingProviderName: d.Get("provider_settings_backing_provider_name").(string),
+		ProviderName:        d.Get("provider_settings_provider_name").(string),
+		RegionName:          d.Get("provider_settings_region_name").(string),
+	}*/
+	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") {
+		serverlessBackupOptions := &matlas.ServerlessBackupOptions{
+			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
+		}
+
+		ServerlessUpdateRequestParams := &matlas.ServerlessUpdateRequestParams{
+			//Name:                         name,
+			//ProviderSettings:             serverlessProviderSettings,
+			ServerlessBackupOptions:      serverlessBackupOptions,
+			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+		}
+
+		_, _, err := conn.ServerlessInstances.Update(ctx, projectID, instanceName, ServerlessUpdateRequestParams)
+		if err != nil {
+			return diag.Errorf("error updating serverless instance: %s", err)
+		}
+
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
+			Target:     []string{"IDLE"},
+			Refresh:    resourceServerlessInstanceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
+			Timeout:    3 * time.Hour,
+			MinTimeout: 1 * time.Minute,
+			Delay:      3 * time.Minute,
+		}
+
+		// Wait, catching any errors
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			return diag.Errorf("error updating MongoDB Serverless Instance: %s", err)
+		}
+	}
+	return resourceMongoDBAtlasServerlessInstanceRead(ctx, d, meta)
 }
 
 func returnServerlessInstanceSchema() map[string]*schema.Schema {
@@ -91,6 +135,11 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 		},
 		"state_name": {
 			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"termination_protection_enabled": {
+			Type:     schema.TypeBool,
 			Optional: true,
 			Computed: true,
 		},
@@ -225,6 +274,10 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
+		return diag.Errorf("error setting `termination_protection_enabled` for serverless instance (%s): %s", d.Id(), err)
+	}
+
 	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
 		return diag.Errorf("error setting `continuous_backup_enabled` for serverless instance (%s): %s", d.Id(), err)
 	}
@@ -250,9 +303,10 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 	}
 
 	serverlessInstanceRequest := &matlas.ServerlessCreateRequestParams{
-		Name:                    name,
-		ProviderSettings:        serverlessProviderSettings,
-		ServerlessBackupOptions: serverlessBackupOptions,
+		Name:                         name,
+		ProviderSettings:             serverlessProviderSettings,
+		ServerlessBackupOptions:      serverlessBackupOptions,
+		TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
 	}
 
 	_, _, err := conn.ServerlessInstances.Create(ctx, projectID, serverlessInstanceRequest)

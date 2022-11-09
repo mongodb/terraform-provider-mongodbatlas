@@ -185,6 +185,10 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"termination_protection_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"version_release_system": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -276,7 +280,9 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 	if err := d.Set("state_name", cluster.StateName); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
-
+	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "termination_protection_enabled", clusterName, err))
+	}
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}

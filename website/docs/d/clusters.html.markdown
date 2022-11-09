@@ -105,6 +105,7 @@ In addition to all arguments above, the following attributes are exported:
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
 * `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups. **DEPRECATED** Use `cloud_backup` instead.
 * `cloud_backup` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
+* `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.
 * `backing_provider_name` - Indicates Cloud service provider on which the server for a multi-tenant cluster is provisioned.

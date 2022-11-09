@@ -315,6 +315,10 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"termination_protection_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -403,6 +407,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"replication_specs":                               flattenReplicationSpecs(clusters[i].ReplicationSpecs),
 			"labels":                                          flattenLabels(clusters[i].Labels),
 			"snapshot_backup_policy":                          snapshotBackupPolicy,
+			"termination_protection_enabled":                  clusters[i].TerminationProtectionEnabled,
 			"version_release_system":                          clusters[i].VersionReleaseSystem,
 			"container_id":                                    containerID,
 		}
