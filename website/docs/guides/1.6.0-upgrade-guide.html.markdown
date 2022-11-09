@@ -8,7 +8,7 @@ MongoDB Atlas Provider 1.6.0: Upgrade and Information Guide
 
 # MongoDB Atlas Provider 1.6.0: Upgrade and Information Guide
 
-The Terraform MongoDB Atlas Provider version 1.6.0 has a number of new and exciting features and changes.
+The Terraform MongoDB Atlas Provider version 1.6.0 has several new and exciting features.
 
 New Features:
 * You can now manage AWS Serverless Private Endpoints [`mongodbatlas_privatelink_endpoint_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless), [`mongodbatlas_privatelink_endpoint_service_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_serverless)
