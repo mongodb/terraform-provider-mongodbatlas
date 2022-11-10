@@ -39,7 +39,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
 * `instance_name` - (Required) Human-readable label that identifies the serverless instance associated with the tenant endpoint
-* `provider_name` - (Required) Cloud provider name AWS currently supported
+* `provider_name` - (Required) Cloud provider name; AWS is currently supported
 
 ## Attributes Reference
 

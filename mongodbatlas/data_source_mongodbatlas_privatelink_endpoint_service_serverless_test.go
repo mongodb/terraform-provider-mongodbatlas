@@ -73,7 +73,6 @@ func testAccDSMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(projectID, 
 		project_id   = "%[1]s"
 		instance_name = "%[2]s"
 		endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
-		//cloud_endpoint_id = aws_vpc_endpoint.ptfe_service.id
 		provider_name = "AWS"
 		comment = "%[3]s"
 	  }

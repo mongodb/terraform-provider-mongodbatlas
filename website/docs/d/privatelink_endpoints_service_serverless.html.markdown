@@ -1,15 +1,15 @@
 ---
 layout: "mongodbatlas"
-page_title: "MongoDB Atlas: privatelink_endpoint_service_serverless"
-sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoint-service-serverless"
+page_title: "MongoDB Atlas: privatelink_endpoints_service_serverless"
+sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoints-service-serverless"
 description: |-
-Describes a Serverless PrivateLink Endpoint Service
+Describes the list of all Serverless PrivateLink Endpoint Service
 ---
 
 
-# Data Source: privatelink_endpoint_service_serverless
+# Data Source: privatelink_endpoints_service_serverless
 
-`privatelink_endpoint_service_serverless` Provides a Serverless PrivateLink Endpoint Service resource.
+`privatelink_endpoints_service_serverless` Describes the list of all Serverless PrivateLink Endpoint Service resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -18,10 +18,9 @@ Describes a Serverless PrivateLink Endpoint Service
 ### Basic
 ```terraform
 
-data "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
+data "mongodbatlas_privatelink_endpoints_service_serverless" "test" {
   project_id   = "<PROJECT_ID>"
   instance_name = mongodbatlas_serverless_instance.test.name
-  endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
 }
 
 resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
@@ -29,7 +28,6 @@ resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
 	instance_name = mongodbatlas_serverless_instance.test.name
 	provider_name = "AWS"
 }
-	  
 	  
 resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
 	project_id   = "<PROJECT_ID>"
@@ -54,14 +52,19 @@ resource "mongodbatlas_serverless_instance" "test" {
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
 * `instance_name` - (Required) Serverless instance name to attach private
-* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
-* `cloud_provider_endpoint_id` - Unique string that identifies the private endpoint's network interface.
-* `comment` - Human-readable string to associate with this private endpoint.
+
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
+* `results` - Each element in the `result` array is one private serverless endpoint.
 
+### results
+
+Each object in the `results` array represents an online archive with the following attributes:
+* `cloud_provider_endpoint_id` - Unique string that identifies the private endpoint's network interface.
+* `comment` - Human-readable string to associate with this private endpoint.
+* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
 * `endpoint_service_name` - Unique string that identifies the PrivateLink endpoint service. MongoDB Cloud returns null while it creates the endpoint service.
 * `status` - Human-readable label that indicates the current operating status of the private endpoint. Values include: RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
 
