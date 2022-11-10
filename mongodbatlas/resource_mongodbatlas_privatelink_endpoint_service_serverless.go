@@ -60,6 +60,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerless() *schema.Resource
 				Optional: true,
 				ForceNew: true,
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -147,6 +151,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Co
 
 	if err := d.Set("provider_name", privateLinkResponse.ProviderName); err != nil {
 		return diag.Errorf("error setting `provider_name` for endpoint_id (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("status", privateLinkResponse.Status); err != nil {
+		return diag.Errorf("error setting `status` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{

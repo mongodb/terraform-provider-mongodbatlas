@@ -53,6 +53,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
@@ -130,6 +134,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 
 	if err := d.Set("endpoint_service_name", privateLinkResponse.EndpointServiceName); err != nil {
 		return diag.Errorf("error setting `endpoint_service_name Name` for endpoint_id (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("status", privateLinkResponse.Status); err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", d.Id(), err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
