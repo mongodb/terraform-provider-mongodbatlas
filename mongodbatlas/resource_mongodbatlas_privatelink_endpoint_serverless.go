@@ -59,8 +59,8 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Hour),
-			Delete: schema.DefaultTimeout(1 * time.Hour),
+			Create: schema.DefaultTimeout(2 * time.Hour),
+			Delete: schema.DefaultTimeout(2 * time.Hour),
 		},
 	}
 }

@@ -65,6 +65,10 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerless() *schema.Resource
 				Computed: true,
 			},
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Hour),
+			Delete: schema.DefaultTimeout(2 * time.Hour),
+		},
 	}
 }
 
@@ -96,7 +100,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
 		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
 		Refresh:    resourceServiceEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 		Delay:      5 * time.Minute,
 	}
