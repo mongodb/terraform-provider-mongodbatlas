@@ -3,13 +3,13 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: privatelink_endpoint_serverless"
 sidebar_current: "docs-mongodbatlas-datasource-privatelink-endpoint-serverless"
 description: |-
-Describes a Serverless PrivateLink endpoint
+Describes a Serverless PrivateLink Endpoint
 ---
 
 
 # Data Source: privatelink_endpoint_serverless
 
-`privatelink_endpoint_serverless` Provides a Serverless PrivateLink endpoint resource.
+`privatelink_endpoint_serverless` Provides a Serverless PrivateLink Endpoint resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -38,7 +38,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
-* `instance_name` - (Required) Serverless instance name to attach private
+* `instance_name` - (Required) Human-readable label that identifies the serverless instance associated with the tenant endpoint
 * `provider_name` - (Required) Cloud provider name AWS currently supported
 
 ## Attributes Reference
