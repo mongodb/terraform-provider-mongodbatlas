@@ -8,6 +8,10 @@ ENHANCEMENTS:
 - INTMDB-364 Feature add: AWS Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
 - INTMDB-444 Feature add: Advanced Cluster/Cluster/Serverless Instance Termination Protection [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
 
+**Merged Pull Requests**
+- chore(github): add link to contribution guidelines in PR template [\#910](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/910#issuecomment-1310007413)
+- docs(website): fix federated_settings_org_config resource name by removing the misleading trailing s [\#908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/908)
+
 ## [v1.5.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.5.0) (2022-11-07)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.6...v1.5.0)
