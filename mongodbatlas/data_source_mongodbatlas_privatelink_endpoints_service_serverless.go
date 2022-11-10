@@ -101,14 +101,14 @@ func flattenServerlessPrivateLinkEndpoints(privateLinks []matlas.ServerlessPriva
 
 	results = make([]map[string]interface{}, len(privateLinks))
 
-	for k, privateLink := range privateLinks {
+	for k := range privateLinks {
 		results[k] = map[string]interface{}{
-			"endpoint_id":                privateLink.ID,
-			"endpoint_service_name":      privateLink.EndpointServiceName,
-			"cloud_provider_endpoint_id": privateLink.CloudProviderEndpointID,
-			"comment":                    privateLink.Comment,
-			"error_message":              privateLink.ErrorMessage,
-			"status":                     privateLink.Status,
+			"endpoint_id":                privateLinks[k].ID,
+			"endpoint_service_name":      privateLinks[k].EndpointServiceName,
+			"cloud_provider_endpoint_id": privateLinks[k].CloudProviderEndpointID,
+			"comment":                    privateLinks[k].Comment,
+			"error_message":              privateLinks[k].ErrorMessage,
+			"status":                     privateLinks[k].Status,
 		}
 	}
 
