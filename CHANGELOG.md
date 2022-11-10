@@ -5,7 +5,7 @@
 **Fixed**
 
 ENHANCEMENTS: 
-- INTMDB-364 Feature add: AWS Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
+- INTMDB-364 Feature add: AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
 - INTMDB-444 Feature add: Advanced Cluster/Cluster/Serverless Instance Termination Protection [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
 
 **Merged Pull Requests**
