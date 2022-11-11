@@ -30,6 +30,7 @@ func TestAccDataSourceMongoDBAtlasServerlessInstance_byName(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "create_date"),
 					resource.TestCheckResourceAttrSet(datasourceName, "mongo_db_version"),
 					resource.TestCheckResourceAttrSet(datasourceName, "continuous_backup_enabled"),
+					resource.TestCheckResourceAttrSet(datasourceName, "termination_protection_enabled"),
 				),
 			},
 		},

@@ -66,6 +66,10 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
+		return diag.Errorf("error setting `termination_protection_enabled` for serverless instance (%s): %s", d.Id(), err)
+	}
+
 	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
 		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
 	}
@@ -135,6 +139,10 @@ func returnServerlessInstanceDSSchema() map[string]*schema.Schema {
 		"state_name": {
 			Type:     schema.TypeString,
 			Optional: true,
+			Computed: true,
+		},
+		"termination_protection_enabled": {
+			Type:     schema.TypeBool,
 			Computed: true,
 		},
 		"continuous_backup_enabled": {
