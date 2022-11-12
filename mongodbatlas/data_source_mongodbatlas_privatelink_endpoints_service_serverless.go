@@ -52,6 +52,14 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless() *schema.Resou
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"private_link_service_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_endpoint_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"error_message": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -103,12 +111,14 @@ func flattenServerlessPrivateLinkEndpoints(privateLinks []matlas.ServerlessPriva
 
 	for k := range privateLinks {
 		results[k] = map[string]interface{}{
-			"endpoint_id":                privateLinks[k].ID,
-			"endpoint_service_name":      privateLinks[k].EndpointServiceName,
-			"cloud_provider_endpoint_id": privateLinks[k].CloudProviderEndpointID,
-			"comment":                    privateLinks[k].Comment,
-			"error_message":              privateLinks[k].ErrorMessage,
-			"status":                     privateLinks[k].Status,
+			"endpoint_id":                      privateLinks[k].ID,
+			"endpoint_service_name":            privateLinks[k].EndpointServiceName,
+			"cloud_provider_endpoint_id":       privateLinks[k].CloudProviderEndpointID,
+			"private_link_service_resource_id": privateLinks[k].PrivateLinkServiceResourceID,
+			"private_endpoint_ip_address":      privateLinks[k].PrivateEndpointIPAddress,
+			"comment":                          privateLinks[k].Comment,
+			"error_message":                    privateLinks[k].ErrorMessage,
+			"status":                           privateLinks[k].Status,
 		}
 	}
 

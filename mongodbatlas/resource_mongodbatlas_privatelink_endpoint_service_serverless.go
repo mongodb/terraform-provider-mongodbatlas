@@ -52,13 +52,24 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerless() *schema.Resource
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
 				ForceNew:     true,
 			},
 			"cloud_endpoint_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
+			},
+			"private_link_service_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_endpoint_ip_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 			},
 			"status": {
 				Type:     schema.TypeString,
@@ -87,13 +98,15 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	privateLink.Comment = d.Get("comment").(string)
 	privateLink.CloudProviderEndpointID = d.Get("cloud_endpoint_id").(string)
 	privateLink.ProviderName = d.Get("provider_name").(string)
+	privateLink.PrivateLinkServiceResourceID = ""
+	privateLink.PrivateEndpointIPAddress = d.Get("private_endpoint_ip_address").(string)
 	privateLink.ID = ""
 	privateLink.Status = ""
 	privateLink.EndpointServiceName = ""
 
 	endPoint, _, err := conn.ServerlessPrivateEndpoints.Update(ctx, projectID, instanceName, endpointID, privateLink)
 	if err != nil {
-		return diag.Errorf(errorServerlessServiceEndpointAdd, endPoint.CloudProviderEndpointID, err)
+		return diag.Errorf(errorServerlessServiceEndpointAdd, endpointID, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -161,11 +174,17 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Co
 		return diag.Errorf("error setting `status` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	d.SetId(encodeStateID(map[string]string{
-		"project_id":    projectID,
-		"instance_name": instanceName,
-		"endpoint_id":   privateLinkResponse.ID,
-	}))
+	if err := d.Set("cloud_endpoint_id", privateLinkResponse.CloudProviderEndpointID); err != nil {
+		return diag.Errorf("error setting `cloud_endpoint_id` for endpoint_id (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("private_link_service_resource_id", privateLinkResponse.PrivateLinkServiceResourceID); err != nil {
+		return diag.Errorf("error setting `private_link_service_resource_id` for endpoint_id (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("private_endpoint_ip_address", privateLinkResponse.PrivateEndpointIPAddress); err != nil {
+		return diag.Errorf("error setting `private_endpoint_ip_address` for endpoint_id (%s): %s", d.Id(), err)
+	}
 
 	return nil
 }

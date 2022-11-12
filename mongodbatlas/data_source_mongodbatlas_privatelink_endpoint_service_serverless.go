@@ -39,6 +39,14 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"private_link_service_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_endpoint_ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"error_message": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -86,6 +94,14 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead(ctx context.
 
 	if err := d.Set("cloud_provider_endpoint_id", serviceEndpoint.CloudProviderEndpointID); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "cloud_provider_endpoint_id", endpointID, err))
+	}
+
+	if err := d.Set("private_link_service_resource_id", serviceEndpoint.PrivateLinkServiceResourceID); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_link_service_resource_id", endpointID, err))
+	}
+
+	if err := d.Set("private_endpoint_ip_address", serviceEndpoint.PrivateEndpointIPAddress); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointID, err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{

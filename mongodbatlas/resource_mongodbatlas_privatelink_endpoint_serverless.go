@@ -47,9 +47,13 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
 			},
 			"endpoint_service_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"private_link_service_resource_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -136,15 +140,13 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 		return diag.Errorf("error setting `endpoint_service_name Name` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("private_link_service_resource_id", privateLinkResponse.PrivateLinkServiceResourceID); err != nil {
+		return diag.Errorf("error setting `private_link_service_resource_id Name` for endpoint_id (%s): %s", d.Id(), err)
+	}
+
 	if err := d.Set("status", privateLinkResponse.Status); err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsSetting, "status", d.Id(), err))
 	}
-
-	d.SetId(encodeStateID(map[string]string{
-		"project_id":    projectID,
-		"instance_name": instanceName,
-		"endpoint_id":   privateLinkResponse.ID,
-	}))
 
 	return nil
 }
