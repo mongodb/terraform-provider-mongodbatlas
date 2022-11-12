@@ -55,7 +55,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerless() *schema.Resource
 				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
 				ForceNew:     true,
 			},
-			"cloud_endpoint_id": {
+			"cloud_provider_endpoint_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -96,7 +96,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	}
 
 	privateLink.Comment = d.Get("comment").(string)
-	privateLink.CloudProviderEndpointID = d.Get("cloud_endpoint_id").(string)
+	privateLink.CloudProviderEndpointID = d.Get("cloud_provider_endpoint_id").(string)
 	privateLink.ProviderName = d.Get("provider_name").(string)
 	privateLink.PrivateLinkServiceResourceID = ""
 	privateLink.PrivateEndpointIPAddress = d.Get("private_endpoint_ip_address").(string)
@@ -174,8 +174,8 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessRead(ctx context.Co
 		return diag.Errorf("error setting `status` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("cloud_endpoint_id", privateLinkResponse.CloudProviderEndpointID); err != nil {
-		return diag.Errorf("error setting `cloud_endpoint_id` for endpoint_id (%s): %s", d.Id(), err)
+	if err := d.Set("cloud_provider_endpoint_id", privateLinkResponse.CloudProviderEndpointID); err != nil {
+		return diag.Errorf("error setting `cloud_provider_endpoint_id` for endpoint_id (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("private_link_service_resource_id", privateLinkResponse.PrivateLinkServiceResourceID); err != nil {

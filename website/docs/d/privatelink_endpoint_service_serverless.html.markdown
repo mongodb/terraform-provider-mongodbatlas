@@ -53,7 +53,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
-* `instance_name` - (Required) Serverless instance name to attach private
+* `instance_name` - (Required) Human-readable label that identifies the serverless instance 
 * `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
 * `cloud_provider_endpoint_id` - Unique string that identifies the private endpoint's network interface.
 * `comment` - Human-readable string to associate with this private endpoint.
@@ -63,8 +63,8 @@ resource "mongodbatlas_serverless_instance" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `endpoint_service_name` - Unique string that identifies the PrivateLink endpoint service. MongoDB Cloud returns null while it creates the endpoint service.
-* `private_link_service_resource_id` - Root-relative path that identifies the Azure Private Link Service that MongoDB Cloud manages. MongoDB Cloud returns null while it creates the endpoint service.
+* `private_link_service_resource_id` - Root-relative path that identifies the Azure Private Link Service that MongoDB Cloud manages.
 * `private_endpoint_ip_address` - IPv4 address of the private endpoint in your Azure VNet that someone added to this private endpoint service.
 * `status` - Human-readable label that indicates the current operating status of the private endpoint. Values include: RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
 
-For more information see: [MongoDB Atlas API - Serverless Private Endpoints](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Serverless-Private-Endpoints/operation/createOnePrivateEndpointForOneServerlessInstance/)  and [MongoDB Atlas API - Online Archive](https://docs.atlas.mongodb.com/reference/api/online-archive/) Documentation.
+For more information see: [MongoDB Atlas API - Serverless Private Endpoints](https://www.mongodb.com/docs/atlas/reference/api/serverless-private-endpoints-get-one/).
