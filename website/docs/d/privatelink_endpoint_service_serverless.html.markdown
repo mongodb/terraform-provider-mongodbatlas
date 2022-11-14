@@ -87,7 +87,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
 * `instance_name` - (Required) Human-readable label that identifies the serverless instance 
-* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
+* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [AWS PrivateLink](https://aws.amazon.com/privatelink/) feature.
 * `cloud_provider_endpoint_id` - Unique string that identifies the private endpoint's network interface.
 * `comment` - Human-readable string to associate with this private endpoint.
 
