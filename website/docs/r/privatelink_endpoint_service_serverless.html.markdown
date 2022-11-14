@@ -7,13 +7,14 @@ Describes a Serverless PrivateLink Endpoint Service
 ---
 
 
-# Data Source: privatelink_endpoint_service_serverless
+# Resource: privatelink_endpoint_service_serverless
 
 `privatelink_endpoint_service_serverless` Provides a Serverless PrivateLink Endpoint Service resource.
 This is the second of two resources required to configure PrivateLink for Serverless, the first is [mongodbatlas_privatelink_endpoint_serverless](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
+-> **NOTE:** Feature unavailable in Free and Shared-Tier Clusters
+This feature is not available for M0 free clusters, M2, and M5 clusters. To learn more about which features are unavailable, see [Atlas M0 (Free Cluster), M2, and M5 Limitations.](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/#std-label-atlas-free-tier)
 ## Example Usage
 
 ## Example with AWS
@@ -79,8 +80,8 @@ resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
-* `instance_name` - (Required)Human-readable label that identifies the serverless instance.
-* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint's network interface. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
+* `instance_name` - (Required) Human-readable label that identifies the serverless instance.
+* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint's network interface. Atlas supports AWS private endpoints using the [AWS PrivateLink](https://aws.amazon.com/privatelink/) feature.
 * `cloud_provider_endpoint_id` - (Optional) Unique string that identifies the private endpoint's network interface.
 * `private_endpoint_ip_address` - (Optional) IPv4 address of the private endpoint in your Azure VNet that someone added to this private endpoint service.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE`.
@@ -97,5 +98,13 @@ In addition to all arguments above, the following attributes are exported:
 * `comment` - Human-readable string to associate with this private endpoint.
 * `error_message` - Human-readable error message that indicates the error condition associated with establishing the private endpoint connection.
 * `status` - Human-readable label that indicates the current operating status of the private endpoint. Values include: RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
+
+## Import
+
+Serverless privatelink endpoint can be imported using project ID and endpoint ID, in the format `project_id`--`endpoint_id`, e.g.
+
+```
+$ terraform import mongodbatlas_privatelink_endpoint_service_serverless.test 1112222b3bf99403840e8934--serverless_name--vpce-jjg5e24qp93513h03
+```
 
 For more information see: [MongoDB Atlas API - Serverless Private Endpoints](https://www.mongodb.com/docs/atlas/reference/api/serverless-private-endpoints-get-one/).

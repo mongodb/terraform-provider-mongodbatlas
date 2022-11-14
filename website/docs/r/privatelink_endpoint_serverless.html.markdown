@@ -7,13 +7,14 @@ Describes a Serverless PrivateLink Endpoint
 ---
 
 
-# Data Source: privatelink_endpoint_serverless
+# Resource: privatelink_endpoint_serverless
 
 `privatelink_endpoint_serverless` Provides a Serverless PrivateLink Endpoint resource.
 This is the first of two resources required to configure PrivateLink for Serverless, the second is [mongodbatlas_privatelink_endpoint_service_serverless](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_serverless).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
+-> **NOTE:** Feature unavailable in Free and Shared-Tier Clusters
+This feature is not available for M0 free clusters, M2, and M5 clusters. To learn more about which features are unavailable, see [Atlas M0 (Free Cluster), M2, and M5 Limitations.](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/#std-label-atlas-free-tier)
 ## Example Usage
 
 ### Basic
@@ -45,11 +46,19 @@ resource "mongodbatlas_serverless_instance" "test" {
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-* `endpoint_id` - Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [|aws| PrivateLink](https://aws.amazon.com/privatelink/) feature.
+* `endpoint_id` - Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [AWS PrivateLink](https://aws.amazon.com/privatelink/) feature.
 * `endpoint_service_name` - Unique string that identifies the PrivateLink endpoint service.
 * `private_link_service_resource_id` - Root-relative path that identifies the Azure Private Link Service that MongoDB Cloud manages.
 * `cloud_provider_endpoint_id` - Unique string that identifies the private endpoint's network interface.
 * `comment` - Human-readable string to associate with this private endpoint.
 * `status` - Human-readable label that indicates the current operating status of the private endpoint. Values include: RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
+
+## Import
+
+Serverless privatelink endpoint can be imported using project ID and endpoint ID, in the format `project_id`--`endpoint_id`, e.g.
+
+```
+$ terraform import mongodbatlas_privatelink_endpoint_serverless.test 1112222b3bf99403840e8934--serverless_name--vpce-jjg5e24qp93513h03
+```
 
 For more information see: [MongoDB Atlas API - Serverless Private Endpoints](https://www.mongodb.com/docs/atlas/reference/api/serverless-private-endpoints-get-one/).

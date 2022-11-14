@@ -15,7 +15,7 @@ Describes the list of all Serverless PrivateLink Endpoint Service
 
 ## Example Usage
 
-### Basic
+## Example with AWS
 ```terraform
 
 data "mongodbatlas_privatelink_endpoints_service_serverless" "test" {
@@ -47,6 +47,37 @@ resource "mongodbatlas_serverless_instance" "test" {
 }
 ```
 
+## Example with AZURE
+```terraform
+
+data "mongodbatlas_privatelink_endpoints_service_serverless" "test" {
+  project_id   = "<PROJECT_ID>"
+  instance_name = mongodbatlas_serverless_instance.test.name
+}
+
+resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
+	project_id   = "<PROJECT_ID>"
+	instance_name = mongodbatlas_serverless_instance.test.name
+	provider_name = "AZURE"
+}
+	  
+resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
+	project_id   = "<PROJECT_ID>"
+	instance_name = "test-db"
+	endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
+	provider_name = "AZURE"
+	comment = "New serverless endpoint"
+}
+
+resource "mongodbatlas_serverless_instance" "test" {
+	project_id   = "<PROJECT_ID>"
+	name         = "test-db"
+	provider_settings_backing_provider_name = "AZURE"
+	provider_settings_provider_name = "SERVERLESS"
+	provider_settings_region_name = "US_EAST_1"
+	continuous_backup_enabled = true
+}
+```
 
 ## Argument Reference
 
