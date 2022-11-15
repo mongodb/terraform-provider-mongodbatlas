@@ -74,7 +74,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 	name         = "test-db"
 	provider_settings_backing_provider_name = "AZURE"
 	provider_settings_provider_name = "SERVERLESS"
-	provider_settings_region_name = "US_EAST_1"
+	provider_settings_region_name = "US_EAST"
 	continuous_backup_enabled = true
 }
 ```

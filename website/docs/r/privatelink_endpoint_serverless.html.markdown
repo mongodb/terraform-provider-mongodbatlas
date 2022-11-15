@@ -17,7 +17,7 @@ This is the first of two resources required to configure PrivateLink for Serverl
 This feature is not available for M0 free clusters, M2, and M5 clusters. To learn more about which features are unavailable, see [Atlas M0 (Free Cluster), M2, and M5 Limitations.](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/#std-label-atlas-free-tier)
 ## Example Usage
 
-### Basic
+### AWS Example
 ```terraform
 
 resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
@@ -46,12 +46,13 @@ resource "mongodbatlas_serverless_instance" "test" {
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-* `endpoint_id` - Unique 22-character alphanumeric string that identifies the private endpoint. Atlas supports AWS private endpoints using the [AWS PrivateLink](https://aws.amazon.com/privatelink/) feature.
+* `endpoint_id` - Unique 24-hexadecimal digit string that identifies the private endpoint.
 * `endpoint_service_name` - Unique string that identifies the PrivateLink endpoint service.
 * `private_link_service_resource_id` - Root-relative path that identifies the Azure Private Link Service that MongoDB Cloud manages.
 * `cloud_provider_endpoint_id` - Unique string that identifies the private endpoint's network interface.
 * `comment` - Human-readable string to associate with this private endpoint.
 * `status` - Human-readable label that indicates the current operating status of the private endpoint. Values include: RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
+* `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is definded by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 
 ## Import
 

@@ -75,17 +75,27 @@ resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
   provider_name               = "AZURE"
   comment                     = "test"
 }
+
+resource "mongodbatlas_serverless_instance" "test" {
+	project_id   = "<PROJECT_ID>"
+	name         = "test-db"
+	provider_settings_backing_provider_name = "AZURE"
+	provider_settings_provider_name = "SERVERLESS"
+	provider_settings_region_name = "US_EAST"
+	continuous_backup_enabled = true
+}
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.
 * `instance_name` - (Required) Human-readable label that identifies the serverless instance.
-* `endpoint_id` - (Required) Unique 22-character alphanumeric string that identifies the private endpoint's network interface. Atlas supports AWS private endpoints using the [AWS PrivateLink](https://aws.amazon.com/privatelink/) feature.
+* `endpoint_id` - (Required) Unique 24-hexadecimal digit string that identifies the private endpoint.
 * `cloud_provider_endpoint_id` - (Optional) Unique string that identifies the private endpoint's network interface.
 * `private_endpoint_ip_address` - (Optional) IPv4 address of the private endpoint in your Azure VNet that someone added to this private endpoint service.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE`.
 * `comment` - (Optional) Human-readable string to associate with this private endpoint.
+* `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is definded by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 
 ## Attributes Reference
 
