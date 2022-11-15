@@ -43,6 +43,8 @@ resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapp
 * `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
 * `group_id` - Unique identifier of the project to which you want the role mapping to apply.
 * `roles` - Specifies the Roles that are attached to the Role Mapping.
+  Available role IDs can be found on [the User Roles
+  Reference](https://www.mongodb.com/docs/atlas/reference/user-roles/).
 
 ## Attributes Reference
 
