@@ -13,8 +13,7 @@ Describes a Serverless PrivateLink Endpoint
 This is the first of two resources required to configure PrivateLink for Serverless, the second is [mongodbatlas_privatelink_endpoint_service_serverless](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_serverless).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
--> **NOTE:** Feature unavailable in Free and Shared-Tier Clusters
-This feature is not available for M0 free clusters, M2, and M5 clusters. To learn more about which features are unavailable, see [Atlas M0 (Free Cluster), M2, and M5 Limitations.](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/#std-label-atlas-free-tier)
+
 ## Example Usage
 
 ### AWS Example
