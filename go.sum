@@ -933,6 +933,16 @@ go.mongodb.org/atlas v0.16.1-0.20220922005646-8a86dd63e243 h1:KkZ900dLCu2U3D+qoY
 go.mongodb.org/atlas v0.16.1-0.20220922005646-8a86dd63e243/go.mod h1:GUuW7/ZrHzCO0o47aiqhokN0N6i0GM3yraRyHIBTykU=
 go.mongodb.org/atlas v0.18.1-0.20221026132354-ca26a1fdb0a6 h1:lGmbUUTcdfXt0O1QN2z65B3mAYrUXUerqj3RZWg7Aao=
 go.mongodb.org/atlas v0.18.1-0.20221026132354-ca26a1fdb0a6/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
+go.mongodb.org/atlas v0.18.1-0.20221108205600-df069600ea0e h1:2tJAuArFEru/aH3eZhfq8ZU7qv1DzgWp0FTYOYO9X0E=
+go.mongodb.org/atlas v0.18.1-0.20221108205600-df069600ea0e/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
+go.mongodb.org/atlas v0.18.1-0.20221109004135-a08842cb4521 h1:gWLG7xNkgiFEw3PQo/0Jnp2MkDwDbYu6svMEET8IBFs=
+go.mongodb.org/atlas v0.18.1-0.20221109004135-a08842cb4521/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
+go.mongodb.org/atlas v0.18.1-0.20221109012729-5270d3048e93 h1:i8sFIUYNTakDMxvtak2NEGVnqEWyfB5DYt1aW33IJ2M=
+go.mongodb.org/atlas v0.18.1-0.20221109012729-5270d3048e93/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
+go.mongodb.org/atlas v0.18.1-0.20221109025158-49b06badf4a1 h1:sebMdTAFJSPMXidhUg/9D48xFzsHvvNrF3A2plPymmA=
+go.mongodb.org/atlas v0.18.1-0.20221109025158-49b06badf4a1/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
+go.mongodb.org/atlas v0.18.1-0.20221109142841-f9f8ebe7b9b9 h1:9m35o4kyRYjwbsIb/lPrjxJ6afPpn9zwOF5i3SIY5Lg=
+go.mongodb.org/atlas v0.18.1-0.20221109142841-f9f8ebe7b9b9/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=
