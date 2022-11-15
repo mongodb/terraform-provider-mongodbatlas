@@ -35,7 +35,7 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration. 
 * `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `domain_allow_list` - List that contains the approved domains from which organization users can log in.
-* `post_auth_role_grants` - (Optional) List that contains the default [roles](https://www.mongodb.com/docs/atlas/reference/user-roles/#std-label-organization-roles) granted to users who authenticate through the IdP in a connected organization. If you provide a postAuthRoleGrants field in the request, the array that you provide replaces the current postAuthRoleGrants.
+* `post_auth_role_grants` - (Optional) List that contains the default [roles](https://www.mongodb.com/docs/atlas/reference/user-roles/#std-label-organization-roles) granted to users who authenticate through the IdP in a connected organization.
 
 * `domain_restriction_enabled` - (Required) Flag that indicates whether domain restriction is enabled for the connected organization.
 * `identity_provider_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
