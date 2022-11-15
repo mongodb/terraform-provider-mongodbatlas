@@ -26,11 +26,20 @@ resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
 	provider_name = "AWS"
 }
 	  
-	  
+
+resource "aws_vpc_endpoint" "ptfe_service" {
+  vpc_id             = "vpc-7fc0a543"
+  service_name       = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_service_name
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = ["subnet-de0406d2"]
+  security_group_ids = ["sg-3f238186"]
+}
+
 resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
 	project_id   = "<PROJECT_ID>"
 	instance_name = mongodbatlas_serverless_instance.test.name
 	endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
+	cloud_endpoint_id = aws_vpc_endpoint.ptfe_service.id
 	provider_name = "AWS"
 	comment = "New serverless endpoint"
 }
