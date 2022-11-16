@@ -308,6 +308,10 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"termination_protection_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"version_release_system": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -440,6 +444,10 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "labels", clusterName, err))
+	}
+
+	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "termination_protection_enabled", clusterName, err))
 	}
 
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {

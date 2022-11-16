@@ -38,6 +38,7 @@ func TestAccDataSourceMongoDBAtlasAdvancedClusters_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.replication_specs.#"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.termination_protection_enabled"),
 				),
 			},
 		},

@@ -62,6 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use. 
+* `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 

@@ -30,6 +30,7 @@ func TestAccResourceMongoDBAtlasServerlessInstance_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
 				),
 			},
 		},
