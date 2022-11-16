@@ -225,6 +225,16 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Co
 		log.Printf("[WARN] Error setting endpoint_service_name for (%s): %s", endpointID, err)
 	}
 
+	if privateLinkResponse.PrivateLinkServiceResourceID != "" {
+		if err := d.Set("provider_name", "AZURE"); err != nil {
+			log.Printf("[WARN] Error setting provider_name for (%s): %s", endpointID, err)
+		}
+	} else {
+		if err := d.Set("provider_name", "AWS"); err != nil {
+			log.Printf("[WARN] Error setting provider_name for (%s): %s", endpointID, err)
+		}
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,

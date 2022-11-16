@@ -226,7 +226,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 	instanceName := parts[1]
 	endpointID := parts[2]
 
-	_, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
+	privateLinkResponse, _, err := conn.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointID)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import serverless private link endpoint (%s) in projectID (%s) , error: %s", endpointID, projectID, err)
 	}
@@ -238,8 +238,19 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 	if err := d.Set("endpoint_id", endpointID); err != nil {
 		log.Printf("[WARN] Error setting endpoint_id for (%s): %s", endpointID, err)
 	}
+
 	if err := d.Set("instance_name", instanceName); err != nil {
 		log.Printf("[WARN] Error setting instance_name for (%s): %s", endpointID, err)
+	}
+
+	if privateLinkResponse.PrivateLinkServiceResourceID != "" {
+		if err := d.Set("provider_name", "AZURE"); err != nil {
+			log.Printf("[WARN] Error setting provider_name for (%s): %s", endpointID, err)
+		}
+	} else {
+		if err := d.Set("provider_name", "AWS"); err != nil {
+			log.Printf("[WARN] Error setting provider_name for (%s): %s", endpointID, err)
+		}
 	}
 
 	d.SetId(encodeStateID(map[string]string{
