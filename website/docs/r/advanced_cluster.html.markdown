@@ -19,7 +19,7 @@ More information on considerations for using advanced clusters please see [Consi
 <br> &#8226; WARNING WHEN UPGRADING TENANT/SHARED CLUSTERS!!! When upgrading from the shared tier *only* the upgrade changes will be applied. This is done in-order to avoid a corrupt state file in the event that the upgrade succeeds, but subsequent updates fail within the same `terraform apply`. In order to apply any other cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
--> **NOTE:** A network container is created for a advanced cluster to reside in if one does not yet exist in the project.  To  use this automatically created container with another resource, such as peering, the `container_id` is exported after creation.
+-> **NOTE:** A network container is created for each provider/region combination on the advanced cluster. This can be referenced via a computed attribute for use with other resources. Refer to the `container_id` attribute in the [replication spec documentation](#replication_specs) for more information.
 
 ## Example Usage
 
