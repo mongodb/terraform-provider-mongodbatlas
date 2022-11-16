@@ -2,7 +2,7 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
 
-**NEW FEATURES: ** 
+**NEW FEATURES:** 
 - INTMDB-444 Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
 - INTMDB-364 AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
 
