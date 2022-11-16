@@ -11,11 +11,11 @@ ENHANCEMENTS:
 **Merged Pull Requests**
 - docs(website): fix federated_settings_org_config resource name by removing the misleading trailing s [\#908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/908)
 - chore(github): add link to contribution guidelines in PR template [\#910](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/910#issuecomment-1310007413)
+- docs(resource/role_mapping): indent sub-elements of role_assignments [\#918](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/918)
 - docs(resource/role_mapping): add link to reference of available role IDs [\#919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/919)
 - federated settings plural fix [\#914](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/914)  
 - Chore(deps): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.24.0 to 2.24.1 [\#922](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/922)
 - Chore(deps): Bump golangci/golangci-lint-action from 3.3.0 to 3.3.1 [\#925](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/925)
-- docs(resource/role_mapping): indent sub-elements of role_assignments [\#918](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/918)
 - Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.24 to 0.41.0 [\#923](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/923)
 - Workaround to handle serverless endpoint tests failing due to provider name missing from API [\#927](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/927)
 - Release staging v1.6.0 [\#921](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/921)
