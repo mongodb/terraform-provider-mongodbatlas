@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
--> **NOTE:** A network container is created for a cluster to reside, to use this container with another resource, such as peering, reference the computed`container_id` attribute on the cluster.
+-> **NOTE:** A network container is created for a cluster to reside in. To use this container with another resource, such as peering, reference the computed`container_id` attribute on the cluster.
 
 
 ~> **IMPORTANT:**
