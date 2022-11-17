@@ -1,4 +1,4 @@
-## [v1.6.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.0) (2022-11-16)
+## [v1.6.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.0) (2022-11-17)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
 
