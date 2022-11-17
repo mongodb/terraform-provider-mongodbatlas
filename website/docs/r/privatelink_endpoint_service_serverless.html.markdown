@@ -38,7 +38,7 @@ resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
 	project_id   = "<PROJECT_ID>"
 	instance_name = mongodbatlas_serverless_instance.test.name
 	endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
-	cloud_endpoint_id = aws_vpc_endpoint.ptfe_service.id
+	cloud_provider_endpoint_id = aws_vpc_endpoint.ptfe_service.id
 	provider_name = "AWS"
 	comment = "New serverless endpoint"
 }
@@ -78,7 +78,7 @@ resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
   project_id                  = mongodbatlas_privatelink_endpoint_serverless.test.project_id
   instance_name               = mongodbatlas_serverless_instance.test.name
   endpoint_id                 = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
-  cloud_endpoint_id           = azurerm_private_endpoint.test.id 
+  cloud_provider_endpoint_id  = azurerm_private_endpoint.test.id 
   private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
   provider_name               = "AZURE"
   comment                     = "test"
