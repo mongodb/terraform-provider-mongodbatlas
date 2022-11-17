@@ -1,3 +1,23 @@
+## [v1.6.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.0) (2022-11-16)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
+
+**NEW FEATURES:** 
+- INTMDB-444 Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
+- INTMDB-364 AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
+
+**Merged Pull Requests**
+- docs(website): fix federated_settings_org_config resource name by removing the misleading trailing s [\#908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/908)
+- chore(github): add link to contribution guidelines in PR template [\#910](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/910#issuecomment-1310007413)
+- docs(resource/role_mapping): indent sub-elements of role_assignments [\#918](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/918)
+- docs(resource/role_mapping): add link to reference of available role IDs [\#919](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/919)
+- federated settings plural fix [\#914](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/914)  
+- Chore(deps): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.24.0 to 2.24.1 [\#922](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/922)
+- Chore(deps): Bump golangci/golangci-lint-action from 3.3.0 to 3.3.1 [\#925](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/925)
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.24 to 0.41.0 [\#923](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/923)
+- Workaround to handle serverless endpoint tests failing due to provider name missing from API [\#927](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/927)
+- Release staging v1.6.0 [\#921](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/921)
+
 ## [v1.5.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.5.0) (2022-11-07)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.6...v1.5.0)
@@ -8,7 +28,6 @@ ENHANCEMENTS:
 - INTMDB-224	Support AtlasGov with Terraform [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
 - INTMDB-314	Feature add: Add ability to upgrade shared/TENANT tiers for clusters and advanced clusters [\#874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/874)
 - INTMDB-349  New AtlasGov parameter to tell the provider to use the Atlas gov base URL [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
-- INTMDB-364	Add support for serverless private endpoints (AWS) [\#314](https://github.com/mongodb/go-client-mongodb-atlas/pull/314)
 - INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
 - INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - INTMDB-377	Release 1.5 (both pre and then GA) [\#887](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/887)
