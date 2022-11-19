@@ -49,6 +49,7 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 }
 
 func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
+	t.Skip()
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -91,6 +92,7 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 }
 
 func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
+	t.Skip()
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
