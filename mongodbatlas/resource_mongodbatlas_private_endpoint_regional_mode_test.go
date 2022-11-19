@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
-	t.Skip()
+	SkipTest(t)
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"
