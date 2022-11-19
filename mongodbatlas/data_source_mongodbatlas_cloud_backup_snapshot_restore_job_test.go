@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
+func TestAccBackupDSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 	var (
 		cloudProviderSnapshot matlas.CloudProviderSnapshot
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasProjectIPAccesslist_SettingIPAddress(t *testing.T) {
+func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -55,7 +55,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccesslist_SettingIPAddress(t *testing.
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
+func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
@@ -99,7 +99,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingCIDRBlock(t *testing.
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	SkipTestExtCred(t)
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
@@ -150,7 +150,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingAWSSecurityGroup(t *t
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T) {
+func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test_%d"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -202,7 +202,7 @@ func TestAccResourceMongoDBAtlasProjectIPAccessList_SettingMultiple(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectIPAccessList_importBasic(t *testing.T) {
+func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)

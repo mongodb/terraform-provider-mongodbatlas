@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasClusters_basic(t *testing.T) {
+func TestAccClusterDSClusters_basic(t *testing.T) {
 	var (
 		cluster         matlas.Cluster
 		resourceName    = "mongodbatlas_cluster.basic_ds"
@@ -50,7 +50,7 @@ func TestAccDataSourceMongoDBAtlasClusters_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasClusters_advancedConf(t *testing.T) {
+func TestAccClusterDSClusters_advancedConf(t *testing.T) {
 	var (
 		cluster        matlas.Cluster
 		resourceName   = "mongodbatlas_cluster.test"

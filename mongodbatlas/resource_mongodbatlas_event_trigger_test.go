@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
+func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -77,7 +77,7 @@ func TestAccResourceMongoDBAtlasEventTriggerDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEventTriggerDatabase_eventProccesor(t *testing.T) {
+func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -143,7 +143,7 @@ func TestAccResourceMongoDBAtlasEventTriggerDatabase_eventProccesor(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasEventTriggerAuth_basic(t *testing.T) {
+func TestAccConfigRSEventTriggerAuth_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -202,7 +202,7 @@ func TestAccResourceMongoDBAtlasEventTriggerAuth_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEventTriggerAuth_eventProcessor(t *testing.T) {
+func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -263,7 +263,7 @@ func TestAccResourceMongoDBAtlasEventTriggerAuth_eventProcessor(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEventTriggerSchedule_basic(t *testing.T) {
+func TestAccConfigRSEventTriggerSchedule_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -319,7 +319,7 @@ func TestAccResourceMongoDBAtlasEventTriggerSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEventTriggerSchedule_eventProcessor(t *testing.T) {
+func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
@@ -377,7 +377,7 @@ func TestAccResourceMongoDBAtlasEventTriggerSchedule_eventProcessor(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasEventTriggerFunction_basic(t *testing.T) {
+func TestAccConfigRSEventTriggerFunction_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"

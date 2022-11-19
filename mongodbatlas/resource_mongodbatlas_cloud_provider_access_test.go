@@ -22,7 +22,7 @@ const (
 	`
 )
 
-func TestAccResourceMongoDBAtlasCloudProviderAccess_basic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccess_basic(t *testing.T) {
 	var (
 		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 		resourceName = "mongodbatlas_cloud_provider_access." + name
@@ -48,7 +48,7 @@ func TestAccResourceMongoDBAtlasCloudProviderAccess_basic(t *testing.T) {
 	)
 }
 
-func TestAccResourceMongoDBAtlasCloudProviderAccess_importBasic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 	var (
 		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 		resourceName = "mongodbatlas_cloud_provider_access." + name

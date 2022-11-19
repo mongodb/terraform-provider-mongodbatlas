@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourcePrivateIPMode_basic(t *testing.T) {
+func TestAccNetworkRSPrivateIPMode_basic(t *testing.T) {
 	var (
 		privateIPMode matlas.PrivateIPMode
 		resourceName  = "mongodbatlas_private_ip_mode.test"

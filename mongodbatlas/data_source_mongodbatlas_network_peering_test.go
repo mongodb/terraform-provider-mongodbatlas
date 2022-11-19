@@ -9,7 +9,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasNetworkPeering_basic(t *testing.T) {
+func TestAccNetworkDSNetworkPeering_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var peer matlas.Peer
 

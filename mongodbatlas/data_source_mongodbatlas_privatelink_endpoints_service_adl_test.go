@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointsServiceADL_basic(t *testing.T) {
+func TestAccNetworkDSPrivateLinkEndpointsServiceADL_basic(t *testing.T) {
 	datasourceName := "data.mongodbatlas_privatelink_endpoints_service_adl.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	endpointID := "vpce-jjg5e24qp93513h03"

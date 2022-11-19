@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *testing.T) {
+func TestAccFedRSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsIdentityProvider matlas.FederatedSettingsIdentityProvider
@@ -48,7 +48,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsIdentityProvider_basic(t *testi
 	})
 }
 
-func TestAccResourceMongoDBAtlasFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
+func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_identity_provider.test"

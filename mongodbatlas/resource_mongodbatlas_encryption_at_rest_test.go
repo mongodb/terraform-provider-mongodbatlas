@@ -96,7 +96,7 @@ data "aws_iam_role" "test" {
 `
 )
 
-func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
+func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -142,7 +142,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
+func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -196,7 +196,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
+func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
@@ -238,7 +238,7 @@ func TestAccResourceMongoDBAtlasEncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {
+func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
 	SkipTestExtCred(t)
 	var (

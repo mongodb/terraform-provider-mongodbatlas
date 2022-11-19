@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
+func TestAccFedRSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping
@@ -39,7 +39,7 @@ func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t
 	})
 }
 
-func TestAccResourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_importBasic(t *testing.T) {
+func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"

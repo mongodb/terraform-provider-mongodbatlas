@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
+func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"

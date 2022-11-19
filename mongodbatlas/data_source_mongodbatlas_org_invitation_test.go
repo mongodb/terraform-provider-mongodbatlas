@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasOrgInvitation_basic(t *testing.T) {
+func TestAccConfigDSOrgInvitation_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_org_invitation.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")

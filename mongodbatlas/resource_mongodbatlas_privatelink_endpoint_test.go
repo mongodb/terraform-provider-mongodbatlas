@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointAWS_basic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -40,7 +40,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointAWS_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointAWS_import(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointAWS_import(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -75,7 +75,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointAWS_import(t *testing.T) {
 		},
 	})
 }
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointAzure_basic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -105,7 +105,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointAzure_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointAzure_import(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointAzure_import(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -141,7 +141,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointAzure_import(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointGCP_basic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasThirdPartyIntegration_basic(t *testing.T) {
+func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -47,7 +47,7 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_basic(t *testing.T) {
 	)
 }
 
-func TestAccResourceMongoDBAtlasThirdPartyIntegration_importBasic(t *testing.T) {
+func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -89,7 +89,7 @@ func TestAccResourceMongoDBAtlasThirdPartyIntegration_importBasic(t *testing.T) 
 	)
 }
 
-func TestAccResourceMongoDBAtlasThirdPartyIntegration_updateBasic(t *testing.T) {
+func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

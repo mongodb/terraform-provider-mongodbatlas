@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_Basic(t *testing.T) {
+func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_custom_db_role.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -60,7 +60,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_Basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
+func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	testRoleResourceName := "mongodbatlas_custom_db_role.test_role"
 	InheritedRoleResourceNameOne := "mongodbatlas_custom_db_role.inherited_role_one"
 	InheritedRoleResourceNameTwo := "mongodbatlas_custom_db_role.inherited_role_two"
@@ -224,7 +224,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) {
+func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	var (
 		testRoleResourceName      = "mongodbatlas_custom_db_role.test_role"
 		InheritedRoleResourceName = "mongodbatlas_custom_db_role.inherited_role"
@@ -411,7 +411,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleCustomRoles(t *testing.T) 
 	})
 }
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
+func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 	t.Skip() // The error seems appear to be similar to whitelist behavior, skip it temporally
 	var (
 		resourceName = "mongodbatlas_custom_db_role.test"
@@ -449,7 +449,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_MultipleResources(t *testing.T) {
 	}
 }
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_importBasic(t *testing.T) {
+func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_custom_db_role.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -475,7 +475,7 @@ func TestAccResourceMongoDBAtlasCustomDBRoles_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
+func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	var (
 		testRoleResourceName      = "mongodbatlas_custom_db_role.test_role"
 		InheritedRoleResourceName = "mongodbatlas_custom_db_role.inherited_role"

@@ -15,7 +15,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCluster_basicAWS_simple(t *testing.T) {
+func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
@@ -63,7 +63,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_simple(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
+func TestAccClusterRSCluster_basicAWS_instanceScale(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
@@ -102,7 +102,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAWS_instanceScale(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basic_Partial_AdvancedConf(t *testing.T) {
+func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.advance_conf"
@@ -157,7 +157,7 @@ func TestAccResourceMongoDBAtlasCluster_basic_Partial_AdvancedConf(t *testing.T)
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
+func TestAccClusterRSCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.advance_conf"
@@ -216,7 +216,7 @@ func TestAccResourceMongoDBAtlasCluster_basic_DefaultWriteRead_AdvancedConf(t *t
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_emptyAdvancedConf(t *testing.T) {
+func TestAccClusterRSCluster_emptyAdvancedConf(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.advance_conf"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -257,7 +257,7 @@ func TestAccResourceMongoDBAtlasCluster_emptyAdvancedConf(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
+func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.advance_conf"
@@ -318,7 +318,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAdvancedConf(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basicAzure(t *testing.T) {
+func TestAccClusterRSCluster_basicAzure(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.basic_azure"
@@ -359,7 +359,7 @@ func TestAccResourceMongoDBAtlasCluster_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
+func TestAccClusterRSCluster_basicGCP(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.basic_gcp"
@@ -402,7 +402,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_WithBiConnectorGCP(t *testing.T) {
+func TestAccClusterRSCluster_WithBiConnectorGCP(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.basic_gcp"
@@ -447,7 +447,7 @@ func TestAccResourceMongoDBAtlasCluster_WithBiConnectorGCP(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_MultiRegion(t *testing.T) {
+func TestAccClusterRSCluster_MultiRegion(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.multi_region"
@@ -522,7 +522,7 @@ func TestAccResourceMongoDBAtlasCluster_MultiRegion(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
+func TestAccClusterRSCluster_Global(t *testing.T) {
 	var (
 		cluster        matlas.Cluster
 		resourceSuffix = "global_cluster"
@@ -558,7 +558,7 @@ func TestAccResourceMongoDBAtlasCluster_Global(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_AWSWithLabels(t *testing.T) {
+func TestAccClusterRSCluster_AWSWithLabels(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.aws_with_labels"
@@ -637,7 +637,7 @@ func TestAccResourceMongoDBAtlasCluster_AWSWithLabels(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
+func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
@@ -673,7 +673,7 @@ func TestAccResourceMongoDBAtlasCluster_withPrivateEndpointLink(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
+func TestAccClusterRSCluster_withAzureNetworkPeering(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		cluster      matlas.Cluster
@@ -708,7 +708,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureNetworkPeering(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
+func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		cluster          matlas.Cluster
@@ -744,7 +744,7 @@ func TestAccResourceMongoDBAtlasCluster_withGCPNetworkPeering(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
+func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName      = "mongodbatlas_cluster.test"
@@ -775,7 +775,7 @@ func TestAccResourceMongoDBAtlasCluster_withAzureAndContainerID(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
+func TestAccClusterRSCluster_withAWSAndContainerID(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
@@ -808,7 +808,7 @@ func TestAccResourceMongoDBAtlasCluster_withAWSAndContainerID(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withGCPAndContainerID(t *testing.T) {
+func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName     = "mongodbatlas_cluster.test"
@@ -841,7 +841,7 @@ func TestAccResourceMongoDBAtlasCluster_withGCPAndContainerID(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
+func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
@@ -890,7 +890,7 @@ func TestAccResourceMongoDBAtlasCluster_withAutoScalingAWS(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
+func TestAccClusterRSCluster_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cluster.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -916,7 +916,7 @@ func TestAccResourceMongoDBAtlasCluster_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
+func TestAccClusterRSCluster_tenant(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.tenant"
@@ -957,7 +957,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
+func TestAccClusterRSCluster_tenant_m5(t *testing.T) {
 	var cluster matlas.Cluster
 
 	resourceName := "mongodbatlas_cluster.tenant"
@@ -985,7 +985,7 @@ func TestAccResourceMongoDBAtlasCluster_tenant_m5(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basicGCPRegionName(t *testing.T) {
+func TestAccClusterRSCluster_basicGCPRegionName(t *testing.T) {
 	var (
 		resourceName      = "mongodbatlas_cluster.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -1019,7 +1019,7 @@ func TestAccResourceMongoDBAtlasCluster_basicGCPRegionName(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
+func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cluster.test"
@@ -1105,7 +1105,7 @@ func TestAccResourceMongoDBAtlasCluster_RegionsConfig(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCluster_basicAWS_paused(t *testing.T) {
+func TestAccClusterRSCluster_basicAWS_paused(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"

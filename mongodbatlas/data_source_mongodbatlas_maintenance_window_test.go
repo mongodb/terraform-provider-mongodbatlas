@@ -9,7 +9,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
+func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	var maintenance matlas.MaintenanceWindow
 
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")

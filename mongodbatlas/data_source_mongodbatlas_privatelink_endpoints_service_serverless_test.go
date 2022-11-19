@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless_basic(t *testing.T) {
+func TestAccNetworkDSPrivateLinkEndpointsServiceServerless_basic(t *testing.T) {
 	datasourceName := "data.mongodbatlas_privatelink_endpoints_service_serverless.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	instanceID := "serverless"

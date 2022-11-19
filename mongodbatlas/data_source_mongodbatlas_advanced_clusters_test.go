@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasAdvancedClusters_basic(t *testing.T) {
+func TestAccClusterDSAdvancedClusters_basic(t *testing.T) {
 	var (
 		cluster        matlas.AdvancedCluster
 		resourceName   = "mongodbatlas_advanced_cluster.test"
@@ -45,7 +45,7 @@ func TestAccDataSourceMongoDBAtlasAdvancedClusters_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasAdvancedClusters_advancedConf(t *testing.T) {
+func TestAccClusterDSAdvancedClusters_advancedConf(t *testing.T) {
 	var (
 		cluster        matlas.AdvancedCluster
 		resourceName   = "mongodbatlas_advanced_cluster.test"
@@ -87,7 +87,7 @@ func TestAccDataSourceMongoDBAtlasAdvancedClusters_advancedConf(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasAdvancedClusters_multicloud(t *testing.T) {
+func TestAccClusterDSAdvancedClusters_multicloud(t *testing.T) {
 	var (
 		cluster        matlas.AdvancedCluster
 		resourceName   = "mongodbatlas_advanced_cluster.test"

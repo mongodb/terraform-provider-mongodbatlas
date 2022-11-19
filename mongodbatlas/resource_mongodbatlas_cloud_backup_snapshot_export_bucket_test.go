@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasBackupSnapshotExportBucket_basic(t *testing.T) {
+func TestAccBackupRSBackupSnapshotExportBucket_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		snapshotExportBucket matlas.CloudProviderSnapshotExportBucket
@@ -38,7 +38,7 @@ func TestAccResourceMongoDBAtlasBackupSnapshotExportBucket_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasBackupSnapshotExportBucket_importBasic(t *testing.T) {
+func TestAccBackupRSBackupSnapshotExportBucket_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_snapshot_export_bucket.test"

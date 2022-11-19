@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_basicTenant(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_basicTenant(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -62,7 +62,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_basicTenant(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_singleProvider(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_singleProvider(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -108,7 +108,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_singleProvider(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_multicloud(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_multicloud(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -155,7 +155,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_multicloud(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_multicloudSharded(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_multicloudSharded(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -202,7 +202,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_multicloudSharded(t *testing.T) 
 	})
 }
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_Paused(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_Paused(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -250,7 +250,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_Paused(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_advancedConf(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -318,7 +318,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_advancedConf(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAdvancedCluster_DefaultWrite(t *testing.T) {
+func TestAccClusterRSAdvancedCluster_DefaultWrite(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
@@ -388,7 +388,7 @@ func TestAccResourceMongoDBAtlasAdvancedCluster_DefaultWrite(t *testing.T) {
 	})
 }
 
-func TestAccMongoDBAtlasAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.T) {
+func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"

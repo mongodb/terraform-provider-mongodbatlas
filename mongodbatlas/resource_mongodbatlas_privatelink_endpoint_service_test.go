@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceSuffix = "test"
@@ -47,7 +47,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_Complete(t *testin
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceAWS_import(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceSuffix = "test"

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
+func TestAccClusterDSGlobalCluster_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_global_cluster_config.config"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
