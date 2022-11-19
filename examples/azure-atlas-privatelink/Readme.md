@@ -6,8 +6,8 @@ This project aims to provide an example of using Azure and MongoDB Atlas togethe
 ## Dependencies
 
 * Terraform v0.13
-* Microsoft Azure account 
-* A MongoDB Atlas account 
+* Microsoft Azure account
+* A MongoDB Atlas account
 
 ```
 Terraform v0.13.0
@@ -50,6 +50,9 @@ XXXXX
 **2\. TFVARS**
 
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
+
+An existing cluster on the project can optionally be linked via the `cluster_name` variable.
+If included, the azure connection string to the cluster will be output.
 
 **3\. Review the Terraform plan. **
 
