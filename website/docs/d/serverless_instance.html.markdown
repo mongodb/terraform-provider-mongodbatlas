@@ -42,5 +42,6 @@ data "mongodbatlas_serverless_instance" "test_two" {
 * `provider_settings_region_name` - Human-readable label that identifies the physical location of your MongoDB serverless instance. The region you choose can affect network latency for clients accessing your databases.
 * `state_name` - Stage of deployment of this serverless instance when the resource made its request.
 * `continuous_backup_enabled` - Flag that indicates whether the serverless instance uses Serverless Continuous Backup.
+* `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 
 For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.

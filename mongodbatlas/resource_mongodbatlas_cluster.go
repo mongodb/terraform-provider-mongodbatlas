@@ -131,6 +131,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"mongo_db_major_version": {
 				Type:      schema.TypeString,
@@ -341,6 +342,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				},
 			},
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
+			"termination_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"container_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -528,6 +534,10 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		clusterRequest.NumShards = pointy.Int64(cast.ToInt64(n))
 	}
 
+	if v, ok := d.GetOk("termination_protection_enabled"); ok {
+		clusterRequest.TerminationProtectionEnabled = pointy.Bool(v.(bool))
+	}
+
 	if v, ok := d.GetOk("version_release_system"); ok {
 		clusterRequest.VersionReleaseSystem = v.(string)
 	}
@@ -705,6 +715,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "state_name", clusterName, err))
 	}
 
+	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "termination_protection_enabled", clusterName, err))
+	}
+
 	if _, ok := d.GetOk("bi_connector"); ok {
 		if err = d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err))
@@ -880,6 +894,10 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	if d.HasChange("version_release_system") {
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
+	}
+
+	if d.HasChange("termination_protection_enabled") {
+		cluster.TerminationProtectionEnabled = pointy.Bool(d.Get("termination_protection_enabled").(bool))
 	}
 
 	if d.HasChange("labels") {

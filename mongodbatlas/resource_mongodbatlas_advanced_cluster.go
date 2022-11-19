@@ -251,6 +251,11 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"termination_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"version_release_system": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -332,6 +337,9 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	}
 	if v, ok := d.GetOk("root_cert_type"); ok {
 		request.RootCertType = v.(string)
+	}
+	if v, ok := d.GetOk("termination_protection_enabled"); ok {
+		request.TerminationProtectionEnabled = pointy.Bool(v.(bool))
 	}
 	if v, ok := d.GetOk("version_release_system"); ok {
 		request.VersionReleaseSystem = v.(string)
@@ -494,6 +502,10 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "state_name", clusterName, err))
 	}
 
+	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "termination_protection_enabled", clusterName, err))
+	}
+
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
@@ -600,6 +612,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	if d.HasChange("root_cert_type") {
 		cluster.RootCertType = d.Get("root_cert_type").(string)
+	}
+
+	if d.HasChange("termination_protection_enabled") {
+		cluster.TerminationProtectionEnabled = pointy.Bool(d.Get("termination_protection_enabled").(bool))
 	}
 
 	if d.HasChange("version_release_system") {
