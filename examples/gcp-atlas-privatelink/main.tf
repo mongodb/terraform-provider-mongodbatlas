@@ -62,3 +62,15 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
   depends_on = [google_compute_forwarding_rule.default]
 }
+
+locals {
+  private_endpoints   = flatten([for cs in mongodbatlas_advanced_cluster.cluster.connection_strings : cs.private_endpoint])
+  connection_strings = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], google_compute_network.default.name)
+  ]
+}
+
+output "connection_string" {
+  value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+}

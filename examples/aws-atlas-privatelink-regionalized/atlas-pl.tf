@@ -45,3 +45,23 @@ resource "mongodbatlas_privatelink_endpoint_service" "atlaseplink_east" {
   private_link_id     = mongodbatlas_privatelink_endpoint.atlaspl_east.id
   provider_name       = "AWS"
 }
+
+locals {
+  private_endpoints   = flatten([for cs in mongodbatlas_advanced_cluster.cluster.connection_strings : cs.private_endpoint])
+  connection_strings_west = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], aws_vpc_endpoint.ptfe_service_west.id)
+  ]
+  connection_strings_east = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], aws_vpc_endpoint.ptfe_service_east.id)
+  ]
+}
+
+output "connection_string_east" {
+  value = length(local.connection_strings_east) > 0 ? local.connection_strings_east[0] : ""
+}
+
+output "connection_string_west" {
+  value = length(local.connection_strings_west) > 0 ? local.connection_strings_west[0] : ""
+}

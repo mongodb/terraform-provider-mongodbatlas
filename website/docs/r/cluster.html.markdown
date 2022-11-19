@@ -220,25 +220,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example - Return a Connection String
-AWS Private Endpoint
-```terraform
-locals {
-  private_endpoints = {
-    value = flatten([for cs in data.mongodbatlas_cluster.cluster-atlas.connection_strings : cs.private_endpoint])
-  }
-  aws_private_endpoint = {
-    value = [for pe in local.private_endpoints.value : pe if contains([for e in pe.endpoints : e.endpoint_id], aws_vpc_endpoint.ptfe_service.id)]
-  }
-  aws_srv_connection_string = {
-    value = length(local.aws_private_endpoint.value) > 0 ? local.aws_private_endpoint.value[0].srv_connection_string : ""
-  }
-}
-
-output "plstring" {
-  value = local.aws_srv_connection_string.value
-}
-```
-
 Azure Private Endpoint
 ```terraform
 locals {
@@ -287,6 +268,28 @@ output "private_srv" {
 }
 # Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
+
+By endpoint_service_id
+```terraform
+locals {
+  endpoint_service_id = google_compute_network.default.name
+  private_endpoints   = flatten([for cs in mongodbatlas_advanced_cluster.cluster.connection_strings : cs.private_endpoint])
+  connection_strings = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
+  ]
+}
+
+output "connection_string" {
+  value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+}
+```
+
+Refer to the following for full examples:
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/gcp-atlas-privatelink)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink)
+
 
 ## Argument Reference
 
