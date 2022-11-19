@@ -83,7 +83,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccAdv$"
+          TEST_REGEX: "^TestAccAdv"
         run: make testacc
 
   acceptance-tests-backup:
@@ -145,7 +145,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccBackup$"
+          TEST_REGEX: "^TestAccBackup"
         run: make testacc
 
   acceptance-tests-cluster:
@@ -207,7 +207,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccCluster$"
+          TEST_REGEX: "^TestAccCluster"
         run: make testacc
 
   acceptance-tests-config:
@@ -269,7 +269,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccConfig$"
+          TEST_REGEX: "^TestAccConfig"
         run: make testacc
 
   acceptance-tests-fed:
@@ -331,7 +331,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccFed$"
+          TEST_REGEX: "^TestAccFed"
         run: make testacc
 
   acceptance-tests-network:
@@ -393,7 +393,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccNetwork$"
+          TEST_REGEX: "^TestAccNetwork"
         run: make testacc
 
   acceptance-tests-project:
@@ -455,7 +455,7 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccProject$"
+          TEST_REGEX: "^TestAccProject"
         run: make testacc
 
   acceptance-tests-gov:
