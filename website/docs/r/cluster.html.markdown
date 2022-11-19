@@ -220,25 +220,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example - Return a Connection String
-Azure Private Endpoint
-```terraform
-locals {
-  private_endpoints = {
-    value = flatten([for cs in data.mongodbatlas_cluster.cluster-atlas.connection_strings : cs.private_endpoint])
-  }
-  azure_private_endpoint = {
-    value = [for pe in local.private_endpoints.value : pe if contains([for e in pe.endpoints : e.endpoint_id], azurerm_private_endpoint.test.id)]
-  }
-  azure_srv_connection_string = {
-    value = length(local.azure_private_endpoint.value) > 0 ? local.azure_private_endpoint.value[0].srv_connection_string : ""
-  }
-}
-
-output "plstring" {
-  value = local.azure_srv_connection_string.value
-}
-```
-
 Standard
 ```terraform
 output "standard" {
@@ -273,7 +254,7 @@ By endpoint_service_id
 ```terraform
 locals {
   endpoint_service_id = google_compute_network.default.name
-  private_endpoints   = flatten([for cs in mongodbatlas_advanced_cluster.cluster.connection_strings : cs.private_endpoint])
+  private_endpoints   = flatten([for cs in mongodbatlas_cluster.cluster-test.connection_strings : cs.private_endpoint])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
@@ -283,6 +264,7 @@ locals {
 output "connection_string" {
   value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
 }
+# Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 
 Refer to the following for full examples:
