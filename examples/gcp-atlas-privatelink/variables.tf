@@ -13,3 +13,7 @@ variable "public_key" {
 variable "private_key" {
   description = "Private API key to authenticate to Atlas"
 }
+variable "cluster_name" {
+  description = "(Optional) Cluster whose connection string to output"
+  default     = ""
+}

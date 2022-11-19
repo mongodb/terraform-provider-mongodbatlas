@@ -55,8 +55,14 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   provider_name               = "AZURE"
 }
 
+data "mongodbatlas_advanced_cluster" "cluster" {
+  count      = var.cluster_name == "" ? 0 : 1
+  project_id = var.project_id
+  name       = var.cluster_name
+}
+
 locals {
-  private_endpoints   = flatten([for cs in mongodbatlas_advanced_cluster.cluster.connection_strings : cs.private_endpoint])
+  private_endpoints = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], azurerm_private_endpoint.test.id)
