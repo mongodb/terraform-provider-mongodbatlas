@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   acceptance-tests:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-adv' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -87,7 +87,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-backup:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-backup' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -148,8 +148,8 @@ jobs:
           TEST_REGEX: "^TestAccBackup"
         run: make testacc
 
-  acceptance-tests-cluster:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+  acceptance-tests-cluster-ds:
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-cluster-ds' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -207,11 +207,73 @@ jobs:
           PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
-          TEST_REGEX: "^TestAccCluster"
+          TEST_REGEX: "^TestAccClusterDS"
+        run: make testacc
+
+  acceptance-tests-cluster-rs:
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-cluster-rs' || github.ref == 'refs/heads/master' }}
+    needs: [ authorize ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Acceptance Tests
+        env:
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
+          SKIP_TEST: ${{ secrets.SKIP_TEST }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
+          MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
+          MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
+          MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.MONGODB_ATLAS_LDAP_HOSTNAME }}
+          MONGODB_ATLAS_LDAP_USERNAME: ${{ secrets.MONGODB_ATLAS_LDAP_USERNAME }}
+          MONGODB_ATLAS_LDAP_PASSWORD: ${{ secrets.MONGODB_ATLAS_LDAP_PASSWORD }}
+          MONGODB_ATLAS_LDAP_CA_CERTIFICATE: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
+          MONGODB_ATLAS_LDAP_PORT: ${{ secrets.MONGODB_ATLAS_LDAP_PORT }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
+          AWS_VPC_CIDR_BLOCK: ${{ secrets.AWS_VPC_CIDR_BLOCK }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
+          AZURE_DIRECTORY_ID: ${{ secrets.AZURE_DIRECTORY_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_VNET_NAME: ${{ secrets.AZURE_VNET_NAME }}
+          AZURE_RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_ID_UPDATED: ${{ secrets.AZURE_CLIENT_ID_UPDATED }}
+          AZURE_RESOURCE_GROUP_NAME_UPDATED: ${{ secrets.AZURE_RESOURCE_GROUP_NAME_UPDATED }}
+          AZURE_SECRET: ${{ secrets.AZURE_SECRET }}
+          AZURE_KEY_VAULT_NAME: ${{ secrets.AZURE_KEY_VAULT_NAME }}
+          AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.AZURE_KEY_VAULT_NAME_UPDATED }}
+          AZURE_KEY_IDENTIFIER: ${{ secrets.AZURE_KEY_IDENTIFIER }}
+          AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.AZURE_KEY_IDENTIFIER_UPDATED }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_CLUSTER_REGION_NAME: ${{ secrets.GCP_CLUSTER_REGION_NAME }}
+          GCP_REGION_NAME: ${{ secrets.GCP_REGION_NAME }}
+          GOOGLE_CLOUD_KEYFILE_JSON: ${{ secrets.GOOGLE_CLOUD_KEYFILE_JSON }}
+          GCP_KEY_VERSION_RESOURCE_ID: ${{ secrets.GCP_KEY_VERSION_RESOURCE_ID }}
+          CA_CERT: ${{ secrets.CA_CERT }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
+          PAGER_DUTY_SERVICE_KEY: ${{ secrets.PAGER_DUTY_SERVICE_KEY }}
+          MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
+          MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          TEST_REGEX: "^TestAccClusterRS"
         run: make testacc
 
   acceptance-tests-config:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-config' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -273,7 +335,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-fed:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-fed' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -335,7 +397,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-network:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-network' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -397,7 +459,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-project:
-    if: ${{ github.event.label.name == 'run-testacc' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || github.ref == 'refs/heads/master' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
