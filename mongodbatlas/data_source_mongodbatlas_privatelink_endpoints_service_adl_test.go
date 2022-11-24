@@ -13,7 +13,7 @@ func TestAccNetworkDSPrivateLinkEndpointsServiceADL_basic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	endpointID := "vpce-jjg5e24qp93513h03"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
