@@ -37,7 +37,7 @@ test: fmtcheck
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel 2 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel 5 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
