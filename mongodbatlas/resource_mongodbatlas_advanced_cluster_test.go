@@ -203,6 +203,7 @@ func TestAccClusterRSAdvancedCluster_multicloudSharded(t *testing.T) {
 }
 
 func TestAccClusterRSAdvancedCluster_Paused(t *testing.T) {
+	SkipTest(t)
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
