@@ -61,7 +61,7 @@ func testAccPreCheckGov(t *testing.T) {
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
-			t.Skip() //Skip GOV Tests during main test run
+		t.Skip() //Skip GOV Tests during main test run
 	}
 }
 
