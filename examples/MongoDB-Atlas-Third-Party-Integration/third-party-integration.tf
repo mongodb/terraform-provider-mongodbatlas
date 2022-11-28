@@ -13,3 +13,13 @@ resource "mongodbatlas_third_party_integration" "test_prometheus" {
   scheme            = "https"
   enabled           = true
 }
+
+data "template_file" "init" {
+  template = file("prom-conf-yml.tpl")
+
+  vars = {
+    job_name = "test-job"
+    group_id = mongodbatlas_project.project.id
+    password = mongodbatlas_third_party_integration.test_prometheus.password
+  }
+}
