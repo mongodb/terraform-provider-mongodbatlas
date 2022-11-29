@@ -2,7 +2,6 @@
 variable "project_id" {
   default = "PROJECT-ID"
 }
-
 variable "subscription_id" {
   default = "AZURE SUBSCRIPTION ID"
 }
@@ -17,4 +16,8 @@ variable "tenant_id" {
 }
 variable "resource_group_name" {
   default = "AZURE RESOURCE GROUP NAME"
+}
+variable "cluster_name" {
+  description = "(Optional) Cluster whose connection string to output"
+  default     = ""
 }

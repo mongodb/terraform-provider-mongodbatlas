@@ -6,13 +6,13 @@ This project aims to provide an example of setting up GCP Private Service Connec
 ## Dependencies
 
 * Terraform v0.13+
-* Google account 
-* A MongoDB Atlas account 
+* Google Cloud account
+* MongoDB Atlas account
 
 ```
 Terraform v0.13.0
-+ provider registry.terraform.io/hashicorp/google 
-+ provider registry.terraform.io/terraform-providers/mongodbatlas 
++ provider registry.terraform.io/hashicorp/google
++ provider registry.terraform.io/terraform-providers/mongodbatlas
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ Terraform v0.13.0
 ⇒  gcloud init
 You are logged in as: [user@example.com].
 
-Pick cloud project to use: 
+Pick cloud project to use:
  [1] project1
  [2] project2
 ...
@@ -40,7 +40,10 @@ Your Google Cloud SDK is configured and ready to use!
 
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
-**3\. Review the Terraform plan. **
+An existing cluster on the project can optionally be linked via the `cluster_name` variable.
+If included, the gcp connection string to the cluster will be output.
+
+**3\. Review the Terraform plan.**
 
 Execute the below command and ensure you are happy with the plan.
 
@@ -55,7 +58,7 @@ This project currently does the below deployments:
 
 **4\. Execute the Terraform apply.**
 
-Now execute the plan to provision the AWS resources.
+Now execute the plan to provision the GCP resources.
 
 ``` bash
 $ terraform apply

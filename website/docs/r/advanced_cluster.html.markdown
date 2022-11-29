@@ -127,11 +127,62 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
+### Example - Return a Connection String
+Standard
+```terraform
+output "standard" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard
+}
+# Example return string: standard = "mongodb://cluster-atlas-shard-00-00.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
+```
+Standard srv
+```terraform
+output "standard_srv" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].standard_srv
+}
+# Example return string: standard_srv = "mongodb+srv://cluster-atlas.ygo1m.mongodb.net"
+```
+Private with Network peering and Custom DNS AWS enabled
+```terraform
+output "private" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].private
+}
+# Example return string: private = "mongodb://cluster-atlas-shard-00-00-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-01-pri.ygo1m.mongodb.net:27017,cluster-atlas-shard-00-02-pri.ygo1m.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-12diht-shard-0"
+private = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
+```
+Private srv with Network peering and Custom DNS AWS enabled
+```terraform
+output "private_srv" {
+    value = mongodbatlas_cluster.cluster-test.connection_strings[0].private_srv
+}
+# Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
+```
+
+By endpoint_service_id
+```terraform
+locals {
+  endpoint_service_id = google_compute_network.default.name
+  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
+  connection_strings = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
+  ]
+}
+output "endpoint_service_connection_string" {
+  value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+}
+# Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
+```
+Refer to the following for full endpoint service connection string examples:
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/gcp-atlas-privatelink)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique ID for the project to create the database user.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
-* `cluster_type` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources. 
+* `cluster_type` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.
 
 * `backup_enabled` - (Optional) Flag that indicates whether the cluster can perform backups.
   If `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters.
@@ -166,7 +217,7 @@ This parameter defaults to false.
   `lifecycle {
   ignore_changes = [paused]
   }`
- 
+
 
 ### bi_connector
 
@@ -243,7 +294,7 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 * `value` - The value that you want to write.
 
 
-### replication_specs 
+### replication_specs
 
 ```terraform
 //Example Multicloud
@@ -336,7 +387,7 @@ In addition to all arguments above, the following attributes are exported:
 
    **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
 
-   Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/). 
+   Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/).
 
     - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
     - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t  , use connectionStrings.standard.

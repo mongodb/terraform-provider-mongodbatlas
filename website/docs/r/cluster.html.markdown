@@ -220,20 +220,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 }
 ```
 ### Example - Return a Connection String
-AWS Private Endpoint
-```terraform
-output "plstring" {
-    value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, aws_vpc_endpoint.ptfe_service.id)
-}
-# Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
-```
-Azure Private Endpoint
-```terraform
-output "plstring" {
-    value = lookup(mongodbatlas_cluster.cluster-test.connection_strings[0].private_endpoint[0].srv_connection_string, azurerm_private_endpoint.test.id)
-}
-# Example return string: plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
-```
 Standard
 ```terraform
 output "standard" {
@@ -264,6 +250,28 @@ output "private_srv" {
 # Example return string: private_srv = "mongodb+srv://cluster-atlas-pri.ygo1m.mongodb.net"
 ```
 
+By endpoint_service_id
+```terraform
+locals {
+  endpoint_service_id = google_compute_network.default.name
+  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
+  connection_strings = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
+  ]
+}
+output "endpoint_service_connection_string" {
+  value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+}
+# Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
+```
+
+Refer to the following for full examples:
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/gcp-atlas-privatelink)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the database user.
@@ -276,18 +284,18 @@ output "private_srv" {
     - `AZURE` - Microsoft Azure
     - `TENANT` - A multi-tenant deployment on one of the supported cloud service providers. Only valid when providerSettings.instanceSizeName is either M2 or M5.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
-* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources. 
+* `provider_instance_size_name` - (Required) Atlas provides different instance sizes, each with a default storage capacity and RAM size. The instance size you select is used for all the data-bearing servers in your cluster. See [Create a Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-create-one/) `providerSettings.instanceSizeName` for valid values and default resources.
 
 * `auto_scaling_disk_gb_enabled` - (Optional) Specifies whether disk auto-scaling is enabled. The default is true.
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
-  
+
 -> **NOTE:** If `provider_name` is set to `TENANT`, the parameter `auto_scaling_disk_gb_enabled` will be ignored.
 
 * `auto_scaling_compute_enabled` - (Optional) Specifies whether cluster tier auto-scaling is enabled. The default is false.
     - Set to `true` to enable cluster tier auto-scaling. If enabled, you must specify a value for `providerSettings.autoScaling.compute.maxInstanceSize`.
     - Set to `false` to disable cluster tier auto-scaling.
-  
+
 ~> **IMPORTANT:** If `auto_scaling_compute_enabled` is true,  then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
 This will cause the value of `provider_instance_size_name` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back down to the original instanceSizeName value.
 To prevent this a lifecycle customization should be used, i.e.:  
@@ -295,12 +303,12 @@ To prevent this a lifecycle customization should be used, i.e.:
   ignore_changes = [provider_instance_size_name]
 }`
 But in order to explicitly change `provider_instance_size_name` comment the `lifecycle` block and run `terraform apply`. Please ensure to uncomment it to prevent any accidental changes.
-            
+
 * `auto_scaling_compute_scale_down_enabled` - (Optional) Set to `true` to enable the cluster tier to scale down. This option is only available if `autoScaling.compute.enabled` is `true`.
     - If this option is enabled, you must specify a value for `providerSettings.autoScaling.compute.minInstanceSize`
 
 * `backup_enabled` - (Optional) Legacy Backup - Set to true to enable Atlas legacy backups for the cluster.
-**Important** - MongoDB deprecated the Legacy Backup feature. Clusters that use Legacy Backup can continue to use it. MongoDB recommends using [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/). 
+**Important** - MongoDB deprecated the Legacy Backup feature. Clusters that use Legacy Backup can continue to use it. MongoDB recommends using [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/).
     * New Atlas clusters of any type do not support this parameter. These clusters must use Cloud Backup, `cloud_backup`, to enable Cloud Backup.  If you create a new Atlas cluster and set `backup_enabled` to true, the Provider will respond with an error.  This change doesn’t affect existing clusters that use legacy backups.
     * Setting this value to false to disable legacy backups for the cluster will let Atlas delete any stored snapshots. In order to preserve the legacy backups snapshots, disable the legacy backups and enable the cloud backups in the single **terraform apply** action.
     ```
@@ -327,11 +335,11 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
   * Cannot be used with clusters with local NVMe SSDs
   * Cannot be used with Azure clusters
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-aws-kms/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For complete documentation on configuring Encryption at Rest, see Encryption at Rest using Customer Key Management. Requires M10 or greater. and for legacy backups, backup_enabled, to be false or omitted. **Note: Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default**.   
-* `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `4.2`, `4.4`, `5.0`, or `6.0`. If omitted, Atlas deploys a cluster that runs MongoDB 5.0. If `provider_instance_size_name`: `M0`, `M2` or `M5`, Atlas deploys MongoDB 5.0. Atlas always deploys the cluster with the latest stable release of the specified version. See [Release Notes](https://www.mongodb.com/docs/upcoming/release-notes/) for latest Current Stable Release. 
+* `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `4.2`, `4.4`, `5.0`, or `6.0`. If omitted, Atlas deploys a cluster that runs MongoDB 5.0. If `provider_instance_size_name`: `M0`, `M2` or `M5`, Atlas deploys MongoDB 5.0. Atlas always deploys the cluster with the latest stable release of the specified version. See [Release Notes](https://www.mongodb.com/docs/upcoming/release-notes/) for latest Current Stable Release.
 * `num_shards` - (Optional) Selects whether the cluster is a replica set or a sharded cluster. If you use the replicationSpecs parameter, you must set num_shards.
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, cloud_backup must also be set to true.
 * `provider_backup_enabled` -  (Optional) Flag indicating if the cluster uses Cloud Backup for backups. **Deprecated** use `cloud_backup` instead.
-* `cloud_backup` - (Optional) Flag indicating if the cluster uses Cloud Backup for backups. 
+* `cloud_backup` - (Optional) Flag indicating if the cluster uses Cloud Backup for backups.
 
     If true, the cluster uses Cloud Backup for backups. If cloud_backup and backup_enabled are false, the cluster does not use Atlas backups.
 
@@ -371,8 +379,8 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
 * `version_release_system` - (Optional) - Release cadence that Atlas uses for this cluster. This parameter defaults to `LTS`. If you set this field to `CONTINUOUS`, you must omit the `mongo_db_major_version` field. Atlas accepts:
   - `CONTINUOUS`:  Atlas creates your cluster using the most recent MongoDB release. Atlas automatically updates your cluster to the latest major and rapid MongoDB releases as they become available.
   - `LTS`: Atlas creates your cluster using the latest patch release of the MongoDB version that you specify in the mongoDBMajorVersion field. Atlas automatically updates your cluster to subsequent patch releases of this MongoDB version. Atlas doesn't update your cluster to newer rapid or major MongoDB releases as they become available.
-  
-### Multi-Region Cluster 
+
+### Multi-Region Cluster
 
 ```terraform
 //Example 3 Multi-Region block
@@ -408,7 +416,7 @@ replication_specs {
 * `zone_name` - (Optional) Name for the zone in a Global Cluster.
 
 
-**Region Config** 
+**Region Config**
 
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 * `electable_nodes` - (Optional) Number of electable nodes for Atlas to deploy to the region. Electable nodes can become the primary and can facilitate local reads.
@@ -426,7 +434,7 @@ replication_specs {
 ### BI Connector
 
 Specifies BI Connector for Atlas configuration.
- 
+
  ```terraform
  bi_connector = {
         enabled         = true
@@ -435,7 +443,7 @@ Specifies BI Connector for Atlas configuration.
   ```
 
 * `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
-* 
+*
     - Set to `true` to enable BI Connector for Atlas.
     - Set to `false` to disable BI Connector for Atlas.
 
@@ -511,7 +519,7 @@ In addition to all arguments above, the following attributes are exported:
 
    **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_cluster.cluster-test.connection_strings.0.standard_srv
 
-   Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/). 
+   Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/).
 
     - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
     - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t  , use connectionStrings.standard.
@@ -539,7 +547,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Cloud Backup Policy
 
-**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead. 
+**WARNING:** This property is deprecated, use `mongodbatlas_cloud_backup_schedule` resource instead.
 
 Cloud Backup Policy will be added if provider_backup_enabled or cloud_backup is enabled because MongoDB Atlas automatically creates a default policy, if not, returned values will be empty.   
 
