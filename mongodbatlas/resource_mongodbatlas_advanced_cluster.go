@@ -31,6 +31,7 @@ const (
 	errorClusterAdvancedSetting            = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorAdvancedClusterListStatus         = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 )
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"

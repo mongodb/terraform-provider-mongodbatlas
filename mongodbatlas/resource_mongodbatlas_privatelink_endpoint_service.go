@@ -195,7 +195,14 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		Delay:      5 * time.Minute,
 	}
 
-	clusterConf.WaitForStateContext(ctx)
+	_, err = clusterConf.WaitForStateContext(ctx)
+
+	if err != nil {
+		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
+		log.Printf(errorAdvancedClusterListStatus, err)
+
+		err = nil
+	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
@@ -316,7 +323,14 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 			Delay:      5 * time.Minute,
 		}
 
-		clusterConf.WaitForStateContext(ctx)
+		_, err = clusterConf.WaitForStateContext(ctx)
+
+		if err != nil {
+			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
+			log.Printf(errorAdvancedClusterListStatus, err)
+
+			err = nil
+		}
 	}
 
 	return nil
