@@ -11,6 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+
 func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 	SkipTest(t)
 	var (

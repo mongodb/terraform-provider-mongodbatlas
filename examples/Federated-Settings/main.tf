@@ -35,6 +35,7 @@ resource "mongodbatlas_federated_settings_org_config" "org_connections_import" {
   identity_provider_id       = var.identity_provider_id
   domain_restriction_enabled = false
   domain_allow_list          = ["yourdomain.com"]
+  post_auth_role_grants      = ["ORG_MEMBER"]
 }
 
 resource "mongodbatlas_federated_settings_identity_provider" "identity_provider" {

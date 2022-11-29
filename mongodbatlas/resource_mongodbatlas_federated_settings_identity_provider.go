@@ -217,6 +217,10 @@ func resourceMongoDBAtlasFederatedSettingsIdentityProviderImportState(ctx contex
 		return nil, fmt.Errorf("error setting Identity Provider in Federation settings (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("name", federatedSettingsIdentityProvider.DisplayName); err != nil {
+		return nil, fmt.Errorf("error setting name (%s): %s", d.Id(), err)
+	}
+
 	if err := d.Set("sso_debug_enabled", federatedSettingsIdentityProvider.SsoDebugEnabled); err != nil {
 		return nil, fmt.Errorf("error setting sso debug enabled (%s): %s", d.Id(), err)
 	}
