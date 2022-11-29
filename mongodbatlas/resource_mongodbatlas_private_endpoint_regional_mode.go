@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -94,9 +92,9 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	log.Println("[INFO] Waiting for MongoDB Clusters' Private Endpoints to be updated")
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"PENDING", "REPEATING"},
-		Target:     []string{"APPLIED"},
-		Refresh:    resourcePrivateEndpointRegionalModeRefreshFunc(ctx, conn, projectID),
+		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
+		Target:     []string{"IDLE", "DELETED"},
+		Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -142,49 +140,4 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeImportState(ctx context.Cont
 	d.SetId(projectID)
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func resourcePrivateEndpointRegionalModeRefreshFunc(ctx context.Context, client *matlas.Client, projectID string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
-
-		if err != nil {
-			// For our purposes, no clusters is equivalent to all changes having been APPLIED
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return "", "APPLIED", nil
-			}
-
-			return nil, "REPEATING", err
-		}
-
-		for i := range clusters {
-			if clusters[i].StateName == "UPDATING" {
-				return clusters, "PENDING", nil
-			}
-
-			s, resp, err := client.Clusters.Status(ctx, projectID, clusters[i].Name)
-
-			if err != nil && strings.Contains(err.Error(), "reset by peer") {
-				return nil, "REPEATING", nil
-			}
-
-			if err != nil {
-				if resp.StatusCode == 404 {
-					// The cluster no longer exists, consider this equivalent to status APPLIED
-					continue
-				}
-				if resp.StatusCode == 503 {
-					return "", "PENDING", nil
-				}
-				return nil, "REPEATING", err
-			}
-
-			if s.ChangeStatus == matlas.ChangeStatusPending {
-				return clusters, "PENDING", nil
-			}
-		}
-
-		// If all clusters were properly read, and none are PENDING, all changes have been APPLIED.
-		return clusters, "APPLIED", nil
-	}
 }

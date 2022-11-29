@@ -942,15 +942,18 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []*matlas.A
 
 	var tfList []map[string]interface{}
 
-	for i, apiObject := range apiObjects {
+	for _, apiObject := range apiObjects {
 		if apiObject == nil {
 			continue
 		}
 
 		var tfMapObject map[string]interface{}
 
-		if len(tfMapObjects) > 0 {
-			tfMapObject = tfMapObjects[i].(map[string]interface{})
+		for _, v := range tfMapObjects {
+			if v.(map[string]interface{})["id"] == apiObject.ID {
+				tfMapObject = v.(map[string]interface{})
+				break
+			}
 		}
 
 		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObject, tfMapObject, d, conn)
@@ -1011,7 +1014,7 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 			continue
 		}
 
-		if len(tfMapObjects) > 0 {
+		if len(tfMapObjects) > i {
 			tfMapObject := tfMapObjects[i].(map[string]interface{})
 			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, tfMapObject))
 		} else {
@@ -1121,6 +1124,36 @@ func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID str
 		}
 
 		return c, c.StateName, nil
+	}
+}
+
+func resourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		clusters, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && clusters == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		for i := range clusters.Results {
+			if clusters.Results[i].StateName != "IDLE" {
+				return clusters, clusters.Results[i].StateName, nil
+			}
+		}
+
+		return clusters, "IDLE", nil
 	}
 }
 

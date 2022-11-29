@@ -186,6 +186,17 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, err))
 	}
 
+	clusterConf := &resource.StateChangeConf{
+		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
+		Target:     []string{"IDLE", "DELETED"},
+		Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: 5 * time.Second,
+		Delay:      5 * time.Minute,
+	}
+
+	clusterConf.WaitForStateContext(ctx)
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
@@ -295,6 +306,17 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}
+
+		clusterConf := &resource.StateChangeConf{
+			Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
+			Target:     []string{"IDLE"},
+			Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+			Timeout:    d.Timeout(schema.TimeoutCreate),
+			MinTimeout: 5 * time.Second,
+			Delay:      5 * time.Minute,
+		}
+
+		clusterConf.WaitForStateContext(ctx)
 	}
 
 	return nil
