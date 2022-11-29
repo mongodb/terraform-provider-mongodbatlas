@@ -942,18 +942,15 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []*matlas.A
 
 	var tfList []map[string]interface{}
 
-	for _, apiObject := range apiObjects {
+	for i, apiObject := range apiObjects {
 		if apiObject == nil {
 			continue
 		}
 
 		var tfMapObject map[string]interface{}
 
-		for _, v := range tfMapObjects {
-			if v.(map[string]interface{})["id"] == apiObject.ID {
-				tfMapObject = v.(map[string]interface{})
-				break
-			}
+		if len(tfMapObjects) > i {
+			tfMapObject = tfMapObjects[i].(map[string]interface{})
 		}
 
 		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObject, tfMapObject, d, conn)

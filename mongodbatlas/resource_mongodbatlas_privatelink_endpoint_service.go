@@ -309,7 +309,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 
 		clusterConf := &resource.StateChangeConf{
 			Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
-			Target:     []string{"IDLE"},
+			Target:     []string{"IDLE", "DELETED"},
 			Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
 			Timeout:    d.Timeout(schema.TimeoutCreate),
 			MinTimeout: 5 * time.Second,
