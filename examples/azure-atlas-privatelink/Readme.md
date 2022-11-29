@@ -7,7 +7,7 @@ This project aims to provide an example of using Azure and MongoDB Atlas togethe
 
 * Terraform v0.13
 * Microsoft Azure account
-* A MongoDB Atlas account
+* MongoDB Atlas account
 
 ```
 Terraform v0.13.0

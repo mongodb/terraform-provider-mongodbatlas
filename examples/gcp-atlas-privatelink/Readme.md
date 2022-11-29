@@ -6,8 +6,8 @@ This project aims to provide an example of setting up GCP Private Service Connec
 ## Dependencies
 
 * Terraform v0.13+
-* Google account
-* A MongoDB Atlas account
+* Google Cloud account
+* MongoDB Atlas account
 
 ```
 Terraform v0.13.0
