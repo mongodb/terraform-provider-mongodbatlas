@@ -69,7 +69,7 @@ This project currently does the below deployments:
 
 **4\. Execute the Terraform apply.**
 
-Now execute the plan to provision the AWS resources.
+Now execute the plan to provision the Azure resources.
 
 ``` bash
 $ terraform apply
