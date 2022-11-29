@@ -52,7 +52,8 @@ This project currently creates the below deployments:
 
 **3\. Execute the Terraform apply.**
 
-Now execute the plan to provision the MongoDB Atlas resources.
+Now execute the plan to provision the MongoDB Atlas resources. 
+Note: you can find the Prometheus Config details under Outputs section. 
 
 ``` bash
 $ terraform apply
