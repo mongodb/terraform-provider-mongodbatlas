@@ -54,7 +54,7 @@ Now create **terraform.tfvars** file with all the variable values and make sure 
 An existing cluster on the project can optionally be linked via the `cluster_name` variable.
 If included, the azure connection string to the cluster will be output.
 
-**3\. Review the Terraform plan. **
+**3\. Review the Terraform plan.**
 
 Execute the below command and ensure you are happy with the plan.
 
