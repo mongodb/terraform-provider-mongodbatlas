@@ -200,8 +200,6 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	if err != nil {
 		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
 		log.Printf(errorAdvancedClusterListStatus, err)
-
-		err = nil
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -300,8 +298,8 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		}
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
-			Target:     []string{"REJECTED", "DELETED", "FAILED"},
+			Pending:    []string{"REPEATING", "PENDING"},
+			Target:     []string{"IDLE", "DELETED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
@@ -315,7 +313,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		}
 
 		clusterConf := &resource.StateChangeConf{
-			Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
+			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
 			Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
@@ -328,8 +326,6 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		if err != nil {
 			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
 			log.Printf(errorAdvancedClusterListStatus, err)
-
-			err = nil
 		}
 	}
 

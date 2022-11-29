@@ -92,7 +92,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 	log.Println("[INFO] Waiting for MongoDB Clusters' Private Endpoints to be updated")
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
+		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
 		Timeout:    1 * time.Hour,

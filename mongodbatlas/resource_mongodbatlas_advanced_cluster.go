@@ -1147,7 +1147,7 @@ func resourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 
 		for i := range clusters.Results {
 			if clusters.Results[i].StateName != "IDLE" {
-				return clusters, clusters.Results[i].StateName, nil
+				return clusters.Results[i], "PENDING", nil
 			}
 		}
 
