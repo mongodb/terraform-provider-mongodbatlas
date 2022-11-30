@@ -19,7 +19,7 @@ More information on considerations for using advanced clusters please see [Consi
 <br> &#8226; WARNING WHEN UPGRADING TENANT/SHARED CLUSTERS!!! When upgrading from the shared tier *only* the upgrade changes will be applied. This is done in-order to avoid a corrupt state file in the event that the upgrade succeeds, but subsequent updates fail within the same `terraform apply`. In order to apply any other cluster changes, run a secondary `terraform apply` after the upgrade succeeds.
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
--> **NOTE:** A network container is created for a advanced cluster to reside in if one does not yet exist in the project.  To  use this automatically created container with another resource, such as peering, the `container_id` is exported after creation.
+-> **NOTE:** A network container is created for each provider/region combination on the advanced cluster. This can be referenced via a computed attribute for use with other resources. Refer to the `replication_specs.#.container_id` attribute in the [Attributes Reference](#attributes_reference) for more information.
 
 ## Example Usage
 
@@ -326,7 +326,6 @@ replication_specs {
 
 * `num_shards` - (Required) Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED. Omit this value if you selected a `cluster_type` of REPLICASET. This API resource accepts 1 through 50, inclusive. This parameter defaults to 1. If you specify a `num_shards` value of 1 and a `cluster_type` of SHARDED, Atlas deploys a single-shard [sharded cluster](https://docs.atlas.mongodb.com/reference/glossary/#std-term-sharded-cluster). Don't create a sharded cluster with a single shard for production environments. Single-shard sharded clusters don't provide the same benefits as multi-shard configurations.
 * `region_configs` - (Optional) Configuration for the hardware specifications for nodes set for a given regionEach `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs)
-*  `container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container either created programmatically by the user before any clusters existed in a project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `zone_name` - (Optional) Name for the zone in a Global Cluster.
 
 
@@ -410,7 +409,8 @@ In addition to all arguments above, the following attributes are exported:
     - DELETING
     - DELETED
     - REPAIRING
-
+* `replication_specs` - Set of replication specifications for the cluster. Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
+  - `replication_specs.#.container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 ## Import
 
 Clusters can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTERNAME`, e.g.
