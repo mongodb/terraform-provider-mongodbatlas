@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	errorServerlessInstanceListStatus = "error awaiting serverless instance list status IDLE: %s""
+	errorServerlessInstanceListStatus = "error awaiting serverless instance list status IDLE: %s"
 )
 
 func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
