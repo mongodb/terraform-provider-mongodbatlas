@@ -47,7 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 * `create_date` - Timestamp that indicates when MongoDB Cloud created the serverless instance. The timestamp displays in the ISO 8601 date and time format in UTC.
 * `mongo_db_version` - Version of MongoDB that the serverless instance runs, in `<major version>`.`<minor version>` format.
 * `state_name` - Stage of deployment of this serverless instance when the resource made its request.
-* `connection_strings_private_srv` - List of Serverless Private Endpoint Connections
+* `connection_strings_private_endpoint_srv` - List of Serverless Private Endpoint Connections
 
 ## Import
 

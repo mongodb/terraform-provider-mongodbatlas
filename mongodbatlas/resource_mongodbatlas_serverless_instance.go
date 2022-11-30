@@ -100,7 +100,7 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"connection_strings_private_srv": {
+		"connection_strings_private_endpoint_srv": {
 			Type:     schema.TypeList,
 			Computed: true,
 			Optional: true,
@@ -257,8 +257,8 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 		return diag.Errorf("error setting `connection_strings_standard_srv` for serverless instance (%s): %s", d.Id(), err)
 	}
 	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
-		if err := d.Set("connection_strings_private_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
-			return diag.Errorf("error setting `connection_strings_private_srv` for serverless instance (%s): %s", d.Id(), err)
+		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
+			return diag.Errorf("error setting `connection_strings_private_endpoint_srv` for serverless instance (%s): %s", d.Id(), err)
 		}
 	}
 	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
