@@ -16,6 +16,10 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	errorServerlessInstanceListStatus = "error awaiting serverless instance list status IDLE: %s""
+)
+
 func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasServerlessInstanceCreate,
