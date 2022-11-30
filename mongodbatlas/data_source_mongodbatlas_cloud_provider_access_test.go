@@ -22,7 +22,7 @@ const (
 	`
 )
 
-func TestAccdataSourceMongoDBAtlasCloudProviderAccess_basic(t *testing.T) {
+func TestAccConfigDSCloudProviderAccess_basic(t *testing.T) {
 	var (
 		suffix       = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 		name         = "datasource_test_role_basic" + suffix

@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
+func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		peer         matlas.Peer
@@ -54,7 +54,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
+func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		peer              matlas.Peer
@@ -94,7 +94,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
+func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		peer         matlas.Peer
@@ -133,7 +133,7 @@ func TestAccResourceMongoDBAtlasNetworkPeering_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkPeering_AWSDifferentRegionName(t *testing.T) {
+func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		peer                  matlas.Peer

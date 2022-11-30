@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshotRestoreJob_basic(t *testing.T) {
 	var (
 		cloudProviderSnapshotRestoreJob = matlas.CloudProviderSnapshotRestoreJob{}
 		resourceName                    = "mongodbatlas_cloud_provider_snapshot_restore_job.test"
@@ -51,7 +51,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_basic(t *testing
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshotRestoreJob_importBasic(t *testing.T) {
 	var (
 		resourceName      = "mongodbatlas_cloud_provider_snapshot_restore_job.test"
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -81,7 +81,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJob_importBasic(t *t
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
 	t.Skip()
 	var (
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

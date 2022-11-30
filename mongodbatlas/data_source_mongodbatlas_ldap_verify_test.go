@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasLDAPVerify_basic(t *testing.T) {
+func TestAccAdvDSLDAPVerify_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		ldapVerify   matlas.LDAPConfiguration

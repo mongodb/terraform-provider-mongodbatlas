@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) {
+func TestAccConfigDSCustomDNSConfigurationAWS_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_custom_dns_configuration_cluster_aws.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 

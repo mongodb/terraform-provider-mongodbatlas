@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasDataLake_basic(t *testing.T) {
+func TestAccBackupDSDataLake_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_data_lake.test"

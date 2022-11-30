@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_basic(t *testing.T) {
+func TestAccBackupDSCloudProviderSnapshots_basic(t *testing.T) {
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
@@ -34,7 +34,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasCloudProviderSnapshots_withPagination(t *testing.T) {
+func TestAccBackupDSCloudProviderSnapshots_withPagination(t *testing.T) {
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))

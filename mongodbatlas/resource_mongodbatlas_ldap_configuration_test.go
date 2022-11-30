@@ -15,7 +15,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasLDAPConfiguration_basic(t *testing.T) {
+func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		ldapConfiguration matlas.LDAPConfiguration
@@ -50,7 +50,7 @@ func TestAccResourceMongoDBAtlasLDAPConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T) {
+func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		ldapConfiguration  matlas.LDAPConfiguration
@@ -100,7 +100,7 @@ func TestAccResourceMongoDBAtlasLDAPConfigurationWithVerify_CACertificateComplet
 	})
 }
 
-func TestAccResourceMongoDBAtlasLDAPConfiguration_importBasic(t *testing.T) {
+func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		ldapConf     = matlas.LDAPConfiguration{}

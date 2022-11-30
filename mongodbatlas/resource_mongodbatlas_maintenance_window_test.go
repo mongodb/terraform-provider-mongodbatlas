@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
+func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	var (
 		maintenance      matlas.MaintenanceWindow
 		resourceName     = "mongodbatlas_maintenance_window.test"
@@ -64,7 +64,7 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
+func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 	var (
 		maintenance  matlas.MaintenanceWindow
 		resourceName = "mongodbatlas_maintenance_window.test"
@@ -104,7 +104,7 @@ func TestAccResourceMongoDBAtlasMaintenanceWindow_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasMaintenanceWindow_autoDeferActivated(t *testing.T) {
+func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	var (
 		maintenance  matlas.MaintenanceWindow
 		resourceName = "mongodbatlas_maintenance_window.test"

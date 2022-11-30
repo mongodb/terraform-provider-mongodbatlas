@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasNetworkContainer_basicAWS(t *testing.T) {
+func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 	var (
 		container        matlas.Container
 		randInt          = acctest.RandIntRange(0, 255)
@@ -55,7 +55,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAWS(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkContainer_basicAzure(t *testing.T) {
+func TestAccNetworkRSNetworkContainer_basicAzure(t *testing.T) {
 	var (
 		container        matlas.Container
 		randInt          = acctest.RandIntRange(0, 255)
@@ -97,7 +97,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicAzure(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
+func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
 	var (
 		container        matlas.Container
 		randInt          = acctest.RandIntRange(0, 255)
@@ -139,7 +139,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_basicGCP(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkContainer_WithRegionsGCP(t *testing.T) {
+func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 	var (
 		container    matlas.Container
 		randInt      = acctest.RandIntRange(0, 255)
@@ -169,7 +169,7 @@ func TestAccResourceMongoDBAtlasNetworkContainer_WithRegionsGCP(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasNetworkContainer_importBasic(t *testing.T) {
+func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
 	var (
 		randInt      = acctest.RandIntRange(0, 255)
 		resourceName = "mongodbatlas_network_container.test"

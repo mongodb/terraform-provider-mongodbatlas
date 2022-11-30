@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
+func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
 		project      matlas.Project
 		resourceName = "mongodbatlas_project.test"
@@ -150,7 +150,7 @@ func TestAccResourceMongoDBAtlasProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasProject_CreateWithProjectOwner(t *testing.T) {
+func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -177,7 +177,7 @@ func TestAccResourceMongoDBAtlasProject_CreateWithProjectOwner(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasGovProject_CreateWithProjectOwner(t *testing.T) {
+func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -203,7 +203,7 @@ func TestAccResourceMongoDBAtlasGovProject_CreateWithProjectOwner(t *testing.T) 
 		},
 	})
 }
-func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultSettings(t *testing.T) {
+func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -230,7 +230,7 @@ func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultSettings(t *testin
 	})
 }
 
-func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
+func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -257,7 +257,7 @@ func TestAccResourceMongoDBAtlasProject_CreateWithFalseDefaultAdvSettings(t *tes
 	})
 }
 
-func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
+func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_project.test"
 		projectName     = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
@@ -293,7 +293,7 @@ func TestAccResourceMongoDBAtlasProject_withUpdatedRole(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasProject_importBasic(t *testing.T) {
+func TestAccProjectRSProject_importBasic(t *testing.T) {
 	var (
 		projectName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -346,7 +346,7 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 	}
 }
 
-func TestAccResourceMongoDBAtlasProject_CreateWithAdvancedCluster(t *testing.T) {
+func TestAccProjectRSProject_CreateWithAdvancedCluster(t *testing.T) {
 	var (
 		project             matlas.Project
 		cluster             matlas.AdvancedCluster

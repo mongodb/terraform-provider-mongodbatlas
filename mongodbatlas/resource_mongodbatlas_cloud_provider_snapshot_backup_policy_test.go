@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshotBackupPolicy_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_provider_snapshot_backup_policy.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -59,7 +59,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testi
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_withoutRestoreWindowDays(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshotBackupPolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_provider_snapshot_backup_policy.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -102,7 +102,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_withoutRestore
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_importBasic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshotBackupPolicy_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_provider_snapshot_backup_policy.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

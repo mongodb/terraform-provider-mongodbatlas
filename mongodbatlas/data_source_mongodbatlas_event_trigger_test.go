@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasEventTrigger_basic(t *testing.T) {
+func TestAccConfigDSEventTrigger_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"

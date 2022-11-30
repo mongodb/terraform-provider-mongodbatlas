@@ -26,7 +26,7 @@ const (
 	 `
 )
 
-func TestAccdataSourceMongoDBAtlasCloudProviderAccessSetup_aws_basic(t *testing.T) {
+func TestAccConfigDSCloudProviderAccessSetup_aws_basic(t *testing.T) {
 	var (
 		suffix     = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 		name       = "cpas" + suffix

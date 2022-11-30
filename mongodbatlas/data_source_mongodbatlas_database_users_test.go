@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasDatabaseUsers_basic(t *testing.T) {
+func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_database_users.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 

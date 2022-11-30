@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
+func TestAccConfigDSTeam_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_teams.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -35,7 +35,7 @@ func TestAccDataSourceMongoDBAtlasTeam_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasTeamByName_basic(t *testing.T) {
+func TestAccConfigDSTeamByName_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_teams.test2"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")

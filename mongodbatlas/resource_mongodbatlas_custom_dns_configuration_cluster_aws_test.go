@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) {
+func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_custom_dns_configuration_cluster_aws.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -49,7 +49,7 @@ func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCustomDNSConfigurationAWS_importBasic(t *testing.T) {
+func TestAccConfigRSCustomDNSConfigurationAWS_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_custom_dns_configuration_cluster_aws.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
+func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	var (
 		invitation   matlas.Invitation
 		resourceName = "mongodbatlas_project_invitation.test"
@@ -62,7 +62,7 @@ func TestAccResourceMongoDBAtlasProjectInvitation_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasProjectInvitation_importBasic(t *testing.T) {
+func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_invitation.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

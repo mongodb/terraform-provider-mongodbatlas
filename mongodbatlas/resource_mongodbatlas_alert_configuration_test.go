@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_basic(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -43,7 +43,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_Notifications(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -73,7 +73,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_Notifications(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_WithMatchers(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -123,7 +123,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_WithMatchers(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_whitMetricUpdated(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -153,7 +153,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitMetricUpdated(t *testing.
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_whitThresholdUpdated(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_whitThresholdUpdated(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -190,7 +190,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitThresholdUpdated(t *testi
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 	var (
 		alert        = &matlas.AlertConfiguration{}
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -213,7 +213,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_whitoutRoles(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	var (
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -238,7 +238,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_importConfigNotifications(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	var (
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -263,7 +263,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_importConfigNotifications(t *
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_DataDog(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	SkipTest(t)        // Will force skip if enabled
 	var (
@@ -290,7 +290,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_DataDog(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_PagerDuty(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -315,7 +315,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_PagerDuty(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_OpsGenie(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -340,7 +340,7 @@ func TestAccResourceMongoDBAtlasAlertConfiguration_OpsGenie(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAlertConfiguration_VictorOps(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"

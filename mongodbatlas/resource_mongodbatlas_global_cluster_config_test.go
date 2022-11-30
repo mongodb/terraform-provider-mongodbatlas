@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
+func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	var (
 		globalConfig matlas.GlobalCluster
 		resourceName = "mongodbatlas_global_cluster_config.config"
@@ -63,7 +63,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
+func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 	var (
 		globalConfig matlas.GlobalCluster
 		resourceName = "mongodbatlas_global_cluster_config.config"
@@ -93,7 +93,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_WithAWSCluster(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
+func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_global_cluster_config.config"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -119,7 +119,7 @@ func TestAccResourceMongoDBAtlasGlobalCluster_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasGlobalCluster_database(t *testing.T) {
+func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 	var (
 		globalConfig matlas.GlobalCluster
 		resourceName = "mongodbatlas_global_cluster_config.test"

@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasDataLake_basic(t *testing.T) {
+func TestAccBackupRSDataLake_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName        = "mongodbatlas_data_lake.test"
@@ -50,7 +50,7 @@ func TestAccResourceMongoDBAtlasDataLake_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDataLake_importBasic(t *testing.T) {
+func TestAccBackupRSDataLake_importBasic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_data_lake.test"

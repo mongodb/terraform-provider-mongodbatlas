@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCloudBackupSnapshot_basic(t *testing.T) {
+func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	var (
 		cloudBackupSnapshot = matlas.CloudProviderSnapshot{}
 		resourceName        = "mongodbatlas_cloud_backup_snapshot.test"

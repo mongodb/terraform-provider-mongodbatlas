@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshot_basic(t *testing.T) {
 	var (
 		cloudProviderSnapshot = matlas.CloudProviderSnapshot{}
 		resourceName          = "mongodbatlas_cloud_provider_snapshot.test"
@@ -44,7 +44,7 @@ func TestAccResourceMongoDBAtlasCloudProviderSnapshot_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudProviderSnapshot_importBasic(t *testing.T) {
+func TestAccBackupRSCloudProviderSnapshot_importBasic(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_cloud_provider_snapshot.test"
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

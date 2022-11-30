@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func TestAccResourceMongoDBAtlasX509AuthDBUser_basic(t *testing.T) {
+func TestAccAdvRSX509AuthDBUser_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		username     = os.Getenv("MONGODB_ATLAS_DB_USERNAME")
@@ -45,7 +45,7 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasX509AuthDBUser_WithCustomerX509(t *testing.T) {
+func TestAccAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		cas          = os.Getenv("CA_CERT")
@@ -70,7 +70,7 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasX509AuthDBUser_importBasic(t *testing.T) {
+func TestAccAdvRSX509AuthDBUser_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		username     = os.Getenv("MONGODB_ATLAS_DB_USERNAME")
@@ -102,7 +102,7 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasX509AuthDBUser_WithDatabaseUser(t *testing.T) {
+func TestAccAdvRSX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -131,7 +131,7 @@ func TestAccResourceMongoDBAtlasX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasX509AuthDBUser_importWithCustomerX509(t *testing.T) {
+func TestAccAdvRSX509AuthDBUser_importWithCustomerX509(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		cas          = os.Getenv("CA_CERT")

@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/realm/realm"
 )
 
-func TestAccDataSourceMongoDBAtlasEventTriggers_basic(t *testing.T) {
+func TestAccConfigDSEventTriggers_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"

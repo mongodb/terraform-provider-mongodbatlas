@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
+func TestAccBackupDSCloudBackupSchedule_basic(t *testing.T) {
 	var (
 		datasourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -46,7 +46,7 @@ func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccdataSourceMongoDBAtlasCloudBackupSchedule_withOnePolicy(t *testing.T) {
+func TestAccBackupDSCloudBackupSchedule_withOnePolicy(t *testing.T) {
 	var (
 		datasourceName = "data.mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

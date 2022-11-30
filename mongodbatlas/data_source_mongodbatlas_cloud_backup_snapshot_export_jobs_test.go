@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDatasourceMongoDBAtlasCloudBackupSnapshotExportJobs_basic(t *testing.T) {
+func TestAccBackupDSCloudBackupSnapshotExportJobs_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

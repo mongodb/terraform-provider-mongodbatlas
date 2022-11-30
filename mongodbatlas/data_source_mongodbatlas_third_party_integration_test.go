@@ -116,8 +116,8 @@ type thirdPartyConfig struct {
 	Integration matlas.ThirdPartyIntegration
 }
 
-func TestAccdataSourceMongoDBAtlasThirdPartyIntegration_basic(t *testing.T) {
-	t.Skip() // TODO: Address failures in v1.4.6
+func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
+	SkipTest(t) // TODO: Address failures in v1.4.6
 
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}

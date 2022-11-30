@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
+func TestAccNetworkDSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	resourceName := "mongodbatlas_private_endpoint_regional_mode.test"
 	projectID := os.Getenv("MONGODB_ATLAS_NETWORK_PROJECT_ID")
 
