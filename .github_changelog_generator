@@ -1,0 +1,4 @@
+future-release=v1.6.1
+since-tag=v1.6.0
+date-format=%B %d, %Y
+base=CHANGELOG.md
