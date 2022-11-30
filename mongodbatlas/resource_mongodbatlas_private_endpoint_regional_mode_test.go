@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_connections(t *testing.T) {
+func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		endpointResourceSuffix = "atlasple"
@@ -68,7 +68,7 @@ func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_connections(t *testi
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_basic(t *testing.T) {
+func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
 		resourceSuffix = "atlasrm"
 		resourceName   = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
