@@ -296,7 +296,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		}
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING"},
+			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
