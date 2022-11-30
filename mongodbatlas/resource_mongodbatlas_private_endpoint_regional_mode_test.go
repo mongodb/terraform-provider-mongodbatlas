@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_Connections(t *testing.T) {
+func TestAccResourceMongoDBAtlasPrivateEndpointRegionalMode_connections(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		endpointResourceSuffix = "atlasple"
 		resourceSuffix         = "atlasrm"
