@@ -292,7 +292,7 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold_config", projectID, err))
 	}
 
-	if err := d.Set("notification", flattenAlertConfigurationNotifications(alert.Notifications)); err != nil {
+	if err := d.Set("notification", flattenAlertConfigurationNotifications(d, alert.Notifications)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", projectID, err))
 	}
 
