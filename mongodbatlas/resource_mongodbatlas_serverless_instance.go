@@ -368,6 +368,36 @@ func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID 
 	}
 }
 
+func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		c, resp, err := client.ServerlessInstances.List(ctx, projectID, nil)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		for i := range c.Results {
+			if c.Results[i].StateName != "IDLE" {
+				return c.Results[i], "PENDING", nil
+			}
+		}
+
+		return c, "IDLE", nil
+	}
+}
+
 func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]interface{} {
 	linksList := make([]map[string]interface{}, 0)
 
