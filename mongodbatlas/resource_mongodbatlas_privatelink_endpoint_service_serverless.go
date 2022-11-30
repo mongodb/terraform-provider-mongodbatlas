@@ -135,7 +135,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 	_, err = clusterConf.WaitForStateContext(ctx)
 
 	if err != nil {
-		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
+		// error awaiting serverless instances to IDLE should not result in failure to apply changes to this resource
 		log.Printf(errorServerlessInstanceListStatus, err)
 	}
 
