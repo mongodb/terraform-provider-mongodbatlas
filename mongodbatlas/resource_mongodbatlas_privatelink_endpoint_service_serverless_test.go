@@ -91,16 +91,16 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(projectID, in
 		project_id   = "%[1]s"
 		instance_name = mongodbatlas_serverless_instance.test.name
 		provider_name = "AWS"
-	  }
-	  
-	  
-	  resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
-		project_id   = "%[1]s"
-		instance_name = "%[2]s"
+	}
+
+
+	resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
+		project_id   = mongodbatlas_privatelink_endpoint_serverless.test.project_id
+		instance_name = mongodbatlas_privatelink_endpoint_serverless.test.instance_name
 		endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
 		provider_name = "AWS"
 		comment = "%[3]s"
-	  }
+	}
 
 	resource "mongodbatlas_serverless_instance" "test" {
 		project_id   = "%[1]s"
@@ -109,6 +109,15 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(projectID, in
 		provider_settings_provider_name = "SERVERLESS"
 		provider_settings_region_name = "US_EAST_1"
 		continuous_backup_enabled = true
+
+		lifecycle {
+	  	ignore_changes = [connection_strings_private_endpoint_srv]
+	  }
+	}
+
+	data "mongodbatlas_serverless_instance" "test" {
+		project_id   = mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
+		name         = mongodbatlas_serverless_instance.test.name
 	}
 
 	`, projectID, instanceName, comment)
