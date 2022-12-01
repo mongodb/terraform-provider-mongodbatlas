@@ -123,6 +123,20 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 		return diag.FromErr(fmt.Errorf(errorServerlessServiceEndpointAdd, endpointID, err))
 	}
 
+	clusterConf := &resource.StateChangeConf{
+		Pending:    []string{"REPEATING", "PENDING"},
+		Target:     []string{"IDLE", "DELETED"},
+		Refresh:    resourceServerlessInstanceListRefreshFunc(ctx, projectID, conn),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: 5 * time.Second,
+		Delay:      5 * time.Minute,
+	}
+
+	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
+		// error awaiting serverless instances to IDLE should not result in failure to apply changes to this resource
+		log.Printf(errorServerlessInstanceListStatus, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"instance_name": instanceName,

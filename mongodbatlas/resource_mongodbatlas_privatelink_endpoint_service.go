@@ -186,6 +186,20 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, err))
 	}
 
+	clusterConf := &resource.StateChangeConf{
+		Pending:    []string{"REPEATING", "PENDING"},
+		Target:     []string{"IDLE", "DELETED"},
+		Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: 5 * time.Second,
+		Delay:      5 * time.Minute,
+	}
+
+	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
+		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
+		log.Printf(errorAdvancedClusterListStatus, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
@@ -285,7 +299,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
 			Refresh:    resourceServiceEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID, endpointServiceID),
-			Timeout:    d.Timeout(schema.TimeoutCreate),
+			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 			Delay:      3 * time.Second,
 		}
@@ -294,6 +308,22 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
+		}
+
+		clusterConf := &resource.StateChangeConf{
+			Pending:    []string{"REPEATING", "PENDING"},
+			Target:     []string{"IDLE", "DELETED"},
+			Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+			MinTimeout: 5 * time.Second,
+			Delay:      5 * time.Minute,
+		}
+
+		_, err = clusterConf.WaitForStateContext(ctx)
+
+		if err != nil {
+			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
+			log.Printf(errorAdvancedClusterListStatus, err)
 		}
 	}
 

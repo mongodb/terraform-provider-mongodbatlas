@@ -13,6 +13,7 @@ Describes a Serverless PrivateLink Endpoint Service
 This is the second of two resources required to configure PrivateLink for Serverless, the first is [mongodbatlas_privatelink_endpoint_serverless](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
+-> **NOTE:** Create waits for all serverless instances on the project to IDLE in order for their operations to complete. This ensures the latest connection strings can be retrieved following creation of this resource. Default timeout is 2hrs.
 
 ## Example Usage
 

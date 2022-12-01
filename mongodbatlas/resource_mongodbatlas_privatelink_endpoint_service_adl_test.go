@@ -102,11 +102,11 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy(state *terrafo
 func testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint_service_adl" "test" {
-			project_id   = "%[1]s"
-			endpoint_id  = "%[2]s"
-			comment      = "%[3]s"
-			type		 = "DATA_LAKE"
-			provider_name	 = "AWS"
+			project_id    = "%[1]s"
+			endpoint_id   = "%[2]s"
+			comment       = "%[3]s"
+			type          = "DATA_LAKE"
+			provider_name = "AWS"
 		}
 	`, projectID, endpointID, comment)
 }
