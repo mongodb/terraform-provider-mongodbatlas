@@ -1107,7 +1107,9 @@ func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID str
 
 		if err != nil && c == nil && resp == nil {
 			return nil, "", err
-		} else if err != nil {
+		}
+
+		if err != nil {
 			if resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
@@ -1135,7 +1137,9 @@ func resourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 
 		if err != nil && clusters == nil && resp == nil {
 			return nil, "", err
-		} else if err != nil {
+		}
+
+		if err != nil {
 			if resp.StatusCode == 404 {
 				return "", "DELETED", nil
 			}
