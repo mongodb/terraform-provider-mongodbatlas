@@ -1,3 +1,23 @@
+# Changelog
+
+## [v1.6.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.1) (December 01, 2022)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.6.0...v1.6.1)
+
+**Closed issues:**
+
+- No documented way to get config out of third party integration [\#939](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/939)
+- Double checking Terraform Plan before I destroy Production [\#938](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/938)
+- Issue: MongoDB Atlas Plugin Failure v 1.5.0 [\#928](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/928)
+- MILLION\_RPU unit isn't supported by provider [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
+- MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
+
+**Merged pull requests:**
+
+- Release staging v1.6.1 [\#947](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/947) ([martinstibbe](https://github.com/martinstibbe))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.0 to 0.41.3 [\#936](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/936) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Serverless Endpoint Service Doc Bug [\#930](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/930) ([Zuhairahmed](https://github.com/Zuhairahmed))
+
 ## [v1.6.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.0) (2022-11-17)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
