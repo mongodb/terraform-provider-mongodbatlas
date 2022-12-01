@@ -86,8 +86,8 @@ func testAccDSMongoDBAtlasPrivateLinkEndpointServiceServerlessConfig(projectID, 
 		continuous_backup_enabled = true
 
 		lifecycle {
-	  	ignore_changes = [connection_strings_private_endpoint_srv]
-	  }
+			ignore_changes = [connection_strings_private_endpoint_srv]
+		}
 	}
 
 	`, projectID, instanceName, comment)
