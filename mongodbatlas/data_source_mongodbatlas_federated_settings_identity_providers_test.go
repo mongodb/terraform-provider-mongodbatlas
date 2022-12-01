@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceMongoDBAtlasFederatedSettingsIdentityProviders_basic(t *testing.T) {
+func TestAccFedDSFederatedSettingsIdentityProviders_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName        = "data.mongodbatlas_federated_settings_identity_providers.test"

@@ -9,7 +9,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasAuditing_basic(t *testing.T) {
+func TestAccAdvDSAuditing_basic(t *testing.T) {
 	var (
 		auditing       matlas.Auditing
 		dataSourceName = "data.mongodbatlas_auditing.test"

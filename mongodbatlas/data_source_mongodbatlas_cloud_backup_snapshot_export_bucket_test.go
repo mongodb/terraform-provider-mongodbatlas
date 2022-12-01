@@ -9,7 +9,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasCloudBackupSnapshotExportBucket_basic(t *testing.T) {
+func TestAccBackupDSCloudBackupSnapshotExportBucket_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		snapshotExportBackup matlas.CloudProviderSnapshotExportBucket

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoX509AuthDBUser_basic(t *testing.T) {
+func TestAccAdvDSX509AuthDBUser_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_x509_authentication_database_user.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	username := os.Getenv("MONGODB_ATLAS_DB_USERNAME")
@@ -38,7 +38,7 @@ func TestAccDataSourceMongoX509AuthDBUser_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoX509AuthDBUser_WithCustomerX509(t *testing.T) {
+func TestAccAdvDSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	resourceName := "data.mongodbatlas_x509_authentication_database_user.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	cas := os.Getenv("CA_CERT")

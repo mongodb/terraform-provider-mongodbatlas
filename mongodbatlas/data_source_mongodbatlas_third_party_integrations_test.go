@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccdataSourceMongoDBAtlasThirdPartyIntegrations_basic(t *testing.T) {
+func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 	var (
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		intgTypes = []string{"NEW_RELIC"}

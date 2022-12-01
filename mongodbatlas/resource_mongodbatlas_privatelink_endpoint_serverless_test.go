@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointServerless_basic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointServerless_basic(t *testing.T) {
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_serverless.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -34,7 +34,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServerless_basic(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointServerless_importBasic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointServerless_importBasic(t *testing.T) {
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_serverless.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

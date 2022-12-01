@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
+func TestAccConfigRSTeam_basic(t *testing.T) {
 	SkipTest(t)
 	var (
 		team         matlas.Team
@@ -80,7 +80,7 @@ func TestAccResourceMongoDBAtlasTeam_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasTeam_importBasic(t *testing.T) {
+func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

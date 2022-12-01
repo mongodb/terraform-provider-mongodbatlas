@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy_basic(t *testing.T) {
+func TestAccBackupDSCloudProviderSnapshotBackupPolicy_basic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	clusterName := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 

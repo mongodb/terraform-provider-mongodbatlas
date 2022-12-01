@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
+func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.basic_ds"
@@ -55,7 +55,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeCustomer(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -86,7 +86,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeCustomer(t *testing.T) 
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeManaged(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -117,7 +117,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withX509TypeManaged(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -147,7 +147,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType_import(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -188,7 +188,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withAWSIAMType_import(t *testing.T)
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
+func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -268,7 +268,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_WithLabels(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -331,7 +331,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withRoles(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withScopes(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -393,7 +393,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withScopes(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withScopesAndEmpty(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -450,7 +450,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_withLDAPAuthType(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -480,7 +480,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_withLDAPAuthType(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
+func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 	var (
 		username     = fmt.Sprintf("test-username-%s", acctest.RandString(5))
 		resourceName = "mongodbatlas_database_user.basic_ds"
@@ -514,7 +514,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_importX509TypeCustomer(t *testing.T) {
+func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
@@ -552,7 +552,7 @@ func TestAccResourceMongoDBAtlasDatabaseUser_importX509TypeCustomer(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasDatabaseUser_importLDAPAuthType(t *testing.T) {
+func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"

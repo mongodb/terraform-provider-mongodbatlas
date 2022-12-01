@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
+func TestAccClusterRSSearchIndex_basic(t *testing.T) {
 	var (
 		index        matlas.SearchIndex
 		resourceName = "mongodbatlas_search_index.test"
@@ -38,7 +38,7 @@ func TestAccResourceMongoDBAtlasSearchIndex_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasSearchIndex_withMapping(t *testing.T) {
+func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
 	var (
 		index           matlas.SearchIndex
 		resourceName    = "mongodbatlas_search_index.test"
@@ -66,7 +66,7 @@ func TestAccResourceMongoDBAtlasSearchIndex_withMapping(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasSearchIndex_withSynonyms(t *testing.T) {
+func TestAccClusterRSSearchIndex_withSynonyms(t *testing.T) {
 	var (
 		index           matlas.SearchIndex
 		resourceName    = "mongodbatlas_search_index.test"
@@ -98,7 +98,7 @@ func TestAccResourceMongoDBAtlasSearchIndex_withSynonyms(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasSearchIndex_importBasic(t *testing.T) {
+func TestAccClusterRSSearchIndex_importBasic(t *testing.T) {
 	var (
 		index        matlas.SearchIndex
 		resourceName = "mongodbatlas_search_index.test"

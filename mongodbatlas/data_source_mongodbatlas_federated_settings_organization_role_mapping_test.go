@@ -9,7 +9,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
+func TestAccFedDSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		federatedSettingsOrganizationRoleMapping matlas.FederatedSettingsOrganizationRoleMapping

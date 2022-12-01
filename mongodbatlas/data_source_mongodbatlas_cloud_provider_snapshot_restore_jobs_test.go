@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *testing.T) {
+func TestAccBackupDSCloudProviderSnapshotRestoreJobs_basic(t *testing.T) {
 	var (
 		cloudProviderSnapshot matlas.CloudProviderSnapshot
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -37,7 +37,7 @@ func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_basic(t *test
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs_withPagination(t *testing.T) {
+func TestAccBackupDSCloudProviderSnapshotRestoreJobs_withPagination(t *testing.T) {
 	var (
 		cloudProviderSnapshot matlas.CloudProviderSnapshot
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

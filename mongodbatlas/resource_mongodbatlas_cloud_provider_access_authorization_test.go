@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccResourceMongoDBAtlasCloudProviderAccessAuthorization_basic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccessAuthorization_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

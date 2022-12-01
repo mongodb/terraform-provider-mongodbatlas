@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointServiceADL_basic(t *testing.T) {
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -19,7 +19,7 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T
 		commentUpdate = "this is a comment for adl private link endpoint UPDATED"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy,
@@ -48,14 +48,14 @@ func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_basic(t *testing.T
 	})
 }
 
-func TestAccResourceMongoDBAtlasPrivateLinkEndpointServiceADL_importBasic(t *testing.T) {
+func TestAccNetworkRSPrivateLinkEndpointServiceADL_importBasic(t *testing.T) {
 	var (
 		resourceName  = "mongodbatlas_privatelink_endpoint_service_adl.test"
 		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		endpointID    = "vpce-jjg5e24qp93513h03"
 		commentOrigin = "this is a comment for adl private link endpoint"
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
@@ -102,11 +102,11 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy(state *terrafo
 func testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint_service_adl" "test" {
-			project_id   = "%[1]s"
-			endpoint_id  = "%[2]s"
-			comment      = "%[3]s"
-			type		 = "DATA_LAKE"
-			provider_name	 = "AWS"
+			project_id    = "%[1]s"
+			endpoint_id   = "%[2]s"
+			comment       = "%[3]s"
+			type          = "DATA_LAKE"
+			provider_name = "AWS"
 		}
 	`, projectID, endpointID, comment)
 }

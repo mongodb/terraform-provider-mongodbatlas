@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasAuditing_basic(t *testing.T) {
+func TestAccAdvRSAuditing_basic(t *testing.T) {
 	var (
 		auditing     matlas.Auditing
 		resourceName = "mongodbatlas_auditing.test"
@@ -63,7 +63,7 @@ func TestAccResourceMongoDBAtlasAuditing_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasAuditing_importBasic(t *testing.T) {
+func TestAccAdvRSAuditing_importBasic(t *testing.T) {
 	var (
 		auditing     = &matlas.Auditing{}
 		resourceName = "mongodbatlas_auditing.test"

@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasDatabaseUser_basic(t *testing.T) {
+func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
 	resourceName := "data.mongodbatlas_database_user.test"

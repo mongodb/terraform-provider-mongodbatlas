@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateLinkEndpoint_basic(t *testing.T) {
+func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	resourceName := "data.mongodbatlas_privatelink_endpoint.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")

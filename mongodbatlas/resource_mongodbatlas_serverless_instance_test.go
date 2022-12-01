@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasServerlessInstance_basic(t *testing.T) {
+func TestAccClusterRSServerlessInstance_basic(t *testing.T) {
 	var (
 		serverlessInstance matlas.Cluster
 		resourceName       = "mongodbatlas_serverless_instance.test"
@@ -37,7 +37,7 @@ func TestAccResourceMongoDBAtlasServerlessInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasServerlessInstance_importBasic(t *testing.T) {
+func TestAccClusterRSServerlessInstance_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_serverless_instance.test"
 		instanceName = acctest.RandomWithPrefix("test-acc-serverless")

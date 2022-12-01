@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
+func TestAccNetworkDSNetworkContainer_basic(t *testing.T) {
 	var container matlas.Container
 
 	randInt := acctest.RandIntRange(0, 255)
@@ -45,7 +45,7 @@ func TestAccDataSourceMongoDBAtlasNetworkContainer_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlasNetworkContainer_WithGCPRegions(t *testing.T) {
+func TestAccNetworkDSNetworkContainer_WithGCPRegions(t *testing.T) {
 	var container matlas.Container
 
 	randInt := acctest.RandIntRange(0, 255)

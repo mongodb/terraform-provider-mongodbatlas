@@ -12,7 +12,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlasFederatedSettings_basic(t *testing.T) {
+func TestAccFedDSFederatedSettings_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		federatedSettings matlas.FederatedSettings

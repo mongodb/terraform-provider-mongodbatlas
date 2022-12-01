@@ -13,7 +13,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
+func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -117,7 +117,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
+func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	t.Skip() // TODO: Address failures in v1.4.6
 
 	var (
@@ -155,7 +155,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_export(t *testing.T) {
 		},
 	})
 }
-func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
+func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -223,7 +223,7 @@ func TestAccResourceMongoDBAtlasCloudBackupSchedule_onepolicy(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudBackupScheduleImport_basic(t *testing.T) {
+func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -276,7 +276,7 @@ func TestAccResourceMongoDBAtlasCloudBackupScheduleImport_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceMongoDBAtlasCloudBackupSchedule_azure(t *testing.T) {
+func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

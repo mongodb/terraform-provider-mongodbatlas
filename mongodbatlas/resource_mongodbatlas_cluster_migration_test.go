@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
+func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	v0State := map[string]interface{}{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
@@ -43,7 +43,7 @@ func TestAccMongoDBAtlasClusterMigrateState_empty_advancedConfig(t *testing.T) {
 	}
 }
 
-func TestAccMongoDBAtlasClusterMigrateState_with_advancedConfig(t *testing.T) {
+func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
 	v0State := map[string]interface{}{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
@@ -86,7 +86,7 @@ func TestAccMongoDBAtlasClusterMigrateState_with_advancedConfig(t *testing.T) {
 	}
 }
 
-func TestAccMongoDBAtlasClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *testing.T) {
+func TestAccClusterRSClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *testing.T) {
 	v0State := map[string]interface{}{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",

@@ -94,7 +94,7 @@ const (
 `
 )
 
-func TestAccResourceMongoDBAtlasOnlineArchive(t *testing.T) {
+func TestAccBackupRSOnlineArchive(t *testing.T) {
 	var (
 		cluster                   matlas.Cluster
 		resourceName              = "mongodbatlas_cluster.online_archive_test"

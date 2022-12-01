@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasCustomDBRole_basic(t *testing.T) {
+func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 	resourceName := "mongodbatlas_custom_db_role.test"
 	dataSourceName := "data.mongodbatlas_custom_db_role.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")

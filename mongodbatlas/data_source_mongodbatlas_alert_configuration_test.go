@@ -9,7 +9,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccDataSourceMongoDBAtlaAlertConfiguration_basic(t *testing.T) {
+func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 	var (
 		alert          = &matlas.AlertConfiguration{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
@@ -32,7 +32,7 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceMongoDBAtlaAlertConfiguration_withThreshold(t *testing.T) {
+func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
 		alert          = &matlas.AlertConfiguration{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
@@ -55,7 +55,7 @@ func TestAccDataSourceMongoDBAtlaAlertConfiguration_withThreshold(t *testing.T) 
 	})
 }
 
-func TestAccDataSourceMongoDBAtlaAlertConfiguration_withPagerDuty(t *testing.T) {
+func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
 	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	var (
 		alert          = &matlas.AlertConfiguration{}

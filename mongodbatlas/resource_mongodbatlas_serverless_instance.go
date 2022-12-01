@@ -16,6 +16,10 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	errorServerlessInstanceListStatus = "error awaiting serverless instance list status IDLE: %s"
+)
+
 func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasServerlessInstanceCreate,
@@ -99,6 +103,14 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 		"connection_strings_standard_srv": {
 			Type:     schema.TypeString,
 			Computed: true,
+		},
+		"connection_strings_private_endpoint_srv": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
 		},
 		"create_date": {
 			Type:     schema.TypeString,
@@ -248,7 +260,11 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
 		return diag.Errorf("error setting `connection_strings_standard_srv` for serverless instance (%s): %s", d.Id(), err)
 	}
-
+	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
+		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
+			return diag.Errorf("error setting `connection_strings_private_endpoint_srv` for serverless instance (%s): %s", d.Id(), err)
+		}
+	}
 	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
 		return diag.Errorf("error setting `create_date` for serverless instance (%s): %s", d.Id(), err)
 	}
@@ -356,6 +372,36 @@ func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID 
 	}
 }
 
+func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		c, resp, err := client.ServerlessInstances.List(ctx, projectID, nil)
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && c == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		for i := range c.Results {
+			if c.Results[i].StateName != "IDLE" {
+				return c.Results[i], "PENDING", nil
+			}
+		}
+
+		return c, "IDLE", nil
+	}
+}
+
 func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]interface{} {
 	linksList := make([]map[string]interface{}, 0)
 
@@ -368,6 +414,14 @@ func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]interface
 	}
 
 	return linksList
+}
+
+func flattenSRVConnectionString(srvConnectionStringArray []matlas.PrivateEndpoint) []interface{} {
+	srvconnections := make([]interface{}, 0)
+	for _, v := range srvConnectionStringArray {
+		srvconnections = append(srvconnections, v.SRVConnectionString)
+	}
+	return srvconnections
 }
 
 func splitServerlessInstanceImportID(id string) (projectID, instanceName *string, err error) {

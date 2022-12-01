@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceMongoDBAtlasServerlessInstances_basic(t *testing.T) {
+func TestAccClusterDSServerlessInstances_basic(t *testing.T) {
 	var (
 		clusterName    = acctest.RandomWithPrefix("test-acc-serverless")
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
