@@ -33,13 +33,13 @@ func TestAccNetworkDSPrivateLinkEndpointsServiceServerless_basic(t *testing.T) {
 func testAccMongoDBAtlasPrivateLinkEndpointsServerlessDataSourceConfig(projectID, instanceID, comments string) string {
 	return fmt.Sprintf(`
 	data "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
-		project_id   = "%[1]s"
+		project_id   =  mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
 		instance_name = mongodbatlas_serverless_instance.test.name
-		endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
-	  }
+		endpoint_id = mongodbatlas_privatelink_endpoint_service_serverless.test.endpoint_id
+	}
 
 	data "mongodbatlas_privatelink_endpoints_service_serverless" "test" {
-	  project_id   = "%[1]s"
+	  project_id   = mongodbatlas_privatelink_endpoint_service_serverless.test.project_id
 	  instance_name = mongodbatlas_serverless_instance.test.name
 	}
 
@@ -47,16 +47,16 @@ func testAccMongoDBAtlasPrivateLinkEndpointsServerlessDataSourceConfig(projectID
 		project_id   = "%[1]s"
 		instance_name = mongodbatlas_serverless_instance.test.name
 		provider_name = "AWS"
-	  }
-	  
-	  
-	  resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
+	}
+
+
+	resource "mongodbatlas_privatelink_endpoint_service_serverless" "test" {
 		project_id   = "%[1]s"
 		instance_name = "%[2]s"
 		endpoint_id = mongodbatlas_privatelink_endpoint_serverless.test.endpoint_id
 		provider_name = "AWS"
 		comment = "%[3]s"
-	  }
+	}
 
 	resource "mongodbatlas_serverless_instance" "test" {
 		project_id   = "%[1]s"
@@ -65,6 +65,10 @@ func testAccMongoDBAtlasPrivateLinkEndpointsServerlessDataSourceConfig(projectID
 		provider_settings_provider_name = "SERVERLESS"
 		provider_settings_region_name = "US_EAST_1"
 		continuous_backup_enabled = true
+
+		lifecycle {
+	  	ignore_changes = [connection_strings_private_endpoint_srv]
+	  }
 	}
 	`, projectID, instanceID, comments)
 }
