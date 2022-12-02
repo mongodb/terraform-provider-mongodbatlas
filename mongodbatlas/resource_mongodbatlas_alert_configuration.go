@@ -737,32 +737,44 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 		return nil
 	}
 
+	if len(notificationsSchema) > 0 {
+		for i := range notificationsSchema {
+			notifications[i].APIToken = notificationsSchema[i].APIToken
+			notifications[i].DatadogAPIKey = notificationsSchema[i].DatadogAPIKey
+			notifications[i].FlowdockAPIToken = notificationsSchema[i].FlowdockAPIToken
+			notifications[i].OpsGenieAPIKey = notificationsSchema[i].OpsGenieAPIKey
+			notifications[i].ServiceKey = notificationsSchema[i].ServiceKey
+			notifications[i].VictorOpsAPIKey = notificationsSchema[i].VictorOpsAPIKey
+			notifications[i].VictorOpsRoutingKey = notificationsSchema[i].VictorOpsRoutingKey
+		}
+	}
+
 	nts := make([]map[string]interface{}, len(notifications))
 
 	for i := range notifications {
 		nts[i] = map[string]interface{}{
-			"api_token":                   notificationsSchema[i].APIToken,
+			"api_token":                   notifications[i].APIToken,
 			"channel_name":                notifications[i].ChannelName,
-			"datadog_api_key":             notificationsSchema[i].DatadogAPIKey,
+			"datadog_api_key":             notifications[i].DatadogAPIKey,
 			"datadog_region":              notifications[i].DatadogRegion,
 			"delay_min":                   notifications[i].DelayMin,
 			"email_address":               notifications[i].EmailAddress,
 			"email_enabled":               notifications[i].EmailEnabled,
-			"flowdock_api_token":          notificationsSchema[i].FlowdockAPIToken,
+			"flowdock_api_token":          notifications[i].FlowdockAPIToken,
 			"flow_name":                   notifications[i].FlowName,
 			"interval_min":                notifications[i].IntervalMin,
 			"mobile_number":               notifications[i].MobileNumber,
-			"ops_genie_api_key":           notificationsSchema[i].OpsGenieAPIKey,
+			"ops_genie_api_key":           notifications[i].OpsGenieAPIKey,
 			"ops_genie_region":            notifications[i].OpsGenieRegion,
 			"org_name":                    notifications[i].OrgName,
-			"service_key":                 notificationsSchema[i].ServiceKey,
+			"service_key":                 notifications[i].ServiceKey,
 			"sms_enabled":                 notifications[i].SMSEnabled,
 			"team_id":                     notifications[i].TeamID,
 			"team_name":                   notifications[i].TeamName,
 			"type_name":                   notifications[i].TypeName,
 			"username":                    notifications[i].Username,
-			"victor_ops_api_key":          notificationsSchema[i].VictorOpsAPIKey,
-			"victor_ops_routing_key":      notificationsSchema[i].VictorOpsRoutingKey,
+			"victor_ops_api_key":          notifications[i].VictorOpsAPIKey,
+			"victor_ops_routing_key":      notifications[i].VictorOpsRoutingKey,
 			"microsoft_teams_webhook_url": notifications[i].MicrosoftTeamsWebhookURL,
 			"webhook_secret":              notifications[i].WebhookSecret,
 			"webhook_url":                 notifications[i].WebhookURL,
