@@ -1206,7 +1206,13 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 	}
 }
 
-func updateAdvancedCluster(ctx context.Context, conn *matlas.Client, request *matlas.AdvancedCluster, projectID, name string, timeout time.Duration) (*matlas.AdvancedCluster, *matlas.Response, error) {
+func updateAdvancedCluster(
+	ctx context.Context,
+	conn *matlas.Client,
+	request *matlas.AdvancedCluster,
+	projectID, name string,
+	timeout time.Duration,
+) (*matlas.AdvancedCluster, *matlas.Response, error) {
 	cluster, resp, err := conn.AdvancedClusters.Update(ctx, projectID, name, request)
 	if err != nil {
 		return nil, nil, err
