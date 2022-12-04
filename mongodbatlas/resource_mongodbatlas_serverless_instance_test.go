@@ -25,7 +25,7 @@ func TestAccClusterRSServerlessInstance_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName),
+				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -50,7 +50,7 @@ func TestAccClusterRSServerlessInstance_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName),
+				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, false),
 			},
 			{
 				ResourceName:      resourceName,
@@ -119,17 +119,29 @@ func testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName st
 	}
 }
 
-func testAccMongoDBAtlasServerlessInstanceConfig(projectID, name string) string {
+func testAccMongoDBAtlasServerlessInstanceConfig(projectID, name string, ignoreConnectionStrings bool) string {
+	lifecycle := ""
+
+	if ignoreConnectionStrings {
+		lifecycle = `
+
+		lifecycle {
+			ignore_changes = [connection_strings_private_endpoint_srv]
+		}
+		`
+	}
+
 	return fmt.Sprintf(`
 	resource "mongodbatlas_serverless_instance" "test" {
-			project_id   = "%[1]s"
-			name         = "%[2]s"
-			
-			provider_settings_backing_provider_name = "AWS"
-			provider_settings_provider_name = "SERVERLESS"
-			provider_settings_region_name = "US_EAST_1"
-			continuous_backup_enabled = true
-		}
+		project_id   = "%[1]s"
+		name         = "%[2]s"
+		
+		provider_settings_backing_provider_name = "AWS"
+		provider_settings_provider_name = "SERVERLESS"
+		provider_settings_region_name = "US_EAST_1"
+		continuous_backup_enabled = true
+		%[3]s
+	}
 
-	`, projectID, name)
+	`, projectID, name, lifecycle)
 }

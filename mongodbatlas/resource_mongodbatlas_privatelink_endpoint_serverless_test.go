@@ -12,10 +12,9 @@ import (
 
 func TestAccNetworkRSPrivateLinkEndpointServerless_basic(t *testing.T) {
 	var (
-		resourceName  = "mongodbatlas_privatelink_endpoint_serverless.test"
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		instanceName  = "serverlessplink"
-		commentOrigin = "this is a comment for serverless private link endpoint"
+		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		instanceName = "serverlessplink"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +23,7 @@ func TestAccNetworkRSPrivateLinkEndpointServerless_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, commentOrigin),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
@@ -36,10 +35,9 @@ func TestAccNetworkRSPrivateLinkEndpointServerless_basic(t *testing.T) {
 
 func TestAccNetworkRSPrivateLinkEndpointServerless_importBasic(t *testing.T) {
 	var (
-		resourceName  = "mongodbatlas_privatelink_endpoint_serverless.test"
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		instanceName  = "serverlessimport"
-		commentOrigin = "this is a comment for serverless private link endpoint"
+		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		instanceName = "serverlessimport"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -47,17 +45,18 @@ func TestAccNetworkRSPrivateLinkEndpointServerless_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, commentOrigin),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},
 			{
-				Config:            testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, commentOrigin),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                  testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, false),
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"connection_strings_private_endpoint_srv"},
 			},
 		},
 	})
@@ -82,25 +81,17 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy(state *terrafo
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, comment string) string {
+func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName string, ignoreConnectionStrings bool) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
-		project_id   = "%[1]s"
+		project_id    = mongodbatlas_serverless_instance.test.project_id
 		instance_name = mongodbatlas_serverless_instance.test.name
 		provider_name = "AWS"
-	  }
-	  
-	resource "mongodbatlas_serverless_instance" "test" {
-		project_id   = "%[1]s"
-		name         = "%[2]s"
-		provider_settings_backing_provider_name = "AWS"
-		provider_settings_provider_name = "SERVERLESS"
-		provider_settings_region_name = "US_EAST_1"
-		continuous_backup_enabled = true
 	}
 
-	`, projectID, instanceName, comment)
+	%s
+	`, testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, ignoreConnectionStrings))
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName string) resource.TestCheckFunc {

@@ -107,7 +107,6 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 		"connection_strings_private_endpoint_srv": {
 			Type:     schema.TypeList,
 			Computed: true,
-			Optional: true,
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
 			},
