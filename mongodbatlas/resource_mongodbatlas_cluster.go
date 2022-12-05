@@ -359,6 +359,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 		},
 		CustomizeDiff: resourceClusterCustomizeDiff,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(3 * time.Hour),
+			Update: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
+		},
 	}
 }
 
@@ -547,11 +552,12 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
 
+	timeout := d.Timeout(schema.TimeoutCreate)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
-		Timeout:    3 * time.Hour,
+		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
 	}
@@ -584,7 +590,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			Paused: pointy.Bool(v),
 		}
 
-		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string))
+		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string), timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, d.Get("name").(string), err))
 		}
@@ -918,8 +924,10 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	timeout := d.Timeout(schema.TimeoutUpdate)
+
 	if isUpgradeRequired(d) {
-		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName)
+		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
@@ -932,15 +940,15 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			"provider_name": updatedCluster.ProviderSettings.ProviderName,
 		}))
 	} else if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
-		err := resource.RetryContext(ctx, 3*time.Hour, func() *resource.RetryError {
-			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName)
+		err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
 			if didErrOnPausedCluster(err) {
 				clusterRequest := &matlas.Cluster{
 					Paused: pointy.Bool(false),
 				}
 
-				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
+				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 			}
 
 			if err != nil {
@@ -976,7 +984,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			Paused: pointy.Bool(true),
 		}
 
-		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName)
+		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
@@ -1014,7 +1022,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
-		Timeout:    3 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute, // Wait 30 secs before starting
 	}
@@ -1716,7 +1724,7 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 	}
 }
 
-func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
+func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
 	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
 	if err != nil {
 		return nil, nil, err
@@ -1726,7 +1734,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    3 * time.Hour,
+		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}
@@ -1740,7 +1748,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 	return cluster, resp, nil
 }
 
-func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string) (*matlas.Cluster, *matlas.Response, error) {
+func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
 	request.Name = name
 
 	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
@@ -1752,7 +1760,7 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    3 * time.Hour,
+		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
 	}

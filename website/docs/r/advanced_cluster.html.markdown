@@ -217,6 +217,7 @@ This parameter defaults to false.
   `lifecycle {
   ignore_changes = [paused]
   }`
+* `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 
 
 ### bi_connector
@@ -411,6 +412,7 @@ In addition to all arguments above, the following attributes are exported:
     - REPAIRING
 * `replication_specs` - Set of replication specifications for the cluster. Primary usage is covered under the [replication_specs argument reference](#replication_specs), though there are some computed attributes:
   - `replication_specs.#.container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
+
 ## Import
 
 Clusters can be imported using project ID and cluster name, in the format `PROJECTID-CLUSTERNAME`, e.g.
