@@ -25,7 +25,7 @@ func TestAccClusterRSServerlessInstance_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, false),
+				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -50,7 +50,7 @@ func TestAccClusterRSServerlessInstance_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, false),
+				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, true),
 			},
 			{
 				ResourceName:      resourceName,
@@ -135,7 +135,7 @@ func testAccMongoDBAtlasServerlessInstanceConfig(projectID, name string, ignoreC
 	resource "mongodbatlas_serverless_instance" "test" {
 		project_id   = "%[1]s"
 		name         = "%[2]s"
-		
+
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name = "SERVERLESS"
 		provider_settings_region_name = "US_EAST_1"
