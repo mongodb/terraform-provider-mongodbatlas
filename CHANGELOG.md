@@ -6,23 +6,23 @@
 
 **Enhancements:**
 
-- INTMDB-503 - Enable Adv Cluster and Cluster to have configurable timeouts [\#951](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/951) 
-- INTMDB-498 - Updated Prometheus Example [\#942](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/942) 
-- INTMDB-478 - Auto-Generate Changelog [\#944](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/944) 
+- Enable Adv Cluster and Cluster to have configurable timeouts [\#951](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/951) - INTMDB-503 
+- Updated Prometheus Example [\#942](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/942) - INTMDB-498 
+- Auto-Generate Changelog [\#944](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/944) - INTMDB-478 
 
 **Bug Fixes:**
 
-- INTMDB-426 - Alert Configuration -- Api Token erroneous changes [\#941](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/941)
-- INTMDB-434 - Fix example private endpoint called out in issue 713 [\#907](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/907) 
-- INTMDB-438 - Cluster rename is inconsistently rejected by Terraform [\#929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/929) 
-- INTMDB-465 - Terraform does not wait for cluster update when creating GCP private endpoints [\#943](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/943)
-- INTMDB-481 - mongodbatlas_federated_settings_connected_organization customer HELP + doc bug [\#924](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/924)  
-- INTMDB-493 - Serverless Private Endpoint Connection String Example Fix [\#940](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/940) 
-- INTMDB-470 - Fix regional mode endpoint test [\#946](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/946) 
-- INTMDB-484 - Skip tests for OPS GENIE and GOV [\#937](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/937) 
-- INTMDB-384 - Test Instability around privatelink tests fix [\#895](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/895) 
-- INTMDB-368 - Shorten test names that are too long to allow for targeting specific tests [\#932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/932) 
-- INTMDB-463 - Remove container_id from configurable attribute in advanced_cluster [\#931](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/931) 
+- Alert Configuration -- Api Token erroneous changes [\#941](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/941) - INTMDB-426
+- Fix example private endpoint called out in issue 713 [\#907](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/907) - INTMDB-434 
+- Cluster rename is inconsistently rejected by Terraform [\#929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/929) - INTMDB-438 
+- Terraform does not wait for cluster update when creating GCP private endpoints [\#943](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/943) - INTMDB-465
+- mongodbatlas_federated_settings_connected_organization customer HELP + doc bug [\#924](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/924) - INTMDB-481  
+- Serverless Private Endpoint Connection String Example Fix [\#940](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/940) - INTMDB-493 
+- Fix regional mode endpoint test [\#946](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/946) - INTMDB-470 
+- Skip tests for OPS GENIE and GOV [\#937](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/937) - INTMDB-484 
+- Test Instability around privatelink tests fix [\#895](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/895) - INTMDB-384 
+- Shorten test names that are too long to allow for targeting specific tests [\#932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/932) - INTMDB-368 
+- Remove container_id from configurable attribute in advanced_cluster [\#931](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/931) - INTMDB-463 
 
 **Closed issues:**
 
@@ -32,7 +32,7 @@
 - MILLION\_RPU unit isn't supported by provider [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
 - MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
 
-**Merged pull requests:**
+**Merged Pull Requests:**
 
 - v1.6.1 - Conditionally ignore serverless connection string changes [\#953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/953) ([evertsd](https://github.com/evertsd))
 - Swap logic for variable substitution [\#950](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/950) ([martinstibbe](https://github.com/martinstibbe))
@@ -46,8 +46,8 @@
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
 
 **Enhancements:** 
-- INTMDB-444 - Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
-- INTMDB-364 - AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
+- Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912) - INTMDB-444
+- AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913) - INTMDB-364
 
 **Merged Pull Requests:**
 - docs(website): fix federated_settings_org_config resource name by removing the misleading trailing s [\#908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/908)
