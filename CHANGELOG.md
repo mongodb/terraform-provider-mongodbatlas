@@ -1,8 +1,28 @@
 # Changelog
 
-## [v1.6.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.1) (December 06, 2022)
+## [v1.6.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.1) (2022-12-6)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.6.0...v1.6.1)
+
+**Enhancements:**
+
+- INTMDB-503 - Enable Adv Cluster and Cluster to have configurable timeouts [\#951](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/951) 
+- INTMDB-498 - Updated Prometheus Example [\#942](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/942) 
+- INTMDB-478 - Auto-Generate Changelog [\#944](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/944) 
+
+**Bug Fixes:**
+
+- INTMDB-426 - Alert Configuration -- Api Token erroneous changes [\#941](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/941)
+- INTMDB-434 - Fix example private endpoint called out in issue 713 [\#907](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/907) 
+- INTMDB-438 - Cluster rename is inconsistently rejected by Terraform [\#929](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/929) 
+- INTMDB-465 - Terraform does not wait for cluster update when creating GCP private endpoints [\#943](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/943)
+- INTMDB-481 - mongodbatlas_federated_settings_connected_organization customer HELP + doc bug [\#924](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/924)  
+- INTMDB-493 - Serverless Private Endpoint Connection String Example Fix [\#940](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/940) 
+- INTMDB-470 - Fix regional mode endpoint test [\#946](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/946) 
+- INTMDB-484 - Skip tests for OPS GENIE and GOV [\#937](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/937) 
+- INTMDB-384 - Test Instability around privatelink tests fix [\#895](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/895) 
+- INTMDB-368 - Shorten test names that are too long to allow for targeting specific tests [\#932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/932) 
+- INTMDB-463 - Remove container_id from configurable attribute in advanced_cluster [\#931](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/931) 
 
 **Closed issues:**
 
@@ -15,7 +35,6 @@
 **Merged pull requests:**
 
 - v1.6.1 - Conditionally ignore serverless connection string changes [\#953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/953) ([evertsd](https://github.com/evertsd))
-- INTMDB-503: Configurable cluster timeouts [\#951](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/951) ([evertsd](https://github.com/evertsd))
 - Swap logic for variable substitution [\#950](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/950) ([martinstibbe](https://github.com/martinstibbe))
 - Fix serverless endpoint tests [\#949](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/949) ([evertsd](https://github.com/evertsd))
 - Release staging v1.6.1 [\#947](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/947) ([martinstibbe](https://github.com/martinstibbe))
@@ -26,11 +45,11 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
 
-**NEW FEATURES:** 
-- INTMDB-444 Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
-- INTMDB-364 AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
+**Enhancements:** 
+- INTMDB-444 - Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912)
+- INTMDB-364 - AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913)
 
-**Merged Pull Requests**
+**Merged Pull Requests:**
 - docs(website): fix federated_settings_org_config resource name by removing the misleading trailing s [\#908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/908)
 - chore(github): add link to contribution guidelines in PR template [\#910](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/910#issuecomment-1310007413)
 - docs(resource/role_mapping): indent sub-elements of role_assignments [\#918](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/918)
@@ -46,30 +65,28 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.6...v1.5.0)
 
-**Fixed**
+**Enhancements:** 
+- INTMDB-224 - Support AtlasGov with Terraform [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
+- INTMDB-314 - Feature add: Add ability to upgrade shared/TENANT tiers for clusters and advanced clusters [\#874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/874)
+- INTMDB-349 - New AtlasGov parameter to tell the provider to use the Atlas gov base URL [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
+- INTMDB-373 - Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
+- INTMDB-378 - Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
+- INTMDB-377 - Release 1.5 (both pre and then GA) [\#887](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/887)
+- INTMDB-394 - MS Teams alert support [\#320](https://github.com/mongodb/go-client-mongodb-atlas/pull/320)
 
-ENHANCEMENTS: 
-- INTMDB-224	Support AtlasGov with Terraform [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
-- INTMDB-314	Feature add: Add ability to upgrade shared/TENANT tiers for clusters and advanced clusters [\#874](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/874)
-- INTMDB-349  New AtlasGov parameter to tell the provider to use the Atlas gov base URL [\#865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/865)
-- INTMDB-373	Add new notification parameters to the mongodbatlas_alert_config resource [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)	
-- INTMDB-378	Document for users how to get a pre-existing container id [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
-- INTMDB-377	Release 1.5 (both pre and then GA) [\#887](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/887)
-- INTMDB-394	MS Teams alert support [\#320](https://github.com/mongodb/go-client-mongodb-atlas/pull/320)
-
-BUG FIXES: 
-- INTMDB-326	Review code/tests and docs for resource_mongodbatlas_search_index [\#891](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/891)
-- INTMDB-334	Determine best path forward for GCP PSC timeouts and implement [\#859](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/859)
-- INTMDB-370	Docs not complete for cloud_backup_snapshot_restore_job	[\#870](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/870)
-- INTMDB-403  Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
-- INTMDB-405	Add cluster label to advanced clusters	[\#857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/857)
-- INTMDB-406	MILLION_RPU unit isn't supported by provider #854 [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/854)
+**Bug Fixes:** 
+- INTMDB-326 - Review code/tests and docs for resource_mongodbatlas_search_index [\#891](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/891)
+- INTMDB-334 - Determine best path forward for GCP PSC timeouts and implement [\#859](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/859)
+- INTMDB-370 - Docs not complete for cloud_backup_snapshot_restore_job	[\#870](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/870)
+- INTMDB-403 - Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
+- INTMDB-405 - Add cluster label to advanced clusters	[\#857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/857)
+- INTMDB-406 - MILLION_RPU unit isn't supported by provider #854 [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/854)
   
-**Closed Issues**
+**Closed Issues:**
 - MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
 - MILLION_RPU unit isn't supported by provider not_stale  [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
 
-**Merged Pull Requests**
+**Merged Pull Requests:**
 - INTMDB-378: Add link for How To Guide for existing container ID [\#883](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/883)
 - INTMDB-403: Update third_party_integration.markdown [\#851](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/851)
 - INTMDB-404: mongodbatlas_advanced_cluster doc updates [\#852](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/852)
