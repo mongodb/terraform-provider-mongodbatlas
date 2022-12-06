@@ -44,5 +44,5 @@ func testAccMongoDBAtlasServerlessInstancesDSConfig(projectID, name string) stri
 		data "mongodbatlas_serverless_instances" "data_serverless" {
 			project_id         = mongodbatlas_serverless_instance.test.project_id
 		}
-	`, testAccMongoDBAtlasServerlessInstanceConfig(projectID, name))
+	`, testAccMongoDBAtlasServerlessInstanceConfig(projectID, name, true))
 }
