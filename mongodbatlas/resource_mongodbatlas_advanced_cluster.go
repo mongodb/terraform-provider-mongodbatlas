@@ -48,7 +48,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    resourceMongoDBAtlasAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Type:    resourceMongoDBAtlasAdvancedClusterV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
 				Version: 0,
 			},
@@ -182,7 +182,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Computed: true,
 			},
 			"replication_specs": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -197,7 +197,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 						"region_configs": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
