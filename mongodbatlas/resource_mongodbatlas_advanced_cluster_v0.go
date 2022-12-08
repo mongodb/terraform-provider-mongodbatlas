@@ -10,6 +10,7 @@ import (
 )
 
 func resourceMongoDBAtlasAdvancedClusterV0() *schema.Resource {
+	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -237,7 +238,7 @@ func resourceMongoDBAtlasAdvancedClusterV0() *schema.Resource {
 func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
 
-	rawState["replication_specs"] = rawState["replication_specs"].List()
+	// rawState["replication_specs"] = []interface{}{}
 
 	return rawState, nil
 }
