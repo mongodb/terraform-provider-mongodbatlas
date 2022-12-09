@@ -84,6 +84,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_db_roles":                          dataSourceMongoDBAtlasCustomDBRoles(),
 		"mongodbatlas_database_user":                            dataSourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_database_users":                           dataSourceMongoDBAtlasDatabaseUsers(),
+		"mongodbatlas_api_key":                                  dataSourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_api_keys":                                 dataSourceMongoDBAtlasAPIKeys(),
 		"mongodbatlas_project":                                  dataSourceMongoDBAtlasProject(),
 		"mongodbatlas_projects":                                 dataSourceMongoDBAtlasProjects(),
 		"mongodbatlas_cluster":                                  dataSourceMongoDBAtlasCluster(),
@@ -154,6 +156,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_advanced_cluster":                        resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_api_key":                                 resourceMongoDBAtlasAPIKey(),
 		"mongodbatlas_custom_db_role":                          resourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_database_user":                           resourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_project":                                 resourceMongoDBAtlasProject(),
