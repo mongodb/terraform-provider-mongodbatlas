@@ -104,6 +104,7 @@ resource "mongodbatlas_event_trigger" "test" {
 
 * `project_id` - (Required) The unique ID for the project to create the trigger.
 * `app_id` - (Required) The ObjectID of your application.
+    * For more details on `project_id` and `app_id` see: https://www.mongodb.com/docs/atlas/app-services/admin/api/v3/#section/Project-and-Application-IDs
 * `name` - (Required) The name of the trigger.
 * `type` - (Required) The type of the trigger. Possible Values: `DATABASE`, `AUTHENTICATION`,`SCHEDULED`
 * `function_id` - (Optional) The ID of the function associated with the trigger.
@@ -138,3 +139,4 @@ Event trigger can be imported using project ID, App ID and Trigger ID, in the fo
 ```
 $ terraform import mongodbatlas_event_trigger.test 1112222b3bf99403840e8934--testing-example--1112222b3bf99403840e8934
 ```
+For more details on this resource see [Triggers resource](https://www.mongodb.com/docs/atlas/app-services/admin/api/v3/#tag/triggers) in Atlas App Services Documentation. 
