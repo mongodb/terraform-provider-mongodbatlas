@@ -97,6 +97,10 @@ func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
 
+	if err := d.Set("api_key_id", apiKey.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
+	}
+
 	if err := d.Set("description", apiKey.Desc); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
 	}
