@@ -162,39 +162,35 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 			disk_size_gb = 10
-
+		
 			cluster_type = "REPLICASET"
 			replication_specs {
 				num_shards = 1
 				regions_config {
-				 region_name     = "US_EAST_2"
-				 electable_nodes = 3
-				 priority        = 7
-				 read_only_nodes = 0
-				 }
+					region_name     = "US_EAST_2"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
 			}
-
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled = false
-
+		
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-
 		}
 
 		resource "mongodbatlas_search_index" "test" {
-			project_id         = mongodbatlas_cluster.aws_conf.project_id
-			cluster_name       = mongodbatlas_cluster.aws_conf.name
-			analyzer = "lucene.simple"
-			collection_name = "collection_test"
-			database = "database_test"
+			project_id       = mongodbatlas_cluster.aws_conf.project_id
+			cluster_name     = mongodbatlas_cluster.aws_conf.name
+			analyzer         = "lucene.simple"
+			collection_name  = "collection_test"
+			database         = "database_test"
 			mappings_dynamic = "true"
-			name = "name_test"
-			search_analyzer = "lucene.standard"
+			name             = "name_test"
+			search_analyzer  = "lucene.standard"
 		}
-
-
 	`, projectID, clusterName)
 }
 
@@ -209,11 +205,11 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 			replication_specs {
 				num_shards = 1
 				regions_config {
-				 region_name     = "US_EAST_2"
-				 electable_nodes = 3
-				 priority        = 7
-				 read_only_nodes = 0
-				 }
+					region_name     = "US_EAST_2"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
 			}
 
 			backup_enabled               = false
@@ -226,14 +222,14 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 		}
 
 		resource "mongodbatlas_search_index" "test" {
-		project_id   = mongodbatlas_cluster.aws_conf.project_id
-		cluster_name = mongodbatlas_cluster.aws_conf.name
+			project_id   = mongodbatlas_cluster.aws_conf.project_id
+			cluster_name = mongodbatlas_cluster.aws_conf.name
 
-		analyzer         = "lucene.simple"
-		collection_name  = "collection_test"
-		database         = "database_test"
-		mappings_dynamic = false
-		mappings_fields  = <<-EOF
+			analyzer         = "lucene.simple"
+			collection_name  = "collection_test"
+			database         = "database_test"
+			mappings_dynamic = false
+			mappings_fields  = <<-EOF
 			{
 				"address":{
 					"type":"document",
@@ -264,10 +260,10 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 					"analyzer":"lucene.standard"
 				}
 			}
-		EOF
-		name             = "name_test"
-		search_analyzer  = "lucene.standard"
-		analyzers        = <<-EOF
+			EOF
+			name             = "name_test"
+			search_analyzer  = "lucene.standard"
+			analyzers        = <<-EOF
 			[
 				{
 					"name":"index_analyzer_test_name",
@@ -295,11 +291,8 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string)
 					]
 				}
 			]
-		EOF
-}
-
-
-
+			EOF
+		}
 	`, projectID, clusterName)
 }
 
@@ -309,44 +302,42 @@ func testAccMongoDBAtlasSearchIndexConfigSynonyms(projectID, clusterName string)
 			project_id   = "%[1]s"
 			name         = "%[2]s"
 			disk_size_gb = 10
-
+		
 			cluster_type = "REPLICASET"
 			replication_specs {
 				num_shards = 1
 				regions_config {
-				 region_name     = "US_EAST_2"
-				 electable_nodes = 3
-				 priority        = 7
-				 read_only_nodes = 0
-				 }
+					region_name     = "US_EAST_2"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
 			}
-
+		
 			backup_enabled               = false
 			auto_scaling_disk_gb_enabled = false
-
+		
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-
+		
 		}
-
+		
 		resource "mongodbatlas_search_index" "test" {
-			project_id         = mongodbatlas_cluster.test_cluster.project_id
-			cluster_name       = mongodbatlas_cluster.test_cluster.name
-			analyzer = "lucene.standard"
-			collection_name = "collection_test"
-			database = "database_test"
+			project_id       = mongodbatlas_cluster.test_cluster.project_id
+			cluster_name     = mongodbatlas_cluster.test_cluster.name
+			analyzer         = "lucene.standard"
+			collection_name  = "collection_test"
+			database         = "database_test"
 			mappings_dynamic = "true"
-			name = "name_test"
-			search_analyzer = "lucene.standard"
+			name             = "name_test"
+			search_analyzer  = "lucene.standard"
 			synonyms {
-				analyzer = "lucene.simple"
-				name = "synonym_test"
+				analyzer          = "lucene.simple"
+				name              = "synonym_test"
 				source_collection = "collection_test"
 			}
 		}
-
-
 	`, projectID, clusterName)
 }
 
