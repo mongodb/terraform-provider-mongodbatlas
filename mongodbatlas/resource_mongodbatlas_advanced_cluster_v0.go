@@ -238,7 +238,5 @@ func resourceMongoDBAtlasAdvancedClusterV0() *schema.Resource {
 func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
 
-	// rawState["replication_specs"] = []interface{}{}
-
 	return rawState, nil
 }

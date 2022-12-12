@@ -1,6 +1,7 @@
 package mongodbatlas
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -61,7 +62,7 @@ func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T
 	}
 
 	// test migrate function
-	v1State, _ := resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(nil, v0State, nil)
+	v1State, _ := resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(context.Background(), v0State, nil)
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
 	diags = resourceMongoDBAtlasAdvancedCluster().Validate(v1Config)
@@ -72,7 +73,7 @@ func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T
 		return
 	}
 
-	if len(v1State["replication_specs"].([]interface{})) != len(v0State["replication_specs"].(([]interface{}))) {
+	if len(v1State["replication_specs"].([]interface{})) != len(v0State["replication_specs"].([]interface{})) {
 		t.Error("migrated replication specs did not contain the same number of elements")
 
 		return

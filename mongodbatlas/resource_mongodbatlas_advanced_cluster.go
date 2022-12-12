@@ -1028,15 +1028,15 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.Advan
 	return tfMap, nil
 }
 
-func doesAdvancedReplicationSpecMatchApi(tfObject map[string]interface{}, apiObject *matlas.AdvancedReplicationSpec) bool {
+func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]interface{}, apiObject *matlas.AdvancedReplicationSpec) bool {
 	return tfObject["id"] == apiObject.ID || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.ZoneName)
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, rawApiObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{},
+func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{},
 	d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, error) {
 	var apiObjects []*matlas.AdvancedReplicationSpec
 
-	for _, advancedReplicationSpec := range rawApiObjects {
+	for _, advancedReplicationSpec := range rawAPIObjects {
 		if advancedReplicationSpec != nil {
 			apiObjects = append(apiObjects, advancedReplicationSpec)
 		}
@@ -1047,8 +1047,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawApiObjects []*matla
 	}
 
 	tfList := make([]map[string]interface{}, len(apiObjects))
-	wasApiObjectUsed := make([]bool, len(apiObjects))
-	unusedFunc := func(isUsed bool) bool { return !isUsed }
+	wasAPIObjectUsed := make([]bool, len(apiObjects))
 
 	for i := 0; i < len(tfList); i++ {
 		var tfMapObject map[string]interface{}
@@ -1058,11 +1057,11 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawApiObjects []*matla
 		}
 
 		for j := 0; j < len(apiObjects); j++ {
-			if wasApiObjectUsed[j] {
+			if wasAPIObjectUsed[j] {
 				continue
 			}
 
-			if !doesAdvancedReplicationSpecMatchApi(tfMapObject, apiObjects[j]) {
+			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
 				continue
 			}
 
@@ -1073,7 +1072,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawApiObjects []*matla
 			}
 
 			tfList[i] = advancedReplicationSpec
-			wasApiObjectUsed[j] = true
+			wasAPIObjectUsed[j] = true
 			break
 		}
 	}
@@ -1089,7 +1088,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawApiObjects []*matla
 			tfMapObject = tfMapObjects[i].(map[string]interface{})
 		}
 
-		j := slices.IndexFunc(wasApiObjectUsed, unusedFunc)
+		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
 		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
 
 		if err != nil {
@@ -1097,7 +1096,7 @@ func flattenAdvancedReplicationSpecs(ctx context.Context, rawApiObjects []*matla
 		}
 
 		tfList[i] = advancedReplicationSpec
-		wasApiObjectUsed[j] = true
+		wasAPIObjectUsed[j] = true
 	}
 
 	return tfList, nil
