@@ -465,7 +465,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		export.ExportBucketID = itemObj["export_bucket_id"].(string)
 		export.FrequencyType = itemObj["frequency_type"].(string)
 		req.Export = nil
-		if *req.AutoExportEnabled {
+		if req.AutoExportEnabled != nil && *req.AutoExportEnabled {
 			req.Export = &export
 		}
 	}
