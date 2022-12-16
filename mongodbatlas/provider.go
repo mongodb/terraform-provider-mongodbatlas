@@ -17,6 +17,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
@@ -87,9 +88,36 @@ func Provider() *schema.Provider {
 				Optional: true,
 			},
 			"region": {
-				Type:        schema.TypeString,
-				DefaultFunc: schema.EnvDefaultFunc("AWS_REGION", ""),
-				Optional:    true,
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_REGION",
+					"TF_VAR_AWS_REGION",
+				}, ""),
+				Optional: true,
+			},
+			"aws_access_key_id": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_ACCESS_KEY_ID",
+					"TF_VAR_AWS_ACCESS_KEY_ID",
+				}, ""),
+				Optional: true,
+			},
+			"aws_secret_access_key": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_SECRET_ACCESS_KEY",
+					"TF_VAR_AWS_SECRET_ACCESS_KEY",
+				}, ""),
+				Optional: true,
+			},
+			"aws_session_token": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_SESSION_TOKEN",
+					"TF_VAR_AWS_SESSION_TOKEN",
+				}, ""),
+				Optional: true,
 			},
 		},
 		DataSourcesMap:       getDataSourcesMap(),
@@ -236,7 +264,6 @@ func addBetaFeatures(provider *schema.Provider) {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		baseURL = "https://cloud.mongodbgov.com"
@@ -253,21 +280,28 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
-		log.Printf("[INFO] assume_role configuration set: (ARN: %q, SessionID: %q, ExternalID: %q, SourceIdentity: %q)", config.AssumeRole.RoleARN, config.AssumeRole.SessionName, config.AssumeRole.ExternalID, config.AssumeRole.SourceIdentity)
 		secret := d.Get("secret_name").(string)
 		region := d.Get("region").(string)
-		config, _ = configureCredentialsSTS(&config, secret, region)
-
+		awsAccessKeyID := d.Get("aws_access_key_id").(string)
+		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
+		awsSessionToken := d.Get("aws_session_token").(string)
+		config, _ = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken)
 	}
 
 	return config.NewClient(ctx)
 }
 
-func configureCredentialsSTS(config *Config, secret, region string) (Config, error) {
+func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken string) (Config, error) {
+	sess := session.Must(session.NewSession(&aws.Config{
+		Region:      aws.String(region),
+		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+	}))
 
-	sess := session.Must(session.NewSession())
 	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
-	secretString := secretsManager_GetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+
+	_, _ = sess.Config.Credentials.Get()
+	_, _ = creds.Get()
+	secretString := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 
 	var secretData SecretData
 	err := json.Unmarshal([]byte(secretString), &secretData)
@@ -279,7 +313,7 @@ func configureCredentialsSTS(config *Config, secret, region string) (Config, err
 	return *config, nil
 }
 
-func secretsManager_GetSecretValue(sess *session.Session, creds *aws.Config, secret string) string {
+func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) string {
 	svc := secretsmanager.New(sess, creds)
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secret),
@@ -507,7 +541,7 @@ func assumeRoleSchema() *schema.Schema {
 					Description: "A unique identifier that might be required when you assume a role in another account.",
 					ValidateFunc: validation.All(
 						validation.StringLenBetween(2, 1224),
-						validation.StringMatch(regexp.MustCompile(`[\w+=,.@:\/\-]*`), ""),
+						validation.StringMatch(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
 					),
 				},
 				"policy": {
@@ -636,11 +670,7 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
 		assumeRole.SourceIdentity = v
 	}
-	/*
-		if v, ok := tfMap["tags"].(map[string]interface{}); ok && len(v) > 0 {
-			assumeRole.Tags = expandStringMap(v)
-		}
-	*/
+
 	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
 		assumeRole.TransitiveTagKeys = expandStringList(v.List())
 	}
