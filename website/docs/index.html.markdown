@@ -47,6 +47,30 @@ provider "mongodbatlas" {
 ```
 Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
+## Configure MongoDB Atlas using AWS Secrets Manager
+
+In order to enable the Terraform MongoDB Atlas Provider to use AWS Secret Manager for API Keys add secret to AWS Secret Manager with a basic key with a raw value like 
+
+``` 
+     {
+      "public_key": "iepubky",
+      "private_key":"prvkey"
+     }
+```
+
+add assume_role block wih role_arn = arn::aws::iam::xxxxxx:role/role-name set secret_name = secretName, and region = "us-xxx-1" to match region secret is present in to your provider configuration:
+```terraform
+# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
+provider "mongodbatlas" {
+  assume_role {
+    role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
+  }
+  secret_name = "mongodbsecret"
+  region = "us-east-2"
+}
+# Create the resources
+```
+
 **API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Authenticate the Provider
 
