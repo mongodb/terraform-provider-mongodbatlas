@@ -65,11 +65,16 @@ provider "mongodbatlas" {
   assume_role {
     role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
   }
-  secret_name = "mongodbsecret"
-  region = "us-east-2"
+  secret_name           = "mongodbsecret"
+  aws_access_key_id     = "ASIXXBNEK"
+  aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
+  aws_session_token     = "IQoXX3+Q="
+  region                = "us-east-2"
 }
 # Create the resources
 ```
+**Note: aws_access_key_id, aws_secret_access_key, aws_session_token, region are also passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID TF_VAR_AWS_ACCESS_KEY_ID 
+as a default value in place of value in a terraform file variable
 
 **API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Authenticate the Provider
