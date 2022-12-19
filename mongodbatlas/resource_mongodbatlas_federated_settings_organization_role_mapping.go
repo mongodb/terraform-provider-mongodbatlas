@@ -9,9 +9,14 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+)
+
+const (
+	mongodbAtlasRolesUrl = "https://www.mongodb.com/docs/atlas/reference/user-roles/"
 )
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Resource {
@@ -58,7 +63,8 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Reso
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								ValidateDiagFunc: validateRoleName(),
 							},
 						},
 					},
@@ -66,6 +72,32 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Reso
 			},
 		},
 	}
+}
+
+func validateRoleName() schema.SchemaValidateDiagFunc {
+	return func(v any, p cty.Path) diag.Diagnostics {
+		value := v.(string)
+		expected := []string{"ORG_OWNER", "ORG_GROUP_CREATOR", "ORG_BILLING_ADMIN", "ORG_READ_ONLY", "ORG_MEMBER", "GROUP_OWNER", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_DATA_ACCESS_READ_WRITE", "GROUP_DATA_ACCESS_READ_ONLY", "GROUP_READ_ONLY", "GROUP_SEARCH_INDEX_EDITOR"}
+		var diags diag.Diagnostics
+		if !isElementExist(expected, value) {
+			diag := diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Wrong role name",
+				Detail:   fmt.Sprintf("Role name %q is not a valid value. Possible names are: %q. More: %s", value, expected, mongodbAtlasRolesUrl),
+			}
+			diags = append(diags, diag)
+		}
+		return diags
+	}
+}
+
+func isElementExist(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
