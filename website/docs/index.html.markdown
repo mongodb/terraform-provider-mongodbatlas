@@ -87,7 +87,7 @@ In order to enable the Terraform MongoDB Atlas Provider to use AWS SM, first cre
      }
 ```
 
-Next, add assume_role block wih `role_arn`, `secret_name`, and AWS `region` to match the AWS region where secret is stored with AWS SM. See below example:
+Next, add assume_role block with `role_arn`, `secret_name`, and AWS `region` to match the AWS region where secret is stored with AWS SM. See below example:
 ```terraform
 # Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
 provider "mongodbatlas" {
