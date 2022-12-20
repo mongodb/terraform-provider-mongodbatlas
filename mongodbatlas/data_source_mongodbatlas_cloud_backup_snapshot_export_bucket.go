@@ -44,9 +44,9 @@ func datasourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Conte
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
-	exportJobID := d.Get("id").(string)
+	bucketID := d.Get("id").(string)
 
-	bucket, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, exportJobID)
+	bucket, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, bucketID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting CloudProviderSnapshotExportBuckets Information: %s", err))
 	}
