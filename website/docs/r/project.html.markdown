@@ -15,9 +15,12 @@ description: |-
 ## Example Usage
 
 ```terraform
+data "mongodbatlas_roles_org_id" "test" {
+}
+
 resource "mongodbatlas_project" "test" {
   name   = "project-name"
-  org_id = "<ORG_ID>"
+  org_id = data.mongodbatlas_roles_org_id.test.org_id
   project_owner_id = "<OWNER_ACCOUNT_ID>"
 
   teams {
