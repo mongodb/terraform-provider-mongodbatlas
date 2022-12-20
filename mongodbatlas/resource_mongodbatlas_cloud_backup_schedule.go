@@ -60,6 +60,43 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"copy_settings": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"frequencies": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"region_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"replication_spec_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"should_copy_oplogs": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"export": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -328,6 +365,9 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
+	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
+	}
 
 	return nil
 }
@@ -413,6 +453,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	policyItem := matlas.PolicyItem{}
 	var policiesItem []matlas.PolicyItem
 	export := matlas.Export{}
+
+	if v, ok := d.GetOk("copy_settings"); ok {
+		req.CopySettings = expandCopySettings(v.([]interface{}))
+	}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]interface{})
@@ -530,4 +574,55 @@ func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string
 		})
 	}
 	return exportList
+}
+
+func flattenCopySettings(copySettingList []matlas.CopySetting) []map[string]interface{} {
+	copySettings := make([]map[string]interface{}, 0)
+	for _, v := range copySettingList {
+		copySettings = append(copySettings, map[string]interface{}{
+			"cloud_provider":      v.CloudProvider,
+			"frequencies":         v.Frequencies,
+			"region_name":         v.RegionName,
+			"replication_spec_id": v.ReplicationSpecID,
+			"should_copy_oplogs":  v.ShouldCopyOplogs,
+		})
+	}
+	return copySettings
+}
+
+func expandCopySetting(tfMap map[string]interface{}) *matlas.CopySetting {
+	if tfMap == nil {
+		return nil
+	}
+
+	copySetting := &matlas.CopySetting{
+		CloudProvider:     pointy.String(tfMap["cloud_provider"].(string)),
+		Frequencies:       expandStringList(tfMap["region_name"].(*schema.Set).List()),
+		RegionName:        pointy.String(tfMap["region_name"].(string)),
+		ReplicationSpecID: pointy.String(tfMap["replication_spec_id"].(string)),
+	}
+
+	return copySetting
+}
+
+func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
+	if len(tfList) == 0 {
+		return nil
+	}
+
+	var copySettings []matlas.CopySetting
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]interface{})
+
+		if !ok {
+			continue
+		}
+
+		apiObject := expandCopySetting(tfMap)
+
+		copySettings = append(copySettings, *apiObject)
+	}
+
+	return copySettings
 }

@@ -25,6 +25,37 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"copySettings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequencies": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"region_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"replication_spec_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"should_copy_oplogs": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"next_snapshot": {
 				Type:     schema.TypeString,
 				Computed: true,
