@@ -99,6 +99,7 @@ provider "mongodbatlas" {
   aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
   aws_session_token     = "IQoXX3+Q="
   region                = "us-east-2"
+  sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
 }
 ```
 ** Note: `aws_access_key_id`, `aws_secret_access_key`, `aws_session_token`, `region` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable.
