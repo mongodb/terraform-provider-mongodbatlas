@@ -33,6 +33,8 @@ The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
 
+**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
+
 ## Configure MongoDB Atlas for Government
 
 In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
@@ -47,36 +49,6 @@ provider "mongodbatlas" {
 ```
 Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
-## Configure MongoDB Atlas using AWS Secrets Manager
-
-In order to enable the Terraform MongoDB Atlas Provider to use AWS Secret Manager for API Keys add secret to AWS Secret Manager with a basic key with a raw value like 
-
-``` 
-     {
-      "public_key": "iepubky",
-      "private_key":"prvkey"
-     }
-```
-
-add assume_role block wih role_arn = arn::aws::iam::xxxxxx:role/role-name set secret_name = secretName, and region = "us-xxx-1" to match region secret is present in to your provider configuration:
-```terraform
-# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
-provider "mongodbatlas" {
-  assume_role {
-    role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
-  }
-  secret_name           = "mongodbsecret"
-  aws_access_key_id     = "ASIXXBNEK"
-  aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
-  aws_session_token     = "IQoXX3+Q="
-  region                = "us-east-2"
-}
-# Create the resources
-```
-**Note: aws_access_key_id, aws_secret_access_key, aws_session_token, region are also passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID TF_VAR_AWS_ACCESS_KEY_ID 
-as a default value in place of value in a terraform file variable
-
-**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Authenticate the Provider
 
 The MongoDB Atlas provider offers a flexible means of providing credentials for authentication.
@@ -103,6 +75,33 @@ $ terraform plan
 As an alternative to `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY`
 if you are using [MongoDB CLI](https://docs.mongodb.com/mongocli/stable/) 
 then `MCLI_PUBLIC_API_KEY` and `MCLI_PRIVATE_API_KEY` are also supported.
+
+### AWS Secrets Manager
+AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate database credentials, API keys, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
+
+In order to enable the Terraform MongoDB Atlas Provider to use AWS SM, first create Atlas API Keys and add them as a secret to AWS SM with a basic key with a raw value. See below example:  
+``` 
+     {
+      "public_key": "iepubky",
+      "private_key":"prvkey"
+     }
+```
+
+Next, add assume_role block wih `role_arn`, `secret_name`, and AWS `region` to match the AWS region where secret is stored with AWS SM. See below example:
+```terraform
+# Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
+provider "mongodbatlas" {
+  assume_role {
+    role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
+  }
+  secret_name           = "mongodbsecret"
+  aws_access_key_id     = "ASIXXBNEK"
+  aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
+  aws_session_token     = "IQoXX3+Q="
+  region                = "us-east-2"
+}
+```
+** Note: `aws_access_key_id`, `aws_secret_access_key`, `aws_session_token`, `region` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable.
 
 ### Static Credentials
 
