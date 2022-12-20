@@ -33,7 +33,7 @@ func TestAccConfigDSOrgID_basic(t *testing.T) {
 }
 
 func testAccDataSourceMongoDBAtlasOrgIDConfig(orgID, username string, roles []string) string {
-	return fmt.Sprintf(`
+	return (`
 	data "mongodbatlas_roles_org_id" "test" {
 	}
 	
