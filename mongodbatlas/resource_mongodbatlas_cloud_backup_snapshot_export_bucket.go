@@ -94,9 +94,9 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
-	bucketID := ids["id"]
+	exportJobID := ids["id"]
 
-	exportBackup, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, bucketID)
+	exportBackup, _, err := conn.CloudProviderSnapshotExportBuckets.Get(ctx, projectID, exportJobID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -134,12 +134,12 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
-	bucketID := ids["id"]
+	exportJobID := ids["id"]
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"PENDING", "REPEATING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx, conn, projectID, bucketID),
+		Refresh:    resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx, conn, projectID, exportJobID),
 		Timeout:    1 * time.Hour,
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
@@ -150,10 +150,10 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 		return diag.Errorf("error deleting snapshot export bucket %s %s", projectID, err)
 	}
 
-	_, err = conn.CloudProviderSnapshotExportBuckets.Delete(ctx, projectID, bucketID)
+	_, err = conn.CloudProviderSnapshotExportBuckets.Delete(ctx, projectID, exportJobID)
 
 	if err != nil {
-		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)
+		return diag.Errorf("error deleting snapshot export bucket (%s): %s", exportJobID, err)
 	}
 
 	return nil
@@ -180,7 +180,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState(ctx context.
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, bucketID *string, err error) {
+func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, exportJobID *string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
@@ -190,7 +190,7 @@ func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, bucketI
 	}
 
 	projectID = &parts[1]
-	bucketID = &parts[2]
+	exportJobID = &parts[2]
 
 	return
 }

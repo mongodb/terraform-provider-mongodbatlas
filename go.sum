@@ -921,6 +921,8 @@ go.etcd.io/etcd v0.0.0-20200513171258-e048e166ab9c/go.mod h1:xCI7ZzBfRuGgBXyXO6y
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
 go.mongodb.org/atlas v0.18.1-0.20221109142841-f9f8ebe7b9b9 h1:9m35o4kyRYjwbsIb/lPrjxJ6afPpn9zwOF5i3SIY5Lg=
 go.mongodb.org/atlas v0.18.1-0.20221109142841-f9f8ebe7b9b9/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
+go.mongodb.org/atlas v0.19.0 h1:gvezG9d0KsSDaExEdTtcGqZHRvvVazzuEcBUpBXxmlg=
+go.mongodb.org/atlas v0.19.0/go.mod h1:PFk1IGhiGjFXHGVspOK7i1U2nnPjK8wAjYwQf6FoVf4=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.mozilla.org/mozlog v0.0.0-20170222151521-4bb13139d403/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=
