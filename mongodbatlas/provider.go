@@ -96,6 +96,14 @@ func Provider() *schema.Provider {
 				}, ""),
 				Optional: true,
 			},
+			"sts_endpoint": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"STS_ENDPOINT",
+					"TF_VAR_STS_ENDPOINT",
+				}, ""),
+				Optional: true,
+			},
 			"aws_access_key_id": {
 				Type: schema.TypeString,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
@@ -286,18 +294,20 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
 		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
 		awsSessionToken := d.Get("aws_session_token").(string)
-		config, _ = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken)
+		endpoint := d.Get("sts_endpoint").(string)
+		config, _ = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 	}
 
 	return config.NewClient(ctx)
 }
 
-func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken string) (Config, error) {
+func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
 	ep, _ := endpoints.GetSTSRegionalEndpoint("regional")
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region:              aws.String(region),
 		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
 		STSRegionalEndpoint: ep,
+		Endpoint:            &endpoint,
 	}))
 
 	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
