@@ -25,7 +25,7 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"copySettings": {
+			"copy_settings": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -274,6 +274,10 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
+	}
+
+	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
 	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {

@@ -223,6 +223,54 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	})
 }
 
+func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+					ReferenceHourOfDay:    pointy.Int64(3),
+					ReferenceMinuteOfHour: pointy.Int64(45),
+					RestoreWindowDays:     pointy.Int64(4),
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
+					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "3"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
+				),
+			},
+		},
+	})
+}
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
@@ -444,6 +492,72 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 				retention_unit     = "months"
 				retention_value    = 4
 			}
+		}
+	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+}
+
+func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+			
+			cluster_type = "REPLICASET"
+            replication_specs {
+            num_shards = 1
+            regions_config {
+              region_name     = "US_EAST_2"
+              electable_nodes = 3
+              priority        = 7
+              read_only_nodes = 0
+              }
+            }
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_2"
+			provider_instance_size_name = "M10"
+			cloud_backup     = true //enable cloud provider snapshots
+		}
+
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id   = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name = mongodbatlas_cluster.my_cluster.name
+
+			reference_hour_of_day    = %d
+			reference_minute_of_hour = %d
+			restore_window_days      = %d
+
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 2
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 3
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 4
+			}
+			copy_settings {
+				cloud_provider = "AWS"
+				frequencies = ["HOURLY",
+							"DAILY",
+							"WEEKLY",
+							"MONTHLY",
+							"ON_DEMAND"]
+				region_name = "US_EAST_1"
+				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+				should_copy_oplogs = false
+			  }
 		}
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }

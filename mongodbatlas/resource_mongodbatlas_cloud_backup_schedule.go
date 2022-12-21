@@ -63,7 +63,6 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 			"copy_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cloud_provider": {
@@ -365,6 +364,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
 	}
+
 	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
@@ -454,8 +454,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	var policiesItem []matlas.PolicyItem
 	export := matlas.Export{}
 
-	if v, ok := d.GetOk("copy_settings"); ok {
+	if v, ok := d.GetOk("copy_settings"); ok && len(v.([]interface{})) > 0 {
 		req.CopySettings = expandCopySettings(v.([]interface{}))
+	} else {
+		req.CopySettings = []matlas.CopySetting{}
 	}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
@@ -597,11 +599,10 @@ func expandCopySetting(tfMap map[string]interface{}) *matlas.CopySetting {
 
 	copySetting := &matlas.CopySetting{
 		CloudProvider:     pointy.String(tfMap["cloud_provider"].(string)),
-		Frequencies:       expandStringList(tfMap["region_name"].(*schema.Set).List()),
+		Frequencies:       expandStringList(tfMap["frequencies"].(*schema.Set).List()),
 		RegionName:        pointy.String(tfMap["region_name"].(string)),
 		ReplicationSpecID: pointy.String(tfMap["replication_spec_id"].(string)),
 	}
-
 	return copySetting
 }
 
@@ -614,15 +615,11 @@ func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
 
 	for _, tfMapRaw := range tfList {
 		tfMap, ok := tfMapRaw.(map[string]interface{})
-
 		if !ok {
 			continue
 		}
-
 		apiObject := expandCopySetting(tfMap)
-
 		copySettings = append(copySettings, *apiObject)
 	}
-
 	return copySettings
 }
