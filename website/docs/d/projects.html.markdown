@@ -58,8 +58,8 @@ data "mongodbatlas_projects" "test" {
 
 * `name` - The name of the project you want to create. (Cannot be changed via this Provider after creation.)
 * `org_id` - The ID of the organization you want to create the project within.
-*`cluster_count` - The number of Atlas clusters deployed in the project.
-*`created` - The ISO-8601-formatted timestamp of when Atlas created the project.
+* `cluster_count` - The number of Atlas clusters deployed in the project.
+* `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `teams.#.team_id` - The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
 * `teams.#.role_names` - Each string in the array represents a project role assigned to the team. Every user associated with the team inherits these roles.
 The following are valid roles:
@@ -86,4 +86,4 @@ The following are valid roles:
 * `is_schema_advisor_enabled` - Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor) and the [Data Explorer](https://www.mongodb.com/docs/atlas/atlas-ui/#std-label-atlas-ui).
 * `region_usage_restrictions` - If GOV_REGIONS_ONLY the project can be used for government regions only, otherwise defaults to standard regions. For more information see [MongoDB Atlas for Government](https://www.mongodb.com/docs/atlas/government/api/#creating-a-project).
   
-See [MongoDB Atlas API - Projects](https://docs.atlas.mongodb.com/reference/api/project-get-all/) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
+See [MongoDB Atlas API - Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
