@@ -351,8 +351,6 @@ func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secr
 				fmt.Println(aerr.Error())
 			}
 		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
 			fmt.Println(err.Error())
 		}
 		return ""
@@ -569,14 +567,12 @@ func assumeRoleSchema() *schema.Schema {
 					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
-						//ValidateFunc: verify.ValidARN,
 					},
 				},
 				"role_arn": {
 					Type:        schema.TypeString,
 					Optional:    true,
 					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-					//ValidateFunc: verify.ValidARN,
 				},
 				"session_name": {
 					Type:         schema.TypeString,
