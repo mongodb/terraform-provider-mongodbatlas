@@ -1,5 +1,25 @@
 # Changelog
 
+## [v1.7.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.7.0) (December 22, 2022)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.6.1...v1.7.0)
+
+**Closed issues:**
+
+- Terraform plan fail: Asymmetric hardware is not supported by the v1.0 API [\#958](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/958)
+- Error importing ressource mongodbatlas\_network\_peering.mongo\_peer [\#906](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/906)
+- \[Bug\] `container_id` is unconfigurable  attribute at `mongodbatlas_advanced_cluster` resource [\#890](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/890)
+- mongodbatlas\_alert\_configuration - api\_token keeps wanting to change [\#863](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/863)
+- Docs - Example - Return a Connection String - Azure Private Endpoint [\#713](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/713)
+
+**Merged pull requests:**
+
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.6 to 0.41.7 [\#978](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/978) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump actions/stale from 6 to 7 [\#977](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/977) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.4 to 0.41.6 [\#967](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/967) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/go-test/deep from 1.0.8 to 1.1.0 [\#966](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/966) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump goreleaser/goreleaser-action from 3 to 4 [\#965](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/965) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.6.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.1) (2022-12-6)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.6.0...v1.6.1)
