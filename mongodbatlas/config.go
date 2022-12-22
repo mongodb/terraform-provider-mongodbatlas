@@ -20,6 +20,7 @@ type Config struct {
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
+	AssumeRole   *AssumeRole
 }
 
 // MongoDBClient client
