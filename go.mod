@@ -3,6 +3,7 @@ module github.com/mongodb/terraform-provider-mongodbatlas
 go 1.18
 
 require (
+	github.com/aws/aws-sdk-go v1.40.56
 	github.com/go-test/deep v1.1.0
 	github.com/gruntwork-io/terratest v0.41.7
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.1
@@ -11,7 +12,7 @@ require (
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.0
 	github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20210625132053-af2d5c0ad54f
-	go.mongodb.org/atlas v0.19.0
+	go.mongodb.org/atlas v0.20.0
 	go.mongodb.org/realm v0.1.0
 )
 
@@ -26,7 +27,6 @@ require (
 	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/aws/aws-sdk-go v1.40.56 // indirect
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
