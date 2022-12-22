@@ -110,7 +110,10 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err))
 		}
 
-		currentCertificate = res.Certificate
+		currentCertificate = cast.ToString(res.ID)
+		if err := d.Set("current_certificate", cast.ToString(res.Certificate)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
+		}
 	} else {
 		customerX509Cas := d.Get("customer_x509_cas").(string)
 		_, _, err := conn.X509AuthDBUsers.SaveConfiguration(ctx, projectID, &matlas.CustomerX509{Cas: customerX509Cas})
@@ -134,7 +137,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
-	currentCertificate := ids["current_certificate"]
+	//currentCertificate := ids["current_certificate"]
 
 	var (
 		certificates []matlas.UserCertificate
@@ -154,7 +157,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 		}
 	}
 
-	if err := d.Set("current_certificate", cast.ToString(currentCertificate)); err != nil {
+	if err := d.Set("current_certificate", cast.ToString(certificates[0].Certificate)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
 	}
 
