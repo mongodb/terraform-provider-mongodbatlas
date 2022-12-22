@@ -104,9 +104,9 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportJobRead(ctx context.Context
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
-	exportID := ids["export_job_id"]
+	exportJobID := ids["export_job_id"]
 
-	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
+	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportJobID)
 	if err != nil {
 		return diag.Errorf("error getting snapshot export job information: %s", err)
 	}
