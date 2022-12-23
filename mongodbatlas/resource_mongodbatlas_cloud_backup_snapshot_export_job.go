@@ -124,9 +124,9 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
-	exportJobID := ids["export_job_id"]
+	exportID := ids["export_job_id"]
 
-	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportJobID)
+	exportJob, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
 	if err != nil {
 		// case 404
 		// deleted in the backend case
@@ -278,17 +278,17 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState(ctx context.Con
 
 	projectID := parts[0]
 	clusterName := parts[1]
-	exportJobID := parts[2]
+	exportID := parts[2]
 
-	_, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportJobID)
+	_, _, err := conn.CloudProviderSnapshotExportJobs.Get(ctx, projectID, clusterName, exportID)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportJobID, projectID, clusterName, err)
+		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportID, projectID, clusterName, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":    projectID,
 		"cluster_name":  clusterName,
-		"export_job_id": exportJobID,
+		"export_job_id": exportID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
