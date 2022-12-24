@@ -39,7 +39,9 @@ func resourceMongoDBAtlasPrivateIPMode() *schema.Resource {
 				Required: true,
 			},
 		},
-	}
+		DeprecationMessage: "This resource is deprecated, and will be removed in v1.9 release. Please transition to mongodbatlas_cloud_backup_schedule as soon as possible",
+	},
+	
 }
 
 func resourceMongoDBAtlasPrivateIPModeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

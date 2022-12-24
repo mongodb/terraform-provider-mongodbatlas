@@ -86,7 +86,7 @@ func resourceMongoDBAtlasCloudProviderSnapshot() *schema.Resource {
 				Default:  "10m",
 			},
 		},
-		DeprecationMessage: "this resource is deprecated, please transition as soon as possible to mongodbatlas_cloud_backup_snapshot",
+		DeprecationMessage: "this resource is deprecated, and will be removed in v1.9 release, please transition as soon as possible to mongodbatlas_cloud_backup_snapshot",
 	}
 }
 
