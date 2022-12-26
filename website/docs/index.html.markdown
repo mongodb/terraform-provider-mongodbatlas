@@ -79,15 +79,50 @@ then `MCLI_PUBLIC_API_KEY` and `MCLI_PRIVATE_API_KEY` are also supported.
 ### AWS Secrets Manager
 AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate database credentials, API keys, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
 
-In order to enable the Terraform MongoDB Atlas Provider to use AWS SM, first create Atlas API Keys and add them as a secret to AWS SM with a basic key with a raw value. See below example:  
+In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please follow the below steps: 
+
+1. Create Atlas API Keys and add them as one secret to AWS SM with a raw value. Take note of which AWS Region secret is being stored in. Public Key and Private Key each need to be entered as their own key value pair. See below example:  
 ``` 
      {
-      "public_key": "iepubky",
-      "private_key":"prvkey"
+      "public_key": "secret1",
+      "private_key":"secret2"
      }
 ```
+2. Create an AWS IAM Role to attach to the AWS STS (Secrutiy Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole” . For example: 
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+} 
+```
+Note: this policy may be overly broad for many use cases, feel free to adjust accordingly to your organization's needs.
 
-Next, add assume_role block with `role_arn`, `secret_name`, and AWS `region` to match the AWS region where secret is stored with AWS SM. See below example:
+3. In your terminal store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
+``` 
+export AWS_ACCESS_KEY_ID="secret"
+export AWS_SECRET_ACCESS_KEY="secret”
+```
+4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession` 
+
+Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` flag to specify longer duration as needed 
+
+5. Store each of the 3 new created secrets from AWS STS as environment variables. For example: 
+```
+export AWS_ACCESS_KEY_ID="ASIAYBYSK3S5FZEKLETV"
+export AWS_SECRET_ACCESS_KEY="lgT6kL9lr1fxM6mCEwJ33MeoJ1M6lIzgsiW23FGH"
+export AWS_SESSION_TOKEN="IQoXX3+Q"
+```
+
+6. Add assume_role block with `role_arn`, `secret_name`, and AWS `region` where secret is stored as part of AWS SM. Each of these 3 fields are REQUIRED. For example:
 ```terraform
 # Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
 provider "mongodbatlas" {
@@ -95,14 +130,17 @@ provider "mongodbatlas" {
     role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
   }
   secret_name           = "mongodbsecret"
+  region                = "us-east-2"
+  
   aws_access_key_id     = "ASIXXBNEK"
   aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
   aws_session_token     = "IQoXX3+Q="
-  region                = "us-east-2"
   sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
 }
 ```
-Note: `aws_access_key_id`, `aws_secret_access_key`, `aws_session_token`, `region` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable.
+Note: `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable. Also `sts_endpoint` will be generated on behalf of user if not provider. 
+
+7. `terraform init` 
 
 ### Static Credentials
 
