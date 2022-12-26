@@ -88,7 +88,7 @@ In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please foll
       "private_key":"secret2"
      }
 ```
-2. Create an AWS IAM Role to attach to the AWS STS (Secrutiy Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole” . For example: 
+2. Create an AWS IAM Role to attach to the AWS STS (Security Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole” . For example: 
 ```
 {
     "Version": "2012-10-17",
@@ -106,7 +106,7 @@ In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please foll
 ```
 Note: this policy may be overly broad for many use cases, feel free to adjust accordingly to your organization's needs.
 
-3. In your terminal store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
+3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
 ``` 
 export AWS_ACCESS_KEY_ID="secret"
 export AWS_SECRET_ACCESS_KEY="secret”
@@ -140,7 +140,7 @@ provider "mongodbatlas" {
 ```
 Note: `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable. Also `sts_endpoint` will be generated on behalf of user if not provider. 
 
-7. `terraform init` 
+7. In terminal, `terraform init` 
 
 ### Static Credentials
 
