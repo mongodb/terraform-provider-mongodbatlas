@@ -97,6 +97,58 @@ In order to test the provider, you can run `make test`. You can use [meta-argume
 
 ~> **Notice:**  If you do not have a `public_key` and `private_key` you must create a programmatic API key to configure the provider (see [Creating Programmatic API key](#Programmatic-API-key)). If you already have one, you can continue with [Configuring environment variables](#Configuring-environment-variables)
 
+#### Testing Atlas Provider Versions that are NOT hosted on Terraform Registry (i.e. pre-release versions)
+To test development / pre-release versions of the Terraform Atlas Provider that are not hosted on the Terraform Registry, you will need to create a [Terraform Provider Network Mirror](https://developer.hashicorp.com/terraform/internals/provider-network-mirror-protocol). 
+
+The provider network mirror protocol is an optional protocol which you can implement to provide an alternative installation source for Terraform providers, regardless of their origin registries. Terraform uses network mirrors only if you activate them explicitly in the CLI configuration's `provider_installation` block. When enabled, a network mirror can serve providers belonging to any registry hostname, which can allow an organization to serve all of the Terraform providers they intend to use from an internal server, rather than from each provider's origin registry.
+
+To do this you can: 
+1.	Create a versions.tf file in a new directory with an existing live version from Terraform Registry. For example this can include:  
+```
+terraform {
+  required_providers {
+    mongodbatlas = {
+      source = "mongodb/mongodbatlas"
+    }
+  }
+  required_version = ">= 0.13"
+}
+```
+
+2.	Use `terraform init` to create required file structures 
+
+3.	`mkdir` a “tf_cache” sub-directory and `cd` into that directory 
+
+4.	Create a .terraformrc file and insert below (modify accordingly to your own local path directory): 
+```
+provider_installation {
+  filesystem_mirror {
+    path    = "C:\Users\ZuhairAhmed\Desktop\Tenant_Upgrade\tf_cache"
+    include = ["registry.terraform.io/hashicorp/*"]
+  }
+  direct {
+    exclude = ["registry.terraform.io/hashicorp/*"]
+  }
+}
+plugin_cache_dir = "C:\Users\ZuhairAhmed\Desktop\Tenant_Upgrade\tf_cache"
+disable_checkpoint=true
+```
+5.	`cd` back up to original directory and `mv` the “.terraform/providers/registry.terraform.io” directory to “tf_cache” 
+
+6.	Create required environment variables (modify accordingly to your own local path directory):
+```
+export TF_PLUGIN_CACHE_DIR=/mnt/c/Users/ZuhairAhmed/Desktop/Tenant_Upgrade/tf_cache
+export TF_CLI_CONFIG_FILE=/mnt/c/Users/ZuhairAhmed/Desktop/Tenant_Upgrade/tf_cache/terraform.rc
+```
+7.  Delete the .terraform and .terraform.lock.hcl directories altogether. At this point you should only have the “tf_cache” directory and the “versions.tf” file remaining. 
+
+9. Next in the “tf_cache” directory replace existing terraform provider core files (Terraform Atlas Provider version binary, CHANGELOG.md, LICENSE, and README.md) with version you seek to test locally. Make sure to keep folder structure the same. 
+
+8. Lastly, run `terraform init` again and this time terraform will pull provider version from tf_cache network mirror. You can confirm by seeing above the “Terraform has been successfully initialized!” message a “Using mongodb/mongodbatlas Vx.x.x from the shared cache directory” 
+
+#### Logs
+To help with dubbing issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 
+
 ### Running the acceptance test
 
 #### Programmatic API key
