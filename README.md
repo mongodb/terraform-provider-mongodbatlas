@@ -26,7 +26,7 @@ To use a released provider in your Terraform environment, run [`terraform init`]
 Documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
 
 ## Beta Features
-In order to use and/or test beta resources and datasources in this provider you'll neet to set the environment variable `MONGODB_ATLAS_ENABLE_BETA` to true.
+In order to use and/or test beta resources and datasources in this provider you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA` to true.
 
 
 ```bash
@@ -140,11 +140,11 @@ disable_checkpoint=true
 export TF_PLUGIN_CACHE_DIR=/mnt/c/Users/ZuhairAhmed/Desktop/Tenant_Upgrade/tf_cache
 export TF_CLI_CONFIG_FILE=/mnt/c/Users/ZuhairAhmed/Desktop/Tenant_Upgrade/tf_cache/terraform.rc
 ```
-7.  Delete the .terraform and .terraform.lock.hcl directories altogether. At this point you should only have the “tf_cache” directory and the “versions.tf” file remaining. 
+7.  Delete the .terraform and .terraform.lock.hcl directories altogether. At this point you should only have the “tf_cache” directory and the “versions.tf” config file remaining. 
 
-9. Next in the “tf_cache” directory replace existing terraform provider core files (Terraform Atlas Provider version binary, CHANGELOG.md, LICENSE, and README.md) with version you seek to test locally. Make sure to keep folder structure the same. 
+9. Next in the “tf_cache” directory replace existing terraform provider core files (Terraform Atlas Provider version binary, CHANGELOG.md, LICENSE, and README.md) with the version you seek to test locally. Make sure to keep folder structure the same. 
 
-8. Lastly, run `terraform init` again and this time terraform will pull provider version from tf_cache network mirror. You can confirm by seeing above the “Terraform has been successfully initialized!” message a “Using mongodb/mongodbatlas Vx.x.x from the shared cache directory” 
+8. Lastly, in the terminal run `terraform init` again and this time terraform will pull provider version from tf_cache network mirror. You can confirm this by noting the “Terraform has been successfully initialized! Using mongodb/mongodbatlas Vx.x.x from the shared cache directory” message.  
 
 #### Logs
 To help with dubbing issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 
@@ -301,7 +301,7 @@ $ make testacc
 ```
 ### Running the integration tests
 
-The integration tests helps the validation for resources interacting with third party providers (aws, azure or gcp) using terratest [environment setup details](integrationtesting/README.md)
+The integration tests helps the validation for resources interacting with third party providers (AWS, Azure or Google Cloud) using terratest [environment setup details](integrationtesting/README.md)
 
 ```
   cd integrationtesting
