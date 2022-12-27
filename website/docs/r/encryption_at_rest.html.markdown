@@ -151,4 +151,4 @@ Encryption at Rest Settings can be imported using project ID, in the format `pro
 $ terraform import mongodbatlas_encryption_at_rest.example 1112222b3bf99403840e8934
 ```
 
-For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/)
+For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management)
