@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -74,6 +75,14 @@ func dataSourceMongoDBAtlasAlertConfigurations() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"output_type": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{"resource_hcl", "resource_import"}, false),
+				},
+			},
 		},
 	}
 }
@@ -108,7 +117,15 @@ func dataSourceMongoDBAtlasAlertConfigurationsRead(ctx context.Context, d *schem
 }
 
 func flattenAlertConfigurations(ctx context.Context, conn *matlas.Client, alerts []matlas.AlertConfiguration, d *schema.ResourceData) []map[string]interface{} {
-	results := make([]map[string]interface{}, len(alerts))
+	var outputTypes []string
+
+	results := make([]map[string]interface{}, 0)
+
+	if output := d.Get("output_type"); output != nil {
+		for _, o := range output.([]interface{}) {
+			outputTypes = append(outputTypes, o.(string))
+		}
+	}
 
 	for _, alert := range alerts {
 		results = append(results, map[string]interface{}{
@@ -118,11 +135,10 @@ func flattenAlertConfigurations(ctx context.Context, conn *matlas.Client, alerts
 			"updated":                 alert.Updated,
 			"enabled":                 alert.Enabled,
 			"matcher":                 flattenAlertConfigurationMatchers(alert.Matchers),
-			"metric_threshold":        flattenAlertConfigurationMetricThreshold(alert.MetricThreshold),
-			"threshold":               flattenAlertConfigurationThreshold(alert.Threshold),
 			"metric_threshold_config": flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold),
 			"threshold_config":        flattenAlertConfigurationThresholdConfig(alert.Threshold),
 			"notification":            flattenAlertConfigurationNotifications(d, alert.Notifications),
+			"output":                  computeOutput(&alert, outputTypes),
 		})
 	}
 

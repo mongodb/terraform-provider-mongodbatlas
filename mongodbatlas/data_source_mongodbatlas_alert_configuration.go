@@ -4,8 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/zclconf/go-cty/cty"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
@@ -245,6 +249,23 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					},
 				},
 			},
+			"output": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"resource_hcl", "resource_import"}, false),
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -296,10 +317,189 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", projectID, err))
 	}
 
+	if dOutput := d.Get("output"); dOutput != nil {
+		types := make([]string, len(dOutput.([]interface{})))
+
+		for _, o := range dOutput.([]map[string]interface{}) {
+			types = append(types, o["type"].(string))
+		}
+
+		if err := d.Set("output", computeOutput(alert, types)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "output", projectID, err))
+		}
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"id":         alert.ID,
 		"project_id": projectID,
 	}))
 
 	return nil
+}
+
+func computeOutput(alert *matlas.AlertConfiguration, types []string) []map[string]interface{} {
+	if types == nil || len(types) == 0 {
+		return nil
+	}
+
+	output := make([]map[string]interface{}, 0)
+
+	for _, oType := range types {
+		var value string
+
+		if oType == "resource_hcl" {
+			value = outputAlertConfigurationResourceHcl(alert)
+		} else if oType == "resource_import" {
+			value = outputAlertConfigurationResourceImport(alert)
+		}
+
+		if value == "" {
+			continue
+		}
+
+		output = append(output, map[string]interface{}{
+			"type":  oType,
+			"value": value,
+		})
+	}
+
+	return output
+}
+
+func outputAlertConfigurationResourceHcl(alert *matlas.AlertConfiguration) string {
+	f := hclwrite.NewEmptyFile()
+	root := f.Body()
+	resource := root.AppendNewBlock("resource", []string{"mongodbatlas_alert_configurations", alert.EventTypeName}).Body()
+
+	resource.SetAttributeValue("project_id", cty.StringVal(alert.GroupID))
+	resource.SetAttributeValue("alert_configuration_id", cty.StringVal(alert.ID))
+	resource.SetAttributeValue("event_type", cty.StringVal(alert.EventTypeName))
+	resource.SetAttributeValue("created", cty.StringVal(alert.Created))
+	resource.SetAttributeValue("updated", cty.StringVal(alert.Updated))
+
+	if alert.Enabled != nil {
+		resource.SetAttributeValue("enabled", cty.BoolVal(*alert.Enabled))
+	}
+
+	for _, matcher := range alert.Matchers {
+		values := convertMatcherToCtyValues(matcher)
+
+		appendBlockWithCtyValues(resource, "matcher", []string{}, values)
+	}
+
+	if alert.MetricThreshold != nil {
+		values := convertMetricThresholdToCtyValues(*alert.MetricThreshold)
+
+		appendBlockWithCtyValues(resource, "metric_threshold_config", []string{}, values)
+	}
+
+	if alert.Threshold != nil {
+		values := convertThresholdToCtyValues(*alert.Threshold)
+
+		appendBlockWithCtyValues(resource, "threshold_config", []string{}, values)
+	}
+
+	for _, notification := range alert.Notifications {
+		values := convertNotificationToCtyValues(notification)
+
+		appendBlockWithCtyValues(resource, "notification", []string{}, values)
+	}
+
+	return string(f.Bytes())
+}
+
+func outputAlertConfigurationResourceImport(alert *matlas.AlertConfiguration) string {
+	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", alert.EventTypeName, alert.GroupID, alert.ID)
+}
+
+func convertMatcherToCtyValues(matcher matlas.Matcher) map[string]cty.Value {
+	return map[string]cty.Value{
+		"field_name": cty.StringVal(matcher.FieldName),
+		"operator":   cty.StringVal(matcher.Operator),
+		"value":      cty.StringVal(matcher.Value),
+	}
+}
+
+func convertMetricThresholdToCtyValues(metric matlas.MetricThreshold) map[string]cty.Value {
+	return map[string]cty.Value{
+		"metric_name": cty.StringVal(metric.MetricName),
+		"operator":    cty.StringVal(metric.Operator),
+		"threshold":   cty.NumberFloatVal(metric.Threshold),
+		"units":       cty.StringVal(metric.Units),
+		"mode":        cty.StringVal(metric.Mode),
+	}
+}
+
+func convertThresholdToCtyValues(threshold matlas.Threshold) map[string]cty.Value {
+	return map[string]cty.Value{
+		"operator":  cty.StringVal(threshold.Operator),
+		"units":     cty.StringVal(threshold.Units),
+		"threshold": cty.NumberFloatVal(threshold.Threshold),
+	}
+}
+
+func convertNotificationToCtyValues(notification matlas.Notification) map[string]cty.Value {
+	values := map[string]cty.Value{}
+
+	if notification.ChannelName != "" {
+		values["channel_name"] = cty.StringVal(notification.ChannelName)
+	}
+
+	if notification.DatadogRegion != "" {
+		values["datadog_region"] = cty.StringVal(notification.DatadogRegion)
+	}
+
+	if notification.EmailAddress != "" {
+		values["email_address"] = cty.StringVal(notification.EmailAddress)
+	}
+
+	if notification.FlowName != "" {
+		values["flow_name"] = cty.StringVal(notification.FlowName)
+	}
+
+	if notification.IntervalMin > 0 {
+		values["interval_min"] = cty.NumberIntVal(int64(notification.IntervalMin))
+	}
+
+	if notification.MobileNumber != "" {
+		values["mobile_number"] = cty.StringVal(notification.MobileNumber)
+	}
+
+	if notification.OpsGenieRegion != "" {
+		values["ops_genie_region"] = cty.StringVal(notification.OpsGenieRegion)
+	}
+
+	if notification.OrgName != "" {
+		values["org_name"] = cty.StringVal(notification.OrgName)
+	}
+
+	if notification.TeamID != "" {
+		values["team_id"] = cty.StringVal(notification.TeamID)
+	}
+
+	if notification.TeamName != "" {
+		values["team_name"] = cty.StringVal(notification.TeamName)
+	}
+
+	if notification.TypeName != "" {
+		values["type_name"] = cty.StringVal(notification.TypeName)
+	}
+
+	if notification.Username != "" {
+		values["username"] = cty.StringVal(notification.Username)
+	}
+
+	if notification.DelayMin != nil && *notification.DelayMin > 0 {
+		values["delay_min"] = cty.NumberIntVal(int64(*notification.DelayMin))
+	}
+
+	if notification.EmailEnabled != nil && *notification.EmailEnabled {
+		values["email_enabled"] = cty.BoolVal(*notification.EmailEnabled)
+	}
+
+	if notification.SMSEnabled != nil && *notification.SMSEnabled {
+		values["sms_enabled"] = cty.BoolVal(*notification.SMSEnabled)
+	}
+
+	return values
 }
