@@ -206,6 +206,41 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 											},
 										},
 									},
+									"analytics_auto_scaling": {
+										Type:     schema.TypeList,
+										MaxItems: 1,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"disk_gb_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_scale_down_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_min_instance_size": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_max_instance_size": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+											},
+										},
+									},
 									"backing_provider_name": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -825,6 +860,9 @@ func expandRegionConfig(tfMap map[string]interface{}) *matlas.AdvancedRegionConf
 	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]interface{})) > 0 {
 		apiObject.AutoScaling = expandRegionConfigAutoScaling(v.([]interface{}))
 	}
+	if v, ok := tfMap["analytics_auto_scaling"]; ok && len(v.([]interface{})) > 0 {
+		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScaling(v.([]interface{}))
+	}
 	if v, ok := tfMap["backing_provider_name"]; ok {
 		apiObject.BackingProviderName = v.(string)
 	}
@@ -991,11 +1029,15 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegion
 		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]interface{})) > 0 {
 			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
 		}
+		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+		}
 	} else {
 		tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
 		tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
 		tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
 		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
 	}
 
 	tfMap["region_name"] = apiObject.RegionName
