@@ -55,6 +55,7 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(integrationTypes, false),
+				Deprecated:   "This field type has values (NEW_RELIC, FLOWDOCK) that are deprecated and will be removed in 1.9.0 release ",
 			},
 			"license_key": {
 				Type:      schema.TypeString,
