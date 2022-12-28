@@ -145,6 +145,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_db_roles":                          dataSourceMongoDBAtlasCustomDBRoles(),
 		"mongodbatlas_database_user":                            dataSourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_database_users":                           dataSourceMongoDBAtlasDatabaseUsers(),
+		"mongodbatlas_roles_org_id":                             dataSourceMongoDBAtlasOrgID(),
 		"mongodbatlas_project":                                  dataSourceMongoDBAtlasProject(),
 		"mongodbatlas_projects":                                 dataSourceMongoDBAtlasProjects(),
 		"mongodbatlas_cluster":                                  dataSourceMongoDBAtlasCluster(),
