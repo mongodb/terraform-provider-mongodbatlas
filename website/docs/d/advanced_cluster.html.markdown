@@ -94,6 +94,7 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 
 * `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs)
 * `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster. See [below](#auto_scaling)
+* `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. See [below](#analytics_auto_scaling)
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
 * `priority` -  Election priority of the region. 
@@ -118,6 +119,13 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 * `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10). 
 * `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40). 
 
+### analytics_auto_scaling
+
+* `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling. 
+* `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled. 
+* `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down. 
+* `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10). 
+* `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40). 
 #### Advanced Configuration
 
 * `default_read_concern` - [Default level of acknowledgment requested from MongoDB for read operations](https://docs.mongodb.com/manual/reference/read-concern/) set for this cluster. MongoDB 4.4 clusters default to [available](https://docs.mongodb.com/manual/reference/read-concern-available/).

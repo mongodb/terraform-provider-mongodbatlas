@@ -149,6 +149,34 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 														},
 													},
 												},
+												"analytics_auto_scaling": {
+													Type:     schema.TypeList,
+													Computed: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"disk_gb_enabled": {
+																Type:     schema.TypeBool,
+																Computed: true,
+															},
+															"compute_enabled": {
+																Type:     schema.TypeBool,
+																Computed: true,
+															},
+															"compute_scale_down_enabled": {
+																Type:     schema.TypeBool,
+																Computed: true,
+															},
+															"compute_min_instance_size": {
+																Type:     schema.TypeString,
+																Computed: true,
+															},
+															"compute_max_instance_size": {
+																Type:     schema.TypeString,
+																Computed: true,
+															},
+														},
+													},
+												},
 												"backing_provider_name": {
 													Type:     schema.TypeString,
 													Computed: true,
@@ -164,34 +192,6 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 												},
 												"read_only_specs": advancedClusterRegionConfigsSpecsSchema(),
 												"region_name": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-									"analytics_auto_scaling": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"disk_gb_enabled": {
-													Type:     schema.TypeBool,
-													Computed: true,
-												},
-												"compute_enabled": {
-													Type:     schema.TypeBool,
-													Computed: true,
-												},
-												"compute_scale_down_enabled": {
-													Type:     schema.TypeBool,
-													Computed: true,
-												},
-												"compute_min_instance_size": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"compute_max_instance_size": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
