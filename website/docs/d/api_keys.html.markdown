@@ -10,6 +10,8 @@ description: |-
 
 `mongodbatlas_api_keys` describe all API Keys. This represents API Keys that have been created.
 
+~> **IMPORTANT WARNING:**  Creating, Reading, Updating, or Deleting Atlas API Keys may key expose sensitive organizational secrets to Terraform State. Consider storing sensitive API Key secrets instead via the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
