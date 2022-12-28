@@ -454,10 +454,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	var policiesItem []matlas.PolicyItem
 	export := matlas.Export{}
 
+	req.CopySettings = []matlas.CopySetting{}
 	if v, ok := d.GetOk("copy_settings"); ok && len(v.([]interface{})) > 0 {
 		req.CopySettings = expandCopySettings(v.([]interface{}))
-	} else {
-		req.CopySettings = []matlas.CopySetting{}
 	}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
