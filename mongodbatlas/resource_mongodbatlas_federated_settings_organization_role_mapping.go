@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	mongodbAtlasRolesUrl = "https://www.mongodb.com/docs/atlas/reference/user-roles/"
+	mongodbAtlasRolesURL = "https://www.mongodb.com/docs/atlas/reference/user-roles/"
 )
 
 func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Resource {
@@ -83,7 +83,7 @@ func validateRoleName() schema.SchemaValidateDiagFunc {
 			diag := diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Wrong role name",
-				Detail:   fmt.Sprintf("Role name %q is not a valid value. Possible names are: %q. More: %s", value, expected, mongodbAtlasRolesUrl),
+				Detail:   fmt.Sprintf("Role name %q is not a valid value. Possible names are: %q. More: %s", value, expected, mongodbAtlasRolesURL),
 			}
 			diags = append(diags, diag)
 		}
