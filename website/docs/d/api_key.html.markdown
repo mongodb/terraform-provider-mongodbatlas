@@ -10,6 +10,8 @@ description: |-
 
 `mongodbatlas_api_key` describes a MongoDB Atlas API Key. This represents a API Key that has been created.
 
+~> **IMPORTANT WARNING:**  Creating, Reading, Updating, or Deleting Atlas API Keys may key expose sensitive organizational secrets to Terraform State. For best security practices consider storing sensitive API Key secrets instead via the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
+
 -> **NOTE:** You may find org_id in the official documentation.
 
 ## Example Usage
