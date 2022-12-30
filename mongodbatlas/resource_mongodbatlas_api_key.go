@@ -146,7 +146,7 @@ func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceDat
 
 	_, err := conn.APIKeys.Delete(ctx, orgID, apiKeyID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting custom db role information: %s", err))
+		return diag.FromErr(fmt.Errorf("error API Key: %s", err))
 	}
 	return nil
 }

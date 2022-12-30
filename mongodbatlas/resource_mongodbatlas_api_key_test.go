@@ -112,9 +112,9 @@ func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.CustomDBRoles.Get(context.Background(), ids["project_id"], ids["role_name"])
+		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["role_name"])
 		if err == nil {
-			return fmt.Errorf("custom DB Role (%s) still exists", ids["role_name"])
+			return fmt.Errorf("API Key (%s) still exists", ids["role_name"])
 		}
 	}
 
