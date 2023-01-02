@@ -25,7 +25,6 @@ func TestAccConfigDSProjectAPIKey_basic(t *testing.T) {
 				Config: testAccDSMongoDBAtlasProjectAPIKeyConfig(projectID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					// Test for Resource
-					//testAccCheckMongoDBAtlasProjectAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
