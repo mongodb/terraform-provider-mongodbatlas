@@ -690,16 +690,3 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 
 	return &assumeRole
 }
-
-func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string, values map[string]cty.Value) {
-	if len(values) == 0 {
-		return
-	}
-
-	body.AppendNewline()
-	block := body.AppendNewBlock(name, labels).Body()
-
-	for k, v := range values {
-		block.SetAttributeValue(k, v)
-	}
-}
