@@ -127,18 +127,18 @@ func flattenAlertConfigurations(ctx context.Context, conn *matlas.Client, alerts
 		}
 	}
 
-	for _, alert := range alerts {
+	for i := 0; i < len(alerts); i++ {
 		results = append(results, map[string]interface{}{
-			"alert_configuration_id":  alert.ID,
-			"event_type":              alert.EventTypeName,
-			"created":                 alert.Created,
-			"updated":                 alert.Updated,
-			"enabled":                 alert.Enabled,
-			"matcher":                 flattenAlertConfigurationMatchers(alert.Matchers),
-			"metric_threshold_config": flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold),
-			"threshold_config":        flattenAlertConfigurationThresholdConfig(alert.Threshold),
-			"notification":            flattenAlertConfigurationNotifications(d, alert.Notifications),
-			"output":                  computeOutput(&alert, outputTypes),
+			"alert_configuration_id":  alerts[i].ID,
+			"event_type":              alerts[i].EventTypeName,
+			"created":                 alerts[i].Created,
+			"updated":                 alerts[i].Updated,
+			"enabled":                 alerts[i].Enabled,
+			"matcher":                 flattenAlertConfigurationMatchers(alerts[i].Matchers),
+			"metric_threshold_config": flattenAlertConfigurationMetricThresholdConfig(alerts[i].MetricThreshold),
+			"threshold_config":        flattenAlertConfigurationThresholdConfig(alerts[i].Threshold),
+			"notification":            flattenAlertConfigurationNotifications(d, alerts[i].Notifications),
+			"output":                  computeOutput(&alerts[i], outputTypes),
 		})
 	}
 

@@ -338,7 +338,7 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 }
 
 func computeOutput(alert *matlas.AlertConfiguration, types []string) []map[string]interface{} {
-	if types == nil || len(types) == 0 {
+	if len(types) == 0 {
 		return nil
 	}
 
@@ -399,8 +399,8 @@ func outputAlertConfigurationResourceHcl(alert *matlas.AlertConfiguration) strin
 		appendBlockWithCtyValues(resource, "threshold_config", []string{}, values)
 	}
 
-	for _, notification := range alert.Notifications {
-		values := convertNotificationToCtyValues(notification)
+	for i := 0; i < len(alert.Notifications); i++ {
+		values := convertNotificationToCtyValues(&alert.Notifications[i])
 
 		appendBlockWithCtyValues(resource, "notification", []string{}, values)
 	}
@@ -438,7 +438,7 @@ func convertThresholdToCtyValues(threshold matlas.Threshold) map[string]cty.Valu
 	}
 }
 
-func convertNotificationToCtyValues(notification matlas.Notification) map[string]cty.Value {
+func convertNotificationToCtyValues(notification *matlas.Notification) map[string]cty.Value {
 	values := map[string]cty.Value{}
 
 	if notification.ChannelName != "" {
