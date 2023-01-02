@@ -73,8 +73,12 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error create API key: %s", err))
 	}
 
-	if err := d.Set("private_key", apiKey.PrivateKey); err != nil {
+	if err := d.Set("public_key", apiKey.PublicKey); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+	}
+
+	if err := d.Set("private_key", apiKey.PrivateKey); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -137,8 +141,6 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	updateRequest := new(matlas.AssignAPIKey)
 
 	if d.HasChange("role_names") {
-		//updateRequest.Desc = d.Get("description").(string)
-
 		updateRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
 
 		_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, updateRequest)
@@ -208,7 +210,8 @@ func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID s
 				"api_key_id":  apiKey.ID,
 				"description": apiKey.Desc,
 				"public_key":  apiKey.PublicKey,
-				"role_names":  flattenOrgAPIKeyRoles(projectID, apiKey.Roles),
+				"private_key": apiKey.PrivateKey,
+				"role_names":  flattenProjectAPIKeyRoles(projectID, apiKey.Roles),
 			}
 		}
 	}

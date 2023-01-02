@@ -126,7 +126,7 @@ func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.Res
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.Replace(ids["entry"], "/", "%2F", -1))
+	apiKey, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -162,7 +162,7 @@ func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.R
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	_, err := conn.AccessListAPIKeys.Delete(ctx, orgID, apiKeyID, strings.Replace(ids["entry"], "/", "%2F", -1))
+	_, err := conn.AccessListAPIKeys.Delete(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}
@@ -181,7 +181,7 @@ func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *sch
 	apiKeyID := parts[1]
 	entry := parts[2]
 
-	r, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, entry)
+	r, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(entry, "/", "%2F"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}

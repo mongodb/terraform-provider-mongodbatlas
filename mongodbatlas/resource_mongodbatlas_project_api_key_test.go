@@ -15,10 +15,8 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		description  = fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
-		//descriptionUpdate = fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
-		roleName = "GROUP_OWNER"
-		//roleNameUpdated   = "GROUP_READ_ONLY"
+		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		roleName     = "GROUP_OWNER"
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -29,7 +27,6 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(projectID, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					//testAccCheckMongoDBAtlasProjectAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 
@@ -37,17 +34,6 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
 			},
-			/*{
-				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(projectID, descriptionUpdate, roleNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
-					//testAccCheckMongoDBAtlasProjectAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "description", descriptionUpdate),
-				),
-			},*/
 		},
 	})
 }
@@ -76,35 +62,6 @@ func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckMongoDBAtlasProjectAPIKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-
-		ids := decodeStateID(rs.Primary.ID)
-
-		projectAPIKeys, _, err := conn.ProjectAPIKeys.List(context.Background(), ids["project_id"], nil)
-		if err != nil {
-			return nil
-		}
-
-		for _, val := range projectAPIKeys {
-			if val.ID == ids["api_key_id"] {
-				return fmt.Errorf("Project API Key (%s) still exists", ids["role_name"])
-			}
-		}
-		return nil
-	}
 }
 
 func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {
@@ -146,10 +103,9 @@ func testAccCheckMongoDBAtlasProjectAPIKeyImportStateIDFunc(resourceName string)
 func testAccMongoDBAtlasProjectAPIKeyConfigBasic(projectID, description, roleNames string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_api_key" "test" {
-			project_id     = "%s"
-			description  = "%s"
-
-			role_names  = ["%s"]
+			project_id     = %[1]q
+			description  = %[2]q
+			role_names  = [%[3]q]
 		}
 	`, projectID, description, roleNames)
 }

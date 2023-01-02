@@ -11,22 +11,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccProjectRSProjectIPAccesslistAPIKey_SettingIPAddress(t *testing.T) {
+func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_accesslist_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-
+	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
 	updatedIPAddress := fmt.Sprintf("179.154.228.%d", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingIPAddress(orgID, ipAddress),
+				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyExists(resourceName),
+					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 
@@ -35,9 +35,9 @@ func TestAccProjectRSProjectIPAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingIPAddress(orgID, updatedIPAddress),
+				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, updatedIPAddress),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyExists(resourceName),
+					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 
@@ -49,22 +49,22 @@ func TestAccProjectRSProjectIPAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
+func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_accesslist_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
-
+	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
 	updatedCIDRBlock := fmt.Sprintf("179.154.228.%d/32", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingCIDRBlock(orgID, cidrBlock),
+				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, cidrBlock),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyExists(resourceName),
+					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 
@@ -73,9 +73,9 @@ func TestAccProjectRSProjectIPAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingCIDRBlock(orgID, updatedCIDRBlock),
+				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, updatedCIDRBlock),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyExists(resourceName),
+					testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 
@@ -87,22 +87,23 @@ func TestAccProjectRSProjectIPAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccessListAPIKey_importBasic(t *testing.T) {
+func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	resourceName := "mongodbatlas_accesslist_api_key.test"
+	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingIPAddress(orgID, ipAddress),
+				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyImportStateIDFunc(resourceName),
+				ImportStateIdFunc: testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -110,7 +111,7 @@ func TestAccProjectRSProjectIPAccessListAPIKey_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -134,7 +135,7 @@ func testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyExists(resourceName string
 	}
 }
 
-func testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyDestroy(s *terraform.State) error {
+func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
@@ -153,7 +154,7 @@ func testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyDestroy(s *terraform.State
 	return nil
 }
 
-func testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccCheckMongoDBAtlasAccessListAPIKeyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -166,35 +167,35 @@ func testAccCheckMongoDBAtlasProjectIPAccessListAPIKeyImportStateIDFunc(resource
 	}
 }
 
-func testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingIPAddress(orgID, ipAddress string) string {
+func testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress string) string {
 	return fmt.Sprintf(`
 
 	   resource "mongodbatlas_api_key" "test" {
-		  org_id = "%s"
-		  description = "IPAccessList test key"
+		  org_id = %[1]q
+		  description = %[2]q
 		  role_names  = ["ORG_MEMBER","ORG_BILLING_ADMIN"]
 	    }
 
 		resource "mongodbatlas_accesslist_api_key" "test" {
-			org_id = "%s"
-			ip_address = "%s"
+			org_id = %[1]q
+			ip_address = %[3]q
 			api_key_id = mongodbatlas_api_key.test.api_key_id
 		}
-	`, orgID, orgID, ipAddress)
+	`, orgID, description, ipAddress)
 }
-func testAccMongoDBAtlasProjectIPAccessListAPIKeyConfigSettingCIDRBlock(orgID, cidrBlock string) string {
+func testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, cidrBlock string) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_api_key" "test" {
-		org_id = "%s"
-		description = "IPAccessList test key"
+		org_id = %[1]q
+		description = %[2]q
 		role_names  = ["ORG_MEMBER","ORG_BILLING_ADMIN"]
 	  }
 
 		resource "mongodbatlas_accesslist_api_key" "test" {
-			org_id = "%s"
-			api_key_id = mongodbatlas_api_key.test.api_key_id
-			cidr_block = "%s"
+		  org_id = %[1]q
+		  api_key_id = mongodbatlas_api_key.test.api_key_id
+		  cidr_block = %[3]q
 		}
-	`, orgID, orgID, cidrBlock)
+	`, orgID, description, cidrBlock)
 }
