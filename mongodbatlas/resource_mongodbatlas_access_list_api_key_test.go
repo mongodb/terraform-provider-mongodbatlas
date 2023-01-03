@@ -12,10 +12,10 @@ import (
 )
 
 func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
-	resourceName := "mongodbatlas_accesslist_api_key.test"
+	resourceName := "mongodbatlas_access_list_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
+	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
 	updatedIPAddress := fmt.Sprintf("179.154.228.%d", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
@@ -50,10 +50,10 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 }
 
 func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
-	resourceName := "mongodbatlas_accesslist_api_key.test"
+	resourceName := "mongodbatlas_access_list_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
-	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
+	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
 	updatedCIDRBlock := fmt.Sprintf("179.154.228.%d/32", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
@@ -90,8 +90,8 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
-	resourceName := "mongodbatlas_accesslist_api_key.test"
-	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
+	resourceName := "mongodbatlas_access_list_api_key.test"
+	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -139,7 +139,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_accesslist_api_key" {
+		if rs.Type != "mongodbatlas_access_list_api_key" {
 			continue
 		}
 
@@ -176,7 +176,7 @@ func testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, descriptio
 		  role_names  = ["ORG_MEMBER","ORG_BILLING_ADMIN"]
 	    }
 
-		resource "mongodbatlas_accesslist_api_key" "test" {
+		resource "mongodbatlas_access_list_api_key" "test" {
 			org_id = %[1]q
 			ip_address = %[3]q
 			api_key_id = mongodbatlas_api_key.test.api_key_id
@@ -192,7 +192,7 @@ func testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, descriptio
 		role_names  = ["ORG_MEMBER","ORG_BILLING_ADMIN"]
 	  }
 
-		resource "mongodbatlas_accesslist_api_key" "test" {
+		resource "mongodbatlas_access_list_api_key" "test" {
 		  org_id = %[1]q
 		  api_key_id = mongodbatlas_api_key.test.api_key_id
 		  cidr_block = %[3]q

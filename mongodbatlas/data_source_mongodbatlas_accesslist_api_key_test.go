@@ -10,8 +10,8 @@ import (
 )
 
 func TestAccConfigDSAccesslistAPIKey_basic(t *testing.T) {
-	resourceName := "mongodbatlas_accesslist_api_key.test"
-	dataSourceName := "data.mongodbatlas_accesslist_api_key.test"
+	resourceName := "mongodbatlas_access_list_api_key.test"
+	dataSourceName := "data.mongodbatlas_access_list_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -42,9 +42,9 @@ func TestAccConfigDSAccesslistAPIKey_basic(t *testing.T) {
 
 func testAccDSMongoDBAtlasAccesslistAPIKeyConfig(orgID, description, ipAddress string) string {
 	return fmt.Sprintf(`
-	data "mongodbatlas_accesslist_api_key" "test" {
+	data "mongodbatlas_access_list_api_key" "test" {
 		org_id     = %[1]q
-		api_key_id = mongodbatlas_accesslist_api_key.test.api_key_id
+		api_key_id = mongodbatlas_access_list_api_key.test.api_key_id
 		ip_address = %[3]q
 	  }
 	  
@@ -54,7 +54,7 @@ func testAccDSMongoDBAtlasAccesslistAPIKeyConfig(orgID, description, ipAddress s
 		role_names  = ["ORG_MEMBER","ORG_BILLING_ADMIN"]
 	  }
 	  
-	  resource "mongodbatlas_accesslist_api_key" "test" {
+	  resource "mongodbatlas_access_list_api_key" "test" {
 		org_id     = %[1]q
 		ip_address = %[3]q
 	    api_key_id = mongodbatlas_api_key.test.api_key_id

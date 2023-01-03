@@ -8,12 +8,9 @@ description: |-
 
 # Resource: mongodbatlas_api_key
 
-`mongodbatlas_api_key` provides a Project resource. This allows project to be created.
+`mongodbatlas_api_key` provides a Organization API key resource. This allows an Organizational API key to be created.
 
 ~> **IMPORTANT WARNING:**  Creating, Reading, Updating, or Deleting Atlas API Keys may key expose sensitive organizational secrets to Terraform State. Consider storing sensitive API Key secrets instead via the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
-
-~> **IMPORTANT WARNING:**  Changing the name of an existing Project in your Terraform configuration will result the destruction of that Project and related resources (including Clusters) and the re-creation of those resources.  Terraform will inform you of the destroyed/created resources before applying so be sure to verify any change to your environment before applying.
-
 ## Example Usage
 
 ```terraform
@@ -37,22 +34,6 @@ The following are valid roles:
   * `ORG_READ_ONLY`
   * `ORG_MEMBER`
 
-### Teams
-Teams attribute is optional
-
-~> **NOTE:** Atlas limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization.
-
-* `team_id` - (Required) The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
-
-* `role_names` - (Required) Each string in the array represents a project role you want to assign to the team. Every user associated with the team inherits these roles. You must specify an array even if you are only associating a single role with the team.
- The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`
-
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
 ### Programmatic API Keys
@@ -68,17 +49,11 @@ api_keys allows one to assign an existing organization programmatic API key to a
   * `GROUP_DATA_ACCESS_READ_WRITE`
   * `GROUP_DATA_ACCESS_READ_ONLY`
   * `GROUP_CLUSTER_MANAGER`  
- 
-
-  
-## Attributes Reference
+ ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The project id.
-* `created` - The ISO-8601-formatted timestamp of when Atlas created the project..
-* `cluster_count` - The number of Atlas clusters deployed in the project..
-
+* `api_key_id` - Unique identifier for this Organization API key.
 ## Import
 
 API Keys must be imported using org ID, API Key ID e.g.

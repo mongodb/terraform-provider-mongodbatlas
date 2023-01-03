@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -157,11 +158,32 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
+	var orgID string
 
-	_, err := conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
+	projectAPIKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, nil)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
+	}
+
+	for _, val := range projectAPIKeys {
+		if val.ID == apiKeyID {
+			for _, role := range val.Roles {
+				if strings.HasPrefix(role.RoleName, "ORG_") {
+					orgID = val.Roles[0].OrgID
+				}
+			}
+		}
+	}
+
+	_, err = conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting project api key: %s", err))
 	}
+	_, err = conn.APIKeys.Delete(ctx, orgID, apiKeyID)
+	if err != nil {
+		log.Printf("[WARN] unable to delete Key (%s): %s\n", apiKeyID, err)
+	}
+
 	d.SetId("")
 	return nil
 }
