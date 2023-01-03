@@ -148,6 +148,7 @@ export TF_CLI_CONFIG_FILE=/mnt/c/Users/ZuhairAhmed/Desktop/Tenant_Upgrade/tf_cac
 
 #### Logs
 To help with dubbing issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 
+
 To export logs to file, you can use `export TF_LOG_PATH=terraform.log`
 
 ### Running the acceptance test
