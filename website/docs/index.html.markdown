@@ -99,10 +99,12 @@ In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please foll
             "Principal": {
                 "AWS": "*"
             },
-            "Action": "sts:AssumeRole"
+            "Action": [
+                "sts:AssumeRole"
+            ]
         }
     ]
-} 
+}
 ```
 Note: this policy may be overly broad for many use cases, feel free to adjust accordingly to your organization's needs.
 
