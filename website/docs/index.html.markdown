@@ -88,7 +88,7 @@ In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please foll
       "private_key":"secret2"
      }
 ```
-2. Create an AWS IAM Role to attach to the AWS STS (Security Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole” . For example: 
+2. Create an AWS IAM Role to attach to the AWS STS (Security Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole”. For example: 
 ```
 {
     "Version": "2012-10-17",
@@ -102,8 +102,10 @@ In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please foll
             "Action": "sts:AssumeRole"
         }
     ]
-} 
+}
 ```
+In addition, you are required to also attach the AWS Managed policy of `SecretsManagerReadWrite` to this IAM role.
+
 Note: this policy may be overly broad for many use cases, feel free to adjust accordingly to your organization's needs.
 
 3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
