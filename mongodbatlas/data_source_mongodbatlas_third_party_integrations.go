@@ -91,6 +91,9 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 	if integrationSchema.Password == "" {
 		integrationSchema.APIKey = integration.Password
 	}
+	if integrationSchema.UserName == "" {
+		integrationSchema.APIKey = integration.UserName
+	}
 
 	out := map[string]interface{}{
 		"type":                        integration.Type,
@@ -110,7 +113,7 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"url":                         integration.URL,
 		"secret":                      integrationSchema.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
-		"user_name":                   integration.UserName,
+		"user_name":                   integrationSchema.UserName,
 		"password":                    integrationSchema.Password,
 		"service_discovery":           integration.ServiceDiscovery,
 		"scheme":                      integration.Scheme,
