@@ -370,6 +370,14 @@ func resourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err))
 	}
 
+	if err := d.Set("metric_threshold_config", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold_config", ids["id"], err))
+	}
+
+	if err := d.Set("threshold_config", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold_config", ids["id"], err))
+	}
+
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(d, alert.Notifications)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err))
 	}
