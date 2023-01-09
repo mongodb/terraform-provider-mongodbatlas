@@ -323,7 +323,7 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
-		fmt.Printf("Session get credentils error: %s", err)
+		fmt.Printf("Session get credentials error: %s", err)
 		return *config, err
 	}
 	_, err = creds.Get()
@@ -331,7 +331,11 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 		fmt.Printf("STS get credentials error: %s", err)
 		return *config, err
 	}
-	secretString := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	if err != nil {
+		fmt.Printf("Get Secrets error: %s", err)
+		return *config, err
+	}
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
@@ -343,7 +347,7 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 	return *config, nil
 }
 
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) string {
+func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
 	svc := secretsmanager.New(sess, creds)
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secret),
@@ -370,11 +374,11 @@ func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secr
 		} else {
 			fmt.Println(err.Error())
 		}
-		return ""
+		return "", err
 	}
 
 	fmt.Println(result)
-	return *result.SecretString
+	return *result.SecretString, err
 }
 
 func encodeStateID(values map[string]string) string {
