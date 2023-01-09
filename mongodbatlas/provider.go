@@ -295,7 +295,11 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
 		awsSessionToken := d.Get("aws_session_token").(string)
 		endpoint := d.Get("sts_endpoint").(string)
-		config, _ = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		var err error
+		config, err = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
 	}
 
 	return config.NewClient(ctx)
@@ -305,6 +309,7 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		fmt.Printf("GetSTSRegionalEndpoint error: %s", err)
+		return *config, err
 	}
 
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -319,17 +324,19 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
 		fmt.Printf("Session get credentils error: %s", err)
+		return *config, err
 	}
 	_, err = creds.Get()
 	if err != nil {
 		fmt.Printf("STS get credentials error: %s", err)
+		return *config, err
 	}
 	secretString := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return *config, nil
+		return *config, err
 	}
 	config.PublicKey = secretData.PublicKey
 	config.PrivateKey = secretData.PrivateKey
