@@ -314,9 +314,9 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 
 	defaultResolver := endpoints.DefaultResolver()
 	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == "sts" {
+		if service == endpoints.StsServiceID {
 			return endpoints.ResolvedEndpoint{
-				URL:           fmt.Sprintf("%s.%s.%s", "https://sts", region, "amazonaws.com"),
+				URL:           endpoint,
 				SigningRegion: region,
 			}, nil
 		}
@@ -328,8 +328,7 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 		Region:              aws.String(region),
 		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
 		STSRegionalEndpoint: ep,
-		//Endpoint:            aws.String(endpoint),
-		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
+		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
 	}
 
 	sess := session.Must(session.NewSession(&cfg))
