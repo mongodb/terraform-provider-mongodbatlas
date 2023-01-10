@@ -315,6 +315,12 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 	defaultResolver := endpoints.DefaultResolver()
 	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
 		if service == endpoints.StsServiceID {
+			if endpoint == "" {
+				return endpoints.ResolvedEndpoint{
+					URL:           "https://sts.amazonaws.com",
+					SigningRegion: region,
+				}, nil
+			}
 			return endpoints.ResolvedEndpoint{
 				URL:           endpoint,
 				SigningRegion: region,
