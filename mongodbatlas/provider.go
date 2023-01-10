@@ -312,12 +312,32 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 		return *config, err
 	}
 
-	sess := session.Must(session.NewSession(&aws.Config{
+	defaultResolver := endpoints.DefaultResolver()
+	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+		if service == endpoints.StsServiceID {
+			if endpoint == "" {
+				return endpoints.ResolvedEndpoint{
+					URL:           "https://sts.amazonaws.com",
+					SigningRegion: region,
+				}, nil
+			}
+			return endpoints.ResolvedEndpoint{
+				URL:           endpoint,
+				SigningRegion: region,
+			}, nil
+		}
+
+		return defaultResolver.EndpointFor(service, region, optFns...)
+	}
+
+	cfg := aws.Config{
 		Region:              aws.String(region),
 		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
 		STSRegionalEndpoint: ep,
-		Endpoint:            &endpoint,
-	}))
+		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+	}
+
+	sess := session.Must(session.NewSession(&cfg))
 
 	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
 
@@ -342,6 +362,14 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 	if err != nil {
 		return *config, err
 	}
+	if secretData.PrivateKey == "" {
+		return *config, fmt.Errorf("secret missing value for credential PrivateKey")
+	}
+
+	if secretData.PublicKey == "" {
+		return *config, fmt.Errorf("secret missing value for credential PublicKey")
+	}
+
 	config.PublicKey = secretData.PublicKey
 	config.PrivateKey = secretData.PrivateKey
 	return *config, nil
