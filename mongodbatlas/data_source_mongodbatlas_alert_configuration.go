@@ -259,6 +259,10 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"resource_hcl", "resource_import"}, false),
 						},
+						"label": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"value": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -318,13 +322,7 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 	}
 
 	if dOutput := d.Get("output"); dOutput != nil {
-		types := make([]string, len(dOutput.([]interface{})))
-
-		for _, o := range dOutput.([]map[string]interface{}) {
-			types = append(types, o["type"].(string))
-		}
-
-		if err := d.Set("output", computeOutput(alert, types)); err != nil {
+		if err := d.Set("output", computeAlertConfigurationOutput(alert, dOutput.([]map[string]interface{}), alert.EventTypeName)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "output", projectID, err))
 		}
 	}
@@ -337,45 +335,48 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 	return nil
 }
 
-func computeOutput(alert *matlas.AlertConfiguration, types []string) []map[string]interface{} {
-	if len(types) == 0 {
-		return nil
-	}
-
+func computeAlertConfigurationOutput(alert *matlas.AlertConfiguration, outputConfigurations []map[string]interface{}, defaultLabel string) []map[string]interface{} {
 	output := make([]map[string]interface{}, 0)
 
-	for _, oType := range types {
-		var value string
-
-		if oType == "resource_hcl" {
-			value = outputAlertConfigurationResourceHcl(alert)
-		} else if oType == "resource_import" {
-			value = outputAlertConfigurationResourceImport(alert)
+	for _, config := range outputConfigurations {
+		var o = map[string]interface{}{
+			"type": config["type"],
 		}
 
-		if value == "" {
-			continue
+		if label, ok := o["label"]; ok {
+			o["label"] = label
+		} else {
+			o["label"] = defaultLabel
 		}
 
-		output = append(output, map[string]interface{}{
-			"type":  oType,
-			"value": value,
-		})
+		if outputValue := outputAlertConfiguration(alert, o["type"].(string), o["label"].(string)); outputValue != "" {
+			o["value"] = outputValue
+		}
+
+		output = append(output, o)
 	}
 
 	return output
 }
 
-func outputAlertConfigurationResourceHcl(alert *matlas.AlertConfiguration) string {
+func outputAlertConfiguration(alert *matlas.AlertConfiguration, outputType, resourceLabel string) string {
+	if outputType == "resource_hcl" {
+		return outputAlertConfigurationResourceHcl(resourceLabel, alert)
+	}
+	if outputType == "resource_import" {
+		return outputAlertConfigurationResourceImport(resourceLabel, alert)
+	}
+
+	return ""
+}
+
+func outputAlertConfigurationResourceHcl(label string, alert *matlas.AlertConfiguration) string {
 	f := hclwrite.NewEmptyFile()
 	root := f.Body()
-	resource := root.AppendNewBlock("resource", []string{"mongodbatlas_alert_configurations", alert.EventTypeName}).Body()
+	resource := root.AppendNewBlock("resource", []string{"mongodbatlas_alert_configuration", label}).Body()
 
 	resource.SetAttributeValue("project_id", cty.StringVal(alert.GroupID))
-	resource.SetAttributeValue("alert_configuration_id", cty.StringVal(alert.ID))
 	resource.SetAttributeValue("event_type", cty.StringVal(alert.EventTypeName))
-	resource.SetAttributeValue("created", cty.StringVal(alert.Created))
-	resource.SetAttributeValue("updated", cty.StringVal(alert.Updated))
 
 	if alert.Enabled != nil {
 		resource.SetAttributeValue("enabled", cty.BoolVal(*alert.Enabled))
@@ -408,8 +409,8 @@ func outputAlertConfigurationResourceHcl(alert *matlas.AlertConfiguration) strin
 	return string(f.Bytes())
 }
 
-func outputAlertConfigurationResourceImport(alert *matlas.AlertConfiguration) string {
-	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", alert.EventTypeName, alert.GroupID, alert.ID)
+func outputAlertConfigurationResourceImport(label string, alert *matlas.AlertConfiguration) string {
+	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", label, alert.GroupID, alert.ID)
 }
 
 func convertMatcherToCtyValues(matcher matlas.Matcher) map[string]cty.Value {
@@ -499,6 +500,18 @@ func convertNotificationToCtyValues(notification *matlas.Notification) map[strin
 
 	if notification.SMSEnabled != nil && *notification.SMSEnabled {
 		values["sms_enabled"] = cty.BoolVal(*notification.SMSEnabled)
+	}
+
+	if len(notification.Roles) > 0 {
+		roles := make([]cty.Value, 0)
+
+		for _, r := range notification.Roles {
+			if r != "" {
+				roles = append(roles, cty.StringVal(r))
+			}
+		}
+
+		values["roles"] = cty.TupleVal(roles)
 	}
 
 	return values

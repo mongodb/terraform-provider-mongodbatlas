@@ -117,17 +117,21 @@ func dataSourceMongoDBAtlasAlertConfigurationsRead(ctx context.Context, d *schem
 }
 
 func flattenAlertConfigurations(ctx context.Context, conn *matlas.Client, alerts []matlas.AlertConfiguration, d *schema.ResourceData) []map[string]interface{} {
-	var outputTypes []string
+	var outputConfigurations []map[string]interface{}
 
 	results := make([]map[string]interface{}, 0)
 
 	if output := d.Get("output_type"); output != nil {
 		for _, o := range output.([]interface{}) {
-			outputTypes = append(outputTypes, o.(string))
+			outputConfigurations = append(outputConfigurations, map[string]interface{}{
+				"type": o.(string),
+			})
 		}
 	}
 
 	for i := 0; i < len(alerts); i++ {
+		label := fmt.Sprintf("%s_%d", alerts[i].EventTypeName, i)
+
 		results = append(results, map[string]interface{}{
 			"alert_configuration_id":  alerts[i].ID,
 			"event_type":              alerts[i].EventTypeName,
@@ -138,7 +142,7 @@ func flattenAlertConfigurations(ctx context.Context, conn *matlas.Client, alerts
 			"metric_threshold_config": flattenAlertConfigurationMetricThresholdConfig(alerts[i].MetricThreshold),
 			"threshold_config":        flattenAlertConfigurationThresholdConfig(alerts[i].Threshold),
 			"notification":            flattenAlertConfigurationNotifications(d, alerts[i].Notifications),
-			"output":                  computeOutput(&alerts[i], outputTypes),
+			"output":                  computeAlertConfigurationOutput(&alerts[i], outputConfigurations, label),
 		})
 	}
 

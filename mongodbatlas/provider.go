@@ -527,6 +527,27 @@ func HashCodeString(s string) int {
 	return 0
 }
 
+func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string, values map[string]cty.Value) {
+	if len(values) == 0 {
+		return
+	}
+
+	keys := make([]string, 0, len(values))
+
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	body.AppendNewline()
+	block := body.AppendNewBlock(name, labels).Body()
+
+	for _, k := range keys {
+		block.SetAttributeValue(k, values[k])
+	}
+}
+
 // assumeRoleSchema From aws provider.go
 func assumeRoleSchema() *schema.Schema {
 	return &schema.Schema{
