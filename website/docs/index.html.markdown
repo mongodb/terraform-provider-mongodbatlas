@@ -147,7 +147,7 @@ Note: Fully qualified `secret_name` ARN as input is REQUIRED for cross-AWS accou
 * https://aws.amazon.com/blogs/security/how-to-access-secrets-across-aws-accounts-by-attaching-resource-based-policies/ 
 * https://aws.amazon.com/premiumsupport/knowledge-center/secrets-manager-share-between-accounts/
 
-Note: `sts_endpoint` parameter is REQUIRED for cross-AWS region secrets. 
+Note: `sts_endpoint` parameter is REQUIRED for cross-AWS region or cross-AWS account secrets. 
 
 7. In terminal, `terraform init` 
 
