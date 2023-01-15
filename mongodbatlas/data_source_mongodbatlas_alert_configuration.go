@@ -322,7 +322,7 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 	}
 
 	if dOutput := d.Get("output"); dOutput != nil {
-		if err := d.Set("output", computeAlertConfigurationOutput(alert, dOutput.([]map[string]interface{}), alert.EventTypeName)); err != nil {
+		if err := d.Set("output", computeAlertConfigurationOutput(alert, dOutput.([]interface{}), alert.EventTypeName)); err != nil {
 			return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "output", projectID, err))
 		}
 	}
@@ -335,10 +335,11 @@ func dataSourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema
 	return nil
 }
 
-func computeAlertConfigurationOutput(alert *matlas.AlertConfiguration, outputConfigurations []map[string]interface{}, defaultLabel string) []map[string]interface{} {
+func computeAlertConfigurationOutput(alert *matlas.AlertConfiguration, outputConfigurations []interface{}, defaultLabel string) []map[string]interface{} {
 	output := make([]map[string]interface{}, 0)
 
-	for _, config := range outputConfigurations {
+	for i := 0; i < len(outputConfigurations); i++ {
+		config := outputConfigurations[i].(map[string]interface{})
 		var o = map[string]interface{}{
 			"type": config["type"],
 		}

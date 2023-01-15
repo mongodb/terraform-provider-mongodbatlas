@@ -117,7 +117,7 @@ func dataSourceMongoDBAtlasAlertConfigurationsRead(ctx context.Context, d *schem
 }
 
 func flattenAlertConfigurations(ctx context.Context, conn *matlas.Client, alerts []matlas.AlertConfiguration, d *schema.ResourceData) []map[string]interface{} {
-	var outputConfigurations []map[string]interface{}
+	var outputConfigurations []interface{}
 
 	results := make([]map[string]interface{}, 0)
 

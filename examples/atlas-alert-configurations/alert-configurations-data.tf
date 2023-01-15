@@ -27,3 +27,10 @@ output "alert_resources" {
 output "alert_imports" {
   value = join("", local.alert_imports)
 }
+
+data "mongodbatlas_alert_configurations" "test" {
+  project_id = "%s"
+  list_options {
+    page_num = 0
+  }
+}
