@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -22,7 +23,7 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfiguration(projectID),
+				Config: testAccDSMongoDBAtlasAlertConfigurations(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationsCount(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -70,8 +71,16 @@ func testAccCheckMongoDBAtlasAlertConfigurationsCount(resourceName string) resou
 			return fmt.Errorf("the Alert Configurations List for project (%s) could not be read", projectID)
 		}
 
-		if len(rs.Primary.Attributes["results"]) != len(alertResp) {
-			return fmt.Errorf("%s results count did not match that of current Alert Configurations", resourceName)
+		resultsNumber := rs.Primary.Attributes["results.#"]
+		var dataSourceResultsCount int
+
+		if dataSourceResultsCount, err = strconv.Atoi(resultsNumber); err != nil {
+			return fmt.Errorf("%s results count is somehow not a number %s", resourceName, resultsNumber)
+		}
+
+		apiResultsCount := len(alertResp)
+		if dataSourceResultsCount != len(alertResp) {
+			return fmt.Errorf("%s results count (%v) did not match that of current Alert Configurations (%d)", resourceName, dataSourceResultsCount, apiResultsCount)
 		}
 
 		return nil
