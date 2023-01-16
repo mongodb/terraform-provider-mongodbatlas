@@ -37,6 +37,9 @@ output "alert_output" {
 }
 ```
 
+Refer to the following for a full example on using this data_source as a tool to import all resources:
+* [atlas-alert-configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-alert-configurations)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get the alert configurations.

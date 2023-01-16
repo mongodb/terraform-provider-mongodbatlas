@@ -90,18 +90,18 @@ data "mongodbatlas_alert_configuration" "test" {
 Utilize data_source to generate resource hcl and import statement. Useful if you have a specific alert_configuration_id and are looking to manage it as is in state. To import all alerts, refer to the documentation on [data_source_mongodbatlas_alert_configurations](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/alert_configurations)
 ```
 data "mongodbatlas_alert_configuration" "test" {
-	project_id             = var.project_id
-	alert_configuration_id = var.alert_configuration_id
+    project_id             = var.project_id
+    alert_configuration_id = var.alert_configuration_id
 
-  output {
-    type = "resource_hcl"
-    label = "test"
-  }
+    output {
+        type = "resource_hcl"
+        label = "test"
+    }
 
-  output {
-    type = "resource_import"
-    label = "test"
-  }
+    output {
+        type = "resource_import"
+        label = "test"
+    }
 }
 ```
 
