@@ -1,3 +1,10 @@
+## Using the data source
+Example exists in `alert-configurations-data.tf`. To use this example exactly:
+- Copy directory to local disk
+- Add a `terraform.tfvars`
+- Add your `project_id`
+- Run `terraform apply`
+
 ### Create alert resources and import them into state file
 ```
 terraform output -raw alert_imports > import-alerts.sh
