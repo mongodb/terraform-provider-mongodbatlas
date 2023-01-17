@@ -117,7 +117,7 @@ export AWS_SECRET_ACCESS_KEY="secret”
 
 Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` flag to specify longer duration as needed 
 
-5. Store each of the 3 new created secrets from AWS STS as environment variables. For example: 
+5. Store each of the 3 new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example: 
 ```
 export AWS_ACCESS_KEY_ID="ASIAYBYSK3S5FZEKLETV"
 export AWS_SECRET_ACCESS_KEY="lgT6kL9lr1fxM6mCEwJ33MeoJ1M6lIzgsiW23FGH"
@@ -132,6 +132,7 @@ provider "mongodbatlas" {
     role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
   }
   secret_name           = "mongodbsecret"
+  // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:553552370874:secret:test789-TO06Hy" 
   region                = "us-east-2"
   
   aws_access_key_id     = "ASIXXBNEK"
@@ -140,7 +141,13 @@ provider "mongodbatlas" {
   sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
 }
 ```
-Note: `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable. Also `sts_endpoint` will be generated on behalf of user if not provider. 
+Note: `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable. 
+
+Note: Fully qualified `secret_name` ARN as input is REQUIRED for cross-AWS account secrets. For more detatils see:
+* https://aws.amazon.com/blogs/security/how-to-access-secrets-across-aws-accounts-by-attaching-resource-based-policies/ 
+* https://aws.amazon.com/premiumsupport/knowledge-center/secrets-manager-share-between-accounts/
+
+Note: `sts_endpoint` parameter is REQUIRED for cross-AWS region or cross-AWS account secrets. 
 
 7. In terminal, `terraform init` 
 
