@@ -45,6 +45,14 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasAdvancedClusterImportState,
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceMongoDBAtlasAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
+				Version: 0,
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -60,7 +68,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"bi_connector": {
+			"bi_connector_config": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -316,7 +324,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	if v, ok := d.GetOk("backup_enabled"); ok {
 		request.BackupEnabled = pointy.Bool(v.(bool))
 	}
-	if _, ok := d.GetOk("bi_connector"); ok {
+	if _, ok := d.GetOk("bi_connector_config"); ok {
 		biConnector, err := expandBiConnectorConfig(d)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
@@ -444,8 +452,8 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "bi_connector", clusterName, err))
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
@@ -581,7 +589,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
 	}
 
-	if d.HasChange("bi_connector") {
+	if d.HasChange("bi_connector_config") {
 		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
 
