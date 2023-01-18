@@ -13,7 +13,9 @@ description: |-
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ~> **IMPORTANT:**
-When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider (comments can however), hence a change will force the destruction and recreation of entries.   
+When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider (comments can however), hence a change will force the destruction and recreation of entries.  
+
+~> IMPORTANT WARNING: Creating, Reading, Updating, or Deleting Atlas API Keys may key expose sensitive organizational secrets to Terraform State. Consider storing sensitive API Key secrets instead via the HashiCorp Vault MongoDB Atlas Secrets Engine.
 
 
 ## Example Usage
@@ -53,4 +55,4 @@ IP Access List entries can be imported using the `org_id` , `api_key_id` and `ci
 $ terraform import mongodbatlas_access_list_api_key.test 5d0f1f74cf09a29120e123cd-a29120e123cd-10.242.88.0/21
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/api-access-list/create-api-access-entries/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/returnAllAccessListEntriesForOneOrganizationApiKey)
