@@ -35,6 +35,10 @@ var (
 	baseURL               = ""
 )
 
+const (
+	endPointSTSDefault = "https://sts.amazonaws.com"
+)
+
 type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
@@ -309,7 +313,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
-		fmt.Printf("GetSTSRegionalEndpoint error: %s", err)
+		log.Printf("GetSTSRegionalEndpoint error: %s", err)
 		return *config, err
 	}
 
@@ -318,7 +322,7 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 		if service == endpoints.StsServiceID {
 			if endpoint == "" {
 				return endpoints.ResolvedEndpoint{
-					URL:           "https://sts.amazonaws.com",
+					URL:           endPointSTSDefault,
 					SigningRegion: region,
 				}, nil
 			}
@@ -344,17 +348,17 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
-		fmt.Printf("Session get credentials error: %s", err)
+		log.Printf("Session get credentials error: %s", err)
 		return *config, err
 	}
 	_, err = creds.Get()
 	if err != nil {
-		fmt.Printf("STS get credentials error: %s", err)
+		log.Printf("STS get credentials error: %s", err)
 		return *config, err
 	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
-		fmt.Printf("Get Secrets error: %s", err)
+		log.Printf("Get Secrets error: %s", err)
 		return *config, err
 	}
 
@@ -388,25 +392,24 @@ func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secr
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case secretsmanager.ErrCodeResourceNotFoundException:
-				fmt.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
+				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
 			case secretsmanager.ErrCodeInvalidParameterException:
-				fmt.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
+				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
 			case secretsmanager.ErrCodeInvalidRequestException:
-				fmt.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
+				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
 			case secretsmanager.ErrCodeDecryptionFailure:
-				fmt.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
+				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
 			case secretsmanager.ErrCodeInternalServiceError:
-				fmt.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
+				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
 			default:
-				fmt.Println(aerr.Error())
+				log.Println(aerr.Error())
 			}
 		} else {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 		}
 		return "", err
 	}
 
-	fmt.Println(result)
 	return *result.SecretString, err
 }
 
