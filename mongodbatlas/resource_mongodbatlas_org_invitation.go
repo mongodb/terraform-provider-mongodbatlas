@@ -80,54 +80,56 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	orgInvitation, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
-	if err != nil {
-		// case 404
-		// deleted in the backend case
+	if orgID != invitationID {
+		orgInvitation, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
+		if err != nil {
+			// case 404
+			// deleted in the backend case
 
-		if strings.Contains(err.Error(), "404") {
-			accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), username, orgID)
-			if !accepted {
-				d.SetId("")
+			if strings.Contains(err.Error(), "404") {
+				accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), username, orgID)
+				if accepted {
+					d.SetId("")
+					return nil
+				}
+				return nil
 			}
-			return nil
+
+			return diag.Errorf("error getting Organization Invitation information: %s", err)
 		}
 
-		return diag.Errorf("error getting Organization Invitation information: %s", err)
-	}
+		if err := d.Set("username", orgInvitation.Username); err != nil {
+			return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("username", orgInvitation.Username); err != nil {
-		return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
-	}
+		if err := d.Set("org_id", orgInvitation.OrgID); err != nil {
+			return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("org_id", orgInvitation.OrgID); err != nil {
-		return diag.Errorf("error getting `username` for Organization Invitation (%s): %s", d.Id(), err)
-	}
+		if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
+			return diag.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("invitation_id", orgInvitation.ID); err != nil {
-		return diag.Errorf("error getting `invitation_id` for Organization Invitation (%s): %s", d.Id(), err)
-	}
+		if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
+			return diag.Errorf("error getting `expires_at` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("expires_at", orgInvitation.ExpiresAt); err != nil {
-		return diag.Errorf("error getting `expires_at` for Organization Invitation (%s): %s", d.Id(), err)
-	}
+		if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
+			return diag.Errorf("error getting `created_at` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("created_at", orgInvitation.CreatedAt); err != nil {
-		return diag.Errorf("error getting `created_at` for Organization Invitation (%s): %s", d.Id(), err)
-	}
+		if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
+			return diag.Errorf("error getting `inviter_username` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("inviter_username", orgInvitation.InviterUsername); err != nil {
-		return diag.Errorf("error getting `inviter_username` for Organization Invitation (%s): %s", d.Id(), err)
-	}
+		if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
+			return diag.Errorf("error getting `teams_ids` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 
-	if err := d.Set("teams_ids", orgInvitation.TeamIDs); err != nil {
-		return diag.Errorf("error getting `teams_ids` for Organization Invitation (%s): %s", d.Id(), err)
+		if err := d.Set("roles", orgInvitation.Roles); err != nil {
+			return diag.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err)
+		}
 	}
-
-	if err := d.Set("roles", orgInvitation.Roles); err != nil {
-		return diag.Errorf("error getting `roles` for Organization Invitation (%s): %s", d.Id(), err)
-	}
-
 	d.SetId(encodeStateID(map[string]string{
 		"username":      username,
 		"org_id":        orgID,
@@ -148,17 +150,25 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 		Username: d.Get("username").(string),
 	}
 
-	invitationRes, _, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
-	if err != nil {
-		return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
+	accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), invitationReq.Username, orgID)
+	if accepted {
+		d.SetId(encodeStateID(map[string]string{
+			"username":      invitationReq.Username,
+			"org_id":        orgID,
+			"invitation_id": orgID,
+		}))
+	} else {
+		invitationRes, _, err := conn.Organizations.InviteUser(ctx, orgID, invitationReq)
+		if err != nil {
+			return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
+		}
+
+		d.SetId(encodeStateID(map[string]string{
+			"username":      invitationRes.Username,
+			"org_id":        invitationRes.OrgID,
+			"invitation_id": invitationRes.ID,
+		}))
 	}
-
-	d.SetId(encodeStateID(map[string]string{
-		"username":      invitationRes.Username,
-		"org_id":        invitationRes.OrgID,
-		"invitation_id": invitationRes.ID,
-	}))
-
 	return resourceMongoDBAtlasOrgInvitationRead(ctx, d, meta)
 }
 
@@ -169,11 +179,25 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	_, err := conn.Organizations.DeleteInvitation(ctx, orgID, invitationID)
+	_, _, err := conn.Organizations.Invitation(ctx, orgID, invitationID)
+	if err != nil {
+		// case 404
+		// deleted in the backend case
+
+		if strings.Contains(err.Error(), "404") {
+			accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), username, orgID)
+			if accepted {
+				d.SetId("")
+				return nil
+			}
+			return nil
+		}
+	}
+	_, err = conn.Organizations.DeleteInvitation(ctx, orgID, invitationID)
 	if err != nil {
 		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}
-
+	d.SetId("")
 	return nil
 }
 
