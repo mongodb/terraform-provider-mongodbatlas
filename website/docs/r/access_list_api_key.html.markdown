@@ -55,4 +55,4 @@ IP Access List entries can be imported using the `org_id` , `api_key_id` and `ci
 $ terraform import mongodbatlas_access_list_api_key.test 5d0f1f74cf09a29120e123cd-a29120e123cd-10.242.88.0/21
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/returnAllAccessListEntriesForOneOrganizationApiKey)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createAccessListEntriesForOneOrganizationApiKey)
