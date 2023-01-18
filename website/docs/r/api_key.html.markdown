@@ -61,4 +61,4 @@ API Keys must be imported using org ID, API Key ID e.g.
 ```
 $ terraform import mongodbatlas_api_key.test 5d09d6a59ccf6445652a444a-6576974933969669
 ```
-See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api/apiKeys-orgs-create-one/) - Documentation for more information.
+See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createOneOrganizationApiKey) - Documentation for more information.
