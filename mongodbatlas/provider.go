@@ -145,6 +145,12 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_db_roles":                          dataSourceMongoDBAtlasCustomDBRoles(),
 		"mongodbatlas_database_user":                            dataSourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_database_users":                           dataSourceMongoDBAtlasDatabaseUsers(),
+		"mongodbatlas_api_key":                                  dataSourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_api_keys":                                 dataSourceMongoDBAtlasAPIKeys(),
+		"mongodbatlas_access_list_api_key":                      dataSourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_access_list_api_keys":                     dataSourceMongoDBAtlasAccessListAPIKeys(),
+		"mongodbatlas_project_api_key":                          dataSourceMongoDBAtlasProjectAPIKey(),
+		"mongodbatlas_project_api_keys":                         dataSourceMongoDBAtlasProjectAPIKeys(),
 		"mongodbatlas_roles_org_id":                             dataSourceMongoDBAtlasOrgID(),
 		"mongodbatlas_project":                                  dataSourceMongoDBAtlasProject(),
 		"mongodbatlas_projects":                                 dataSourceMongoDBAtlasProjects(),
@@ -216,6 +222,9 @@ func getDataSourcesMap() map[string]*schema.Resource {
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_advanced_cluster":                        resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_api_key":                                 resourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_access_list_api_key":                     resourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_project_api_key":                         resourceMongoDBAtlasProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                          resourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_database_user":                           resourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_project":                                 resourceMongoDBAtlasProject(),
