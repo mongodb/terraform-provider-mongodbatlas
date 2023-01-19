@@ -30,7 +30,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"bi_connector": {
+						"bi_connector_config": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -246,7 +246,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 		result := map[string]interface{}{
 			"advanced_configuration":         flattenProcessArgs(processArgs),
 			"backup_enabled":                 clusters[i].BackupEnabled,
-			"bi_connector":                   flattenBiConnectorConfig(clusters[i].BiConnector),
+			"bi_connector_config":            flattenBiConnectorConfig(clusters[i].BiConnector),
 			"cluster_type":                   clusters[i].ClusterType,
 			"create_date":                    clusters[i].CreateDate,
 			"connection_strings":             flattenConnectionStrings(clusters[i].ConnectionStrings),

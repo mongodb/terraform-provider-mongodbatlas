@@ -144,7 +144,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *sch
 		return diag.FromErr(fmt.Errorf("error getting third party integration for type %s %w", queryType, err))
 	}
 
-	fieldMap := integrationToSchema(integration)
+	fieldMap := integrationToSchema(d, integration)
 
 	for property, value := range fieldMap {
 		if err = d.Set(property, value); err != nil {

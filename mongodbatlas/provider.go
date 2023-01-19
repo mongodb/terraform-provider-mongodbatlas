@@ -35,6 +35,10 @@ var (
 	baseURL               = ""
 )
 
+const (
+	endPointSTSDefault = "https://sts.amazonaws.com"
+)
+
 type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
@@ -145,6 +149,12 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_db_roles":                          dataSourceMongoDBAtlasCustomDBRoles(),
 		"mongodbatlas_database_user":                            dataSourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_database_users":                           dataSourceMongoDBAtlasDatabaseUsers(),
+		"mongodbatlas_api_key":                                  dataSourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_api_keys":                                 dataSourceMongoDBAtlasAPIKeys(),
+		"mongodbatlas_access_list_api_key":                      dataSourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_access_list_api_keys":                     dataSourceMongoDBAtlasAccessListAPIKeys(),
+		"mongodbatlas_project_api_key":                          dataSourceMongoDBAtlasProjectAPIKey(),
+		"mongodbatlas_project_api_keys":                         dataSourceMongoDBAtlasProjectAPIKeys(),
 		"mongodbatlas_roles_org_id":                             dataSourceMongoDBAtlasOrgID(),
 		"mongodbatlas_project":                                  dataSourceMongoDBAtlasProject(),
 		"mongodbatlas_projects":                                 dataSourceMongoDBAtlasProjects(),
@@ -216,6 +226,9 @@ func getDataSourcesMap() map[string]*schema.Resource {
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_advanced_cluster":                        resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_api_key":                                 resourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_access_list_api_key":                     resourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_project_api_key":                         resourceMongoDBAtlasProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                          resourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_database_user":                           resourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_project":                                 resourceMongoDBAtlasProject(),
@@ -296,38 +309,87 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
 		awsSessionToken := d.Get("aws_session_token").(string)
 		endpoint := d.Get("sts_endpoint").(string)
-		config, _ = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		var err error
+		config, err = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
 	}
 
 	return config.NewClient(ctx)
 }
 
 func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
-	ep, _ := endpoints.GetSTSRegionalEndpoint("regional")
-	sess := session.Must(session.NewSession(&aws.Config{
+	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
+	if err != nil {
+		log.Printf("GetSTSRegionalEndpoint error: %s", err)
+		return *config, err
+	}
+
+	defaultResolver := endpoints.DefaultResolver()
+	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+		if service == endpoints.StsServiceID {
+			if endpoint == "" {
+				return endpoints.ResolvedEndpoint{
+					URL:           endPointSTSDefault,
+					SigningRegion: region,
+				}, nil
+			}
+			return endpoints.ResolvedEndpoint{
+				URL:           endpoint,
+				SigningRegion: region,
+			}, nil
+		}
+
+		return defaultResolver.EndpointFor(service, region, optFns...)
+	}
+
+	cfg := aws.Config{
 		Region:              aws.String(region),
 		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
 		STSRegionalEndpoint: ep,
-		Endpoint:            &endpoint,
-	}))
+		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+	}
+
+	sess := session.Must(session.NewSession(&cfg))
 
 	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
 
-	_, _ = sess.Config.Credentials.Get()
-	_, _ = creds.Get()
-	secretString := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	_, err = sess.Config.Credentials.Get()
+	if err != nil {
+		log.Printf("Session get credentials error: %s", err)
+		return *config, err
+	}
+	_, err = creds.Get()
+	if err != nil {
+		log.Printf("STS get credentials error: %s", err)
+		return *config, err
+	}
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	if err != nil {
+		log.Printf("Get Secrets error: %s", err)
+		return *config, err
+	}
 
 	var secretData SecretData
-	err := json.Unmarshal([]byte(secretString), &secretData)
+	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return *config, nil
+		return *config, err
 	}
+	if secretData.PrivateKey == "" {
+		return *config, fmt.Errorf("secret missing value for credential PrivateKey")
+	}
+
+	if secretData.PublicKey == "" {
+		return *config, fmt.Errorf("secret missing value for credential PublicKey")
+	}
+
 	config.PublicKey = secretData.PublicKey
 	config.PrivateKey = secretData.PrivateKey
 	return *config, nil
 }
 
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) string {
+func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
 	svc := secretsmanager.New(sess, creds)
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secret),
@@ -339,26 +401,25 @@ func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secr
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case secretsmanager.ErrCodeResourceNotFoundException:
-				fmt.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
+				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
 			case secretsmanager.ErrCodeInvalidParameterException:
-				fmt.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
+				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
 			case secretsmanager.ErrCodeInvalidRequestException:
-				fmt.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
+				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
 			case secretsmanager.ErrCodeDecryptionFailure:
-				fmt.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
+				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
 			case secretsmanager.ErrCodeInternalServiceError:
-				fmt.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
+				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
 			default:
-				fmt.Println(aerr.Error())
+				log.Println(aerr.Error())
 			}
 		} else {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 		}
-		return ""
+		return "", err
 	}
 
-	fmt.Println(result)
-	return *result.SecretString
+	return *result.SecretString, err
 }
 
 func encodeStateID(values map[string]string) string {

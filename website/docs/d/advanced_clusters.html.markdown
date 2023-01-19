@@ -55,7 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Advanced Cluster
 
-* `bi_connector` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector).
+* `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). **NOTE** Prior version of provider had parameter as `bi_connector`
 * `cluster_type` - Type of the cluster that you want to create.
 * `disk_size_gb` - Capacity, in gigabytes, of the host's root volume.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE.
@@ -69,7 +69,7 @@ In addition to all arguments above, the following attributes are exported:
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 
 
-### bi_connector
+### bi_connector_config
 
 Specifies BI Connector for Atlas configuration.
 
