@@ -289,10 +289,6 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
-	if err := d.Set("update_snapshots", backupPolicy.UpdateSnapshots); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "update_snapshots", clusterName, err)
-	}
-
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
