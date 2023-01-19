@@ -145,7 +145,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
 * `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously. 
   
-  **Note** This parameter is not updated on return from API
+  **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backup-Schedule
 
 * `policy_item_hourly` - (Optional) Hourly policy item
 * `policy_item_daily` - (Optional) Daily policy item
