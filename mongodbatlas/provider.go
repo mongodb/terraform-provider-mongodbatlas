@@ -22,11 +22,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	"github.com/zclconf/go-cty/cty"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -174,6 +176,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_teams":                                    dataSourceMongoDBAtlasTeam(),
 		"mongodbatlas_global_cluster_config":                    dataSourceMongoDBAtlasGlobalCluster(),
 		"mongodbatlas_alert_configuration":                      dataSourceMongoDBAtlasAlertConfiguration(),
+		"mongodbatlas_alert_configurations":                     dataSourceMongoDBAtlasAlertConfigurations(),
 		"mongodbatlas_x509_authentication_database_user":        dataSourceMongoDBAtlasX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":           dataSourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint":                     dataSourceMongoDBAtlasPrivateLinkEndpoint(),
@@ -583,6 +586,27 @@ func HashCodeString(s string) int {
 	}
 	// v == MinInt
 	return 0
+}
+
+func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string, values map[string]cty.Value) {
+	if len(values) == 0 {
+		return
+	}
+
+	keys := make([]string, 0, len(values))
+
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	body.AppendNewline()
+	block := body.AppendNewBlock(name, labels).Body()
+
+	for _, k := range keys {
+		block.SetAttributeValue(k, values[k])
+	}
 }
 
 // assumeRoleSchema From aws provider.go
