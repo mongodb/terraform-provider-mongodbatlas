@@ -207,7 +207,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err))
 	}
 
-	integrationMap := integrationToSchema(integration)
+	integrationMap := integrationToSchema(d, integration)
 
 	for key, val := range integrationMap {
 		if err := d.Set(key, val); err != nil {

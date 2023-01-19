@@ -37,7 +37,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("error getting third party integration list: %s", err))
 	}
 
-	if err = d.Set("results", flattenIntegrations(integrations, projectID)); err != nil {
+	if err = d.Set("results", flattenIntegrations(d, integrations, projectID)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting results for third party integrations %s", err))
 	}
 
@@ -46,7 +46,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *sc
 	return nil
 }
 
-func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID string) (list []map[string]interface{}) {
+func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdPartyIntegrations, projectID string) (list []map[string]interface{}) {
 	if len(integrations.Results) == 0 {
 		return
 	}
@@ -54,7 +54,7 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID 
 	list = make([]map[string]interface{}, 0, len(integrations.Results))
 
 	for _, integration := range integrations.Results {
-		service := integrationToSchema(integration)
+		service := integrationToSchema(d, integration)
 		service["project_id"] = projectID
 		list = append(list, service)
 	}
@@ -62,27 +62,59 @@ func flattenIntegrations(integrations *matlas.ThirdPartyIntegrations, projectID 
 	return
 }
 
-func integrationToSchema(integration *matlas.ThirdPartyIntegration) map[string]interface{} {
+func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]interface{} {
+	integrationSchema := schemaToIntegration(d)
+	if integrationSchema.LicenseKey == "" {
+		integrationSchema.APIKey = integration.LicenseKey
+	}
+	if integrationSchema.WriteToken == "" {
+		integrationSchema.APIKey = integration.WriteToken
+	}
+	if integrationSchema.ReadToken == "" {
+		integrationSchema.APIKey = integration.ReadToken
+	}
+	if integrationSchema.APIKey == "" {
+		integrationSchema.APIKey = integration.APIKey
+	}
+	if integrationSchema.ServiceKey == "" {
+		integrationSchema.APIKey = integration.ServiceKey
+	}
+	if integrationSchema.APIToken == "" {
+		integrationSchema.APIKey = integration.APIToken
+	}
+	if integrationSchema.RoutingKey == "" {
+		integrationSchema.APIKey = integration.RoutingKey
+	}
+	if integrationSchema.Secret == "" {
+		integrationSchema.APIKey = integration.Secret
+	}
+	if integrationSchema.Password == "" {
+		integrationSchema.APIKey = integration.Password
+	}
+	if integrationSchema.UserName == "" {
+		integrationSchema.APIKey = integration.UserName
+	}
+
 	out := map[string]interface{}{
 		"type":                        integration.Type,
-		"license_key":                 integration.LicenseKey,
+		"license_key":                 integrationSchema.LicenseKey,
 		"account_id":                  integration.AccountID,
-		"write_token":                 integration.WriteToken,
-		"read_token":                  integration.ReadToken,
-		"api_key":                     integration.APIKey,
+		"write_token":                 integrationSchema.WriteToken,
+		"read_token":                  integrationSchema.ReadToken,
+		"api_key":                     integrationSchema.APIKey,
 		"region":                      integration.Region,
-		"service_key":                 integration.ServiceKey,
-		"api_token":                   integration.APIToken,
+		"service_key":                 integrationSchema.ServiceKey,
+		"api_token":                   integrationSchema.APIToken,
 		"team_name":                   integration.TeamName,
 		"channel_name":                integration.ChannelName,
-		"routing_key":                 integration.RoutingKey,
+		"routing_key":                 integrationSchema.RoutingKey,
 		"flow_name":                   integration.FlowName,
 		"org_name":                    integration.OrgName,
 		"url":                         integration.URL,
-		"secret":                      integration.Secret,
+		"secret":                      integrationSchema.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
-		"user_name":                   integration.UserName,
-		"password":                    integration.Password,
+		"user_name":                   integrationSchema.UserName,
+		"password":                    integrationSchema.Password,
 		"service_discovery":           integration.ServiceDiscovery,
 		"scheme":                      integration.Scheme,
 		"enabled":                     integration.Enabled,
