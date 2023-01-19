@@ -109,4 +109,6 @@ In addition to all arguments above, the following attributes are exported:
 * `replication_spec_id` - Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, do a GET request to Return One Cluster in One Project and consult the replicationSpecs array https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/returnOneCluster
 * `should_copy_oplogs` - Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
+**Note** The parameter deleteCopiedBackups is not supported in terraform please leverage Atlas Admin API or AtlasCLI instead to manage the lifecycle of backup snaphot copies.
+
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/)
