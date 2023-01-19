@@ -240,6 +240,11 @@ func resourceMongoDBAtlasAdvancedClusterResourceV0() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return migrateBIConnectorConfig(rawState), nil
+}
+
+func migrateBIConnectorConfig(rawState map[string]interface{}) map[string]interface{} {
 	rawState["bi_connector_config"] = rawState["bi_connector"]
-	return rawState, nil
+	rawState["bi_connector"] = nil
+	return rawState
 }
