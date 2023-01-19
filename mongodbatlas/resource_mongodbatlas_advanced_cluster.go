@@ -49,7 +49,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    resourceMongoDBAtlasAdvancedClusterV0().CoreConfigSchema().ImpliedType(),
+				Type:    resourceMongoDBAtlasAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
 				Version: 0,
 			},
