@@ -194,7 +194,9 @@ Refer to the following for full endpoint service connection string examples:
 
 This parameter defaults to false.
 
-* `bi_connector` - (Optional) Configuration settings applied to BI Connector for Atlas on this cluster. The MongoDB Connector for Business Intelligence for Atlas (BI Connector) is only available for M10 and larger clusters. The BI Connector is a powerful tool which provides users SQL-based access to their MongoDB databases. As a result, the BI Connector performs operations which may be CPU and memory intensive. Given the limited hardware resources on M10 and M20 cluster tiers, you may experience performance degradation of the cluster when enabling the BI Connector. If this occurs, upgrade to an M30 or larger cluster or disable the BI Connector. See [below](#bi_connector).
+**NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
+
+* `bi_connector_config` - (Optional) Configuration settings applied to BI Connector for Atlas on this cluster. The MongoDB Connector for Business Intelligence for Atlas (BI Connector) is only available for M10 and larger clusters. The BI Connector is a powerful tool which provides users SQL-based access to their MongoDB databases. As a result, the BI Connector performs operations which may be CPU and memory intensive. Given the limited hardware resources on M10 and M20 cluster tiers, you may experience performance degradation of the cluster when enabling the BI Connector. If this occurs, upgrade to an M30 or larger cluster or disable the BI Connector. See [below](#bi_connector_config).
 * `cluster_type` - (Required)Type of the cluster that you want to create.
     Accepted values include:
       - `REPLICASET` Replica set
@@ -220,12 +222,12 @@ This parameter defaults to false.
 * `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 
 
-### bi_connector
+### bi_connector_config
 
 Specifies BI Connector for Atlas configuration.
 
  ```terraform
- bi_connector {
+ bi_connector_config {
   enabled         = true
   read_preference = secondary
 }
@@ -336,6 +338,7 @@ replication_specs {
 
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs)
 * `auto_scaling` - (Optional) Configuration for the Collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` parameter must be the same for every item in the `replication_specs` array. See [below](#auto_scaling)
+* `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` parameter must be the same for every item in the `replication_specs` array. See [below](#analytics_auto_scaling)
 * `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when a `provider_name` is `TENANT` and `instance_size` of a specs is `M2` or `M5`.
 * `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs)
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
@@ -378,6 +381,23 @@ After adding the `lifecycle` block to explicitly change `instance_size` comment 
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs.#.region_configs.#.auto_scaling.0.compute_enabled` is true.
 
 
+### analytics_auto_scaling
+
+* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to true.
+* `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false.
+
+~> **IMPORTANT:** If `compute_enabled` is true, then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
+This will cause the value of `instance_size` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back down to the original `instance_size` value.
+To prevent this a lifecycle customization should be used, i.e.:  
+`lifecycle {
+  ignore_changes = [instance_size]
+}`
+After adding the `lifecycle` block to explicitly change `instance_size` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+
+* `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_enabled` : true. If you enable this option, specify a value for `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_min_instance_size`.
+* `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_scale_down_enabled` is true.
+* `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs.#.region_configs.#.analytics_auto_scaling.0.compute_enabled` is true.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -402,7 +422,7 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[n].connection_string`
     - `connection_strings.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
     - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[n].connection_string` or `connection_strings.private_endpoint[n].srv_connection_string`
-    - `connection_strings.private_endoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
+    - `connection_strings.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
     - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `state_name` - Current state of the cluster. The possible states are:

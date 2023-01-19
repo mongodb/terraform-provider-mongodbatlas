@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -104,35 +105,35 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.
 	ldap := &matlas.LDAP{}
 
 	if v, ok := d.GetOk("authentication_enabled"); ok {
-		ldap.AuthenticationEnabled = v.(bool)
+		ldap.AuthenticationEnabled = pointy.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("authorization_enabled"); ok {
-		ldap.AuthorizationEnabled = v.(bool)
+		ldap.AuthorizationEnabled = pointy.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("hostname"); ok {
-		ldap.Hostname = v.(string)
+		ldap.Hostname = pointy.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("port"); ok {
-		ldap.Port = v.(int)
+		ldap.Port = pointy.Int(v.(int))
 	}
 
 	if v, ok := d.GetOk("bind_username"); ok {
-		ldap.BindUsername = v.(string)
+		ldap.BindUsername = pointy.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("bind_password"); ok {
-		ldap.BindPassword = v.(string)
+		ldap.BindPassword = pointy.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("ca_certificate"); ok {
-		ldap.CaCertificate = v.(string)
+		ldap.CaCertificate = pointy.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("authz_query_template"); ok {
-		ldap.AuthzQueryTemplate = v.(string)
+		ldap.AuthzQueryTemplate = pointy.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("user_to_dn_mapping"); ok {
@@ -201,35 +202,35 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.
 	ldap := &matlas.LDAP{}
 
 	if d.HasChange("authentication_enabled") {
-		ldap.AuthenticationEnabled = d.Get("").(bool)
+		ldap.AuthenticationEnabled = pointy.Bool(d.Get("").(bool))
 	}
 
 	if d.HasChange("authorization_enabled") {
-		ldap.AuthorizationEnabled = d.Get("authorization_enabled").(bool)
+		ldap.AuthorizationEnabled = pointy.Bool(d.Get("authorization_enabled").(bool))
 	}
 
 	if d.HasChange("hostname") {
-		ldap.Hostname = d.Get("hostname").(string)
+		ldap.Hostname = pointy.String(d.Get("hostname").(string))
 	}
 
 	if d.HasChange("port") {
-		ldap.Port = d.Get("port").(int)
+		ldap.Port = pointy.Int(d.Get("port").(int))
 	}
 
 	if d.HasChange("bind_username") {
-		ldap.BindUsername = d.Get("bind_username").(string)
+		ldap.BindUsername = pointy.String(d.Get("bind_username").(string))
 	}
 
 	if d.HasChange("bind_password") {
-		ldap.BindPassword = d.Get("bind_password").(string)
+		ldap.BindPassword = pointy.String(d.Get("bind_password").(string))
 	}
 
 	if d.HasChange("ca_certificate") {
-		ldap.CaCertificate = d.Get("ca_certificate").(string)
+		ldap.CaCertificate = pointy.String(d.Get("ca_certificate").(string))
 	}
 
 	if d.HasChange("authz_query_template") {
-		ldap.AuthzQueryTemplate = d.Get("authz_query_template").(string)
+		ldap.AuthzQueryTemplate = pointy.String(d.Get("authz_query_template").(string))
 	}
 
 	if d.HasChange("user_to_dn_mapping") {

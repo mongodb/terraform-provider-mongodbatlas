@@ -39,6 +39,7 @@ func resourceMongoDBAtlasPrivateIPMode() *schema.Resource {
 				Required: true,
 			},
 		},
+		DeprecationMessage: "This resource is deprecated, and will be removed in v1.9 release. Please transition to Multiple Horizons connection strings as soon as possible",
 	}
 }
 

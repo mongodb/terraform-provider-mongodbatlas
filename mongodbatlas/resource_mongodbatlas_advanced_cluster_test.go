@@ -433,6 +433,50 @@ func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testin
 	})
 }
 
+func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t *testing.T) {
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		rName        = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		autoScaling  = &matlas.AutoScaling{
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(false), MaxInstanceSize: ""},
+			DiskGBEnabled: pointy.Bool(true),
+		}
+		autoScalingUpdated = &matlas.AutoScaling{
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(true), MaxInstanceSize: "M20"},
+			DiskGBEnabled: pointy.Bool(true),
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(projectID, rName, autoScaling),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(&cluster, *autoScaling.Compute.Enabled),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(projectID, rNameUpdated, autoScalingUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -473,6 +517,16 @@ func testAccCheckMongoDBAtlasAdvancedClusterScaling(cluster *matlas.AdvancedClus
 	return func(s *terraform.State) error {
 		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled != computeEnabled {
 			return fmt.Errorf("compute_enabled: %d", cluster.ReplicationSpecs[0].RegionConfigs[0].AutoScaling.Compute.Enabled)
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckMongoDBAtlasAdvancedClusterAnalyticsScaling(cluster *matlas.AdvancedCluster, computeEnabled bool) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if *cluster.ReplicationSpecs[0].RegionConfigs[0].AnalyticsAutoScaling.Compute.Enabled != computeEnabled {
+			return fmt.Errorf("compute_enabled: %d", cluster.ReplicationSpecs[0].RegionConfigs[0].AnalyticsAutoScaling.Compute.Enabled)
 		}
 
 		return nil
@@ -740,6 +794,40 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
 	  auto_scaling {
+        compute_enabled = %[3]t
+        disk_gb_enabled = %[4]t
+		compute_max_instance_size = %[5]q
+	  }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+  }
+
+
+}
+
+	`, projectID, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(projectID, name string, p *matlas.AutoScaling) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id             = %[1]q
+  name                   = %[2]q
+  cluster_type           = "REPLICASET"
+
+   replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+	  analytics_auto_scaling {
         compute_enabled = %[3]t
         disk_gb_enabled = %[4]t
 		compute_max_instance_size = %[5]q

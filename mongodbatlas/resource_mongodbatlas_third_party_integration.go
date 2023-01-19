@@ -55,6 +55,7 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(integrationTypes, false),
+				Deprecated:   "This field type has values (NEW_RELIC, FLOWDOCK) that are deprecated and will be removed in 1.9.0 release ",
 			},
 			"license_key": {
 				Type:      schema.TypeString,
@@ -206,7 +207,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err))
 	}
 
-	integrationMap := integrationToSchema(integration)
+	integrationMap := integrationToSchema(d, integration)
 
 	for key, val := range integrationMap {
 		if err := d.Set(key, val); err != nil {

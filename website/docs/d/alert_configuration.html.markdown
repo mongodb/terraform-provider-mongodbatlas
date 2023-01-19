@@ -87,16 +87,36 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+Utilize data_source to generate resource hcl and import statement. Useful if you have a specific alert_configuration_id and are looking to manage it as is in state. To import all alerts, refer to the documentation on [data_source_mongodbatlas_alert_configurations](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/alert_configurations)
+```
+data "mongodbatlas_alert_configuration" "test" {
+    project_id             = var.project_id
+    alert_configuration_id = var.alert_configuration_id
+
+    output {
+        type = "resource_hcl"
+        label = "test"
+    }
+
+    output {
+        type = "resource_import"
+        label = "test"
+    }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
 * `alert_configuration_id` - (Required) Unique identifier for the alert configuration.
+* `output` - (Optional) List of formatted output requested for this alert configuration
+* `output.#.type` - (Required) If the output is requested, you must specify its type. The format is computed as `output.#.value`, the following are the supported types:
+- `resource_hcl`: This string is used to define the resource as it exists in MongoDB Atlas.
+- `resource_import`: This string is used to import the existing resource into the state file.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
-
-* `group_id` - Unique identifier of the project that owns this alert configuration.
 * `created` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
 * `updated` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.
 * `enabled` - If set to true, the alert configuration is enabled. If enabled is not exported it is set to false.

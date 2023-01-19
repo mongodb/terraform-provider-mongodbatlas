@@ -55,7 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Advanced Cluster
 
-* `bi_connector` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector).
+* `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). **NOTE** Prior version of provider had parameter as `bi_connector`
 * `cluster_type` - Type of the cluster that you want to create.
 * `disk_size_gb` - Capacity, in gigabytes, of the host's root volume.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE.
@@ -69,7 +69,7 @@ In addition to all arguments above, the following attributes are exported:
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 
 
-### bi_connector
+### bi_connector_config
 
 Specifies BI Connector for Atlas configuration.
 
@@ -96,6 +96,7 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 
 * `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs)
 * `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster. See [below](#auto_scaling)
+* `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytis-auto-scaling information for the cluster. See [below](#analytics_auto_scaling)
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
 * `priority` -  Election priority of the region.
@@ -113,6 +114,14 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
 * `node_count` - Number of read-only nodes for Atlas to deploy to the region.
 
 ### auto_scaling
+
+* `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling.
+* `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled.
+* `compute_scale_down_enabled` - Flag that indicates whether the instance size may scale down.
+* `compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale (such as M10).
+* `compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale (such as M40).
+
+### analytics_auto_scaling
 
 * `disk_gb_enabled` - Flag that indicates whether this cluster enables disk auto-scaling.
 * `compute_enabled` - Flag that indicates whether instance size auto-scaling is enabled.
@@ -163,7 +172,7 @@ In addition to all arguments above, the following attributes are exported:
   - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[n].connection_string`
   - `connection_strings.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
   - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[n].connection_string` or `connection_strings.private_endpoint[n].srv_connection_string`
-  - `connection_strings.private_endoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
+  - `connection_strings.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
   - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
   - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `paused` - Flag that indicates whether the cluster is paused or not.

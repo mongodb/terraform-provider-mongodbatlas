@@ -45,6 +45,14 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasAdvancedClusterImportState,
 		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceMongoDBAtlasAdvancedClusterResourceV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceMongoDBAtlasAdvancedClusterStateUpgradeV0,
+				Version: 0,
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -61,10 +69,33 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Computed: true,
 			},
 			"bi_connector": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"bi_connector_config"},
+				Deprecated:    "use bi_connector_config instead",
+				Computed:      true,
+				MaxItems:      1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"read_preference": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"bi_connector_config": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"bi_connector"},
+				Computed:      true,
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -172,6 +203,41 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
 									"auto_scaling": {
+										Type:     schema.TypeList,
+										MaxItems: 1,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"disk_gb_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_scale_down_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_min_instance_size": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+												"compute_max_instance_size": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+											},
+										},
+									},
+									"analytics_auto_scaling": {
 										Type:     schema.TypeList,
 										MaxItems: 1,
 										Optional: true,
@@ -323,6 +389,13 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		}
 		request.BiConnector = biConnector
 	}
+	if _, ok := d.GetOk("bi_connector_config"); ok {
+		biConnector, err := expandBiConnectorConfig(d)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorClusterAdvancedCreate, err))
+		}
+		request.BiConnector = biConnector
+	}
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		request.DiskSizeGB = pointy.Float64(v.(float64))
 	}
@@ -446,6 +519,10 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 
 	if err := d.Set("bi_connector", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "bi_connector", clusterName, err))
+	}
+
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
@@ -579,6 +656,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
+	}
+
+	if d.HasChange("bi_connector_config") {
+		cluster.BiConnector, _ = expandBiConnectorConfig(d)
 	}
 
 	if d.HasChange("bi_connector") {
@@ -825,6 +906,9 @@ func expandRegionConfig(tfMap map[string]interface{}) *matlas.AdvancedRegionConf
 	if v, ok := tfMap["auto_scaling"]; ok && len(v.([]interface{})) > 0 {
 		apiObject.AutoScaling = expandRegionConfigAutoScaling(v.([]interface{}))
 	}
+	if v, ok := tfMap["analytics_auto_scaling"]; ok && len(v.([]interface{})) > 0 {
+		apiObject.AnalyticsAutoScaling = expandRegionConfigAutoScaling(v.([]interface{}))
+	}
 	if v, ok := tfMap["backing_provider_name"]; ok {
 		apiObject.BackingProviderName = v.(string)
 	}
@@ -991,11 +1075,15 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegion
 		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]interface{})) > 0 {
 			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
 		}
+		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+		}
 	} else {
 		tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
 		tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
 		tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
 		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
 	}
 
 	tfMap["region_name"] = apiObject.RegionName

@@ -289,10 +289,6 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "restore_window_days", clusterName, err)
 	}
 
-	if err := d.Set("update_snapshots", backupPolicy.UpdateSnapshots); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "update_snapshots", clusterName, err)
-	}
-
 	if err := d.Set("next_snapshot", backupPolicy.NextSnapshot); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "next_snapshot", clusterName, err)
 	}
@@ -465,7 +461,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		export.ExportBucketID = itemObj["export_bucket_id"].(string)
 		export.FrequencyType = itemObj["frequency_type"].(string)
 		req.Export = nil
-		if *req.AutoExportEnabled {
+		if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
 			req.Export = &export
 		}
 	}
