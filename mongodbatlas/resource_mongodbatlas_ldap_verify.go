@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/mwielbut/pointy"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -118,22 +119,22 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 	ldapReq := &matlas.LDAP{}
 
 	if v, ok := d.GetOk("hostname"); ok {
-		ldapReq.Hostname = v.(string)
+		ldapReq.Hostname = pointy.String(v.(string))
 	}
 	if v, ok := d.GetOk("port"); ok {
-		ldapReq.Port = v.(int)
+		ldapReq.Port = pointy.Int(v.(int))
 	}
 	if v, ok := d.GetOk("bind_username"); ok {
-		ldapReq.BindUsername = v.(string)
+		ldapReq.BindUsername = pointy.String(v.(string))
 	}
 	if v, ok := d.GetOk("bind_password"); ok {
-		ldapReq.BindPassword = v.(string)
+		ldapReq.BindPassword = pointy.String(v.(string))
 	}
 	if v, ok := d.GetOk("ca_certificate"); ok {
-		ldapReq.CaCertificate = v.(string)
+		ldapReq.CaCertificate = pointy.String(v.(string))
 	}
 	if v, ok := d.GetOk("authz_query_template"); ok {
-		ldapReq.AuthzQueryTemplate = v.(string)
+		ldapReq.AuthzQueryTemplate = pointy.String(v.(string))
 	}
 
 	ldap, _, err := conn.LDAPConfigurations.Verify(ctx, projectID, ldapReq)
