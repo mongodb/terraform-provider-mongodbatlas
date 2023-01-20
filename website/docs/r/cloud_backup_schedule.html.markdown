@@ -136,6 +136,51 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 }
 ```
 
+## Example Usage - Create a Cluster with Cloud Backup Enabled with Snapshot Distribution
+
+You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup.
+
+```terraform
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "US_EAST_2"
+  provider_instance_size_name = "M10"
+  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+}
+
+resource "mongodbatlas_cloud_backup_schedule" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+  policy_item_daily {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 14
+  }
+
+  copy_settings {
+    cloud_provider = "AWS"
+    frequencies = ["HOURLY",
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "ON_DEMAND"]
+    region_name = "US_EAST_1"
+    replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+    should_copy_oplogs = false
+  }
+
+}
+```
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
@@ -184,6 +229,13 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
 * `retention_value` - (Required) Value to associate with `retention_unit`.
 
+### Snapshot Distribution
+*
+* `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
+* `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
+* `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
+* `replication_spec_id` -(Required) Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, do a GET request to Return One Cluster in One Project and consult the replicationSpecs array https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/returnOneCluster
+* `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
 ## Attributes Reference
 

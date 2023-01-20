@@ -25,6 +25,37 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"copy_settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_provider": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequencies": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"region_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"replication_spec_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"should_copy_oplogs": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"next_snapshot": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -243,6 +274,10 @@ func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schem
 
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
+	}
+
+	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
 	if err := d.Set("export", flattenExport(backupPolicy)); err != nil {
