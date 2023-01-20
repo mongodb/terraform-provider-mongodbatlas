@@ -226,12 +226,12 @@ This parameter defaults to false.
 
 Specifies BI Connector for Atlas configuration.
 
- ```terraform
- bi_connector_config {
+```terraform
+bi_connector_config {
   enabled         = true
-  read_preference = secondary
+  read_preference = "secondary"
 }
-  ```
+```
 
 * `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
 *

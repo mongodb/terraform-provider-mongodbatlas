@@ -435,12 +435,12 @@ replication_specs {
 
 Specifies BI Connector for Atlas configuration.
 
- ```terraform
- bi_connector = {
-        enabled         = true
-        read_preference = secondary
-  }
-  ```
+```terraform
+bi_connector_config {
+  enabled         = true
+  read_preference = "secondary"
+}
+```
 
 * `enabled` - (Optional) Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
 *
