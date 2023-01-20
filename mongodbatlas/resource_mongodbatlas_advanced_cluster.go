@@ -19,6 +19,7 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"golang.org/x/exp/slices"
 )
 
 type acCtxKey string
@@ -182,7 +183,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Computed: true,
 			},
 			"replication_specs": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -197,7 +198,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 						"region_configs": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -307,7 +308,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 						},
 					},
 				},
-				Set: replicationSpecsHashSet,
+				// Set: replicationSpecsHashSet,
 			},
 			"root_cert_type": {
 				Type:     schema.TypeString,
@@ -376,7 +377,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	request := &matlas.AdvancedCluster{
 		Name:             d.Get("name").(string),
 		ClusterType:      cast.ToString(d.Get("cluster_type")),
-		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").(*schema.Set).List()),
+		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
@@ -569,7 +570,7 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "pit_enabled", clusterName, err))
 	}
 
-	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").(*schema.Set).List(), d, conn)
+	replicationSpecs, err := flattenAdvancedReplicationSpecs(ctx, cluster.ReplicationSpecs, d.Get("replication_specs").([]interface{}), d, conn)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
@@ -695,7 +696,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	}
 
 	if d.HasChange("replication_specs") {
-		cluster.ReplicationSpecs = expandAdvancedReplicationSpecs(d.Get("replication_specs").(*schema.Set).List())
+		cluster.ReplicationSpecs = expandAdvancedReplicationSpecs(d.Get("replication_specs").([]interface{}))
 	}
 
 	if d.HasChange("root_cert_type") {
@@ -854,7 +855,7 @@ func expandAdvancedReplicationSpec(tfMap map[string]interface{}) *matlas.Advance
 	apiObject := &matlas.AdvancedReplicationSpec{
 		NumShards:     tfMap["num_shards"].(int),
 		ZoneName:      tfMap["zone_name"].(string),
-		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].(*schema.Set).List()),
+		RegionConfigs: expandRegionConfigs(tfMap["region_configs"].([]interface{})),
 	}
 
 	return apiObject
@@ -1008,7 +1009,7 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.Advan
 	tfMap["num_shards"] = apiObject.NumShards
 	tfMap["id"] = apiObject.ID
 	if tfMapObject != nil {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].(*schema.Set).List(), d, conn)
+		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].([]interface{}), d, conn)
 		if err != nil {
 			return nil, err
 		}
@@ -1027,30 +1028,75 @@ func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.Advan
 	return tfMap, nil
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, apiObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{},
+func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]interface{}, apiObject *matlas.AdvancedReplicationSpec) bool {
+	return tfObject["id"] == apiObject.ID || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.ZoneName)
+}
+
+func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{},
 	d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, error) {
+	var apiObjects []*matlas.AdvancedReplicationSpec
+
+	for _, advancedReplicationSpec := range rawAPIObjects {
+		if advancedReplicationSpec != nil {
+			apiObjects = append(apiObjects, advancedReplicationSpec)
+		}
+	}
+
 	if len(apiObjects) == 0 {
 		return nil, nil
 	}
 
-	var tfList []map[string]interface{}
+	tfList := make([]map[string]interface{}, len(apiObjects))
+	wasAPIObjectUsed := make([]bool, len(apiObjects))
 
-	for i, apiObject := range apiObjects {
-		if apiObject == nil {
-			continue
-		}
-
+	for i := 0; i < len(tfList); i++ {
 		var tfMapObject map[string]interface{}
 
 		if len(tfMapObjects) > i {
 			tfMapObject = tfMapObjects[i].(map[string]interface{})
 		}
 
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObject, tfMapObject, d, conn)
+		for j := 0; j < len(apiObjects); j++ {
+			if wasAPIObjectUsed[j] {
+				continue
+			}
+
+			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
+				continue
+			}
+
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tfList[i] = advancedReplicationSpec
+			wasAPIObjectUsed[j] = true
+			break
+		}
+	}
+
+	for i, tfo := range tfList {
+		var tfMapObject map[string]interface{}
+
+		if tfo != nil {
+			continue
+		}
+
+		if len(tfMapObjects) > i {
+			tfMapObject = tfMapObjects[i].(map[string]interface{})
+		}
+
+		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+
 		if err != nil {
 			return nil, err
 		}
-		tfList = append(tfList, advancedReplicationSpec)
+
+		tfList[i] = advancedReplicationSpec
+		wasAPIObjectUsed[j] = true
 	}
 
 	return tfList, nil
@@ -1259,7 +1305,7 @@ func replicationSpecsHashSet(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
-	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].(*schema.Set)))
+	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].([]interface{})))
 	buf.WriteString(m["zone_name"].(string))
 	return schema.HashString(buf.String())
 }
@@ -1270,8 +1316,8 @@ func getUpgradeRequest(d *schema.ResourceData) *matlas.Cluster {
 	}
 
 	cs, us := d.GetChange("replication_specs")
-	currentSpecs := expandAdvancedReplicationSpecs(cs.(*schema.Set).List())
-	updatedSpecs := expandAdvancedReplicationSpecs(us.(*schema.Set).List())
+	currentSpecs := expandAdvancedReplicationSpecs(cs.([]interface{}))
+	updatedSpecs := expandAdvancedReplicationSpecs(us.([]interface{}))
 
 	if len(currentSpecs) != 1 || len(updatedSpecs) != 1 || len(currentSpecs[0].RegionConfigs) != 1 || len(updatedSpecs[0].RegionConfigs) != 1 {
 		return nil
