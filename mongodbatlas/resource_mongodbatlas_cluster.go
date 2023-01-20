@@ -1434,7 +1434,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
-		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours != 0 {
+		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
 			res.OplogMinRetentionHours = pointy.Float64(cast.ToFloat64(p["oplog_min_retention_hours"]))
 		} else {
 			log.Printf(errorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
