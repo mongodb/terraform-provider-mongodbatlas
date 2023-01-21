@@ -1433,6 +1433,14 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas
 		}
 	}
 
+	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
+		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
+			res.OplogMinRetentionHours = pointy.Float64(cast.ToFloat64(p["oplog_min_retention_hours"]))
+		} else {
+			log.Printf(errorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
+		}
+	}
+
 	return res
 }
 
@@ -1446,6 +1454,7 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
 			"minimum_enabled_tls_protocol":         p.MinimumEnabledTLSProtocol,
 			"no_table_scan":                        cast.ToBool(p.NoTableScan),
 			"oplog_size_mb":                        p.OplogSizeMB,
+			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
 			"sample_size_bi_connector":             p.SampleSizeBIConnector,
 			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
 		},
@@ -1705,6 +1714,11 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 					Computed: true,
 				},
 				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
 					Type:     schema.TypeInt,
 					Optional: true,
 					Computed: true,
