@@ -6,7 +6,7 @@
 
 **Enhancements:**
 
-- Snapshot Distribution Support [#\979](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/979) - INTMDB-400
+- Snapshot Distribution Support [\#979](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/979) - INTMDB-400
 - Programmatically Create API Keys [\#974](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/974) - INTMDB-346
 - Retrieve Org Id [\#973](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/973) - INTMDB-454
 - Analytics node tier new features support [#/994](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/994) - INTMDB-488
@@ -29,12 +29,12 @@
 - Update_snapshots doesn't save at TF state with mongodbatlas_cloud_backup_schedule resource fix [\#974](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/974) - INTMDB-472
 - bi_connector settings in mongodbatlas_advanced_cluster fix [\#1010](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1010) - INTMDB-455
 - mongodbatlas_third_party_integration api_token keeps updating on every apply fix [\#1011](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1011) - INTMDB-519
-- custom_db_role error fix [#\1009](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1009) - INTMDB-448
-- LDAP Config and LDAP Verify Resources Fix [#\1004](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1004) - INTMDB-543
-- Plugin crashes during apply: panic: runtime error: invalid memory address or nil pointer dereference fix [#\968](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/968) - INTMDB-427
-- resource_mongodbatlas_search_index_test fix [#\964](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/964) - INTMDB-341
+- custom_db_role error fix [\#1009](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1009) - INTMDB-448
+- LDAP Config and LDAP Verify Resources Fix [\#1004](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1004) - INTMDB-543
+- Plugin crashes during apply: panic: runtime error: invalid memory address or nil pointer dereference fix [\#968](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/968) - INTMDB-427
+- resource_mongodbatlas_search_index_test fix [\#964](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/964) - INTMDB-341
 - Cannot ignore changes for replication_specs when autoscaling enabled fix [#\961](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/961) - INTMDB-464
-- BI Connector documentation fix [#\1017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1017) 
+- BI Connector documentation fix [\#1017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1017) 
 
 **Closed Issues:**
 - Documentation: Expand documentation for mongodbatlas\_cloud\_backup\_schedule to include information about valid values for frequency\_interval  [\#1005](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1005)
@@ -179,7 +179,7 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6)
 
-**Fixed**
+**Enhancements and Bug Fixes:** 
 - INTMDB-387 - Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
 - INTMDB-342 - Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts  [\#837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/837)
 - INTMDB-347 - Cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
