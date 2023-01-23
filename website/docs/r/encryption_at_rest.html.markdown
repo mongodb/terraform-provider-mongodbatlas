@@ -143,5 +143,12 @@ Refer to the example in the [official github repository](https://github.com/mong
 * `service_account_key` - String-formatted JSON object containing GCP KMS credentials from your GCP account.
 * `key_version_resource_id` - The Key Version Resource ID from your GCP account.
 
+## Import
 
-For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/)
+Encryption at Rest Settings can be imported using project ID, in the format `project_id`, e.g.
+
+```
+$ terraform import mongodbatlas_encryption_at_rest.example 1112222b3bf99403840e8934
+```
+
+For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management)

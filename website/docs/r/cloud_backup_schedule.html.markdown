@@ -10,9 +10,9 @@ description: |-
 
 `mongodbatlas_cloud_backup_schedule` provides a cloud backup schedule resource. The resource lets you create, read, update and delete a cloud backup schedule.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
+-> **NOTE** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
--> **API Key Access List**: This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
+-> **API Key Access List** This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
 
 In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
@@ -113,22 +113,23 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   
   // This will now add the desired policy items to the existing mongodbatlas_cloud_backup_schedule resource
   policy_item_hourly {
-    frequency_interval = 1
+    frequency_interval = 1        #accepted values = 1, 2, 4, 6, 8, 12 -> every n hours
     retention_unit     = "days"
     retention_value    = 1
   }
   policy_item_daily {
-    frequency_interval = 1
+    frequency_interval = 1        #accepted values = 1 -> every 1 day
     retention_unit     = "days"
     retention_value    = 2
   }
   policy_item_weekly {
-    frequency_interval = 4
+    frequency_interval = 4        # accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
     retention_unit     = "weeks"
     retention_value    = 3
   }
   policy_item_monthly {
-    frequency_interval = 5
+    frequency_interval = 5        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
+                                  # accepted values = 40 -> every last day of the month
     retention_unit     = "months"
     retention_value    = 4
   }
@@ -136,6 +137,51 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 }
 ```
 
+## Example Usage - Create a Cluster with Cloud Backup Enabled with Snapshot Distribution
+
+You can enable `cloud_backup` in the Cluster resource and then use the `cloud_backup_schedule` resource with a basic policy for Cloud Backup.
+
+```terraform
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "US_EAST_2"
+  provider_instance_size_name = "M10"
+  cloud_backup     = true // must be enabled in order to use cloud_backup_schedule resource
+}
+
+resource "mongodbatlas_cloud_backup_schedule" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+  policy_item_daily {
+    frequency_interval = 1
+    retention_unit     = "days"
+    retention_value    = 14
+  }
+
+  copy_settings {
+    cloud_provider = "AWS"
+    frequencies = ["HOURLY",
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "ON_DEMAND"]
+    region_name = "US_EAST_1"
+    replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+    should_copy_oplogs = false
+  }
+
+}
+```
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
@@ -143,7 +189,10 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `reference_hour_of_day` - (Optional) UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
 * `reference_minute_of_hour` - (Optional) UTC Minutes after `reference_hour_of_day` that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
-* `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously.
+* `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously. 
+  
+  **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backup-Schedule
+
 * `policy_item_hourly` - (Optional) Hourly policy item
 * `policy_item_daily` - (Optional) Daily policy item
 * `policy_item_weekly` - (Optional) Weekly policy item
@@ -158,29 +207,42 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `frequency_type` - Frequency associated with the export snapshot item.
 
 ### Policy Item Hourly
-* 
-* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `retention_value` - (Required) Value to associate with `retention_unit`.
+* `id` - Unique identifier of the backup policy item.
+* `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `hourly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
+* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_value` - Value to associate with `retention_unit`.
 
 ### Policy Item Daily
-*
-* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `retention_value` - (Required) Value to associate with `retention_unit`.
+* `id` - Unique identifier of the backup policy item.
+* `frequency_type` - Frequency associated with the backup policy item. For daily policies, the frequency type is defined as `daily`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
+* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (daily in this case). The only supported value for daily policies is `1` day.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_value` - Value to associate with `retention_unit`.  Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the hourly policy item specifies a retention of two days, the daily retention policy must specify two days or greater.
 
 ### Policy Item Weekly
-*
-* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `retention_value` - (Required) Value to associate with `retention_unit`.
+* `id` - Unique identifier of the backup policy item.
+* `frequency_type` - Frequency associated with the backup policy item. For weekly policies, the frequency type is defined as `weekly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
+* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (weekly in this case). The supported values for weekly policies are `1` through `7`, where `1` represents Monday and `7` represents Sunday.
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_value` - Value to associate with `retention_unit`. Weekly policy must have retention of at least 7 days or 1 week. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the daily policy item specifies a retention of two weeks, the weekly retention policy must specify two weeks or greater.
 
 ### Policy Item Monthly
-*
-* `frequency_interval` - (Required) Desired frequency of the new backup policy item specified by `frequency_type`.
-* `retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.
-* `retention_value` - (Required) Value to associate with `retention_unit`.
+* `id` - Unique identifier of the backup policy item.
+* `frequency_type` - Frequency associated with the backup policy item. For monthly policies, the frequency type is defined as `monthly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
+* `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (monthly in this case). The supported values for weekly policies are 
+  * `1` through `28` where the number represents the day of the month i.e. `1` is the first of the month and `5` is the fifth day of the month.
+  * `40` represents the last day of the month (depending on the month).
+* `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
+* `retention_value` - Value to associate with `retention_unit`. Monthly policy must have retention days of at least 31 days or 5 weeks or 1 month. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the weekly policy item specifies a retention of two weeks, the montly retention policy must specify two weeks or greater.
 
+### Snapshot Distribution
+*
+* `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
+* `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
+* `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
+* `replication_spec_id` -(Required) Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, do a GET request to Return One Cluster in One Project and consult the replicationSpecs array https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/returnOneCluster
+* `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
 ## Attributes Reference
 

@@ -118,8 +118,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
-	t.Skip() // TODO: Address failures in v1.4.6
-
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -223,6 +221,54 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	})
 }
 
+func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+					ReferenceHourOfDay:    pointy.Int64(3),
+					ReferenceMinuteOfHour: pointy.Int64(45),
+					RestoreWindowDays:     pointy.Int64(4),
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
+					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "2"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.frequency_interval", "4"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_unit", "weeks"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.0.retention_value", "3"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.frequency_interval", "5"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_unit", "months"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
+				),
+			},
+		},
+	})
+}
 func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
@@ -384,7 +430,7 @@ func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterNa
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			
+
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -408,7 +454,7 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			
+
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -448,12 +494,78 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
 			
+			cluster_type = "REPLICASET"
+            replication_specs {
+            num_shards = 1
+            regions_config {
+              region_name     = "US_EAST_2"
+              electable_nodes = 3
+              priority        = 7
+              read_only_nodes = 0
+              }
+            }
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_region_name        = "US_EAST_2"
+			provider_instance_size_name = "M10"
+			cloud_backup     = true //enable cloud provider snapshots
+		}
+
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			project_id   = mongodbatlas_cluster.my_cluster.project_id
+			cluster_name = mongodbatlas_cluster.my_cluster.name
+
+			reference_hour_of_day    = %d
+			reference_minute_of_hour = %d
+			restore_window_days      = %d
+
+			policy_item_hourly {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 2
+			}
+			policy_item_weekly {
+				frequency_interval = 4
+				retention_unit     = "weeks"
+				retention_value    = 3
+			}
+			policy_item_monthly {
+				frequency_interval = 5
+				retention_unit     = "months"
+				retention_value    = 4
+			}
+			copy_settings {
+				cloud_provider = "AWS"
+				frequencies = ["HOURLY",
+							"DAILY",
+							"WEEKLY",
+							"MONTHLY",
+							"ON_DEMAND"]
+				region_name = "US_EAST_1"
+				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
+				should_copy_oplogs = false
+			  }
+		}
+	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+}
+
+func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "my_cluster" {
+			project_id   = "%s"
+			name         = "%s"
+
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -483,7 +595,7 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(projectID, clusterN
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			
+
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -498,7 +610,7 @@ func testAccMongoDBAtlasCloudBackupScheduleNewPoliciesConfig(projectID, clusterN
 			reference_hour_of_day    = %d
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
-			
+
 			policy_item_hourly {
 				frequency_interval = 2
 				retention_unit     = "days"
@@ -554,7 +666,7 @@ func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(projectID, clu
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"
-			
+
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_region_name        = "EU_CENTRAL_1"
@@ -569,7 +681,7 @@ func testAccMongoDBAtlasCloudBackupScheduleAdvancedPoliciesConfig(projectID, clu
 			reference_hour_of_day    = %d
 			reference_minute_of_hour = %d
 			restore_window_days      = %d
-			
+
 			policy_item_hourly {
 				frequency_interval = 2
 				retention_unit     = "days"
@@ -620,7 +732,7 @@ provider "aws" {
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = %[1]q
   name         = %[2]q
-  	  
+
   // Provider Settings "block"
   provider_name               = "AWS"
   provider_region_name        = "US_WEST_2"
@@ -628,7 +740,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   cloud_backup                = true //enable cloud provider snapshots
   depends_on = ["mongodbatlas_cloud_backup_snapshot_export_bucket.test"]
 }
-	  
+
 resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
   project_id               = mongodbatlas_cluster.my_cluster.project_id
   cluster_name             = mongodbatlas_cluster.my_cluster.name
@@ -636,18 +748,18 @@ resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
   reference_hour_of_day    = 20
   reference_minute_of_hour = "05"
   restore_window_days      = 4
-	  
+
   policy_item_daily {
 	frequency_interval = 1
 	retention_unit     = "days"
 	retention_value    = 4
   }
   export {
-	export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-	frequency_type   = "daily"
+		export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+		frequency_type   = "daily"
   }
 }
-	  
+
 resource "aws_s3_bucket" "backup" {
 	bucket = "${local.mongodbatlas_project_id}-s3-mongodb-backups"
 	force_destroy = true
@@ -655,33 +767,33 @@ resource "aws_s3_bucket" "backup" {
       object_lock_enabled = "Enabled"
     }
 }
-  
+
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = %[1]q
   provider_name = "AWS"
 }
-	  
+
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   project_id = %[1]q
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-	  
+
 	aws {
 	  iam_assumed_role_arn = aws_iam_role.test_role.arn
 	}
 }
-	  
+
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
   project_id = %[1]q
-	  
+
   iam_role_id    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
   bucket_name    = aws_s3_bucket.backup.bucket
   cloud_provider = "AWS"
 }
-	  
+
 resource "aws_iam_role_policy" "test_policy" {
 	name = %[1]q
 	role = aws_iam_role.test_role.id
-  
+
 	policy = <<-EOF
 	{
 	  "Version": "2012-10-17",
@@ -695,10 +807,10 @@ resource "aws_iam_role_policy" "test_policy" {
 	}
 	EOF
 }
-	  
+
 resource "aws_iam_role" "test_role" {
   name = %[4]q
-  
+
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -718,7 +830,7 @@ resource "aws_iam_role" "test_role" {
   ]
 }
 EOF
- 
+
 }
 	`, projectID, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region)
 }

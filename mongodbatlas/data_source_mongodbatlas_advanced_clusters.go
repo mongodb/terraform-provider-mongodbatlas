@@ -30,7 +30,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"bi_connector": {
+						"bi_connector_config": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -122,6 +122,34 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"analytics_specs": advancedClusterRegionConfigsSpecsSchema(),
 												"auto_scaling": {
+													Type:     schema.TypeList,
+													Computed: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"disk_gb_enabled": {
+																Type:     schema.TypeBool,
+																Computed: true,
+															},
+															"compute_enabled": {
+																Type:     schema.TypeBool,
+																Computed: true,
+															},
+															"compute_scale_down_enabled": {
+																Type:     schema.TypeBool,
+																Computed: true,
+															},
+															"compute_min_instance_size": {
+																Type:     schema.TypeString,
+																Computed: true,
+															},
+															"compute_max_instance_size": {
+																Type:     schema.TypeString,
+																Computed: true,
+															},
+														},
+													},
+												},
+												"analytics_auto_scaling": {
 													Type:     schema.TypeList,
 													Computed: true,
 													Elem: &schema.Resource{
@@ -246,7 +274,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 		result := map[string]interface{}{
 			"advanced_configuration":         flattenProcessArgs(processArgs),
 			"backup_enabled":                 clusters[i].BackupEnabled,
-			"bi_connector":                   flattenBiConnectorConfig(clusters[i].BiConnector),
+			"bi_connector_config":            flattenBiConnectorConfig(clusters[i].BiConnector),
 			"cluster_type":                   clusters[i].ClusterType,
 			"create_date":                    clusters[i].CreateDate,
 			"connection_strings":             flattenConnectionStrings(clusters[i].ConnectionStrings),

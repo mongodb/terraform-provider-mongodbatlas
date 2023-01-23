@@ -102,7 +102,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 	projectID := d.Get("project_id").(string)
 	username := d.Get("username").(string)
 
-	var currentCertificate string
+	var serialNumber string
 
 	if expirationMonths, ok := d.GetOk("months_until_expiration"); ok {
 		res, _, err := conn.X509AuthDBUsers.CreateUserCertificate(ctx, projectID, username, expirationMonths.(int))
@@ -110,7 +110,10 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err))
 		}
 
-		currentCertificate = res.Certificate
+		serialNumber = cast.ToString(res.ID)
+		if err := d.Set("current_certificate", cast.ToString(res.Certificate)); err != nil {
+			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
+		}
 	} else {
 		customerX509Cas := d.Get("customer_x509_cas").(string)
 		_, _, err := conn.X509AuthDBUsers.SaveConfiguration(ctx, projectID, &matlas.CustomerX509{Cas: customerX509Cas})
@@ -120,9 +123,9 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 	}
 
 	d.SetId(encodeStateID(map[string]string{
-		"project_id":          projectID,
-		"username":            username,
-		"current_certificate": currentCertificate,
+		"project_id":    projectID,
+		"username":      username,
+		"serial_number": serialNumber,
 	}))
 
 	return resourceMongoDBAtlasX509AuthDBUserRead(ctx, d, meta)
@@ -134,11 +137,11 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
-	currentCertificate := ids["current_certificate"]
 
 	var (
 		certificates []matlas.UserCertificate
 		err          error
+		serialNumber string
 	)
 
 	if username != "" {
@@ -152,15 +155,20 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 			}
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
-	}
-
-	if err := d.Set("current_certificate", cast.ToString(currentCertificate)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "current_certificate", username, err))
+		for _, val := range certificates {
+			serialNumber = cast.ToString(val.ID)
+		}
 	}
 
 	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 	}
+
+	d.SetId(encodeStateID(map[string]string{
+		"project_id":    projectID,
+		"username":      username,
+		"serial_number": serialNumber,
+	}))
 
 	return nil
 }
