@@ -9,10 +9,10 @@
 - Snapshot Distribution Support [\#979](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/979) - INTMDB-400
 - Programmatically Create API Keys [\#974](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/974) - INTMDB-346
 - Retrieve Org Id [\#973](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/973) - INTMDB-454
-- Analytics node tier new features support [#/994](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/994) - INTMDB-488
-- Improve default alerts and example [#\993](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/993) - INTMDB-382
-- oplogMinRetentionHours Support in advanced_cluster and cluster [#\1016]https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1016) - INTMDB-397
-- Expand documentation for mongodbatlas_cloud_backup_schedule to include information about valid values for frequency_interval [#\1007](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1007) - INTMDB-547
+- Analytics Node Tier New Features Support [\#994](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/994) - INTMDB-488
+- Improve Default Alerts and Example Creation [\#993](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/993) - INTMDB-382
+- oplogMinRetentionHours Support in advanced_cluster and cluster [\#1016](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1016) - INTMDB-397
+- Expand documentation for mongodbatlas_cloud_backup_schedule to include information about valid values for frequency_interval [\#1007](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1007) - INTMDB-547
 
 **Depreciations:**
 
@@ -24,7 +24,6 @@
 - Import example added for encryption_at_rest resource [\#992](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/992) - INTMDB-530 
 - Resource cloud_backup_snapshot_export_job variable name change [\#976](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/976) - INTMDB-523
 - Hide current_certificate when X.509 Authentication Database Users are Created [\#985](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/985) - INTMDB-468
-- federated_settings_org_config import example fix [\#996](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/996)
 - Invitation handling after user accepts invitation fix [\#1012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1012) - INTMDB-511 
 - Update_snapshots doesn't save at TF state with mongodbatlas_cloud_backup_schedule resource fix [\#974](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/974) - INTMDB-472
 - bi_connector settings in mongodbatlas_advanced_cluster fix [\#1010](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1010) - INTMDB-455
@@ -35,6 +34,7 @@
 - resource_mongodbatlas_search_index_test fix [\#964](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/964) - INTMDB-341
 - Cannot ignore changes for replication_specs when autoscaling enabled fix [#\961](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/961) - INTMDB-464
 - BI Connector documentation fix [\#1017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1017) 
+- federated_settings_org_config import example fix [\#996](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/996)
 
 **Closed Issues:**
 - Documentation: Expand documentation for mongodbatlas\_cloud\_backup\_schedule to include information about valid values for frequency\_interval  [\#1005](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1005)
