@@ -1305,7 +1305,7 @@ func replicationSpecsHashSet(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
-	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].([]interface{})))
+	buf.WriteString(fmt.Sprintf("%+v", m["region_configs"].(*schema.Set)))
 	buf.WriteString(m["zone_name"].(string))
 	return schema.HashString(buf.String())
 }
