@@ -11,8 +11,7 @@ MongoDB Atlas Provider 1.8.0: Upgrade and Information Guide
 The Terraform MongoDB Atlas Provider version 1.8.0 has a number of new and exciting features and changes.
 
 **Major Enhancements:**
-* The HashiCorp Terraform MongoDB Atlas Provider now supports [Snapshot Distribution](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule) 
-  * To learn more about this feature see here: https://www.mongodb.com/blog/post/introducing-snapshot-distribution-atlas   
+* You can now enable and manage backup [snapshot distribution](https://www.mongodb.com/blog/post/introducing-snapshot-distribution-atlas) with [`mongodbatlas_cloud_backup_schedule`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule)
 * The HashiCorp Terraform MongoDB Atlas Provider now allows users to [Programmatically Create API Keys](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key) 
   * To learn more about this feature see here: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys
   *  **IMPORTANT WARNING:**  Creating, Reading, Updating, or Deleting Atlas API Keys may expose sensitive organizational secrets to Terraform State. Consider storing sensitive API Key secrets instead via the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas). 
