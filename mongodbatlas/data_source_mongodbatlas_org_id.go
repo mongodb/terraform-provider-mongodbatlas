@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -38,17 +37,15 @@ func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("error getting API Key's org assigned (%s): ", err)
 	}
 
-	if err := d.Set("org_id", apiKeyOrgList.APIKey.Roles[0].OrgID); err != nil {
-		return diag.Errorf(errorProjectSetting, `org_id`, root.APIKey.ID, err)
-	}
-
-	for _, role := range apiKeyOrgList.APIKey.Roles {
+	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
-			d.SetId(apiKeyOrgList.APIKey.Roles[0].OrgID)
+			if err := d.Set("org_id", apiKeyOrgList.APIKey.Roles[idx].OrgID); err != nil {
+				return diag.Errorf(errorProjectSetting, `org_id`, root.APIKey.ID, err)
+			}
+			d.SetId(apiKeyOrgList.APIKey.Roles[idx].OrgID)
+			return nil
 		}
 	}
-
-	d.SetId(resource.UniqueId())
 
 	return nil
 }
