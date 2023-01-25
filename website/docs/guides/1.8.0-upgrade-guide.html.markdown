@@ -14,6 +14,8 @@ The Terraform MongoDB Atlas Provider version 1.8.0 has a number of new and excit
 * You can now enable and manage backup [snapshot distribution](https://www.mongodb.com/blog/post/introducing-snapshot-distribution-atlas) with [`mongodbatlas_cloud_backup_schedule`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule)
 * You can now manage the lifecycle of your [Programmatic API Keys](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys) [`mongodbatlas_api_key`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key) 
   *  **IMPORTANT WARNING:**  Managing Atlas Programmatic API Keys (PAKs) with Terraform will expose sensitive organizational secrets in Terraform's state.  We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).  You may also want to consider managing your PAKs via a more secure method, such as the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas). 
+* You can now retrieve `org_id` from API Keys with [`mongodbatlas_roles_org_id`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/roles_org_id)
+* You can now use the `oplogMinRetentionHours` paramter in [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) and [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) resources  
 
 
 **Depreciations:**
@@ -21,7 +23,11 @@ The Terraform MongoDB Atlas Provider version 1.8.0 has a number of new and excit
 * [`mongodbatlas_private_ip_mode`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/private_ip_mode) has been deprecated for a few versions.  We will proceed with removal in the next major version, 1.9.0.  
 * NEW_RELIC and FLOWDOCK in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration#argument-reference) resource are now deprecated and will be removed in the next major version, 1.9.0.
 
-1.8.0 also includes general improvements and bug fixes. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
+**Changes:**
+* `current_certificate` is now hidden when [`mongodbatlas_x509_authentication_database_user`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/x509_authentication_database_user) is created
+
+
+1.8.0 also includes general improvements, bug fixes, and several key documentation updates. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
 
 
 ### Helpful Links
