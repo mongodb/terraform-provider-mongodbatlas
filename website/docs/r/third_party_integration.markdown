@@ -49,7 +49,7 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
      * MICROSOFT_TEAMS
      * PROMETHEUS
 
-     *resource is now deprecated and will be removed in the next major version, 1.9.
+     *resource is now deprecated and will be removed in the next major version, 1.9.0
 
 Additional values based on Type
 
