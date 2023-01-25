@@ -18,7 +18,7 @@ The Terraform MongoDB Atlas Provider version 1.8.0 has a number of new and excit
 
 **Depreciations:**
 * [`cloud_provider_snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot), [`cloud_provider_snapshot_backup_policy`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_backup_policy), [`cloud_provider_snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_restore_job), and [`private_ip_mode`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/private_ip_mode) are now deprecated and will be removed from codebase as of v1.9
-* NEW_RELIC and FLOWDOCK in [`third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration#argument-reference) resource are now deprecated and will be removed from codebase as of v1.9 release 
+* NEW_RELIC and FLOWDOCK in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration#argument-reference) resource are now deprecated and will be removed in the next major version, 1.9.
 
 1.8.0 also includes general improvements and bug fixes. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
 
