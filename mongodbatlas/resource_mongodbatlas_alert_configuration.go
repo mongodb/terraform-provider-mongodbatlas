@@ -758,6 +758,8 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 			notifications[i].VictorOpsRoutingKey = notificationsSchema[i].VictorOpsRoutingKey
 			notifications[i].WebhookURL = notificationsSchema[i].WebhookURL
 			notifications[i].WebhookSecret = notificationsSchema[i].WebhookSecret
+			notifications[i].SMSEnabled = notificationsSchema[i].SMSEnabled
+			notifications[i].EmailEnabled = notificationsSchema[i].EmailEnabled
 		}
 	}
 
