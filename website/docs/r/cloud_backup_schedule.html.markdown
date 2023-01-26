@@ -25,7 +25,7 @@ You can create a new cluster with `cloud_backup` enabled and then immediately ov
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
+  disk_size_gb = 10
 
   //Provider Settings "block"
   provider_name               = "AWS"
