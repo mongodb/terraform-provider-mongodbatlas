@@ -52,6 +52,18 @@ In addition to all arguments above, the following attributes are exported:
 * `project_id`  - (Required) ID of the Atlas project the Third-Party Service Integration belongs to.
 * `type`        - (Required) Thirt-Party service integration type.
 
+     * PAGER_DUTY
+     * DATADOG
+     * NEW_RELIC*
+     * OPS_GENIE
+     * VICTOR_OPS
+     * FLOWDOCK*
+     * WEBHOOK
+     * MICROSOFT_TEAMS
+     * PROMETHEUS
+
+     *resource is now deprecated and will be removed in the next major version, 1.9.0
+
 Additional values based on Type
 
 * `PAGER_DUTY`
