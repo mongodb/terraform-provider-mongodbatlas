@@ -35,13 +35,15 @@ data "mongodbatlas_third_party_integration" "test" {
 * `type`       - (Required) Third-Party service integration type
      * PAGER_DUTY
      * DATADOG
-     * NEW_RELIC
+     * NEW_RELIC*
      * OPS_GENIE
      * VICTOR_OPS
-     * FLOWDOCK
+     * FLOWDOCK*
      * WEBHOOK
      * MICROSOFT_TEAMS
      * PROMETHEUS
+
+     *resource is now deprecated and will be removed in the next major version, 1.9.0
 
 
 ## Attributes Reference
