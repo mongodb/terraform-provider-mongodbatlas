@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -101,7 +102,13 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	}
 }
 
+var (
+	customRoleLock sync.Mutex
+)
+
 func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	customRoleLock.Lock()
+	defer customRoleLock.Unlock()
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -180,6 +187,8 @@ func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.Resourc
 }
 
 func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	customRoleLock.Lock()
+	defer customRoleLock.Unlock()
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]

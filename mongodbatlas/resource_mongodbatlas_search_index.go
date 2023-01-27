@@ -180,7 +180,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("collection_name") {
-		searchIndex.CollectionName = d.Get("collectionName").(string)
+		searchIndex.CollectionName = d.Get("collection_name").(string)
 	}
 
 	if d.HasChange("database") {
@@ -192,7 +192,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = d.Get("searchAnalyzer").(string)
+		searchIndex.SearchAnalyzer = d.Get("search_analyzer").(string)
 	}
 
 	if d.HasChange("mappings_dynamic") {

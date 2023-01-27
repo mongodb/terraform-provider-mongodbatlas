@@ -15,9 +15,12 @@ description: |-
 ## Example Usage
 
 ```terraform
+data "mongodbatlas_roles_org_id" "test" {
+}
+
 resource "mongodbatlas_project" "test" {
   name   = "project-name"
-  org_id = "<ORG_ID>"
+  org_id = data.mongodbatlas_roles_org_id.test.org_id
   project_owner_id = "<OWNER_ACCOUNT_ID>"
 
   teams {
@@ -104,4 +107,4 @@ Project must be imported using project ID, e.g.
 ```
 $ terraform import mongodbatlas_project.my_project 5d09d6a59ccf6445652a444a
 ```
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/projects/) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/teams/) Documentation for more information.
+For more information see: [MongoDB Atlas Admin API Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) and [MongoDB Atlas Admin API Teams](https://docs.atlas.mongodb.com/reference/api/teams/) Documentation for more information.

@@ -22,7 +22,7 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"bi_connector": {
+			"bi_connector_config": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -141,6 +141,34 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 											},
 										},
 									},
+									"analytics_auto_scaling": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"disk_gb_enabled": {
+													Type:     schema.TypeBool,
+													Computed: true,
+												},
+												"compute_enabled": {
+													Type:     schema.TypeBool,
+													Computed: true,
+												},
+												"compute_scale_down_enabled": {
+													Type:     schema.TypeBool,
+													Computed: true,
+												},
+												"compute_min_instance_size": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"compute_max_instance_size": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 									"backing_provider_name": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -216,8 +244,8 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "backup_enabled", clusterName, err))
 	}
 
-	if err := d.Set("bi_connector", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "bi_connector", clusterName, err))
+	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "bi_connector_config", clusterName, err))
 	}
 
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
