@@ -8,7 +8,7 @@ description: |-
 
 # Resource: Cloud Provider Access Configuration Paths
 
-The Terraform MongoDB Atlas Provider offers two mutually exclusive paths to perform an authorization for a cloud provider role -
+The Terraform MongoDB Atlas Provider offers two either-or/mutually exclusive paths to perform an authorization for a cloud provider role -
 
 * A Single Resource path: using the `mongodbatlas_cloud_provider_access` that at provision time sets up all the required configuration for a given provider, then with a subsequent update it can perform the authorize of the role. Note this path requires two `terraform apply` commands, once for setup and once for auth.
 
