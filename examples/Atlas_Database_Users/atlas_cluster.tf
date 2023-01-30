@@ -13,7 +13,7 @@ resource "mongodbatlas_cluster" "cluster" {
     }
   }
   # Provider Settings "block"
-  provider_backup_enabled      = true
+  cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
   provider_name                = "AWS"
   disk_size_gb                 = 10
