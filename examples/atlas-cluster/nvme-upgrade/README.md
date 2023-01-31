@@ -28,7 +28,7 @@ provider_volume_type        = "STANDARD"
 provider_disk_iops          = 3000
 ```
 
-Apply with the following `terraform.tfvars` to upgrade the standard storage tier cluster you just created to provisioned storage nvme tier:
+Apply with the following `terraform.tfvars` to upgrade the standard storage tier cluster you just created to provisioned storage NVME tier:
 ```
 atlas_org_id                = "627a9687f7f7f7f774de306f14"
 public_key                  = <REDACTED>
