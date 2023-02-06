@@ -3,7 +3,10 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -236,9 +239,18 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 		encryptionAtRestReq.GoogleCloudKms = expandGCPKmsConfig(gcpC.([]interface{}))
 	}
 
-	_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCreateEncryptionAtRest, err))
+	for i := 0; i < 5; i++ {
+		_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
+		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") || strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
+			log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
+			log.Println("retrying ")
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		if err != nil {
+			log.Printf("MISSED ERRROR %s", err.Error())
+		}
+		break
 	}
 
 	d.SetId(d.Get("project_id").(string))
