@@ -19,7 +19,6 @@ resource "mongodbatlas_project_api_key" "test" {
   description   = "key-name"
   project_id        = "<PROJECT_ID>"
   role_names = ["GROUP_OWNER"]
-  }
 }
 ```
 
