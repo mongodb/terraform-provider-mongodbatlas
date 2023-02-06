@@ -243,7 +243,7 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 		_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
 		if err != nil {
 			if strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") ||
-				strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") || strings.Contains(err.Error(), "groupId") {
+				strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
 				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
 				log.Println("retrying ")
 				time.Sleep(10 * time.Second)
