@@ -238,10 +238,11 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 	if gcpCOk {
 		encryptionAtRestReq.GoogleCloudKms = expandGCPKmsConfig(gcpC.([]interface{}))
 	}
-
+	var err error
 	for i := 0; i < 5; i++ {
-		_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
-		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") || strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
+		_, _, err = conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
+		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") ||
+			strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
 			log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
 			log.Println("retrying ")
 			time.Sleep(10 * time.Second)
@@ -251,6 +252,10 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 			log.Printf("MISSED ERRROR %s", err.Error())
 		}
 		break
+	}
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorCreateEncryptionAtRest, err))
 	}
 
 	d.SetId(d.Get("project_id").(string))
