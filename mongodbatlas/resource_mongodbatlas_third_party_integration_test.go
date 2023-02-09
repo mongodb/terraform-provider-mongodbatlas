@@ -16,12 +16,14 @@ func TestAccConfigRSThirdPartyIntegration_basic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
 		config            = testAccCreateThirdPartyIntegrationConfig()
 		testExecutionName = "test_3rd_party_" + config.AccountID
 		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
 	)
 
 	config.Type = "OPS_GENIE"
+	config.APIKey = apiKey
 
 	seedConfig := thirdPartyConfig{
 		Name:        testExecutionName,
@@ -53,12 +55,14 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
 		config            = testAccCreateThirdPartyIntegrationConfig()
 		testExecutionName = "test_3rd_party_" + config.AccountID
 		resourceName      = "mongodbatlas_third_party_integration." + testExecutionName
 	)
 
 	config.Type = "OPS_GENIE"
+	config.APIKey = apiKey
 
 	seedConfig := thirdPartyConfig{
 		Name:        testExecutionName,
@@ -76,7 +80,6 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
 					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_key", config.APIKey),
 					resource.TestCheckResourceAttr(resourceName, "region", config.Region),
 				),
 			},
@@ -84,7 +87,7 @@ func TestAccConfigRSThirdPartyIntegration_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasThirdPartyIntegrationImportStateIDFunc(resourceName),
 				ImportState:       true,
-				ImportStateVerify: true,
+				ImportStateVerify: false, // API Obfuscation will always make import mismatch
 			},
 		},
 	},
@@ -96,6 +99,7 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
 		config            = testAccCreateThirdPartyIntegrationConfig()
 		updatedConfig     = testAccCreateThirdPartyIntegrationConfig()
 		testExecutionName = "test_3rd_party_" + config.AccountID
@@ -106,6 +110,8 @@ func TestAccConfigRSThirdPartyIntegration_updateBasic(t *testing.T) {
 	config.Type = "OPS_GENIE"
 	updatedConfig.Type = "OPS_GENIE"
 	updatedConfig.Region = "US"
+	config.APIKey = apiKey
+	updatedConfig.APIKey = apiKey
 
 	seedInitialConfig := thirdPartyConfig{
 		Name:        testExecutionName,

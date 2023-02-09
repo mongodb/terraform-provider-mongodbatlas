@@ -77,14 +77,6 @@ const (
 	}
 	`
 
-	WEBHOOK = `
-	resource "mongodbatlas_third_party_integration" "%[1]s" {
-		project_id = "%[2]s"
-		type = "%[3]s"
-		url = "%[4]s"	
-	}
-	`
-
 	MICROSOFTTEAMS = `
 	resource "mongodbatlas_third_party_integration" "%[1]s" {
 		project_id = "%[2]s"
@@ -101,10 +93,17 @@ const (
 		password  = "%[5]s"
 		service_discovery = "%[6]s" 
 		scheme = "%[7]s"
-		enabled = "%[8]s"
+		enabled = true
 	}
 	`
 
+	WEBHOOK = `
+	resource "mongodbatlas_third_party_integration" "%[1]s" {
+		project_id = "%[2]s"
+		type = "%[3]s"
+		url = "%[4]s"	
+	}
+`
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	numeric  = "0123456789"
 	alphaNum = alphabet + numeric
@@ -122,7 +121,9 @@ func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
 		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		apiKey            = os.Getenv("OPS_GENIE_API_KEY")
 		config            = testAccCreateThirdPartyIntegrationConfig()
+
 		testExecutionName = "test_" + config.AccountID
 		resourceName      = "data.mongodbatlas_third_party_integration." + testExecutionName
 
@@ -132,6 +133,7 @@ func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
 			Integration: *config,
 		}
 	)
+	seedConfig.Integration.APIKey = apiKey
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -142,9 +144,6 @@ func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckThirdPartyIntegrationExists(resourceName, &targetIntegration),
 					resource.TestCheckResourceAttr(resourceName, "type", config.Type),
-					resource.TestCheckResourceAttr(resourceName, "api_token", config.APIToken),
-					resource.TestCheckResourceAttr(resourceName, "flow_name", config.FlowName),
-					resource.TestCheckResourceAttr(resourceName, "org_name", config.OrgName),
 				),
 			},
 		},
@@ -208,16 +207,6 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.Integration.APIKey,
 			config.Integration.RoutingKey,
 		)
-
-	case "FLOWDOCK":
-		return fmt.Sprintf(FLOWDOCK,
-			config.Name,
-			config.ProjectID,
-			config.Integration.Type,
-			config.Integration.FlowName,
-			config.Integration.APIToken,
-			config.Integration.OrgName,
-		)
 	case "WEBHOOK":
 		return fmt.Sprintf(WEBHOOK,
 			config.Name,
@@ -225,15 +214,15 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.Integration.Type,
 			config.Integration.URL,
 		)
-	case "MICROSOFTTEAMS":
-		return fmt.Sprintf(WEBHOOK,
+	case "MICROSOFT_TEAMS":
+		return fmt.Sprintf(MICROSOFTTEAMS,
 			config.Name,
 			config.ProjectID,
 			config.Integration.Type,
 			config.Integration.MicrosoftTeamsWebhookURL,
 		)
 	case "PROMETHEUS":
-		return fmt.Sprintf(WEBHOOK,
+		return fmt.Sprintf(PROMETHEUS,
 			config.Name,
 			config.ProjectID,
 			config.Integration.Type,
@@ -241,7 +230,6 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 			config.Integration.Password,
 			config.Integration.ServiceDiscovery,
 			config.Integration.Scheme,
-			config.Integration.Enabled,
 		)
 	default:
 		return fmt.Sprintf(Unknown3rdParty,
@@ -255,7 +243,7 @@ func testAccMongoDBAtlasThirdPartyIntegrationResourceConfig(config *thirdPartyCo
 func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 	account := testGenString(6, numeric)
 	return &matlas.ThirdPartyIntegration{
-		Type: "FLOWDOCK",
+		Type: "OPS_GENIE",
 		// Pager dutty 20-character strings
 		LicenseKey: testGenString(20, alphabet),
 		// Slack xoxb-333649436676-799261852869-clFJVVIaoJahpORboa3Ba2al
@@ -266,14 +254,20 @@ func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 		APIKey: testGenString(40, alphaNum),
 		Region: "EU",
 
-		AccountID:  account,
-		WriteToken: "write-test-" + testGenString(20, alphaNum),
-		ReadToken:  "read-test-" + testGenString(20, alphaNum),
-		RoutingKey: testGenString(40, alphaNum),
-		FlowName:   "MongoFlow test" + account,
-		OrgName:    "MongoOrgTest " + account,
-		URL:        "https://www.mongodb.com/webhook",
-		Secret:     account,
+		AccountID:                account,
+		WriteToken:               "write-test-" + testGenString(20, alphaNum),
+		ReadToken:                "read-test-" + testGenString(20, alphaNum),
+		RoutingKey:               testGenString(40, alphaNum),
+		FlowName:                 "MongoFlow test" + account,
+		OrgName:                  "MongoOrgTest " + account,
+		URL:                      "https://www.mongodb.com/webhook",
+		Secret:                   account,
+		UserName:                 "PROM_USER",
+		Password:                 "PROM_PASSWORD",
+		ServiceDiscovery:         "http",
+		Scheme:                   "https",
+		Enabled:                  false,
+		MicrosoftTeamsWebhookURL: "https://apps.webhook.office.com/webhookb2/c9c5fafc-d9fe-4ffb-9773-77d804ea4372@c96563a8-841b-4ef9-af16-33548fffc958/IncomingWebhook/484cccf0a678fffff86388b63203110a/42a0070b-5f35-ffff-be83-ac7e7f55d7d3",
 	}
 }
 
