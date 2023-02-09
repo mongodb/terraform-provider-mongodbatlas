@@ -94,6 +94,9 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 	if integrationSchema.UserName == "" {
 		integrationSchema.APIKey = integration.UserName
 	}
+	if integrationSchema.URL == "" {
+		integrationSchema.URL = integration.URL
+	}
 
 	out := map[string]interface{}{
 		"type":                        integration.Type,
@@ -110,7 +113,7 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"routing_key":                 integrationSchema.RoutingKey,
 		"flow_name":                   integration.FlowName,
 		"org_name":                    integration.OrgName,
-		"url":                         integration.URL,
+		"url":                         integrationSchema.URL,
 		"secret":                      integrationSchema.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
 		"user_name":                   integrationSchema.UserName,
@@ -248,9 +251,7 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.Thi
 		integration.ReadToken = d.Get("read_token").(string)
 	}
 
-	if d.HasChange("api_key") {
-		integration.APIKey = d.Get("api_key").(string)
-	}
+	integration.APIKey = d.Get("api_key").(string)
 
 	if d.HasChange("region") {
 		integration.Region = d.Get("region").(string)
