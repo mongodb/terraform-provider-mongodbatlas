@@ -429,7 +429,7 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(ctx context.Context, d *schema
 		req.Threshold = expandAlertConfigurationThresholdConfig(d)
 	}
 
-	//Always refresh structure to handle service keys being obfuscated coming back from read API call
+	// Always refresh structure to handle service keys being obfuscated coming back from read API call
 	notifications, err := expandAlertConfigurationNotification(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorUpdateAlertConf, err))

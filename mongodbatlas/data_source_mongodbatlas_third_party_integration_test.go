@@ -254,20 +254,23 @@ func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 		APIKey: testGenString(40, alphaNum),
 		Region: "EU",
 
-		AccountID:                account,
-		WriteToken:               "write-test-" + testGenString(20, alphaNum),
-		ReadToken:                "read-test-" + testGenString(20, alphaNum),
-		RoutingKey:               testGenString(40, alphaNum),
-		FlowName:                 "MongoFlow test" + account,
-		OrgName:                  "MongoOrgTest " + account,
-		URL:                      "https://www.mongodb.com/webhook",
-		Secret:                   account,
-		UserName:                 "PROM_USER",
-		Password:                 "PROM_PASSWORD",
-		ServiceDiscovery:         "http",
-		Scheme:                   "https",
-		Enabled:                  false,
-		MicrosoftTeamsWebhookURL: "https://apps.webhook.office.com/webhookb2/c9c5fafc-d9fe-4ffb-9773-77d804ea4372@c96563a8-841b-4ef9-af16-33548fffc958/IncomingWebhook/484cccf0a678fffff86388b63203110a/42a0070b-5f35-ffff-be83-ac7e7f55d7d3",
+		AccountID:        account,
+		WriteToken:       "write-test-" + testGenString(20, alphaNum),
+		ReadToken:        "read-test-" + testGenString(20, alphaNum),
+		RoutingKey:       testGenString(40, alphaNum),
+		FlowName:         "MongoFlow test" + account,
+		OrgName:          "MongoOrgTest " + account,
+		URL:              "https://www.mongodb.com/webhook",
+		Secret:           account,
+		UserName:         "PROM_USER",
+		Password:         "PROM_PASSWORD",
+		ServiceDiscovery: "http",
+		Scheme:           "https",
+		Enabled:          false,
+		MicrosoftTeamsWebhookURL: "https://apps.webhook.office.com/webhookb2/" +
+			"c9c5fafc-d9fe-4ffb-9773-77d804ea4372@c9656" +
+			"3a8-841b-4ef9-af16-33548fffc958/IncomingWebhook" +
+			"/484cccf0a678fffff86388b63203110a/42a0070b-5f35-ffff-be83-ac7e7f55d7d3",
 	}
 }
 
