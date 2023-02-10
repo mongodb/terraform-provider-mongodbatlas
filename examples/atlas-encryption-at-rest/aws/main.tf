@@ -1,10 +1,10 @@
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = var.project_id
-  provider_name = var.cloud_provider_access_name
+  project_id    = var.atlas_project_id
+  provider_name = "AWS"
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-  project_id = var.project_id
+  project_id = var.atlas_project_id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
   aws {
@@ -13,14 +13,21 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 resource "mongodbatlas_encryption_at_rest" "test" {
-  project_id = var.project_id
+  project_id = var.atlas_project_id
 
   aws_kms_config {
     enabled                = true
-    customer_master_key_id = var.customer_master_key
+    customer_master_key_id = aws_kms_key.kms_key.id
     region                 = var.atlas_region
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
   }
-
 }
 
+# uncomment below when importing an existing cluster
+# resource "mongodbatlas_cluster" "my_cluster" {
+#   project_id                  = var.atlas_project_id
+#   provider_name               = "AWS"
+#   encryption_at_rest_provider = "AWS"
+#   name                        = "MyCluster"
+#   provider_instance_size_name = "M10"
+# }
