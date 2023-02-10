@@ -12,11 +12,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+type permCtxKey string
+
 const (
 	errorPrivateEndpointRegionalModeRead    = "error reading MongoDB Group `%s Private Endpoints Regional Mode: %s"
 	errorPrivateEndpointRegionalModeSetting = "error setting `%s` on MongoDB Group `%s` Private Endpoints Regional Mode: %s"
 	errorPrivateEndpointRegionalModeUpdate  = "error updating MongoDB Group `%s` Private Endpoints Regional Mode: %s"
 )
+
+var regionalModeTimeoutCtxKey permCtxKey = "regionalModeTimeout"
 
 func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 	return &schema.Resource{
@@ -38,12 +42,17 @@ func resourceMongoDBAtlasPrivateEndpointRegionalMode() *schema.Resource {
 				Optional: true,
 			},
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(3 * time.Hour),
+			Update: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
+		},
 	}
 }
 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	d.SetId(d.Get("project_id").(string))
-	err := resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx, d, meta)
+	err := resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(context.WithValue(ctx, regionalModeTimeoutCtxKey, schema.TimeoutCreate), d, meta)
 
 	if err != nil {
 		return err
@@ -79,6 +88,11 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 
 	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
+	timeoutKey := ctx.Value(regionalModeTimeoutCtxKey)
+
+	if timeoutKey == nil {
+		timeoutKey = schema.TimeoutUpdate
+	}
 
 	_, resp, err := conn.PrivateEndpoints.UpdateRegionalizedPrivateEndpointSetting(ctx, projectID, enabled)
 	if err != nil {
@@ -95,7 +109,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    resourceClusterListAdvancedRefreshFunc(ctx, projectID, conn),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
@@ -110,7 +124,7 @@ func resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx context.Context, 
 
 func resourceMongoDBAtlasPrivateEndpointRegionalModeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	if err := d.Set("enabled", false); err == nil {
-		resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(ctx, d, meta)
+		resourceMongoDBAtlasPrivateEndpointRegionalModeUpdate(context.WithValue(ctx, regionalModeTimeoutCtxKey, schema.TimeoutDelete), d, meta)
 	} else {
 		log.Printf(errorPrivateEndpointRegionalModeSetting, "enabled", d.Id(), err)
 	}
