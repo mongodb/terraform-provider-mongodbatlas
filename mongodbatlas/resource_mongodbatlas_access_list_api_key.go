@@ -126,8 +126,12 @@ func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.Res
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, _, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
+	apiKey, resp, err := conn.AccessListAPIKeys.Get(ctx, orgID, apiKeyID, strings.ReplaceAll(ids["entry"], "/", "%2F"))
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
 
