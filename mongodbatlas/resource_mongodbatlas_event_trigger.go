@@ -521,7 +521,7 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 
 	parts := strings.Split(d.Id(), "--")
 	if len(parts) != 3 {
-		return nil, errors.New("import format error: to import a MongoDB Event Trigger, use the format {project_id}-{app_id}-{trigger_id} ")
+		return nil, errors.New("import format error: to import a MongoDB Event Trigger, use the format {project_id}--{app_id}--{trigger_id} ")
 	}
 
 	projectID := parts[0]
