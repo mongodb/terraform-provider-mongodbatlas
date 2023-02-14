@@ -12,6 +12,8 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+-> **WARNING:** This field type has values (NEW_RELIC, FLOWDOCK) that are deprecated and will be removed in 1.9.0 release release
+
 -> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.[Read more about slack setup](https://docs.atlas.mongodb.com/tutorial/third-party-service-integrations/)
 
 ~> **IMPORTANT** Each project can only have one configuration per {INTEGRATION-TYPE}.
@@ -39,13 +41,15 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
 * `type`       - (Required) Third-Party Integration Settings type 
      * PAGER_DUTY
      * DATADOG
-     * NEW_RELIC
+     * NEW_RELIC*
      * OPS_GENIE
      * VICTOR_OPS
-     * FLOWDOCK
+     * FLOWDOCK*
      * WEBHOOK
      * MICROSOFT_TEAMS
      * PROMETHEUS
+
+     *resource is now deprecated and will be removed in the next major version, 1.9.0
 
 Additional values based on Type
 

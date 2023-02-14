@@ -3,19 +3,32 @@ package mongodbatlas
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
 	"log"
 	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
+	"github.com/zclconf/go-cty/cty"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -23,6 +36,15 @@ var (
 	ProviderEnableBeta, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
 	baseURL               = ""
 )
+
+const (
+	endPointSTSDefault = "https://sts.amazonaws.com"
+)
+
+type SecretData struct {
+	PublicKey  string `json:"public_key"`
+	PrivateKey string `json:"private_key"`
+}
 
 // Provider returns the provider to be use by the code.
 func Provider() *schema.Provider {
@@ -67,6 +89,51 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "MongoDB Atlas Base URL default to gov",
 			},
+			"assume_role": assumeRoleSchema(),
+			"secret_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"region": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_REGION",
+					"TF_VAR_AWS_REGION",
+				}, ""),
+				Optional: true,
+			},
+			"sts_endpoint": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"STS_ENDPOINT",
+					"TF_VAR_STS_ENDPOINT",
+				}, ""),
+				Optional: true,
+			},
+			"aws_access_key_id": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_ACCESS_KEY_ID",
+					"TF_VAR_AWS_ACCESS_KEY_ID",
+				}, ""),
+				Optional: true,
+			},
+			"aws_secret_access_key": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_SECRET_ACCESS_KEY",
+					"TF_VAR_AWS_SECRET_ACCESS_KEY",
+				}, ""),
+				Optional: true,
+			},
+			"aws_session_token": {
+				Type: schema.TypeString,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"AWS_SESSION_TOKEN",
+					"TF_VAR_AWS_SESSION_TOKEN",
+				}, ""),
+				Optional: true,
+			},
 		},
 		DataSourcesMap:       getDataSourcesMap(),
 		ResourcesMap:         getResourcesMap(),
@@ -84,6 +151,13 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_custom_db_roles":                          dataSourceMongoDBAtlasCustomDBRoles(),
 		"mongodbatlas_database_user":                            dataSourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_database_users":                           dataSourceMongoDBAtlasDatabaseUsers(),
+		"mongodbatlas_api_key":                                  dataSourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_api_keys":                                 dataSourceMongoDBAtlasAPIKeys(),
+		"mongodbatlas_access_list_api_key":                      dataSourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_access_list_api_keys":                     dataSourceMongoDBAtlasAccessListAPIKeys(),
+		"mongodbatlas_project_api_key":                          dataSourceMongoDBAtlasProjectAPIKey(),
+		"mongodbatlas_project_api_keys":                         dataSourceMongoDBAtlasProjectAPIKeys(),
+		"mongodbatlas_roles_org_id":                             dataSourceMongoDBAtlasOrgID(),
 		"mongodbatlas_project":                                  dataSourceMongoDBAtlasProject(),
 		"mongodbatlas_projects":                                 dataSourceMongoDBAtlasProjects(),
 		"mongodbatlas_cluster":                                  dataSourceMongoDBAtlasCluster(),
@@ -102,6 +176,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_teams":                                    dataSourceMongoDBAtlasTeam(),
 		"mongodbatlas_global_cluster_config":                    dataSourceMongoDBAtlasGlobalCluster(),
 		"mongodbatlas_alert_configuration":                      dataSourceMongoDBAtlasAlertConfiguration(),
+		"mongodbatlas_alert_configurations":                     dataSourceMongoDBAtlasAlertConfigurations(),
 		"mongodbatlas_x509_authentication_database_user":        dataSourceMongoDBAtlasX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":           dataSourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint":                     dataSourceMongoDBAtlasPrivateLinkEndpoint(),
@@ -154,6 +229,9 @@ func getDataSourcesMap() map[string]*schema.Resource {
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_advanced_cluster":                        resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_api_key":                                 resourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_access_list_api_key":                     resourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_project_api_key":                         resourceMongoDBAtlasProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                          resourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_database_user":                           resourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_project":                                 resourceMongoDBAtlasProject(),
@@ -226,7 +304,125 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 
+	if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
+		secret := d.Get("secret_name").(string)
+		region := d.Get("region").(string)
+		awsAccessKeyID := d.Get("aws_access_key_id").(string)
+		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
+		awsSessionToken := d.Get("aws_session_token").(string)
+		endpoint := d.Get("sts_endpoint").(string)
+		var err error
+		config, err = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+	}
+
 	return config.NewClient(ctx)
+}
+
+func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
+	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
+	if err != nil {
+		log.Printf("GetSTSRegionalEndpoint error: %s", err)
+		return *config, err
+	}
+
+	defaultResolver := endpoints.DefaultResolver()
+	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+		if service == endpoints.StsServiceID {
+			if endpoint == "" {
+				return endpoints.ResolvedEndpoint{
+					URL:           endPointSTSDefault,
+					SigningRegion: region,
+				}, nil
+			}
+			return endpoints.ResolvedEndpoint{
+				URL:           endpoint,
+				SigningRegion: region,
+			}, nil
+		}
+
+		return defaultResolver.EndpointFor(service, region, optFns...)
+	}
+
+	cfg := aws.Config{
+		Region:              aws.String(region),
+		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+		STSRegionalEndpoint: ep,
+		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+	}
+
+	sess := session.Must(session.NewSession(&cfg))
+
+	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
+
+	_, err = sess.Config.Credentials.Get()
+	if err != nil {
+		log.Printf("Session get credentials error: %s", err)
+		return *config, err
+	}
+	_, err = creds.Get()
+	if err != nil {
+		log.Printf("STS get credentials error: %s", err)
+		return *config, err
+	}
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	if err != nil {
+		log.Printf("Get Secrets error: %s", err)
+		return *config, err
+	}
+
+	var secretData SecretData
+	err = json.Unmarshal([]byte(secretString), &secretData)
+	if err != nil {
+		return *config, err
+	}
+	if secretData.PrivateKey == "" {
+		return *config, fmt.Errorf("secret missing value for credential PrivateKey")
+	}
+
+	if secretData.PublicKey == "" {
+		return *config, fmt.Errorf("secret missing value for credential PublicKey")
+	}
+
+	config.PublicKey = secretData.PublicKey
+	config.PrivateKey = secretData.PrivateKey
+	return *config, nil
+}
+
+func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
+	svc := secretsmanager.New(sess, creds)
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId:     aws.String(secret),
+		VersionStage: aws.String("AWSCURRENT"),
+	}
+
+	result, err := svc.GetSecretValue(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case secretsmanager.ErrCodeResourceNotFoundException:
+				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
+			case secretsmanager.ErrCodeInvalidParameterException:
+				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
+			case secretsmanager.ErrCodeInvalidRequestException:
+				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
+			case secretsmanager.ErrCodeDecryptionFailure:
+				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
+			case secretsmanager.ErrCodeInternalServiceError:
+				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
+			default:
+				log.Println(aerr.Error())
+			}
+		} else {
+			log.Println(err.Error())
+		}
+		return "", err
+	}
+
+	return *result.SecretString, err
 }
 
 func encodeStateID(values map[string]string) string {
@@ -390,4 +586,189 @@ func HashCodeString(s string) int {
 	}
 	// v == MinInt
 	return 0
+}
+
+func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string, values map[string]cty.Value) {
+	if len(values) == 0 {
+		return
+	}
+
+	keys := make([]string, 0, len(values))
+
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	body.AppendNewline()
+	block := body.AppendNewBlock(name, labels).Body()
+
+	for _, k := range keys {
+		block.SetAttributeValue(k, values[k])
+	}
+}
+
+// assumeRoleSchema From aws provider.go
+func assumeRoleSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"duration": {
+					Type:          schema.TypeString,
+					Optional:      true,
+					Description:   "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
+					ValidateFunc:  validAssumeRoleDuration,
+					ConflictsWith: []string{"assume_role.0.duration_seconds"},
+				},
+				"duration_seconds": {
+					Type:          schema.TypeInt,
+					Optional:      true,
+					Deprecated:    "Use assume_role.duration instead",
+					Description:   "The duration, in seconds, of the role session.",
+					ValidateFunc:  validation.IntBetween(900, 43200),
+					ConflictsWith: []string{"assume_role.0.duration"},
+				},
+				"external_id": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "A unique identifier that might be required when you assume a role in another account.",
+					ValidateFunc: validation.All(
+						validation.StringLenBetween(2, 1224),
+						validation.StringMatch(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
+					),
+				},
+				"policy": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
+					ValidateFunc: validation.StringIsJSON,
+				},
+				"policy_arns": {
+					Type:        schema.TypeSet,
+					Optional:    true,
+					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"role_arn": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
+				},
+				"session_name": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "An identifier for the assumed role session.",
+					ValidateFunc: validAssumeRoleSessionName,
+				},
+				"source_identity": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "Source identity specified by the principal assuming the role.",
+					ValidateFunc: validAssumeRoleSourceIdentity,
+				},
+				"tags": {
+					Type:        schema.TypeMap,
+					Optional:    true,
+					Description: "Assume role session tags.",
+					Elem:        &schema.Schema{Type: schema.TypeString},
+				},
+				"transitive_tag_keys": {
+					Type:        schema.TypeSet,
+					Optional:    true,
+					Description: "Assume role session tag keys to pass to any subsequent sessions.",
+					Elem:        &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+var validAssumeRoleSessionName = validation.All(
+	validation.StringLenBetween(2, 64),
+	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
+)
+
+var validAssumeRoleSourceIdentity = validation.All(
+	validation.StringLenBetween(2, 64),
+	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
+)
+
+// validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
+// and is within a minimum of 15 minutes and maximum of 12 hours
+func validAssumeRoleDuration(v interface{}, k string) (ws []string, errors []error) {
+	duration, err := time.ParseDuration(v.(string))
+
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
+		return
+	}
+
+	if duration.Minutes() < 15 || duration.Hours() > 12 {
+		errors = append(errors, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
+	}
+
+	return
+}
+
+type AssumeRole struct {
+	RoleARN           string
+	Duration          time.Duration
+	ExternalID        string
+	Policy            string
+	PolicyARNs        []string
+	SessionName       string
+	SourceIdentity    string
+	Tags              map[string]string
+	TransitiveTagKeys []string
+}
+
+func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
+	if tfMap == nil {
+		return nil
+	}
+
+	assumeRole := AssumeRole{}
+
+	if v, ok := tfMap["duration"].(string); ok && v != "" {
+		duration, _ := time.ParseDuration(v)
+		assumeRole.Duration = duration
+	} else if v, ok := tfMap["duration_seconds"].(int); ok && v != 0 {
+		assumeRole.Duration = time.Duration(v) * time.Second
+	}
+
+	if v, ok := tfMap["external_id"].(string); ok && v != "" {
+		assumeRole.ExternalID = v
+	}
+
+	if v, ok := tfMap["policy"].(string); ok && v != "" {
+		assumeRole.Policy = v
+	}
+
+	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
+		assumeRole.PolicyARNs = expandStringList(v.List())
+	}
+
+	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
+		assumeRole.RoleARN = v
+	}
+
+	if v, ok := tfMap["session_name"].(string); ok && v != "" {
+		assumeRole.SessionName = v
+	}
+
+	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
+		assumeRole.SourceIdentity = v
+	}
+
+	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
+		assumeRole.TransitiveTagKeys = expandStringList(v.List())
+	}
+
+	return &assumeRole
 }

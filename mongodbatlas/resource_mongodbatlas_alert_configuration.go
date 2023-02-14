@@ -689,7 +689,17 @@ func flattenAlertConfigurationThresholdConfig(m *matlas.Threshold) []interface{}
 }
 
 func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Notification, error) {
-	notifications := make([]matlas.Notification, len(d.Get("notification").([]interface{})))
+	notificationCount := 0
+
+	if notifications, ok := d.GetOk("notification"); ok {
+		notificationCount = len(notifications.([]interface{}))
+	}
+
+	notifications := make([]matlas.Notification, notificationCount)
+
+	if notificationCount == 0 {
+		return notifications, nil
+	}
 
 	for i, value := range d.Get("notification").([]interface{}) {
 		v := value.(map[string]interface{})
@@ -746,6 +756,8 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 			notifications[i].ServiceKey = notificationsSchema[i].ServiceKey
 			notifications[i].VictorOpsAPIKey = notificationsSchema[i].VictorOpsAPIKey
 			notifications[i].VictorOpsRoutingKey = notificationsSchema[i].VictorOpsRoutingKey
+			notifications[i].WebhookURL = notificationsSchema[i].WebhookURL
+			notifications[i].WebhookSecret = notificationsSchema[i].WebhookSecret
 		}
 	}
 

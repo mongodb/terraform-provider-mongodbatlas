@@ -1,5 +1,79 @@
 # Changelog
 
+## [v1.8.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.0) (2023-1-26)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.7.0...v1.8.0)
+
+**Enhancements:**
+
+- Snapshot Distribution Support [\#979](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/979) - INTMDB-400
+- Programmatically Create API Keys [\#974](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/974) - INTMDB-346
+- Retrieve `org_id` from API Keys [\#973](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/973) - INTMDB-454
+- `oplogMinRetentionHours` Parameter Support in `advanced_cluster` and `cluster` resources [\#1016](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1016) - INTMDB-397
+- Analytics Node Tier New Features Support [\#994](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/994) - INTMDB-488
+- Improve Default Alerts and Example Creation [\#993](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/993) - INTMDB-382
+- Expand documentation for `cloud_backup_schedule` to include information about valid values for `frequency_interval` [\#1007](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1007) - INTMDB-547
+
+**Depreciations:**
+
+- `cloud_provider_snapshot`, `cloud_provider_snapshot_backup_policy`, `cloud_provider_snapshot_restore_job`, and `private_ip_mode` are now deprecated and will be removed from codebase as of v1.9 release [\#988](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/988) - INTMDB-409
+- `NEW_RELIC` and `FLOWDOCK` in `third_party_integration` resource are now deprecated and will be removed from codebase as of v1.9 release [\#989](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/989) - INTMDB-482
+
+**Bug Fixes:**
+
+- Hide `current_certificate` when X.509 Authentication Database Users are Created [\#985](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/985) - INTMDB-468
+- Import example added for `encryption_at_rest` resource [\#992](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/992) - INTMDB-530 
+- Resource `cloud_backup_snapshot_export_job` variable name change [\#976](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/976) - INTMDB-523
+- `update_snapshot` doesn't save at TF state with `cloud_backup_schedule` resource fix [\#974](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/974) - INTMDB-472
+- Invitation handling after user accepts invitation fix [\#1012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1012) - INTMDB-511 
+- `bi_connector` settings in `advanced_cluster` fix (breaking changes) [\#1010](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1010) - INTMDB-455
+- `third_party_integration` api_token keeps updating on every apply fix [\#1011](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1011) - INTMDB-519
+- `custom_db_role` error fix [\#1009](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1009) - INTMDB-448
+- `ldap_configuration` and `ldap_verify` resources fix [\#1004](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1004) - INTMDB-543
+- `cloud_backup_schedule` resource fix [\#968](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/968) - INTMDB-427
+- `search_index_test` fix [\#964](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/964) - INTMDB-341
+- Cannot ignore changes for replication_specs when autoscaling enabled fix [\#961](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/961) - INTMDB-464
+- BI Connector documentation fix [\#1017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1017) 
+- `federated_settings_org_config` import example fix [\#996](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/996)
+
+**Closed Issues:**
+- Documentation: Expand documentation for mongodbatlas\_cloud\_backup\_schedule to include information about valid values for frequency\_interval  [\#1005](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1005)
+- Serverless instance returns incorrect connection string [\#934](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/934)
+- Terraform apply failed with Error: Provider produced inconsistent final plan This is a bug in the provider, which should be reported in the provider's own issue tracker. [\#926](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/926)
+
+**Merged Pull Requests:**
+
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.7 to 0.41.9 [\#1013](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1013) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v1.7.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.7.0) (2023-1-16)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.6.1...v1.7.0)
+
+**Enhancements:**
+
+- AWS Secrets Manager (AWS SM) Authetication for Terraform Atlas Provider [\#975](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/975) - INTMDB-521 
+
+**Bug Fixes:**
+
+- Resource cloud_backup_snapshot_export_job variable name change [#976](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/976) - INTMDB-523
+- Deprecate legacy mongodbatlas.erb given Terraform Registry autogeneration [#962](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/962) - INTMDB-477  
+
+**Closed Issues:**
+
+- Terraform plan fail: Asymmetric hardware is not supported by the v1.0 API [\#958](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/958)
+- Error importing ressource mongodbatlas\_network\_peering.mongo\_peer [\#906](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/906)
+- \[Bug\] `container_id` is unconfigurable  attribute at `mongodbatlas_advanced_cluster` resource [\#890](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/890)
+- mongodbatlas\_alert\_configuration - api\_token keeps wanting to change [\#863](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/863)
+- Docs - Example - Return a Connection String - Azure Private Endpoint [\#713](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/713)
+
+**Merged Pull Requests:**
+
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.6 to 0.41.7 [\#978](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/978) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump actions/stale from 6 to 7 [\#977](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/977) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.4 to 0.41.6 [\#967](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/967) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/go-test/deep from 1.0.8 to 1.1.0 [\#966](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/966) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump goreleaser/goreleaser-action from 3 to 4 [\#965](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/965) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.6.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.6.1) (2022-12-6)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.6.0...v1.6.1)
@@ -24,7 +98,7 @@
 - Shorten test names that are too long to allow for targeting specific tests [\#932](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/932) - INTMDB-368 
 - Remove container_id from configurable attribute in advanced_cluster [\#931](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/931) - INTMDB-463 
 
-**Closed issues:**
+**Closed Issues:**
 
 - No documented way to get config out of third party integration [\#939](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/939)
 - Double checking Terraform Plan before I destroy Production [\#938](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/938)
@@ -105,7 +179,7 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.5...v1.4.6)
 
-**Fixed**
+**Enhancements and Bug Fixes:** 
 - INTMDB-387 - Enable Azure NVME for Atlas Dedicated clusters [\#833](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/833)
 - INTMDB-342 - Update TestAccDataSourceMongoDBAtlasPrivateEndpointRegionalMode_basic test to use a new project to prevent conflicts  [\#837](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/837)
 - INTMDB-347 - Cloud_backup is not being correctly imported - issue [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
@@ -121,11 +195,11 @@
 - INTMDB-358 - Upgrade to go1.18 [\#835](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/835)
 - INTMDB-391 - Doc Fix for teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838)
 
-**Closed issues:**
+**Closed Issues:**
 -  importing existing cluster does not populate backup status #768 [\#768](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/768)
 
 
-**Merged pull requests:**
+**Merged Pull Requests:**
 - Chore(deps): Bump github.com/gruntwork-io/terratest from 0.40.21 to 0.40.22 [\#842](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/842) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 - Rename team.html.markdown into teams.html.markdown [\#838](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/838) ([leo-ferlin-sutton](https://github.com/leo-ferlin-sutton))
@@ -160,13 +234,13 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.4.3...v1.4.4-pre.1)
 
-**Closed issues:**
+**Closed Issues:**
 
 - Unable to update members in an existing "mongodbatlas\_teams" as the provider attempts to remove all users first [\#790](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/790)
 - Please elaborate how to acquire PROJECTID and PEERINGID and PROVIDERNAME for import of network peering [\#789](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/789)
 - error: error reading cloud provider access cloud provider access role not found in mongodbatlas, please create it first [\#781](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/781)
 
-**Merged pull requests:**
+**Merged Pull Requests:**
 
 - Update CONTRIBUTING.md [\#798](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/798) ([themantissa](https://github.com/themantissa))
 - Fix federated\_settings\_identity\_provider attribute name [\#791](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/791) ([florenp](https://github.com/florenp))
@@ -207,7 +281,7 @@
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1...v1.4.0) 
 
-**Closed issues:**
+**Closed Issues:**
 
 Note: the binary executable for windows/arm64 is not available for this release.  Next release will include.
 - Fix for Add support for cloud export backup to mongodbatlas_cloud_backup_schedule [\#740](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/740)
@@ -220,7 +294,7 @@ Note: the binary executable for windows/arm64 is not available for this release.
 - Fix for Cannot import export bucket - bad state id encoding [\#708](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/708)
 - Error missing expected { when updating the provider [\#697](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/697)
 
-**Merged pull requests:**
+**Merged Pull Requests:**
 
 - INTMDB-321: Add support for cloud export backup to mongodbatlas_cloud_backup_schedule [\#740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/740) ([martinstibbe](https://github.com/martinstibbe))
 - INTMDB-313: Update the project resource with new settings [\#741](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/741) ([martinstibbe](https://github.com/martinstibbe))
@@ -235,7 +309,7 @@ Note: the binary executable for windows/arm64 is not available for this release.
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.3.1...v1.4.0-pre.1) 
 
-**Closed issues:**
+**Closed Issues:**
 
 Note: the binary executable for windows/arm64 is not available for this release.  Next release will include.
 - Fix for Add support for cloud export backup to mongodbatlas_cloud_backup_schedule [\#740](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/740)
@@ -248,7 +322,7 @@ Note: the binary executable for windows/arm64 is not available for this release.
 - Fix for Cannot import export bucket - bad state id encoding [\#708](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/708)
 - Error missing expected { when updating the provider [\#697](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/697)
 
-**Merged pull requests:**
+**Merged Pull Requests:**
 
 - INTMDB-321: Add support for cloud export backup to mongodbatlas_cloud_backup_schedule [\#740](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/740) ([martinstibbe](https://github.com/martinstibbe))
 - INTMDB-313: Update the project resource with new settings [\#741](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/741) ([martinstibbe](https://github.com/martinstibbe)) ([martinstibbe](https://github.com/martinstibbe))

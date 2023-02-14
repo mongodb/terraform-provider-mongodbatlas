@@ -33,6 +33,8 @@ The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
 
+**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
+
 ## Configure MongoDB Atlas for Government
 
 In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
@@ -47,7 +49,6 @@ provider "mongodbatlas" {
 ```
 Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
-**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 ## Authenticate the Provider
 
 The MongoDB Atlas provider offers a flexible means of providing credentials for authentication.
@@ -74,6 +75,81 @@ $ terraform plan
 As an alternative to `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY`
 if you are using [MongoDB CLI](https://docs.mongodb.com/mongocli/stable/) 
 then `MCLI_PUBLIC_API_KEY` and `MCLI_PRIVATE_API_KEY` are also supported.
+
+### AWS Secrets Manager
+AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate database credentials, API keys, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
+
+In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please follow the below steps: 
+
+1. Create Atlas API Keys and add them as one secret to AWS SM with a raw value. Take note of which AWS Region secret is being stored in. Public Key and Private Key each need to be entered as their own key value pair. See below example:  
+``` 
+     {
+      "public_key": "secret1",
+      "private_key":"secret2"
+     }
+```
+2. Create an AWS IAM Role to attach to the AWS STS (Security Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole”. For example: 
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+In addition, you are required to also attach the AWS Managed policy of `SecretsManagerReadWrite` to this IAM role.
+
+Note: this policy may be overly broad for many use cases, feel free to adjust accordingly to your organization's needs.
+
+3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
+``` 
+export AWS_ACCESS_KEY_ID="secret"
+export AWS_SECRET_ACCESS_KEY="secret”
+```
+4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession` 
+
+Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` flag to specify longer duration as needed 
+
+5. Store each of the 3 new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example: 
+```
+export AWS_ACCESS_KEY_ID="ASIAYBYSK3S5FZEKLETV"
+export AWS_SECRET_ACCESS_KEY="lgT6kL9lr1fxM6mCEwJ33MeoJ1M6lIzgsiW23FGH"
+export AWS_SESSION_TOKEN="IQoXX3+Q"
+```
+
+6. Add assume_role block with `role_arn`, `secret_name`, and AWS `region` where secret is stored as part of AWS SM. Each of these 3 fields are REQUIRED. For example:
+```terraform
+# Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
+provider "mongodbatlas" {
+  assume_role {
+    role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
+  }
+  secret_name           = "mongodbsecret"
+  // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:553552370874:secret:test789-TO06Hy" 
+  region                = "us-east-2"
+  
+  aws_access_key_id     = "ASIXXBNEK"
+  aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
+  aws_session_token     = "IQoXX3+Q="
+  sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
+}
+```
+Note: `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable. 
+
+Note: Fully qualified `secret_name` ARN as input is REQUIRED for cross-AWS account secrets. For more detatils see:
+* https://aws.amazon.com/blogs/security/how-to-access-secrets-across-aws-accounts-by-attaching-resource-based-policies/ 
+* https://aws.amazon.com/premiumsupport/knowledge-center/secrets-manager-share-between-accounts/
+
+Note: `sts_endpoint` parameter is REQUIRED for cross-AWS region or cross-AWS account secrets. 
+
+7. In terminal, `terraform init` 
 
 ### Static Credentials
 

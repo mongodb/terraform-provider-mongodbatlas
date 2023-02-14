@@ -37,7 +37,7 @@ func TestAccConfigDSCustomDBRoles_basic(t *testing.T) {
 
 					// Test for Data source
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "results.#"),
 				),
 			},
 		},

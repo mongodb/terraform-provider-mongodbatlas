@@ -535,6 +535,11 @@ func clusterAdvancedConfigurationSchemaComputed() *schema.Schema {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
