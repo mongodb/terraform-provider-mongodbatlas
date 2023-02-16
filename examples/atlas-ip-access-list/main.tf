@@ -26,7 +26,6 @@ locals {
 
 
 
-
 resource "mongodbatlas_project_ip_access_list" "ip" {
   for_each = {
     for index, ip in local.ip_address_list :
