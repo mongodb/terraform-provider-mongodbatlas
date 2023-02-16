@@ -1,7 +1,5 @@
 locals {
 
-  mongodbatlas_project_id = "xx1234"
-
   ip_address_list = [
     {
       ip_address = "47.225.213.178"
@@ -34,7 +32,7 @@ resource "mongodbatlas_project_ip_access_list" "ip" {
     for index, ip in local.ip_address_list :
     ip.comment => ip
   }
-  project_id = local.mongodbatlas_project_id
+  project_id = var.project_id
   ip_address = each.value.ip_address
   comment    = each.value.comment
 }
@@ -46,7 +44,7 @@ resource "mongodbatlas_project_ip_access_list" "cidr" {
     for index, cidr in local.cidr_block_list :
     cidr.comment => cidr
   }
-  project_id = local.mongodbatlas_project_id
+  project_id = var.project_id
   cidr_block = each.value.cidr_block
   comment    = each.value.comment
 }
