@@ -654,6 +654,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	clusterName := ids["cluster_name"]
 
 	cluster := new(matlas.AdvancedCluster)
+	clusterChangeDetect := new(matlas.AdvancedCluster)
 
 	if d.HasChange("backup_enabled") {
 		cluster.BackupEnabled = pointy.Bool(d.Get("backup_enabled").(bool))
@@ -714,7 +715,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
 	// Has changes
-	if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
+	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
 			_, _, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
