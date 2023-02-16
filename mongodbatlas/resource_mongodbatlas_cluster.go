@@ -804,6 +804,8 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	clusterName := ids["cluster_name"]
 
 	cluster := new(matlas.Cluster)
+	clusterChangeDetect := new(matlas.Cluster)
+	clusterChangeDetect.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
 
 	if d.HasChange("bi_connector") {
 		cluster.BiConnector, _ = expandBiConnector(d)
@@ -939,7 +941,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			"cluster_name":  updatedCluster.Name,
 			"provider_name": updatedCluster.ProviderSettings.ProviderName,
 		}))
-	} else if !reflect.DeepEqual(cluster, matlas.Cluster{}) {
+	} else if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
 			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
