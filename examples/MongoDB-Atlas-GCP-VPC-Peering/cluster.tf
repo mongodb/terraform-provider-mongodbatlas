@@ -17,7 +17,7 @@ resource "mongodbatlas_cluster" "cluster" {
     key   = "environment"
     value = "prod"
   }
-  provider_backup_enabled                 = true
+  cloud_backup                            = true
   auto_scaling_disk_gb_enabled            = true
   mongo_db_major_version                  = "4.4"
   auto_scaling_compute_enabled            = true
