@@ -7,23 +7,30 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasSearchIndex() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasSearchIndexCreate,
-		ReadContext:   resourceMongoDBAtlasSearchIndexRead,
-		UpdateContext: resourceMongoDBAtlasSearchIndexUpdate,
-		DeleteContext: resourceMongoDBAtlasSearchIndexDelete,
+		CreateWithoutTimeout: resourceMongoDBAtlasSearchIndexCreate,
+		ReadContext:          resourceMongoDBAtlasSearchIndexRead,
+		UpdateWithoutTimeout: resourceMongoDBAtlasSearchIndexUpdate,
+		DeleteContext:        resourceMongoDBAtlasSearchIndexDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasSearchIndexImportState,
 		},
 		Schema: returnSearchIndexSchema(),
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(3 * time.Hour),
+			Update: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
+		},
 	}
 }
 
@@ -100,6 +107,10 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
+		},
+		"wait_for_index_build_completion": {
+			Type:     schema.TypeBool,
+			Optional: true,
 		},
 	}
 }
@@ -210,9 +221,34 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	searchIndex.IndexID = ""
-	_, _, err = conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
+	dbSearchIndexRes, _, err := conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
 	if err != nil {
 		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
+	}
+
+	if d.Get("wait_for_index_build_completion").(bool) {
+		timeout := d.Timeout(schema.TimeoutCreate)
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"CREATING", "IN_PROGRESS", "NOT_VALID", "PENDING"},
+			Target:     []string{"VALID"},
+			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
+			Timeout:    timeout,
+			MinTimeout: 1 * time.Minute,
+			Delay:      1 * time.Minute,
+		}
+
+		// Wait, catching any errors
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			d.SetId(encodeStateID(map[string]string{
+				"project_id":   projectID,
+				"cluster_name": clusterName,
+				"index_id":     dbSearchIndexRes.IndexID,
+			}))
+			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
+			d.SetId("")
+			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
+		}
 	}
 
 	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
@@ -357,7 +393,30 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
 	}
+	if d.Get("wait_for_index_build_completion").(bool) {
+		timeout := d.Timeout(schema.TimeoutCreate)
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"CREATING", "IN_PROGRESS", "NOT_VALID", "PENDING"},
+			Target:     []string{"VALID"},
+			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
+			Timeout:    timeout,
+			MinTimeout: 1 * time.Minute,
+			Delay:      1 * time.Minute,
+		}
 
+		// Wait, catching any errors
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			d.SetId(encodeStateID(map[string]string{
+				"project_id":   projectID,
+				"cluster_name": clusterName,
+				"index_id":     dbSearchIndexRes.IndexID,
+			}))
+			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
+			d.SetId("")
+			return diag.FromErr(fmt.Errorf("error creating index in cluster (%s): %s", clusterName, err))
+		}
+	}
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
@@ -465,4 +524,31 @@ func unmarshalSearchIndexAnalyzersFields(mappingString string) []map[string]inte
 	}
 
 	return fields
+}
+
+func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		searchIndex, resp, err := client.Search.GetIndex(ctx, projectID, clusterName, indexID)
+		if err != nil {
+			return nil, "ERROR", err
+		}
+
+		if err != nil && searchIndex == nil && resp == nil {
+			return nil, "", err
+		} else if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			if resp.StatusCode == 503 {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		if searchIndex.Status != "" {
+			log.Printf("[DEBUG] status for Search Index : %s: %s", clusterName, searchIndex.Status)
+		}
+
+		return searchIndex, searchIndex.Status, nil
+	}
 }
