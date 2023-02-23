@@ -39,10 +39,12 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"project_id": {
 			Type:     schema.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"cluster_name": {
 			Type:     schema.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"index_id": {
 			Type:     schema.TypeString,
