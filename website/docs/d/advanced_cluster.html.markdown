@@ -157,6 +157,15 @@ In addition to all arguments above, the following attributes are exported:
 
   Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/).
 
+  Ensure `connection_strings` are available following `terraform apply` by adding a `depends_on` relationship to the `advanced_cluster`, ex:
+  ```
+  data "mongodbatlas_advanced_cluster" "example_cluster" {
+    project_id = var.project_id
+    name       = var.cluster_name
+    depends_on = [mongodbatlas_privatelink_endpoint_service.example_endpoint]
+  }
+  ```
+
   - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
   - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t  , use connectionStrings.standard.
   - `connection_strings.aws_private_link` -  [Private-endpoint-aware](https://docs.atlas.mongodb.com/security-private-endpoint/#private-endpoint-connection-strings) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a AWS PrivateLink connection to this cluster. **DEPRECATED** Use `connection_strings.private_endpoint[n].connection_string` instead.

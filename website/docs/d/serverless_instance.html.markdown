@@ -34,6 +34,7 @@ data "mongodbatlas_serverless_instance" "test_two" {
 ## Attributes Reference
 
 * `connection_strings_standard_srv` - Public `mongodb+srv://` connection string that you can use to connect to this serverless instance.
+* `connection_strings_private_endpoint_srv` - List of Serverless Private Endpoint Connections
 * `created_date` - Timestamp that indicates when MongoDB Cloud created the serverless instance. The timestamp displays in the ISO 8601 date and time format in UTC.
 * `id` - Unique 24-hexadecimal digit string that identifies the serverless instance.
 * `mongo_db_version` - Version of MongoDB that the serverless instance runs, in `<major version>`.`<minor version>` format.

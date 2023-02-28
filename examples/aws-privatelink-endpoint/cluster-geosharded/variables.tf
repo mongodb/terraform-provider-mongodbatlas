@@ -4,8 +4,12 @@ variable "public_key" {
 variable "private_key" {
   description = "The private API key for MongoDB Atlas"
 }
-variable "atlasprojectid" {
+variable "project_id" {
   description = "Atlas project ID"
+}
+variable "cluster_name" {
+  description = "Atlas cluster name"
+  default     = "geosharded"
 }
 variable "access_key" {
   description = "The access key for AWS Account"
