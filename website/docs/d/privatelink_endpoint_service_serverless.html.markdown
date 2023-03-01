@@ -83,6 +83,9 @@ resource "mongodbatlas_serverless_instance" "test" {
 }
 ```
 
+### Available complete examples
+- [Setup private connection to a MongoDB Atlas Serverless Instance with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/aws-privatelink-endpoint/serverless-instance)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-digit hexadecimal string that identifies the project.

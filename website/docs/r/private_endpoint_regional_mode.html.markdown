@@ -28,7 +28,7 @@ resource "mongodbatlas_private_endpoint_regional_mode" "test" {
 
 resource "mongodbatlas_cluster" "cluster-atlas" {
   project_id                   = var.atlasprojectid
-  name                         = "cluster-atlas"
+  name                         = var.cluster_name
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "5.0"
@@ -37,32 +37,24 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
     zone_name  = "Zone 1"
     num_shards = 2
     regions_config {
-      region_name     = "US_EAST_1"
+      region_name     = var.atlas_region_east
       electable_nodes = 3
       priority        = 7
+      read_only_nodes = 0
+    }
+    regions_config {
+      region_name     = var.atlas_region_west
+      electable_nodes = 2
+      priority        = 6
       read_only_nodes = 0
     }
   }
 
-  replication_specs {
-    zone_name  = "Zone 2"
-    num_shards = 2
-    regions_config {
-      region_name     = "US_WEST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
   # Provider settings
   provider_name               = "AWS"
   disk_size_gb                = 80
   provider_instance_size_name = "M30"
-}
 
-data "mongodbatlas_cluster" "cluster-atlas" {
-  project_id = var.atlasprojectid
-  name       = mongodbatlas_cluster.cluster-atlas.name
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.test_west,
     mongodbatlas_privatelink_endpoint_service.test_east,
@@ -128,7 +120,7 @@ You can create only sharded clusters when you enable the regionalized private en
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized). 
+* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded). 
 * `mongodbatlas_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)
