@@ -370,8 +370,20 @@ func resourceMongoDBAtlasAlertConfigurationRead(ctx context.Context, d *schema.R
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "updated", ids["id"], err))
 	}
 
+	if err := d.Set("metric_threshold_config", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold_config", ids["id"], err))
+	}
+
+	if err := d.Set("threshold_config", flattenAlertConfigurationThresholdConfig(alert.Threshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "threshold_config", ids["id"], err))
+	}
+
 	if err := d.Set("notification", flattenAlertConfigurationNotifications(d, alert.Notifications)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "notification", ids["id"], err))
+	}
+
+	if err := d.Set("metric_threshold_config", flattenAlertConfigurationMetricThresholdConfig(alert.MetricThreshold)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorAlertConfSetting, "metric_threshold_config", ids["id"], err))
 	}
 
 	return nil
@@ -425,13 +437,12 @@ func resourceMongoDBAtlasAlertConfigurationUpdate(ctx context.Context, d *schema
 		req.Threshold = expandAlertConfigurationThresholdConfig(d)
 	}
 
-	if d.HasChange("notification") {
-		notifications, err := expandAlertConfigurationNotification(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorUpdateAlertConf, err))
-		}
-		req.Notifications = notifications
+	// Always refresh structure to handle service keys being obfuscated coming back from read API call
+	notifications, err := expandAlertConfigurationNotification(d)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorUpdateAlertConf, err))
 	}
+	req.Notifications = notifications
 
 	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
 	if reflect.DeepEqual(req, &matlas.AlertConfiguration{Enabled: pointy.Bool(true)}) ||
@@ -758,6 +769,8 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 			notifications[i].VictorOpsRoutingKey = notificationsSchema[i].VictorOpsRoutingKey
 			notifications[i].WebhookURL = notificationsSchema[i].WebhookURL
 			notifications[i].WebhookSecret = notificationsSchema[i].WebhookSecret
+			notifications[i].SMSEnabled = notificationsSchema[i].SMSEnabled
+			notifications[i].EmailEnabled = notificationsSchema[i].EmailEnabled
 		}
 	}
 

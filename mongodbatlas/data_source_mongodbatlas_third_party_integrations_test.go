@@ -12,10 +12,11 @@ import (
 
 func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		intgTypes = []string{"NEW_RELIC"}
-		hclConfig = make([]*thirdPartyConfig, 0, len(intgTypes))
-		dsName    = "data.mongodbatlas_third_party_integrations.test"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		intgTypes       = []string{"NEW_RELIC", "OPS_GENIE", "DATADOG", "VICTOR_OPS", "WEBHOOK", "PROMETHEUS"}
+		hclConfig       = make([]*thirdPartyConfig, 0, len(intgTypes))
+		dsName          = "data.mongodbatlas_third_party_integrations.test"
+		integrationType = ""
 	)
 
 	for _, intg := range intgTypes {
@@ -27,6 +28,8 @@ func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 				Integration: func() mongodbatlas.ThirdPartyIntegration {
 					out := testAccCreateThirdPartyIntegrationConfig()
 					out.Type = intg
+					integrationType = "test_" + intg
+					out.APIKey = testOpsGenieOrDatadog(intg)
 					return *out
 				}(),
 			},
@@ -42,7 +45,7 @@ func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 			{
 				Config: intgResourcesHCL,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_third_party_integration.test_NEW_RELIC", "id"),
+					resource.TestCheckResourceAttrSet(fmt.Sprintf("mongodbatlas_third_party_integration.%s", integrationType), "id"),
 				),
 			}, {
 
@@ -50,7 +53,7 @@ func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dsName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dsName, "project_id"),
-					resource.TestCheckResourceAttr(dsName, "results.#", "1"),
+					resource.TestCheckResourceAttrSet(dsName, "results.#"),
 					resource.TestCheckResourceAttrSet(dsName, "results.0.type"),
 				),
 			},
@@ -76,4 +79,17 @@ func testAccMongoDBAtlasThirdPartyIntegrationsDataSourceConfigWithDS(resources, 
 		project_id = "%s"
 	}
 `, resources, projectID)
+}
+
+func testOpsGenieOrDatadog(intTtype string) string {
+	if intTtype == "DATADOG" {
+		return os.Getenv("DD_API_KEY")
+	}
+	if intTtype == "OPS_GENIE" {
+		return os.Getenv("OPS_GENIE_API_KEY")
+	}
+	if intTtype == "VICTOR_OPS" {
+		return os.Getenv("VICTOR_OPS_API_KEY")
+	}
+	return ""
 }

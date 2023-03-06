@@ -145,6 +145,9 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ```
 
+### Available complete examples
+- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/aws-privatelink-endpoint/cluster)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.

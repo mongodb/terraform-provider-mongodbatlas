@@ -1,5 +1,39 @@
 # Changelog
 
+## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (March 02, 2023)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1-pre2...v1.8.1)
+
+**Merged pull requests:**
+
+- Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.16.0 to 2.16.1 [\#1062](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1062) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Update access\_list\_api\_key.html.markdown [\#1058](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1058) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.15.0 to 2.16.0 [\#1055](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1055) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.9 to 0.41.10 [\#1051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1051) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Update CODEOWNERS to use APIx-Integrations [\#1050](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1050) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Chore\(deps\): Bump golangci/golangci-lint-action from 3.3.1 to 3.4.0 [\#1026](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1026) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+## [v1.8.1-pre2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1-pre2) (February 22, 2023)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1-pre1...v1.8.1-pre2)
+
+**Closed issues:**
+
+- Warning: Deprecated attribute [\#1042](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1042)
+- GCP Network Peering remains pending when created via terraform [\#917](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/917)
+
+## [v1.8.1-pre1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1-pre1) (February 06, 2023)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.0...v1.8.1-pre1)
+
+**Closed issues:**
+
+- Unable to create third party integration of type Datadog with version 1.8.0 [\#1038](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1038)
+- mongodbatlas\_third\_party\_integration - api\_token keeps updating on every apply [\#963](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/963)
+- Unable to add mongodbatlas provider to CDK [\#952](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/952)
+- \[Bug\] `update_snapshots` doesn't save at TF state with `mongodbatlas_cloud_backup_schedule` resource [\#904](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/904)
+- Cannot ignore changes for replication\_specs when autoscaling is enabled [\#888](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/888)
+
 ## [v1.8.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.0) (2023-1-26)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.7.0...v1.8.0)

@@ -149,6 +149,9 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 			time.Sleep(10 * time.Second)
 			continue
 		}
+		if err != nil {
+			log.Printf("MISSED ERRROR %s", err.Error())
+		}
 		break
 	}
 
