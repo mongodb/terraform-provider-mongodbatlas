@@ -8,12 +8,11 @@
 
 - Upgrade to go1.19 [\#1031](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1031) - INTMDB-390
 - Add example for NVME Upgrade [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32
-- Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
 - Add Serverless Private Endpoint Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424
 - Add configurable timeouts to resources that wait for clusters to become IDLE [\#1047](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1047) - INTMDB-508
 - Improve `cloud_provider_access_authorization` and `encryption_at_rest` (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
 - Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
-
+- Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
 
 **Bug Fixes:**
 
