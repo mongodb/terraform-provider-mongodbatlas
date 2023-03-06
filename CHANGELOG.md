@@ -13,6 +13,7 @@
 - Improve `cloud_provider_access_authorization` and `encryption_at_rest` (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
 - Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
 - Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
+- Update CODEOWNERS to use APIx-Integrations [\#1050](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1050)
 
 **Bug Fixes:**
 
@@ -26,8 +27,13 @@
 - Terraform provider stuck in changes for `advanced_cluster` configuration [\#1066](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1066) - INTMDB-572
 - `search_index` does not recreate when `cluster_name` and `project_id` fields change [\#1078](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1078) - INTMDB-576
 - POST Create Access List Entries for One Organization API Key endpoint supports list, but Terraform does not [\#1065](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1065) - INTMDB-579
+- Typo in Readme [\#1073](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1073)
+- Update project_api_key.html.markdown [\#1044](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1044)
+- Doc Clean Up Cloud Provider Access [\#1035](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1035)
+- Update alert_configuration.html.markdown [\#1068](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1068)
+- Doc Clean Up `provider_backup_enabled` deprecated to `cloud_backup` [\#1036](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1036)
 
-**Closed issues:**
+**Closed Issues:**
 
 - Unable to create third party integration of type Datadog with version 1.8.0 [\#1038](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1038)
 - mongodbatlas\_third\_party\_integration - api\_token keeps updating on every apply [\#963](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/963)
