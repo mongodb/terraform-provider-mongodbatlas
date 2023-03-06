@@ -1,31 +1,31 @@
-# Changelog
+# Terraform MongoDB Atlas Provider CHANGELOG
 
 ## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (2023-3-7)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1-pre2...v1.8.1)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1...v1.8.0)
 
 **Enhancements:**
 
-- Upgrade Terraform MongoDB Atlas Provider to go1.19 [\#1031](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1031) - INTMDB-390
+- Upgrade to go1.19 [\#1031](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1031) - INTMDB-390
 - Add example for NVME Upgrade [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32
 - Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
 - Add Serverless Private Endpoint Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424
 - Add configurable timeouts to resources that wait for clusters to become IDLE [\#1029](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1029) - INTMDB-529
-- Improve cloud_provider_access_authorization and encryption_at_rest (remove need for time_sleep arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
-- Add search_index error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
+- Improve `cloud_provider_access_authorization` and `encryption_at_rest` (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
+- Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
 
 
 **Bug Fixes:**
 
-- Resource ldap_configuration broken [\#1033](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1033) - INTMDB-440
-- Event Trigger Import statements are broken in documentation [\#1046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1046) - INTMDB-513
-- Event Trigger Error Handler Update [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
+- Resource `ldap_configuration` broken [\#1033](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1033) - INTMDB-440
+- `event_trigger` Import statements are broken in documentation [\#1046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1046) - INTMDB-513
+- `event_trigger` Error Handler Update [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
 - TEAM alert notification not saved properly [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
-- alert_configuration not detecting drift [\#1030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1030) - INTMDB-542
-- third_party_integration marks "type" attribute as deprecated erroneously [\#1034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1034) - INTMDB-542
+- `alert_configuration` not detecting drift [\#1030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1030) - INTMDB-542
+- `third_party_integration` marks "type" attribute as deprecated erroneously [\#1034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1034) - INTMDB-542
 - Error "Pager Duty API key must consist of 32 hexadecimal digits" [\#1054](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1054) - INTMDB-570
-- Terraform provider stuck in changes for cluster advance configuration [\#1066](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1066) - INTMDB-572
-- search_index does not recreate when cluster_name and project_id fields change [\#1078](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1078) - INTMDB-576
+- Terraform provider stuck in changes for `advanced_cluster` configuration [\#1066](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1066) - INTMDB-572
+- `search_index` does not recreate when `cluster_name` and `project_id` fields change [\#1078](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1078) - INTMDB-576
 - POST Create Access List Entries for One Organization API Key endpoint supports list, but Terraform does not [\#1065](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1065) - INTMDB-579
 
 **Merged Pull Requests:**
