@@ -1,4 +1,4 @@
-# CHANGELOG - Terraform MongoDB Atlas Provider 
+# Changelog
 
 ## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (2023-3-7)
 
