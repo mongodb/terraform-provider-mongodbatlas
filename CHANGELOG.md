@@ -27,6 +27,16 @@
 - `search_index` does not recreate when `cluster_name` and `project_id` fields change [\#1078](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1078) - INTMDB-576
 - POST Create Access List Entries for One Organization API Key endpoint supports list, but Terraform does not [\#1065](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1065) - INTMDB-579
 
+**Closed issues:**
+
+- Unable to create third party integration of type Datadog with version 1.8.0 [\#1038](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1038)
+- mongodbatlas\_third\_party\_integration - api\_token keeps updating on every apply [\#963](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/963)
+- Unable to add mongodbatlas provider to CDK [\#952](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/952)
+- \[Bug\] `update_snapshots` doesn't save at TF state with `mongodbatlas_cloud_backup_schedule` resource [\#904](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/904)
+- Cannot ignore changes for replication\_specs when autoscaling is enabled [\#888](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/888)
+- Warning: Deprecated attribute [\#1042](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1042)
+- GCP Network Peering remains pending when created via terraform [\#917](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/917)
+
 **Merged Pull Requests:**
 
 - Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.16.0 to 2.16.1 [\#1062](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1062) ([dependabot[bot]](https://github.com/apps/dependabot))
