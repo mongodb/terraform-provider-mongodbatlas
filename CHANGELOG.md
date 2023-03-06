@@ -13,6 +13,7 @@
 - Improve `cloud_provider_access_authorization` and `encryption_at_rest` (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
 - Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
 - Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
+- Improved encryption at rest example [\#1060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082)
 - Update CODEOWNERS to use APIx-Integrations [\#1050](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1050)
 
 **Bug Fixes:**
