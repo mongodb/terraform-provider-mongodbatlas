@@ -6,14 +6,15 @@
 
 **Enhancements:**
 
-- Upgrade to go1.19 [\#1031](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1031) - INTMDB-390
-- Add example for NVME Upgrade [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32
-- Add Serverless Private Endpoint Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424
-- Add configurable timeouts to resources that wait for clusters to become IDLE [\#1047](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1047) - INTMDB-508
-- Improve `cloud_provider_access_authorization` and `encryption_at_rest` (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
-- Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
-- Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
-- Improved encryption at rest example [\#1060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082)
+- Upgrade to [go1.19](https://go.dev/blog/go1.19) [\#1031](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1031) - INTMDB-390
+- Add configurable timeouts to resources that wait for [clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) to become IDLE [\#1047](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1047) - INTMDB-508
+- Improve [`cloud_provider_access_authorization`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_access) and [`encryption_at_rest`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest) (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
+- Add [`search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
+- New / Improved Upon [Resource Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples): 
+  - [Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) with NVMe Upgrade ([Non-Volatile Memory Express](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ssd-instance-store.html)) [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32. See example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cluster)
+  - [privatelink_endpoint_serverless](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless) Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424. See example for [AWS](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-serverless) and [Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink-serverless)
+  - Improvement for [private_link_endpoint](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410. see example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint)
+  - Improvement for [encryption_at_rest](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest) [\#1060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082). see example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-encryption-at-rest/aws)
 
 **Bug Fixes:**
 
