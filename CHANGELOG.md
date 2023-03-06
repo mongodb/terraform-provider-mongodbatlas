@@ -19,7 +19,7 @@
 **Bug Fixes:**
 
 - Resource [`ldap_configuration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/ldap_configuration) broken [\#1033](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1033) - INTMDB-440
-- `event_trigger` Import statements are broken in documentation [\#1046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1046) - INTMDB-513
+- [`event_trigger`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/event_trigger) Import statements are broken in documentation [\#1046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1046) - INTMDB-513
 - [`event_trigger`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/event_trigger) Error Handler Update [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
 - TEAM alert notification not saved properly [\#1029](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1029) - INTMDB-529
 - [`alert_configuration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/alert_configuration) not detecting drift [\#1030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1030) - INTMDB-542
