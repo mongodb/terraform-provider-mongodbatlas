@@ -14,7 +14,6 @@
 - Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
 - Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
 - Improved encryption at rest example [\#1060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082)
-- Update CODEOWNERS to use APIx-Integrations [\#1050](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1050)
 
 **Bug Fixes:**
 
@@ -33,7 +32,6 @@
 - Doc Clean Up Cloud Provider Access [\#1035](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1035)
 - Update alert_configuration.html.markdown [\#1068](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1068)
 - Doc Clean Up `provider_backup_enabled` deprecated to `cloud_backup` [\#1036](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1036)
-- Update access_list_api_key.html.markdown [\#1058](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1058)
 
 **Closed Issues:**
 
