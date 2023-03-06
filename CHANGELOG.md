@@ -2,7 +2,7 @@
 
 ## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (2023-3-7)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1...v1.8.0)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.0...v1.8.1)
 
 **Enhancements:**
 
