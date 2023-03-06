@@ -10,7 +10,7 @@
 - Add example for NVME Upgrade [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32
 - Improve examples for PrivateLink Endpoint [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410
 - Add Serverless Private Endpoint Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424
-- Add configurable timeouts to resources that wait for clusters to become IDLE [\#1029](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1029) - INTMDB-529
+- Add configurable timeouts to resources that wait for clusters to become IDLE [\#1047](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1047) - INTMDB-508
 - Improve `cloud_provider_access_authorization` and `encryption_at_rest` (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
 - Add `search_index` error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
 
@@ -20,7 +20,7 @@
 - Resource `ldap_configuration` broken [\#1033](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1033) - INTMDB-440
 - `event_trigger` Import statements are broken in documentation [\#1046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1046) - INTMDB-513
 - `event_trigger` Error Handler Update [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
-- TEAM alert notification not saved properly [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
+- TEAM alert notification not saved properly [\#1029](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1029) - INTMDB-529
 - `alert_configuration` not detecting drift [\#1030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1030) - INTMDB-542
 - `third_party_integration` marks "type" attribute as deprecated erroneously [\#1034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1034) - INTMDB-542
 - Error "Pager Duty API key must consist of 32 hexadecimal digits" [\#1054](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1054) - INTMDB-570
