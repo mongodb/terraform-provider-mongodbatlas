@@ -1,10 +1,50 @@
 # Changelog
 
-## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (March 02, 2023)
+## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (2023-3-7)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1-pre2...v1.8.1)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.0...v1.8.1)
 
-**Merged pull requests:**
+**Enhancements:**
+
+- Upgrade to [go1.19](https://go.dev/blog/go1.19) [\#1031](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1031) - INTMDB-390
+- Add configurable timeouts to resources that wait for [`cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) to become IDLE [\#1047](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1047) - INTMDB-508
+- Improve [`cloud_provider_access_authorization`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_access) and [`encryption_at_rest`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest) (remove need for `time_sleep` arguments) [\#1045](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1045) - INTMDB-560
+- Add [`search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) error handling [\#1077](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1077) - INTMDB-600
+- New / Improved Upon [Resource Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples): 
+  - [`cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) with NVMe Upgrade ([Non-Volatile Memory Express](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ssd-instance-store.html)) [\#1037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1037) - INTMDB-32. See example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cluster)
+  - [`privatelink_endpoint_serverless`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_serverless) Examples for AWS + Azure [\#1043](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1043) - INTMDB-424. See example for [AWS](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-serverless) and [Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/azure-atlas-privatelink-serverless)
+  - Improvement for [`private_link_endpoint`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint) [\#1082](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082) - INTMDB-410. see example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint)
+  - Improvement for [`encryption_at_rest`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest) [\#1060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1082). see example [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-encryption-at-rest/aws)
+
+**Bug Fixes:**
+
+- Resource [`ldap_configuration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/ldap_configuration) broken [\#1033](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1033) - INTMDB-440
+- [`event_trigger`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/event_trigger) Import statements are broken in documentation [\#1046](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1046) - INTMDB-513
+- [`event_trigger`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/event_trigger) Error Handler Update [\#1061](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1061) - INTMDB-517
+- TEAM alert notification not saved properly [\#1029](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1029) - INTMDB-529
+- [`alert_configuration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/alert_configuration) not detecting drift [\#1030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1030) - INTMDB-542
+- [`third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) marks "type" attribute as deprecated erroneously [\#1034](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1034) - INTMDB-556
+- Error "Pager Duty API key must consist of 32 hexadecimal digits" [\#1054](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1054) - INTMDB-570
+- Terraform provider stuck in changes for [`advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) configuration [\#1066](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1066) - INTMDB-572
+- [`search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) does not recreate when `cluster_name` and `project_id` fields change [\#1078](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1078) - INTMDB-576
+- POST Create Access List Entries for One Organization API Key endpoint supports list, but Terraform does not [\#1065](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1065) - INTMDB-579
+- Typo in Readme [\#1073](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1073)
+- Update project_api_key.html.markdown [\#1044](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1044)
+- Doc Clean Up [`cloud_provider_access`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_access) [\#1035](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1035)
+- Update alert_configuration.html.markdown [\#1068](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1068)
+- Doc Clean Up `provider_backup_enabled` deprecated to `cloud_backup` [\#1036](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1036)
+
+**Closed Issues:**
+
+- Unable to create third party integration of type Datadog with version 1.8.0 [\#1038](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1038)
+- mongodbatlas\_third\_party\_integration - api\_token keeps updating on every apply [\#963](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/963)
+- Unable to add mongodbatlas provider to CDK [\#952](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/952)
+- \[Bug\] `update_snapshots` doesn't save at TF state with [`cloud_backup_schedule`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule) resource [\#904](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/904)
+- Cannot ignore changes for replication\_specs when [`auto_scaling`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#region_configs) is enabled [\#888](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/888)
+- Warning: Deprecated attribute [\#1042](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1042)
+- GCP Network Peering remains pending when created via terraform [\#917](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/917)
+
+**Merged Pull Requests:**
 
 - Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.16.0 to 2.16.1 [\#1062](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1062) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update access\_list\_api\_key.html.markdown [\#1058](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1058) ([Zuhairahmed](https://github.com/Zuhairahmed))
@@ -12,27 +52,6 @@
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.9 to 0.41.10 [\#1051](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1051) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update CODEOWNERS to use APIx-Integrations [\#1050](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1050) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Chore\(deps\): Bump golangci/golangci-lint-action from 3.3.1 to 3.4.0 [\#1026](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1026) ([dependabot[bot]](https://github.com/apps/dependabot))
-
-## [v1.8.1-pre2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1-pre2) (February 22, 2023)
-
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1-pre1...v1.8.1-pre2)
-
-**Closed issues:**
-
-- Warning: Deprecated attribute [\#1042](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1042)
-- GCP Network Peering remains pending when created via terraform [\#917](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/917)
-
-## [v1.8.1-pre1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1-pre1) (February 06, 2023)
-
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.0...v1.8.1-pre1)
-
-**Closed issues:**
-
-- Unable to create third party integration of type Datadog with version 1.8.0 [\#1038](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1038)
-- mongodbatlas\_third\_party\_integration - api\_token keeps updating on every apply [\#963](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/963)
-- Unable to add mongodbatlas provider to CDK [\#952](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/952)
-- \[Bug\] `update_snapshots` doesn't save at TF state with `mongodbatlas_cloud_backup_schedule` resource [\#904](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/904)
-- Cannot ignore changes for replication\_specs when autoscaling is enabled [\#888](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/888)
 
 ## [v1.8.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.0) (2023-1-26)
 
