@@ -10,6 +10,10 @@ description: |-
 
 `mongodbatlas_maintenance_window` provides a resource to schedule a maintenance window for your MongoDB Atlas Project and/or set to defer a scheduled maintenance up to two times.
 
+In simple terms, a maintenance window is a pre-determined time frame during which your MongoDB Atlas cluster can be taken offline for maintenance activities, such as patching or upgrades. The `mongodbatlas_maintenance_window` resource allows you to configure the start and end times for this maintenance window, as well as the day(s) of the week during which it should occur.
+
+By using this resource in Terraform, you can automate the management of your maintenance window settings, ensuring that they are consistent across all of your environments and reducing the risk of human error. This can help ensure that your MongoDB Atlas clusters are available when your applications need them.
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Maintenance Window Considerations:
@@ -45,8 +49,8 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 * `hour_of_day` - Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12 (Time zone is UTC).
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If you request that maintenance begin immediately, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, you can set a maximum of 2 deferrals.
-* `defer` - Defer the next scheduled maintenance for the given project for one week.
-* `auto_defer` - Defer any scheduled maintenance for the given project for one week.
+* `defer` - Defers the maintenance window for the specified project for one week.
+* `auto_defer` - Toggles automatic deferral of the maintenance window for the specified project for one week.
 * `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
 
 -> **NOTE:** The `start_asap` attribute can't be used because of breaks the Terraform flow, but you can enable via API.
