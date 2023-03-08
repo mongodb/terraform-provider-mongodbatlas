@@ -47,7 +47,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 * `hour_of_day` - Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12 (Time zone is UTC).
 * `start_asap` - Boolean flag that indicates whether MongoDB Atlas starts the maintenance window immediately upon receiving this request. To start the maintenance window immediately for your project, MongoDB Atlas must have maintenance scheduled and you must set a maintenance window. This flag resets to false after MongoDB Atlas completes maintenance.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, you can set a maximum of 2 deferrals.
-* `defer` - Defers the maintenance window for the specified project for one week.
+* `defer` - Boolean flag that defers the maintenance window for the specified project for one week.
 * `auto_defer` - Toggles automatic deferral of the maintenance window for the specified project for one week.
 * `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
 
