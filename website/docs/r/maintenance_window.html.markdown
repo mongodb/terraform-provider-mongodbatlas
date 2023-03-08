@@ -8,7 +8,7 @@ description: |-
 
 # Resource: mongodbatlas_maintenance_window
 
-A maintenance window is a pre-determined time frame during which your MongoDB Atlas cluster can be taken offline for maintenance activities, such as patching or upgrades. The `mongodbatlas_maintenance_window` resource allows you to configure the start and end times for this maintenance window, as well as the day(s) of the week during which it should occur.
+A maintenance window is a pre-determined time frame during which MongoDB Atlas takes your cluster offline for maintenance activities, such as patching or upgrades. The `mongodbatlas_maintenance_window` resource allows you to configure the start and end times for this maintenance window, as well as the day(s) of the week during which it should occur.
 
 By using this resource in Terraform, you can automate the management of your maintenance window settings, ensuring that they are consistent across all of your environments and reducing the risk of human error. This can help ensure that your MongoDB Atlas clusters are available when your applications need them.
 
