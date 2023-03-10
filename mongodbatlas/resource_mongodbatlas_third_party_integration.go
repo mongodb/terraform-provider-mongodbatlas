@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 var integrationTypes = []string{
@@ -21,6 +21,11 @@ var integrationTypes = []string{
 	"WEBHOOK",
 	"MICROSOFT_TEAMS",
 	"PROMETHEUS",
+}
+
+var deprecatedIntegrationTypes = []string{
+	"NEW_RELIC",
+	"FLOWDOCK",
 }
 
 var requiredPerType = map[string][]string{
@@ -51,11 +56,10 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				ForceNew: true,
 			},
 			"type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(integrationTypes, false),
-				Deprecated:   "This field type has values (NEW_RELIC, FLOWDOCK) that are deprecated and will be removed in 1.9.0 release ",
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateDiagFunc: validateIntegrationType(),
 			},
 			"license_key": {
 				Type:      schema.TypeString,
@@ -309,4 +313,37 @@ func splitIntegrationTypeID(id string) (projectID, integrationType string, err e
 	projectID, integrationType = parts[1], parts[2]
 
 	return
+}
+
+func validateIntegrationType() schema.SchemaValidateDiagFunc {
+	return func(v any, p cty.Path) diag.Diagnostics {
+		value := v.(string)
+		var diags diag.Diagnostics
+		if !isElementExist(integrationTypes, value) {
+			diagError := diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid Third Party Integration type",
+				Detail:   fmt.Sprintf("Third Party integration type %q is not a valid value. Possible values are: %q.", value, integrationTypes),
+			}
+			diags = append(diags, diagError)
+		}
+		if isElementExist(deprecatedIntegrationTypes, value) {
+			diagWarn := diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Warning deprecated Third Party Integration type",
+				Detail:   fmt.Sprintf("Third Party integration type %q is a deprecated value. This field type values %q are deprecated and will be removed in 1.9.0 release", value, deprecatedIntegrationTypes),
+			}
+			diags = append(diags, diagWarn)
+		}
+		return diags
+	}
+}
+
+func isElementExist(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }

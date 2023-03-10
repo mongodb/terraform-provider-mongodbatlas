@@ -202,7 +202,7 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.
 	ldap := &matlas.LDAP{}
 
 	if d.HasChange("authentication_enabled") {
-		ldap.AuthenticationEnabled = pointy.Bool(d.Get("").(bool))
+		ldap.AuthenticationEnabled = pointy.Bool(d.Get("authentication_enabled").(bool))
 	}
 
 	if d.HasChange("authorization_enabled") {

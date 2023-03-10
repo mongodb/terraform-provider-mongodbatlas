@@ -41,6 +41,7 @@ data "mongodbatlas_event_triggers" "test" {
 
 * `project_id` - (Required) The unique ID for the project to get all event triggers.
 * `app_id` - (Required) The ObjectID of your application.
+    * For more details on `project_id` and `app_id` see: https://www.mongodb.com/docs/atlas/app-services/admin/api/v3/#section/Project-and-Application-IDs    
 
 ## Attributes Reference
 

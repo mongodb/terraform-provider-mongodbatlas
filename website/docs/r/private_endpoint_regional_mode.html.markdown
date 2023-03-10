@@ -28,7 +28,7 @@ resource "mongodbatlas_private_endpoint_regional_mode" "test" {
 
 resource "mongodbatlas_cluster" "cluster-atlas" {
   project_id                   = var.atlasprojectid
-  name                         = "cluster-atlas"
+  name                         = var.cluster_name
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = "5.0"
@@ -37,32 +37,24 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
     zone_name  = "Zone 1"
     num_shards = 2
     regions_config {
-      region_name     = "US_EAST_1"
+      region_name     = var.atlas_region_east
       electable_nodes = 3
       priority        = 7
+      read_only_nodes = 0
+    }
+    regions_config {
+      region_name     = var.atlas_region_west
+      electable_nodes = 2
+      priority        = 6
       read_only_nodes = 0
     }
   }
 
-  replication_specs {
-    zone_name  = "Zone 2"
-    num_shards = 2
-    regions_config {
-      region_name     = "US_WEST_1"
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
-    }
-  }
   # Provider settings
   provider_name               = "AWS"
   disk_size_gb                = 80
   provider_instance_size_name = "M30"
-}
 
-data "mongodbatlas_cluster" "cluster-atlas" {
-  project_id = var.atlasprojectid
-  name       = mongodbatlas_cluster.cluster-atlas.name
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.test_west,
     mongodbatlas_privatelink_endpoint_service.test_east,
@@ -123,11 +115,12 @@ resource "aws_vpc_endpoint" "test_east" {
    * More than one private endpoint in one region and one private endpoint in one or more regions.
 You can create only sharded clusters when you enable the regionalized private endpoint setting. You can't create replica sets.
 
+* `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint Regional Mode operations is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-atlas-privatelink-regionalized). 
+* `mongodbatlas_cluster.cluster-atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/cluster-geosharded). 
 * `mongodbatlas_cluster.cluster-atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)
