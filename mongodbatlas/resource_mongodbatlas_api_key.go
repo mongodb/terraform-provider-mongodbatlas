@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -95,6 +96,7 @@ func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData,
 	apiKey, resp, err := conn.APIKeys.Get(ctx, orgID, apiKeyID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+			log.Printf("warning API key deleted will recreate: %s \n", err.Error())
 			d.SetId("")
 			return nil
 		}
