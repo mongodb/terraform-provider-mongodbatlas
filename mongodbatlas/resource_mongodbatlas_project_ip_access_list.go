@@ -81,11 +81,10 @@ func resourceMongoDBAtlasProjectIPAccessList() *schema.Resource {
 				ConflictsWith: []string{"ip_address", "cidr_block"},
 			},
 			"comment": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
