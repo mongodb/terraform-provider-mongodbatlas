@@ -281,7 +281,7 @@ func (ra roleAssignmentsByFields) Less(i, j int) bool {
 		return compareVal < 0
 	}
 
-	return ra[i].Role < ra[j].Role
+	return ra[i].RoleName < ra[j].RoleName
 }
 
 type roleAssignmentRefsByFields []*matlas.RoleAssignments
@@ -302,7 +302,7 @@ func (ra roleAssignmentRefsByFields) Less(i, j int) bool {
 		return compareVal < 0
 	}
 
-	return ra[i].Role < ra[j].Role
+	return ra[i].RoleName < ra[j].RoleName
 }
 
 func expandRoleAssignments(d *schema.ResourceData) []matlas.RoleAssignments {
@@ -319,7 +319,7 @@ func expandRoleAssignments(d *schema.ResourceData) []matlas.RoleAssignments {
 				for _, role := range roleMap["roles"].(*schema.Set).List() {
 					roleAssignment.OrgID = roleMap["org_id"].(string)
 					roleAssignment.GroupID = roleMap["group_id"].(string)
-					roleAssignment.Role = role.(string)
+					roleAssignment.RoleName = role.(string)
 					roleAssignments = append(roleAssignments, roleAssignment)
 				}
 				roleAssignmentsReturn = roleAssignments
@@ -358,7 +358,7 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []
 			}
 		}
 
-		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.Role)
+		roleAssignment["roles"] = append(roleAssignment["roles"].([]string), row.RoleName)
 	}
 
 	flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)

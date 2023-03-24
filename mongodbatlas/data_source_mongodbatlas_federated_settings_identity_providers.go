@@ -374,7 +374,7 @@ func (ra mRoleAssignment) Less(i, j int) bool {
 		return compareVal < 0
 	}
 
-	return ra[i].Role < ra[j].Role
+	return ra[i].RoleName < ra[j].RoleName
 }
 
 type roleMappingsByGroupName []*matlas.RoleMappings
@@ -418,7 +418,7 @@ func flattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[str
 			roleAssignmentsMap[i] = map[string]interface{}{
 				"group_id": roleAssignments[i].GroupID,
 				"org_id":   roleAssignments[i].OrgID,
-				"role":     roleAssignments[i].Role,
+				"role":     roleAssignments[i].RoleName,
 			}
 		}
 	}
