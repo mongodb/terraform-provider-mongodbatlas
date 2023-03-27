@@ -70,7 +70,7 @@ Additional values based on Type
   * `service_key` - Your Service Key.
 * `DATADOG`
   * `api_key` - Your API Key.
-  * `region` - Indicates which API URL to use, either US, EU, US3, or US5. Datadog will use US by default.    
+  * `region` - Indicates which API URL to use, either "US", "EU", "US3", or "US5". Datadog will use "US" by default.    
 * `NEW_RELIC`
   * `license_key` - Your License Key.
   * `account_id`  - Unique identifier of your New Relic account.
