@@ -349,7 +349,7 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	collectionType := d.HasChange("collection_type")
 
 	// nothing to do, let's go
-	if !paused && !criteria && collectionType {
+	if !paused && !criteria && !collectionType {
 		return nil
 	}
 
