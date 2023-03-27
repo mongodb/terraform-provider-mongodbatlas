@@ -53,6 +53,12 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Required: true,
 		},
+		"collection_type": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice([]string{"STANDARD", "TIMESERIES"}, false),
+		},
 		"db_name": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -289,8 +295,9 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	// shared input
 	requestInput := matlas.OnlineArchive{
-		DBName:   d.Get("db_name").(string),
-		CollName: d.Get("coll_name").(string),
+		DBName:         d.Get("db_name").(string),
+		CollName:       d.Get("coll_name").(string),
+		CollectionType: d.Get("collection_type").(string),
 	}
 
 	requestInput.Criteria = mapCriteria(d)
@@ -339,8 +346,10 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	paused := d.HasChange("paused")
 	criteria := d.HasChange("criteria")
 
+	collectionType := d.HasChange("collection_type")
+
 	// nothing to do, let's go
-	if !paused && !criteria {
+	if !paused && !criteria && collectionType {
 		return nil
 	}
 
@@ -355,6 +364,10 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 		request.Criteria = mapCriteria(d)
 	}
 
+	if collectionType {
+		request.CollectionType = d.Get("collection_type").(string)
+	}
+
 	_, _, err := conn.OnlineArchives.Update(ctx, projectID, clusterName, atlasID, &request)
 
 	if err != nil {
@@ -367,11 +380,12 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	// computed attribute
 	schemaVals := map[string]interface{}{
-		"cluster_name": in.ClusterName,
-		"archive_id":   in.ID,
-		"paused":       in.Paused,
-		"state":        in.State,
-		"coll_name":    in.CollName,
+		"cluster_name":    in.ClusterName,
+		"archive_id":      in.ID,
+		"paused":          in.Paused,
+		"state":           in.State,
+		"coll_name":       in.CollName,
+		"collection_type": in.CollectionType,
 	}
 
 	criteria := map[string]interface{}{
