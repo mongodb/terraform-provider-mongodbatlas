@@ -484,6 +484,10 @@ github.com/zclconf/go-cty-debug v0.0.0-20191215020915-b22d67c1ba0b/go.mod h1:ZRK
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
 go.mongodb.org/atlas v0.23.1 h1:nQjqIzAizf4uaD7lECpVF6kldnZvJnmCTDrqkS4hVyc=
 go.mongodb.org/atlas v0.23.1/go.mod h1:XTjsxWgoOSwaZrQUvhTEuwjymxnF0r12RPibZuW1Uts=
+go.mongodb.org/atlas v0.23.3-0.20230324180144-5205884a13ab h1:c+D+WF6+FVz9nyMT+eTwnpTf4w2W4Ja279soDXrB87g=
+go.mongodb.org/atlas v0.23.3-0.20230324180144-5205884a13ab/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
+go.mongodb.org/atlas v0.24.0 h1:n9ibqbxrtFOInLD6MhNupK9GKFmaH08rLwU5qnr4mpA=
+go.mongodb.org/atlas v0.24.0/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
