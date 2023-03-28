@@ -231,8 +231,8 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"CREATING", "IN_PROGRESS", "NOT_VALID", "PENDING"},
-			Target:     []string{"VALID"},
+			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
+			Target:     []string{"STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,
@@ -398,8 +398,8 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"CREATING", "IN_PROGRESS", "NOT_VALID", "PENDING"},
-			Target:     []string{"VALID"},
+			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
+			Target:     []string{"STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,

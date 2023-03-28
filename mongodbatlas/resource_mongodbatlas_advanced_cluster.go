@@ -988,10 +988,16 @@ func expandRegionConfigAutoScaling(tfList []interface{}) *matlas.AdvancedAutoSca
 		compute.ScaleDownEnabled = pointy.Bool(v.(bool))
 	}
 	if v, ok := tfMap["compute_min_instance_size"]; ok {
-		compute.MinInstanceSize = v.(string)
+		value := compute.ScaleDownEnabled
+		if *value {
+			compute.MinInstanceSize = v.(string)
+		}
 	}
 	if v, ok := tfMap["compute_max_instance_size"]; ok {
-		compute.MaxInstanceSize = v.(string)
+		value := compute.Enabled
+		if *value {
+			compute.MaxInstanceSize = v.(string)
+		}
 	}
 
 	advancedAutoScaling.DiskGB = diskGB

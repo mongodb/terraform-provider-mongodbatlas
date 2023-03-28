@@ -59,6 +59,7 @@ const (
 		project_id = mongodbatlas_cluster.online_archive_test.project_id
 		cluster_name = mongodbatlas_cluster.online_archive_test.name
 		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
 		db_name = "sample_airbnb"
 	
 		criteria {
@@ -121,6 +122,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
 				),
 			},
 		},
