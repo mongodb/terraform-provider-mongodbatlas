@@ -76,7 +76,7 @@ resource "mongodbatlas_online_archive" "test" {
 * `cluster_name`     -  (Required) Name of the cluster that contains the collection.
 * `db_name`          -  (Required) Name of the database that contains the collection.
 * `coll_name`        -  (Required) Name of the collection.
-* `collection_name`  -  Classification of MongoDB database collection that you want to return
+* `collection_name`  -  Classification of MongoDB database collection that you want to return, "TIMESERIES" or "STANDARD". Default is "STANDARD". 
 * `criteria`         -  (Required) Criteria to use for archiving data.
 * `partition_fields` -  (Recommended) Fields to use to partition data. You can specify up to two frequently queried fields to use for partitioning data. Note that queries that don’t contain the specified fields will require a full collection scan of all archived documents, which will take longer and increase your costs. To learn more about how partition improves query performance, see [Data Structure in S3](https://docs.mongodb.com/datalake/admin/optimize-query-performance/#data-structure-in-s3). The value of a partition field can be up to a maximum of 700 characters. Documents with values exceeding 700 characters are not archived.
 * `paused`           - (Optional) State of the online archive. This is required for pausing an active or resume a paused online archive. The resume request will fail if the collection has another active online archive.
