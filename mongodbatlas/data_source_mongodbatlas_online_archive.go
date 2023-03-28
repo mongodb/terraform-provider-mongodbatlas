@@ -83,6 +83,10 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"collection_type": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"db_name": {
 			Type:     schema.TypeString,
 			Computed: true,
