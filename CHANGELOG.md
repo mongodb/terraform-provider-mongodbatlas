@@ -7,7 +7,7 @@
 **Enhancements:**
 
 - Support for "TIMESERIES" Collection Type in [`mongodbatlas_online_archive`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/online_archive) [\#1114](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1114) - INTMDB-648
-- Support for new regions in DataDog in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) [\#1105](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1105) - INTMDB-638
+- Support for new "DATADOG" regions  in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) [\#1105](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1105) - INTMDB-638
 
 **Bug Fixes:**
 
