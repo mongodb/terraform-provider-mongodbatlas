@@ -1,34 +1,27 @@
 # Changelog
 
-## [v1.8.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.2) (March 29, 2023)
+## [v1.8.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.2) (2023-3-28)
 
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.2-pre1...v1.8.2)
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1...v1.8.2)
+
+**Enhancements:**
+
+- Support for TimeSeries Collection Type in [`mongodbatlas_online_archive`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/online_archive) [\#1114](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1114) - INTMDB-648
+- Support for new regions in DataDog in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) [\#1104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1104) - INTMDB-687
+
+**Bug Fixes:**
+
+- Error in unsetting auto_scaling in [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) [\#1112](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1112) - INTMDB-617
+- Update Status Codes in  [`mongodbatlas_search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) [\#1112](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1112) - INTMDB-617
+- [`mongodbatlas_project_ip_access_list`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_ip_access_list) comment should be optional [\#1103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1103) - INTMDB-637
+- Plan fails if API key created by [`mongodbatlas_api_key`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key) resource is deleted outside of Terraform [\#1097](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1097) - INTMDB-581
+- Google Cloud Terraform Provider Version Upgrade [\#1098](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1098) - INTMDB-359
+
 
 **Closed issues:**
 
 - mongodbatlas\_federated\_settings\_org\_role\_mapping INVALID\_ATTRIBUTE [\#1110](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1110)
 - Errors when creating or importing timeseries online archive [\#1081](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1081)
-
-**Merged pull requests:**
-
-- Release staging v.1.8.2 [\#1115](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1115) ([martinstibbe](https://github.com/martinstibbe))
-- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.221 to 1.44.226 [\#1109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1109) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.25.0 to 2.26.1 [\#1108](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1108) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump github.com/zclconf/go-cty from 1.12.1 to 1.13.1 [\#1107](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1107) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump actions/setup-go from 3 to 4 [\#1106](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1106) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.16.1 to 2.16.2 [\#1101](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1101) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.24.1 to 2.25.0 [\#1100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1100) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.216 to 1.44.221 [\#1099](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1099) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.40.56 to 1.44.216 [\#1094](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1094) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump go.mongodb.org/atlas from 0.21.0 to 0.23.1 [\#1092](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1092) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Chore\(deps\): Bump golang.org/x/net from 0.1.0 to 0.7.0 [\#1071](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1071) ([dependabot[bot]](https://github.com/apps/dependabot))
-
-## [v1.8.2-pre1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.2-pre1) (March 21, 2023)
-
-[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1...v1.8.2-pre1)
-
-**Closed issues:**
-
 - Unexpected EOF [\#1083](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1083)
 - mongodbatlas\_access\_list\_api\_key creation fails after api\_key creation [\#1075](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1075)
 - Panic when creating AWS privatelink endpoint [\#1067](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1067)
@@ -44,6 +37,20 @@
 - bi\_connector settings don't work in mongodbatlas\_advanced\_cluster [\#893](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/893)
 - Sensitive information exposed as resource Id - mongodbatlas\_x509\_authentication\_database\_user  [\#884](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/884)
 - plugin crashes during apply: panic: runtime error: invalid memory address or nil pointer dereference [\#866](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/866)
+
+**Merged pull requests:**
+
+- Release staging v.1.8.2 [\#1115](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1115) ([martinstibbe](https://github.com/martinstibbe))
+- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.221 to 1.44.226 [\#1109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1109) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.25.0 to 2.26.1 [\#1108](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1108) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/zclconf/go-cty from 1.12.1 to 1.13.1 [\#1107](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1107) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump actions/setup-go from 3 to 4 [\#1106](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1106) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.16.1 to 2.16.2 [\#1101](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1101) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.24.1 to 2.25.0 [\#1100](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1100) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.216 to 1.44.221 [\#1099](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1099) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.40.56 to 1.44.216 [\#1094](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1094) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump go.mongodb.org/atlas from 0.21.0 to 0.23.1 [\#1092](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1092) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Chore\(deps\): Bump golang.org/x/net from 0.1.0 to 0.7.0 [\#1071](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1071) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v1.8.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.1) (2023-3-7)
 
