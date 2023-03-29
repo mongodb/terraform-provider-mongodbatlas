@@ -33,7 +33,7 @@ data "mongodbatlas_online_archive" "test" {
 ## Attributes reference
 * `db_name`          -  Name of the database that contains the collection.
 * `coll_name`        -  Name of the collection.
-* `collection_name`  -  Classification of MongoDB database collection that you want to return, "TIMESERIES" or "STANDARD". Default is "STANDARD". 
+* `collection_type`  -  Classification of MongoDB database collection that you want to return, "TIMESERIES" or "STANDARD". Default is "STANDARD". 
 * `criteria`         -  Criteria to use for archiving data.
 * `criteria.type`          - Type of criteria (DATE, CUSTOM)
 * `criteria.date_field`    - Name of an already indexed date field from the documents. Data is archived when the current date is greater than the value of the date field specified here plus the number of days specified via the `expire_after_days` parameter.
