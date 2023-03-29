@@ -7,12 +7,12 @@
 **Enhancements:**
 
 - Support for TimeSeries Collection Type in [`mongodbatlas_online_archive`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/online_archive) [\#1114](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1114) - INTMDB-648
-- Support for new regions in DataDog in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) [\#1104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1104) - INTMDB-687
+- Support for new regions in DataDog in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) [\#1105](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1105) - INTMDB-638
 
 **Bug Fixes:**
 
 - Error in unsetting auto_scaling in [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) [\#1112](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1112) - INTMDB-617
-- Update Status Codes in  [`mongodbatlas_search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) [\#1112](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1112) - INTMDB-617
+- Update Status Codes in  [`mongodbatlas_search_index`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index) [\#1104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1104) - INTMDB-687
 - [`mongodbatlas_project_ip_access_list`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_ip_access_list) comment should be optional [\#1103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1103) - INTMDB-637
 - Plan fails if API key created by [`mongodbatlas_api_key`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key) resource is deleted outside of Terraform [\#1097](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1097) - INTMDB-581
 - Google Cloud Terraform Provider Version Upgrade [\#1098](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1098) - INTMDB-359
