@@ -18,7 +18,7 @@
 - Google Cloud Terraform Provider Version Upgrade [\#1098](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1098) - INTMDB-359
 
 
-**Closed issues:**
+**Closed Issues:**
 
 - mongodbatlas\_federated\_settings\_org\_role\_mapping INVALID\_ATTRIBUTE [\#1110](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1110)
 - Errors when creating or importing timeseries online archive [\#1081](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1081)
@@ -38,7 +38,7 @@
 - Sensitive information exposed as resource Id - mongodbatlas\_x509\_authentication\_database\_user  [\#884](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/884)
 - plugin crashes during apply: panic: runtime error: invalid memory address or nil pointer dereference [\#866](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/866)
 
-**Merged pull requests:**
+**Merged Pull Requests:**
 
 - Release staging v.1.8.2 [\#1115](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1115) ([martinstibbe](https://github.com/martinstibbe))
 - Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.221 to 1.44.226 [\#1109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1109) ([dependabot[bot]](https://github.com/apps/dependabot))
