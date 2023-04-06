@@ -64,15 +64,6 @@ func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdParty
 
 func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]interface{} {
 	integrationSchema := schemaToIntegration(d)
-	if integrationSchema.LicenseKey == "" {
-		integrationSchema.APIKey = integration.LicenseKey
-	}
-	if integrationSchema.WriteToken == "" {
-		integrationSchema.APIKey = integration.WriteToken
-	}
-	if integrationSchema.ReadToken == "" {
-		integrationSchema.APIKey = integration.ReadToken
-	}
 	if integrationSchema.APIKey == "" {
 		integrationSchema.APIKey = integration.APIKey
 	}
@@ -100,10 +91,6 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 
 	out := map[string]interface{}{
 		"type":                        integration.Type,
-		"license_key":                 integrationSchema.LicenseKey,
-		"account_id":                  integration.AccountID,
-		"write_token":                 integrationSchema.WriteToken,
-		"read_token":                  integrationSchema.ReadToken,
 		"api_key":                     integrationSchema.APIKey,
 		"region":                      integration.Region,
 		"service_key":                 integrationSchema.ServiceKey,
@@ -111,8 +98,6 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"team_name":                   integration.TeamName,
 		"channel_name":                integration.ChannelName,
 		"routing_key":                 integrationSchema.RoutingKey,
-		"flow_name":                   integration.FlowName,
-		"org_name":                    integration.OrgName,
 		"url":                         integrationSchema.URL,
 		"secret":                      integrationSchema.Secret,
 		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
@@ -124,9 +109,8 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
-	optionals := []string{"license_key", "account_id", "write_token",
-		"read_token", "api_key", "region", "service_key", "api_token",
-		"team_name", "channel_name", "flow_name", "org_name", "url", "secret", "password"}
+	optionals := []string{"api_key", "region", "service_key", "api_token",
+		"team_name", "channel_name", "url", "secret", "password"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
