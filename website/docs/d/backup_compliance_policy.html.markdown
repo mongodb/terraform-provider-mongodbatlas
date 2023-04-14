@@ -1,0 +1,169 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas: backup_compliance_policy"
+sidebar_current: "docs-mongodbatlas-datasource-backup-compliance-policy"
+description: |-
+    Provides a Backup Compliance Policy Datasource.
+---
+
+# Data Source: mongodbatlas_backup_compliance_policy
+
+`mongodbatlas_backup_compliance_policy` provides a Backup Compliance Policy datasource. An Atlas Backup Compliance Policy provides the current protection policy settings for the project. 
+
+-> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
+
+## Example Usage
+
+```terraform
+resource "mongodbatlas_cluster" "my_cluster" {
+  project_id   = "<PROJECT-ID>"
+  name         = "clusterTest"
+  disk_size_gb = 5
+
+  //Provider Settings "block"
+  provider_name               = "AWS"
+  provider_region_name        = "EU_CENTRAL_1"
+  provider_instance_size_name = "M10"
+  provider_backup_enabled     = true // enable cloud backup snapshots
+}
+
+resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
+  project_id   = mongodbatlas_cluster.my_cluster.project_id
+  cluster_name = mongodbatlas_cluster.my_cluster.name
+
+  reference_hour_of_day    = 3
+  reference_minute_of_hour = 45
+  restore_window_days      = 4
+
+
+  policies {
+    id = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.id
+
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.0.id
+      frequency_interval = 1
+      frequency_type     = "hourly"
+      retention_unit     = "days"
+      retention_value    = 1
+    }
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.1.id
+      frequency_interval = 1
+      frequency_type     = "daily"
+      retention_unit     = "days"
+      retention_value    = 2
+    }
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.2.id
+      frequency_interval = 4
+      frequency_type     = "weekly"
+      retention_unit     = "weeks"
+      retention_value    = 3
+    }
+    policy_item {
+      id                 = mongodbatlas_cluster.my_cluster.snapshot_backup_policy.0.policies.0.policy_item.3.id
+      frequency_interval = 5
+      frequency_type     = "monthly"
+      retention_unit     = "months"
+      retention_value    = 4
+    }
+  }
+}
+
+data "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
+  project_id   = mongodbatlas_cloud_provider_snapshot_backup_policy.test.project_id
+  cluster_name = mongodbatlas_cloud_provider_snapshot_backup_policy.test.cluster_name
+}
+
+data "mongodbatlas_backup_compliance_policy" "backup_policy" {
+  project_id = mongodbatlas_backup_compliance_policy.backup_policy.id
+}
+
+resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
+  project_id                 = "<PROJECT-ID>"
+  authorized_email           = "user@email.com"
+  copy_protection_enabled    = false
+  pit_enabled                = false
+  encryption_at_rest_enabled = false
+
+  restore_window_days = 7
+
+  on_demand_policy_item {
+
+    frequency_interval = 0
+    frequency_type     = "ondemand"
+    retention_unit     = "days"
+    retention_value    = 3
+  }
+  
+  scheduled_policy_items {
+    
+      frequency_interval = 6
+      frequency_type     = "hourly"
+      retention_unit     = "days"
+      retention_value    = 7
+    }
+
+scheduled_policy_items {
+    
+      frequency_interval = 0
+      frequency_type     = "daily"
+      retention_unit     = "days"
+      retention_value    = 7
+    }
+
+scheduled_policy_items {
+    
+      frequency_interval = 0
+      frequency_type     = "weekly"
+      retention_unit     = "weeks"
+      retention_value    = 4
+    }
+
+scheduled_policy_items {
+    
+      frequency_interval = 0
+      frequency_type     = "monthly"
+      retention_unit     = "months"
+      retention_value    = 12
+    }
+
+}
+```
+
+## Argument Reference
+
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+retrieve.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `authorized_email` - (Email address of the user who authorized to updated the Backup Compliance Policy settings.
+* `copy_protection_enabled` - Flag that indicates whether to enable additional backup copies for the cluster. If unspecified, this value defaults to false.
+* `pit_enabled` - Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
+* `encryption_at_rest_enabled` - Flag that indicates whether Encryption at Rest using Customer Key Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
+* `reference_minute_of_hour` - UTC Minute of day between 0 and 59 representing which minute of the referenceHourOfDay that Atlas takes the snapshot.
+* `restore_window_days` - Number of previous days that you can restore back to with Continuous Cloud Backup with a Backup Compliance Policy. You must specify a positive, non-zero integer, and the maximum retention window can't exceed the hourly retention time. This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
+*  `state` - Label that indicates the state of the Backup Compliance Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+* `updated_date` - ISO 8601 timestamp format in UTC that indicates when the user updated the Data Protection Policy settings. MongoDB Cloud ignores this setting when you enable or update the Backup Compliance Policy settings.
+* `updated_user` - Email address that identifies the user who updated the Backup Compliance Policy settings. MongoDB Cloud ignores this email setting when you enable or update the Backup Compliance Policy settings.
+
+### On Demand Policy Item
+* `on_demand_policy_item.0.policy_item` - A list of specifications for a policy.
+* `on_demand_policy_item.#.policy_item.#.id` - Unique identifier for this policy item.
+* `on_demand_policy_item.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
+* `on_demand_policy_item.#.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
+* `on_demand_policy_item.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
+* `policies.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
+* 
+#### Scheduled Policy Items
+* `scheduled_policy_items.#.policy_item` - A list of specifications for a policy.
+* `scheduled_policy_items.#.policy_item.#.id` - Unique identifier for this policy item.
+* `scheduled_policy_items.#.policy_item.#.frequency_interval` - The frequency interval for a set of snapshots.
+* `scheduled_policy_items.#.policy_item.#.frequency_type` - A type of frequency (hourly, daily, weekly, monthly).
+* `scheduled_policy_items.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
+* `scheduled_policy_items.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
+
+For more information see: [MongoDB Atlas API Reference.](hhttps://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getDataProtectionSettings)
