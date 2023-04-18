@@ -134,7 +134,6 @@ scheduled_policy_items {
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
-retrieve.
 
 ## Attributes Reference
 
