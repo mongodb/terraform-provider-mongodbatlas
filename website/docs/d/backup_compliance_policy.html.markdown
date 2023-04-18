@@ -139,7 +139,7 @@ scheduled_policy_items {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `authorized_email` - (Email address of the user who authorized to updated the Backup Compliance Policy settings.
+* `authorized_email` - Email address of the user who authorized to updated the Backup Compliance Policy settings.
 * `copy_protection_enabled` - Flag that indicates whether to enable additional backup copies for the cluster. If unspecified, this value defaults to false.
 * `pit_enabled` - Flag that indicates whether the cluster uses Continuous Cloud Backups with a Backup Compliance Policy. If unspecified, this value defaults to false.
 * `encryption_at_rest_enabled` - Flag that indicates whether Encryption at Rest using Customer Key Management is required for all clusters with a Backup Compliance Policy. If unspecified, this value defaults to false.
