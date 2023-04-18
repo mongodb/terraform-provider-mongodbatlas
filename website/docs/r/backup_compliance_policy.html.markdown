@@ -7,7 +7,7 @@ description: |-
 ---
 # Resource: mongodbatlas_backup_compliance_policy
 
-`mongodbatlas_backup_compliance_policy` provides a resource that enables you to setup a Backup Compliance Policy resource. An Atlas Backup Compliance Policy configures the current protection policy settings for the project.
+`mongodbatlas_backup_compliance_policy` provides a resource that enables you to setup a Backup Compliance Policy resource. Prevent any user, regardless of role, from modifying or deleting specific cluster configurations and backups. When enabled, the Backup Compliance Policy will be applied as the minimum policy for all clusters and can only be disabled by contacting MongoDB support. Only supported for clusters M10 or higher.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
