@@ -12,6 +12,8 @@ description: |-
 
 ~> **IMPORTANT WARNING:**  Changing the name of an existing Project in your Terraform configuration will result the destruction of that Project and related resources (including Clusters) and the re-creation of those resources.  Terraform will inform you of the destroyed/created resources before applying so be sure to verify any change to your environment before applying.
 
+-> **NOTE:** If you enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy without contacting MongoDB support, delete a backup snapshot, decrease the retention time for a snapshot after it's taken, disable Cloud Backup, modify the backup policy for an individual cluster below the minimum requirements set in the Backup Compliance Policy, or delete the Atlas project if any snapshots exist. For more details see (Backup Compliance Policy Prohibited Actions and Considerations)[https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy]. 
+
 ## Example Usage
 
 ```terraform
