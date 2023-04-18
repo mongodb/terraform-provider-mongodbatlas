@@ -133,7 +133,6 @@ scheduled_policy_items {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project
-retrieve.
 
 ## Attributes Reference
 
