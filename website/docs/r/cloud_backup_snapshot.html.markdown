@@ -15,6 +15,8 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
 
 -> **NOTE:** If you enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy without contacting MongoDB support, delete a backup snapshot, decrease the retention time for a snapshot after it's taken, disable Cloud Backup, modify the backup policy for an individual cluster below the minimum requirements set in the Backup Compliance Policy, or delete the Atlas project if any snapshots exist. For full list of impacts and more details see [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
+-> **NOTE:** If Backup Compliance Policy is disabled and you then terminate a cluster, Atlas deletes the cluster's associated backup snapshots. If however Backup Compliance Policy is enabled, the backup is retained after cluster is deleted and backups can be used normally until retention expiration. For more details see [Back Up, Restore, and Archive Data](https://www.mongodb.com/docs/atlas/backup-restore-cluster/). 
+
 -> **API Key Access List**: This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
 
 ## Example Usage
