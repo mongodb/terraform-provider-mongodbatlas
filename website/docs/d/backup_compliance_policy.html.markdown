@@ -165,4 +165,4 @@ In addition to all arguments above, the following attributes are exported:
 * `scheduled_policy_items.#.policy_item.#.retention_unit` - The unit of time in which snapshot retention is measured (days, weeks, months).
 * `scheduled_policy_items.#.policy_item.#.retention_value` - The number of days, weeks, or months the snapshot is retained.
 
-For more information see: [MongoDB Atlas API Reference.](hhttps://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getDataProtectionSettings)
+For more information see: [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getDataProtectionSettings) and [Backup Compliance Policy Prohibited Actions](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#prohibited-actions)
