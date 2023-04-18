@@ -50,7 +50,7 @@ func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgI
 		  
 		  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
-			authorized_email           = "martin@akava.io"
+			authorized_email           = "test@example.com"
 			copy_protection_enabled    = false
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
