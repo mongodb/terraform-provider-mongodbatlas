@@ -252,7 +252,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// There is no resource to delete a backup compliance policy, it can only be updated.
-	log.Printf("[WARN] Note: Deleting Backup Policy in Terraform does not remove policy from Atlas Project requires a support request to disable Backup Compliance Policy ")
+	log.Printf("[WARN] Note: Deleting Backup Compliance Policy resource in Terraform does not remove policy from Atlas Project. To disable a Backup Compliance Policy, the security or legal representative specified for the Backup Compliance Policy must contact MongoDB Support and complete an extensive verification process. ")
 
 	d.SetId("")
 	return nil
