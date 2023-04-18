@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: mongodbatlas_backup_compliance_policy
 
-`mongodbatlas_backup_compliance_policy` provides a Backup Compliance Policy datasource. An Atlas Backup Compliance Policy provides the current protection policy settings for the project. 
+`mongodbatlas_backup_compliance_policy` provides a Backup Compliance Policy data source. An Atlas Backup Compliance Policy provides the current protection policy settings for the project. 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
