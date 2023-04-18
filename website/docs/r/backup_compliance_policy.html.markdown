@@ -166,7 +166,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Backup Compliance Policy entries can be imported using project project_id  in the format `PROJECTID`, e.g.
+Backup Compliance Policy entries can be imported using project project_id  in the format `project_id`, e.g.
 
 ```
 $ terraform import mongodbatlas_backup_compliance_policy.backup_policy 5d0f1f73cf09a29120e173cf
