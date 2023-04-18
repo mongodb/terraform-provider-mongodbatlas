@@ -9,6 +9,8 @@ description: |-
 
 `mongodbatlas_backup_compliance_policy` provides a resource that enables you to setup a Backup Compliance Policy resource. Prevent any user, regardless of role, from modifying or deleting specific cluster configurations and backups. When enabled, the Backup Compliance Policy will be applied as the minimum policy for all clusters and can only be disabled by contacting MongoDB support. Only supported for clusters M10 or higher.
 
+When enabled, Backup Compliance Policy will be applied as the minimum backup policy to all clusters in your Project and will protect all existing snapshots. This will prevent any user, regardless of role, from modifying or deleting existing snapshots prior to expiration. Changes made to existing backup compliance policies will only apply to future snapshots.
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 -> **NOTE:** If you enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy without contacting MongoDB support, delete a backup snapshot, decrease the retention time for a snapshot after it's taken, disable Cloud Backup, modify the backup policy for an individual cluster below the minimum requirements set in the Backup Compliance Policy, or delete the Atlas project if any snapshots exist. For full list of impacts and more details see [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
