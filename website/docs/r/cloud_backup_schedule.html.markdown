@@ -170,11 +170,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
   copy_settings {
     cloud_provider = "AWS"
-    frequencies = ["HOURLY",
-                "DAILY",
-                "WEEKLY",
-                "MONTHLY",
-                "ON_DEMAND"]
+    frequencies = ["hourly",
+                "daily",
+                "weekly",
+                "monthly",
+                "onDemand"]
     region_name = "US_EAST_1"
     replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
     should_copy_oplogs = false
