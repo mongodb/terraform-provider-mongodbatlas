@@ -114,7 +114,6 @@ resource "mongodbatlas_cluster" "test" {
   project_id   = local.project_id
   name         = "terraform-manually-test"
   num_shards   = 1
-  disk_size_gb = 5
   
   cluster_type = "REPLICASET"
   replication_specs {
@@ -213,7 +212,6 @@ You can create a peering connection if an appropriate container for your cloud p
 resource "mongodbatlas_cluster" "test" {
   project_id   = local.project_id
   name         = "terraform-test"
-  disk_size_gb = 5
   
   cluster_type = "REPLICASET"
   replication_specs {
@@ -270,7 +268,6 @@ resource "aws_vpc_peering_connection_accepter" "aws_peer" {
 resource "mongodbatlas_cluster" "test" {
   project_id   = local.project_id
   name         = "terraform-manually-test"
-  disk_size_gb = 5
 
   cluster_type = "REPLICASET"
   replication_specs {

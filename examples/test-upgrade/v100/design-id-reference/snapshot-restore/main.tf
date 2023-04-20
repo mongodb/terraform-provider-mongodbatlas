@@ -5,7 +5,6 @@ data "mongodbatlas_project" "test" {
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = data.mongodbatlas_project.test.id
   name         = var.cluster_name
-  disk_size_gb = 5
 
   # Provider Settings "block"
   provider_name               = "AWS"

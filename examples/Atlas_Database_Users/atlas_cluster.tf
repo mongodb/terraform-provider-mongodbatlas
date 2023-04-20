@@ -16,7 +16,6 @@ resource "mongodbatlas_cluster" "cluster" {
   cloud_backup                 = true
   auto_scaling_disk_gb_enabled = true
   provider_name                = "AWS"
-  disk_size_gb                 = 10
   provider_instance_size_name  = "M10"
 }
 output "atlasclusterstring" {

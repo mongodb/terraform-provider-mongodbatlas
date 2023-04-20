@@ -6,7 +6,6 @@ resource "mongodbatlas_project" "test" {
 resource "mongodbatlas_cluster" "test" {
   project_id                   = mongodbatlas_project.test.id
   name                         = var.cluster_name
-  disk_size_gb                 = 100
   num_shards                   = 1
   replication_factor           = 3
   provider_backup_enabled      = true

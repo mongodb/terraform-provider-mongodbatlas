@@ -25,7 +25,6 @@ You can create a new cluster with `cloud_backup` enabled and then immediately ov
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 10
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -65,7 +64,6 @@ You can enable `cloud_backup` in the Cluster resource and then use the `cloud_ba
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -94,7 +92,6 @@ The cluster already exists with `cloud_backup` enabled
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -145,7 +142,6 @@ You can enable `cloud_backup` in the Cluster resource and then use the `cloud_ba
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"

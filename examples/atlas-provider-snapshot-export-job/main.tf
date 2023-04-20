@@ -25,7 +25,6 @@ resource "aws_s3_bucket" "test_bucket" {
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = var.project_id
   name         = "MyCluster"
-  disk_size_gb = 1
 
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
