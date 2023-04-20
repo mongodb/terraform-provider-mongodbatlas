@@ -18,7 +18,6 @@ description: |-
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -70,13 +69,13 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
   }
 }
 
-data "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
-  project_id   = mongodbatlas_cloud_provider_snapshot_backup_policy.test.project_id
-  cluster_name = mongodbatlas_cloud_provider_snapshot_backup_policy.test.cluster_name
+data "mongodbatlas_cloud_backup_schedule" "test" {
+  project_id   = mongodbatlas_cloud_backup_schedule.test.project_id
+  cluster_name = mongodbatlas_cloud_backup_schedule.test.cluster_name
 }
 
 data "mongodbatlas_backup_compliance_policy" "backup_policy" {
-  project_id = mongodbatlas_backup_compliance_policy.backup_policy.id
+  project_id = mongodbatlas_cloud_backup_schedule.test.id
 }
 
 resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
