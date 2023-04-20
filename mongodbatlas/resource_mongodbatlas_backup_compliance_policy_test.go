@@ -197,9 +197,7 @@ func testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, project
 		restore_window_days = 7
 	  
 		on_demand_policy_item {
-	  
 		  frequency_interval = 0
-		  frequency_type     = "ondemand"
 		  retention_unit     = "days"
 		  retention_value    = 3
 		}
@@ -261,7 +259,6 @@ func testAccMongoDBAtlasBackupCompliancePolicyConfigWithoutRestoreDays(projectNa
 	  
 		on_demand_policy_item {
 		  frequency_interval = 0
-		  frequency_type     = "ondemand"
 		  retention_unit     = "days"
 		  retention_value    = 3
 		}

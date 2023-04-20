@@ -60,7 +60,6 @@ func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgI
 			on_demand_policy_item {
 		  
 			  frequency_interval = 0
-			  frequency_type     = "ondemand"
 			  retention_unit     = "days"
 			  retention_value    = 3
 			}

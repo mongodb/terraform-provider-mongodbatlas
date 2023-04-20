@@ -68,7 +68,7 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 						},
 						"frequency_type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 						"retention_unit": {
 							Type:     schema.TypeString,
@@ -505,7 +505,7 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 			onDemand = matlas.PolicyItem{
 				ID:                demandItemMap["id"].(string),
 				FrequencyInterval: demandItemMap["frequency_interval"].(int),
-				FrequencyType:     demandItemMap["frequency_type"].(string),
+				FrequencyType:     "ondemand",
 				RetentionUnit:     demandItemMap["retention_unit"].(string),
 				RetentionValue:    demandItemMap["retention_value"].(int),
 			}
@@ -513,21 +513,4 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 	}
 
 	return &onDemand
-}
-
-func expandScheduledPolicyItems(p []interface{}) []matlas.ScheduledPolicyItem {
-	policyItems := make([]matlas.ScheduledPolicyItem, len(p))
-
-	for k, v := range p {
-		item := v.(map[string]interface{})
-		policyItems[k] = matlas.ScheduledPolicyItem{
-			ID:                item["id"].(string),
-			FrequencyInterval: item["frequency_interval"].(int),
-			FrequencyType:     item["frequency_type"].(string),
-			RetentionUnit:     item["retention_unit"].(string),
-			RetentionValue:    item["retention_value"].(int),
-		}
-	}
-
-	return policyItems
 }
