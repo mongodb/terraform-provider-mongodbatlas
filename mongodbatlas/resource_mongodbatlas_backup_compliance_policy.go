@@ -97,12 +97,17 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"scheduled_policy_items": {
+			"policy_item_hourly": {
 				Type:     schema.TypeList,
-				Required: true,
+				MaxItems: 1,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -110,8 +115,89 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"policy_item_daily": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"frequency_type": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
+			"policy_item_weekly": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"retention_unit": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"retention_value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
+			"policy_item_monthly": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"frequency_interval": {
+							Type:     schema.TypeInt,
 							Required: true,
 						},
 						"retention_unit": {
@@ -133,6 +219,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
+	backupPolicy := matlas.BackupCompliancePolicy{}
+	backupPolicyItem := matlas.ScheduledPolicyItem{}
+	var backupPoliciesItem []matlas.ScheduledPolicyItem
+
 	backupCompliancePolicyReq := &matlas.BackupCompliancePolicy{}
 
 	backupCompliancePolicyReq.ProjectID = projectID
@@ -147,7 +237,51 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 
 	backupCompliancePolicyReq.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
 
-	backupCompliancePolicyReq.ScheduledPolicyItems = expandScheduledPolicyItems(d.Get("scheduled_policy_items").([]interface{}))
+	if v, ok := d.GetOk("policy_item_hourly"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		backupPolicyItem.FrequencyType = snapshotScheduleHourly
+		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+	}
+	if v, ok := d.GetOk("policy_item_daily"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		backupPolicyItem.FrequencyType = snapshotScheduleDaily
+		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+	}
+	if v, ok := d.GetOk("policy_item_weekly"); ok {
+		items := v.([]interface{})
+		for _, s := range items {
+			itemObj := s.(map[string]interface{})
+			backupPolicyItem.FrequencyType = snapshotScheduleWeekly
+			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		}
+	}
+	if v, ok := d.GetOk("policy_item_monthly"); ok {
+		items := v.([]interface{})
+		for _, s := range items {
+			itemObj := s.(map[string]interface{})
+			backupPolicyItem.FrequencyType = snapshotScheduleMonthly
+			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		}
+	}
+
+	backupPolicy.ScheduledPolicyItems = backupPoliciesItem
+	if len(backupPoliciesItem) > 0 {
+		backupCompliancePolicyReq.ScheduledPolicyItems = backupPoliciesItem
+	}
 
 	// there is not an entry point to create a backup compliance policy until it will use the update entry point
 	_, _, err := conn.BackupCompliancePolicy.Update(ctx, projectID, backupCompliancePolicyReq)
@@ -203,8 +337,20 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "scheduled_policy_items", projectID, err))
 	}
 
-	if err := d.Set("scheduled_policy_items", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "scheduled_policy_items", projectID, err))
+	if err := d.Set("policy_item_hourly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, snapshotScheduleHourly)); err != nil {
+		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_hourly", projectID, err)
+	}
+
+	if err := d.Set("policy_item_daily", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, snapshotScheduleDaily)); err != nil {
+		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_daily", projectID, err)
+	}
+
+	if err := d.Set("policy_item_weekly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, snapshotScheduleWeekly)); err != nil {
+		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_weekly", projectID, err)
+	}
+
+	if err := d.Set("policy_item_monthly", flattenBackupPolicyItems(backupPolicy.ScheduledPolicyItems, snapshotScheduleMonthly)); err != nil {
+		return diag.Errorf(errorSnapshotBackupPolicySetting, "policy_item_monthly", projectID, err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -219,6 +365,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
+
+	backupPolicy := matlas.BackupCompliancePolicy{}
+	backupPolicyItem := matlas.ScheduledPolicyItem{}
+	var backupPoliciesItem []matlas.ScheduledPolicyItem
 
 	backupCompliancePolicyUpdate := &matlas.BackupCompliancePolicy{}
 
@@ -240,7 +390,51 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 	backupCompliancePolicyUpdate.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
 
-	backupCompliancePolicyUpdate.ScheduledPolicyItems = expandScheduledPolicyItems(d.Get("scheduled_policy_items").([]interface{}))
+	if v, ok := d.GetOk("policy_item_hourly"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		backupPolicyItem.FrequencyType = snapshotScheduleHourly
+		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+	}
+	if v, ok := d.GetOk("policy_item_daily"); ok {
+		item := v.([]interface{})
+		itemObj := item[0].(map[string]interface{})
+		backupPolicyItem.FrequencyType = snapshotScheduleDaily
+		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+		backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+	}
+	if v, ok := d.GetOk("policy_item_weekly"); ok {
+		items := v.([]interface{})
+		for _, s := range items {
+			itemObj := s.(map[string]interface{})
+			backupPolicyItem.FrequencyType = snapshotScheduleWeekly
+			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		}
+	}
+	if v, ok := d.GetOk("policy_item_monthly"); ok {
+		items := v.([]interface{})
+		for _, s := range items {
+			itemObj := s.(map[string]interface{})
+			backupPolicyItem.FrequencyType = snapshotScheduleMonthly
+			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
+			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
+			backupPolicyItem.RetentionValue = itemObj["retention_value"].(int)
+			backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
+		}
+	}
+
+	backupPolicy.ScheduledPolicyItems = backupPoliciesItem
+	if len(backupPoliciesItem) > 0 {
+		backupCompliancePolicyUpdate.ScheduledPolicyItems = backupPoliciesItem
+	}
 
 	_, _, err := conn.BackupCompliancePolicy.Update(context.Background(), projectID, backupCompliancePolicyUpdate)
 	if err != nil {
@@ -314,8 +508,6 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 				FrequencyType:     demandItemMap["frequency_type"].(string),
 				RetentionUnit:     demandItemMap["retention_unit"].(string),
 				RetentionValue:    demandItemMap["retention_value"].(int),
-
-				//ReadPreference: cast.ToString(biConnMap["read_preference"]),
 			}
 		}
 	}

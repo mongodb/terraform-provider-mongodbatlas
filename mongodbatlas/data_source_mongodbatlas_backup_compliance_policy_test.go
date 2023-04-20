@@ -65,34 +65,26 @@ func testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgI
 			  retention_value    = 3
 			}
 			
-			scheduled_policy_items {
-			  
+			policy_item_hourly {
 				frequency_interval = 6
-				frequency_type     = "hourly"
 				retention_unit     = "days"
 				retention_value    = 7
 			  }
 		  
-		  scheduled_policy_items {
-			  
+			policy_item_daily {
 				frequency_interval = 0
-				frequency_type     = "daily"
 				retention_unit     = "days"
 				retention_value    = 7
 			  }
 		  
-		  scheduled_policy_items {
-			  
+			  policy_item_weekly {
 				frequency_interval = 0
-				frequency_type     = "weekly"
 				retention_unit     = "weeks"
 				retention_value    = 4
 			  }
 		  
-		  scheduled_policy_items {
-			  
+			  policy_item_monthly {
 				frequency_interval = 0
-				frequency_type     = "monthly"
 				retention_unit     = "months"
 				retention_value    = 12
 			  }
