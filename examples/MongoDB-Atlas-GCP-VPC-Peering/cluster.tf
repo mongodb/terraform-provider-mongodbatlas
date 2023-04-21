@@ -29,6 +29,7 @@ resource "mongodbatlas_cluster" "cluster" {
   provider_instance_size_name                     = "M10"
   provider_auto_scaling_compute_max_instance_size = "M20"
   provider_auto_scaling_compute_min_instance_size = "M10"
+  disk_size_gb                                    = 40
   advanced_configuration {
     minimum_enabled_tls_protocol = "TLS1_2"
   }
