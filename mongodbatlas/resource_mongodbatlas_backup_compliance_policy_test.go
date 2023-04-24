@@ -113,11 +113,11 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) r
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("N o ID is set")
+			return fmt.Errorf("no ID is set")
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
@@ -125,7 +125,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) r
 
 		schedule, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
 		if err != nil || schedule == nil {
-			return fmt.Errorf("Backup Compliance Policy (%s) does not exist: %s", rs.Primary.ID, err)
+			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}
 
 		return nil

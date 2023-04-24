@@ -459,7 +459,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, 
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 {
-		return nil, errors.New("Import format error: to import a Backup Compliance Policy use the format {project_id}")
+		return nil, errors.New("import format error: to import a Backup Compliance Policy use the format {project_id}")
 	}
 
 	projectID := parts[0]
