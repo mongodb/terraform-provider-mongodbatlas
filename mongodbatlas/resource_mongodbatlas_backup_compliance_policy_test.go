@@ -113,11 +113,11 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) r
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
+			return fmt.Errorf("N o ID is set")
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
@@ -149,7 +149,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy(s *terraform.State) e
 
 		compliancePolicy, _, err := conn.BackupCompliancePolicy.Get(context.Background(), projectID)
 		if compliancePolicy != nil || err == nil {
-			return fmt.Errorf("backup compliance policy (%s) still exists", rs.Primary.ID)
+			return fmt.Errorf("Backup Compliance Policy (%s) still exists", rs.Primary.ID)
 		}
 	}
 

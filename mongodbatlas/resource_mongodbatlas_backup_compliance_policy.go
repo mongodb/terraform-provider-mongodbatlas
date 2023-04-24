@@ -446,7 +446,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// There is no resource to delete a backup compliance policy, it can only be updated.
-	log.Printf("[WARN] Note: Deleting Backup Compliance Policy resource in Terraform does not remove policy from Atlas Project. " +
+	log.Printf("[WARN] Note: Deleting a Backup Compliance Policy resource in Terraform does not remove the policy from your Atlas Project. " +
 		"To disable a Backup Compliance Policy, the security or legal representative specified for the Backup Compliance Policy must contact " +
 		"MongoDB Support and complete an extensive verification process. ")
 
@@ -459,7 +459,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, 
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 1 {
-		return nil, errors.New("import format error: to import a Backup Compliance Policy use the format {project_id}")
+		return nil, errors.New("Import format error: to import a Backup Compliance Policy use the format {project_id}")
 	}
 
 	projectID := parts[0]
