@@ -21,3 +21,4 @@ resource "mongodbatlas_cluster" "aws_private_connection" {
 
   depends_on = [mongodbatlas_privatelink_endpoint_service.pe_east_service]
 }
+
