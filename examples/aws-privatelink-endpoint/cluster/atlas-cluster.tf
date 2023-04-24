@@ -20,4 +20,4 @@ resource "mongodbatlas_cluster" "aws_private_connection" {
   provider_instance_size_name = "M10"
 
   depends_on = [mongodbatlas_privatelink_endpoint_service.pe_east_service]
-}
+} 
