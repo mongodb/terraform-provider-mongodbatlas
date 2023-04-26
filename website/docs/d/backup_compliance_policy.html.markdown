@@ -10,7 +10,9 @@ description: |-
 
 `mongodbatlas_backup_compliance_policy` provides a Backup Compliance Policy data source. An Atlas Backup Compliance Policy provides the current protection policy settings for the project. Prevent any user, regardless of role, from modifying or deleting specific cluster configurations and backups. When enabled, the Backup Compliance Policy will be applied as the minimum policy for all clusters and can only be disabled by contacting MongoDB support. Only supported for clusters M10 or higher.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
+-> **IMPORTANT NOTE:** Once you enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy via Terraform, or any other method, without contacting MongoDB support. This means that, once enabled, some resources defined in Terraform can not be modified. To learn more, see the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
+
+-> **NOTE:** Groups and projects are synonymous terms. You might find `groupId` in the official documentation.
 
 ## Example Usage
 
