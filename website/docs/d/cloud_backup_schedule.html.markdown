@@ -18,7 +18,6 @@ description: |-
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"

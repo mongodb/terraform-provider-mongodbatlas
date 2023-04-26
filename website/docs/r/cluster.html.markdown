@@ -56,7 +56,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
   # Provider Settings "block"
   provider_name               = "AWS"
-  disk_size_gb                = 100
   provider_instance_size_name = "M40"
 }
 ```
@@ -110,7 +109,6 @@ resource "mongodbatlas_cluster" "test" {
 
   # Provider Settings "block"
   provider_name               = "GCP"
-  disk_size_gb                = 40
   provider_instance_size_name = "M30"
 }
 ```
@@ -121,7 +119,6 @@ resource "mongodbatlas_cluster" "test" {
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id               = "<YOUR-PROJECT-ID>"
   name                     = "cluster-test-multi-region"
-  disk_size_gb             = 100
   num_shards               = 1
   cloud_backup             = true
   cluster_type             = "REPLICASET"
@@ -160,7 +157,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
-  disk_size_gb            = 80
   num_shards              = 1
   cloud_backup            = true
   cluster_type            = "GEOSHARDED"
