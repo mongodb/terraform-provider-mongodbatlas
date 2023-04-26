@@ -99,27 +99,27 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 			},
 			"is_collect_database_specifics_statistics_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Default:  true,
 				Optional: true,
 			},
 			"is_data_explorer_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Default:  true,
 				Optional: true,
 			},
 			"is_performance_advisor_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Default:  true,
 				Optional: true,
 			},
 			"is_realtime_performance_panel_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Default:  true,
 				Optional: true,
 			},
 			"is_schema_advisor_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
+				Default:  true,
 				Optional: true,
 			},
 			"region_usage_restrictions": {
