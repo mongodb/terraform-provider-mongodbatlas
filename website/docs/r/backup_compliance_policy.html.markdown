@@ -164,7 +164,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For monthly policies, the frequency type is defined as `monthly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (monthly in this case). The supported values for weekly policies are 
-  * `1` through `28` where the number represents the day of the month i.e. `1` is the first of the month and `5` is the fifth day of the month.
+  * `1` through `28` where the number represents the day of the month (i.e. `1` is the first of the month and `5` is the fifth day of the month).
   * `40` represents the last day of the month (depending on the month).
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
 * `retention_value` - Value to associate with `retention_unit`. Monthly policy must have retention days of at least 31 days or 5 weeks or 1 month. Note that for less frequent policy items, Atlas requires that you specify a retention period greater than or equal to the retention period specified for more frequent policy items. For example: If the weekly policy item specifies a retention of two weeks, the montly retention policy must specify two weeks or greater.
