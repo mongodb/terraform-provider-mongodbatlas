@@ -160,7 +160,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyImportStateIDFunc(resourceNam
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
+			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
