@@ -45,7 +45,7 @@ jobs:
         with:
           version: v1.50.0
           args: --timeout 9m0s
-      - name: Website Lint
+      - name: website lint
         run: make tools && make website-lint
       - name: actionlint
         run: make tools && actionlint -verbose -color
