@@ -137,7 +137,6 @@ In addition to all arguments above, the following attributes are exported:
 * `frequency_interval` - Desired frequency of the new backup policy item specified by `frequency_type` (hourly in this case). The supported values for hourly policies are `1`, `2`, `4`, `6`, `8` or `12` hours. Note that `12` hours is the only accepted value for NVMe clusters.
 * `retention_unit` - Scope of the backup policy item: `days`, `weeks`, or `months`.
 * `retention_value` - Value to associate with `retention_unit`.
-* 
 ### Policy Item Hourly
 * `id` - Unique identifier of the backup policy item.
 * `frequency_type` - Frequency associated with the backup policy item. For hourly policies, the frequency type is defined as `hourly`. Note that this is a read-only value and not required in plan files - its value is implied from the policy resource type.
