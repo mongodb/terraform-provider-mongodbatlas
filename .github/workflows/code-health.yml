@@ -36,15 +36,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.4.0
-        with:
-          version: v1.50.0
-          args: --timeout 9m0s
       - name: Install Go
         uses: actions/setup-go@v4
         with:
           go-version: 1.19
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3.4.0
+        with:
+          version: v1.50.1
+          args: --timeout 9m0s
       - name: website lint
         run: make tools && make website-lint
       - name: actionlint
