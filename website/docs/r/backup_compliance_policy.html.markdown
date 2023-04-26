@@ -15,6 +15,8 @@ When enabled, the Backup Compliance Policy will be applied as the minimum backup
 
 -> **IMPORTANT NOTE:** Once enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy via Terraform, or any other method, without contacting MongoDB support.   This means that once enabled some resources defined in Terraform will no longer be modifiable.   See the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy)
 
+-> **NOTE:** With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted and backups can be used normally until retention expiration. When the Backup Compliance Policy is not enabled, Atlas deletes the cluster's associated backup snapshots when a cluster is terminated. By default, a Backup Compliance Policy is not enabled. For more details see [Back Up, Restore, and Archive Data](https://www.mongodb.com/docs/atlas/backup-restore-cluster/). 
+
 ## Example Usage
 
 ```terraform
