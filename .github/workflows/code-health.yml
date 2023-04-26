@@ -1,0 +1,57 @@
+name: 'Code Health'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.19
+    - name: Build
+      run: make build
+  unit-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+      - name: Unit Test
+        env:
+          MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
+        run: make test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.19
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3.4.0
+        with:
+          version: v1.50.0
+          args: --timeout 9m0s
+      - name: Website Lint
+        run: make tools && make website-lint
+      - name: actionlint
+        run: make tools && actionlint -verbose -color
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run ShellCheck
+        uses: bewuethr/shellcheck-action@v2
