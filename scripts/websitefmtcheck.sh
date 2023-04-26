@@ -5,12 +5,12 @@ set -eou pipefail
 npm list codedown > /dev/null 2>&1 || npm install --no-save codedown > /dev/null 2>&1
 
 problems=false
-for f in $(find website -name '*.markdown'); do
+find website -name '*.markdown' -print0 | while IFS= read -r -d '' f; do
     if [ "${1-}" = "diff" ]; then
         echo "$f"
-        cat "$f" | node_modules/.bin/codedown hcl | terraform fmt -diff=true -
+        < "$f" node_modules/.bin/codedown hcl | terraform fmt -diff=true -
     else
-        cat "$f" | node_modules/.bin/codedown hcl | terraform fmt -check=true - || problems=true && echo "Formatting errors in $f"
+        < "$f" node_modules/.bin/codedown hcl | terraform fmt -check=true - || problems=true && echo "Formatting errors in $f"
     fi
 done
 
