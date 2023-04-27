@@ -29,7 +29,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // enable cloud backup snapshots
+  cloud_backup                = true // enable cloud backup snapshots
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -71,7 +71,7 @@ data "mongodbatlas_cloud_backup_schedule" "test" {
 }
 
 data "mongodbatlas_backup_compliance_policy" "backup_policy" {
-  project_id = mongodbatlas_cloud_backup_schedule.test.id
+  project_id = mongodbatlas_cloud_backup_schedule.test.project_id
 }
 
 resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
