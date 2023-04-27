@@ -1,8 +1,19 @@
 # Changelog
 
-## [v1.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.9.0) (April 27, 2023)
+## [v1.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.9.0) (2023-4-27)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.2...v1.9.0)
+
+**Enhancements:**
+
+- New Feature: [Backup Compliance Policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/) Support  [\#1127](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1127) - INTMDB-587
+
+**Bug Fixes:**
+
+- Update resource [mongodbatlas_project](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project) to detect null boolean values [\#1145](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1145) - INTMDB-789
+- Update TF docs to lower case for frequency types in resource [mongodbatlas_cloud_backup_schedule](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule) [\#1131](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1131) - INTMDB-767
+- Update on [Atlas Search Index](https://www.mongodb.com/docs/atlas/atlas-search/create-index/) resource docs [\#1137](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1137) - DOCSP-28948
+- Removing [resource: mongodbatlas_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) `disk_size_gb` examples [\#1133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1133)
 
 **Closed issues:**
 
