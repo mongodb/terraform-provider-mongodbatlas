@@ -187,23 +187,23 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("error getting project's settings assigned (%s): %s", project.ID, err)
 	}
 
-	if v, ok := d.GetOk("is_collect_database_specifics_statistics_enabled"); ok {
+	if v, ok := d.GetOkExists("is_collect_database_specifics_statistics_enabled"); ok {
 		projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = pointy.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("is_data_explorer_enabled"); ok {
+	if v, ok := d.GetOkExists("is_data_explorer_enabled"); ok {
 		projectSettings.IsDataExplorerEnabled = pointy.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("is_performance_advisor_enabled"); ok {
+	if v, ok := d.GetOkExists("is_performance_advisor_enabled"); ok {
 		projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("is_realtime_performance_panel_enabled"); ok {
+	if v, ok := d.GetOkExists("is_realtime_performance_panel_enabled"); ok {
 		projectSettings.IsRealtimePerformancePanelEnabled = pointy.Bool(v.(bool))
 	}
 
-	if v, ok := d.GetOk("is_schema_advisor_enabled"); ok {
+	if v, ok := d.GetOkExists("is_schema_advisor_enabled"); ok {
 		projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(v.(bool))
 	}
 
