@@ -1,5 +1,28 @@
 # Changelog
 
+## [v1.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.9.0) (April 27, 2023)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.2...v1.9.0)
+
+**Closed issues:**
+
+- mongodbatlas\_search\_index does not change name [\#1096](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1096)
+- Unhelpful error when importing advanced cluster using mongodbatlas\_cluster resource [\#1089](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1089)
+- Update Slack alert configuration fails with INTEGRATION\_FIELDS\_INVALID [\#1086](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1086)
+- Upgrade to terraform-plugin-sdk v2.25.0 [\#1080](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1080)
+- mongodbatlas\_project\_ip\_access\_list.comment should be optional [\#1079](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1079)
+- Can't unset auto\_scaling [\#1072](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1072)
+- mongodbatlas\_access\_list\_api\_key fails to import [\#1064](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1064)
+- Terraform plan fails if API key created by `mongodbatlas_api_key` resource is deleted outside of Terraform [\#1057](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1057)
+- mongodbatlas\_search\_index does not recreate when cluster\_name and project\_id fields change. [\#1053](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1053)
+- ERROR: Pager Duty API key must consist of 32 hexadecimal digits [\#1049](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1049)
+- mongodbatlas\_alert\_configuration not detecting drift [\#999](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/999)
+- Provider insists on changing a sub-parameter even when no changes are necessary [\#997](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/997)
+- Type: TEAM alert notification not saved properly [\#971](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/971)
+- `app_id` In documentation is ambiguous for MongoDB Atlas Event Trigger [\#957](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/957)
+- Provider panic with `authentication_enabled=true` input [\#873](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/873)
+- Schema error when creating event\_trigger referring to Atlas App Services function  [\#858](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/858)
+
 ## [v1.8.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.2) (2023-3-30)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1...v1.8.2)
