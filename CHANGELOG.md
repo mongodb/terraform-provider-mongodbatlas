@@ -12,7 +12,7 @@
 
 - Update resource [mongodbatlas_project](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project) to detect null boolean values [\#1145](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1145) - INTMDB-789
 - Update TF docs to lower case for frequency types in resource [mongodbatlas_cloud_backup_schedule](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule) [\#1131](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1131) - INTMDB-767
-- Update on [Atlas Search Index](https://www.mongodb.com/docs/atlas/atlas-search/create-index/) resource docs [\#1137](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1137) - DOCSP-28948
+- Update on resource [mongodbatlas_search_index]([https://www.mongodb.com/docs/atlas/atlas-search/create-index/](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index)) resource docs [\#1137](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1137) - DOCSP-28948
 - Removing resource [mongodbatlas_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) `disk_size_gb` examples [\#1133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1133)
 
 **Closed issues:**
