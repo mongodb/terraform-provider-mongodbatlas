@@ -1,5 +1,38 @@
 # Changelog
 
+## [v1.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.9.0) (2023-4-27)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.2...v1.9.0)
+
+**Enhancements:**
+
+- New Feature: [Backup Compliance Policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/) Support  [\#1127](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1127) - INTMDB-587
+
+**Bug Fixes:**
+
+- Update resource [mongodbatlas_project](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project) to detect null boolean values in project settings [\#1145](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1145) - INTMDB-789
+- Update on resource [mongodbatlas_search_index]([https://www.mongodb.com/docs/atlas/atlas-search/create-index/](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/search_index)) resource docs [\#1137](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1137) - DOCSP-28948
+- Removing resource [mongodbatlas_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) `disk_size_gb` examples [\#1133](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1133)
+
+**Closed issues:**
+
+- mongodbatlas\_search\_index does not change name [\#1096](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1096)
+- Unhelpful error when importing advanced cluster using mongodbatlas\_cluster resource [\#1089](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1089)
+- Update Slack alert configuration fails with INTEGRATION\_FIELDS\_INVALID [\#1086](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1086)
+- Upgrade to terraform-plugin-sdk v2.25.0 [\#1080](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1080)
+- mongodbatlas\_project\_ip\_access\_list.comment should be optional [\#1079](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1079)
+- Can't unset auto\_scaling [\#1072](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1072)
+- mongodbatlas\_access\_list\_api\_key fails to import [\#1064](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1064)
+- Terraform plan fails if API key created by `mongodbatlas_api_key` resource is deleted outside of Terraform [\#1057](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1057)
+- mongodbatlas\_search\_index does not recreate when cluster\_name and project\_id fields change. [\#1053](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1053)
+- ERROR: Pager Duty API key must consist of 32 hexadecimal digits [\#1049](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1049)
+- mongodbatlas\_alert\_configuration not detecting drift [\#999](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/999)
+- Provider insists on changing a sub-parameter even when no changes are necessary [\#997](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/997)
+- Type: TEAM alert notification not saved properly [\#971](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/971)
+- `app_id` In documentation is ambiguous for MongoDB Atlas Event Trigger [\#957](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/957)
+- Provider panic with `authentication_enabled=true` input [\#873](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/873)
+- Schema error when creating event\_trigger referring to Atlas App Services function  [\#858](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/858)
+
 ## [v1.8.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.8.2) (2023-3-30)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.1...v1.8.2)
