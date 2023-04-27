@@ -182,9 +182,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	projectSettings := &matlas.ProjectSettings{}
-
-	projectSettings, _, err = conn.Projects.GetProjectSettings(ctx, project.ID)
+	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
 		return diag.Errorf("error getting project's settings assigned (%s): %s", project.ID, err)
 	}
