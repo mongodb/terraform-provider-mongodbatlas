@@ -22,7 +22,6 @@ description: |-
 resource "mongodbatlas_cluster" "test" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
-  disk_size_gb = 100
   cluster_type = "REPLICASET"
   replication_specs {
     num_shards = 1

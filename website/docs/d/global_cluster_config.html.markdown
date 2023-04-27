@@ -20,7 +20,6 @@ description: |-
 	resource "mongodbatlas_cluster" "test" {
 		project_id              = "<YOUR-PROJECT-ID>"
 		name                    = "<CLUSTER-NAME>"
-		disk_size_gb            = 80
 		cloud_backup            = true
 		cluster_type            = "GEOSHARDED"
 
