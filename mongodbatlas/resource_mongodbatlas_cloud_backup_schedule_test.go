@@ -516,6 +516,7 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, cluster
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			cloud_backup     = true //enable cloud provider snapshots
+			pit_enabled = true // enable point in time restore. you cannot copy oplogs when pit is not enabled.
 		}
 
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
