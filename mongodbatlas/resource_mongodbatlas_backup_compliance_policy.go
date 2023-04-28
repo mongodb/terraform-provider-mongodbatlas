@@ -233,6 +233,8 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 
 	backupCompliancePolicyReq.EncryptionAtRestEnabled = pointy.Bool(d.Get("encryption_at_rest_enabled").(bool))
 
+	backupCompliancePolicyReq.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
+
 	backupCompliancePolicyReq.RestoreWindowDays = pointy.Int64(cast.ToInt64(d.Get("restore_window_days")))
 
 	backupCompliancePolicyReq.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
@@ -333,6 +335,18 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "state", projectID, err))
 	}
 
+	if err := d.Set("copy_protection_enabled", backupPolicy.CopyProtectionEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "copy_protection_enabled", projectID, err))
+	}
+
+	if err := d.Set("encryption_at_rest_enabled", backupPolicy.EncryptionAtRestEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "encryption_at_rest_enabled", projectID, err))
+	}
+
+	if err := d.Set("pit_enabled", backupPolicy.PitEnabled); err != nil {
+		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "pit_enabled", projectID, err))
+	}
+
 	if err := d.Set("on_demand_policy_item", flattenOnDemandBackupPolicyItem(backupPolicy.OnDemandPolicyItem)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicySetting, "scheduled_policy_items", projectID, err))
 	}
@@ -382,6 +396,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 
 	if d.HasChange("encryption_at_rest_enabled") {
 		backupCompliancePolicyUpdate.CopyProtectionEnabled = pointy.Bool(d.Get("copy_protection_enabled").(bool))
+	}
+
+	if d.HasChange("pit_enabled") {
+		backupCompliancePolicyUpdate.PitEnabled = pointy.Bool(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("restore_window_days") {
