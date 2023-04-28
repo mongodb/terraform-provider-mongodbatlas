@@ -237,7 +237,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+					RestoreWindowDays:     pointy.Int64(1),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -245,7 +245,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
