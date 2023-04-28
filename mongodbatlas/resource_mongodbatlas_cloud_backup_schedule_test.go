@@ -264,6 +264,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.should_copy_oplogs", "true"),
 				),
 			},
 		},
@@ -554,7 +555,7 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, cluster
 							"ON_DEMAND"]
 				region_name = "US_EAST_1"
 				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
-				should_copy_oplogs = false
+				should_copy_oplogs = true
 			  }
 		}
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
