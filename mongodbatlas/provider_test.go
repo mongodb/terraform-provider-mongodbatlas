@@ -124,7 +124,7 @@ func testCheckAwsEnv(tb testing.TB) {
 	}
 }
 
-func TestEncodeDecodeID(tb testing.TB) {
+func TestEncodeDecodeID(t *testing.T) {
 	expected := map[string]string{
 		"project_id":   "5cf5a45a9ccf6400e60981b6",
 		"cluster_name": "test-acc-q4y272zo9y",
@@ -134,11 +134,11 @@ func TestEncodeDecodeID(tb testing.TB) {
 	got := decodeStateID(encodeStateID(expected))
 
 	if diff := deep.Equal(expected, got); diff != nil {
-		tb.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
+		t.Fatalf("Bad testEncodeDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
 	}
 }
 
-func TestDecodeID(tb testing.TB) {
+func TestDecodeID(t *testing.T) {
 	expected := "Y2x1c3Rlcl9uYW1l:dGVzdC1hY2MtcTR5Mjcyem85eQ==-c25hcHNob3RfaWQ=:NWU0MmU2NDY1NTM4NTVhNWFlZTQwMTM4-cHJvamVjdF9pZA==:NWNmNWE0NWE5Y2NmNjQwMGU2MDk4MWI2"
 	expected2 := "c25hcHNob3RfaWQ=:NWU0MmU2NDY1NTM4NTVhNWFlZTQwMTM4-cHJvamVjdF9pZA==:NWNmNWE0NWE5Y2NmNjQwMGU2MDk4MWI2-Y2x1c3Rlcl9uYW1l:dGVzdC1hY2MtcTR5Mjcyem85eQ=="
 
@@ -146,11 +146,11 @@ func TestDecodeID(tb testing.TB) {
 	got2 := decodeStateID(expected2)
 
 	if diff := deep.Equal(got, got2); diff != nil {
-		tb.Fatalf("Bad TestDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, got2, diff)
+		t.Fatalf("Bad TestDecodeID return \n got = %#v\nwant = %#v \ndiff = %#v", got, got2, diff)
 	}
 }
 
-func TestRemoveLabel(tb testing.TB) {
+func TestRemoveLabel(t *testing.T) {
 	toRemove := matlas.Label{Key: "To Remove", Value: "To remove value"}
 
 	expected := []matlas.Label{
@@ -169,7 +169,7 @@ func TestRemoveLabel(tb testing.TB) {
 	got := removeLabel(labels, toRemove)
 
 	if diff := deep.Equal(expected, got); diff != nil {
-		tb.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
+		t.Fatalf("Bad removeLabel return \n got = %#v\nwant = %#v \ndiff = %#v", got, expected, diff)
 	}
 }
 
