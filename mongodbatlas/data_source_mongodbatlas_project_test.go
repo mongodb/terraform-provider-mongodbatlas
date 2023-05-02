@@ -24,7 +24,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +73,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -123,7 +123,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

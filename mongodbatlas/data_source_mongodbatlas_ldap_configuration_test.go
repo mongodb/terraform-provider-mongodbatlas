@@ -28,7 +28,7 @@ func TestAccAdvDSLDAPConfiguration_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
