@@ -33,9 +33,9 @@ func init() {
 	}
 }
 
-func TestProvider(tb testing.TB) {
+func TestProvider(t *testing.T) {
 	if err := Provider().InternalValidate(); err != nil {
-		tb.Fatalf("err: %s", err)
+		t.Fatalf("err: %s", err)
 	}
 }
 
