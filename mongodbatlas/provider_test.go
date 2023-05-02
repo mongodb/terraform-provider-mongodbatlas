@@ -70,7 +70,7 @@ func testAccPreCheckGPCEnv(t *testing.T) {
 	}
 }
 
-func checkPeeringEnvAWS(t *testing.T) {
+func testCheckPeeringEnvAWS(t *testing.T) {
 	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
 		os.Getenv("AWS_VPC_ID") == "" ||
 		os.Getenv("AWS_VPC_CIDR_BLOCK") == "" ||
@@ -79,7 +79,7 @@ func checkPeeringEnvAWS(t *testing.T) {
 	}
 }
 
-func checkPeeringEnvAzure(t *testing.T) {
+func testCheckPeeringEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
 		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
 		os.Getenv("AZURE_VNET_NAME") == "" ||
@@ -88,7 +88,7 @@ func checkPeeringEnvAzure(t *testing.T) {
 	}
 }
 
-func checkEncryptionAtRestEnvAzure(t *testing.T) {
+func testCheckEncryptionAtRestEnvAzure(t *testing.T) {
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
 		os.Getenv("AZURE_CLIENT_ID_UPDATED") == "" ||
 		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
@@ -107,7 +107,7 @@ func checkEncryptionAtRestEnvAzure(t *testing.T) {
 	}
 }
 
-func checkPeeringEnvGCP(t *testing.T) {
+func testCheckPeeringEnvGCP(t *testing.T) {
 	if os.Getenv("GCP_PROJECT_ID") == "" ||
 		os.Getenv("GCP_CLUSTER_REGION_NAME") == "" ||
 		os.Getenv("GCP_REGION_NAME") == "" ||
@@ -116,7 +116,7 @@ func checkPeeringEnvGCP(t *testing.T) {
 	}
 }
 
-func checkAwsEnv(t *testing.T) {
+func testCheckAwsEnv(t *testing.T) {
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
