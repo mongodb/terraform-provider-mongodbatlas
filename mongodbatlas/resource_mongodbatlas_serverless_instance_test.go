@@ -31,6 +31,7 @@ func TestAccClusterRSServerlessInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
+					testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
 				),
 			},
 		},
@@ -114,8 +115,22 @@ func testAccCheckMongoDBAtlasServerlessInstanceImportStateIDFunc(resourceName st
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["name"]), nil
+	}
+}
+
+func testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if connectionStringPrivateEndpoint := rs.Primary.Attributes["connection_strings_private_endpoint_srv.#"]; connectionStringPrivateEndpoint == "0" {
+			return fmt.Errorf("expected connection_strings_private_endpoint_srv to be present")
+		}
+
+		return nil
 	}
 }
 
