@@ -126,7 +126,7 @@ func testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceN
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if connectionStringPrivateEndpoint := rs.Primary.Attributes["connection_strings_private_endpoint_srv.#"]; connectionStringPrivateEndpoint == "0" {
+		if connectionStringPrivateEndpoint := rs.Primary.Attributes["connection_strings_private_endpoint_srv.#"]; connectionStringPrivateEndpoint == "" {
 			return fmt.Errorf("expected connection_strings_private_endpoint_srv to be present")
 		}
 
