@@ -29,7 +29,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // enable cloud backup snapshots
+  cloud_backup                = true // enable cloud backup snapshots
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -44,23 +44,23 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   policy_item_hourly {
     frequency_interval = 1        #accepted values = 1, 2, 4, 6, 8, 12 -> every n hours
     retention_unit     = "days"
-    retention_value    = 1
+    retention_value    = 7
   }
   policy_item_daily {
     frequency_interval = 1        #accepted values = 1 -> every 1 day
     retention_unit     = "days"
-    retention_value    = 2
+    retention_value    = 7
   }
   policy_item_weekly {
-    frequency_interval = 4        # accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
+    frequency_interval = 1        # accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
     retention_unit     = "weeks"
-    retention_value    = 3
+    retention_value    = 4
   }
   policy_item_monthly {
-    frequency_interval = 5        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
+    frequency_interval = 1        # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
                                   # accepted values = 40 -> every last day of the month
     retention_unit     = "months"
-    retention_value    = 4
+    retention_value    = 12
   }
 
 }
@@ -71,7 +71,7 @@ data "mongodbatlas_cloud_backup_schedule" "test" {
 }
 
 data "mongodbatlas_backup_compliance_policy" "backup_policy" {
-  project_id = mongodbatlas_cloud_backup_schedule.test.id
+  project_id = mongodbatlas_cloud_backup_schedule.test.project_id
 }
 
 resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
@@ -84,31 +84,31 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
   restore_window_days = 7
 
   on_demand_policy_item {
-		  frequency_interval = 0
+		  frequency_interval = 1
 		  retention_unit     = "days"
 		  retention_value    = 3
 		}
 		
 		policy_item_hourly {
-			frequency_interval = 6
+			frequency_interval = 1
 			retention_unit     = "days"
 			retention_value    = 7
 		  }
 	  
 		policy_item_daily {
-			frequency_interval = 0
+			frequency_interval = 1
 			retention_unit     = "days"
 			retention_value    = 7
 		  }
 	  
 		  policy_item_weekly {
-			frequency_interval = 0
+			frequency_interval = 1
 			retention_unit     = "weeks"
 			retention_value    = 4
 		  }
 	  
 		  policy_item_monthly {
-			frequency_interval = 0
+			frequency_interval = 1
 			retention_unit     = "months"
 			retention_value    = 12
 		  }
