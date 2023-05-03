@@ -115,7 +115,7 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"org_name":                    integration.OrgName,
 		"url":                         integrationSchema.URL,
 		"secret":                      integrationSchema.Secret,
-		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
+		"microsoft_teams_webhook_url": integrationSchema.MicrosoftTeamsWebhookURL,
 		"user_name":                   integrationSchema.UserName,
 		"password":                    integrationSchema.Password,
 		"service_discovery":           integration.ServiceDiscovery,
