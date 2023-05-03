@@ -597,6 +597,7 @@ func expandCopySetting(tfMap map[string]interface{}) *matlas.CopySetting {
 		Frequencies:       expandStringList(tfMap["frequencies"].(*schema.Set).List()),
 		RegionName:        pointy.String(tfMap["region_name"].(string)),
 		ReplicationSpecID: pointy.String(tfMap["replication_spec_id"].(string)),
+		ShouldCopyOplogs:  pointy.Bool(tfMap["should_copy_oplogs"].(bool)),
 	}
 	return copySetting
 }
