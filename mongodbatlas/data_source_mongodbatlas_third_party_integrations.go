@@ -100,7 +100,7 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		"routing_key":                 integrationSchema.RoutingKey,
 		"url":                         integrationSchema.URL,
 		"secret":                      integrationSchema.Secret,
-		"microsoft_teams_webhook_url": integrationSchema.MicrosoftTeamsWebhookURL,
+		"microsoft_teams_webhook_url": integration.MicrosoftTeamsWebhookURL,
 		"user_name":                   integrationSchema.UserName,
 		"password":                    integrationSchema.Password,
 		"service_discovery":           integration.ServiceDiscovery,
