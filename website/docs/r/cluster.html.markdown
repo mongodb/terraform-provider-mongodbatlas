@@ -14,6 +14,8 @@ description: |-
 
 -> **NOTE:** A network container is created for a cluster to reside in. To use this container with another resource, such as peering, reference the computed`container_id` attribute on the cluster.
 
+-> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
+
 
 ~> **IMPORTANT:**
 <br> &#8226; New Users: If you are not already using `mongodbatlas_cluster` for your deployment we recommend starting with the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster).  `mongodbatlas_advanced_cluster` has all the same functionality as `mongodbatlas_cluster` but also supports multi-cloud clusters.  
@@ -56,7 +58,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 
   # Provider Settings "block"
   provider_name               = "AWS"
-  disk_size_gb                = 100
   provider_instance_size_name = "M40"
 }
 ```
@@ -110,7 +111,6 @@ resource "mongodbatlas_cluster" "test" {
 
   # Provider Settings "block"
   provider_name               = "GCP"
-  disk_size_gb                = 40
   provider_instance_size_name = "M30"
 }
 ```
@@ -121,7 +121,6 @@ resource "mongodbatlas_cluster" "test" {
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id               = "<YOUR-PROJECT-ID>"
   name                     = "cluster-test-multi-region"
-  disk_size_gb             = 100
   num_shards               = 1
   cloud_backup             = true
   cluster_type             = "REPLICASET"
@@ -160,7 +159,6 @@ resource "mongodbatlas_cluster" "cluster-test" {
 resource "mongodbatlas_cluster" "cluster-test" {
   project_id              = "<YOUR-PROJECT-ID>"
   name                    = "cluster-test-global"
-  disk_size_gb            = 80
   num_shards              = 1
   cloud_backup            = true
   cluster_type            = "GEOSHARDED"
@@ -289,6 +287,14 @@ Refer to the following for full privatelink endpoint connection string examples:
     - Set to `true` to enable disk auto-scaling.
     - Set to `false` to disable disk auto-scaling.
 
+~> **IMPORTANT:** If `disk_gb_enabled` is true, then Atlas will automatically scale disk size up and down.
+This will cause the value of `disk_size_gb` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster disk size back to the original `disk_size_gb` value.
+To prevent this a lifecycle customization should be used, i.e.:  
+`lifecycle {
+  ignore_changes = [disk_size_gb]
+}`
+After adding the `lifecycle` block to explicitly change `disk_size_gb` comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+
 -> **NOTE:** If `provider_name` is set to `TENANT`, the parameter `auto_scaling_disk_gb_enabled` will be ignored.
 
 * `auto_scaling_compute_enabled` - (Optional) Specifies whether cluster tier auto-scaling is enabled. The default is false.
@@ -296,7 +302,7 @@ Refer to the following for full privatelink endpoint connection string examples:
     - Set to `false` to disable cluster tier auto-scaling.
 
 ~> **IMPORTANT:** If `auto_scaling_compute_enabled` is true,  then Atlas will automatically scale up to the maximum provided and down to the minimum, if provided.
-This will cause the value of `provider_instance_size_name` returned to potential be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back down to the original instanceSizeName value.
+This will cause the value of `provider_instance_size_name` returned to potentially be different than what is specified in the Terraform config and if one then applies a plan, not noting this, Terraform will scale the cluster back to the original instanceSizeName value.
 To prevent this a lifecycle customization should be used, i.e.:  
 `lifecycle {
   ignore_changes = [provider_instance_size_name]

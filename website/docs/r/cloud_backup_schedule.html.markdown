@@ -14,6 +14,8 @@ description: |-
 
 -> **API Key Access List** This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
 
+-> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
+
 In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
 
@@ -25,7 +27,6 @@ You can create a new cluster with `cloud_backup` enabled and then immediately ov
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 10
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -65,7 +66,6 @@ You can enable `cloud_backup` in the Cluster resource and then use the `cloud_ba
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -94,7 +94,6 @@ The cluster already exists with `cloud_backup` enabled
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -145,7 +144,6 @@ You can enable `cloud_backup` in the Cluster resource and then use the `cloud_ba
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = "<PROJECT-ID>"
   name         = "clusterTest"
-  disk_size_gb = 5
 
   //Provider Settings "block"
   provider_name               = "AWS"
@@ -171,10 +169,10 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   copy_settings {
     cloud_provider = "AWS"
     frequencies = ["HOURLY",
-                "DAILY",
-                "WEEKLY",
-                "MONTHLY",
-                "ON_DEMAND"]
+							"DAILY",
+							"WEEKLY",
+							"MONTHLY",
+							"ON_DEMAND"]
     region_name = "US_EAST_1"
     replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
     should_copy_oplogs = false

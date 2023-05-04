@@ -21,7 +21,6 @@ resource "mongodbatlas_project" "test" {
 resource "mongodbatlas_cluster" "test" {
     project_id   = mongodbatlas_project.test.id
     name         = "NAME OF THE CLUSTER"
-    disk_size_gb = 5
     
     // Provider Settings "block"
     provider_name               = "AWS"

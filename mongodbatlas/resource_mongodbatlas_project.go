@@ -182,17 +182,30 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	projectSettings := &matlas.ProjectSettings{}
+	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
+	if err != nil {
+		return diag.Errorf("error getting project's settings assigned (%s): %s", project.ID, err)
+	}
 
-	projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = pointy.Bool(d.Get("is_collect_database_specifics_statistics_enabled").(bool))
+	if v, ok := d.GetOkExists("is_collect_database_specifics_statistics_enabled"); ok {
+		projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = pointy.Bool(v.(bool))
+	}
 
-	projectSettings.IsDataExplorerEnabled = pointy.Bool(d.Get("is_data_explorer_enabled").(bool))
+	if v, ok := d.GetOkExists("is_data_explorer_enabled"); ok {
+		projectSettings.IsDataExplorerEnabled = pointy.Bool(v.(bool))
+	}
 
-	projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(d.Get("is_performance_advisor_enabled").(bool))
+	if v, ok := d.GetOkExists("is_performance_advisor_enabled"); ok {
+		projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(v.(bool))
+	}
 
-	projectSettings.IsRealtimePerformancePanelEnabled = pointy.Bool(d.Get("is_realtime_performance_panel_enabled").(bool))
+	if v, ok := d.GetOkExists("is_realtime_performance_panel_enabled"); ok {
+		projectSettings.IsRealtimePerformancePanelEnabled = pointy.Bool(v.(bool))
+	}
 
-	projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(d.Get("is_schema_advisor_enabled").(bool))
+	if v, ok := d.GetOkExists("is_schema_advisor_enabled"); ok {
+		projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(v.(bool))
+	}
 
 	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings)
 	if err != nil {

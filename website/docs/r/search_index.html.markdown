@@ -14,8 +14,8 @@ Provides a Search Index resource.
 
 ### Basic 
 ```terraform
-resource "mongodbatlas_search_index" "test" {
-  name   = "project-name"
+resource "mongodbatlas_search_index" "test-basic-search-index" {
+  name   = "test-basic-search-index"
   project_id = "<PROJECT_ID>"
   cluster_name = "<CLUSTER_NAME>"
   
@@ -30,7 +30,7 @@ resource "mongodbatlas_search_index" "test" {
 
 ### Advanced (with custom analyzers)
 ```terraform
-resource "mongodbatlas_search_index" "test" {
+resource "mongodbatlas_search_index" "test-advanced-search-index" {
   project_id = "%[1]s"
   cluster_name = "%[2]s"
   analyzer = "lucene.standard"
@@ -69,7 +69,7 @@ resource "mongodbatlas_search_index" "test" {
       }
 }
 EOF
-  name = "name_test"
+  name = "test-advanced-search-index"
   search_analyzer = "lucene.standard"
   analyzers = <<-EOF
   [{
@@ -138,7 +138,7 @@ EOF
 
 * `mappings_dynamic` - Indicates whether the index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`
 
-* `mappings_fields` - attribute is required when `mappings_dynamic` is true. This field needs to be a JSON string in order to be decoded correctly.
+* `mappings_fields` - attribute is required when `mappings_dynamic` is false. This field needs to be a JSON string in order to be decoded correctly.
   ```terraform
     mappings_fields = <<-EOF
     {

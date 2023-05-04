@@ -259,11 +259,11 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
 		return diag.Errorf("error setting `connection_strings_standard_srv` for serverless instance (%s): %s", d.Id(), err)
 	}
-	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
-		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
-			return diag.Errorf("error setting `connection_strings_private_endpoint_srv` for serverless instance (%s): %s", d.Id(), err)
-		}
+
+	if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
+		return diag.Errorf("error setting `connection_strings_private_endpoint_srv` for serverless instance (%s): %s", d.Id(), err)
 	}
+
 	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
 		return diag.Errorf("error setting `create_date` for serverless instance (%s): %s", d.Id(), err)
 	}
