@@ -306,13 +306,13 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorDataLakeRead, name, err))
 	}
 
-	if awsField := flattenAWSField(dataFederationInstance.CloudProviderConfig); awsField != nil {
+	if awsField := flattenCloudProviderConfig(dataFederationInstance.CloudProviderConfig); awsField != nil {
 		if err = d.Set("aws", awsField); err != nil {
 			return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "aws", name, err))
 		}
 	}
 
-	if dataProcessRegionField := flattenDataProcessRegionField(dataFederationInstance.DataProcessRegion); dataProcessRegionField != nil {
+	if dataProcessRegionField := flattenDataProcessRegion(dataFederationInstance.DataProcessRegion); dataProcessRegionField != nil {
 		if err := d.Set("data_process_region", dataProcessRegionField); err != nil {
 			return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "data_process_region", name, err))
 		}
@@ -551,7 +551,7 @@ func newDataProcessRegion(d *schema.ResourceData) *matlas.DataProcessRegion {
 	}
 }
 
-func flattenAWSField(aws *matlas.CloudProviderConfig) map[string]interface{} {
+func flattenCloudProviderConfig(aws *matlas.CloudProviderConfig) map[string]interface{} {
 	if aws == nil {
 		return nil
 	}
@@ -565,7 +565,7 @@ func flattenAWSField(aws *matlas.CloudProviderConfig) map[string]interface{} {
 	}
 }
 
-func flattenDataProcessRegionField(processRegion *matlas.DataProcessRegion) map[string]interface{} {
+func flattenDataProcessRegion(processRegion *matlas.DataProcessRegion) map[string]interface{} {
 	if processRegion == nil || (processRegion.Region != "" && processRegion.CloudProvider != "") {
 		return nil
 	}

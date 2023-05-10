@@ -280,7 +280,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_config":           resourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_federated_settings_org_role_mapping":     resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":    resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
-		"mongodbatlas_federated_database_instance": 			resourceMongoDBAtlasFederatedDatabaseInstance(),
+		"mongodbatlas_federated_database_instance":             resourceMongoDBAtlasFederatedDatabaseInstance(),
 		"mongodbatlas_serverless_instance":                     resourceMongoDBAtlasServerlessInstance(),
 	}
 	return resourcesMap
