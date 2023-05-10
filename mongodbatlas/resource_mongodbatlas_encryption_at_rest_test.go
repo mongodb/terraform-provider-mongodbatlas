@@ -120,7 +120,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -174,7 +174,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkEncryptionAtRestEnvAzure(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -257,7 +257,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{

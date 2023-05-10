@@ -32,7 +32,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -269,7 +269,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
