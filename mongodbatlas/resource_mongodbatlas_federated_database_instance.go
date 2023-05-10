@@ -119,7 +119,7 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 											Optional: true,
 											Computed: true,
 										},
-										"allowInsecure": {
+										"allow_insecure": {
 											Type:     schema.TypeBool,
 											Optional: true,
 											Computed: true,
@@ -129,7 +129,7 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 											Optional: true,
 											Computed: true,
 										},
-										"databaseRegex": {
+										"database_regex": {
 											Type:     schema.TypeString,
 											Optional: true,
 											Computed: true,
@@ -139,12 +139,12 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 											Optional: true,
 											Computed: true,
 										},
-										"collectionRegex": {
+										"collection_regex": {
 											Type:     schema.TypeString,
 											Optional: true,
 											Computed: true,
 										},
-										"provenanceFieldName": {
+										"provenance_field_name": {
 											Type:     schema.TypeString,
 											Optional: true,
 											Computed: true,
