@@ -384,7 +384,8 @@ func flattenCloudMembers(apiObjects []*matlas.Member) []interface{} {
 // Support functions moved from deprecated cloud_provider resources
 
 const (
-	errorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
+	errorSnapshotBackupPolicyRead    = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
+	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
 )
 
 func flattenPolicies(policies []matlas.Policy) []map[string]interface{} {
