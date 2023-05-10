@@ -236,7 +236,9 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 				"read_preferences": {
-					Type: schema.TypeSet,
+					Type:     schema.TypeSet,
+					Optional: true,
+					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"mode": {
@@ -250,11 +252,11 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 								Optional: true,
 							},
 							"tags": {
-								Type: schema.TypeList,
+								Type:     schema.TypeList,
+								Computed: true,
+								Optional: true,
 								Elem: &schema.Schema{
-									Type:     schema.TypeString,
-									Computed: true,
-									Optional: true,
+									Type: schema.TypeString,
 								},
 							},
 						},
