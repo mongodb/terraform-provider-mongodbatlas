@@ -1,6 +1,3 @@
-
-
-
 resource "aws_iam_role_policy" "test_policy" {
   name = var.policy_name
   role = aws_iam_role.test_role.id
@@ -18,7 +15,7 @@ resource "aws_iam_role_policy" "test_policy" {
   EOF
 }
 
-esource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
    project_id = var.project_id
    provider_name = "AWS"
 }
