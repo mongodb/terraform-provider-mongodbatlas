@@ -67,7 +67,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
         collection = var.collection
         database   = var.database
-        store_name = var.cluster_name
+        store_name = var.atlas_cluster_name
       }
       data_sources {
         store_name = var.test_s3_bucket
@@ -77,9 +77,9 @@ resource "mongodbatlas_federated_database_instance" "test" {
   }
 
   storage_stores {
-    name         = var.cluster_name
-    cluster_name = var.cluster_name
-    project_id   = project_id
+    name         = var.atlas_cluster_name
+    cluster_name = var.atlas_cluster_name
+    project_id   = var.project_id
     provider     = "atlas"
     read_preference {
       mode = "secondary"
@@ -97,8 +97,8 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
   storage_stores {
     name         = "dataStore0"
-    cluster_name = var.cluster_name
-    project_id   = project_id
+    cluster_name = var.atlas_cluster_name
+    project_id   = var.project_id
     provider     = "atlas"
     read_preference {
       mode = "secondary"
