@@ -1,6 +1,6 @@
-# Example - Okta and MongoDB Atlas Federated Settings Configuration
+# Example - MongoDB Atlas Federated Database Instance
 
-This project aims to provide an example of using Okta and MongoDB Atlas together.
+This project aims to provide an example of using MongoDB Atlas Federated Database Instance.
 
 
 ## Dependencies
