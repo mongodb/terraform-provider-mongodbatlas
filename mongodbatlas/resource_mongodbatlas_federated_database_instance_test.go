@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -16,12 +17,12 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
-		orgID        = "60ddf55c27a5a20955a707d7"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = acctest.RandomWithPrefix("test-acc")
 		policyName   = acctest.RandomWithPrefix("test-acc")
 		roleName     = acctest.RandomWithPrefix("test-acc")
-		testS3Bucket = "andrea-angiolillo-mongocli"
+		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 		region       = "VIRGINIA_USA"
 	)
 

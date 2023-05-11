@@ -350,7 +350,7 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
 	}
-	_, _, err := conn.DataFederation.Update(ctx, projectID, name, requestBody)
+	_, _, err := conn.DataFederation.Update(ctx, projectID, name, requestBody, nil)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
 	}
