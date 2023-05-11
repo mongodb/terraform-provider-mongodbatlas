@@ -16,7 +16,6 @@ require (
 	go.mongodb.org/atlas v0.26.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
-
 )
 
 require (
