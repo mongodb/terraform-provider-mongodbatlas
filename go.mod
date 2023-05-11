@@ -13,7 +13,7 @@ require (
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.0
 	github.com/zclconf/go-cty v1.13.1
-	go.mongodb.org/atlas v0.25.1-0.20230509112146-4d8a1507ec30
+	go.mongodb.org/atlas v0.25.1-0.20230511103625-94e83033ecba
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 )
