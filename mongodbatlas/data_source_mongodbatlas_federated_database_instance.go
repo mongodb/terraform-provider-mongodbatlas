@@ -281,7 +281,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 		}
 	}
 
-	if d.Set("data_process_region", flattenDataProcessRegion(dataFederationInstance.DataProcessRegion)); err != nil {
+	if err := d.Set("data_process_region", flattenDataProcessRegion(dataFederationInstance.DataProcessRegion)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "data_process_region", name, err))
 	}
 
