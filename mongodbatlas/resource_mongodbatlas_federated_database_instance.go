@@ -605,15 +605,26 @@ func flattenCloudProviderConfig(d *schema.ResourceData, aws *matlas.CloudProvide
 		return nil
 	}
 
-	return []map[string]interface{}{
+	out := []map[string]interface{}{
 		{
 			"role_id":              aws.AWSConfig.RoleID,
 			"iam_assumed_role_arn": aws.AWSConfig.IAMAssumedRoleARN,
 			"iam_user_arn":         aws.AWSConfig.IAMUserARN,
 			"external_id":          aws.AWSConfig.ExternalID,
-			"test_s3_bucket":       d.Get("aws").([]interface{})[0].(map[string]interface{})["test_s3_bucket"].(string), // test_s3_bucket is not part of the API response
 		},
 	}
+
+	awsConf, ok := d.Get("aws").([]interface{})
+	if !ok || len(awsConf) == 0 {
+		return out
+	}
+	// test_s3_bucket is not part of the API response
+	if testS3Bucket, ok := awsConf[0].(map[string]interface{})["test_s3_bucket"].(string); ok {
+		out[0]["test_s3_bucket"] = testS3Bucket
+		return out
+	}
+
+	return out
 }
 
 func flattenDataProcessRegion(processRegion *matlas.DataProcessRegion) []map[string]interface{} {

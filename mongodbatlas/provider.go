@@ -221,6 +221,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_configs":           dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs(),
 		"mongodbatlas_federated_settings_org_role_mapping":      dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_org_role_mappings":     dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
+		"mongodbatlas_federated_database_instance":              dataSourceMongoDBAtlasFederatedDatabaseInstance(),
+		"mongodbatlas_federated_database_instances":             dataSourceMongoDBAtlasFederatedDatabaseInstances(),
 		"mongodbatlas_serverless_instance":                      dataSourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_serverless_instances":                     dataSourceMongoDBAtlasServerlessInstances(),
 	}

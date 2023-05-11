@@ -3,25 +3,28 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
+func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_federated_database_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
-		policyName   = acctest.RandomWithPrefix("test-acc")
-		roleName     = acctest.RandomWithPrefix("test-acc")
-		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
-		region       = "VIRGINIA_USA"
+		resourceName      = "data.mongodbatlas_federated_database_instance.test"
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName       = acctest.RandomWithPrefix("test-acc")
+		name              = acctest.RandomWithPrefix("test-acc")
+		policyName        = acctest.RandomWithPrefix("test-acc")
+		roleName          = acctest.RandomWithPrefix("test-acc")
+		testS3Bucket      = os.Getenv("AWS_S3_BUCKET")
+		region            = "VIRGINIA_USA"
+		federatedInstance = matlas.DataFederationInstance{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,56 +39,55 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 					},
 				},
 				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
+					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ProviderFactories: testAccProviderFactories,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName, testS3Bucket),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName, s3Bucket string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
+func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *matlas.DataFederationInstance) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.Attributes["project_id"] == "" {
+			return fmt.Errorf("no ID is set")
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["name"], s3Bucket), nil
+		if dataLakeResp, _, err := conn.DataFederation.Get(context.Background(), ids["project_id"], ids["name"]); err == nil {
+			*dataFederatedInstance = *dataLakeResp
+			return nil
+		}
+
+		return fmt.Errorf("federated database instance (%s) does not exist", ids["project_id"])
 	}
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_federated_database_instance" {
-			continue
+func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *matlas.DataFederationInstance, name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.Name, name)
+		if dataFederatedInstance.Name != name {
+			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.Name)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.DataFederation.Get(context.Background(), ids["project_id"], ids["name"])
-		if err == nil {
-			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
-		}
+		return nil
 	}
-
-	return nil
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStep(name, testS3Bucket)
+func testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStep(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -152,7 +154,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %s
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStep(name, testS3Bucket string) string {
+func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStep(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
@@ -206,6 +208,11 @@ resource "mongodbatlas_federated_database_instance" "test" {
 		mode = "secondary"
 	}
    }
+}
+
+data "mongodbatlas_federated_database_instance" "test" {
+	project_id           = mongodbatlas_federated_database_instance.test.project_id
+	name = mongodbatlas_federated_database_instance.test.name
 }
 	`, name, testS3Bucket)
 }

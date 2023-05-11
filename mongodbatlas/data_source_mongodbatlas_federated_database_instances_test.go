@@ -1,20 +1,18 @@
 package mongodbatlas
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
+func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		resourceName = "mongodbatlas_federated_database_instance.test"
+		resourceName = "data.mongodbatlas_federated_database_instances.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = acctest.RandomWithPrefix("test-acc")
@@ -36,56 +34,18 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 					},
 				},
 				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:            testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ProviderFactories: testAccProviderFactories,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName, testS3Bucket),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName, s3Bucket string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		ids := decodeStateID(rs.Primary.ID)
-
-		return fmt.Sprintf("%s--%s--%s", ids["project_id"], ids["name"], s3Bucket), nil
-	}
-}
-
-func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_federated_database_instance" {
-			continue
-		}
-
-		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.DataFederation.Get(context.Background(), ids["project_id"], ids["name"])
-		if err == nil {
-			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
-		}
-	}
-
-	return nil
-}
-
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStep(name, testS3Bucket)
+func testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstancesConfigDataSourceFirstStep(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -152,7 +112,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %s
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStep(name, testS3Bucket string) string {
+func testAccMongoDBAtlasFederatedDatabaseInstancesConfigDataSourceFirstStep(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
@@ -206,6 +166,10 @@ resource "mongodbatlas_federated_database_instance" "test" {
 		mode = "secondary"
 	}
    }
+}
+
+data "mongodbatlas_federated_database_instances" "test" {
+	project_id           = mongodbatlas_federated_database_instance.test.project_id
 }
 	`, name, testS3Bucket)
 }
