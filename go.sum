@@ -490,6 +490,8 @@ go.mongodb.org/atlas v0.25.1-0.20230511103625-94e83033ecba h1:2JJjzvqS7dy3ITyCGP
 go.mongodb.org/atlas v0.25.1-0.20230511103625-94e83033ecba/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
 go.mongodb.org/atlas v0.25.1-0.20230511142419-52f3201fd0e5 h1:8P+Z9Qjmt7WNalX+2Id/jXxL2ID4rS4mDvtNPjdmX3E=
 go.mongodb.org/atlas v0.25.1-0.20230511142419-52f3201fd0e5/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
+go.mongodb.org/atlas v0.26.0 h1:5HU/Izy7v6O6uy/JAvpShzh8NlCfyRnWH8H1iQ4Qj0U=
+go.mongodb.org/atlas v0.26.0/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
