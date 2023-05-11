@@ -54,7 +54,7 @@ EOF
 
 
 resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = mongodbatlas_project.test.id
+  project_id = var.project_id
   name       = var.name
   aws {
     role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
@@ -79,7 +79,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
   storage_stores {
     name         = var.cluster_name
     cluster_name = var.cluster_name
-    project_id   = mongodbatlas_project.test.id
+    project_id   = project_id
     provider     = "atlas"
     read_preference {
       mode = "secondary"
@@ -98,7 +98,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
   storage_stores {
     name         = "dataStore0"
     cluster_name = var.cluster_name
-    project_id   = mongodbatlas_project.test.id
+    project_id   = project_id
     provider     = "atlas"
     read_preference {
       mode = "secondary"
