@@ -329,8 +329,13 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err))
 	}
 
-	d.Set("state", dataFederationInstance.State)
-	d.Set("hostnames", dataFederationInstance.Hostnames)
+	if err := d.Set("state", dataFederationInstance.State); err != nil {
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "state", name, err))
+	}
+
+	if err := d.Set("hostnames", dataFederationInstance.Hostnames); err != nil {
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
+	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
