@@ -198,6 +198,10 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+				"cluster_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 				"project_id": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -214,10 +218,29 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 					Type:     schema.TypeBool,
 					Computed: true,
 				},
+				"allow_insecure": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
 				"additional_storage_classes": {
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"public": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"default_format": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"urls": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 				"read_preference": {
 					Type:     schema.TypeList,

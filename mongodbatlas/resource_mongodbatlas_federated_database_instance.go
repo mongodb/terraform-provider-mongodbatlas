@@ -36,6 +36,17 @@ func resourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"hostnames": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"aws": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -217,6 +228,10 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+				"cluster_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 				"project_id": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -233,10 +248,29 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 				},
+				"allow_insecure": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
 				"additional_storage_classes": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"public": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"default_format": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"urls": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 				"read_preference": {
 					Type:     schema.TypeList,
@@ -328,6 +362,9 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "data_process_region", name, err))
 		}
 	}
+
+	d.Set("state", dataFederationInstance.State)
+	d.Set("hostnames", dataFederationInstance.Hostnames)
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,

@@ -84,6 +84,10 @@ resource "mongodbatlas_federated_database_instance" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
+* `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
+* `state` - Current state of the Federated Database Instance:
+  * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
+  * `DELETED` - The Federated Database Instance was deleted.
 * `aws.0.iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
   * `s3:GetObject`
   * `s3:ListBucket`
@@ -121,6 +125,18 @@ In addition to all arguments above, the following attributes are exported:
   * `storage_stores.#.prefix` - Prefix the Federated Database Instance applies when searching for files in the S3 bucket .
   * `storage_stores.#.delimiter` - The delimiter that separates `storage_databases.#.collections.#.data_sources.#.path` segments in the data store.
   * `storage_stores.#.include_tags` - Determines whether or not to use S3 tags on the files in the given path as additional partition attributes.
+  * `storage_stores.#.cluster_name` - Human-readable label of the MongoDB Cloud cluster on which the store is based.
+  * `storage_stores.#.cluster_id` - ID of the Cluster the Online Archive belongs to.
+  * `storage_stores.#.allow_insecure` - Flag that validates the scheme in the specified URLs.
+  * `storage_stores.#.public` - Flag that indicates whether the bucket is public.
+  * `storage_stores.#.default_format` - Default format that Data Lake assumes if it encounters a file without an extension while searching the storeName.
+  * `storage_stores.#.urls` - Comma-separated list of publicly accessible HTTP URLs where data is stored.
+  * `storage_stores.#.read_preference` - MongoDB Cloud cluster read preference, which describes how to route read requests to the cluster.
+    * `storage_stores.#.read_preference.maxStalenessSeconds` - Maximum replication lag, or staleness, for reads from secondaries.
+    * `storage_stores.#.read_preference.mode` - Read preference mode that specifies to which replica set member to route the read requests.
+    * `storage_stores.#.read_preference.tagSets` - List that contains tag sets or tag specification documents.
+      * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
+      * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
 
 ## Import
 

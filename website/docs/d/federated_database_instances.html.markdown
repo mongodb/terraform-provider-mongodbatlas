@@ -37,9 +37,10 @@ In addition to all arguments above, the following attributes are exported:
 ### Federated Database Instance
 
 * `id` - The Terraform's unique identifier used internally for state management.
-    
-  For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
-
+* `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
+* `state` - Current state of the Federated Database Instance:
+  * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
+  * `DELETED` - The Federated Database Instance was deleted.
 * `aws` -  AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
   * `aws.0.role_id` - Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. 
   * `aws.0.iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
@@ -85,7 +86,18 @@ In addition to all arguments above, the following attributes are exported:
   * `storage_stores.#.prefix` - Prefix the Federated Database Instance applies when searching for files in the S3 bucket .
   * `storage_stores.#.delimiter` - The delimiter that separates `storage_databases.#.collections.#.data_sources.#.path` segments in the data store.
   * `storage_stores.#.include_tags` - Determines whether or not to use S3 tags on the files in the given path as additional partition attributes.
-
+  * `storage_stores.#.cluster_name` - Human-readable label of the MongoDB Cloud cluster on which the store is based.
+  * `storage_stores.#.cluster_id` - ID of the Cluster the Online Archive belongs to.
+  * `storage_stores.#.allow_insecure` - Flag that validates the scheme in the specified URLs.
+  * `storage_stores.#.public` - Flag that indicates whether the bucket is public.
+  * `storage_stores.#.default_format` - Default format that Data Lake assumes if it encounters a file without an extension while searching the storeName.
+  * `storage_stores.#.urls` - Comma-separated list of publicly accessible HTTP URLs where data is stored.
+  * `storage_stores.#.read_preference` - MongoDB Cloud cluster read preference, which describes how to route read requests to the cluster.
+    * `storage_stores.#.read_preference.maxStalenessSeconds` - Maximum replication lag, or staleness, for reads from secondaries.
+    * `storage_stores.#.read_preference.mode` - Read preference mode that specifies to which replica set member to route the read requests.
+    * `storage_stores.#.read_preference.tagSets` - List that contains tag sets or tag specification documents.
+      * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
+      * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
 ## Import
 
 The Federated Database Instance can be imported using project ID, name of the instance and name of the AWS s3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
