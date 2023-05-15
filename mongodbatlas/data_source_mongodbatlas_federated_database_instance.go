@@ -20,6 +20,17 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"hostnames": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"aws": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -317,6 +328,9 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 	if err := d.Set("storage_stores", flattenDataFederationStores(dataFederationInstance.Storage.Stores)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err))
 	}
+
+	d.Set("state", dataFederationInstance.State)
+	d.Set("hostnames", dataFederationInstance.Hostnames)
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,

@@ -32,6 +32,17 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"state": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"hostnames": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 						"aws": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -116,6 +127,8 @@ func flattenFederatedDatabaseInstances(projectID string, federatedDatabaseInstan
 			federatedDatabaseInstancesMap[i] = map[string]interface{}{
 				"project_id":          projectID,
 				"name":                federatedDatabaseInstances[i].Name,
+				"state":               federatedDatabaseInstances[i].State,
+				"hostnames":           federatedDatabaseInstances[i].Hostnames,
 				"aws":                 flattenAWSBlock(federatedDatabaseInstances[i].CloudProviderConfig),
 				"data_process_region": flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
 				"storage_databases":   flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),

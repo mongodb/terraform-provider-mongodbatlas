@@ -450,6 +450,9 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err)
 	}
 
+	d.Set("state", dataFederationInstance.State)
+	d.Set("hostnames", dataFederationInstance.Hostnames)
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       dataFederationInstance.Name,
@@ -755,6 +758,11 @@ func flattenDataFederationStores(stores []*matlas.DataFederationStore) []map[str
 			"delimiter":                  stores[i].Delimiter,
 			"include_tags":               stores[i].IncludeTags,
 			"additional_storage_classes": stores[i].AdditionalStorageClasses,
+			"cluster_id":                 stores[i].ClusterID,
+			"allow_insecure":             stores[i].AllowInsecure,
+			"public":                     stores[i].Public,
+			"default_format":             stores[i].DefaultFormat,
+			"urls":                       stores[i].Urls,
 			"read_preference":            newReadPreferenceField(stores[i].ReadPreference),
 		})
 	}
