@@ -30,7 +30,7 @@ func TestAccAdvRSLDAPConfiguration_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAdvRSLDAPConfigurationWithVerify_CACertificateComplete(t *testing.T)
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func TestAccAdvRSLDAPConfiguration_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkLDAP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
