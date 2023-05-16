@@ -61,10 +61,10 @@ variable "atlas_cluster_name" {
 }
 
 variable "access_key" {
-  description = "The access key for AWS Account"
+  description = "The access key for an AWS Account"
 }
 variable "secret_key" {
-  description = "The secret key for AWS Account"
+  description = "The secret key for an AWS Account"
 }
 
 variable "aws_region" {

@@ -27,7 +27,7 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently does the below deployments:
+This project currently supports the below deployments:
 
 - An AWS Policy
 - An AWS Role
