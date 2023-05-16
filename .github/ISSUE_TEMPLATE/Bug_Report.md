@@ -10,6 +10,11 @@ Hello!
 Thank you for opening an issue.  Please note that we try to keep the Terraform MongoDB Atlas Provider issue tracker reserved for bug reports.  Please ensure you check open and closed issues first to ensure your issue hasn't already been reported (if it has been reported add a reaction, i.e. +1, to the issue).  
 
 If your issue relates to Terraform itself, please open it in the Terraform repository https://github.com/hashicorp/terraform/issues.
+
+Do you have a MongoDB Atlas Support contract?  
+
+If Yes: Then a support ticket is the best way for us to assist you with the provider.  Repo issues are for community reporting/assistance only and are best effort. 
+--->
 -->
 
 ### Terraform CLI and Terraform MongoDB Atlas Provider Version
