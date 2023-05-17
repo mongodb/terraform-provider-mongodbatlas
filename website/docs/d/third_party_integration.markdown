@@ -44,7 +44,7 @@ data "mongodbatlas_third_party_integration" "test" {
      * PROMETHEUS
 
      *resource is now deprecated and will be removed in the next major version, 1.9.0
-
+ **Note:** Field types NEW_RELIC, FLOWDOCK have now been fully deprecated as part of v1.10.0 release
 
 ## Attributes Reference
 
