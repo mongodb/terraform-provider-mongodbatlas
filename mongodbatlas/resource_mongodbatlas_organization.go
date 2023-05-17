@@ -93,6 +93,10 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
 
+	if err := d.Set("org_id", organization.Organization.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"org_id": organization.Organization.ID,
 	}))
@@ -113,7 +117,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	resp, err := conn.Organizations.Delete(ctx, orgID)
+	organization, resp, err := conn.Organizations.Get(ctx, orgID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
 			log.Printf("warning Organization deleted will recreate: %s \n", err.Error())
@@ -122,8 +126,9 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 		}
 		return diag.FromErr(fmt.Errorf("error deleting organization information: %s", err))
 	}
-	d.SetId("")
-
+	d.SetId(encodeStateID(map[string]string{
+		"org_id": organization.ID,
+	}))
 	return nil
 }
 

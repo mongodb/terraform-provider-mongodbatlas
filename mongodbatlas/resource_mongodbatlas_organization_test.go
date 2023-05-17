@@ -9,68 +9,56 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccConfigRSAPIKey_Basic(t *testing.T) {
+func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	var (
-		resourceName      = "mongodbatlas_api_key.test"
-		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		description       = fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
-		descriptionUpdate = fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
-		roleName          = "ORG_MEMBER"
-		roleNameUpdated   = "ORG_BILLING_ADMIN"
+		resourceName = "mongodbatlas_organization.test"
+		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name         = fmt.Sprintf("test-acc-organization-%s", acctest.RandString(5))
+		description  = "test Key for Acceptance tests"
+		roleName     = "ORG_OWNER"
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasOrganizationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleName),
+				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
+					testAccCheckMongoDBAtlasOrganizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
-
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, descriptionUpdate, roleNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "description", descriptionUpdate),
 				),
 			},
 		},
 	})
 }
 
-func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
+func TestAccConfigRSOrganization_importBasic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_api_key.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		description  = fmt.Sprintf("test-acc-import-api_key-%s", acctest.RandString(5))
-		roleName     = "ORG_MEMBER"
+		resourceName = "mongodbatlas_organization.test"
+		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name         = fmt.Sprintf("test-acc-import-organization-%s", acctest.RandString(5))
+		description  = "test Key for Acceptance tests"
+		roleName     = "ORG_OWNER"
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasOrganizationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleName),
+				Config: testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleName),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasAPIKeyImportStateIDFunc(resourceName),
+				ImportStateIdFunc: testAccCheckMongoDBAtlasOrganizationImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: false,
 			},
@@ -78,7 +66,7 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -93,52 +81,85 @@ func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestChec
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["api_key_id"])
+		/*config := Config{
+			PublicKey:  rs.Primary.Attributes["public_key"],
+			PrivateKey: rs.Primary.Attributes["private_key"],
+		}
+
+		clients, _ := config.NewClient(context.TODO())
+		conn := clients.(*MongoDBClient).Atlas*/
+
+		/*_, _, err := conn.Organizations.Get(context.Background(), ids["org_id"])
 		if err != nil {
-			return fmt.Errorf("API Key (%s) does not exist", ids["api_key_id"])
+			return fmt.Errorf("Organization (%s) does not exist", ids["org_id"])
+		}*/
+
+		organizationOptions := &matlas.OrganizationsListOptions{}
+		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)
+		if err == nil {
+			for _, val := range orgs.Results {
+				if val.ID == ids["org_id"] {
+					return fmt.Errorf("Organization (%s) still exists", ids["role_name"])
+				}
+			}
+			return nil
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
+func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_api_key" {
+		if rs.Type != "mongodbatlas_organization" {
 			continue
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err := conn.APIKeys.Get(context.Background(), ids["org_id"], ids["role_name"])
+		// config := Config{
+		// 	PublicKey:  rs.Primary.Attributes["public_key"],
+		// 	PrivateKey: rs.Primary.Attributes["private_key"],
+		// }
+
+		// clients, _ := config.NewClient(context.TODO())
+		// conn := clients.(*MongoDBClient).Atlas
+
+		organizationOptions := &matlas.OrganizationsListOptions{}
+		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)
 		if err == nil {
-			return fmt.Errorf("API Key (%s) still exists", ids["role_name"])
+			for _, val := range orgs.Results {
+				if val.ID == ids["org_id"] {
+					return fmt.Errorf("Organization (%s) still exists", ids["role_name"])
+				}
+			}
+			return nil
 		}
 	}
 
 	return nil
 }
 
-func testAccCheckMongoDBAtlasAPIKeyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccCheckMongoDBAtlasOrganizationImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["org_id"], rs.Primary.Attributes["api_key_id"]), nil
+		return rs.Primary.Attributes["org_id"], nil
 	}
 }
 
-func testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleNames string) string {
+func testAccMongoDBAtlasOrganizationConfigBasic(orgOwnerID, name, description, roleNames string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_api_key" "test" {
-			org_id     = "%s"
-			description  = "%s"
-
-			role_names  = ["%s"]
-		}
-	`, orgID, description, roleNames)
+	  resource "mongodbatlas_organization" "test" {
+		org_owner_id = "%s"
+		name = "%s"
+		description = "%s"
+		role_names = ["%s"]
+	  }
+	`, orgOwnerID, name, description, roleNames)
 }
