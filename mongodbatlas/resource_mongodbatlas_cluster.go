@@ -1535,10 +1535,11 @@ func flattenPrivateEndpoint(privateEndpoints []matlas.PrivateEndpoint) []map[str
 	endpoints := make([]map[string]interface{}, 0)
 	for _, endpoint := range privateEndpoints {
 		endpoints = append(endpoints, map[string]interface{}{
-			"connection_string":     endpoint.ConnectionString,
-			"srv_connection_string": endpoint.SRVConnectionString,
-			"endpoints":             flattenEndpoints(endpoint.Endpoints),
-			"type":                  endpoint.Type,
+			"connection_string":                     endpoint.ConnectionString,
+			"srv_connection_string":                 endpoint.SRVConnectionString,
+			"srv_shard_optimized_connection_string": endpoint.SRVShardOptimizedConnectionString,
+			"endpoints":                             flattenEndpoints(endpoint.Endpoints),
+			"type":                                  endpoint.Type,
 		})
 	}
 	return endpoints
@@ -1636,6 +1637,10 @@ func clusterConnectionStringsSchema() *schema.Schema {
 								},
 							},
 							"srv_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"srv_shard_optimized_connection_string": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},

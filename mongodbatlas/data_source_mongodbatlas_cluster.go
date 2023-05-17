@@ -129,6 +129,10 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+									"srv_shard_optimized_connection_string": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 									"type": {
 										Type:     schema.TypeString,
 										Computed: true,

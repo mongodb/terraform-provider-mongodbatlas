@@ -184,7 +184,6 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 		resource "mongodbatlas_search_index" "test" {
 			project_id       = mongodbatlas_cluster.aws_conf.project_id
 			cluster_name     = mongodbatlas_cluster.aws_conf.name
-			analyzer         = "lucene.simple"
 			collection_name  = "collection_test"
 			database         = "database_test"
 			mappings_dynamic = "true"
