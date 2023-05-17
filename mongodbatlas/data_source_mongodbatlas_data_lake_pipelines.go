@@ -10,7 +10,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const errorDataLakePipelineList      = "error creating MongoDB Atlas DataLake Pipelines: %s"
+const errorDataLakePipelineList = "error creating MongoDB Atlas DataLake Pipelines: %s"
 
 func dataSourceMongoDBAtlasDataLakePipelines() *schema.Resource {
 	return &schema.Resource{
@@ -137,7 +137,6 @@ func dataSourceMongoDBAtlasDataLakePipelines() *schema.Resource {
 	}
 }
 
-
 func dataSourceMongoDBAtlasDataLakePipelinesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -150,7 +149,7 @@ func dataSourceMongoDBAtlasDataLakePipelinesRead(ctx context.Context, d *schema.
 	if err := d.Set("results", flattenDataLakePipelines(dataLakePipelines)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `result` for DataLake Pipelines: %s", err))
 	}
-	
+
 	d.SetId(resource.UniqueId())
 
 	return nil
@@ -164,15 +163,15 @@ func flattenDataLakePipelines(peers []*matlas.DataLakePipeline) []map[string]int
 	pipelines := make([]map[string]interface{}, len(peers))
 	for i := range peers {
 		pipelines[i] = map[string]interface{}{
-			"project_id":       peers[i].GroupID,
-			"name":             peers[i].Name,
-			"id":               peers[i].ID,
-			"created_date":     peers[i].CreatedDate,
-			"last_updated_date":peers[i].LastUpdatedDate,
-			"state":            peers[i].State,
-			"sink":             flattenDataLakePipelineSink(peers[i].Sink),
-			"source":           flattenDataLakePipelineSource(peers[i].Source),
-			"transformations":  flattenDataLakePipelineTransformations(peers[i].Transformations),
+			"project_id":        peers[i].GroupID,
+			"name":              peers[i].Name,
+			"id":                peers[i].ID,
+			"created_date":      peers[i].CreatedDate,
+			"last_updated_date": peers[i].LastUpdatedDate,
+			"state":             peers[i].State,
+			"sink":              flattenDataLakePipelineSink(peers[i].Sink),
+			"source":            flattenDataLakePipelineSource(peers[i].Source),
+			"transformations":   flattenDataLakePipelineTransformations(peers[i].Transformations),
 		}
 	}
 
