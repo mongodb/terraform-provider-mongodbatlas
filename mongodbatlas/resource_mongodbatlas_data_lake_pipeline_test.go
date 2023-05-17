@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -16,7 +17,7 @@ func TestAccClusterRSDataLakePipeline_basic(t *testing.T) {
 		pipeline     matlas.DataLakePipeline
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
-		projectID    = "63f4d4a47baeac59406dc131"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = acctest.RandomWithPrefix("test-acc-index")
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,28 +84,28 @@ func testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName string, pipelin
 
 func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineName string) string {
 	return fmt.Sprintf(`
-		// resource "mongodbatlas_cluster" "aws_conf" {
-		// 	project_id   = "%[1]s"
-		// 	name         = "%[2]s"
-		// 	disk_size_gb = 10
+		resource "mongodbatlas_cluster" "aws_conf" {
+			project_id   = "%[1]s"
+			name         = "%[2]s"
+			disk_size_gb = 10
 		
-		// 	cluster_type = "REPLICASET"
-		// 	replication_specs {
-		// 		num_shards = 1
-		// 		regions_config {
-		// 			region_name     = "US_EAST_2"
-		// 			electable_nodes = 3
-		// 			priority        = 7
-		// 			read_only_nodes = 0
-		// 		}
-		// 	}
-		// 	backup_enabled               = false
-		// 	auto_scaling_disk_gb_enabled = false
+			cluster_type = "REPLICASET"
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_EAST_2"
+					electable_nodes = 3
+					priority        = 7
+					read_only_nodes = 0
+				}
+			}
+			backup_enabled               = false
+			auto_scaling_disk_gb_enabled = false
 		
-		// 	// Provider Settings "block"
-		// 	provider_name               = "AWS"
-		// 	provider_instance_size_name = "M10"
-		// }
+			// Provider Settings "block"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+		}
 
 		resource "mongodbatlas_data_lake_pipeline" "test" {
 			project_id       = "%[1]s"
@@ -120,8 +121,7 @@ func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineN
 
 			source {
 				type = "ON_DEMAND_CPS"
-				// cluster_name = mongodbatlas_cluster.aws_conf.name
-				cluster_name = "Cluster0"
+				cluster_name = mongodbatlas_cluster.aws_conf.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}

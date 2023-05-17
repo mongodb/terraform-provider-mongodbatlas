@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -14,7 +15,7 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 		pipeline     matlas.DataLakePipeline
 		resourceName = "mongodbatlas_data_lake_pipeline.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
-		projectID    = "63f4d4a47baeac59406dc131"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		name         = acctest.RandomWithPrefix("test-acc-index")
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -61,8 +62,8 @@ func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName,
 		}
 
 		resource "mongodbatlas_data_lake_pipeline" "test" {
-			project_id       = cluster_name = mongodbatlas_cluster.aws_conf.project_id
-			name			 = cluster_name = mongodbatlas_cluster.aws_conf.name
+			project_id       = "%[1]s"
+			name			 = "%[3]s"
 			sink {
 				type = "DLS"
 				partition_fields {

@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -11,13 +12,13 @@ import (
 
 func TestAccDataSourceClusterRSDataLakePipelines_basic(t *testing.T) {
 	var (
-		pipeline       matlas.DataLakePipeline
-		resourceName   = "mongodbatlas_data_lake_pipeline.test"
-		dataSourceName = "data.mongodbatlas_data_lake_pipelines.testDataSource"
-		clusterName    = acctest.RandomWithPrefix("test-acc-index")
-		projectID      = "63f4d4a47baeac59406dc131"
-		firstPipelineName           = acctest.RandomWithPrefix("test-acc-index")
-		secondPipelineName           = acctest.RandomWithPrefix("test-acc-index")
+		pipeline           matlas.DataLakePipeline
+		resourceName       = "mongodbatlas_data_lake_pipeline.test"
+		dataSourceName     = "data.mongodbatlas_data_lake_pipelines.testDataSource"
+		clusterName        = acctest.RandomWithPrefix("test-acc-index")
+		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		firstPipelineName  = acctest.RandomWithPrefix("test-acc-index")
+		secondPipelineName = acctest.RandomWithPrefix("test-acc-index")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -103,7 +104,6 @@ func testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(projectID, clusterName
 			source {
 				type = "ON_DEMAND_CPS"
 				cluster_name = mongodbatlas_cluster.aws_conf.name
-				cluster_name = "Cluster0"
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
@@ -116,7 +116,7 @@ func testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(projectID, clusterName
 
 		resource "mongodbatlas_data_lake_pipeline" "test2" {
 			project_id       =  "%[1]s"
-			name			 = " "%[4]s"
+			name			 = 	"%[4]s"
 			sink {
 				type = "DLS"
 				partition_fields {
@@ -127,7 +127,7 @@ func testAccDataSourceMongoDBAtlasDataLakePipelinesConfig(projectID, clusterName
 	
 			source {
 				type = "ON_DEMAND_CPS"
-				name			 = cluster_name = mongodbatlas_cluster.aws_conf2.name
+				cluster_name			 = cluster_name = mongodbatlas_cluster.aws_conf2.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
