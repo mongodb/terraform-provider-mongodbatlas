@@ -17,7 +17,7 @@ Terraform v1.10.0
 ## Usage
 
 **1\. Ensure to create an Atlas project and a cluster**
-**2\. Create an s3 bucket into your AWS account**
+**2\. Create an S3 bucket into your AWS account**
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
 **3\. Review the Terraform plan. **
