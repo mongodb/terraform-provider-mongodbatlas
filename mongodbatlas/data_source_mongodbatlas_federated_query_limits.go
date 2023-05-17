@@ -12,7 +12,7 @@ import (
 
 func dataSourceMongoDBAtlasFederatedDatabaseQueryLimits() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead,
+		ReadContext: dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

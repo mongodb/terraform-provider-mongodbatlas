@@ -223,8 +223,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_role_mappings":     dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
 		"mongodbatlas_serverless_instance":                      dataSourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_serverless_instances":                     dataSourceMongoDBAtlasServerlessInstances(),
-		"mongodbatlas_federated_database_query_limit":           dataSourceMongoDBAtlasFederatedDatabaseQueryLimit(),
-		"mongodbatlas_federated_database_query_limits":          dataSourceMongoDBAtlasFederatedDatabaseQueryLimits(),
+		"mongodbatlas_federated_query_limit":                    dataSourceMongoDBAtlasFederatedDatabaseQueryLimit(),
+		"mongodbatlas_federated_query_limits":                   dataSourceMongoDBAtlasFederatedDatabaseQueryLimits(),
 	}
 	return dataSourcesMap
 }
@@ -283,7 +283,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_role_mapping":     resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":    resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
 		"mongodbatlas_serverless_instance":                     resourceMongoDBAtlasServerlessInstance(),
-		"mongodbatlas_federated_database_query_limit":          resourceMongoDBAtlasFederatedDatabaseQueryLimit(),
+		"mongodbatlas_federated_query_limit":                   resourceMongoDBAtlasFederatedDatabaseQueryLimit(),
 	}
 	return resourcesMap
 }

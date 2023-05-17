@@ -15,16 +15,6 @@ import (
 type FederatedDatabaseQueryLimitPropName string
 
 const (
-	// "project_id"        FederatedDatabaseQueryLimitPropName = "project_id"
-	// "limit_name"        FederatedDatabaseQueryLimitPropName = "limit_name"
-	// "tenant_name"       FederatedDatabaseQueryLimitPropName = "tenant_name"
-	// "overrun_policy"    FederatedDatabaseQueryLimitPropName = "overrun_policy"
-	// "value"            FederatedDatabaseQueryLimitPropName = "value"
-	// "current_usage"     FederatedDatabaseQueryLimitPropName = "current_usage"
-	// "default_limit"     FederatedDatabaseQueryLimitPropName = "default_limit"
-	// "last_modified_date" FederatedDatabaseQueryLimitPropName = "last_modified_date"
-	// "maximum_limit"     FederatedDatabaseQueryLimitPropName = "maximum_limit"
-
 	errorFederatedDatabaseQueryLimitCreate = "error creating MongoDB Atlas Federated Database Query Limit: %s"
 	errorFederatedDatabaseQueryLimitRead   = "error reading MongoDB Atlas Federated Database Query Limit (%s): %s"
 	errorFederatedDatabaseQueryLimitDelete = "error deleting MongoDB Atlas Federated Database Query Limit (%s): %s"
@@ -91,8 +81,8 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 	limitName := d.Get("limit_name").(string)
 
 	requestBody := &matlas.DataFederationQueryLimit{
-		OverrunPolicy: d.Get(string("overrun_policy")).(string),
-		Value:         d.Get(string("value")).(int64),
+		OverrunPolicy: d.Get("overrun_policy").(string),
+		Value:         int64(d.Get("value").(int)),
 	}
 
 	federatedDatabaseQueryLimit, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody)
@@ -148,9 +138,8 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 	limitName := ids["limit_name"]
 
 	requestBody := &matlas.DataFederationQueryLimit{
-		OverrunPolicy: d.Get(string("overrun_policy")).(string),
-		// TODO: check if more props can be updated
-		Value: d.Get(string("value")).(int64),
+		OverrunPolicy: d.Get("overrun_policy").(string),
+		Value:         int64(d.Get("value").(int)),
 	}
 
 	_, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody)
@@ -179,7 +168,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *sc
 
 func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
-	parts := strings.Split(d.Id(), "-")
+	parts := strings.Split(d.Id(), "--")
 
 	var projectID, tenantName, limitName string
 
