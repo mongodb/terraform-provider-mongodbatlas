@@ -235,7 +235,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_network_container":                       resourceMongoDBAtlasNetworkContainer(),
 		"mongodbatlas_network_peering":                         resourceMongoDBAtlasNetworkPeering(),
 		"mongodbatlas_encryption_at_rest":                      resourceMongoDBAtlasEncryptionAtRest(),
-		"mongodbatlas_private_ip_mode":                         resourceMongoDBAtlasPrivateIPMode(),
 		"mongodbatlas_maintenance_window":                      resourceMongoDBAtlasMaintenanceWindow(),
 		"mongodbatlas_auditing":                                resourceMongoDBAtlasAuditing(),
 		"mongodbatlas_team":                                    resourceMongoDBAtlasTeam(),
