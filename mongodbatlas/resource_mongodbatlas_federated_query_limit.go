@@ -36,7 +36,6 @@ func resourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// check if required or not
 			"limit_name": {
 				Type:     schema.TypeString,
 				Required: true,
