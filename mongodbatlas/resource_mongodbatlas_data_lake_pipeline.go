@@ -539,8 +539,8 @@ func newDataLakePipelineSource(d *schema.ResourceData) *matlas.DataLakePipelineS
 		dataLakePipelineSource.DatabaseName = databaseName
 	}
 
-	if policyId, ok := sourceMap["policy_item_id"].(string); ok {
-		dataLakePipelineSource.PolicyItemID = policyId
+	if policyID, ok := sourceMap["policy_item_id"].(string); ok {
+		dataLakePipelineSource.PolicyItemID = policyID
 	}
 
 	return dataLakePipelineSource
