@@ -19,7 +19,7 @@ variable "atlas_project_name" {
 variable "name" {
   type        = string
   description = "MongoDB DataLake Pipeline Name"
-  default     = "mongodb_federation_test"
+  default     = "datalakePipelineName"
 }
 
 variable "cluster_name" {
