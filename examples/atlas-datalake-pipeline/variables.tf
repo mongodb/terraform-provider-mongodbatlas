@@ -21,8 +21,3 @@ variable "name" {
   description = "MongoDB DataLake Pipeline Name"
   default     = "datalakePipelineName"
 }
-
-variable "cluster_name" {
-  type        = string
-  description = "Cluster Name"
-}
