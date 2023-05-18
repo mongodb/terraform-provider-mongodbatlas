@@ -117,6 +117,10 @@ func resourceMongoDBAtlasDataLakePipeline() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"policy_item_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"project_id": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -213,6 +217,10 @@ func schemaDataLakePipelineSnapshots() *schema.Schema {
 					Computed: true,
 				},
 				"replica_set_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"snapshot_type": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -531,6 +539,10 @@ func newDataLakePipelineSource(d *schema.ResourceData) *matlas.DataLakePipelineS
 		dataLakePipelineSource.DatabaseName = databaseName
 	}
 
+	if policyId, ok := sourceMap["policy_item_id"].(string); ok {
+		dataLakePipelineSource.PolicyItemID = policyId
+	}
+
 	return dataLakePipelineSource
 }
 
@@ -628,6 +640,7 @@ func flattenDataLakePipelineSnapshots(snapshots []*matlas.DataLakePipelineSnapsh
 			"mongod_version":   snapshot.MongodVersion,
 			"replica_set_name": snapshot.ReplicaSetName,
 			"type":             snapshot.Type,
+			"snapshot_type":    snapshot.SnapshotType,
 			"status":           snapshot.Status,
 			"size":             snapshot.StorageSizeBytes,
 			"policies":         snapshot.PolicyItems,

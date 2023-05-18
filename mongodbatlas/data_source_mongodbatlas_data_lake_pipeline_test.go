@@ -53,7 +53,7 @@ func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName,
 					read_only_nodes = 0
 				}
 			}
-			backup_enabled               = false
+			backup_enabled               = true
 			auto_scaling_disk_gb_enabled = false
 		
 			// Provider Settings "block"
