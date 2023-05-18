@@ -6,9 +6,14 @@ variable "private_key" {
   type        = string
   description = "Private Programmatic API key to authenticate to Atlas"
 }
-variable "org_id" {
+variable "atlas_org_id" {
   type        = string
   description = "MongoDB Organization ID"
+}
+
+variable "atlas_project_name" {
+  type        = string
+  description = "MongoDB Project Name"
 }
 
 variable "name" {

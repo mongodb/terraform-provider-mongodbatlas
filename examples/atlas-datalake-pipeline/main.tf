@@ -33,12 +33,12 @@ resource "mongodbatlas_data_lake_pipeline" "test" {
   }
 
   transformations {
-    field = "test"
+    field = "testField"
     type  = "EXCLUDE"
   }
 
   transformations {
-    field = "test22"
+    field = "testField2"
     type  = "EXCLUDE"
   }
 
