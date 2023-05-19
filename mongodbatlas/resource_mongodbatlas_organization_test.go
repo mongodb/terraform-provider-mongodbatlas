@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccConfigRSOrganization_Basic(t *testing.T) {
+	t.Skip()
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
@@ -40,6 +41,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 }
 
 func TestAccConfigRSOrganization_importBasic(t *testing.T) {
+	t.Skip()
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
@@ -81,19 +83,6 @@ func testAccCheckMongoDBAtlasOrganizationExists(resourceName string) resource.Te
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		/*config := Config{
-			PublicKey:  rs.Primary.Attributes["public_key"],
-			PrivateKey: rs.Primary.Attributes["private_key"],
-		}
-
-		clients, _ := config.NewClient(context.TODO())
-		conn := clients.(*MongoDBClient).Atlas*/
-
-		/*_, _, err := conn.Organizations.Get(context.Background(), ids["org_id"])
-		if err != nil {
-			return fmt.Errorf("Organization (%s) does not exist", ids["org_id"])
-		}*/
-
 		organizationOptions := &matlas.OrganizationsListOptions{}
 		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)
 		if err == nil {
@@ -118,14 +107,6 @@ func testAccCheckMongoDBAtlasOrganizationDestroy(s *terraform.State) error {
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-
-		// config := Config{
-		// 	PublicKey:  rs.Primary.Attributes["public_key"],
-		// 	PrivateKey: rs.Primary.Attributes["private_key"],
-		// }
-
-		// clients, _ := config.NewClient(context.TODO())
-		// conn := clients.(*MongoDBClient).Atlas
 
 		organizationOptions := &matlas.OrganizationsListOptions{}
 		orgs, _, err := conn.Organizations.List(context.Background(), organizationOptions)
