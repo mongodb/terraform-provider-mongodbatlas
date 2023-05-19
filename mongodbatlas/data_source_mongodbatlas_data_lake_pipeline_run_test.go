@@ -9,16 +9,12 @@ import (
 )
 
 func TestAccBackupDSDataLakePipelineRun_basic(t *testing.T) {
-	testCheckDataLakePipelineRun(t)
+	// testCheckDataLakePipelineRun(t)
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_run.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		pipelineName   = os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME")
 		runID          = os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID")
-
-		// projectID    = "63f4d4a47baeac59406dc131"
-		// pipelineName = "sample_guides.planets"
-		// runID        = "6467558d70fc1a140034adf0"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

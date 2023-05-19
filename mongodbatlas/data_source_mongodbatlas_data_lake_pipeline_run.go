@@ -44,6 +44,10 @@ func dataSourceMongoDBAtlasDataLakePipelineRun() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"dataset_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"phase": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -122,6 +126,10 @@ func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.Resour
 	}
 
 	if err := d.Set("pipeline_id", dataLakeRun.PipelineID); err != nil {
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
+	}
+
+	if err := d.Set("dataset_name", dataLakeRun.DatasetName); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "storage_stores", name, err))
 	}
 

@@ -2,21 +2,18 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccBackupDSDataLakePipelineRuns_basic(t *testing.T) {
-	// testCheckDataLakePipelineRuns(t)
+	testCheckDataLakePipelineRuns(t)
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_runs.test"
-		// projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		// pipelineName   = os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME")
-
-		projectID    = "63f4d4a47baeac59406dc131"
-		pipelineName = "sample_guides.planets"
-		// runID        = "6467558d70fc1a140034adf0"
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		pipelineName   = os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
