@@ -17,7 +17,7 @@ jobs:
         name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.19
+          go-version: "1.20"
       -
         name: Import GPG key
         id: import_gpg
@@ -26,7 +26,7 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
       - name: Set the user terminal
-        run: export GPG_TTY=$(tty)
+        run: GPG_TTY="$(tty)" && export GPG_TTY
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4

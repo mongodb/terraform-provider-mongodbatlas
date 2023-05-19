@@ -28,7 +28,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_import(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceDestroy,
 		Steps: []resource.TestStep{
