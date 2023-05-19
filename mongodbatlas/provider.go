@@ -202,6 +202,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_data_lake":                                dataSourceMongoDBAtlasDataLake(),
 		"mongodbatlas_data_lakes":                               dataSourceMongoDBAtlasDataLakes(),
 		"mongodbatlas_data_lake_pipeline_run":                   dataSourceMongoDBAtlasDataLakePipelineRun(),
+		"mongodbatlas_data_lake_pipeline_runs":                  dataSourceMongoDBAtlasDataLakePipelineRuns(),
 		"mongodbatlas_event_trigger":                            dataSourceMongoDBAtlasEventTrigger(),
 		"mongodbatlas_event_triggers":                           dataSourceMongoDBAtlasEventTriggers(),
 		"mongodbatlas_project_invitation":                       dataSourceMongoDBAtlasProjectInvitation(),

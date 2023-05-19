@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -81,7 +81,6 @@ func dataSourceMongoDBAtlasDataLakePipelineRuns() *schema.Resource {
 									},
 								},
 							},
-
 						},
 					},
 				},
@@ -96,17 +95,18 @@ func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.Resou
 	name := d.Get("name").(string)
 
 	dataLakeRuns, _, err := conn.DataLakePipeline.ListRuns(ctx, projectID, name)
-	return diag.FromErr(fmt.Errorf(errorDataLakePipelineRunList, name, err))
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRunList, projectID, err))
+	}
 
 	if err := d.Set("results", flattenDataLakePipelineRunResult(dataLakeRuns.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	return nil
 }
-
 
 func flattenDataLakePipelineRunResult(datalakePipelineRuns []*matlas.DataLakePipelineRun) []map[string]interface{} {
 	var results []map[string]interface{}
@@ -119,14 +119,14 @@ func flattenDataLakePipelineRunResult(datalakePipelineRuns []*matlas.DataLakePip
 
 	for k, run := range datalakePipelineRuns {
 		results[k] = map[string]interface{}{
-			"id":                      run.ID,
-			"created_date":                         run.CreatedDate,
-			"last_updated_date":                         run.LastUpdatedDate,
-			"state":                        		run.State,
-			"pipeline_id":                         run.PipelineID,
-			"snapshot_id":                         run.SnapshotID,
-			"backup_frequency_type":                         run.BackupFrequencyType,
-			"stats":                         run.Stats,
+			"id":                    run.ID,
+			"created_date":          run.CreatedDate,
+			"last_updated_date":     run.LastUpdatedDate,
+			"state":                 run.State,
+			"pipeline_id":           run.PipelineID,
+			"snapshot_id":           run.SnapshotID,
+			"backup_frequency_type": run.BackupFrequencyType,
+			"stats":                 flattenDataLakePipelineRunStats(run.Stats),
 		}
 	}
 
