@@ -7,6 +7,7 @@ description: |-
 ---
 
 **WARNING:** This resource is deprecated, use `mongodbatlas_cloud_backup_snapshot`
+**Note:** This resource have now been fully deprecated as part of v1.10.0 release
 
 # Resource: mongodbatlas_cloud_provider_snapshot
 

@@ -19,7 +19,7 @@ func TestAccFedDSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { checkFederatedSettings(t) },
+		PreCheck:          func() { testCheckFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

@@ -21,7 +21,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 		groupID                                  = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { checkFederatedSettings(t) },
+		PreCheck:          func() { testCheckFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{
@@ -49,7 +49,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { checkFederatedSettings(t) },
+		PreCheck:          func() { testCheckFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{

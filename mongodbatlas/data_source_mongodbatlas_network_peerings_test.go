@@ -22,7 +22,7 @@ func TestAccNetworkDSNetworkPeerings_basic(t *testing.T) {
 	awsRegion := os.Getenv("AWS_REGION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvAWS(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
