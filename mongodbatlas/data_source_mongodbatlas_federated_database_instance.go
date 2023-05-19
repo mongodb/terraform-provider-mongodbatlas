@@ -31,43 +31,30 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"cloud_provider_config": {
+			"aws": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
-				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"aws": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
+						"role_id": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"role_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"test_s3_bucket": {
-										Type:     schema.TypeString,
-										Computed: true,
-										Optional: true,
-									},
-									"iam_assumed_role_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"iam_user_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"external_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"test_s3_bucket": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"iam_assumed_role_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"iam_user_arn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"external_id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -322,9 +309,9 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf("error setting `name` for data lakes (%s): %s", d.Id(), err))
 	}
 
-	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
-		if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
-			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err))
+	if awsField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); awsField != nil {
+		if err = d.Set("aws", awsField); err != nil {
+			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "aws", name, err))
 		}
 	}
 
