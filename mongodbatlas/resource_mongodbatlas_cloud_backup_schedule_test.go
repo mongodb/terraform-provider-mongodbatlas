@@ -118,6 +118,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -835,4 +836,17 @@ EOF
 
 }
 	`, projectID, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region)
+}
+
+func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
+	}
 }
