@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccBackupDSDataLakePipelineRun_basic(t *testing.T) {
-	// testCheckDataLakePipelineRun(t)
+	testCheckDataLakePipelineRun(t)
 	var (
 		dataSourceName = "data.mongodbatlas_data_lake_pipeline_run.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
