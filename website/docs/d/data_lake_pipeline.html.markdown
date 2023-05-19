@@ -29,10 +29,9 @@ resource "mongodbatlas_cluster" "automated_backup_test" {
 
     provider_name               = "GCP"
     provider_region_name        = "US_EAST_4"
-    provider_instance_size_name = "M30"
+    provider_instance_size_name = "M10"
     cloud_backup                = true   // enable cloud backup snapshots
-    mongo_db_major_version      = "4.4"
-    disk_size_gb = "350"
+    mongo_db_major_version      = "6.0"
   }
 
 
