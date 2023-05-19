@@ -22,7 +22,7 @@ func TestAccFedRSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 		issuerURI                         = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { checkFederatedSettings(t) },
+		PreCheck:          func() { testCheckFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +59,7 @@ func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { checkFederatedSettings(t) },
+		PreCheck:          func() { testCheckFederatedSettings(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 

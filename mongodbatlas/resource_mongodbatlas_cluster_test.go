@@ -657,7 +657,7 @@ func TestAccClusterRSCluster_withPrivateEndpointLink(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkAwsEnv(t); checkPeeringEnvAWS(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckAwsEnv(t); testCheckPeeringEnvAWS(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -723,7 +723,7 @@ func TestAccClusterRSCluster_withGCPNetworkPeering(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -759,7 +759,7 @@ func TestAccClusterRSCluster_withAzureAndContainerID(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvAzure(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
@@ -822,7 +822,7 @@ func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
