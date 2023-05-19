@@ -221,6 +221,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_configs":           dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs(),
 		"mongodbatlas_federated_settings_org_role_mapping":      dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_org_role_mappings":     dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
+		"mongodbatlas_federated_database_instance":              dataSourceMongoDBAtlasFederatedDatabaseInstance(),
+		"mongodbatlas_federated_database_instances":             dataSourceMongoDBAtlasFederatedDatabaseInstances(),
 		"mongodbatlas_serverless_instance":                      dataSourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_serverless_instances":                     dataSourceMongoDBAtlasServerlessInstances(),
 	}
@@ -280,6 +282,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_config":           resourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_federated_settings_org_role_mapping":     resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":    resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
+		"mongodbatlas_federated_database_instance":             resourceMongoDBAtlasFederatedDatabaseInstance(),
 		"mongodbatlas_serverless_instance":                     resourceMongoDBAtlasServerlessInstance(),
 	}
 	return resourcesMap
@@ -773,4 +776,8 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	}
 
 	return &assumeRole
+}
+
+func pointer[T any](x T) *T {
+	return &x
 }
