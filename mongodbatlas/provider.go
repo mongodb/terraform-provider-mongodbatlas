@@ -162,14 +162,10 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_projects":                                 dataSourceMongoDBAtlasProjects(),
 		"mongodbatlas_cluster":                                  dataSourceMongoDBAtlasCluster(),
 		"mongodbatlas_clusters":                                 dataSourceMongoDBAtlasClusters(),
-		"mongodbatlas_cloud_provider_snapshot":                  dataSourceMongoDBAtlasCloudProviderSnapshot(),
-		"mongodbatlas_cloud_provider_snapshots":                 dataSourceMongoDBAtlasCloudProviderSnapshots(),
 		"mongodbatlas_network_container":                        dataSourceMongoDBAtlasNetworkContainer(),
 		"mongodbatlas_network_containers":                       dataSourceMongoDBAtlasNetworkContainers(),
 		"mongodbatlas_network_peering":                          dataSourceMongoDBAtlasNetworkPeering(),
 		"mongodbatlas_network_peerings":                         dataSourceMongoDBAtlasNetworkPeerings(),
-		"mongodbatlas_cloud_provider_snapshot_restore_job":      dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
-		"mongodbatlas_cloud_provider_snapshot_restore_jobs":     dataSourceMongoDBAtlasCloudProviderSnapshotRestoreJobs(),
 		"mongodbatlas_maintenance_window":                       dataSourceMongoDBAtlasMaintenanceWindow(),
 		"mongodbatlas_auditing":                                 dataSourceMongoDBAtlasAuditing(),
 		"mongodbatlas_team":                                     dataSourceMongoDBAtlasTeam(),
@@ -185,7 +181,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoints_service_serverless": dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless(),
 		"mongodbatlas_privatelink_endpoint_service_adl":         dataSourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
 		"mongodbatlas_privatelink_endpoints_service_adl":        dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADL(),
-		"mongodbatlas_cloud_provider_snapshot_backup_policy":    dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
 		"mongodbatlas_cloud_backup_schedule":                    dataSourceMongoDBAtlasCloudBackupSchedule(),
 		"mongodbatlas_third_party_integrations":                 dataSourceMongoDBAtlasThirdPartyIntegrations(),
 		"mongodbatlas_third_party_integration":                  dataSourceMongoDBAtlasThirdPartyIntegration(),
@@ -221,6 +216,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_configs":           dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs(),
 		"mongodbatlas_federated_settings_org_role_mapping":      dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_org_role_mappings":     dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
+		"mongodbatlas_federated_database_instance":              dataSourceMongoDBAtlasFederatedDatabaseInstance(),
+		"mongodbatlas_federated_database_instances":             dataSourceMongoDBAtlasFederatedDatabaseInstances(),
 		"mongodbatlas_serverless_instance":                      dataSourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_serverless_instances":                     dataSourceMongoDBAtlasServerlessInstances(),
 		"mongodbatlas_federated_query_limit":                    dataSourceMongoDBAtlasFederatedDatabaseQueryLimit(),
@@ -239,12 +236,9 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_database_user":                           resourceMongoDBAtlasDatabaseUser(),
 		"mongodbatlas_project":                                 resourceMongoDBAtlasProject(),
 		"mongodbatlas_cluster":                                 resourceMongoDBAtlasCluster(),
-		"mongodbatlas_cloud_provider_snapshot":                 resourceMongoDBAtlasCloudProviderSnapshot(),
 		"mongodbatlas_network_container":                       resourceMongoDBAtlasNetworkContainer(),
-		"mongodbatlas_cloud_provider_snapshot_restore_job":     resourceMongoDBAtlasCloudProviderSnapshotRestoreJob(),
 		"mongodbatlas_network_peering":                         resourceMongoDBAtlasNetworkPeering(),
 		"mongodbatlas_encryption_at_rest":                      resourceMongoDBAtlasEncryptionAtRest(),
-		"mongodbatlas_private_ip_mode":                         resourceMongoDBAtlasPrivateIPMode(),
 		"mongodbatlas_maintenance_window":                      resourceMongoDBAtlasMaintenanceWindow(),
 		"mongodbatlas_auditing":                                resourceMongoDBAtlasAuditing(),
 		"mongodbatlas_team":                                    resourceMongoDBAtlasTeam(),
@@ -258,7 +252,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":            resourceMongoDBAtlasPrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_adl":        resourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
 		"mongodbatlas_privatelink_endpoint_service_serverless": resourceMongoDBAtlasPrivateLinkEndpointServiceServerless(),
-		"mongodbatlas_cloud_provider_snapshot_backup_policy":   resourceMongoDBAtlasCloudProviderSnapshotBackupPolicy(),
 		"mongodbatlas_third_party_integration":                 resourceMongoDBAtlasThirdPartyIntegration(),
 		"mongodbatlas_project_ip_access_list":                  resourceMongoDBAtlasProjectIPAccessList(),
 		"mongodbatlas_cloud_provider_access":                   resourceMongoDBAtlasCloudProviderAccess(),
@@ -282,6 +275,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_config":           resourceMongoDBAtlasFederatedSettingsOrganizationConfig(),
 		"mongodbatlas_federated_settings_org_role_mapping":     resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":    resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
+		"mongodbatlas_federated_database_instance":             resourceMongoDBAtlasFederatedDatabaseInstance(),
 		"mongodbatlas_serverless_instance":                     resourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_federated_query_limit":                   resourceMongoDBAtlasFederatedDatabaseQueryLimit(),
 	}
@@ -776,4 +770,8 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	}
 
 	return &assumeRole
+}
+
+func pointer[T any](x T) *T {
+	return &x
 }
