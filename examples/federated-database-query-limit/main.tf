@@ -1,64 +1,28 @@
-resource "aws_iam_role_policy" "test_policy" {
-  name   = var.policy_name
-  role   = aws_iam_role.test_role.id
-  policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-      }
-    ]
-  }
-  EOF
-}
-
-resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = var.project_id
-  provider_name = "AWS"
-}
-
-resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+resource "mongodbatlas_cluster" "cluster-1" {
   project_id = var.project_id
-  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-  aws {
-    iam_assumed_role_arn = aws_iam_role.test_role.arn
-  }
+  provider_name               = var.provider_name
+  name                        = var.atlas_cluster_name_1
+  backing_provider_name       = var.backing_provider_name
+  provider_region_name        = var.provider_region_name
+  provider_instance_size_name = var.provider_instance_size_name
 }
 
 
-resource "aws_iam_role" "test_role" {
-  name               = var.role_name
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": {
-          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
-        }
-      }
-    }
-  ]
+resource "mongodbatlas_cluster" "cluster-2" {
+  project_id = var.project_id
+  provider_name               = var.provider_name
+  name                        = var.atlas_cluster_name_2
+  backing_provider_name       = var.backing_provider_name
+  provider_region_name        = var.provider_region_name
+  provider_instance_size_name = var.provider_instance_size_name
 }
-EOF
-}
-
 
 resource "mongodbatlas_federated_database_instance" "test" {
   project_id = var.project_id
-  name       = var.name
+  name       = var.federated_instance_name
   aws {
-    role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-    test_s3_bucket = var.test_s3_bucket
+    role_id        = ""
+    test_s3_bucket = ""
   }
   storage_databases {
     name = "VirtualDatabase0"
@@ -67,18 +31,19 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
         collection = var.collection
         database   = var.database
-        store_name = var.atlas_cluster_name
+        store_name = mongodbatlas_cluster.cluster-1.name
       }
       data_sources {
-        store_name = var.test_s3_bucket
-        path       = var.path
+        collection = var.collection
+        database   = var.database
+        store_name = mongodbatlas_cluster.cluster-2.name
       }
     }
   }
 
   storage_stores {
-    name         = var.atlas_cluster_name
-    cluster_name = var.atlas_cluster_name
+    name         = mongodbatlas_cluster.cluster-1.name
+    cluster_name = mongodbatlas_cluster.cluster-1.name
     project_id   = var.project_id
     provider     = "atlas"
     read_preference {
@@ -87,21 +52,20 @@ resource "mongodbatlas_federated_database_instance" "test" {
   }
 
   storage_stores {
-    bucket    = var.test_s3_bucket
-    delimiter = "/"
-    name      = var.test_s3_bucket
-    prefix    = var.prefix
-    provider  = "s3"
-    region    = var.aws_region
-  }
-
-  storage_stores {
-    name         = "dataStore0"
-    cluster_name = var.atlas_cluster_name
+    name         = mongodbatlas_cluster.cluster-2.name
+    cluster_name = mongodbatlas_cluster.cluster-2.name
     project_id   = var.project_id
     provider     = "atlas"
     read_preference {
       mode = "secondary"
     }
   }
+}
+
+resource "mongodbatlas_federated_query_limit" "qlimitOfProject" {
+  project_id = var.project_id
+  tenant_name = mongodbatlas_federated_database_instance.test.name
+  limit_name = var.federated_query_limit
+  overrun_policy = var.overrun_policy
+  value = var.limit_value
 }

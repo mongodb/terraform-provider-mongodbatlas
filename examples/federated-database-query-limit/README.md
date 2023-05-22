@@ -1,13 +1,12 @@
-# Example - MongoDB Atlas Federated Database Instance with AWS S3
+# Example - MongoDB Atlas Federated Database Query Limit with Atlas clusters
 
-This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/overview/).
+This project aims to provide an example of using [MongoDB Atlas Federated Database Query Limit](https://www.mongodb.com/docs/atlas/data-federation/overview/).
 
 
 ## Dependencies
 
 * Terraform MongoDB Atlas Provider v1.10.0
 * A MongoDB Atlas account 
-* An AWS account
 
 ```
 Terraform v1.10.0
@@ -16,8 +15,7 @@ Terraform v1.10.0
 
 ## Usage
 
-**1\. Ensure to create an Atlas project and a cluster**
-**2\. Create an S3 bucket into your AWS account**
+**Ensure to create an Atlas project**
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
 **3\. Review the Terraform plan. **
@@ -29,9 +27,9 @@ $ terraform plan
 ```
 This project currently supports the below deployments:
 
-- An AWS Policy
-- An AWS Role
-- MongoDB Atlas Federated Database Instance
+- Two MongoDB Atlas clusters in the specified project
+- MongoDB Atlas Federated Database Instance based on Atlas clusters
+- MongoDB Atlas Federated Database Query Limit
 
 **5\. Execute the Terraform apply.**
 

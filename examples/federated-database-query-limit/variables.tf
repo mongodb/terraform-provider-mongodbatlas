@@ -11,63 +11,70 @@ variable "project_id" {
   description = "MongoDB Project ID"
 }
 
-variable "test_s3_bucket" {
+variable "collection_1" {
   type        = string
-  description = "Name of the S3 data bucket that the provided role ID is authorized to access"
+  description = "Human-readable label that identifies the collection in the database in first cluster"
 }
 
-variable "collection" {
+variable "database_1" {
   type        = string
-  description = "Human-readable label that identifies the collection in the database"
+  description = "Human-readable label that identifies the database, which contains the collection in the first cluster"
 }
 
-variable "database" {
+variable "collection_2" {
   type        = string
-  description = "Human-readable label that identifies the database, which contains the collection in the cluster"
+  description = "Human-readable label that identifies the collection in the database in second cluster"
 }
 
-variable "path" {
+variable "database_2" {
   type        = string
-  description = "File path that controls how MongoDB Cloud searches for and parses files in the storeName before mapping them to a collection"
+  description = "Human-readable label that identifies the database, which contains the collection in the second cluster"
 }
 
-variable "prefix" {
+variable "federated_instance_name" {
   type        = string
-  description = "Prefix that controls how MongoDB Cloud searches for and parses files in the storeName before mapping them to a collection"
+  description = "MongoDB Federated Database Instance Name."
+  default     = "FederatedDatabaseInstance0"
 }
 
-variable "name" {
+variable "atlas_cluster_name_1" {
   type        = string
-  description = "MongoDB Federated Database Instance Name"
-  default     = "mongodb_federation_database_instance_test"
+  description = "First Atlas Cluster Name."
+  default     = "ClusterFederatedTest1"
 }
 
-variable "policy_name" {
+variable "atlas_cluster_name_2" {
   type        = string
-  description = "AWS Policy Name"
-  default     = "mongodb_federation_database_instance_policy"
+  description = "First Atlas Cluster Name."
+  default     = "ClusterFederatedTest2"
 }
 
-variable "role_name" {
+variable "provider_region_name" {
   type        = string
-  description = "AWS Role Name"
-  default     = "mongodb_federation_database_instance_role"
+  description = "Physical location where MongoDB Cloud deploys your AWS-hosted MongoDB cluster nodes."
+  default     = "US_EAST_1"
 }
 
-variable "atlas_cluster_name" {
+variable "provider_instance_size_name" {
   type        = string
-  description = "Atlas Cluster Name"
-  default     = "ClusterFederatedTest"
+  description = "Cluster tier. Default is M10"
+  default     = "M10"
 }
 
-variable "access_key" {
-  description = "The access key for an AWS Account"
-}
-variable "secret_key" {
-  description = "The secret key for an AWS Account"
+variable "federated_query_limit" {
+  type        = string
+  description = "Human-readable label that identifies the user-managed limit to modify."
+  default     = "bytesProcessed.monthly"
 }
 
-variable "aws_region" {
-  default     = "ap-southeast-1"
-  description = "AWS Region"
+variable "overrun_policy" {
+  type        = string
+  description = "Action to take when the usage limit is exceeded."
+  default     = "BLOCK"
+}
+
+variable "limit_value" {
+  type        = string
+  description = "Amount to set the federated query limit to."
+  default     = 5147483648
 }

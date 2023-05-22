@@ -12,8 +12,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-type FederatedDatabaseQueryLimitPropName string
-
 const (
 	errorFederatedDatabaseQueryLimitCreate = "error creating MongoDB Atlas Federated Database Query Limit: %s"
 	errorFederatedDatabaseQueryLimitRead   = "error reading MongoDB Atlas Federated Database Query Limit (%s): %s"
