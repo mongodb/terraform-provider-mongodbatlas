@@ -89,6 +89,10 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"is_extended_storage_sizes_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"is_performance_advisor_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -204,6 +208,9 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 	}
 	if err := d.Set("is_data_explorer_enabled", projectSettings.IsDataExplorerEnabled); err != nil {
 		return diag.Errorf(errorProjectSetting, `is_data_explorer_enabled`, project.ID, err)
+	}
+	if err := d.Set("is_extended_storage_sizes_enabled", projectSettings.IsExtendedStorageSizesEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_extended_storage_sizes_enabled`, project.ID, err)
 	}
 	if err := d.Set("is_performance_advisor_enabled", projectSettings.IsPerformanceAdvisorEnabled); err != nil {
 		return diag.Errorf(errorProjectSetting, `is_performance_advisor_enabled`, project.ID, err)
