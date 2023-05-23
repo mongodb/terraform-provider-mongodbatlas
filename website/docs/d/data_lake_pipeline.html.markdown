@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_data_lake_pipeline` describes a Data Lake Pipeline.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
+-> **NOTE:** Groups and projects are synonymous terms. You may find `group_id` in the official documentation.
 
 ~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
