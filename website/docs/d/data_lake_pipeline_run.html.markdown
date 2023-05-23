@@ -16,9 +16,36 @@ description: |-
 ## Example Usage
 
 ```terraform
+resource "mongodbatlas_data_lake_pipeline" "pipeline" {
+      //assuming we've already setup project and cluster in another block
+      project_id       = mongodbatlas_project.projectTest.project_id
+      name             = "DataLakePipelineName"
+      sink {
+        type = "DLS"
+        partition_fields {
+            name = "access"
+            order = 0
+        }
+      }
+      source {
+        type = "ON_DEMAND_CPS"
+        cluster_name = mongodbatlas_cluster.clusterTest.name
+        database_name = "sample_airbnb"
+        collection_name = "listingsAndReviews"
+      }
+      transformations {
+              field = "test"
+              type  = "EXCLUDE"
+      }
+      transformations {
+              field = "test22"
+              type  = "EXCLUDE"
+      }
+}
+
 data "mongodbatlas_data_lake_pipeline_run" "test" {
-  project_id = "PROJECT ID"
-  pipeline_name = "DATA LAKE PIPELINE NAME"
+  project_id       = mongodbatlas_project.projectTest.project_id
+  name = mongodbatlas_data_lake_pipeline.pipeline.name
   pipeline_run_id = "DATA LAKE PIPELINE RUN ID"
 }
 ```
