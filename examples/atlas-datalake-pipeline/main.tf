@@ -4,9 +4,9 @@ resource "mongodbatlas_project" "atlas-project" {
 }
 
 resource "mongodbatlas_advanced_cluster" "automated_backup_test" {
-  project_id                  = mongodbatlas_project.atlas-project.id
-  name                        = var.cluster_name
-  cluster_type                = "REPLICASET"
+  project_id   = mongodbatlas_project.atlas-project.id
+  name         = var.cluster_name
+  cluster_type = "REPLICASET"
 
   replication_specs {
     num_shards = 1
@@ -15,14 +15,14 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test" {
       electable_specs {
         instance_size = "M10"
       }
-      
-      provider_name         = "GCP"
-      region_name           = "US_EAST_1"
-      priority              = 7
+
+      provider_name = "GCP"
+      region_name   = "US_EAST_1"
+      priority      = 7
     }
   }
-  
-  backup_enabled            = true # enable cloud backup snapshots
+
+  backup_enabled = true # enable cloud backup snapshots
 }
 
 resource "mongodbatlas_data_lake_pipeline" "test" {
