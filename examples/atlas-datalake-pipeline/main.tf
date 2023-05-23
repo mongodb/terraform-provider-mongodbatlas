@@ -31,8 +31,8 @@ resource "mongodbatlas_data_lake_pipeline" "test" {
   sink {
     type = "DLS"
     partition_fields {
-      name  = "access"
-      order = 0
+      field_name = "access"
+      order      = 0
     }
   }
 
