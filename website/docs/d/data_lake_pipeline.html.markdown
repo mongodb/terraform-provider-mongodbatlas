@@ -89,7 +89,7 @@ In addition to all arguments above, the following attributes are exported:
   * `sink.0.region` - Target cloud provider region for this Data Lake Pipeline. [Supported cloud provider regions](https://www.mongodb.com/docs/datalake/limitations).
   * `sink.0.partition_fields` - Ordered fields used to physically organize data in the destination.
     * `sink.0.partition_fields.#.name` - Human-readable label that identifies the field name used to partition data.
-    * `sink.0.partition_fields.#.order` - Sequence in which MongoDB Cloud slices the collection data to create partitions. The resource expresses this sequence starting with zero.
+    * `sink.0.partition_fields.#.order` - Sequence in which MongoDB Atlas slices the collection data to create partitions. The resource expresses this sequence starting with zero.
 * `source` - Ingestion Source of a Data Lake Pipeline.
   * `source.0.type` - Type of ingestion source of this Data Lake Pipeline.
   * `source.0.cluster_name` - Human-readable name that identifies the cluster.
