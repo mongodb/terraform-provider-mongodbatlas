@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	resourceName = "mongodbatlas_private_endpoint_service_data_federation_online_archive.test"
+	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 )
@@ -19,18 +19,19 @@ var (
 func TestAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists("mongodbatlas_private_endpoint_service_data_federation_online_archive.test"),
+					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists("mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
 			},
 		},
@@ -41,7 +42,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDe
 	client := testAccProvider.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_private_endpoint_service_data_federation_online_archive" {
+		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
 			continue
 		}
 
@@ -84,12 +85,12 @@ func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveEx
 
 func testAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_private_endpoint_service_data_federation_online_archive" "test" {
-	  project_id				  = %[1]q
-	  endpoint_id			      = %[2]q
-	  provider	                  = "AWS"
-	  type           			  = "DATA_LAKE"
-	  comment					  = "Terraform Acceptance Test"
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id				= %[1]q
+	  endpoint_id				= %[2]q
+	  provider_name				= "AWS"
+	  type						= "DATA_LAKE"
+	  comment					= "Terraform Acceptance Test"
 	}
 	`, projectID, endpointID)
 }

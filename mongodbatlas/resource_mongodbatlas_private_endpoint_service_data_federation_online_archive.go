@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -33,17 +34,18 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive() *sc
 			},
 			"endpoint_id": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
+				ForceNew: true,
+			},
+			"provider_name": {
+				Type:     schema.TypeString,
+				Required: true,
 				ForceNew: true,
 			},
 			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"provider": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -92,7 +94,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveRead(c
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, "comment", projectID, err)
 	}
 
-	if err := d.Set("provider", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, "provider", projectID, err)
 	}
 
@@ -133,7 +135,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveImport
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
-	if err := d.Set("provider", privateEndpoint.Provider); err != nil {
+	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
@@ -158,8 +160,8 @@ func newPrivateLinkEndpointDataLake(d *schema.ResourceData) *matlas.PrivateLinkE
 		out.Comment = v.(string)
 	}
 
-	if v, ok := d.GetOk("provider"); ok {
-		out.Provider = v.(string)
+	if v, ok := d.GetOk("provider_name"); ok && v != "" {
+		out.Provider = strings.ToUpper(v.(string))
 	}
 
 	if v, ok := d.GetOk("type"); ok {
