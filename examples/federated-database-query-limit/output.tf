@@ -1,5 +1,5 @@
 output "mongodbatlas_federated_query_limit_name" {
-  value = mongodbatlas_federated_query_limit.query_limit.limit_name
+  value = mongodbatlas_federated_query_limit.query_limit.name
 }
 
 output "mongodbatlas_federated_query_limit_default_limit" {

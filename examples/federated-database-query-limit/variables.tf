@@ -61,6 +61,16 @@ variable "provider_instance_size_name" {
   default     = "M10"
 }
 
+variable "backing_provider_name" {
+  type    = string
+  default = "AWS"
+}
+
+variable "provider_name" {
+  type    = string
+  default = "AWS"
+}
+
 variable "federated_query_limit" {
   type        = string
   description = "Human-readable label that identifies the user-managed limit to modify."
@@ -74,7 +84,7 @@ variable "overrun_policy" {
 }
 
 variable "limit_value" {
-  type        = string
+  type        = number
   description = "Amount to set the federated query limit to."
   default     = 5147483648
 }

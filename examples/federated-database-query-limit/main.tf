@@ -17,7 +17,7 @@ resource "mongodbatlas_cluster" "cluster-2" {
   provider_instance_size_name = var.provider_instance_size_name
 }
 
-resource "mongodbatlas_federated_database_instance" "test" {
+resource "mongodbatlas_federated_database_instance" "test-instance" {
   project_id = var.project_id
   name       = var.federated_instance_name
   aws {
@@ -62,9 +62,9 @@ resource "mongodbatlas_federated_database_instance" "test" {
   }
 }
 
-resource "mongodbatlas_federated_query_limit" "qlimitOfProject" {
+resource "mongodbatlas_federated_query_limit" "query_limit" {
   project_id     = var.project_id
-  tenant_name    = mongodbatlas_federated_database_instance.test.name
+  tenant_name    = mongodbatlas_federated_database_instance.test-instance.name
   limit_name     = var.federated_query_limit
   overrun_policy = var.overrun_policy
   value          = var.limit_value
