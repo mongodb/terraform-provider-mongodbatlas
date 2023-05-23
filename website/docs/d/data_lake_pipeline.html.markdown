@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: mongodbatlas_data_lake_pipeline
 
-`mongodbatlas_data_lake_pipeline` describe a Data Lake Pipeline.
+`mongodbatlas_data_lake_pipeline` describes a Data Lake Pipeline.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
