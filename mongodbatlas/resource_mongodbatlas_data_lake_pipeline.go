@@ -81,7 +81,7 @@ func resourceMongoDBAtlasDataLakePipeline() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"name": {
+									"field_name": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -506,7 +506,7 @@ func newDataLakePipelinePartitionField(sinkMap map[string]interface{}) []*matlas
 	for i, partitionField := range partitionFields {
 		fieldMap := partitionField.(map[string]interface{})
 		fields[i] = &matlas.DataLakePipelinePartitionField{
-			FieldName: fieldMap["name"].(string),
+			FieldName: fieldMap["field_name"].(string),
 			Order:     int32(fieldMap["order"].(int)),
 		}
 	}
@@ -672,8 +672,8 @@ func flattenDataLakePipelinePartitionFields(atlasDataLakePipelinePartitionFields
 	out := make([]map[string]interface{}, len(atlasDataLakePipelinePartitionFields))
 	for i, atlasDataLakePipelinePartitionField := range atlasDataLakePipelinePartitionFields {
 		out[i] = map[string]interface{}{
-			"name":  atlasDataLakePipelinePartitionField.FieldName,
-			"order": atlasDataLakePipelinePartitionField.Order,
+			"field_name": atlasDataLakePipelinePartitionField.FieldName,
+			"order":      atlasDataLakePipelinePartitionField.Order,
 		}
 	}
 	return out

@@ -21,7 +21,7 @@ resource "mongodbatlas_project" "projectTest" {
   org_id = "ORGANIZATION ID"
 }
 
-resource "mongodbatlas_cluster" "automated_backup_test" {
+resource "mongodbatlas_advanced_cluster" "automated_backup_test" {
     project_id   = "63f4d4a47baeac59406dc131"
     name         = "automated-backup-test"
 
@@ -81,20 +81,6 @@ In addition to all arguments above, the following attributes are exported:
 * `created_date` - Timestamp that indicates when the Data Lake Pipeline was created.
 * `last_updated_date` - Timestamp that indicates the last time that the Data Lake Pipeline was updated.
 * `state` - State of this Data Lake Pipeline.
-* `sink` - Ingestion destination of a Data Lake Pipeline.
-  * `sink.0.type` - Type of ingestion destination of this Data Lake Pipeline.
-  * `sink.0.provider` - Target cloud provider for this Data Lake Pipeline.
-  * `sink.0.region` - Target cloud provider region for this Data Lake Pipeline. [Supported cloud provider regions](https://www.mongodb.com/docs/datalake/limitations).
-  * `sink.0.partition_fields` - Ordered fields used to physically organize data in the destination.
-    * `sink.0.partition_fields.#.name` - Human-readable label that identifies the field name used to partition data.
-    * `sink.0.partition_fields.#.order` - Sequence in which MongoDB Atlas slices the collection data to create partitions. The resource expresses this sequence starting with zero.
-* `source` - Ingestion Source of a Data Lake Pipeline.
-  * `source.0.type` - Type of ingestion source of this Data Lake Pipeline.
-  * `source.0.cluster_name` - Human-readable name that identifies the cluster.
-  * `source.0.collection_name` - Human-readable name that identifies the collection.
-  * `source.0.database_name` - Human-readable name that identifies the database.
-  * `source.0.project_id` - Unique 24-hexadecimal character string that identifies the project.
-  * `source.0.policyItemId` - Unique 24-hexadecimal character string that identifies a policy item.
 * `transformations` - Fields to be excluded for this Data Lake Pipeline.
   * `transformations.#.field` - Key in the document.
   * `transformations.#.type` - Type of transformation applied during the export of the namespace in a Data Lake Pipeline.
@@ -119,5 +105,20 @@ In addition to all arguments above, the following attributes are exported:
   * `ingestion_schedules.#.frequency_interval` - Number that indicates the frequency interval for a set of snapshots.
   * `ingestion_schedules.#.retention_unit` - Unit of time in which MongoDB Atlas measures snapshot retention.
   * `ingestion_schedules.#.retention_value` - Duration in days, weeks, or months that MongoDB Atlas retains the snapshot. 
+
+### `sink` - Ingestion destination of a Data Lake Pipeline
+  * `type` - Type of ingestion destination of this Data Lake Pipeline.
+  * `provider` - Target cloud provider for this Data Lake Pipeline.
+  * `region` - Target cloud provider region for this Data Lake Pipeline. [Supported cloud provider regions](https://www.mongodb.com/docs/datalake/limitations).
+  * `partition_fields` - Ordered fields used to physically organize data in the destination.
+    * `partition_fields.#.field_name` - Human-readable label that identifies the field name used to partition data.
+    * `partition_fields.#.order` - Sequence in which MongoDB Atlas slices the collection data to create partitions. The resource expresses this sequence starting with zero.
+### `source` - Ingestion Source of a Data Lake Pipeline.
+  * `type` - Type of ingestion source of this Data Lake Pipeline.
+  * `cluster_name` - Human-readable name that identifies the cluster.
+  * `collection_name` - Human-readable name that identifies the collection.
+  * `database_name` - Human-readable name that identifies the database.
+  * `project_id` - Unique 24-hexadecimal character string that identifies the project.
+  * `policyItemId` - Unique 24-hexadecimal character string that identifies a policy item.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines) Documentation for more information.

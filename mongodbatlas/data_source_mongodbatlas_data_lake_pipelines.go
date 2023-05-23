@@ -72,7 +72,7 @@ func dataSourceMongoDBAtlasDataLakePipelines() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"name": {
+												"field_name": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},

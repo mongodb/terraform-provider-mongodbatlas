@@ -3,14 +3,26 @@ resource "mongodbatlas_project" "atlas-project" {
   name   = var.atlas_project_name
 }
 
-resource "mongodbatlas_cluster" "automated_backup_test" {
+resource "mongodbatlas_advanced_cluster" "automated_backup_test" {
   project_id                  = mongodbatlas_project.atlas-project.id
   name                        = var.cluster_name
-  provider_name               = "GCP"
-  provider_region_name        = "US_EAST_4"
-  provider_instance_size_name = "M10"
-  cloud_backup                = true # enable cloud backup snapshots
-  mongo_db_major_version      = "6.0"
+  cluster_type                = "REPLICASET"
+
+  replication_specs {
+    num_shards = 1
+
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+      }
+      
+      provider_name         = "GCP"
+      region_name           = "US_EAST_1"
+      priority              = 7
+    }
+  }
+  
+  backup_enabled            = true # enable cloud backup snapshots
 }
 
 resource "mongodbatlas_data_lake_pipeline" "test" {
@@ -26,7 +38,7 @@ resource "mongodbatlas_data_lake_pipeline" "test" {
 
   source {
     type            = "ON_DEMAND_CPS"
-    cluster_name    = mongodbatlas_cluster.automated_backup_test.name
+    cluster_name    = mongodbatlas_advanced_cluster.automated_backup_test.name
     database_name   = "sample_airbnb"
     collection_name = "listingsAndReviews"
   }

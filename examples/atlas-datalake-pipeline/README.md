@@ -38,13 +38,18 @@ This project will deploy the following:
 
 **5\. Execute the Terraform apply.**
 
-Now execute the plan to provision the Federated settings resources.
+Now execute the plan to provision the Atlas Cluster and Federated settings resources.
 
 ``` bash
 $ terraform apply
 ```
 
-**6\. Destroy the resources.**
+**6\. Load Sample data to your recently create Atlas cluster using [AtlasCLI](https://www.mongodb.com/tools/atlas-cli)**
+```bash
+    atlas clusters loadSampleData <clusterName>
+```
+
+**7\. Destroy the resources.**
 
 When you finish testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 

@@ -84,26 +84,24 @@ func testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName string, pipelin
 
 func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "aws_conf" {
-			project_id   = "%[1]s"
-			name         = "%[2]s"
-		
+		resource "mongodbatlas_advanced_cluster" "aws_conf" {
+			project_id   = %[1]q
+			name         = %[2]q
 			cluster_type = "REPLICASET"
+		  
 			replication_specs {
-				num_shards = 1
-				regions_config {
-					region_name     = "US_EAST_2"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
+			  region_configs {
+				electable_specs {
+				  instance_size = "M10"
+				  node_count    = 3
 				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "US_EAST_1"
+			  }
 			}
 			backup_enabled               = true
-		
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-		}
+		  }
 
 		resource "mongodbatlas_data_lake_pipeline" "test" {
 			project_id       = "%[1]s"
@@ -111,7 +109,7 @@ func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineN
 			sink {
 				type = "DLS"
 				partition_fields {
-						name = "access"
+						field_name = "access"
 						order = 0
 				}
 			}	
@@ -119,7 +117,7 @@ func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineN
 
 			source {
 				type = "ON_DEMAND_CPS"
-				cluster_name = mongodbatlas_cluster.aws_conf.name
+				cluster_name = mongodbatlas_advanced_cluster.aws_conf.name
 				database_name = "sample_airbnb"
 				collection_name = "listingsAndReviews"
 			}
