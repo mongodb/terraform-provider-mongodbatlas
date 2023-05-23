@@ -18,14 +18,14 @@ description: |-
 ```terraform
 data "mongodbatlas_data_lake_pipeline_runs" "test" {
   project_id = "PROJECT ID"
-  name = "DATA LAKE PIPELINE NAME"
+  pipeline_name = "DATA LAKE PIPELINE NAME"
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `name` - (Required) Human-readable label that identifies the Data Lake Pipeline.
+* `pipeline_name` - (Required) Human-readable label that identifies the Data Lake Pipeline.
 
 ## Attributes Reference
 * `results` - A list where each represents a Data Lake Pipeline Run.

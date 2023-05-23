@@ -37,7 +37,7 @@ func testAccMongoDBAtlasDataLakeDataSourcePipelineRunConfig(projectID, pipelineN
 
 data "mongodbatlas_data_lake_pipeline_run" "test" {
   project_id           = %[1]q
-  name                 = %[2]q
+  pipeline_name        = %[2]q
   pipeline_run_id      = %[3]q
 }
 	`, projectID, pipelineName, runID)

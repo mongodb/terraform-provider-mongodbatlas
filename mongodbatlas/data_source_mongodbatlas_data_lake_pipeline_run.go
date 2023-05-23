@@ -20,7 +20,7 @@ func dataSourceMongoDBAtlasDataLakePipelineRun() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"name": {
+			"pipeline_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -88,7 +88,7 @@ func dataSourceMongoDBAtlasDataLakePipelineRun() *schema.Resource {
 func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	name := d.Get("name").(string)
+	name := d.Get("pipeline_name").(string)
 	pipelineRunID := d.Get("pipeline_run_id").(string)
 
 	dataLakeRun, resp, err := conn.DataLakePipeline.GetRun(ctx, projectID, name, pipelineRunID)
@@ -147,7 +147,7 @@ func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.Resour
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":      projectID,
-		"name":            name,
+		"pipeline_name":   name,
 		"pipeline_run_id": pipelineRunID,
 	}))
 
