@@ -207,3 +207,9 @@ func testCheckFederatedSettings(tb testing.TB) {
 		tb.Fatal("`MONGODB_ATLAS_FEDERATED_PROJECT_ID`, `MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings/verify acceptance testing")
 	}
 }
+
+func testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
+		tb.Skip("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
+	}
+}
