@@ -25,7 +25,12 @@ func TestAccBackupDSDataLakePipelineRun_basic(t *testing.T) {
 				Config: testAccMongoDBAtlasDataLakeDataSourcePipelineRunConfig(projectID, pipelineName, runID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", pipelineName),
+					resource.TestCheckResourceAttr(dataSourceName, "pipeline_name", pipelineName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "state"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "phase"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "pipeline_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "dataset_name"),
 				),
 			},
 		},
