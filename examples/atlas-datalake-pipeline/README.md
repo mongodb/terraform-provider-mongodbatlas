@@ -28,6 +28,8 @@ Execute the following command:
 ``` bash
 $ terraform plan
 ```
+Review the output of `terraform plan` to make sure the changes are correct.
+
 This project will deploy the following:
 
 - MongoDB Atlas Project
