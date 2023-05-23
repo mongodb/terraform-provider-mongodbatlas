@@ -23,7 +23,7 @@ Now create **terraform.tfvars** file with all the variable values and make sure 
 
 **3\. Review the Terraform plan.**
 
-Execute the below command and ensure you are happy with the plan.
+Execute the following command:
 
 ``` bash
 $ terraform plan
