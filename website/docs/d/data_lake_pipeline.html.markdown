@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `group_id` in the official documentation.
 
-~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
+~> **IMPORTANT:** All arguments including the password will be stored in plain-text. [Read more about handling sensitive data in Terraform state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
 ## Example Usages
 
