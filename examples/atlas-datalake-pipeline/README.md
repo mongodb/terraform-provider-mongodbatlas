@@ -1,6 +1,6 @@
-# Example - Okta and MongoDB Atlas DataLake Pipeline
+# Example - MongoDB Atlas DataLake Pipeline
 
-This project provides an example of using Okta and MongoDB Atlas together.
+This project provides an example of MongoDB Atlas DataLake Pipeline.
 
 
 ## Dependencies

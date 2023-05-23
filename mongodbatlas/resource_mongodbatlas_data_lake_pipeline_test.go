@@ -87,7 +87,6 @@ func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineN
 		resource "mongodbatlas_cluster" "aws_conf" {
 			project_id   = "%[1]s"
 			name         = "%[2]s"
-			disk_size_gb = 10
 		
 			cluster_type = "REPLICASET"
 			replication_specs {
@@ -100,7 +99,6 @@ func testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineN
 				}
 			}
 			backup_enabled               = true
-			auto_scaling_disk_gb_enabled = false
 		
 			// Provider Settings "block"
 			provider_name               = "AWS"

@@ -10,9 +10,7 @@ description: |-
 
 `mongodbatlas_data_lake_pipeline` provides a Data Lake Pipeline resource.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
-~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
+-> **NOTE:** Groups and projects are synonymous terms. You may find `group_id` in the official documentation.
 
 ## Example Usages
 
@@ -84,7 +82,7 @@ In addition to all arguments above, the following attributes are exported:
   * `sink.0.region` - Target cloud provider region for this Data Lake Pipeline. [Supported cloud provider regions](https://www.mongodb.com/docs/datalake/limitations).
   * `sink.0.partition_fields` - Ordered fields used to physically organize data in the destination.
     * `sink.0.partition_fields.#.name` - Human-readable label that identifies the field name used to partition data.
-    * `sink.0.partition_fields.#.order` - Sequence in which MongoDB Cloud slices the collection data to create partitions. The resource expresses this sequence starting with zero.
+    * `sink.0.partition_fields.#.order` - Sequence in which MongoDB Atlas slices the collection data to create partitions. The resource expresses this sequence starting with zero.
 * `source` - Ingestion Source of a Data Lake Pipeline.
   * `source.0.type` - Type of ingestion source of this Data Lake Pipeline.
   * `source.0.cluster_name` - Human-readable name that identifies the cluster.
@@ -98,24 +96,24 @@ In addition to all arguments above, the following attributes are exported:
 * `snapshots` - List of backup snapshots that you can use to trigger an on demand pipeline run.
   * `snapshots.#.id` - Unique 24-hexadecimal digit string that identifies the snapshot.
   * `snapshots.#.provider` - Human-readable label that identifies the cloud provider that stores this snapshot.
-  * `snapshots.#.created_at` - Date and time when MongoDB Cloud took the snapshot.
-  * `snapshots.#.expires_at` - Date and time when MongoDB Cloud deletes the snapshot.
+  * `snapshots.#.created_at` - Date and time when MongoDB Atlas took the snapshot.
+  * `snapshots.#.expires_at` - Date and time when MongoDB Atlas deletes the snapshot.
   * `snapshots.#.frequency_type` - Human-readable label that identifies how often this snapshot triggers.
   * `snapshots.#.master_key` - Unique string that identifies the Amazon Web Services (AWS) Key Management Service (KMS) Customer Master Key (CMK) used to encrypt the snapshot.
   * `snapshots.#.mongod_version` - Version of the MongoDB host that this snapshot backs up.
-  * `snapshots.#.replica_set_name` - Human-readable label that identifies the replica set from which MongoDB Cloud took this snapshot.
+  * `snapshots.#.replica_set_name` - Human-readable label that identifies the replica set from which MongoDB Atlas took this snapshot.
   * `snapshots.#.type` - Human-readable label that categorizes the cluster as a replica set or sharded cluster.
   * `snapshots.#.snapshot_type` - Human-readable label that identifies when this snapshot triggers.
   * `snapshots.#.status` - Human-readable label that indicates the stage of the backup process for this snapshot.
   * `snapshots.#.size` - List of backup snapshots that you can use to trigger an on demand pipeline run.
-  * `snapshots.#.copy_region` - List that identifies the regions to which MongoDB Cloud copies the snapshot.
+  * `snapshots.#.copy_region` - List that identifies the regions to which MongoDB Atlas copies the snapshot.
   * `snapshots.#.policies` - List that contains unique identifiers for the policy items.
 * `ingestion_schedules` - List of backup schedule policy items that you can use as a Data Lake Pipeline source.
   * `ingestion_schedules.#.id` - Unique 24-hexadecimal digit string that identifies this backup policy item.
   * `ingestion_schedules.#.frequency_type` - Human-readable label that identifies the frequency type associated with the backup policy.
   * `ingestion_schedules.#.frequency_interval` - Number that indicates the frequency interval for a set of snapshots.
-  * `ingestion_schedules.#.retention_unit` - Unit of time in which MongoDB Cloud measures snapshot retention.
-  * `ingestion_schedules.#.retention_value` - Duration in days, weeks, or months that MongoDB Cloud retains the snapshot. 
+  * `ingestion_schedules.#.retention_unit` - Unit of time in which MongoDB Atlas measures snapshot retention.
+  * `ingestion_schedules.#.retention_value` - Duration in days, weeks, or months that MongoDB Atlas retains the snapshot. 
 
 
 
