@@ -72,7 +72,7 @@ data "mongodbatlas_data_lake_pipeline" "pipelineDataSource" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a data lake pipeline.
+* `project_id` - (Required) The unique ID for the project to create a Data Lake Pipeline.
 * `name` - (Required) Name of the Atlas Data Lake Pipeline.
 
 ## Attributes Reference
