@@ -7,7 +7,7 @@ This project provides an example of using Okta and MongoDB Atlas together.
 
 * Terraform v0.13
 * A MongoDB Atlas account 
-
+You will also need to install the Atlas Terraform provider:
 ```
 Terraform v0.13.0
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
