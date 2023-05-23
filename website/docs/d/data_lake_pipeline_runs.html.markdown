@@ -45,7 +45,7 @@ resource "mongodbatlas_data_lake_pipeline" "pipeline" {
 
 data "mongodbatlas_data_lake_pipeline_runs" "test" {
   project_id       = mongodbatlas_project.projectTest.project_id
-  pipeline_name = "DATA LAKE PIPELINE NAME"
+  pipeline_name    = mongodbatlas_data_lake_pipeline.pipeline.name
 }
 ```
 
