@@ -46,7 +46,7 @@ $ terraform apply
 
 **6\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+When you finish testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
 ``` bash
 $ terraform destroy
