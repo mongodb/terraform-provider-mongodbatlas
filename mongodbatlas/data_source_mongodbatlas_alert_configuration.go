@@ -159,15 +159,6 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"flowdock_api_token": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-						"flow_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"interval_min": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -182,10 +173,6 @@ func dataSourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Computed:  true,
 						},
 						"ops_genie_region": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"org_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
