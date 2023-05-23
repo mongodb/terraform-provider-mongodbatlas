@@ -1,5 +1,5 @@
 resource "mongodbatlas_cluster" "cluster-1" {
-  project_id = var.project_id
+  project_id                  = var.project_id
   provider_name               = var.provider_name
   name                        = var.atlas_cluster_name_1
   backing_provider_name       = var.backing_provider_name
@@ -9,7 +9,7 @@ resource "mongodbatlas_cluster" "cluster-1" {
 
 
 resource "mongodbatlas_cluster" "cluster-2" {
-  project_id = var.project_id
+  project_id                  = var.project_id
   provider_name               = var.provider_name
   name                        = var.atlas_cluster_name_2
   backing_provider_name       = var.backing_provider_name
@@ -63,9 +63,9 @@ resource "mongodbatlas_federated_database_instance" "test" {
 }
 
 resource "mongodbatlas_federated_query_limit" "qlimitOfProject" {
-  project_id = var.project_id
-  tenant_name = mongodbatlas_federated_database_instance.test.name
-  limit_name = var.federated_query_limit
+  project_id     = var.project_id
+  tenant_name    = mongodbatlas_federated_database_instance.test.name
+  limit_name     = var.federated_query_limit
   overrun_policy = var.overrun_policy
-  value = var.limit_value
+  value          = var.limit_value
 }
