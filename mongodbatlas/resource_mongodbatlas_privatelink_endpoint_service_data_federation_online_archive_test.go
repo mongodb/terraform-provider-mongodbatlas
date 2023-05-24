@@ -17,7 +17,7 @@ var (
 )
 
 func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
-	// testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
+	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
@@ -34,8 +34,27 @@ func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_ba
 					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "provider_name"),
 				),
 			},
+			{
+				ResourceName:      resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveFunc(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
+}
+
+func testAccCheckMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s--%s", ids["project_id"], ids["endpoint_id"]), nil
+	}
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDestroy(s *terraform.State) error {

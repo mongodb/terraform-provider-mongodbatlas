@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -123,8 +124,10 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDe
 
 func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
-	projectID := d.Get("project_id").(string)
-	endpointID := d.Get("endpoint_id").(string)
+	projectID, endpointID, err := splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(d.Id())
+	if err != nil {
+		return nil, err
+	}
 
 	privateEndpoint, _, err := conn.DataLakes.GetPrivateLinkEndpoint(ctx, projectID, endpointID)
 	if err != nil {
@@ -143,12 +146,34 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveIm
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}
 
+	if err := d.Set("endpoint_id", privateEndpoint.EndpointID); err != nil {
+		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
+	}
+
+	if err := d.Set("project_id", projectID); err != nil {
+		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":  projectID,
 		"endpoint_id": endpointID,
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(id string) (projectID, endpointID string, err error) {
+	var parts = strings.Split(id, "--")
+
+	if len(parts) != 2 {
+		err = errors.New("import format error: to import a Data Lake, use the format {project_id}--{name}")
+		return
+	}
+
+	projectID = parts[0]
+	endpointID = parts[1]
+
+	return
 }
 
 func newPrivateLinkEndpointDataLake(d *schema.ResourceData) *matlas.PrivateLinkEndpointDataLake {
