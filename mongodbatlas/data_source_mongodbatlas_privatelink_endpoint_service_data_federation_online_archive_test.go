@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	dataSourcePrivateLinkEndpointServiceDataFederetionDataArchive = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -22,11 +22,11 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArch
 				Config: testAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
-					resource.TestCheckResourceAttr(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchive, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchive, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttrSet(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchive, "comment"),
-					resource.TestCheckResourceAttrSet(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchive, "type"),
-					resource.TestCheckResourceAttrSet(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchive, "provider_name"),
+					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "comment"),
+					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "type"),
+					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchive, "provider_name"),
 				),
 			},
 		},

@@ -16,7 +16,7 @@ var (
 	endpointID                                                        = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 )
 
-func TestAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+func TestAccMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	// testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },

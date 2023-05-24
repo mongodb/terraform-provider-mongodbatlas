@@ -18,13 +18,13 @@ const (
 	errorPrivateEndpointServiceDataFederationOnlineArchiveImport = "error importing Private Endpoing %s for projectId %s: %w"
 )
 
-func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive() *schema.Resource {
+func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveCreate,
-		ReadContext:   resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveRead,
-		DeleteContext: resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDelete,
+		CreateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate,
+		ReadContext:   resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead,
+		DeleteContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveImportState,
+			StateContext: resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState,
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -56,7 +56,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive() *sc
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
@@ -71,10 +71,10 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveCreate
 		"endpoint_id": endpointID,
 	}))
 
-	return resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveRead(ctx, d, meta)
+	return resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -105,7 +105,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveRead(c
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -121,7 +121,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveDelete
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)

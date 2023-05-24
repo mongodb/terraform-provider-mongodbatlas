@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	dataSourcePrivateLinkEndpointServiceDataFederetionDataArchives = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives.test"
+	dataSourcePrivatelinkEndpointServiceDataFederetionDataArchives = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives.test"
 )
 
-func TestAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchives_basic(t *testing.T) {
+func TestAccDataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchives_basic(t *testing.T) {
 	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -22,8 +22,8 @@ func TestAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArch
 				Config: testAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchivesConfig(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
-					resource.TestCheckResourceAttr(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchives, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(dataSourcePrivateLinkEndpointServiceDataFederetionDataArchives, "results.#"),
+					resource.TestCheckResourceAttr(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchives, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(dataSourcePrivatelinkEndpointServiceDataFederetionDataArchives, "results.#"),
 				),
 			},
 		},

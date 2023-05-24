@@ -12,9 +12,9 @@ import (
 
 const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
 
-func dataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchives() *schema.Resource {
+func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchives() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchivesRead,
+		ReadContext: dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -48,7 +48,7 @@ func dataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchives() 
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
