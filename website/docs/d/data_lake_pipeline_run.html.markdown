@@ -43,10 +43,15 @@ resource "mongodbatlas_data_lake_pipeline" "pipeline" {
       }
 }
 
+data "mongodbatlas_data_lake_pipeline_runs" "pipeline_run" {
+      project_id       = mongodbatlas_project.projectTest.project_id
+      name             = mongodbatlas_data_lake_pipeline.pipeline.name
+}
+
 data "mongodbatlas_data_lake_pipeline_run" "test" {
   project_id       = mongodbatlas_project.projectTest.project_id
   pipeline_name    = mongodbatlas_data_lake_pipeline.pipeline.name
-  pipeline_run_id = "DATA LAKE PIPELINE RUN ID"
+  pipeline_run_id  = mongodbatlas_data_lake_pipeline_runs.pipeline_run.results.0.pipeline_run_id   # pipeline_run_id will only be returned if a schedule or ondemand run is active
 }
 ```
 
