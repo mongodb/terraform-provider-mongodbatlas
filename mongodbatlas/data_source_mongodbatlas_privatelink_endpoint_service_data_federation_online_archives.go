@@ -67,7 +67,6 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 }
 
 func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []*matlas.PrivateLinkEndpointDataLake) []map[string]interface{} {
-
 	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
 		return []map[string]interface{}{}
 	}
