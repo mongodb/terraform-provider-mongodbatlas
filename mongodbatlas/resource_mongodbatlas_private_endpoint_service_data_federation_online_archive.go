@@ -91,15 +91,15 @@ func resourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveRead(c
 	}
 
 	if err := d.Set("comment", privateEndpoint.Comment); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, "comment", projectID, err)
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
 	if err := d.Set("provider_name", privateEndpoint.Provider); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, "provider", projectID, err)
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
 	if err := d.Set("type", privateEndpoint.Type); err != nil {
-		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, "type", projectID, err)
+		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endopointID, projectID, err)
 	}
 
 	return nil

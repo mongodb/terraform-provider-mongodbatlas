@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
-	projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	endpointID   = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	projectID                                                         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	endpointID                                                        = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 )
 
 func TestAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
-	testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
+	// testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(t)
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
@@ -26,12 +26,12 @@ func TestAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchive_basic(
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveConfig(projectID, endpointID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists("mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					testAccCheckMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArchiveExists(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive),
+					resource.TestCheckResourceAttr(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "comment"),
+					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "type"),
+					resource.TestCheckResourceAttrSet(resourceNamePrivatelinkEdnpointServiceDataFederationOnlineArchive, "provider_name"),
 				),
 			},
 		},
