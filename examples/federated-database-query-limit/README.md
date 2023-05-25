@@ -15,10 +15,12 @@ Terraform v1.10.0
 
 ## Usage
 
-**Ensure to create an Atlas project**
+**1\. Ensure to create an Atlas project**
+
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
-**3\. Review the Terraform plan. **
+**2\. Review the Terraform plan**
+
 
 Execute the below command and ensure you are happy with the plan.
 
@@ -31,7 +33,7 @@ This project currently supports the below deployments:
 - MongoDB Atlas Federated Database Instance based on Atlas clusters
 - MongoDB Atlas Federated Database Query Limit
 
-**5\. Execute the Terraform apply.**
+**3\. Execute the Terraform apply.**
 
 Now execute the plan to provision the Federated settings resources.
 
@@ -39,7 +41,7 @@ Now execute the plan to provision the Federated settings resources.
 $ terraform apply
 ```
 
-**6\. Destroy the resources.**
+**4\. Destroy the resources.**
 
 Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 

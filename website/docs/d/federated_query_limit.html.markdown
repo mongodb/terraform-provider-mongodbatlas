@@ -6,7 +6,7 @@ description: |-
     Provides a Federated Database Instance Query Limit.
 ---
 
-# # Data Source: mongodbatlas_federated_query_limit
+## Data Source: mongodbatlas_federated_query_limit
 
 `mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limit data source.
 
