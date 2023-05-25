@@ -13,17 +13,9 @@ func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "data.mongodbatlas_federated_query_limits.test"
-		// orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		// projectName  = acctest.RandomWithPrefix("test-acc-project")
-		// tenantName   = acctest.RandomWithPrefix("test-acc-tenant-name")
-		// limitName    = "bytesProcessed.monthly"
-
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc-project")
-		tenantName  = acctest.RandomWithPrefix("test-acc-tenant")
-		// limitName   = "bytesProcessed.monthly"
-
-		// name              = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc-project")
+		tenantName   = acctest.RandomWithPrefix("test-acc-tenant")
 		policyName   = acctest.RandomWithPrefix("test-acc")
 		roleName     = acctest.RandomWithPrefix("test-acc")
 		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
@@ -193,88 +185,3 @@ resource "mongodbatlas_federated_query_limit" "test" {
 
 	`, name, testS3Bucket)
 }
-
-// func testAccMongoDBAtlasFederatedDatabaseQueryLimitsDataSourceConfig(projectName, orgID, tenantName, limitName string) string {
-// 	return fmt.Sprintf(`
-// 	resource "mongodbatlas_project" "project-tf" {
-// 		name   = %[1]q
-// 		org_id = %[2]q
-// 	 }
-
-// 	 resource "mongodbatlas_cluster" "cluster-1" {
-// 		project_id = mongodbatlas_project.project-tf.id
-// 		provider_name               = "AWS"
-// 		name                        = "tfCluster0"
-// 		backing_provider_name       = "AWS"
-// 		provider_region_name        = "US_EAST_1"
-// 		provider_instance_size_name = "M10"
-// 	  }
-
-// 	  resource "mongodbatlas_cluster" "cluster-2" {
-// 		project_id = mongodbatlas_project.project-tf.id
-// 		provider_name               = "AWS"
-// 		name                        = "tfCluster1"
-// 		backing_provider_name       = "AWS"
-// 		provider_region_name        = "US_EAST_1"
-// 		provider_instance_size_name = "M10"
-// 	  }
-
-// 	  resource "mongodbatlas_federated_database_instance" "db-instance" {
-// 		project_id = mongodbatlas_project.project-tf.id
-// 		name       = %[3]q
-// 		aws {
-// 		  role_id        = ""
-// 		  test_s3_bucket = ""
-// 		}
-// 		storage_databases {
-// 		  name = "VirtualDatabase0"
-// 		  collections {
-// 			name = "VirtualCollection0"
-// 			data_sources {
-// 			  collection = "listingsAndReviews"
-// 			  database   = "sample_airbnb"
-// 			  store_name = mongodbatlas_cluster.cluster-1.name
-// 			}
-// 			data_sources {
-// 			  collection = "listingsAndReviews"
-// 			  database   = "sample_airbnb"
-// 			  store_name = mongodbatlas_cluster.cluster-2.name
-// 			}
-// 		  }
-// 		}
-
-// 		storage_stores {
-// 		  name         = mongodbatlas_cluster.cluster-1.name
-// 		  cluster_name = mongodbatlas_cluster.cluster-1.name
-// 		  project_id   = mongodbatlas_project.project-tf.id
-// 		  provider     = "atlas"
-// 		  read_preference {
-// 			mode = "secondary"
-// 		  }
-// 		}
-
-// 		storage_stores {
-// 		  name         = mongodbatlas_cluster.cluster-2.name
-// 		  cluster_name = mongodbatlas_cluster.cluster-2.name
-// 		  project_id   = mongodbatlas_project.project-tf.id
-// 		  provider     = "atlas"
-// 		  read_preference {
-// 			mode = "secondary"
-// 		  }
-// 		}
-// 	  }
-
-// 	  resource "mongodbatlas_federated_query_limit" "query-limit" {
-// 		project_id = mongodbatlas_project.project-tf.id
-// 		tenant_name = mongodbatlas_federated_database_instance.db-instance.name
-// 		limit_name = %[4]q
-// 		overrun_policy = "BLOCK"
-// 		value = 5147483648
-// 	  }
-
-// 	  data "mongodbatlas_federated_query_limits" "test" {
-// 		project_id = mongodbatlas_project.project-tf.id
-// 		tenant_name = mongodbatlas_federated_database_instance.db-instance.name
-// 	  }
-// 	`, projectName, orgID, tenantName, limitName)
-// }

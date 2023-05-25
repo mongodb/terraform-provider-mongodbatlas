@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	errorFederatedDatabaseQueryLimitCreate = "error creating MongoDB Atlas Federated Database Query Limit: %s"
+	errorFederatedDatabaseQueryLimitCreate = "error creating MongoDB Atlas Federated Database Query Limit (%s): %s"
 	errorFederatedDatabaseQueryLimitRead   = "error reading MongoDB Atlas Federated Database Query Limit (%s): %s"
 	errorFederatedDatabaseQueryLimitDelete = "error deleting MongoDB Atlas Federated Database Query Limit (%s): %s"
 	errorFederatedDatabaseQueryLimitUpdate = "error updating MongoDB Atlas Federated Database Query Limit (%s): %s"
@@ -84,7 +84,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 
 	federatedDatabaseQueryLimit, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitCreate, err))
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitCreate, limitName, err))
 	}
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":  projectID,
@@ -108,7 +108,6 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitRead, limitName, err))
 	}
 
@@ -141,7 +140,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 
 	_, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitCreate, err))
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitUpdate, limitName, err))
 	}
 
 	return resourceMongoDBFederatedDatabaseQueryLimitRead(ctx, d, meta)
