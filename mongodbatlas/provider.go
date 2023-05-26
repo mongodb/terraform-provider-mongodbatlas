@@ -275,6 +275,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_identity_provider":    resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
 		"mongodbatlas_federated_database_instance":             resourceMongoDBAtlasFederatedDatabaseInstance(),
 		"mongodbatlas_serverless_instance":                     resourceMongoDBAtlasServerlessInstance(),
+		"mongodbatlas_cluster_outage_simulation":               resourceMongoDBAtlasClusterOutageSimulation(),
 	}
 	return resourcesMap
 }
