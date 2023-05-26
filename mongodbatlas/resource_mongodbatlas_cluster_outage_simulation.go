@@ -156,7 +156,6 @@ func resourceMongoDBClusterOutageSimulationUpdate(ctx context.Context, d *schema
 }
 
 func convertOutageSimulationToSchema(outageSimulation *matlas.ClusterOutageSimulation, d *schema.ResourceData) error {
-
 	if err := d.Set("state", outageSimulation.State); err != nil {
 		return fmt.Errorf(errorClusterOutageSimulationSetting, "state", err)
 	}
