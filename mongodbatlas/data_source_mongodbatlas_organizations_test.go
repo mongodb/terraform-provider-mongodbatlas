@@ -42,13 +42,13 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasOrganizationsConfigWithDS(IncludeDeletedOrgs bool) string {
+func testAccMongoDBAtlasOrganizationsConfigWithDS(includedeletedorgs bool) string {
 	config := fmt.Sprintf(`
 		
 		data "mongodbatlas_organizations" "test" {
 			include_deleted_orgs = %t
 		}
-	`, IncludeDeletedOrgs)
+	`, includedeletedorgs)
 	return config
 }
 
