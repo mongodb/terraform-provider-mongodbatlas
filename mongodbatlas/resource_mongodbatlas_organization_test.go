@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccConfigRSOrganization_Basic(t *testing.T) {
-	t.Skip()
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
@@ -41,7 +41,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 }
 
 func TestAccConfigRSOrganization_importBasic(t *testing.T) {
-	t.Skip()
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_organization.test"
 		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
