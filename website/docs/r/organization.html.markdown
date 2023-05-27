@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_organization` provides a Organization resource. This allows organization to be created.
 
-~> **IMPORTANT NOTE:**  Creating an organization with this resource creates initial public and private key values that will need to be used in a seperate terraform module/blueprint to permit access to new organization.
+~> **IMPORTANT NOTE:**  Creating an organization with this resource creates initial public and private key values that will need to be used in a separate terraform module/blueprint to permit access to new organization.
 
 
 ## Example Usage
