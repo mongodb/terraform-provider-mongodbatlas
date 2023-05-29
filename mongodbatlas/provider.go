@@ -220,6 +220,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_database_instances":             dataSourceMongoDBAtlasFederatedDatabaseInstances(),
 		"mongodbatlas_serverless_instance":                      dataSourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_serverless_instances":                     dataSourceMongoDBAtlasServerlessInstances(),
+		"mongodbatlas_cluster_outage_simulation":                dataSourceMongoDBAtlasClusterOutageSimulation(),
 	}
 	return dataSourcesMap
 }
