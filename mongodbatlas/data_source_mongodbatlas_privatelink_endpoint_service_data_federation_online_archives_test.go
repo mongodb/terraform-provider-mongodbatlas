@@ -36,7 +36,6 @@ func testAccDataSourceMongoDBAtlasPrivateEndpointServiceDataFederationOnlineArch
 	  project_id				= %[1]q
 	  endpoint_id				= %[2]q
 	  provider_name				= "AWS"
-	  type						= "DATA_LAKE"
 	  comment					= "Terraform Acceptance Test"
 	}
 

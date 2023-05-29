@@ -17,6 +17,7 @@ const (
 	errorPrivateEndpointServiceDataFederationOnlineArchiveDelete = "error deleting Private Endpoing %s for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveRead   = "error reading Private Endpoing %s for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveImport = "error importing Private Endpoing %s for projectId %s: %w"
+	endpointType                                                 = "DATA_LAKE"
 )
 
 func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive() *schema.Resource {
@@ -50,7 +51,6 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive()
 			},
 			"type": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 		},
@@ -179,6 +179,7 @@ func splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(id string) 
 func newPrivateLinkEndpointDataLake(d *schema.ResourceData) *matlas.PrivateLinkEndpointDataLake {
 	out := matlas.PrivateLinkEndpointDataLake{
 		EndpointID: d.Get("endpoint_id").(string),
+		Type:       endpointType,
 	}
 
 	if v, ok := d.GetOk("comment"); ok {
@@ -187,10 +188,6 @@ func newPrivateLinkEndpointDataLake(d *schema.ResourceData) *matlas.PrivateLinkE
 
 	if v, ok := d.GetOk("provider_name"); ok && v != "" {
 		out.Provider = strings.ToUpper(v.(string))
-	}
-
-	if v, ok := d.GetOk("type"); ok {
-		out.Type = v.(string)
 	}
 
 	return &out
