@@ -3,9 +3,12 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -16,6 +19,7 @@ const (
 	errorClusterOutageSimulationRead    = "error getting MongoDB Atlas Cluster Outage Simulation for Project (%s), Cluster (%s): %s"
 	errorClusterOutageSimulationDelete  = "error ending MongoDB Atlas Cluster Outage Simulation for Project (%s), Cluster (%s): %s"
 	errorClusterOutageSimulationSetting = "error setting `%s` for MongoDB Atlas Cluster Outage Simulation: %s"
+	defaultOutageFilterType             = "REGION"
 )
 
 func resourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
@@ -24,6 +28,9 @@ func resourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 		ReadContext:   resourceMongoDBAClusterOutageSimulationRead,
 		UpdateContext: resourceMongoDBClusterOutageSimulationUpdate,
 		DeleteContext: resourceMongoDBAtlasClusterOutageSimulationDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(25 * time.Minute),
+		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -49,7 +56,7 @@ func resourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 						},
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Computed: true,
 						},
 					},
 				},
@@ -84,6 +91,22 @@ func resourceMongoDBClusterOutageSimulationCreate(ctx context.Context, d *schema
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, err))
 	}
+
+	timeout := d.Timeout(schema.TimeoutCreate)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"START_REQUESTED", "STARTING"},
+		Target:     []string{"SIMULATING"},
+		Refresh:    resourceClusterOutageSimulationRefreshFunc(ctx, clusterName, projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 1 * time.Minute,
+		Delay:      3 * time.Minute,
+	}
+
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, err))
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
@@ -100,7 +123,7 @@ func newOutageFilters(d *schema.ResourceData) []matlas.ClusterOutageSimulationOu
 		outageFilters[k] = matlas.ClusterOutageSimulationOutageFilter{
 			CloudProvider: pointy.String(a["cloud_provider"].(string)),
 			RegionName:    pointy.String(a["region_name"].(string)),
-			Type:          pointy.String(a["type"].(string)),
+			Type:          pointy.String(defaultOutageFilterType),
 		}
 	}
 
@@ -123,8 +146,7 @@ func resourceMongoDBAClusterOutageSimulationRead(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationRead, projectID, clusterName, err))
 	}
 
-	err = convertOutageSimulationToSchema(outageSimulation, d)
-	if err != nil {
+	if err = convertOutageSimulationToSchema(outageSimulation, d); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -148,11 +170,46 @@ func resourceMongoDBAtlasClusterOutageSimulationDelete(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err))
 	}
 
+	log.Println("[INFO] Waiting for MongoDB Cluster Outage Simulation to end")
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"RECOVERY_REQUESTED", "RECOVERING", "COMPLETE"},
+		Target:     []string{"DELETED"},
+		Refresh:    resourceClusterOutageSimulationRefreshFunc(ctx, clusterName, projectID, conn),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err))
+	}
+
 	return nil
 }
 
 func resourceMongoDBClusterOutageSimulationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return diag.FromErr(fmt.Errorf("updating a Cluster Outage Simulation is not supported"))
+}
+
+func resourceClusterOutageSimulationRefreshFunc(ctx context.Context, clusterName, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		outageSimulation, resp, err := client.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
+
+		if err != nil {
+			if resp.StatusCode == 404 {
+				return "", "DELETED", nil
+			}
+			return nil, "", err
+		}
+
+		if *outageSimulation.State != "" {
+			log.Printf("[DEBUG] status for MongoDB cluster outage simulation: %s: %s", clusterName, *outageSimulation.State)
+		}
+
+		return outageSimulation, *outageSimulation.State, nil
+	}
 }
 
 func convertOutageSimulationToSchema(outageSimulation *matlas.ClusterOutageSimulation, d *schema.ResourceData) error {
