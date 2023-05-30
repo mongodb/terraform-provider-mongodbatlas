@@ -111,8 +111,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitRead, limitName, err))
 	}
 
-	err = setResourceFieldsFromFederatedDatabaseQueryLimit(d, projectID, queryLimit)
-	if err != nil {
+	if err = setResourceFieldsFromFederatedDatabaseQueryLimit(d, projectID, queryLimit); err != nil {
 		return diag.FromErr(err)
 	}
 
