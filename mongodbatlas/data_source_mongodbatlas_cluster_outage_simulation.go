@@ -71,8 +71,7 @@ func dataSourceMongoDBAtlasClusterOutageSimulationRead(ctx context.Context, d *s
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationRead, projectID, clusterName, err))
 	}
 
-	err = convertOutageSimulationToSchema(outageSimulation, d)
-	if err != nil {
+	if err = convertOutageSimulationToSchema(outageSimulation, d); err != nil {
 		return diag.FromErr(err)
 	}
 
