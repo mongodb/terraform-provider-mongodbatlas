@@ -12,8 +12,6 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
-
 ## Example Usages
 
 
@@ -69,9 +67,9 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `aws` - (Required) AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
   * `aws.0.role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `aws.0.test_s3_bucket`.
   * `aws.0.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `aws.0.role_id`.
-* `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing. Set to `null` to route client connections to the region nearest to the client based on DNS resolution.
-  * `data_process_region.0.cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
-  * `data_process_region.0.region` - (Required). Name of the region to which the Federanted Instnace routes client connections for data processing. Atlas Federated Database only supports the following regions:
+  ### `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
+  * `cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
+  * `region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. Atlas Federated Database only supports the following regions:
     * `SYDNEY_AUS` (ap-southeast-2)
     * `FRANKFURT_DEU` (eu-central-1)
     * `DUBLIN_IRL` (eu-west-1)
@@ -88,15 +86,6 @@ In addition to all arguments above, the following attributes are exported:
 * `state` - Current state of the Federated Database Instance:
   * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
   * `DELETED` - The Federated Database Instance was deleted.
-* `aws.0.iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
-  * `s3:GetObject`
-  * `s3:ListBucket`
-  * `s3:GetObjectVersion` 
-    
-  For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
-
-* `aws.0.iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
-* `aws.0.external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
 * `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#std-label-datalake-databases-reference). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
   * `storage_databases.#.name` - Name of the database to which the Federated Database Instance maps the data contained in the data store.
   * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#mongodb-datalakeconf-datalakeconf.stores) data store.
@@ -114,9 +103,9 @@ In addition to all arguments above, the following attributes are exported:
         * `storage_databases.#.collections.#.data_sources.#.storeName` - Human-readable label that identifies the data store that MongoDB Cloud maps to the collection.
         * `storage_databases.#.collections.#.data_sources.#.urls` - URLs of the publicly accessible data files. You can't specify URLs that require authentication.
   * `storage_databases.#.views` -     Array of objects where each object represents an [aggregation pipeline](https://docs.mongodb.com/manual/core/aggregation-pipeline/#id1) on a collection. To learn more about views, see [Views](https://docs.mongodb.com/manual/core/views/).
-  * `storage_databases.#.views.#.name` - Name of the view.
-  * `storage_databases.#.views.#.source` -  Name of the source collection for the view.
-  * `storage_databases.#.views.#.pipeline`- Aggregation pipeline stage(s) to apply to the source collection.
+    * `storage_databases.#.views.#.name` - Name of the view.
+    * `storage_databases.#.views.#.source` -  Name of the source collection for the view.
+    * `storage_databases.#.views.#.pipeline`- Aggregation pipeline stage(s) to apply to the source collection.
 * `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#std-label-datalake-stores-reference). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
@@ -137,6 +126,20 @@ In addition to all arguments above, the following attributes are exported:
     * `storage_stores.#.read_preference.tagSets` - List that contains tag sets or tag specification documents.
       * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
       * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
+
+### `aws` - Name of the cloud service that hosts the data lake's data stores.
+* `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
+  * `s3:GetObject`
+  * `s3:ListBucket`
+  * `s3:GetObjectVersion` 
+    
+  For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
+
+* `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
+* `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
+* `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
+
+
 
 ## Import
 
