@@ -69,8 +69,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead(ctx context.Context, 
 		return diag.FromErr(fmt.Errorf("couldn't import federated database query limit(%s) for project (%s), tenant (%s), error: %s", limitName, projectID, tenantName, err))
 	}
 
-	err = setResourceFieldsFromFederatedDatabaseQueryLimit(d, projectID, queryLimit)
-	if err != nil {
+	if err = setResourceFieldsFromFederatedDatabaseQueryLimit(d, projectID, queryLimit); err != nil {
 		return diag.FromErr(err)
 	}
 
