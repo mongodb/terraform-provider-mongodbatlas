@@ -5,7 +5,7 @@ This project aims to provide an example of using [MongoDB Atlas Cluster Outage S
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.10.0
+* Terraform MongoDB Atlas Provider v1.11.0
 * A MongoDB Atlas account 
 
 ```
