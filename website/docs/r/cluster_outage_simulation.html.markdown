@@ -25,13 +25,11 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
  	outage_filters {
      	cloud_provider = "NAME OF CLOUD PROVIDER OF THE REGION"
      	region_name = "ATLAS REGION NAME"
-        type = "REGION"
  	}
 
     outage_filters {
      	cloud_provider = "NAME OF CLOUD PROVIDER OF THE REGION"
      	region_name = "ATLAS REGION NAME"
-        type = "REGION"
  	}
 }
 ```
