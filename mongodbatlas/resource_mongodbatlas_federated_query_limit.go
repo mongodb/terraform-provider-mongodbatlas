@@ -138,8 +138,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 		Value:         int64(d.Get("value").(int)),
 	}
 
-	_, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody)
-	if err != nil {
+	if _, _, err := conn.DataFederation.ConfigureQueryLimit(ctx, projectID, tenantName, limitName, requestBody); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitUpdate, limitName, err))
 	}
 
