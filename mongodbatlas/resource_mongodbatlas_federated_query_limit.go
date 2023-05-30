@@ -17,7 +17,7 @@ const (
 	errorFederatedDatabaseQueryLimitRead   = "error reading MongoDB Atlas Federated Database Query Limit (%s): %s"
 	errorFederatedDatabaseQueryLimitDelete = "error deleting MongoDB Atlas Federated Database Query Limit (%s): %s"
 	errorFederatedDatabaseQueryLimitUpdate = "error updating MongoDB Atlas Federated Database Query Limit (%s): %s"
-	errorFederatedDatabaseQueryLimit       = "error setting `%s` for federated database query limit (%s): %s"
+	errorFederatedDatabaseQueryLimit       = "error setting `%s` for Atlas Federated Database Query Limit (%s): %s"
 )
 
 func resourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
