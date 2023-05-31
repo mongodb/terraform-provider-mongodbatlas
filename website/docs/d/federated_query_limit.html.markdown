@@ -17,9 +17,9 @@ description: |-
 
 ```terraform
 data "mongodbatlas_federated_query_limit" "test" {
-  project_id = "PROJECT_ID"
-  tenant_name = "FEDERATED_DATABASE_INSTANCE_NAME"
-  limit_name = "LIMIT_TYPE_NAME"
+  project_id = "64707f06c519c20c3a2b1b03"
+  tenant_name = "FederatedDatabseInstance0"
+  limit_name = "bytesProcessed.weekly"
 }
 ```
 
@@ -43,7 +43,6 @@ In addition to all arguments above, the following attributes are exported:
 * `lastModifiedDate` - Only used for Data Federation limits. Timestamp that indicates when this usage limit was last modified. This field uses the ISO 8601 timestamp format in UTC.
 * `maximumLimit` - Maximum value of the limit.
 * `name` - Name that identifies the user-managed limit to modify.
-* `default_limit` - Default value of the limit.
 
 ## Import
 
