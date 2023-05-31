@@ -9,18 +9,16 @@ This project aims to provide an example of using [MongoDB Atlas Federated Databa
 * A MongoDB Atlas account 
 
 ```
-Terraform v1.10.0
+Terraform v1.4.6
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
 ```
 
 ## Usage
+**1\. Create a .tfvars file**
 
-**1\. Ensure to create an Atlas project**
-
-Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
+This example requires an Atlas Project to already exist. Once a project is created create the terraform.tfvars file and enter the values for all the required variables, including the project, and make sure **not to commit it**.
 
 **2\. Review the Terraform plan**
-
 
 Execute the below command and ensure you are happy with the plan.
 

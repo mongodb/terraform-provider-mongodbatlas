@@ -152,8 +152,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *sc
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	_, err := conn.DataFederation.DeleteQueryLimit(ctx, projectID, tenantName, limitName)
-	if err != nil {
+	if _, err := conn.DataFederation.DeleteQueryLimit(ctx, projectID, tenantName, limitName); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitDelete, limitName, err))
 	}
 
