@@ -13,7 +13,7 @@ If your issue relates to Terraform itself, please open it in the Terraform repos
 
 Do you have an active MongoDB Atlas Support contract?  
 
-If Yes: Then a [support ticket](https://support.mongodb.com/) is the best way for us to assist you with the provider.  Repo issues are for community reporting/assistance only and are best effort. 
+If Yes: Then a [support ticket](https://support.mongodb.com/) is the best way for us to assist you with the Terraform MongoDB Atlas Provider.  Repo issues are for community reporting/assistance only and are best effort. 
 --->
 -->
 
