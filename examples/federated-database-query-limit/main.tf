@@ -48,19 +48,19 @@ resource "mongodbatlas_federated_database_instance" "test-instance" {
       data_sources {
         collection = var.collection_1
         database   = var.database_1
-        store_name = mongodbatlas_cluster.atlas_cluster_1.name
+        store_name = mongodbatlas_advanced_cluster.atlas_cluster_1.name
       }
       data_sources {
         collection = var.collection_2
         database   = var.database_2
-        store_name = mongodbatlas_cluster.atlas_cluster_2.name
+        store_name = mongodbatlas_advanced_cluster.atlas_cluster_2.name
       }
     }
   }
 
   storage_stores {
-    name         = mongodbatlas_cluster.atlas_cluster_1.name
-    cluster_name = mongodbatlas_cluster.atlas_cluster_1.name
+    name         = mongodbatlas_advanced_cluster.atlas_cluster_1.name
+    cluster_name = mongodbatlas_advanced_cluster.atlas_cluster_1.name
     project_id   = var.project_id
     provider     = "atlas"
     read_preference {
@@ -69,8 +69,8 @@ resource "mongodbatlas_federated_database_instance" "test-instance" {
   }
 
   storage_stores {
-    name         = mongodbatlas_cluster.atlas_cluster_2.name
-    cluster_name = mongodbatlas_cluster.atlas_cluster_2.name
+    name         = mongodbatlas_advanced_cluster.atlas_cluster_2.name
+    cluster_name = mongodbatlas_advanced_cluster.atlas_cluster_2.name
     project_id   = var.project_id
     provider     = "atlas"
     read_preference {
