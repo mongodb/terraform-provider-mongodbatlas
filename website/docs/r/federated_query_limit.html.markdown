@@ -56,4 +56,4 @@ The Federated Database Instance Query Limit can be imported using project ID, na
 $ terraform import mongodbatlas_federated_query_limit.example 1112222b3bf99403840e8934--FederatedDatabaseInstance0--bytesProcessed.daily
 ```
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createOneDataFederationQueryLimit) Documentation for more information.
