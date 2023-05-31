@@ -20,7 +20,7 @@ This example requires an Atlas Project to already exist. Once a project is creat
 
 **2\. Review the Terraform plan**
 
-Execute the below command and ensure you are happy with the plan.
+Execute the below command and ensure you are happy with the plan. The `terraform plan` command lets you to preview the actions Terraform would take to modify your infrastructure, or save a speculative plan which you can apply later.
 
 ``` bash
 $ terraform plan
