@@ -41,7 +41,7 @@ func TestAccDataSourceFederatedDatabaseQueryLimit_basic(t *testing.T) {
 					},
 				},
 				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseQueryLimitDataSourceConfig2(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
+				Config:            testAccMongoDBAtlasFederatedDatabaseQueryLimitDataSourceConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceQueryLimitExists(resourceName, &queryLimit),
 					testAccCheckMongoDBAtlasFederatedDabaseQueryLimitAttributes(&queryLimit, limitName),
@@ -54,7 +54,7 @@ func TestAccDataSourceFederatedDatabaseQueryLimit_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasFederatedDatabaseQueryLimitDataSourceConfig2(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+func testAccMongoDBAtlasFederatedDatabaseQueryLimitDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
 	stepConfig := testAccMongoDBAtlasFederatedDatabaseQueryLimitConfigDataSourceFirstStep(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
