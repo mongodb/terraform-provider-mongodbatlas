@@ -24,7 +24,6 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
   project_id = mongodbatlas_project.atlas-project.id
   endpoint_id = "<PRIVATE-ENDPOINT-SERVICE-ID>"
   provider_name = "AWS"
-  type = "DATA_LAKE"
   comment = "Test"
 }
 
