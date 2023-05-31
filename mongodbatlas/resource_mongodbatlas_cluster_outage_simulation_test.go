@@ -26,7 +26,7 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfig_SingleRegion(projectName, orgID, clusterName),
+				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(projectName, orgID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -40,7 +40,7 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfig_SingleRegion(projectName, orgID, clusterName string) string {
+func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(projectName, orgID, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "outage_project" {
 		name   = "%s"
@@ -82,7 +82,7 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfig_MultiRegion(projectName, orgID, clusterName),
+				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(projectName, orgID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -96,7 +96,7 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfig_MultiRegion(projectName, orgID, clusterName string) string {
+func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(projectName, orgID, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "outage_project" {
 		name   = "%s"
