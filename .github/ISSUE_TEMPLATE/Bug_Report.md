@@ -11,7 +11,7 @@ Thank you for opening an issue.  Please note that we try to keep the Terraform M
 
 If your issue relates to Terraform itself, please open it in the Terraform repository https://github.com/hashicorp/terraform/issues.
 
-Do you have a MongoDB Atlas Support contract?  
+Do you have an active MongoDB Atlas Support contract?  
 
 If Yes: Then a support ticket is the best way for us to assist you with the provider.  Repo issues are for community reporting/assistance only and are best effort. 
 --->
