@@ -7,7 +7,7 @@ Setup private connection to a [Data Federation or Online Archive](https://www.mo
 
 * Terraform v0.13
 * An AWS account - provider.aws: version = "~> 4"
-* A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.8"
+* A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.10"
 
 ## Usage
 
@@ -50,9 +50,9 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently does the below deployments:
+This project currently performs the below deployments:
 
-- MongoDB cluster - M10
+- MongoDB Atlas Dedicated Cluster - M10
 - AWS Custom VPC, Internet Gateway, Route Tables, Subnets with Public and Private access
 - PrivateLink Connection at MongoDB Atlas
 - Create VPC Endpoint in AWS
