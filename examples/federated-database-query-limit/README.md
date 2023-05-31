@@ -41,7 +41,7 @@ $ terraform apply
 
 **4\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges. Calling the `terraform destroy` command will instruct Terraform to terminate / destroy all the resources managed. This will enable you to completely tear down and remove all resources defined in the Terraform State that have previously been deployed.
 
 ``` bash
 $ terraform destroy
