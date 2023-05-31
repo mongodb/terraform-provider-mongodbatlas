@@ -155,6 +155,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_collect_database_specifics_statistics_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_data_explorer_enabled"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_extended_storage_sizes_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_performance_advisor_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_realtime_performance_panel_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_schema_advisor_enabled"),

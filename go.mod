@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.20
+go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.226
@@ -13,7 +13,7 @@ require (
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.0
 	github.com/zclconf/go-cty v1.13.1
-	go.mongodb.org/atlas v0.26.2-0.20230519092542-835012b2f90f
+	go.mongodb.org/atlas v0.28.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 )
