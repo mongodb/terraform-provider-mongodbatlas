@@ -8,7 +8,7 @@ description: |-
 
 # Resource: mongodbatlas_federated_query_limit
 
-`mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limits data source.
+`mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limits resource.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
