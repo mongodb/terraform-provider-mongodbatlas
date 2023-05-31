@@ -18,9 +18,11 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_federated_query_limit" "test" {
-  project_id = "PROJECT_ID"
-  tenant_name = "FEDERATED_DATABASE_INSTANCE_NAME"
-  limit_name = "LIMIT_TYPE_NAME"
+  project_id = "64707f06c519c20c3a2b1b03"
+  tenant_name = "FederatedDatabseInstance0"
+  limit_name = "bytesProcessed.weekly"
+  overrun_policy = "BLOCK"
+  value          = 5147483648
 }
 ```
 
@@ -33,8 +35,8 @@ resource "mongodbatlas_federated_query_limit" "test" {
     * `bytesProcessed.daily`: Limit on the number of bytes processed for the data federation instance for the current day.
     * `bytesProcessed.weekly`: Limit on the number of bytes processed for the data federation instance for the current week.
     * `bytesProcessed.monthly`: Limit on the number of bytes processed for the data federation instance for the current month.
-* `overrun_policy` - String enum that identifies action to take when the usage limit is exceeded. If limit span is set to QUERY, this is ignored because MongoDB Cloud stops the query when it exceeds the usage limit. Accepted values are "BLOCK" OR "BLOCK_AND_KILL"
-* `value` - Amount to set the limit to.
+* `overrun_policy` - (Required) String enum that identifies action to take when the usage limit is exceeded. If limit span is set to QUERY, this is ignored because MongoDB Cloud stops the query when it exceeds the usage limit. Accepted values are "BLOCK" OR "BLOCK_AND_KILL"
+* `value` - (Required) Amount to set the limit to.
 
 ## Attributes Reference
 
