@@ -18,7 +18,7 @@ description: |-
 ```terraform
 data "mongodbatlas_federated_query_limit" "test" {
   project_id = "PROJECT_ID"
-  tenant_name = "FEDERATED_DATABSE_INSTANCE_NAME"
+  tenant_name = "FEDERATED_DATABASE_INSTANCE_NAME"
   limit_name = "LIMIT_TYPE_NAME"
 }
 ```
