@@ -62,6 +62,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADL() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: "this resource is deprecated, and will be removed in v1.12.0 release, please transition as soon as possible to mongodbatlas_privatelink_endpoint_service_data_federation_online_archives",
 	}
 }
 
