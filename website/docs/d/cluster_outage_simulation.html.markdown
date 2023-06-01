@@ -22,8 +22,8 @@ Test Outage on Majority of Electable Nodes - Select at least one more than half 
 
 ```terraform
 data "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
-  project_id = "PROJECT ID"
-  cluster_name = "NAME OF THE CLUSTER UNDERGOING OUTAGE SIMULATION"
+  project_id = "64707f06c519c20c3a2b1b03"
+  cluster_name = "Cluster0"
 }
 ```
 
