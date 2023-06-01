@@ -10,7 +10,7 @@ on:
   pull_request:
     types: [ labeled ]
     paths:
-      - '**/automated-test-acceptances.yml'
+      - '.github/workflows/automated-test-acceptances.yml'
       - 'mongodbatlas/**'
       - '!website/docs/**'
 
