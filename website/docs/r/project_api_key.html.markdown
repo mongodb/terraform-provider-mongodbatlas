@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: project_api_key"
 sidebar_current: "docs-mongodbatlas-resource-project-api-key"
 description: |-
-    Provides a Project API Key resource.
+    Creates and assigns the specified Atlas Organization API Key to the specified Project. Users with the Project Owner role in the project associated with the API key can use the organization API key to access the resources.
 ---
 
 # Resource: mongodbatlas_project_api_key
@@ -24,7 +24,7 @@ resource "mongodbatlas_project_api_key" "test" {
 
 ## Argument Reference
 
-* `project__id` - Unique identifier for the project whose API keys you want to retrieve. Use the /orgs endpoint to retrieve all organizations to which the authenticated user has access.
+* `project__id` -Unique 24-hexadecimal digit string that identifies your project.
 * `description` - Description of this Organization API key.
 * `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
  The following are valid roles:

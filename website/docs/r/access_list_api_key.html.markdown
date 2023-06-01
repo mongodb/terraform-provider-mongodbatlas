@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: access_list_api_key"
 sidebar_current: "docs-mongodbatlas-resource-access_list-api-key"
 description: |-
-    Provides an Access List API Key resource.
+    Creates the access list entries for the specified Atlas Organization API Key. Atlas resources require that all API requests originate from IP addresses on the API access list.
 ---
 
 # Resource: mongodbatlas_project_ip_access_list_key
@@ -40,12 +40,12 @@ resource "mongodbatlas_access_list_api_key" "test" {
 
 ## Argument Reference
 
-* `org_id` - (Required) Unique identifier for the organinzation to which you want to add one or more access list entries.
+* `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `cidr_block` - (Optional) Range of IP addresses in CIDR notation to be added to the access list. Your access list entry can include only one `cidrBlock`, or one `ipAddress`.
 * `ip_address` - (Optional) Single IP address to be added to the access list.
 * `api_key_id` - Unique identifier for the Organization API Key for which you want to create a new access list entry.
 
--> **NOTE:** One of the following attributes must set: `cidr_block`  or `ip_address`.
+-> **NOTE:** One of the following attributes must set: `cidr_block`  or `ip_address` but not both.
 
 ## Import
 
@@ -55,4 +55,4 @@ IP Access List entries can be imported using the `org_id` , `api_key_id` and `ci
 $ terraform import mongodbatlas_access_list_api_key.test 5d0f1f74cf09a29120e123cd-a29120e123cd-10.242.88.0/21
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createAccessListEntriesForOneOrganizationApiKey)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/createApiKeyAccessList)
