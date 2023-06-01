@@ -59,4 +59,4 @@ In addition to all arguments above, the following attributes are exported:
 
 The `mongodbatlas_cluster_outage_simulation` data source does not support import operation.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cluster-Outage-Simulation) Documentation for more information.
