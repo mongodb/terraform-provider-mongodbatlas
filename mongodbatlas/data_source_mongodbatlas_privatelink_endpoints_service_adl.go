@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -62,7 +63,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADL() *schema.Resource {
 				Computed: true,
 			},
 		},
-		DeprecationMessage: "this resource is deprecated, and will be removed in v1.12.0 release, please transition as soon as possible to mongodbatlas_privatelink_endpoint_service_data_federation_online_archives",
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives"),
 	}
 }
 

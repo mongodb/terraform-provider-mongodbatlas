@@ -57,11 +57,11 @@ linters-settings:
       - cancelled
   lll:
     # Default is 120. '\t' is counted as 1 character.
-    # set our project to 210, as things like v3_structs with inline comments end up being a touch long
+    # set our project to 200, as things like v3_structs with inline comments end up being a touch long
     # also, for anyone using vscode, use the following configs:
-    # "rewrap.wrappingColumn": 210 ... requires the rewrap plugin
-    # "editor.rulers": [210]
-    line-length: 210
+    # "rewrap.wrappingColumn": 200 ... requires the rewrap plugin
+    # "editor.rulers": [200]
+    line-length: 200
   nestif:
     # minimal complexity of if statements to report, 5 by default
     min-complexity: 7
