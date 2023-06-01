@@ -1,6 +1,6 @@
 name: 'Automated Acceptance Tests'
-
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -26,7 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   acceptance-tests:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-adv' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-adv' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'}}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +57,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-backup:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-backup' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-backup' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'}}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -88,7 +88,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-cluster:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-cluster' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-cluster' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'}}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -119,7 +119,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-config:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-config' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-config' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'}}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -150,7 +150,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-fed:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-fed' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-fed' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -181,7 +181,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-network:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-network' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project-network' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -212,7 +212,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-project:
-    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || github.ref == 'refs/heads/master' }}
+    if: ${{ github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
@@ -243,7 +243,7 @@ jobs:
         run: make testacc
 
   acceptance-tests-gov:
-    if: ${{ github.event.label.name == 'run-testacc-gov' }}
+    if: ${{ github.event.label.name == 'run-testacc-gov' || github.event_name == 'workflow_dispatch'}}
     needs: [ authorize ]
     runs-on: ubuntu-latest
     steps:
