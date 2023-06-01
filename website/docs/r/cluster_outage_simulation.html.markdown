@@ -27,16 +27,16 @@ Test Outage on Majority of Electable Nodes - Select at least one more than half 
 
 ```terraform
 resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
-  project_id = "PROJECT ID"
-  cluster_name = "NAME OF THE CLUSTER THAT WILL UNDERGO OUTAGE SIMULATION"
+  project_id = "64707f06c519c20c3a2b1b03"
+  cluster_name = "Cluster0"
  	outage_filters {
-     	cloud_provider = "NAME OF CLOUD PROVIDER OF THE REGION"
-     	region_name = "ATLAS REGION NAME"
+     	cloud_provider = "AWS"
+     	region_name = "US_EAST_1"
  	}
 
     outage_filters {
-     	cloud_provider = "NAME OF CLOUD PROVIDER OF THE REGION"
-     	region_name = "ATLAS REGION NAME"
+     	cloud_provider = "AWS"
+     	region_name = "US_EAST_2"
  	}
 }
 ```
