@@ -179,6 +179,19 @@ func SkipTestExtCred(tb testing.TB) {
 	}
 }
 
+func testCheckDataLakePipelineRun(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID") == "" {
+		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
+	}
+	testCheckDataLakePipelineRuns(tb)
+}
+
+func testCheckDataLakePipelineRuns(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
+		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
+	}
+}
+
 func testCheckTeamsIds(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
 		tb.Skip("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
