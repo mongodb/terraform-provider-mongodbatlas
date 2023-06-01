@@ -14,13 +14,13 @@ import (
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		dataSourceName = "mongodbatlas_cluster_outage_simulation.test"
+		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc-project")
 		clusterName    = acctest.RandomWithPrefix("test-acc-cluster")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
@@ -70,7 +70,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(proj
 func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
-		dataSourceName = "data.mongodbatlas_cluster_outage_simulation.test"
+		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc-project")
 		clusterName    = acctest.RandomWithPrefix("test-acc-cluster")
@@ -160,7 +160,7 @@ func testAccCheckMongoDBAtlasClusterOutageSimulationDestroy(s *terraform.State) 
 		ids := decodeStateID(rs.Primary.ID)
 		_, _, err := conn.ClusterOutageSimulation.GetOutageSimulation(context.Background(), ids["project_id"], ids["cluster_name"])
 		if err == nil {
-			return fmt.Errorf("cluster outage simulation for project (%s) and cluster (%s) still exists", ids["project_id"], ids["tenant_name"])
+			return fmt.Errorf("cluster outage simulation for project (%s) and cluster (%s) still exists", ids["project_id"], ids["cluster_name"])
 		}
 	}
 
