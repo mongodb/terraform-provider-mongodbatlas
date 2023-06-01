@@ -8,7 +8,14 @@ description: |-
 
 # Resource: mongodbatlas_cluster_outage_simulation
 
-`mongodbatlas_cluster_outage_simulation` provides a Cluster Outage Simulation resource.
+`mongodbatlas_cluster_outage_simulation` provides a Cluster Outage Simulation resource. For more details see https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/
+
+Test Outage on Minority of Electable Nodes - Select fewer than half of your electable nodes. 
+
+Test Outage on Majority of Electable Nodes - Select at least one more than half of your electable nodes and keep at least one electable node remaining. 
+
+**IMPORTANT:** Test Outage on Majority of Electable Nodes will leave the Atlas cluster without a majority quorum. There will be no primary so write operations will not succeed, and reads will succeed only when configured with a suitable [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/). To recover the majority quorum, you will have the option to manually reconfigure your cluster by adding new nodes to existing regions or adding new regions at the risk of losing recent writes, or end the simulation.   
+
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
