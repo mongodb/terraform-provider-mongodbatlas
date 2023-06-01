@@ -31,6 +31,7 @@ resource "mongodbatlas_advanced_cluster" "atlas_cluster" {
       priority              = 5
     }
   }
+}
 
 resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
   cluster_name = var.atlas_cluster_name
