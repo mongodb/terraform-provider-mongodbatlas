@@ -39,7 +39,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -70,7 +69,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -101,7 +99,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -132,7 +129,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -163,7 +159,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -194,7 +189,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -225,7 +219,6 @@ jobs:
       - name: Acceptance Tests
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
@@ -256,7 +249,6 @@ jobs:
       - name: Acceptance Tests Gov
         env:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST_IMPORT: ${{ secrets.SKIP_TEST_IMPORT }}
           SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_GOV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_GOV }}
