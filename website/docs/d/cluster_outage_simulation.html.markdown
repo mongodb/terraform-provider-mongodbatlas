@@ -12,7 +12,7 @@ description: |-
 
 Test Outage on Minority of Electable Nodes - Select fewer than half of your electable nodes. This operation is supported via Terraform Provider. 
 
-Test Outage on Majority of Electable Nodes - Select at least one more than half of your electable nodes and keep at least one electable node remaining. This operation not supported via Terraform Provider. Instead use Atlas UI instead. 
+Test Outage on Majority of Electable Nodes - Select at least one more than half of your electable nodes and keep at least one electable node remaining. This operation not supported via Terraform Provider. Use the Atlas UI instead. 
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
