@@ -24,7 +24,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		region       = "VIRGINIA_USA"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
