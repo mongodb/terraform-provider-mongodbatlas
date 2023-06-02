@@ -1,22 +1,23 @@
 # Example - A basic example to create and Orgnization with MongoDB Atlas and Terraform
 
-This project aims to provide a very straight-forward example of setting up and organization Terraform with MongoDB Atlas. This will create the following resources in MongoDB Atlas:
+This project aims to provide a very straight-forward example of setting up a MongoDB Atlas Organization with Terraform. This will create the following resources in MongoDB Atlas:
 
 - Atlas organization
 - Private Key
 - Public Key
 - Organization ID
 
-You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provider's region name.
-[Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
-[Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
-[Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
+You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provider's region name:
+* [Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
+* [Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
+* [Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
 
 ## Dependencies
 
 * Terraform v0.13 or greater
 * A MongoDB Atlas account 
-* provider.mongodbatlas: version = "~> 0.9.1"
+* provider.mongodbatlas: version = "~> 1.10.0"
+* [Cross-organization billing](https://www.mongodb.com/docs/atlas/billing/#cross-organization-billing) enabled and the requesting API Key's organization must be a paying organization. 
 * Some users (see [here](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1083)) have reported issues deploying this starter example with Mac M1 CPU. If issue persists, suggest deploying instead on x86 linux if possible. See list of supported binaries [here](https://github.com/mongodb/terraform-provider-mongodbatlas/releases/tag/v1.8.1)  
 
 ## Usage
@@ -44,7 +45,7 @@ Execute the below command and ensure you are happy with the plan.
 $ terraform plan
 ```
 
-This project currently creates the below deployments:
+This example currently creates the following:
 
 - Atlas organization
 - Private Key
@@ -71,6 +72,3 @@ $ terraform destroy
 
 
 **Output:**
-```
-plstring = mongodb+srv://cluster-atlas-pl-0.za3fb.mongodb.net
-```

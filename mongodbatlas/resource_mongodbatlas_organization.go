@@ -118,7 +118,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 
 	organization, resp, err := conn.Organizations.Get(ctx, orgID)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusBadRequest {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			log.Printf("warning Organization deleted will recreate: %s \n", err.Error())
 			d.SetId("")
 			return nil
@@ -147,8 +147,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	_, err := conn.Organizations.Delete(ctx, orgID)
-	if err != nil {
+	if _, err := conn.Organizations.Delete(ctx, orgID); err != nil {
 		return diag.FromErr(fmt.Errorf("error Organization: %s", err))
 	}
 	return nil
