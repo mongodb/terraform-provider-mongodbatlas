@@ -111,7 +111,7 @@ Key-value pairs that tag and categorize the cluster. Each key and value has a ma
   * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
   * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
 * `instance_size` - Hardware specification for the instance sizes in this region.
-* `node_count` - Number of read-only nodes for Atlas to deploy to the region.
+* `node_count` - Number of nodes of the given type for MongoDB Atlas to deploy to the region.
 
 ### auto_scaling
 
