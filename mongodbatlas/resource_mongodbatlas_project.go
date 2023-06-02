@@ -78,9 +78,10 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Default:  true,
 			},
 			"api_keys": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This parameter is deprecated,please use project API Key resource instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_key_id": {
