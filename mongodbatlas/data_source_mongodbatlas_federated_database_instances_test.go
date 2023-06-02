@@ -29,7 +29,7 @@ func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"aws": {
-						VersionConstraint: "4.66.1",
+						VersionConstraint: "5.1.0",
 						Source:            "hashicorp/aws",
 					},
 				},
