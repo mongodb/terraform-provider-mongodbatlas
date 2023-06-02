@@ -46,13 +46,11 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 * `project_id` - (Required) The unique ID for the project that contains the cluster that is/will undergoing outage simulation.
 * `cluster_name` - (Required) Name of the Atlas Cluster that is/will undergoing outage simulation.
 * `outage_filters` - (Minimum one required) List of settings that specify the type of cluster outage simulation.
-  * `outage_filters.0.cloud_provider` - (Required) The cloud provider of the region that undergoes the outage simulation. Following values are supported:
+  * `cloud_provider` - (Required) The cloud provider of the region that undergoes the outage simulation. Following values are supported:
     * `AWS`
     * `GCP`
     * `AZURE`
-  * `outage_filters.0.region_name` - (Required) The Atlas name of the region to undergo an outage simulation.
-  * `outage_filters.0.type` - (Required) The type of cluster outage to simulate. Following values are supported:
-    * `REGION` (Simulates a cluster outage for a region)
+  * `region_name` - (Required) The Atlas name of the region to undergo an outage simulation.
 
 ## Attributes Reference
 
@@ -61,6 +59,9 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Terraform's unique identifier used internally for state management.
 * `simulation_id` - Unique 24-hexadecimal character string that identifies the outage simulation.
 * `start_request_date` - Date and time when MongoDB Cloud started the regional outage simulation.
+* `outage_filters` - List of settings that specify the type of cluster outage simulation.
+  * `type` - The type of cluster outage simulation. Following values are supported:
+    * `REGION` - Simulates a cluster outage for a region
 * `state` - Current phase of the outage simulation:
   * `START_REQUESTED` - User has requested cluster outage simulation.
   * `STARTING` - MongoDB Cloud is starting cluster outage simulation.

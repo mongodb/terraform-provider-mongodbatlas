@@ -37,12 +37,12 @@ data "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 In addition to all arguments above, the following attributes are exported:
 
 * `outage_filters` - List of settings that specify the type of cluster outage simulation.
-  * `outage_filters.0.cloud_provider` - The cloud provider of the region that undergoes the outage simulation. Following values are supported:
+  * `cloud_provider` - The cloud provider of the region that undergoes the outage simulation. Following values are supported:
     * `AWS`
     * `GCP`
     * `AZURE`
-  * `outage_filters.0.region_name` - The Atlas name of the region undergoing an outage simulation.
-  * `outage_filters.0.type` - The type of cluster outage simulation. Following values are supported:
+  * `region_name` - The Atlas name of the region undergoing an outage simulation.
+  * `type` - The type of cluster outage simulation. Following values are supported:
     * `REGION` (Simulates a cluster outage for a region)
 * `id` - The Terraform's unique identifier used internally for state management.
 * `simulation_id` - Unique 24-hexadecimal character string that identifies the outage simulation.
