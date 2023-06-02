@@ -39,6 +39,7 @@ var (
 
 const (
 	endPointSTSDefault = "https://sts.amazonaws.com"
+	DeprecationMessage = "this resource is deprecated and will be removed in %s, please transition to %s"
 )
 
 type SecretData struct {

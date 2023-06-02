@@ -100,6 +100,7 @@ func resourceMongoDBAtlasDataLake() *schema.Resource {
 			"storage_databases": schemaDataLakesDatabases(),
 			"storage_stores":    schemaDataLakesStores(),
 		},
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_federated_database_instance"),
 	}
 }
 
