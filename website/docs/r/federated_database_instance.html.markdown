@@ -64,7 +64,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
 * `name` - (Required) Name of the Atlas Federated Database Instance.
-* `aws` - (Required) AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
+* `aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
   * `aws.0.role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `aws.0.test_s3_bucket`.
   * `aws.0.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `aws.0.role_id`.
   ### `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
