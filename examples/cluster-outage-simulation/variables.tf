@@ -17,7 +17,7 @@ variable "atlas_cluster_name" {
 }
 variable "atlas_cluster_type" {
   type        = string
-  description = "Atlas Cluster Type that will undergo outage simulation"
+  description = "Atlas Cluster Type"
   default     = "REPLICASET"
 }
 variable "provider_instance_size_name" {
