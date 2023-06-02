@@ -37,10 +37,6 @@ resource "mongodbatlas_advanced_cluster" "atlas_cluster_2" {
 resource "mongodbatlas_federated_database_instance" "test-instance" {
   project_id = var.project_id
   name       = var.federated_instance_name
-  aws {
-    role_id        = ""
-    test_s3_bucket = ""
-  }
   storage_databases {
     name = "VirtualDatabase0"
     collections {
