@@ -29,7 +29,7 @@ func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"aws": {
-						VersionConstraint: "4.66.1",
+						VersionConstraint: "5.1.0",
 						Source:            "hashicorp/aws",
 					},
 				},
@@ -156,7 +156,7 @@ resource "mongodbatlas_federated_database_instance" "db_instance" {
 	name = %[2]q
 	prefix = "templates/"
 	provider = "s3"
-	region = "US_EAST_1"
+	region = "EU_WEST_1"
    }
 
    storage_stores {

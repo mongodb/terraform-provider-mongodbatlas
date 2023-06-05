@@ -45,7 +45,7 @@ variable "atlas_cluster_name_1" {
 
 variable "atlas_cluster_name_2" {
   type        = string
-  description = "First Atlas Cluster Name."
+  description = "Second Atlas Cluster Name."
   default     = "ClusterFederatedTest2"
 }
 
