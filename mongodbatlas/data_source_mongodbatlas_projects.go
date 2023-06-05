@@ -94,6 +94,10 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"is_extended_storage_sizes_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 						"is_performance_advisor_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -179,6 +183,7 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				"api_keys":      flattenAPIKeys(apiKeys),
 				"is_collect_database_specifics_statistics_enabled": projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled,
 				"is_data_explorer_enabled":                         projectSettings.IsDataExplorerEnabled,
+				"is_extended_storage_sizes_enabled":                projectSettings.IsExtendedStorageSizesEnabled,
 				"is_performance_advisor_enabled":                   projectSettings.IsPerformanceAdvisorEnabled,
 				"is_realtime_performance_panel_enabled":            projectSettings.IsRealtimePerformancePanelEnabled,
 				"is_schema_advisor_enabled":                        projectSettings.IsSchemaAdvisorEnabled,

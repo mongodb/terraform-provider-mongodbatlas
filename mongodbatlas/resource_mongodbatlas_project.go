@@ -107,6 +107,11 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Computed: true,
 				Optional: true,
 			},
+			"is_extended_storage_sizes_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
 			"is_performance_advisor_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -195,6 +200,10 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		projectSettings.IsDataExplorerEnabled = pointy.Bool(v.(bool))
 	}
 
+	if v, ok := d.GetOkExists("is_extended_storage_sizes_enabled"); ok {
+		projectSettings.IsExtendedStorageSizesEnabled = pointy.Bool(v.(bool))
+	}
+
 	if v, ok := d.GetOkExists("is_performance_advisor_enabled"); ok {
 		projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(v.(bool))
 	}
@@ -279,6 +288,9 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 	}
 	if err := d.Set("is_data_explorer_enabled", projectSettings.IsDataExplorerEnabled); err != nil {
 		return diag.Errorf(errorProjectSetting, `is_data_explorer_enabled`, projectID, err)
+	}
+	if err := d.Set("is_extended_storage_sizes_enabled", projectSettings.IsExtendedStorageSizesEnabled); err != nil {
+		return diag.Errorf(errorProjectSetting, `is_extended_storage_sizes_enabled`, projectID, err)
 	}
 	if err := d.Set("is_performance_advisor_enabled", projectSettings.IsPerformanceAdvisorEnabled); err != nil {
 		return diag.Errorf(errorProjectSetting, `is_performance_advisor_enabled`, projectID, err)
@@ -387,6 +399,9 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 	if d.HasChange("is_data_explorer_enabled") {
 		projectSettings.IsDataExplorerEnabled = pointy.Bool(d.Get("is_data_explorer_enabled").(bool))
 	}
+	if d.HasChange("is_extended_storage_sizes_enabled") {
+		projectSettings.IsExtendedStorageSizesEnabled = pointy.Bool(d.Get("is_extended_storage_sizes_enabled").(bool))
+	}
 	if d.HasChange("is_performance_advisor_enabled") {
 		projectSettings.IsPerformanceAdvisorEnabled = pointy.Bool(d.Get("is_performance_advisor_enabled").(bool))
 	}
@@ -397,7 +412,8 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 		projectSettings.IsSchemaAdvisorEnabled = pointy.Bool(d.Get("is_schema_advisor_enabled").(bool))
 	}
 	if d.HasChange("is_collect_database_specifics_statistics_enabled") || d.HasChange("is_data_explorer_enabled") ||
-		d.HasChange("is_performance_advisor_enabled") || d.HasChange("is_realtime_performance_panel_enabled") || d.HasChange("is_schema_advisor_enabled") {
+		d.HasChange("is_performance_advisor_enabled") || d.HasChange("is_realtime_performance_panel_enabled") ||
+		d.HasChange("is_schema_advisor_enabled") || d.HasChange("is_extended_storage_sizes_enabled") {
 		_, _, err := conn.Projects.UpdateProjectSettings(ctx, projectID, projectSettings)
 		if err != nil {
 			return diag.Errorf("error updating project's settings assigned (%s): %s", projectID, err)

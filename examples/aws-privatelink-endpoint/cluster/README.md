@@ -87,7 +87,7 @@ $ terraform destroy
 
 **Important Point**
 
-Cluster `connection_strings` is a list of maps matching the signiature below. `aws_private_link` and `aws_private_link_srv` are deprecated.
+Cluster `connection_strings` is a list of maps matching the signature below. `aws_private_link` and `aws_private_link_srv` are deprecated.
 ```
 "connection_strings": [
   {
@@ -109,6 +109,7 @@ Cluster `connection_strings` is a list of maps matching the signiature below. `a
           }
         ],
         "srv_connection_string": "mongodb+srv://<private connection srv details>",
+        "srv_shard_optimized_connection_string": "mongodb+srv://<private connection srv details>",
         "type": "MONGOD"
       }
     ],
