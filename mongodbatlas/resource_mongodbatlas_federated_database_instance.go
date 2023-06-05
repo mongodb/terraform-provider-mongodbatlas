@@ -50,7 +50,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
 			"aws": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"role_id": {
