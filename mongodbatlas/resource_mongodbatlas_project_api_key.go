@@ -92,11 +92,9 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 
 	createRequest.Desc = d.Get("description").(string)
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
-
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
 		for _, apiKeyList := range projectAssignmentList {
 			if apiKeyList.ProjectID == projectID {
-
 				createRequest.Roles = apiKeyList.RoleNames
 				apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 				if err != nil {
@@ -104,7 +102,6 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 						d.SetId("")
 						return nil
 					}
-
 				}
 			}
 		}
@@ -171,15 +168,12 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
-
 			orgKeys, _, err := conn.APIKeys.List(ctx, apiKeyOrgList.APIKey.Roles[idx].OrgID, options)
 			if err != nil {
 				return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 			}
-
 			for _, val := range orgKeys {
 				if val.ID == apiKeyID {
-
 					for _, r := range val.Roles {
 						temp := new(APIProjectAssignmentKeyInput)
 						if strings.HasPrefix(r.RoleName, "GROUP_") {
@@ -196,7 +190,6 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 			}
 			break
 		}
-
 	}
 
 	_, roleOk := d.GetOk("role_names")
@@ -341,7 +334,6 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 
 		for idx, role := range apiKeyOrgList.APIKey.Roles {
 			if strings.HasPrefix(role.RoleName, "ORG_") {
-
 				orgKeys, _, err := conn.APIKeys.List(ctx, apiKeyOrgList.APIKey.Roles[idx].OrgID, options)
 				if err != nil {
 					return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
@@ -349,7 +341,6 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 
 				for _, val := range orgKeys {
 					if val.ID == apiKeyID {
-
 						for _, r := range val.Roles {
 							temp := new(APIProjectAssignmentKeyInput)
 							if strings.HasPrefix(r.RoleName, "GROUP_") {
@@ -366,7 +357,6 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 				}
 				break
 			}
-
 		}
 		for _, apiKey := range projectAssignments {
 			_, err = conn.ProjectAPIKeys.Unassign(ctx, apiKey.ProjectID, apiKeyID)
@@ -479,7 +469,6 @@ func FlattenProjectAssignment(apiKeyAssignmentSet []APIProjectAssignmentKeyInput
 	if len(apiKeyAssignmentSet) > 0 {
 		results = make([]map[string]interface{}, len(apiKeyAssignmentSet))
 		for k, apiKey := range apiKeyAssignmentSet {
-
 			for _, roleName := range apiKey.RoleNames {
 				atlasRole.GroupID = apiKey.ProjectID
 				atlasRole.RoleName = roleName
@@ -489,7 +478,6 @@ func FlattenProjectAssignment(apiKeyAssignmentSet []APIProjectAssignmentKeyInput
 				"project_id": apiKey.ProjectID,
 				"role_names": flattenProjectAPIKeyRoles(apiKey.ProjectID, atlasRoles),
 			}
-
 		}
 	}
 	return results
@@ -504,14 +492,12 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, chang
 
 	for _, changed := range nAPIKeys.List() {
 		for _, removed := range rAPIKeys.List() {
-			//if changed.(map[string]interface{})["api_key_id"] == removed.(map[string]interface{})["api_key_id"] {
 			if changed.(map[string]interface{})["project_id"] == removed.(map[string]interface{})["project_id"] {
 				rAPIKeys.Remove(removed)
 			}
 		}
 
 		for _, current := range currentAPIKeys.(*schema.Set).List() {
-			//if changed.(map[string]interface{})["api_key_id"] == current.(map[string]interface{})["api_key_id"] {
 			if changed.(map[string]interface{})["project_id"] == current.(map[string]interface{})["project_id"] {
 				changedAPIKeys = append(changedAPIKeys, changed.(map[string]interface{}))
 				nAPIKeys.Remove(changed)
