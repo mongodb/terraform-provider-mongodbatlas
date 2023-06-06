@@ -69,6 +69,12 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"retain_backup_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
+			},
 			"bi_connector": {
 				Type:          schema.TypeList,
 				Optional:      true,
@@ -777,8 +783,16 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName)
+	retainBackup := pointy.Bool(false)
+	if v, ok := d.Get("retain_backup_enabled").(bool); ok {
+		retainBackup = pointy.Bool(v)
+	}
 
+	options := &matlas.DeleteAdvanceClusterOptions{
+		RetainBackups: retainBackup,
+	}
+
+	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, options)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedDelete, clusterName, err))
 	}
