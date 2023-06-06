@@ -163,7 +163,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
-	projectAssignments, err := getApiProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -306,7 +306,7 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
 
-		projectAssignments, err := getApiProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
@@ -464,7 +464,7 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, chang
 	return
 }
 
-func getApiProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
+func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
@@ -492,5 +492,4 @@ func getApiProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOr
 		}
 	}
 	return projectAssignments, nil
-
 }
