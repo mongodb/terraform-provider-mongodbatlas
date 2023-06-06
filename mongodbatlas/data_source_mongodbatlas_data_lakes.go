@@ -94,6 +94,7 @@ func dataSourceMongoDBAtlasDataLakes() *schema.Resource {
 				},
 			},
 		},
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_federated_database_instances"),
 	}
 }
 
