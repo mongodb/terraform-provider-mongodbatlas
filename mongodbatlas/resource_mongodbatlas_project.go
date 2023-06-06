@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -81,7 +82,7 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "This parameter is deprecated,please use project API Key resource instead",
+				Deprecated: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_project_api_key"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_key_id": {
