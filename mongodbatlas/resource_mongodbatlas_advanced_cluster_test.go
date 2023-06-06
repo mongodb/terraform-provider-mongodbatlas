@@ -558,6 +558,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = %[1]q
   name         = %[2]q
   cluster_type = "REPLICASET"
+  retain_backups_enabled = "true"
 
   replication_specs {
     region_configs {
@@ -580,7 +581,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = %[1]q
   name         = %[2]q
   cluster_type = "REPLICASET"
-  retain_backup_enabled = "true"
+  retain_backups_enabled = "true"
 
   replication_specs {
     region_configs {

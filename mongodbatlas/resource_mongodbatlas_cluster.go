@@ -82,7 +82,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Default:     false,
 				Description: "Clusters running MongoDB FCV 4.2 or later and any new Atlas clusters of any type do not support this parameter",
 			},
-			"retain_backup_enabled": {
+			"retain_backups_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
@@ -1019,7 +1019,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	clusterName := ids["cluster_name"]
 
 	retainBackup := pointy.Bool(false)
-	if v, ok := d.Get("retain_backup_enabled").(bool); ok {
+	if v, ok := d.Get("retain_backups_enabled").(bool); ok {
 		retainBackup = pointy.Bool(v)
 	}
 

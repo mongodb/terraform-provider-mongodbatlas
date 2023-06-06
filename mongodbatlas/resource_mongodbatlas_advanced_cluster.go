@@ -69,7 +69,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"retain_backup_enabled": {
+			"retain_backups_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
@@ -784,7 +784,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	clusterName := ids["cluster_name"]
 
 	retainBackup := pointy.Bool(false)
-	if v, ok := d.Get("retain_backup_enabled").(bool); ok {
+	if v, ok := d.Get("retain_backups_enabled").(bool); ok {
 		retainBackup = pointy.Bool(v)
 	}
 
