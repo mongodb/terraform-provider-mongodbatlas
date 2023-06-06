@@ -45,7 +45,7 @@ jobs:
       - name: actionlint
         run: make tools && actionlint -verbose -color
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.4.0
+        uses: golangci/golangci-lint-action@v3.5.0
         with:
           version: v1.52.2
           args: --timeout 9m0s
