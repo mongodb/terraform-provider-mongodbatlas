@@ -19,7 +19,7 @@ description: |-
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
   project_id         = "PROJECT ID"
-  name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+  name = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
 }
 ```
 
