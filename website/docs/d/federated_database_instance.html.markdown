@@ -31,7 +31,7 @@ data "mongodbatlas_federated_database_instance" "test" {
   name = "NAME OF THE FEDERATED DATABASE INSTANCE"
   cloud_provider_config {
 		aws {
-			test_s3_bucket = "AWS S3 Bucket Name"
+			test_s3_bucket = "Amazon S3 Bucket Name"
 		}
 	}
 }
