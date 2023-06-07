@@ -7,18 +7,16 @@ MongoDB Atlas Provider : Upgrade and Information Guide
 ---
 
 # MongoDB Atlas Provider: PAK Upgrade Guide in v1.10.0
-Upgrade Guide for Terraform MongoDB Atlas Provider from in v1.10.0
-
 In Terraform MongoDB Atlas Provider v1.10.0, some improvements were introduced which mainly focus on the MongoDB Atlas Programmatic API Keys (PAK) handling. This guide will help you to transition smoothly from the previous version which this resource was first released (v1.8.0) to the new version (v1.10.0).
 
 ## Changes Overview
-`api_keys` parameter is deprecated from the mongodbatlas_project resource.
-The `mongodbatlas_project_api_key` resource is extended to include a `project_assignment` parameter.
+* `api_keys` parameter is deprecated from the mongodbatlas_project resource.
+* The `mongodbatlas_project_api_key` resource is extended to include a `project_assignment` parameter.
 
 ## Upgrade Steps
-Replace `api_keys` in `mongodbatlas_project`: The `api_keys` parameter in the `mongodbatlas_project` resource is deprecated. Remove any instances of `api_keys` in your current Terraform scripts.
+1. Replace `api_keys` in `mongodbatlas_project`: The `api_keys` parameter in the `mongodbatlas_project` resource is deprecated. Remove any instances of `api_keys` in your current Terraform scripts.
 
-Use `project_assignment` in `mongodbatlas_project_api_key`: Instead of creating multiple mongodbatlas_project resources for each API Key assignment, you can now assign a PAK to multiple projects in a single resource block using the new `project_assignment` parameter in `mongodbatlas_project_api_key`.
+2. Use `project_assignment` in `mongodbatlas_project_api_key`: Instead of creating multiple mongodbatlas_project resources for each API Key assignment, you can now assign a PAK to multiple projects in a single resource block using the new `project_assignment` parameter in `mongodbatlas_project_api_key`.
 
 ## Examples
 We provide three examples in the atlas-api-key folder (under examples) to help you understand the new changes:
