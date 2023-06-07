@@ -439,9 +439,9 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		cloudProviderConfig := []map[string][]map[string]interface{}{
 			{
 				"aws": {
-						{
-							"test_s3_bucket": s3Bucket,
-						},
+					{
+						"test_s3_bucket": s3Bucket,
+					},
 				},
 			},
 		}
@@ -844,14 +844,14 @@ func splitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket st
 	if len(parts) == 2 {
 		projectID = parts[0]
 		name = parts[1]
-		return 
+		return
 	}
 
 	if len(parts) == 3 {
 		projectID = parts[0]
 		name = parts[1]
 		s3Bucket = parts[2]
-		return 
+		return
 	}
 
 	err = errors.New("import format error: to import a Data Federated instance, use the format {project_id}--{name} or {project_id}--{name}--{test_s3_bucket}")
