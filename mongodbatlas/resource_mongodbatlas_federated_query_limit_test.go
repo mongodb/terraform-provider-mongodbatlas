@@ -129,10 +129,12 @@ func testAccMongoDBAtlasFederatedDatabaseQueryLimitConfigFirstStep(name, testS3B
 resource "mongodbatlas_federated_database_instance" "db_instance" {
    project_id         = mongodbatlas_project.test_project.id
    name = %[1]q
-   aws {
-     role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-     test_s3_bucket = %[2]q
-   }
+   cloud_provider_config {
+		aws {
+			role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+			test_s3_bucket = %[2]q
+		}
+	}
 
    storage_databases {
 	name = "VirtualDatabase0"
