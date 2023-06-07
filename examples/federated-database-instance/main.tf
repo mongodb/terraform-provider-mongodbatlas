@@ -56,9 +56,11 @@ EOF
 resource "mongodbatlas_federated_database_instance" "test" {
   project_id = var.project_id
   name       = var.name
-  aws {
-    role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-    test_s3_bucket = var.test_s3_bucket
+  cloud_provider_config {
+    aws {
+      role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+      test_s3_bucket = var.test_s3_bucket
+    }
   }
   storage_databases {
     name = "VirtualDatabase0"
