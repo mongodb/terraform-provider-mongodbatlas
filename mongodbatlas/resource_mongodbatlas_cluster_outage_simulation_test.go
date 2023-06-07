@@ -40,33 +40,6 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(projectName, orgID, clusterName string) string {
-	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "outage_project" {
-		name   = "%s"
-		org_id = "%s"
-	}
-
-	resource "mongodbatlas_cluster" "atlas_cluster" {
-		project_id                  = mongodbatlas_project.outage_project.id
-   		provider_name               = "AWS"
-   		name                        = "%s"
-   		backing_provider_name       = "AWS"
-   		provider_region_name        = "US_EAST_1"
-   		provider_instance_size_name = "M10"
-	  }
-
-	  resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
-		project_id = mongodbatlas_project.outage_project.id
-		cluster_name = mongodbatlas_cluster.atlas_cluster.name
-		 outage_filters {
-		  cloud_provider = "AWS"
-		  region_name    = "US_EAST_1"
-		}
-	}
-	`, projectName, orgID, clusterName)
-}
-
 func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
@@ -94,6 +67,33 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(projectName, orgID, clusterName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "outage_project" {
+		name   = "%s"
+		org_id = "%s"
+	}
+
+	resource "mongodbatlas_cluster" "atlas_cluster" {
+		project_id                  = mongodbatlas_project.outage_project.id
+   		provider_name               = "AWS"
+   		name                        = "%s"
+   		backing_provider_name       = "AWS"
+   		provider_region_name        = "US_EAST_1"
+   		provider_instance_size_name = "M10"
+	  }
+
+	  resource "mongodbatlas_cluster_outage_simulation" "test_outage" {
+		project_id = mongodbatlas_project.outage_project.id
+		cluster_name = mongodbatlas_cluster.atlas_cluster.name
+		 outage_filters {
+		  cloud_provider = "AWS"
+		  region_name    = "US_EAST_1"
+		}
+	}
+	`, projectName, orgID, clusterName)
 }
 
 func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(projectName, orgID, clusterName string) string {
