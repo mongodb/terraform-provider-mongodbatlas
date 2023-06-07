@@ -23,7 +23,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 }
 ```
 
-## Example Usages with AWS S3 bucket as storage database
+## Example Usages with Amazon S3 bucket as storage database
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
