@@ -20,7 +20,7 @@ description: |-
 ```terraform
 data "mongodbatlas_federated_database_instances" "test" {
   project_id         = "PROJECT ID"
-  name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+  name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
 }
 ```
 
@@ -82,7 +82,8 @@ In addition to all arguments above, the following attributes are exported:
       * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
       * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
 
-#### `aws` - Name of the cloud service that hosts the data lake's data stores.
+### `cloud_provider_config` - Cloud provider linked to this data federated instance.
+#### `aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
 * `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
   * `s3:GetObject`
   * `s3:ListBucket`
@@ -95,19 +96,6 @@ In addition to all arguments above, the following attributes are exported:
 * `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
 #### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
 * `cloud_provider` -  Name of the cloud service provider. Atlas Federated Database only supports AWS.
-* `region` - Name of the region to which the Federanted Instnace routes client connections for data processing. Atlas Federated Database only supports the following regions:
-  * `SYDNEY_AUS` (ap-southeast-2)
-  * `FRANKFURT_DEU` (eu-central-1)
-  * `DUBLIN_IRL` (eu-west-1)
-  * `LONDON_GBR` (eu-west-2)
-  * `VIRGINIA_USA` (us-east-1)
-  * `OREGON_USA` (us-west-2)
-## Import
-
-The Federated Database Instance can be imported using project ID, name of the instance and name of the AWS S3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
-
-```
-$ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934--test--s3-test
-```
+* `region` - Name of the region to which the Federanted Instnace routes client connections for data processing. 
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
