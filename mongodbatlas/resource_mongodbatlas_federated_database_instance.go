@@ -448,7 +448,6 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		if err = d.Set("cloud_provider_config", cloudProviderConfig); err != nil {
 			return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err)
 		}
-
 	}
 
 	dataFederationInstance, _, err := conn.DataFederation.Get(ctx, projectID, name)
@@ -652,7 +651,6 @@ func newCloudProviderConfig(d *schema.ResourceData) *matlas.CloudProviderConfig 
 		return &matlas.CloudProviderConfig{
 			AWSConfig: *newAWSConfig(cloudProvider),
 		}
-
 	}
 
 	return nil
