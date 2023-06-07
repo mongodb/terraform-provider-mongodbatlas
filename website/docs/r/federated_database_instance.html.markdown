@@ -102,7 +102,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
   * `test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
   ### `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
   * `cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
-  * `region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing.
+  * `region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. See the [documention](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
