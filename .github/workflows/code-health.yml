@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - master
-  pull_request:
+  pull_request: {}
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -55,4 +56,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@v2
+  call-package-workflow:
+    needs: [build, lint, shellcheck, unit-test]
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: read
+    uses: ./.github/workflows/acceptance-tests.yml
 
