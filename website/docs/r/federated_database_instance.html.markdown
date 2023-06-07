@@ -18,7 +18,7 @@ description: |-
 ```terraform
 resource "mongodbatlas_federated_database_instance" "test" {
   project_id         = "PROJECT ID"
-  name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+  name = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
   storage_databases {
     name = "VirtualDatabase0"
     collections {
@@ -49,7 +49,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 ```terraform
 resource "mongodbatlas_federated_database_instance" "test" {
   project_id         = "PROJECT ID"
-  name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+  name = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
   cloud_provider_config {
     aws {
       role_id = "AWS ROLE ID"
@@ -98,18 +98,11 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `name` - (Required) Name of the Atlas Federated Database Instance.
   ### `cloud_provider_config` - (Optional) Cloud provider linked to this data federated instance.
   #### `aws` - (Required) AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket. Note this parameter is only required if using `cloud_provider_config` since AWS is currently the only supported Cloud vendor on this feature at this time. 
-  * `role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `aws.0.test_s3_bucket`.
-  * `test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `aws.0.role_id`.
+  * `role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `test_s3_bucket`.
+  * `test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
   ### `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
   * `cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
-  * `region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. Atlas Federated Database only supports the following regions:
-    * `SYDNEY_AUS` (ap-southeast-2)
-    * `FRANKFURT_DEU` (eu-central-1)
-    * `DUBLIN_IRL` (eu-west-1)
-    * `LONDON_GBR` (eu-west-2)
-    * `VIRGINIA_USA` (us-east-1)
-    * `OREGON_USA` (us-west-2)
-
+  * `region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
@@ -176,10 +169,15 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-The Federated Database Instance can be imported using project ID, name of the instance and name of the AWS S3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
+- The Federated Database Instance can be imported using project ID, name of the instance, in the format `project_id`--`name`, e.g.
+  ```
+  $ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934--test
+  ```
 
-```
-$ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934--test--s3-test
-```
+- The Federated Database Instance can be imported using project ID, name of the instance and name of the AWS S3 bucket, in the format `project_id`--`name`--`aws_test_s3_bucket`, e.g.
+
+  ```
+  $ terraform import mongodbatlas_federated_database_instance.example 1112222b3bf99403840e8934--test--s3-test
+  ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
