@@ -43,30 +43,43 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"aws": {
+						"cloud_provider_config": {
 							Type:     schema.TypeList,
+							MaxItems: 1,
 							Computed: true,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"role_id": {
-										Type:     schema.TypeString,
+									"aws": {
+										Type:     schema.TypeList,
+										MaxItems: 1,
 										Computed: true,
-									},
-									"test_s3_bucket": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"iam_assumed_role_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"iam_user_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"external_id": {
-										Type:     schema.TypeString,
-										Computed: true,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"role_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"test_s3_bucket": {
+													Type:     schema.TypeString,
+													Computed: true,
+													Optional: true,
+												},
+												"iam_assumed_role_arn": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"iam_user_arn": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"external_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -106,7 +119,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}
 
-	if results := flattenFederatedDatabaseInstances(projectID, federatedDatabaseInstances); results != nil {
+	if results := flattenFederatedDatabaseInstances(d, projectID, federatedDatabaseInstances); results != nil {
 		if err := d.Set("results", results); err != nil {
 			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "results", projectID, err))
 		}
@@ -117,7 +130,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 	return nil
 }
 
-func flattenFederatedDatabaseInstances(projectID string, federatedDatabaseInstances []*matlas.DataFederationInstance) []map[string]interface{} {
+func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []*matlas.DataFederationInstance) []map[string]interface{} {
 	var federatedDatabaseInstancesMap []map[string]interface{}
 
 	if len(federatedDatabaseInstances) > 0 {
@@ -125,14 +138,14 @@ func flattenFederatedDatabaseInstances(projectID string, federatedDatabaseInstan
 
 		for i := range federatedDatabaseInstances {
 			federatedDatabaseInstancesMap[i] = map[string]interface{}{
-				"project_id":          projectID,
-				"name":                federatedDatabaseInstances[i].Name,
-				"state":               federatedDatabaseInstances[i].State,
-				"hostnames":           federatedDatabaseInstances[i].Hostnames,
-				"aws":                 flattenAWSBlock(federatedDatabaseInstances[i].CloudProviderConfig),
-				"data_process_region": flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
-				"storage_databases":   flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),
-				"storage_stores":      flattenDataFederationStores(federatedDatabaseInstances[i].Storage.Stores),
+				"project_id":            projectID,
+				"name":                  federatedDatabaseInstances[i].Name,
+				"state":                 federatedDatabaseInstances[i].State,
+				"hostnames":             federatedDatabaseInstances[i].Hostnames,
+				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
+				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
+				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),
+				"storage_stores":        flattenDataFederationStores(federatedDatabaseInstances[i].Storage.Stores),
 			}
 		}
 	}

@@ -2,8 +2,10 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -47,31 +49,40 @@ func resourceMongoDBAtlasFederatedDatabaseInstance() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"aws": {
+			"cloud_provider_config": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"role_id": {
-							Type:     schema.TypeString,
+						"aws": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
 							Required: true,
-						},
-						"test_s3_bucket": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"iam_assumed_role_arn": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"iam_user_arn": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"external_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"role_id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"test_s3_bucket": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"iam_assumed_role_arn": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"iam_user_arn": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"external_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -351,9 +362,9 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceRead, name, err))
 	}
 
-	if awsField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); awsField != nil {
-		if err = d.Set("aws", awsField); err != nil {
-			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "aws", name, err))
+	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
+		if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
+			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err))
 		}
 	}
 
@@ -418,31 +429,45 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d 
 func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
-	projectID, name, s3Bucket, err := splitDataLakeImportID(d.Id())
+	projectID, name, s3Bucket, err := splitDataFederatedInstanceImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
+	// test_s3_bucket is not part of the API response
+	if s3Bucket != "" {
+		cloudProviderConfig := []map[string][]map[string]interface{}{
+			{
+				"aws": {
+						{
+							"test_s3_bucket": s3Bucket,
+						},
+				},
+			},
+		}
+		if err = d.Set("cloud_provider_config", cloudProviderConfig); err != nil {
+			return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err)
+		}
+
+	}
+
 	dataFederationInstance, _, err := conn.DataFederation.Get(ctx, projectID, name)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err)
+		return nil, fmt.Errorf("couldn't import data federated instance (%s) for project (%s), error: %s", name, projectID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		return nil, fmt.Errorf("error setting `project_id` for data lakes (%s): %s", d.Id(), err)
+		return nil, fmt.Errorf("error setting `project_id` for data federated instance (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("name", dataFederationInstance.Name); err != nil {
-		return nil, fmt.Errorf("error setting `name` for data lakes (%s): %s", d.Id(), err)
+		return nil, fmt.Errorf("error setting `name` for data federated instance (%s): %s", d.Id(), err)
 	}
-	mapAws := make([]map[string]interface{}, 0)
 
-	mapAws = append(mapAws, map[string]interface{}{
-		"test_s3_bucket": s3Bucket,
-	})
-
-	if err := d.Set("aws", mapAws); err != nil {
-		return nil, fmt.Errorf("error setting `aws` for data lakes (%s): %s", d.Id(), err)
+	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
+		if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
+			return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err)
+		}
 	}
 
 	if storageDatabaseField := flattenDataFederationDatabase(dataFederationInstance.Storage.Databases); storageDatabaseField != nil {
@@ -623,10 +648,19 @@ func newUrls(urlsFromConfig []interface{}) []*string {
 }
 
 func newCloudProviderConfig(d *schema.ResourceData) *matlas.CloudProviderConfig {
-	if aws, ok := d.Get("aws").([]interface{}); ok && len(aws) == 1 {
+	if cloudProvider, ok := d.Get("cloud_provider_config").([]interface{}); ok && len(cloudProvider) == 1 {
 		return &matlas.CloudProviderConfig{
-			AWSConfig: *newAwsCloudProviderConfig(aws[0].(map[string]interface{})),
+			AWSConfig: *newAWSConfig(cloudProvider),
 		}
+
+	}
+
+	return nil
+}
+
+func newAWSConfig(cloudProvider []interface{}) *matlas.AwsCloudProviderConfig {
+	if aws, ok := cloudProvider[0].(map[string]interface{})["aws"].([]interface{}); ok && len(aws) == 1 {
+		return newAwsCloudProviderConfig(aws[0].(map[string]interface{}))
 	}
 
 	return nil
@@ -650,31 +684,41 @@ func newDataProcessRegion(d *schema.ResourceData) *matlas.DataProcessRegion {
 	return nil
 }
 
-func flattenCloudProviderConfig(d *schema.ResourceData, aws *matlas.CloudProviderConfig) []map[string]interface{} {
-	if aws == nil {
+func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *matlas.CloudProviderConfig) []map[string]interface{} {
+	if cloudProviderConfig == nil {
 		return nil
 	}
 
-	out := []map[string]interface{}{
+	awsOut := []map[string]interface{}{
 		{
-			"role_id":              aws.AWSConfig.RoleID,
-			"iam_assumed_role_arn": aws.AWSConfig.IAMAssumedRoleARN,
-			"iam_user_arn":         aws.AWSConfig.IAMUserARN,
-			"external_id":          aws.AWSConfig.ExternalID,
+			"role_id":              cloudProviderConfig.AWSConfig.RoleID,
+			"iam_assumed_role_arn": cloudProviderConfig.AWSConfig.IAMAssumedRoleARN,
+			"iam_user_arn":         cloudProviderConfig.AWSConfig.IAMUserARN,
+			"external_id":          cloudProviderConfig.AWSConfig.ExternalID,
 		},
 	}
 
-	awsConf, ok := d.Get("aws").([]interface{})
-	if !ok || len(awsConf) == 0 {
-		return out
+	currentCloudProviderConfig, ok := d.Get("cloud_provider_config").([]interface{})
+	if !ok || len(currentCloudProviderConfig) == 0 {
+		return []map[string]interface{}{
+			{
+				"aws": &awsOut,
+			},
+		}
 	}
 	// test_s3_bucket is not part of the API response
-	if testS3Bucket, ok := awsConf[0].(map[string]interface{})["test_s3_bucket"].(string); ok {
-		out[0]["test_s3_bucket"] = testS3Bucket
-		return out
+	if currentAWS, ok := currentCloudProviderConfig[0].(map[string]interface{})["aws"].([]interface{}); ok {
+		if testS3Bucket, ok := currentAWS[0].(map[string]interface{})["test_s3_bucket"].(string); ok {
+			awsOut[0]["test_s3_bucket"] = testS3Bucket
+			return []map[string]interface{}{
+				{
+					"aws": &awsOut,
+				},
+			}
+		}
 	}
 
-	return out
+	return awsOut
 }
 
 func flattenDataProcessRegion(processRegion *matlas.DataProcessRegion) []map[string]interface{} {
@@ -792,4 +836,24 @@ func newReadPreferenceField(atlasReadPreference *matlas.ReadPreference) []map[st
 			"tags":                  atlasReadPreference.TagSets,
 		},
 	}
+}
+
+func splitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket string, err error) {
+	var parts = strings.Split(id, "--")
+
+	if len(parts) == 2 {
+		projectID = parts[0]
+		name = parts[1]
+		return 
+	}
+
+	if len(parts) == 3 {
+		projectID = parts[0]
+		name = parts[1]
+		s3Bucket = parts[2]
+		return 
+	}
+
+	err = errors.New("import format error: to import a Data Federated instance, use the format {project_id}--{name} or {project_id}--{name}--{test_s3_bucket}")
+	return
 }

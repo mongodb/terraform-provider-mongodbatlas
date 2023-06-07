@@ -20,6 +20,40 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName       = acctest.RandomWithPrefix("test-acc")
 		name              = acctest.RandomWithPrefix("test-acc")
+		federatedInstance = matlas.DataFederationInstance{}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"aws": {
+						VersionConstraint: "5.1.0",
+						Source:            "hashicorp/aws",
+					},
+				},
+				ProviderFactories: testAccProviderFactories,
+				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(name, projectName, orgID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
+					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
+	SkipTestExtCred(t)
+	var (
+		resourceName      = "data.mongodbatlas_federated_database_instance.test"
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName       = acctest.RandomWithPrefix("test-acc")
+		name              = acctest.RandomWithPrefix("test-acc")
 		policyName        = acctest.RandomWithPrefix("test-acc")
 		roleName          = acctest.RandomWithPrefix("test-acc")
 		testS3Bucket      = os.Getenv("AWS_S3_BUCKET")
@@ -39,7 +73,7 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 					},
 				},
 				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
 					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
@@ -86,8 +120,8 @@ func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInst
 	}
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
-	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStep(name, testS3Bucket)
+func testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
+	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStepS3Bucket(name, testS3Bucket)
 	return fmt.Sprintf(`
 resource "aws_iam_role_policy" "test_policy" {
   name = %[1]q
@@ -154,14 +188,17 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 %s
 	`, policyName, roleName, projectName, orgID, stepConfig)
 }
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStep(name, testS3Bucket string) string {
+func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStepS3Bucket(name, testS3Bucket string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_federated_database_instance" "test" {
    project_id         = mongodbatlas_project.test.id
    name = %[1]q
-   aws {
-     role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-     test_s3_bucket = %[2]q
+
+   cloud_provider_config {
+	aws {
+		role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+		test_s3_bucket = %[2]q
+	  }
    }
 
    storage_databases {
@@ -213,6 +250,64 @@ resource "mongodbatlas_federated_database_instance" "test" {
 data "mongodbatlas_federated_database_instance" "test" {
 	project_id           = mongodbatlas_federated_database_instance.test.project_id
 	name = mongodbatlas_federated_database_instance.test.name
+
+	cloud_provider_config {
+		aws {
+			test_s3_bucket = %[2]q
+		  }
+	}
 }
 	`, name, testS3Bucket)
+}
+
+func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(federatedInstanceName, projectName, orgId string) string {
+	return fmt.Sprintf(`
+
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[3]q
+	}
+
+resource "mongodbatlas_federated_database_instance" "test" {
+   project_id         = mongodbatlas_project.test.id
+   name = %[1]q
+
+   storage_databases {
+	name = "VirtualDatabase0"
+	collections {
+			name = "VirtualCollection0"
+			data_sources {
+					collection = "listingsAndReviews"
+					database = "sample_airbnb"
+					store_name =  "ClusterTest"
+			}
+	}
+   }
+
+   storage_stores {
+	name = "ClusterTest"
+	cluster_name = "ClusterTest"
+	project_id = mongodbatlas_project.test.id
+	provider = "atlas"
+	read_preference {
+		mode = "secondary"
+	}
+   }
+
+   storage_stores {
+	name = "dataStore0"
+	cluster_name = "ClusterTest"
+	project_id = mongodbatlas_project.test.id
+	provider = "atlas"
+	read_preference {
+		mode = "secondary"
+	}
+   }
+}
+
+data "mongodbatlas_federated_database_instance" "test" {
+	project_id           = mongodbatlas_federated_database_instance.test.project_id
+	name = mongodbatlas_federated_database_instance.test.name
+}
+	`, federatedInstanceName, projectName, orgId)
 }
