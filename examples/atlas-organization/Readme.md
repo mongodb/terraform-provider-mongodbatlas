@@ -3,7 +3,7 @@
 
 This project aims to provide a very straight-forward example of setting up a MongoDB Atlas Organization with Terraform. This will create the following resources in MongoDB Atlas:
 
-- Atlas organization
+- MongoDB Atlas organization
 - Private Key
 - Public Key
 - Organization ID
