@@ -1,4 +1,4 @@
-# Example - MongoDB Atlas Federated Database Instance with an AWS S3 and MongoDB Cluster as storage databases
+# Example - MongoDB Atlas Federated Database Instance with an Amazon S3 and MongoDB Cluster as storage databases
 
 This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/overview/).
 
