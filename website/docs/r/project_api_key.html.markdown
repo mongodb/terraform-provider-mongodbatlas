@@ -22,11 +22,40 @@ resource "mongodbatlas_project_api_key" "test" {
 }
 ```
 
+
+## Example Usage
+
+```terraform
+resource "mongodbatlas_project_api_key" "test" {
+  description   = "key-name"
+  project_id    = "<PROJECT_ID>"
+  role_names    = ["GROUP_OWNER"]
+}
+```
+
+## Example Usage of multiple project assignments
+
+```terraform
+resource "mongodbatlas_api_key" "test" {
+  description   = "key-name"
+  org_id        = "<ORG_ID>"
+ project_assignment {
+    project_id = <project_id>
+    role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
+  }
+  project_assignment {
+    project_id = <additional_project_id>
+    role_names = ["GROUP_READ_ONLY"]
+  }
+  
+}
+```
+
 ## Argument Reference
 
-* `project__id` -Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` -Unique 24-hexadecimal digit string that identifies your project.
 * `description` - Description of this Organization API key.
-* `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
+* `role_names` - (Deprecated use project_assignment) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
  The following are valid roles:
   * `GROUP_OWNER`
   * `GROUP_READ_ONLY`
@@ -37,6 +66,19 @@ resource "mongodbatlas_project_api_key" "test" {
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
+# project_assignment
+Project Assignment attribute is optional (Use project_assignment going forward as role_names parameter above is deprecated)
+
+* `project_id` - (Required) Project ID to assign to Access Key
+* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas.
+The following are valid roles:
+  * `GROUP_OWNER`
+  * `GROUP_READ_ONLY`
+  * `GROUP_DATA_ACCESS_ADMIN`
+  * `GROUP_DATA_ACCESS_READ_WRITE`
+  * `GROUP_DATA_ACCESS_READ_ONLY`
+  * `GROUP_CLUSTER_MANAGER`  
+  * 
 ### Programmatic API Keys
 api_keys allows one to assign an existing organization programmatic API key to a Project. The api_keys attribute is optional.
 
