@@ -12,7 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-## Example Usages with MongoDB Atlas as storage database
+## Example Usages with MongoDB Atlas Cluster as storage database
 
 
 ```terraform

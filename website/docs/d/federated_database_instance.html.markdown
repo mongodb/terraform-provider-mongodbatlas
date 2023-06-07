@@ -14,7 +14,7 @@ description: |-
 
 ~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
-## Example Usages
+## Example Usages with MongoDB Atlas Cluster as storage database
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
