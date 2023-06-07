@@ -21,7 +21,7 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
@@ -50,7 +50,7 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
