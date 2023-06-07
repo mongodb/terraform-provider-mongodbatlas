@@ -12,7 +12,7 @@ description: |-
 
 ~> **IMPORTANT WARNING:** Managing Atlas Programmatic API Keys (PAKs) with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data). You may also want to consider managing your PAKs via a more secure method, such as the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
 
-## Example Usage
+## Example Usage - Create and Assign PAK Together
 
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
@@ -22,27 +22,18 @@ resource "mongodbatlas_project_api_key" "test" {
 }
 ```
 
-
-## Example Usage
-
-```terraform
-resource "mongodbatlas_project_api_key" "test" {
-  description   = "key-name"
-  project_id    = "<PROJECT_ID>"
-  role_names    = ["GROUP_OWNER"]
-}
-```
-
-## Example Usage of multiple project assignments
+## Example Usage - Create and Assign PAK to Multiple Projects
 
 ```terraform
 resource "mongodbatlas_api_key" "test" {
   description   = "key-name"
   org_id        = "<ORG_ID>"
+  
  project_assignment {
     project_id = <project_id>
     role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
   }
+  
   project_assignment {
     project_id = <additional_project_id>
     role_names = ["GROUP_READ_ONLY"]
