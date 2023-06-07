@@ -16,11 +16,24 @@ description: |-
 
 ## Example Usages
 
+```terraform
+data "mongodbatlas_federated_database_instance" "test" {
+  project_id         = "PROJECT ID"
+  name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+}
+```
+
+## Example Usages with AWS S3 bucket as storage database
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
   project_id         = "PROJECT ID"
   name = "NAME OF THE FEDERATED DATABASE INSTANCE"
+  cloud_provider_config {
+		aws {
+			test_s3_bucket = "AWS S3 Bucket Name"
+		}
+	}
 }
 ```
 
