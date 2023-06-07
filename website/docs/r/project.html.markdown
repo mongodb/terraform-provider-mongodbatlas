@@ -79,6 +79,8 @@ api_keys allows one to assign an existing organization programmatic API key to a
 
 * `api_key_id` - (Required) The unique identifier of the Programmatic API key you want to associate with the Project.  The Programmatic API key and Project must share the same parent organization.  Note: this is not the `publicKey` of the Programmatic API key but the `id` of the key. See [Programmatic API Keys](https://docs.atlas.mongodb.com/reference/api/apiKeys/) for more.
 
+**WARNING:** This parameter is deprecated, use `mongodbatlas_project_api_key`  will be removed in v1.12.0 release
+
 * `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
  The following are valid roles:
   * `GROUP_OWNER`
