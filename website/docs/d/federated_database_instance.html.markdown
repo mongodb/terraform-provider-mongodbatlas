@@ -79,7 +79,8 @@ In addition to all arguments above, the following attributes are exported:
       * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
       * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
 
-### `aws` - Name of the cloud service that hosts the data lake's data stores.
+### `cloud_provider_config` - Cloud provider linked to this data federated instance.
+#### `aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
 * `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:
   * `s3:GetObject`
   * `s3:ListBucket`

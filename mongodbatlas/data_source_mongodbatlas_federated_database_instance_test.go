@@ -260,7 +260,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 	`, name, testS3Bucket)
 }
 
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(federatedInstanceName, projectName, orgId string) string {
+func testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(federatedInstanceName, projectName, orgID string) string {
 	return fmt.Sprintf(`
 
 resource "mongodbatlas_project" "test" {
@@ -309,5 +309,5 @@ data "mongodbatlas_federated_database_instance" "test" {
 	project_id           = mongodbatlas_federated_database_instance.test.project_id
 	name = mongodbatlas_federated_database_instance.test.name
 }
-	`, federatedInstanceName, projectName, orgId)
+	`, federatedInstanceName, projectName, orgID)
 }
