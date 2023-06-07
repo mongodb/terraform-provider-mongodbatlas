@@ -27,7 +27,7 @@ resource "mongodbatlas_advanced_cluster" "advanced_cluster_test" {
 
   backup_enabled         = true                       # enable cloud backup snapshots
   pit_enabled            = true                       # Flag that indicates whether the cluster uses continuous cloud backups
-  retain_backups_enabled = var.retain_backups_enabled # keep the backup snapshopts once the cluster is deleted
+  retain_backups_enabled = var.retain_backups_enabled # keep the backup snapshots once the cluster is deleted
 }
 
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
