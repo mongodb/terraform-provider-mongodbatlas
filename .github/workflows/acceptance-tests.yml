@@ -2,19 +2,11 @@ name: 'Acceptance Tests'
 
 on:
   workflow_dispatch: {}
-  workflow_call: {}
-  push:
-    branches:
-      - master
-    paths:
-      - 'mongodbatlas/**'
-      - '!website/docs/**'
-  pull_request:
-    types: [ labeled ]
-    paths:
-      - '.github/workflows/automated-test-acceptances.yml'
-      - 'mongodbatlas/**'
-      - '!website/docs/**'
+  workflow_call: 
+    inputs:
+      parent-event-name: # we want to run all the acceptance tests when the worflow is run in master (push)
+        required: true
+        type: string
 
 jobs:
   authorize:
@@ -47,7 +39,7 @@ jobs:
 
   cluster_outage_simulation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' }}
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || inputs.parent-event-name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
