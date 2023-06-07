@@ -85,7 +85,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	}
 
 	if err := d.Set("private_key", organization.APIKey.PrivateKey); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
 
 	if err := d.Set("public_key", organization.APIKey.PublicKey); err != nil {
