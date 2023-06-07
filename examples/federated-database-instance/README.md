@@ -1,4 +1,4 @@
-# Example - MongoDB Atlas Federated Database Instance with AWS S3
+# Example - MongoDB Atlas Federated Database Instance with an AWS S3 and MongoDB Cluster as storage databases
 
 This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/overview/).
 
@@ -16,7 +16,35 @@ Terraform v1.10.0
 
 ## Usage
 
-**1\. Ensure to create an Atlas project and a cluster**
+**1\. Ensure your AWS and MongoDB Atlas credentials are set up.**
+
+This can be done using environment variables:
+
+```bash
+export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
+export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+```
+
+``` bash
+$ export AWS_SECRET_ACCESS_KEY='your secret key'
+$ export AWS_ACCESS_KEY_ID='your key id'
+```
+
+... or the `~/.aws/credentials` file.
+
+```
+$ cat ~/.aws/credentials
+[default]
+aws_access_key_id = your key id
+aws_secret_access_key = your secret key
+```
+... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
+```
+access_key           = "<AWS_ACCESS_KEY_ID>"
+secret_key           = "<AWS_SECRET_ACCESS_KEY>"
+public_key           = "<MONGODB_ATLAS_PUBLIC_KEY>"
+private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
+```
 **2\. Create an S3 bucket into your AWS account**
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
@@ -31,7 +59,7 @@ This project currently supports the below deployments:
 
 - An AWS Policy
 - An AWS Role
-- MongoDB Atlas Federated Database Instance
+- MongoDB Atlas Federated Database Instance with an S3 bucket and MongoDB Atlas Cluster as storage databases
 
 **5\. Execute the Terraform apply.**
 
