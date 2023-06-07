@@ -7,14 +7,9 @@ This project aims to provide a very straight-forward example of setting up a Mon
 - Public Key
 - Organization ID
 
-You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provider's region name:
-* [Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
-* [Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
-* [Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
-
 ## Dependencies
 
-* Terraform v0.13 or greater
+* Terraform v0.15 or greater
 * A MongoDB Atlas account 
 * provider.mongodbatlas: version = "~> 1.10.0"
 * [Cross-organization billing](https://www.mongodb.com/docs/atlas/billing/#cross-organization-billing) enabled and the requesting API Key's organization must be a paying organization. 
@@ -67,8 +62,5 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 ``` bash
 $ terraform destroy
 ```
-
-**Important Point**
-
 
 **Output:**

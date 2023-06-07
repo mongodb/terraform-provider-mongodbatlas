@@ -4,14 +4,9 @@ This project aims to provide a very straight-forward example of setting up Terra
 
 - Atlas Project
 
-You can refer to the MongoDB Atlas documentation to know about the region names used in MongoDB Atlas respective to the Cloud Provider's region name.
-[Amazon Web Services (AWS)](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws)
-[Google Cloud Platform (GCP)](https://docs.atlas.mongodb.com/reference/google-gcp/#google-gcp)
-[Microsoft Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure)
-
 ## Dependencies
 
-* Terraform v0.13 or greater
+* Terraform v0.15 or greater
 * A MongoDB Atlas account 
 * provider.mongodbatlas: version = "~> 0.9.1"
 * Some users (see [here](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1083)) have reported issues deploying this starter example with Mac M1 CPU. If issue persists, suggest deploying instead on x86 linux if possible. See list of supported binaries [here](https://github.com/mongodb/terraform-provider-mongodbatlas/releases/tag/v1.8.1)  
