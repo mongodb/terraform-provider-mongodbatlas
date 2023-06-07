@@ -62,5 +62,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
+      repository-projects: read
     uses: ./.github/workflows/acceptance-tests.yml
 
