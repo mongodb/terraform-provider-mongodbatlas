@@ -43,7 +43,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 }
 ```
 
-## Example Usages with AWS S3 bucjet as storage database
+## Example Usages with Amazon S3 bucket as storage database
 
 
 ```terraform
