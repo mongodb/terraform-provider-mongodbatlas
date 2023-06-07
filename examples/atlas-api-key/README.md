@@ -6,11 +6,11 @@ The most notable improvements among these as part of v1.10.0 release, was the de
 
 To further facilitate the transition, we've included in this atlas-api-key folder, three reference examples for Programmatic API Key (PAK) usage:
 
-"Create and Assign PAK Together" — this demonstrates how to create a PAK and assign it simultaneously.
+* "Create and Assign PAK Together" — this demonstrates how to create a PAK and assign it simultaneously.
 
-"Create and Assign PAK to Multiple Projects" — this shows how to create a PAK and assign it to several projects at once.
+* "Create and Assign PAK to Multiple Projects" — this shows how to create a PAK and assign it to several projects at once.
 
-"Create and Assign PAK Separately" (Deprecated) — this is an older method of creating and assigning PAKs, now deprecated but still available for reference.
+* "Create and Assign PAK Separately" (Deprecated) — this is an older method of creating and assigning PAKs, now deprecated but still available for reference.
 
 Our hope is that these examples will provide clear guidance and help ease your transition to this new PAK workflow in our Terraform Provider.
 
