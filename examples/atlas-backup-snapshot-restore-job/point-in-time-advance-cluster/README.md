@@ -10,7 +10,7 @@ Variables Required:
 
 In order to utilize the backup restore job via point in time, fist you need a backup with which to restore.
 This example has been configured to only create the backup restore if `point_in_time_utc_seconds` is a non-zero number.
-As such, utilize the following example `terraform.tfvars` and pseudo-code to execute a workign example:
+As such, utilize the following example `terraform.tfvars` and pseudo-code to execute a working example:
 
 Example `terraform.tfvars`
 ```
