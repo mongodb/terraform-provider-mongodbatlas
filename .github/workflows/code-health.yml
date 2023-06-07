@@ -71,4 +71,6 @@ jobs:
       pull-requests: read
       repository-projects: read
     uses: ./.github/workflows/acceptance-tests.yml
+    with:
+      parent-event-name: ${{ github.event_name }}
 
