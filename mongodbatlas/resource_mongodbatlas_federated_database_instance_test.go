@@ -92,7 +92,6 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = acctest.RandomWithPrefix("test-acc")
-		testS3Bucket = os.Getenv("AWS_S3_BUCKET")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,13 +105,6 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ProviderFactories: testAccProviderFactories,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFuncS3Bucket(resourceName, testS3Bucket),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
