@@ -57,7 +57,7 @@ data "mongodbatlas_access_list_api_key" "test" {
 * `ip_address` - (Optional) Single IP address to be added to the access list.
 * `api_key_id` - (Required) Unique identifier for the Organization API Key for which you want to retrieve an access list entry.
 * 
--> **NOTE:** One of the following attributes must set: `cidr_block`  or `ip_address` not both.
+->**NOTE:** You must set either the `cidr_block` attribute or the `ip_address` attribute. Don't set both.
 
 ## Attributes Reference
 

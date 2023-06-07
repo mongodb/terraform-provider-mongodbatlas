@@ -234,10 +234,10 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	}
 
 	if d.HasChange("project_assignment") {
-		// get the current api_keys and the new api_keys with changes
+		// Getting the current api_keys and the new api_keys with changes
 		newAPIKeys, changedAPIKeys, removedAPIKeys := getStateProjectAssignmentAPIKeys(d)
 
-		// adding new api_keys into the project
+		// Adding new api_keys into the project
 		if len(newAPIKeys) > 0 {
 			for _, apiKey := range newAPIKeys {
 				projectID := apiKey.(map[string]interface{})["project_id"].(string)

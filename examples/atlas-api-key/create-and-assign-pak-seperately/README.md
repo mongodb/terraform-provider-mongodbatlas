@@ -1,4 +1,4 @@
-# MongoDB Atlas Provider -- Create and Assign PAK sepeerately
+# MongoDB Atlas Provider -- Create and Assign PAK Separately
 This example creates an organization API Key and access list showing how to attach cidr_block.
 
 Variables Required to be set:
