@@ -5,7 +5,7 @@ This project aims to provide an example of using [MongoDB Atlas Federated Databa
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.4.6
+* Terraform MongoDB Atlas Provider v1.10.0
 * A MongoDB Atlas account 
 
 ```
