@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0
       # See also: https://github.com/actions/setup-go/pull/62
       - run: echo "GO_VERSION=$(cat .go-version)" >> "${GITHUB_ENV}"
       - uses: actions/setup-go@v4
@@ -42,4 +42,4 @@ jobs:
           # Needed to use the output of `terraform validate -json`
           terraform_wrapper: false
       - name: tflint
-        run: make tools & make tflint
+        run: make tools && make tflint
