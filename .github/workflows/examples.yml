@@ -17,12 +17,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["0.13.0"]
+        terraform_version: ["1.4.6"]
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      # See also: https://github.com/actions/setup-go/pull/62
       - run: echo "GO_VERSION=$(cat .go-version)" >> "${GITHUB_ENV}"
       - uses: actions/setup-go@v4
         with:
