@@ -76,6 +76,7 @@ jobs:
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          CA_CERT: ${{ secrets.CA_CERT }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           SKIP_TEST: ${{ vars.SKIP_TEST }}
           AWS_REGION: ${{ vars.AWS_REGION }}
