@@ -19,8 +19,13 @@ set -Eeou pipefail
 for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
   [ ! -d "$DIR" ] && continue
   pushd "$DIR"
+  
+  echo; echo -e "\e[1;35m===> Initializing Example: $DIR <===\e[0m"; echo
+  terraform init
+
   echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
   terraform fmt -check
+
   # Terraform syntax checks
   echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
    tflint \
