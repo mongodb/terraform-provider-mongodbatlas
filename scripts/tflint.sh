@@ -22,13 +22,12 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
   terraform fmt -check
   # Terraform syntax checks
-  # echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
-  # TODO: INTMDB-249
-  #  tflint \
-  #    --enable-rule=terraform_deprecated_interpolation \
-  #    --enable-rule=terraform_deprecated_index \
-  #    --enable-rule=terraform_unused_declarations \
-  #    --enable-rule=terraform_comment_syntax \
-  #    --enable-rule=terraform_required_version
+  echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
+   tflint \
+     --enable-rule=terraform_deprecated_interpolation \
+     --enable-rule=terraform_deprecated_index \
+     --enable-rule=terraform_unused_declarations \
+     --enable-rule=terraform_comment_syntax \
+     --enable-rule=terraform_required_version
   popd
 done
