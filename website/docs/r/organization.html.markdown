@@ -10,7 +10,7 @@ description: |-
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.
 
-~> **IMPORTANT NOTE:**  Creating an organization with this resource creates initial public and private key values that will need to be used in a separate terraform module/blueprint to permit access to new organization.
+~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial public and private Programmatic API Keys. These key values are vital to store because you'll need to use them to grant access to the newly created Atlas organization.
 
 
 ## Example Usage
