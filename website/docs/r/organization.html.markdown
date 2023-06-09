@@ -49,6 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 * `org_id` - The organization id.
 * `public_key` - Public API key value set for the specified organization API key.
 * `private_key` - Redacted private key returned for this organization API key. This key displays unredacted when first created and is saved within the Terraform state file.
+* `isDeleted` - (computed) Flag that indicates whether this organization has been deleted.
 
 
 ## Import
