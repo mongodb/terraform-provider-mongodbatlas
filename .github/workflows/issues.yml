@@ -39,7 +39,7 @@ jobs:
                 "description": "This ticket tracks the following GitHub issue: '"${ISSUE_URL}"'.",
                 "components": [
                     {
-                        "id": "32225"
+                        "id": "27590"
                     }
                 ],
                 "assignee": {
