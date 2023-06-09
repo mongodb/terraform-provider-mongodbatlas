@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: mongodbatlas_organizations
 
-`mongodbatlas_organizations` describe all Organizations. This represents organizations that have been created.
+`mongodbatlas_organizations` describe all MongoDB Atlas Organizations. This represents organizations that have been created.
 
 
 ## Example Usage
