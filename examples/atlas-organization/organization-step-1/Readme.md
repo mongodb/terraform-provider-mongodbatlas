@@ -1,4 +1,4 @@
-# Example - A basic example to create and Orgnization with MongoDB Atlas and Terraform
+# Example - A basic example to create a MongoDB Atlas Organization with Terraform
 
 This project aims to provide a very straight-forward example of setting up a MongoDB Atlas Organization with Terraform. This will create the following resources in MongoDB Atlas:
 
