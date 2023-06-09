@@ -51,6 +51,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADL() *schema.Resource {
 				Optional: true,
 			},
 		},
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive"),
 	}
 }
 

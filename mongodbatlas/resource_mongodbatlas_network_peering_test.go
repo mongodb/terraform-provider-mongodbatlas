@@ -28,7 +28,7 @@ func TestAccNetworkRSNetworkPeering_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvAWS(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvAWS(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccNetworkRSNetworkPeering_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvAzure(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvAzure(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -106,7 +106,7 @@ func TestAccNetworkRSNetworkPeering_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkPeeringEnvGCP(t) },
+		PreCheck:          func() { testAccPreCheck(t); testCheckPeeringEnvGCP(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -151,7 +151,7 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			checkPeeringEnvAWS(t)
+			testCheckPeeringEnvAWS(t)
 			func() {
 				if strings.EqualFold(containerRegion, peerRegion) {
 					t.Fatalf("the `AWS_REGION` (%s) must be different region than %s", peerRegion, containerRegion)

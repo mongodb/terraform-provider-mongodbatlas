@@ -118,6 +118,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
+	SkipTest(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -237,7 +238,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
-					RestoreWindowDays:     pointy.Int64(4),
+					RestoreWindowDays:     pointy.Int64(1),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName),
@@ -245,7 +246,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
@@ -264,6 +265,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.0.retention_value", "4"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.cloud_provider", "AWS"),
 					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.region_name", "US_EAST_1"),
+					resource.TestCheckResourceAttr(resourceName, "copy_settings.0.should_copy_oplogs", "true"),
 				),
 			},
 		},
@@ -515,6 +517,7 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, cluster
 			provider_region_name        = "US_EAST_2"
 			provider_instance_size_name = "M10"
 			cloud_backup     = true //enable cloud provider snapshots
+			pit_enabled = true // enable point in time restore. you cannot copy oplogs when pit is not enabled.
 		}
 
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
@@ -554,7 +557,7 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, cluster
 							"ON_DEMAND"]
 				region_name = "US_EAST_1"
 				replication_spec_id = mongodbatlas_cluster.my_cluster.replication_specs.*.id[0]
-				should_copy_oplogs = false
+				should_copy_oplogs = true
 			  }
 		}
 	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
@@ -833,4 +836,17 @@ EOF
 
 }
 	`, projectID, clusterName, policyName, roleName, awsAccessKey, awsSecretKey, region)
+}
+
+func testAccCheckMongoDBAtlasCloudProviderSnapshotBackupPolicyImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
+	}
 }

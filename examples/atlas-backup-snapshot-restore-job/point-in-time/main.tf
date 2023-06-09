@@ -15,6 +15,7 @@ resource "mongodbatlas_cluster" "cluster_test" {
   provider_instance_size_name = "M10"
   cloud_backup                = true # enable cloud provider snapshots
   pit_enabled                 = true
+  retain_backups_enabled      = true # keep the backup snapshopts once the cluster is deleted
 }
 
 

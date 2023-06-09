@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -439,10 +440,10 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
 	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 
-	// Delete policies items
-	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
+	// Get policies items
+	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
-		return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
 	policy := matlas.Policy{}
@@ -597,6 +598,7 @@ func expandCopySetting(tfMap map[string]interface{}) *matlas.CopySetting {
 		Frequencies:       expandStringList(tfMap["frequencies"].(*schema.Set).List()),
 		RegionName:        pointy.String(tfMap["region_name"].(string)),
 		ReplicationSpecID: pointy.String(tfMap["replication_spec_id"].(string)),
+		ShouldCopyOplogs:  pointy.Bool(tfMap["should_copy_oplogs"].(bool)),
 	}
 	return copySetting
 }

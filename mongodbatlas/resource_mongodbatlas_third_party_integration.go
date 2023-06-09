@@ -14,10 +14,8 @@ import (
 var integrationTypes = []string{
 	"PAGER_DUTY",
 	"DATADOG",
-	"NEW_RELIC",
 	"OPS_GENIE",
 	"VICTOR_OPS",
-	"FLOWDOCK",
 	"WEBHOOK",
 	"MICROSOFT_TEAMS",
 	"PROMETHEUS",
@@ -31,10 +29,8 @@ var deprecatedIntegrationTypes = []string{
 var requiredPerType = map[string][]string{
 	"PAGER_DUTY":      {"service_key"},
 	"DATADOG":         {"api_key", "region"},
-	"NEW_RELIC":       {"license_key", "account_id", "write_token", "read_token"},
 	"OPS_GENIE":       {"api_key", "region"},
 	"VICTOR_OPS":      {"api_key"},
-	"FLOWDOCK":        {"flow_name", "api_token", "org_name"},
 	"WEBHOOK":         {"url"},
 	"MICROSOFT_TEAMS": {"microsoft_teams_webhook_url"},
 	"PROMETHEUS":      {"user_name", "password", "service_discovery", "scheme", "enabled"},
@@ -61,25 +57,6 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				ForceNew:         true,
 				ValidateDiagFunc: validateIntegrationType(),
 			},
-			"license_key": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Optional:  true,
-			},
-			"account_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"write_token": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Optional:  true,
-			},
-			"read_token": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Optional:  true,
-			},
 			"api_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
@@ -90,11 +67,6 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Optional: true,
 			},
 			"service_key": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Optional:  true,
-			},
-			"api_token": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Optional:  true,
@@ -111,14 +83,6 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
-			},
-			"flow_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"org_name": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 			"url": {
 				Type:     schema.TypeString,
