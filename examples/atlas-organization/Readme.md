@@ -7,7 +7,7 @@ This project aims to provide a very straight-forward example of setting up a Mon
 - Private Key
 - Public Key
 - Organization ID
-- Atlas Project
+- MongoDB Atlas Project
 
 ## Dependencies
 
