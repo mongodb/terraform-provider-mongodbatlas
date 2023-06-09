@@ -10,3 +10,4 @@ Variables Required to be set:
 In this example, we will set up a project API key and attach an access list to it.
 
 
+**Note:** in this example parameter role_names is deprecated and will be removed in v1.12.0 release from codebase. Use `project_assignment`  parameter instead. 
