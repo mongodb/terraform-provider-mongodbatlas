@@ -9,6 +9,6 @@ Variables Required to be set:
 - `public_key`: Atlas public key
 - `private_key`: Atlas  private key
 
-For this example, we will setup organization api key and attach access list to it.
+In this example, we will set up an organization API key and attach an access list to it.
 
 
