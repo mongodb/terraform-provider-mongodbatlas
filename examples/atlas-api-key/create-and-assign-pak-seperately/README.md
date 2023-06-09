@@ -1,4 +1,6 @@
-# MongoDB Atlas Provider -- Create and Assign PAK Separately
+# MongoDB Atlas Provider -- Create and Assign PAK Separately (Deprecated) 
+
+Note this functionality has been deprecated and will be removed in v1.12.0. Instead suggest see examples for Create and Assign PAK Together + Create and Assign PAK to Multiple Projects.
 This example creates an organization API Key and access list, showing how to attach a CIDR block.
 
 Variables Required to be set:
