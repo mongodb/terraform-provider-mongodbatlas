@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: access_list_api_key"
 sidebar_current: "docs-mongodbatlas-resource-access_list-api-key"
 description: |-
-    Creates the access list entries for the specified Atlas Organization API Key. Atlas resources require that all API requests originate from IP addresses on the API access list.
+    Creates the access list entries for the specified Atlas Organization API Key. 
 ---
 
 # Resource: mongodbatlas_project_ip_access_list_key
