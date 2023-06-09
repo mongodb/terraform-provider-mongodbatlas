@@ -10,5 +10,5 @@ Variables Required to be set:
 - `private_key`: Atlas  private key
 
 In this example, we will set up an organization API key and attach an access list to it.
-
+**Note:** in this example parameter api_keys is deprecated and will be removed in v1.12.0 release from codebase. Use `mongodbatlas_project_api_key`  resource instead. 
 
