@@ -57,24 +57,22 @@ func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead(ctx context.Context,
 
 func flattenFederatedDatabaseQueryLimits(projectID, tenantName string, queryLimits []*matlas.DataFederationQueryLimit) []map[string]interface{} {
 	var federatedDatabaseQueryLimitMap []map[string]interface{}
-
 	if len(queryLimits) == 0 {
-	 return federatedDatabaseQueryLimitMap
+		return federatedDatabaseQueryLimitMap
 	}
-		federatedDatabaseQueryLimitMap = make([]map[string]interface{}, len(queryLimits))
 
-		for i := range queryLimits {
-			federatedDatabaseQueryLimitMap[i] = map[string]interface{}{
-				"project_id":         projectID,
-				"tenant_name":        queryLimits[i].TenantName,
-				"limit_name":         queryLimits[i].Name,
-				"overrun_policy":     queryLimits[i].OverrunPolicy,
-				"value":              queryLimits[i].Value,
-				"current_usage":      queryLimits[i].CurrentUsage,
-				"default_limit":      queryLimits[i].DefaultLimit,
-				"last_modified_date": queryLimits[i].LastModifiedDate,
-				"maximum_limit":      queryLimits[i].MaximumLimit,
-			}
+	federatedDatabaseQueryLimitMap = make([]map[string]interface{}, len(queryLimits))
+	for i := range queryLimits {
+		federatedDatabaseQueryLimitMap[i] = map[string]interface{}{
+			"project_id":         projectID,
+			"tenant_name":        queryLimits[i].TenantName,
+			"limit_name":         queryLimits[i].Name,
+			"overrun_policy":     queryLimits[i].OverrunPolicy,
+			"value":              queryLimits[i].Value,
+			"current_usage":      queryLimits[i].CurrentUsage,
+			"default_limit":      queryLimits[i].DefaultLimit,
+			"last_modified_date": queryLimits[i].LastModifiedDate,
+			"maximum_limit":      queryLimits[i].MaximumLimit,
 		}
 	}
 
