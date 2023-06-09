@@ -1012,7 +1012,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := conn.Clusters.Delete(ctx, projectID, clusterName)
+	_, err := conn.Clusters.Delete(ctx, projectID, clusterName, nil)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))

@@ -777,7 +777,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName)
+	_, err := conn.AdvancedClusters.Delete(ctx, projectID, clusterName, nil)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedDelete, clusterName, err))

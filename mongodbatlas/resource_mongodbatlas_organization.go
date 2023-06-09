@@ -132,6 +132,25 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 }
 
 func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Get client connection.
+	config := Config{
+		PublicKey:  d.Get("public_key").(string),
+		PrivateKey: d.Get("private_key").(string),
+	}
+
+	clients, _ := config.NewClient(ctx)
+	conn := clients.(*MongoDBClient).Atlas
+	ids := decodeStateID(d.Id())
+	orgID := ids["org_id"]
+
+	updateRequest := new(matlas.Organization)
+	if d.HasChange("name") {
+		updateRequest.Name = d.Get("name").(string)
+		_, _, err := conn.Organizations.Update(ctx, orgID, updateRequest)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("error updating Organization: %s", err))
+		}
+	}
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
 }
 
