@@ -8,35 +8,36 @@ import (
 )
 
 func TestAccConfigDSOrganizations_basic(t *testing.T) {
+	var (
+		datasourceName = "data.mongodbatlas_organizations.test"
+	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(true),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_organizations.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_organizations.test", "id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
+	var (
+		datasourceName = "data.mongodbatlas_organizations.test"
+	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithPagination(2, 5),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_organizations.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_organizations.test", "id"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_organizations.test", "results.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

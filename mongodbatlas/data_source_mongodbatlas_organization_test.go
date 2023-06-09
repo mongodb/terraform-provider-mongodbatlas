@@ -2,33 +2,35 @@ package mongodbatlas
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccConfigDSOrganization_basic(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); checkTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasOrganizationConfigWithDS(true),
+				Config: testAccMongoDBAtlasOrganizationConfigWithDS(orgID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("mongodbatlas_organization.test", "name"),
-					resource.TestCheckResourceAttrSet("mongodbatlas_organization.test", "id"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_organization.test", "name"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_organization.test", "id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
-func testAccMongoDBAtlasOrganizationConfigWithDS(includedeletedorgs bool) string {
+func testAccMongoDBAtlasOrganizationConfigWithDS(orgID string) string {
 	config := fmt.Sprintf(`
 		
 		data "mongodbatlas_organization" "test" {
-			include_deleted_orgs = %t
+			org_id = %[1]q
 		}
-	`, includedeletedorgs)
+	`, orgID)
 	return config
 }
