@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Create and Assign PAK together
-This example creates a project API Key and access list showing how to attach cidr_block.
+This example creates a project API Key and access list, showing how to attach a CIDR block.
 
 Variables Required to be set:
 - `project_id`: ID of the Atlas project
@@ -7,6 +7,6 @@ Variables Required to be set:
 - `public_key`: Atlas public key
 - `private_key`: Atlas  private key
 
-For this example, we will setup project api key and attach access list to it.
+In this example, we will set up a project API key and attach an access list to it.
 
 
