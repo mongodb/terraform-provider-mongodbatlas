@@ -58,7 +58,9 @@ func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead(ctx context.Context,
 func flattenFederatedDatabaseQueryLimits(projectID, tenantName string, queryLimits []*matlas.DataFederationQueryLimit) []map[string]interface{} {
 	var federatedDatabaseQueryLimitMap []map[string]interface{}
 
-	if len(queryLimits) > 0 {
+	if len(queryLimits) == 0 {
+	 return federatedDatabaseQueryLimitMap
+	}
 		federatedDatabaseQueryLimitMap = make([]map[string]interface{}, len(queryLimits))
 
 		for i := range queryLimits {
