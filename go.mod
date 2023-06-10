@@ -11,8 +11,8 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
 	github.com/mongodb-forks/digest v1.0.4
 	github.com/mwielbut/pointy v1.1.0
-	github.com/spf13/cast v1.5.0
-	github.com/zclconf/go-cty v1.13.1
+	github.com/spf13/cast v1.5.1
+	github.com/zclconf/go-cty v1.13.2
 	go.mongodb.org/atlas v0.29.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
