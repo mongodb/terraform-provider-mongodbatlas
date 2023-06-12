@@ -24,7 +24,7 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   
   # Skip directories with "v08" or "v09" in their name for ARM64
   if [[ "$arch_name" == "arm64" ]] && echo "$DIR" | grep -qE "v08|v09"; then
-      echo "Skip directories with "v08" or "v09" in their name for ARM64"
+      echo "Skip directories with \"v08\" or \"v09\" in their name for ARM64"
       echo "TF provider does not have a package available for ARM64 for version < 1.0"
       echo "Skipping directory: $DIR"
       continue
