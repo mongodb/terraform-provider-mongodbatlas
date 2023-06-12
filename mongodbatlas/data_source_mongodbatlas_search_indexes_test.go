@@ -101,7 +101,7 @@ func testAccMongoDBAtlasSearchIndexesDSConfigSynonyms(projectID, clusterName, da
 			collection_name = "%s"
 			page_num = 1
 			items_per_page = 100
-			
+			analyzer = "lucene.simple"
 		}
 	`, testAccMongoDBAtlasSearchIndexConfigSynonyms(projectID, clusterName), databaseName, collectionName)
 }
