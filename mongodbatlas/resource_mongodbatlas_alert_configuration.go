@@ -209,15 +209,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"flowdock_api_token": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Optional:  true,
-						},
-						"flow_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"interval_min": {
 							Type:     schema.TypeInt,
 							Optional: true,
@@ -235,10 +226,6 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"US", "EU"}, false),
-						},
-						"org_name": {
-							Type:     schema.TypeString,
-							Optional: true,
 						},
 						"service_key": {
 							Type:      schema.TypeString,
@@ -261,7 +248,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{"EMAIL", "SMS", pagerDuty, "SLACK",
-								"FLOWDOCK", "DATADOG", opsGenie, victorOps,
+								"DATADOG", opsGenie, victorOps,
 								"WEBHOOK", "USER", "TEAM", "GROUP", "ORG", "MICROSOFT_TEAMS"}, false),
 						},
 						"username": {
@@ -728,13 +715,10 @@ func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Noti
 			DelayMin:                 pointy.Int(v["delay_min"].(int)),
 			EmailAddress:             cast.ToString(v["email_address"]),
 			EmailEnabled:             pointy.Bool(v["email_enabled"].(bool)),
-			FlowdockAPIToken:         cast.ToString(v["flowdock_api_token"]),
-			FlowName:                 cast.ToString(v["flow_name"]),
 			IntervalMin:              cast.ToInt(v["interval_min"]),
 			MobileNumber:             cast.ToString(v["mobile_number"]),
 			OpsGenieAPIKey:           cast.ToString(v["ops_genie_api_key"]),
 			OpsGenieRegion:           cast.ToString(v["ops_genie_region"]),
-			OrgName:                  cast.ToString(v["org_name"]),
 			ServiceKey:               cast.ToString(v["service_key"]),
 			SMSEnabled:               pointy.Bool(v["sms_enabled"].(bool)),
 			TeamID:                   cast.ToString(v["team_id"]),
@@ -762,7 +746,6 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 		for i := range notificationsSchema {
 			notifications[i].APIToken = notificationsSchema[i].APIToken
 			notifications[i].DatadogAPIKey = notificationsSchema[i].DatadogAPIKey
-			notifications[i].FlowdockAPIToken = notificationsSchema[i].FlowdockAPIToken
 			notifications[i].OpsGenieAPIKey = notificationsSchema[i].OpsGenieAPIKey
 			notifications[i].ServiceKey = notificationsSchema[i].ServiceKey
 			notifications[i].VictorOpsAPIKey = notificationsSchema[i].VictorOpsAPIKey
@@ -785,13 +768,10 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 			"delay_min":                   notifications[i].DelayMin,
 			"email_address":               notifications[i].EmailAddress,
 			"email_enabled":               notifications[i].EmailEnabled,
-			"flowdock_api_token":          notifications[i].FlowdockAPIToken,
-			"flow_name":                   notifications[i].FlowName,
 			"interval_min":                notifications[i].IntervalMin,
 			"mobile_number":               notifications[i].MobileNumber,
 			"ops_genie_api_key":           notifications[i].OpsGenieAPIKey,
 			"ops_genie_region":            notifications[i].OpsGenieRegion,
-			"org_name":                    notifications[i].OrgName,
 			"service_key":                 notifications[i].ServiceKey,
 			"sms_enabled":                 notifications[i].SMSEnabled,
 			"team_id":                     notifications[i].TeamID,

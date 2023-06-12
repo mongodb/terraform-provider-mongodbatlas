@@ -179,6 +179,19 @@ func SkipTestExtCred(tb testing.TB) {
 	}
 }
 
+func testCheckDataLakePipelineRun(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID") == "" {
+		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
+	}
+	testCheckDataLakePipelineRuns(tb)
+}
+
+func testCheckDataLakePipelineRuns(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
+		tb.Skip("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
+	}
+}
+
 func testCheckTeamsIds(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
 		tb.Skip("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
@@ -205,5 +218,11 @@ func testCheckFederatedSettings(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_FEDERATED_PROJECT_ID`, `MONGODB_ATLAS_FEDERATED_ORG_ID` and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings/verify acceptance testing")
+	}
+}
+
+func testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
+		tb.Skip("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
 }

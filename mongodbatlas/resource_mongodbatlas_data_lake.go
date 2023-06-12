@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/spf13/cast"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -101,6 +100,7 @@ func resourceMongoDBAtlasDataLake() *schema.Resource {
 			"storage_databases": schemaDataLakesDatabases(),
 			"storage_stores":    schemaDataLakesStores(),
 		},
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_federated_database_instance"),
 	}
 }
 
