@@ -38,8 +38,9 @@ var (
 )
 
 const (
-	endPointSTSDefault = "https://sts.amazonaws.com"
-	DeprecationMessage = "this resource is deprecated and will be removed in %s, please transition to %s"
+	endPointSTSDefault                    = "https://sts.amazonaws.com"
+	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
+	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
 )
 
 type SecretData struct {
@@ -207,6 +208,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_event_triggers":                                               dataSourceMongoDBAtlasEventTriggers(),
 		"mongodbatlas_project_invitation":                                           dataSourceMongoDBAtlasProjectInvitation(),
 		"mongodbatlas_org_invitation":                                               dataSourceMongoDBAtlasOrgInvitation(),
+		"mongodbatlas_organization":                                                 dataSourceMongoDBAtlasOrganization(),
+		"mongodbatlas_organizations":                                                dataSourceMongoDBAtlasOrganizations(),
 		"mongodbatlas_cloud_backup_snapshot":                                        dataSourceMongoDBAtlasCloudBackupSnapshot(),
 		"mongodbatlas_cloud_backup_snapshots":                                       dataSourceMongoDBAtlasCloudBackupSnapshots(),
 		"mongodbatlas_backup_compliance_policy":                                     dataSourceMongoDBAtlasBackupCompliancePolicy(),
@@ -225,6 +228,8 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_role_mappings":                         dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings(),
 		"mongodbatlas_federated_database_instance":                                  dataSourceMongoDBAtlasFederatedDatabaseInstance(),
 		"mongodbatlas_federated_database_instances":                                 dataSourceMongoDBAtlasFederatedDatabaseInstances(),
+		"mongodbatlas_federated_query_limit":                                        dataSourceMongoDBAtlasFederatedDatabaseQueryLimit(),
+		"mongodbatlas_federated_query_limits":                                       dataSourceMongoDBAtlasFederatedDatabaseQueryLimits(),
 		"mongodbatlas_serverless_instance":                                          dataSourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_serverless_instances":                                         dataSourceMongoDBAtlasServerlessInstances(),
 		"mongodbatlas_cluster_outage_simulation":                                    dataSourceMongoDBAtlasClusterOutageSimulation(),
@@ -275,6 +280,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_schedule":                                       resourceMongoDBAtlasCloudBackupSchedule(),
 		"mongodbatlas_project_invitation":                                          resourceMongoDBAtlasProjectInvitation(),
 		"mongodbatlas_org_invitation":                                              resourceMongoDBAtlasOrgInvitation(),
+		"mongodbatlas_organization":                                                resourceMongoDBAtlasOrganization(),
 		"mongodbatlas_cloud_backup_snapshot":                                       resourceMongoDBAtlasCloudBackupSnapshot(),
 		"mongodbatlas_backup_compliance_policy":                                    resourceMongoDBAtlasBackupCompliancePolicy(),
 		"mongodbatlas_cloud_backup_snapshot_restore_job":                           resourceMongoDBAtlasCloudBackupSnapshotRestoreJob(),
@@ -284,6 +290,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_settings_org_role_mapping":                         resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping(),
 		"mongodbatlas_federated_settings_identity_provider":                        resourceMongoDBAtlasFederatedSettingsIdentityProvider(),
 		"mongodbatlas_federated_database_instance":                                 resourceMongoDBAtlasFederatedDatabaseInstance(),
+		"mongodbatlas_federated_query_limit":                                       resourceMongoDBAtlasFederatedDatabaseQueryLimit(),
 		"mongodbatlas_serverless_instance":                                         resourceMongoDBAtlasServerlessInstance(),
 		"mongodbatlas_cluster_outage_simulation":                                   resourceMongoDBAtlasClusterOutageSimulation(),
 	}
@@ -778,10 +785,6 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	}
 
 	return &assumeRole
-}
-
-func pointer[T any](x T) *T {
-	return &x
 }
 
 func pointer[T any](x T) *T {
