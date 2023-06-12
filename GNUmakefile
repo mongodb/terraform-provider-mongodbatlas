@@ -117,3 +117,7 @@ terratest: fmtcheck
 .PHONY: tflint
 tflint: fmtcheck
 	@scripts/tflint.sh
+
+.PHONY: tf-validate
+tf-validate: fmtcheck
+	@scripts/tf-validate.sh
