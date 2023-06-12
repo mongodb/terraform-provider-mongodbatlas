@@ -35,6 +35,8 @@ jobs:
           cp terraform-plugin-dir/terraform-provider-mongodbatlas-dev_v99.99.99_x5 ~/.terraform.d/plugins/registry.terraform.io/hashicorp/mongodbatlas-dev/99.99.99/"$(go env GOOS)"_"$(go env GOARCH)"/
       - name: replace names of provider for local development
         run: grep --include=\*.tf -rnl './examples' -e 'source  = "mongodb/mongodbatlas"'  | xargs  sed -i s@mongodb/mongodbatlas@hashicorp/mongodbatlas-dev@g
+      - name: remove version of provider for local development
+        run: grep --include=\*.tf -rnl './examples' -e 'version =' | xargs sed -i '/^\s*version =/d'
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ matrix.terraform_version }}
