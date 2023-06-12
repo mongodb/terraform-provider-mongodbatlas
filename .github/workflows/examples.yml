@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        terraform_version: ["0.13.0"]
+        terraform_version: ["0.15.0"]
     steps:
       - uses: actions/checkout@v3
         with:

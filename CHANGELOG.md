@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.10.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.0) (June 10, 2023)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.9.0...v1.10.0)
+
+**Closed issues:**
+
+- Online Archive: "Specified cloud provider is not supported in Data Lake Storage" but works in UI [\#1216](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1216)
+- Asymmetric hardware is not supported by the provider [\#1214](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1214)
+- `region` argument missing from `mongodbatlas_third_party_integration` for integration with PagerDuty [\#1180](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1180)
+- Correct docs for importing network peering resources [\#1179](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1179)
+- Terraform destroy produces a 500 \(UNEXPECTED\_ERROR\) on the underlying API call [\#1162](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1162)
+- produced an unexpected new value: Root resource was present, but now │ absent [\#1160](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1160)
+- Failed to respond to the plugin.\(\*GRPCProvider\).PlanResourceChange call [\#1136](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1136)
+- Error: error creating MongoDB Cluster: unexpected EOF [\#674](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/674)
+
 ## [v1.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.9.0) (2023-4-27)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.8.2...v1.9.0)

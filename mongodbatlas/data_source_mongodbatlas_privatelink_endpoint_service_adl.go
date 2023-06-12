@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -33,6 +34,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointServiceADL() *schema.Resource {
 				Computed: true,
 			},
 		},
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.12.0", "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive"),
 	}
 }
 

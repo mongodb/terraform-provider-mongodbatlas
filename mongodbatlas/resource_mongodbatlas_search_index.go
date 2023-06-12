@@ -53,7 +53,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		},
 		"analyzer": {
 			Type:     schema.TypeString,
-			Required: true,
+			Optional: true,
 		},
 		"analyzers": {
 			Type:             schema.TypeString,
