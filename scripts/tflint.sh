@@ -49,6 +49,6 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
     --enable-rule=terraform_unused_declarations \
     --enable-rule=terraform_comment_syntax \
     --enable-rule=terraform_required_version \
-    --minimum-failure-severity=warning
+    --minimum-failure-severity=error
   popd
 done
