@@ -6,20 +6,20 @@
 
 **Enhancements:**
 
-- New: Organizations Management including Create (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1176) - INTMDB-533  
-- New: Federated Database Instance resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1163) - INTMDB-801
-- New: Data Federation Query Limit resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1173) - INTMDB-802
-- New: Private Endpoint resources and data sources for Federated Database Instance and Online Archive (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1182) - INTMDB-803
-- New: Data Lake Pipelines resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1174) - INTMDB-804
-- New: Data Lake Pipelines Run data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1177) - INTMDB-805
-- New: Cluster Outage Simulation (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1188) - INTMDB-835
-- Feature Add: Cluster Enable Extended Storage Sizes (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1128) - INTMDB-466
-- Feature Add: srvShardOptimizedConnectionString parameter to Cluster + Advanced_Cluster Data Sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1157) - INTMDB-694
-- Feature Add: retainBackups in Cluster and Advanced_Cluster (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1210) - INTMDB-781
-- Programmatic API Key Resource Updates + Doc Cleanup (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1208) - INTMDB-655
+- New: [Organizations Management](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/createOrganization) including Create (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1176) - INTMDB-533  
+- New: [Federated Database Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1163) - INTMDB-801
+- New: [Query Limit for Database Instance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createOneDataFederationQueryLimit) resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1173) - INTMDB-802
+- New: [Private Endpoint](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) resources and data sources for Federated Database Instance and Online Archive (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1182) - INTMDB-803
+- New: [Data Lake Pipelines] (https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines/operation/createPipeline) resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1174) - INTMDB-804
+- New: [Data Lake Pipelines Run] (https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines/operation/getPipelineRun) data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1177) - INTMDB-805
+- New: [Cluster Outage Simulation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cluster-Outage-Simulation/operation/startOutageSimulation) resource and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1188) - INTMDB-835
+- Feature Add: Cluster Enable Extended Storage Sizes in `mongodbatlas_project` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1128) - INTMDB-466
+- Feature Add: srvShardOptimizedConnectionString parameter to `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` Data Sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1157) - INTMDB-694
+- Feature Add: retainBackups parameter to `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1210) - INTMDB-781
+- Programmatic API Key Resource Updates (`mongodbatlas_api_key`, `mongodbatlas_project_api_key` and `mongodbatlas_project_ip_access_list_key) + Doc Cleanup (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1208) - INTMDB-655
 - Release.md File Updates with Action Items (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1203) - INTMDB-690
 - ChangeLog Generator (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1165) - INTMDB-720
-- Upgrade to Go 1.20 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1153) - INTMDB-658
+- Upgrade to [Go 1.20](https://go.dev/blog/go1.20) (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1153) - INTMDB-658
 
 **Depreciations:**
 
@@ -27,6 +27,7 @@
 -  Remove cloud_provider resources, private_ip_mode, NEW_RELIC and FLOWDOCK in third_party_integration resources and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1159) - INTMDB-408
 
 **Bug Fixes:**
+
 - Serverless Instance wants to do an in-place update on every run (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1152) - INTMDB-710
 - Documentation bug: analyzer argument in Atlas search index is required (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1158) - INTMDB-780
 - Point in Time Restore is not enabled when should_copy_oplogs is set to true, when copying backups to other regions (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1150) - INTMDB-783
