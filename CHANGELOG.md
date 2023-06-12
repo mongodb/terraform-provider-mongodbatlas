@@ -1,4 +1,4 @@
-# Changelog -DRAFT
+# Changelog
 
 ## [v1.10.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.0) (June 10, 2023)
 
