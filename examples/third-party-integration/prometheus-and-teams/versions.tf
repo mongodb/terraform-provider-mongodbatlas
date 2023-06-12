@@ -6,7 +6,7 @@ terraform {
     }
 
     template = {
-      source  = "harshicorp/template"
+      source  = "hashicorp/template"
       version = "2.2.0"
     }
   }
