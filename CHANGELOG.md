@@ -16,26 +16,26 @@
 - Feature Add: Cluster Enable Extended Storage Sizes in `mongodbatlas_project` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1128) - INTMDB-466
 - Feature Add: srvShardOptimizedConnectionString parameter to `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` Data Sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1157) - INTMDB-694
 - Feature Add: retainBackups parameter to `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1210) - INTMDB-781
-- Programmatic API Key Resource Updates (`mongodbatlas_api_key`, `mongodbatlas_project_api_key` and `mongodbatlas_project_ip_access_list_key) + Doc Cleanup (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1208) - INTMDB-655
+- Programmatic API Key Resource Updates (`mongodbatlas_api_key`, `mongodbatlas_project_api_key` and `mongodbatlas_project_ip_access_list_key`) + Doc Cleanup (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1208) - INTMDB-655
 - Release.md File Updates with Action Items (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1203) - INTMDB-690
 - ChangeLog Generator (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1165) - INTMDB-720
 - Upgrade to [Go 1.20](https://go.dev/blog/go1.20) (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1153) - INTMDB-658
 
 **Depreciations:**
 
-- `mongodbatlas_data_lake` and `privatelink_endpoint_service_adl` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1190) - INTMDB-806
--  Remove cloud_provider resources, private_ip_mode, NEW_RELIC and FLOWDOCK in third_party_integration resources and data sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1159) - INTMDB-408
+- `mongodbatlas_data_lake` and `mongodbatlas_privatelink_endpoint_service_adl` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1190) - INTMDB-806
+-  Remove `mongodbatlas_private_ip_mode`, NEW_RELIC and FLOWDOCK in `mongodbatlas_third_party_integration` resources and data sources, and mongodbatlas_cloud_provider (access, snapshot, snapshot_backup_policy, snapshot_restore_job) resources and datas sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1159) - INTMDB-408
 
 **Bug Fixes:**
 
-- Serverless Instance wants to do an in-place update on every run (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1152) - INTMDB-710
-- Documentation bug: analyzer argument in Atlas search index is required (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1158) - INTMDB-780
+- `mongodbatlas_serverless_instance` wants to do an in-place update on every run (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1152) - INTMDB-710
+- Documentation bug: analyzer argument in `mongodbatlas_search_index` is required (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1158) - INTMDB-780
 - Point in Time Restore is not enabled when should_copy_oplogs is set to true, when copying backups to other regions (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1150) - INTMDB-783
-- mongodbatlas_third_party_integration - microsoft_teams_webhook_url keeps updating on every apply (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1148) - INTMDB-784
-- Database usernames with spaces breaks state due to URL encoding (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1164) - INTMDB-809
-- Backup compliance policy causing mongodbatlas_cloud_backup_schedule resource to fail (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1209) - INTMDB-827 
-- mongodbatlas_advanced_cluster `node_count` parameter doc bug fix (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1193) - INTMDB-844
-- Fix typos in docs for network peering resource imports (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1200) 
+- `mongodbatlas_third_party_integration` - microsoft_teams_webhook_url keeps updating on every apply (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1148) - INTMDB-784
+- In `mongodbatlas_database_user` usernames with spaces breaks state due to URL encoding (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1164) - INTMDB-809
+- `mongodbatlas_backup_compliance_policy` causing `mongodbatlas_cloud_backup_schedule` resource to fail (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1209) - INTMDB-827 
+- `mongodbatlas_advanced_cluster` `node_count` parameter doc bug fix (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1193) - INTMDB-844
+- Fix typos in docs for `mongodbatlas_network_peering` and  `mongodbatlas_network_container` resource imports (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1200) 
 
 **Closed issues:**
 
