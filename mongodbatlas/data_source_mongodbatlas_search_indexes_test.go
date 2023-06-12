@@ -84,6 +84,7 @@ func testAccMongoDBAtlasSearchIndexesDSConfig(projectID, clusterName, databaseNa
 			collection_name = "%s"
 			page_num = 1
 			items_per_page = 100
+			analyzer = "lucene.simple"
 			
 		}
 	`, testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName), databaseName, collectionName)
