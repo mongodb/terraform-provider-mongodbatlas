@@ -1,16 +1,16 @@
 variable "project_name" {
   description = "Atlas project name"
-  default     = ""
+  type        = string
 }
 variable "org_id" {
   description = "The organization ID"
-  default     = ""
+  type        = string
 }
 variable "ip_address" {
   description = "IP Address"
-  default     = ""
+  type        = string
 }
 variable "comment" {
   description = "Comment"
-  default     = ""
+  type        = string
 }

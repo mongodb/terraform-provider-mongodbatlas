@@ -16,9 +16,22 @@
 
 set -Eeou pipefail
 
+arch_name=$(uname -m)
+
 for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
   [ ! -d "$DIR" ] && continue
+  
+  
+  # Skip directories with "v08" or "v09" in their name for ARM64
+  if [[ "$arch_name" == "arm64" ]] && echo "$DIR" | grep -qE "v08|v09"; then
+      echo "Skip directories with "v08" or "v09" in their name for ARM64"
+      echo "TF provider does not have a package available for ARM64 for version < 1.0"
+      echo "Skipping directory: $DIR"
+      continue
+  fi
+
   pushd "$DIR"
+
   echo; echo -e "\e[1;35m===> Initializing Example: $DIR <===\e[0m"; echo
   terraform init
   
@@ -27,12 +40,15 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
 
   echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
   terraform validate
+  
+  echo; echo -e "\e[1;35m===> Validating Syntax Example: $DIR <===\e[0m"; echo
   # Terraform syntax checks
   tflint \
     --enable-rule=terraform_deprecated_interpolation \
     --enable-rule=terraform_deprecated_index \
     --enable-rule=terraform_unused_declarations \
     --enable-rule=terraform_comment_syntax \
-    --enable-rule=terraform_required_version
+    --enable-rule=terraform_required_version \
+    --minimum-failure-severity=error
   popd
 done

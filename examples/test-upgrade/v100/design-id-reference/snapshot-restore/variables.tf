@@ -1,16 +1,16 @@
 variable "project_name" {
   description = "Atlas project name"
-  default     = ""
+  type        = string
 }
 variable "cluster_name" {
   description = "Cluster name"
-  default     = ""
+  type        = string
 }
 variable "description" {
   description = "Description"
-  default     = ""
+  type        = string
 }
 variable "retention_in_days" {
   description = "Retention in days"
-  default     = ""
+  type        = string
 }
