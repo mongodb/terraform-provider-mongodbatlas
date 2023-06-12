@@ -16,8 +16,6 @@
 
 set -Eeou pipefail
 
-arch_name=$(uname -m)
-
 for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
   [ ! -d "$DIR" ] && continue
 
