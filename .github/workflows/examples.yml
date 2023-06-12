@@ -40,7 +40,7 @@ jobs:
           terraform_version: ${{ matrix.terraform_version }}
           # Needed to use the output of `terraform validate -json`
           terraform_wrapper: false
-      - name: tflint
+      - name: tf-validate
         run: make tools && make tf-validate
   tflint:
     runs-on: ubuntu-latest

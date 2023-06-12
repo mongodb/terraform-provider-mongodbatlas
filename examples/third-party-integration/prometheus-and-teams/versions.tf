@@ -4,6 +4,11 @@ terraform {
       source  = "mongodb/mongodbatlas"
       version = "~> 1.0"
     }
+
+    template = {
+      source  = "harshicorp/template"
+      version = "2.2.0"
+    }
   }
   required_version = ">= 0.13"
 }
