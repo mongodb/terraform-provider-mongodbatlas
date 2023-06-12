@@ -33,6 +33,8 @@
 - mongodbatlas_third_party_integration - microsoft_teams_webhook_url keeps updating on every apply (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1148) - INTMDB-784
 - Database usernames with spaces breaks state due to URL encoding (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1164) - INTMDB-809
 - Backup compliance policy causing mongodbatlas_cloud_backup_schedule resource to fail (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1209) - INTMDB-827 
+- mongodbatlas_advanced_cluster `node_count` parameter doc bug fix (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1193) - INTMDB-844
+- Fix typos in docs for network peering resource imports (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1200) 
 
 **Closed issues:**
 
