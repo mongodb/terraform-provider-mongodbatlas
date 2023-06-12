@@ -4,7 +4,7 @@ on:
   workflow_dispatch: {}
   workflow_call: 
     inputs:
-      parent-event-name: # we want to run all the acceptance tests when the worflow is run in master (push)
+      parent-event-name: # we want to run the cluster_outage_simulation acceptance tests when the worflow is run in master (push)
         required: true
         type: string
 
