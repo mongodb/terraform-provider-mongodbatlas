@@ -1,0 +1,60 @@
+name: 'Acceptance Tests'
+
+on:
+  workflow_dispatch: {}
+  workflow_call: 
+    inputs:
+      parent-event-name: # we want to run the cluster_outage_simulation acceptance tests when the worflow is run in master (push)
+        required: true
+        type: string
+
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.1.7
+        with:
+          route: GET /repos/:repository/collaborators/${{ github.actor }}
+          repository: ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  change-detection:
+    needs: [ authorize ]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      repository-projects: read
+    outputs:
+      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
+    steps:
+    - uses: actions/checkout@v3
+      if: ${{ github.event_name == 'push' }}
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          cluster_outage_simulation:
+            - 'mongodbatlas/**cluster_outage_simulation**.go'
+
+  cluster_outage_simulation:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || inputs.parent-event-name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          TF_ACC: 1
+          TF_LOG: DEBUG
+          TEST_REGEX: "^TestAccOutageSimulationCluster"
+        run: make testacc

@@ -19,12 +19,41 @@ func TestAccOutageSimulationClusterDS_SingleRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSSingleRegion(projectName, orgID, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "outage_filters.#"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "start_request_date"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "simulation_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "state"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccOutageSimulationClusterDS_MultiRegion_basic(t *testing.T) {
+	SkipTestExtCred(t)
+	var (
+		dataSourceName = "data.mongodbatlas_cluster_outage_simulation.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc-project")
+		clusterName    = acctest.RandomWithPrefix("test-acc-cluster")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSMultiRegion(projectName, orgID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -71,35 +100,6 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSSingleRegion(pr
   		]
 	}
 	`, projectName, orgID, clusterName)
-}
-
-func TestAccOutageSimulationClusterDS_MultiRegion_basic(t *testing.T) {
-	SkipTestExtCred(t)
-	var (
-		dataSourceName = "data.mongodbatlas_cluster_outage_simulation.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc-project")
-		clusterName    = acctest.RandomWithPrefix("test-acc-cluster")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSMultiRegion(projectName, orgID, clusterName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "outage_filters.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "start_request_date"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "simulation_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "state"),
-				),
-			},
-		},
-	})
 }
 
 func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSMultiRegion(projectName, orgID, clusterName string) string {
