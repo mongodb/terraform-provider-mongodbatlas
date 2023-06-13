@@ -235,17 +235,18 @@ func TestAccClusterAdvancedCluster_Paused(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, rName, false),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -257,7 +258,7 @@ func TestAccClusterAdvancedCluster_Paused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, rName, true),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -754,13 +755,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, orgID, projectName, name)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, name string, paused bool) string {
+func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, name string, paused bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.test.id
+  name         = %[3]q
   cluster_type = "REPLICASET"
-  paused       = %[3]t
+  paused       = %[4]t
 
   replication_specs {
     region_configs {
@@ -778,7 +783,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, projectID, name, paused)
+	`, orgID, projectName, name, paused)
 }
 
 func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(orgID, projectName, name string, p *matlas.ProcessArgs) string {
