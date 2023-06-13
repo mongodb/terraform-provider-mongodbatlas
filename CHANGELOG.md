@@ -50,6 +50,18 @@
 
 **Merged Pull Requests:**
 
+- Chore\(deps\):  Bump actions/stale from 7 to 8 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1117)
+- Chore\(deps\):  Bump github.com/zclconf/go-cty from 1.13.1 to 1.13.2 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1184)
+- Chore\(deps\):  Bump github.com/aws/aws-sdk-go from 1.44.268 to 1.44.272 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1196)
+- Chore(deps): Bump github.com/gruntwork-io/terratest from 0.42.0 to 0.43.0 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1197)
+- Chore(deps): Bump github.com/spf13/cast from 1.5.0 to 1.5.1 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1195)
+- Chore(deps): Bump go.mongodb.org/atlas from 0.25.0 to 0.28.0 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1194)
+- corrected documentation for advanced cluster and cluster (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1167) 
+- Update component field to "Terraform" GitHub action (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1178)
+- Add action to create JIRA ticket for a new Github issue (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1166)
+- Terraform Provider Secrets Audit (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1202) 
+- Add Code-health action (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1144)  
+- Fix TestAccConfigDSSearchIndexes_basic (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1227) 
 
 ## [v1.9.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.9.0) (2023-4-27)
 
