@@ -402,6 +402,8 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schem
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
+	d.SetId("")
+
 	return nil
 }
 
