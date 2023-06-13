@@ -27,6 +27,7 @@ jobs:
       repository-projects: read
     outputs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
     steps:
     - uses: actions/checkout@v3
       if: ${{ github.event_name == 'push' }}
@@ -36,6 +37,9 @@ jobs:
         filters: |
           cluster_outage_simulation:
             - 'mongodbatlas/**cluster_outage_simulation**.go'
+          advanced_cluster:
+            - 'mongodbatlas/**advanced_cluster**.go'
+
 
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -54,7 +58,30 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_ACC: 1
           TF_LOG: DEBUG
           TEST_REGEX: "^TestAccOutageSimulationCluster"
+        run: make testacc
+  advanced_cluster:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || inputs.parent-event-name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_ACC: 1
+          TF_LOG: DEBUG
+          TEST_REGEX: "^TestAccClusterAdvancedCluster"
         run: make testacc
