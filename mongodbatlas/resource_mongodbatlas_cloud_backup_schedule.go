@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -440,10 +439,10 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
 	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 
-	// Get policies items
-	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+	// Delete policies items
+	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
 	if err != nil {
-		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+		return fmt.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
 	policy := matlas.Policy{}
