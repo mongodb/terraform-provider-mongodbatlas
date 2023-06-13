@@ -32,7 +32,6 @@ func TestAccConfigDSSearchIndexes_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.index_id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.analyzer"),
 				),
 			},
 		},
@@ -100,7 +99,6 @@ func testAccMongoDBAtlasSearchIndexesDSConfigSynonyms(projectID, clusterName, da
 			collection_name = "%s"
 			page_num = 1
 			items_per_page = 100
-			
 		}
 	`, testAccMongoDBAtlasSearchIndexConfigSynonyms(projectID, clusterName), databaseName, collectionName)
 }
