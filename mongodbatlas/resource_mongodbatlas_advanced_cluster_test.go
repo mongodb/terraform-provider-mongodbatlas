@@ -762,7 +762,7 @@ resource "mongodbatlas_project" "cluster_project" {
 	org_id = %[1]q
 }
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.test.id
+  project_id   = mongodbatlas_project.cluster_project.id
   name         = %[3]q
   cluster_type = "REPLICASET"
   paused       = %[4]t
