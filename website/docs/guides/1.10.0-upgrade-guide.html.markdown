@@ -1,0 +1,45 @@
+---
+layout: "mongodbatlas"
+page_title: "MongoDB Atlas Provider 1.10.0: Upgrade and Information Guide"
+sidebar_current: "docs-mongodbatlas-guides-1100-upgrade-guide"
+description: |-
+MongoDB Atlas Provider 1.10.0: Upgrade and Information Guide
+---
+
+# MongoDB Atlas Provider 1.10.0: Upgrade and Information Guide
+
+The Terraform MongoDB Atlas Provider version 1.10.0 has a number of new and exciting features and changes.
+
+**New Resources, Data Sources, and Features:**
+- You can now manage Atlas Organizations [Organizations Management](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/createOrganization) including Create with [`mongodbatlas_organization`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/organization)
+- You can now manage Federated Database Instances with [`mongodbatlas_federated_database_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_database_instance)
+- You can now manage Query Limits for Federated Database Instances with [`mongodbatlas_federated_query_limit`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_database_instance)  
+- You can now manage Private Endpoints for Federated Database Instances and Online Archives with [`mongodbatlas_privatelink_endpoint_service_data_federation_online_archive`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_data_federation_online_archive)
+- You can now manage Data Lake Pipelines with [`mongodbatlas_data_lake_pipeline`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/data_lake_pipeline)
+- You can now create data sources for Data Lake Pipeles Runs with [`mongodbatlas_data_lake_pipeline_run`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/data_lake_pipeline_run)
+- You can now manage Cluster Outage Simulations with [`mongodbatlas_cluster_outage_simulation`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster_outage_simulation) 
+- You can now enable Extended Cluster Storage Sizes in [`mongodbatlas_project`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project)
+- You can now leverage the PrivateEndpoint.srvShardOptimizedConnectionString parameter in [`mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster) and [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/cluster) Data Sources. This is a private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Atlas.
+- You can now leverage the `retainBackups` parmeter in [`mongodbatlas_advanced_cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) and [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster) Resources.
+
+
+**Changes**
+- [Programmatic API Key (or PAK)](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys) Resources and Data Sources have been updated to make easier and more intuitive to use (`mongodbatlas_api_key`, `mongodbatlas_project_api_key` and `mongodbatlas_project_ip_access_list_key`). We have created a dedicated [PAK Upgrade Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/PAK-upgrade-guide-1.10.0) to help you transition smoothly from the previous version which was was first released in Terraform Provider for MongoDB Atlas in v1.8.0 to the new version v1.10.0.
+
+
+**Depreciations:**
+- `mongodbatlas_data_lake` have been deprecated. We will proceed with code removal in future release targeting v1.12.0. This has been replaced with [`mongodbatlas_federated_database_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/federated_database_instance) 
+- `mongodbatlas_privatelink_endpoint_service_adl` have been deprecated. We will proceed with code removal in future release targeting v1.12.0. This has been replaced with [`mongodbatlas_privatelink_endpoint_service_data_federation_online_archive`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service_data_federation_online_archive)  
+-  We have remove source code for `mongodbatlas_private_ip_mode`, NEW_RELIC and FLOWDOCK in `mongodbatlas_third_party_integration` resources and data sources, and mongodbatlas_cloud_provider (access, snapshot, snapshot_backup_policy, snapshot_restore_job) resources and datas sources 
+
+
+1.10.0 also includes general improvements, bug fixes, and several key documentation updates. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
+
+
+### Helpful Links
+
+* [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
+
+* [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
+
+* [Contact Support](https://docs.atlas.mongodb.com/support/) covered by MongoDB Atlas support plans, Developer and above.

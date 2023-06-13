@@ -9,6 +9,8 @@ MongoDB Atlas Provider : Upgrade and Information Guide
 # MongoDB Atlas Provider: PAK Upgrade Guide in v1.10.0
 In Terraform MongoDB Atlas Provider v1.10.0, some improvements were introduced which mainly focus on the MongoDB Atlas Programmatic API Keys (PAK) handling. This guide will help you to transition smoothly from the previous version which this resource was first released (v1.8.0) to the new version (v1.10.0).
 
+For comprehensive Upgrade Guide on all v1.10.0 modifications see [here](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.10.0-upgrade-guide). 
+
 ## Changes Overview
 * `api_keys` parameter is deprecated from the mongodbatlas_project resource.
 * The `mongodbatlas_project_api_key` resource is extended to include a `project_assignment` parameter.
@@ -19,7 +21,7 @@ In Terraform MongoDB Atlas Provider v1.10.0, some improvements were introduced w
 2. Use `project_assignment` in `mongodbatlas_project_api_key`: Instead of creating multiple mongodbatlas_project resources for each API Key assignment, you can now assign a PAK to multiple projects in a single resource block using the new `project_assignment` parameter in `mongodbatlas_project_api_key`.
 
 ## Examples
-We provide three examples in the atlas-api-key folder (under examples) to help you understand the new changes:
+We provide three examples in the [atlas-api-key folder](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-api-key) (under examples) to help you understand the new changes:
 
 * "Create and Assign PAK Together": This example demonstrates how to create a Programmatic API Key and assign it to a project within the same resource block. This is a good place to start if you're used to creating and assigning keys at the same time.
 
