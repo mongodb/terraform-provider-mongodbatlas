@@ -33,7 +33,7 @@ The Terraform MongoDB Atlas Provider version 1.10.0 has a number of new and exci
 -  We have removed source code for [`mongodbatlas_private_ip_mode`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/private_ip_mode), NEW_RELIC and FLOWDOCK in [`mongodbatlas_third_party_integration`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/third_party_integration) resources and data sources, and `mongodbatlas_cloud_provider` resources and datas sources including: [`access`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_access), [`snapshot`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot), [`snapshot_backup_policy`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_backup_policy), and [`snapshot_restore_job`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_provider_snapshot_restore_job). 
 
 
-1.10.0 also includes general improvements, bug fixes, and several key documentation updates. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
+1.10.0 also includes other general improvements, bug fixes, and several key documentation updates. See the [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for more specific information.
 
 
 ### Helpful Links
