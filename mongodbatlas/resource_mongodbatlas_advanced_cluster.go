@@ -838,6 +838,10 @@ func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *sche
 		log.Printf(errorClusterAdvancedSetting, "name", u.ID, err)
 	}
 
+	if err := d.Set("retain_backups_enabled", false); err != nil {
+		return nil, fmt.Errorf(errorClusterAdvancedSetting, "retain_backups_enabled", u.ID, err)
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"cluster_id":   u.ID,
 		"project_id":   *projectID,
