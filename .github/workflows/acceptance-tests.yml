@@ -83,5 +83,6 @@ jobs:
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_ACC: 1
           TF_LOG: DEBUG
+          PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccClusterAdvancedCluster"
         run: make testacc

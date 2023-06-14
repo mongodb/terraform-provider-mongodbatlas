@@ -1,5 +1,6 @@
 TEST?=$$(go list ./... | grep -v /integrationtesting)
 ACCTEST_TIMEOUT?=300m
+PARALLEL_GO_TEST?=5
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=mongodbatlas
 
@@ -37,7 +38,7 @@ test: fmtcheck
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel 5 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
