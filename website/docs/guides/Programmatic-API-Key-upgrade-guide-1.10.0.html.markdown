@@ -11,6 +11,10 @@ In Terraform MongoDB Atlas Provider v1.10.0, some improvements were introduced w
 
 For comprehensive Upgrade Guide on all v1.10.0 modifications see [here](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.10.0-upgrade-guide). 
 
+Remember, your scripts will still work with deprecated features for now, but it's best to upgrade as soon as possible to benefit from the latest enhancements. Code removal is planned for v1.12.0 at which point prior PAK workflow will no longer function.
+
+Lastly, in MongoDB Atlas, all PAKs are Organization API keys. Once created, a PAK is linked at the organization level with an 'Organization Member' role. However, these Organization API keys can also be assigned to one or more projects within the organization. When a PAK is assigned to a specific project, it essentially takes on the 'Project Owner' role for that particular project. This enables the key to perform operations at the project level, in addition to the organization level. The flexibility of PAKs provides a mechanism for fine-grained access and control, once their functioning is clearly understood.
+
 ## Changes Overview
 * `api_keys` parameter is deprecated from the `mongodbatlas_project` resource.
 * The `mongodbatlas_project_api_key` resource is extended to include a `project_assignment` parameter.
@@ -86,9 +90,7 @@ Finally, run `$ terraform plan` to verify the import was successful. Ideally thi
 
 After applying the changes, review them to ensure everything has worked as expected. If you encounter any discrepancies or issues, use your backup to restore the previous state and investigate the cause of the problem before trying again.
 
-
-
-By following these steps, you will be able to upgrade smoothly and efficiently to the new Programmatic API Key workflow for the Terraform MongoDB Atlas Provider introduced in v1.10.0! As always if you run into any issues or need to report any bugs feel free to open a new issue on our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/new/choose). 
+By following these steps, you will be able to upgrade smoothly and efficiently to the new Programmatic API Key workflow for the Terraform MongoDB Atlas Provider introduced in v1.10.0! 
 
 ## Examples
 We provide three examples in the [atlas-api-key folder](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-api-key) (under examples) to help you understand the new changes:
@@ -101,8 +103,4 @@ We provide three examples in the [atlas-api-key folder](https://github.com/mongo
 
 Before making any changes, please ensure you have thoroughly read and understood these examples, and that your current Terraform scripts align with the new PAK workflow.
 
-Remember, your scripts will still work with deprecated features for now, but it's best to upgrade as soon as possible to benefit from the latest enhancements. Code removal is planned for v1.12.0 at which point prior PAK workflow will no longer function.
-
-Lastly, in MongoDB Atlas, all PAKs are Organization API keys. Once created, a PAK is linked at the organization level with an 'Organization Member' role. However, these Organization API keys can also be assigned to one or more projects within the organization. When a PAK is assigned to a specific project, it essentially takes on the 'Project Owner' role for that particular project. This enables the key to perform operations at the project level, in addition to the organization level. The flexibility of PAKs provides a powerful mechanism for fine-grained access and control, once their functioning is clearly understood.
-
-If you have any questions or face any issues during the migration, feel free to reach out to us by creating a GitHub Issue or PR in our repo. Thank you.  
+If you have any questions or face any issues during the migration, feel free to reach out to us by creating a [GitHub Issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/new/choose) or [PR](https://github.com/mongodb/terraform-provider-mongodbatlas/pulls) in our repo. Thank you.  
