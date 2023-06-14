@@ -440,8 +440,6 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 }
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
-	req := &matlas.CloudProviderSnapshotBackupPolicy{}
-
 	_, policyMonthlyOK := d.GetOk("policy_item_monthly")
 	_, policyWeeklyOK := d.GetOk("policy_item_weekly")
 	_, policyDailyOK := d.GetOk("policy_item_daily")
@@ -465,6 +463,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
+	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 	policy := matlas.Policy{}
 	policyItem := matlas.PolicyItem{}
 	var policiesItem []matlas.PolicyItem
