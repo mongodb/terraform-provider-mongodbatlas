@@ -106,11 +106,13 @@ func TestAccClusterRSCluster_basicAWS_instanceScale(t *testing.T) {
 
 func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.advance_conf"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cluster                matlas.Cluster
+		resourceName           = "mongodbatlas_cluster.advance_conf"
+		dataSourceName         = "data.mongodbatlas_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		name                   = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -138,6 +140,19 @@ func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "10"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.no_table_scan", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
 				),
 			},
 			{
@@ -855,11 +870,13 @@ func TestAccClusterRSCluster_withGCPAndContainerID(t *testing.T) {
 
 func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
 	var (
-		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
+		cluster                matlas.Cluster
+		resourceName           = "mongodbatlas_cluster.test"
+		dataSourceName         = "data.mongodbatlas_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		name                   = acctest.RandomWithPrefix("test-acc")
 
 		instanceSize = "M30"
 		minSize      = ""
@@ -884,6 +901,20 @@ func TestAccClusterRSCluster_withAutoScalingAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "auto_scaling_compute_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "provider_auto_scaling_compute_max_instance_size", maxSize),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_scaling_compute_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_auto_scaling_compute_max_instance_size", maxSize),
+					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttr(dataSourceName, "version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.version_release_system", "LTS"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.termination_protection_enabled", "false"),
 				),
 			},
 			{
@@ -1331,15 +1362,25 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 			provider_instance_size_name = "M10"
 
 			advanced_configuration  {
-				fail_index_key_too_long              = %t
-				javascript_enabled                   = %t
-				minimum_enabled_tls_protocol         = "%s"
-				no_table_scan                        = %t
-				oplog_size_mb                        = %d
-				sample_size_bi_connector			 = %d
-				sample_refresh_interval_bi_connector = %d
+				fail_index_key_too_long              = %[5]t
+				javascript_enabled                   = %[6]t
+				minimum_enabled_tls_protocol         = %[7]s
+				no_table_scan                        = %[8]t
+				oplog_size_mb                        = %[9]d
+				sample_size_bi_connector			 = %[10]d
+				sample_refresh_interval_bi_connector = %[11]d
 			}
 		}
+
+		data "mongodbatlas_cluster" "test" {
+			project_id = mongodbatlas_cluster.advance_conf.project_id
+			name 	     = mongodbatlas_cluster.advance_conf.name
+		}
+
+		data "mongodbatlas_clusters" "test" {
+			project_id = mongodbatlas_cluster.advance_conf.project_id
+		}
+
 	`, orgID, projectName, name, autoscalingEnabled,
 		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
@@ -2048,6 +2089,15 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 		lifecycle { // To simulate if there a new instance size name to avoid scale cluster down to original value
 			ignore_changes = [provider_instance_size_name]
 		}
+	}
+
+	data "mongodbatlas_cluster" "test" {
+		project_id = mongodbatlas_cluster.test.project_id
+		name 	     = mongodbatlas_cluster.test.name
+	}
+
+	data "mongodbatlas_clusters" "test" {
+		project_id = mongodbatlas_cluster.test.project_id
 	}
 	`, orgID, projectName, name, backupEnabled, autoDiskEnabled, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, instanceSizeName)
 }
