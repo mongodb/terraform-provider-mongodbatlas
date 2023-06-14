@@ -26,7 +26,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleConfigDefaultPolicy(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
 					RestoreWindowDays:     pointy.Int64(4),
@@ -38,10 +38,10 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "45"),
 					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
 				),
 			},
 			{
@@ -427,7 +427,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleConfigDefaultPolicy(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"

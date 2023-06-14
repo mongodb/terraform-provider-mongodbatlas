@@ -350,6 +350,14 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
 
+	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
+	}
+
+	if len(backupPolicy.Policies) == 0 {
+		return nil
+	}
+
 	if err := d.Set("policy_item_daily", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleDaily)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_daily", clusterName, err)
 	}
@@ -360,10 +368,6 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 
 	if err := d.Set("policy_item_monthly", flattenPolicyItem(backupPolicy.Policies[0].PolicyItems, snapshotScheduleMonthly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_monthly", clusterName, err)
-	}
-
-	if err := d.Set("copy_settings", flattenCopySettings(backupPolicy.CopySettings)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
 
 	return nil
@@ -401,8 +405,6 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schem
 	if err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
-
-	d.SetId("")
 
 	return nil
 }
