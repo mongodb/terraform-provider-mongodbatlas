@@ -26,7 +26,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupScheduleConfigDefaultPolicy(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
+				Config: testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
 					ReferenceHourOfDay:    pointy.Int64(3),
 					ReferenceMinuteOfHour: pointy.Int64(45),
 					RestoreWindowDays:     pointy.Int64(4),
@@ -427,7 +427,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleConfigDefaultPolicy(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
