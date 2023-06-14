@@ -24,7 +24,8 @@
 **Deprecations and Removals:**
 
 - `mongodbatlas_data_lake` and `mongodbatlas_privatelink_endpoint_service_adl` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1190) - INTMDB-806
--  Remove `mongodbatlas_private_ip_mode`, NEW_RELIC and FLOWDOCK in `mongodbatlas_third_party_integration` resources and data sources, and mongodbatlas_cloud_provider (access, snapshot, snapshot_backup_policy, snapshot_restore_job) resources and datas sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1159) - INTMDB-408
+-  Remove `mongodbatlas_private_ip_mode` and NEW_RELIC and FLOWDOCK in `mongodbatlas_third_party_integration` resources and data sources - INTMDB-408
+-  Remove mongodbatlas_cloud_provider (access, snapshot, snapshot_backup_policy, snapshot_restore_job) resources and datas sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1159) - INTMDB-408
 
 **Bug Fixes:**
 
