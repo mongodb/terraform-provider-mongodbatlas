@@ -35,11 +35,6 @@ resource "mongodbatlas_project" "test" {
     api_key_id = mongodbatlas_api_key.orgKey1.api_key_id
     role_names = ["GROUP_OWNER"]
   }
-  
-  depends_on = [
-    mongodbatlas_api_key.orgKey1
-  ]
-
 }
 ```
 
