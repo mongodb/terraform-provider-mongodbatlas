@@ -12,13 +12,13 @@ In Terraform MongoDB Atlas Provider v1.10.0, some improvements were introduced w
 For comprehensive Upgrade Guide on all v1.10.0 modifications see [here](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.10.0-upgrade-guide). 
 
 ## Changes Overview
-* `api_keys` parameter is deprecated from the mongodbatlas_project resource.
+* `api_keys` parameter is deprecated from the `mongodbatlas_project` resource.
 * The `mongodbatlas_project_api_key` resource is extended to include a `project_assignment` parameter.
 
 ## Upgrade Steps
-1. Replace `api_keys` in `mongodbatlas_project`: The `api_keys` parameter in the `mongodbatlas_project` resource is deprecated. Remove any instances of `api_keys` in your current Terraform scripts.
+1. Remove the api_keys parameter from the state file. After that is done remove it from the Terraform scripts. This will preserve the existing assignments without actually removing them.
 
-2. Use `project_assignment` in `mongodbatlas_project_api_key`: Instead of creating multiple mongodbatlas_project resources for each API Key assignment, you can now assign a PAK to multiple projects in a single resource block using the new `project_assignment` parameter in `mongodbatlas_project_api_key`.
+2. Then they need to import in the key at the org level or at project and then use project to assign it (which will already be there, Terraform will now just reflect that reality). Probably using mongodbatlas_project_api_key is the best bet.
 
 ## Examples
 We provide three examples in the [atlas-api-key folder](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-api-key) (under examples) to help you understand the new changes:
