@@ -21,7 +21,7 @@
 - ChangeLog Generator (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1165) - INTMDB-720
 - Upgrade to [Go 1.20](https://go.dev/blog/go1.20) (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1153) - INTMDB-658
 
-**Depreciations:**
+**Deprecations and Removals:**
 
 - `mongodbatlas_data_lake` and `mongodbatlas_privatelink_endpoint_service_adl` (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1190) - INTMDB-806
 -  Remove `mongodbatlas_private_ip_mode`, NEW_RELIC and FLOWDOCK in `mongodbatlas_third_party_integration` resources and data sources, and mongodbatlas_cloud_provider (access, snapshot, snapshot_backup_policy, snapshot_restore_job) resources and datas sources (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1159) - INTMDB-408
