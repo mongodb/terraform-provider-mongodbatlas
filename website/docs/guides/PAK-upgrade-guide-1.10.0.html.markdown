@@ -1,12 +1,12 @@
 ---
 layout: "mongodbatlas"
-page_title: "Upgrade Guide for Terraform MongoDB Atlas Provider PAK Resource in v1.10.0"
-sidebar_current: "docs-mongodbatlas-guides-PAK-upgrade-guide"
+page_title: "Upgrade Guide for Terraform MongoDB Atlas Provider Programmatic API Key Resource in v1.10.0"
+sidebar_current: "docs-mongodbatlas-guides-Programmatic-API-Key-upgrade-guide"
 description: |-
 MongoDB Atlas Provider : Upgrade and Information Guide
 ---
 
-# MongoDB Atlas Provider: PAK Upgrade Guide in v1.10.0
+# MongoDB Atlas Provider: Programmatic API Key Upgrade Guide in v1.10.0
 In Terraform MongoDB Atlas Provider v1.10.0, some improvements were introduced which mainly focus on the MongoDB Atlas Programmatic API Keys (PAK) handling. This guide will help you to transition smoothly from the previous version which this resource was first released (v1.8.0) to the new version (v1.10.0).
 
 For comprehensive Upgrade Guide on all v1.10.0 modifications see [here](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.10.0-upgrade-guide). 
