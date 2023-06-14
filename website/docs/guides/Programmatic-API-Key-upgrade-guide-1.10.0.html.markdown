@@ -23,7 +23,7 @@ Before you begin any modification process, it is always important to backup your
 
 **2. Saftely remove resource `mongodbatlas_project` from Terraform State**
 
-Locate the `mongodbatlas_project` resource block containtaining the `api_keys` parameter in your state file that you wish to migrate to new workflow introduced in v1.10.0 of Terraform Provider for MongoDB Atlas. From there you can remove it from Terraform State file. This means that assignments of the `api_keys` parameter as well as project resource itself will be preserved in the actual infrastructure, but Terraform will no longer manage them.
+Locate the `mongodbatlas_project` resource block containtaining the `api_keys` parameter in your state file that you wish to migrate to new workflow introduced in v1.10.0 of Terraform Provider for MongoDB Atlas. From there you can remove it from Terraform State file. This means that assignments of the `api_keys` parameter (as well as project resource itself) will be preserved in the actual infrastructure, but Terraform will no longer manage them.
 
 For example, if this was your current `mongodbatlas_project` resource block:
 ```
@@ -46,7 +46,7 @@ $ terraform state rm mongodbatlas_project.test
 
 **3. Update Terraform Scripts**
 
-Now, open your Terraform scripts (i.e. main.tf file). Locate and remove the `api_keys` parameter from the `mongodbatlas_project` resource block from them as well. This is to make sure the parameter is no longer present in your scripts after you've already removed it from the state file. At this point you also want to include the new `mongodbatlas_project_api_key` resource block as well to assign key at the project level.
+Now, open your Terraform scripts (i.e. main.tf file). Locate and remove the `api_keys` parameter from the `mongodbatlas_project` resource block. This is to make sure the parameter is no longer present in your scripts after you've already removed it from the state file. At this point you also want to include the new `mongodbatlas_project_api_key` resource block as well to assign key at the project level.
 
 For example, the revised Terraform script should look like:
 
@@ -81,12 +81,12 @@ $ terraform import mongodbatlas_project_api_key.test2 5d09d6a59ccf6445652a444a-6
 ```
 
 **5. Review & Apply the Changes**
-Finally, run `$ terraform plan` to verify the import was successful. Ideally this should show: "No changes. Infrastructure is up-to-date." In such cases, you may choose not to run `$ terraform apply`. But in general, after making changes to your Terraform configurations, it's a good practice to run `$ terraform apply` to ensure your infrastructure matches your configuration after you have fully reviewed and are confidence in any proposed changed to your infrastructure .  
 
-the changes with terraform apply. This will make Terraform update its state to reflect the current infrastructure.
+Finally, run `$ terraform plan` to verify the import was successful. Ideally this should show: "No changes. Infrastructure is up-to-date." In such cases, you may choose not to run `$ terraform apply`. But in general, after making changes to your Terraform configurations, it's a good practice to run `$ terraform apply` to ensure your infrastructure matches your configuration after you have fully reviewed any proposed changed to your infrastructure.  
 
-**6. Review the Changes**
 After applying the changes, review them to ensure everything has worked as expected. If you encounter any discrepancies or issues, use your backup to restore the previous state and investigate the cause of the problem before trying again.
+
+
 
 By following these steps, you will be able to upgrade smoothly and efficiently to the new Programmatic API Key workflow for the Terraform MongoDB Atlas Provider introduced in v1.10.0! As always if you run into any issues or need to report any bugs feel free to open a new issue on our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/new/choose). 
 
