@@ -108,6 +108,7 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: true
           TF_ACC: 1
           TF_LOG: DEBUG
           PARALLEL_GO_TEST: 20

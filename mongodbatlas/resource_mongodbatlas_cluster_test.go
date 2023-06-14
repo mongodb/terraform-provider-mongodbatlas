@@ -1322,7 +1322,7 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(orgID, projectName, name, i
 			project_id   = mongodbatlas_project.cluster_project.id
 			name         = "%[3]s"
 
-			cloud_backup                 = true
+			cloud_backup                 = false
 			// Provider Settings "block"
 			provider_region_name     = "US_EAST_1"
 			provider_name               = "AWS"
@@ -1355,7 +1355,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 		    }
 
 			backup_enabled               = false
-			auto_scaling_disk_gb_enabled =  %[4]q
+			auto_scaling_disk_gb_enabled =  %[4]s
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -1364,7 +1364,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 			advanced_configuration  {
 				fail_index_key_too_long              = %[5]t
 				javascript_enabled                   = %[6]t
-				minimum_enabled_tls_protocol         = %[7]s
+				minimum_enabled_tls_protocol         = %[7]q
 				no_table_scan                        = %[8]t
 				oplog_size_mb                        = %[9]d
 				sample_size_bi_connector			 = %[10]d
@@ -1453,7 +1453,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConfPartial(orgID, projectName, nam
 		    }
 
 			backup_enabled               = false
-			auto_scaling_disk_gb_enabled =  %[4]q
+			auto_scaling_disk_gb_enabled =  %[4]s
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -1490,7 +1490,7 @@ resource "mongodbatlas_cluster" "advance_conf" {
   }
 
   backup_enabled               = false
-  auto_scaling_disk_gb_enabled =  %[4]q
+  auto_scaling_disk_gb_enabled =  %[4]s
 
   // Provider Settings "block"
   provider_name               = "AWS"
@@ -1616,7 +1616,7 @@ func testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, backu
 			name                    = %[3]q
 			disk_size_gb            = 100
 			num_shards              = 1
-			provider_backup_enabled = %[4]q
+			provider_backup_enabled = %[4]s
 			cluster_type            = "REPLICASET"
 
 			// Provider Settings "block"
@@ -1626,7 +1626,7 @@ func testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, backu
 			replication_specs {
 				num_shards = 1
 
-				%[5]q
+				%[5]s
 			}
 		}
 	`, orgID, projectName, name, backupEnabled, regionsConfig)
@@ -1644,7 +1644,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(resourceName, orgID, projectName, na
 			name                    = %[4]q
 			disk_size_gb            = 80
 			num_shards              = 1
-			backup_enabled          = %[5]q
+			backup_enabled          = %[5]s
 			provider_backup_enabled = true
 			cluster_type            = "GEOSHARDED"
 
@@ -1757,7 +1757,7 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(orgID, projectName, name, ba
 				  read_only_nodes = 0
 				}
 		  	}
-			%[7]q
+			%[7]s
 		}
 	`, orgID, projectName, name, backupEnabled, tier, region, labelsConf)
 }
@@ -2062,7 +2062,7 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 	}
 	resource "mongodbatlas_cluster" "test" {
 		project_id                              = mongodbatlas_project.cluster_project.id
-		name                                    = %[3]s
+		name                                    = %[3]q
 		disk_size_gb                            = 100
 
 		cluster_type = "REPLICASET"
@@ -2082,9 +2082,9 @@ func testAccMongoDBAtlasClusterConfigAWSWithAutoscaling(
 
 		//Provider Settings "block"
 		provider_name                                   = "AWS"
-		provider_instance_size_name                     = "%[9]s"
-		provider_auto_scaling_compute_min_instance_size = "%[8]s"
-		provider_auto_scaling_compute_max_instance_size = "%[9]s"
+		provider_instance_size_name                     = %[9]q
+		provider_auto_scaling_compute_min_instance_size = %[8]q
+		provider_auto_scaling_compute_max_instance_size = %[9]q
 
 		lifecycle { // To simulate if there a new instance size name to avoid scale cluster down to original value
 			ignore_changes = [provider_instance_size_name]
