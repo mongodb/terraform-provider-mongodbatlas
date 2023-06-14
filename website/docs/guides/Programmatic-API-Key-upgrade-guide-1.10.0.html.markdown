@@ -13,7 +13,7 @@ For comprehensive Upgrade Guide on all v1.10.0 modifications see [here](https://
 
 Remember, your scripts will still work with deprecated features for now, but it's best to upgrade as soon as possible to benefit from the latest enhancements. Code removal is planned for v1.12.0 at which point prior PAK workflow will no longer function.
 
-Lastly, in MongoDB Atlas, all PAKs are Organization API keys. Once created, a PAK is linked at the organization level with an 'Organization Member' role. However, these Organization API keys can also be assigned to one or more projects within the organization. When a PAK is assigned to a specific project, it essentially takes on the 'Project Owner' role for that particular project. This enables the key to perform operations at the project level, in addition to the organization level. The flexibility of PAKs provides a mechanism for fine-grained access and control, once their functioning is clearly understood.
+Lastly, in MongoDB Atlas, all PAKs are Organization API keys. Once created, a PAK is linked at the organization level with at minimum the 'Organization Member' role. However, these Organization API keys can also be assigned to one or more projects within the organization. When a PAK is assigned to a specific project, it essentially becomes a Project level PAK for that particular project. This enables the key to perform operations at the project level with project specific roles, in addition to the organization level. The flexibility of PAKs provides a mechanism for fine-grained access and control, once their functioning is clearly understood.  
 
 ## Changes Overview
 * `api_keys` parameter is deprecated from the `mongodbatlas_project` resource.
