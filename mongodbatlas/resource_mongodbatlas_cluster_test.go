@@ -1599,7 +1599,7 @@ func testAccMongoDBAtlasClusterConfigGCPWithBiConnector(orgID, projectName, name
 			provider_name               = "GCP"
 			provider_instance_size_name = "M30"
 			bi_connector_config {
-				enabled = %[4]t
+				enabled = %[4]s
 			}
 		}
 	`, orgID, projectName, name, backupEnabled, biConnectorEnabled)
@@ -1741,7 +1741,7 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(orgID, projectName, name, ba
 			name         = %[3]q
 			disk_size_gb = 10
   
-			backup_enabled               = %[4]t
+			backup_enabled               = %[4]s
 			auto_scaling_disk_gb_enabled = false
 
 			// Provider Settings "block"
