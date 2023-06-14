@@ -1288,7 +1288,7 @@ func testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name string, backup
 		}
 		resource "mongodbatlas_cluster" "test" {
 			project_id                   = mongodbatlas_project.cluster_project.id
-			name                         = %[3]s
+			name                         = %[3]q
 			disk_size_gb                 = 100
             cluster_type = "REPLICASET"
 		    replication_specs {
@@ -1320,13 +1320,13 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(orgID, projectName, name, i
 		}
 		resource "mongodbatlas_cluster" "test" {
 			project_id   = mongodbatlas_project.cluster_project.id
-			name         = "%[3]s"
+			name         = %[3]q
 
 			cloud_backup                 = false
 			// Provider Settings "block"
 			provider_region_name     = "US_EAST_1"
 			provider_name               = "AWS"
-			provider_instance_size_name = "%[4]s"
+			provider_instance_size_name = %[4]q
 			provider_volume_type        = "PROVISIONED"
 		}
 	`, orgID, projectName, name, instanceName)
@@ -1354,7 +1354,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 		       }
 		    }
 
-			backup_enabled               = false
+			backup_enabled               = true
 			auto_scaling_disk_gb_enabled =  %[4]s
 
 			// Provider Settings "block"
@@ -1599,7 +1599,7 @@ func testAccMongoDBAtlasClusterConfigGCPWithBiConnector(orgID, projectName, name
 			provider_name               = "GCP"
 			provider_instance_size_name = "M30"
 			bi_connector_config {
-				enabled = %[4]s
+				enabled = %[5]t
 			}
 		}
 	`, orgID, projectName, name, backupEnabled, biConnectorEnabled)

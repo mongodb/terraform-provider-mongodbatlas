@@ -63,7 +63,7 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_ACC: 1
-          TF_LOG: DEBUG
+          TF_LOG: ERROR
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccOutageSimulationCluster"
         run: make testacc
@@ -86,7 +86,7 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_ACC: 1
-          TF_LOG: DEBUG
+          TF_LOG: ERROR
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccClusterAdvancedCluster"
         run: make testacc
@@ -110,7 +110,7 @@ jobs:
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: true
           TF_ACC: 1
-          TF_LOG: DEBUG
+          TF_LOG: ERROR
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccClusterRSCluster"
         run: make testacc
