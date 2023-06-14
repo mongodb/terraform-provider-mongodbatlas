@@ -25,7 +25,7 @@ Before you begin any modification process, it is always important to backup your
 
 Locate the `mongodbatlas_project` resource block containtaining the `api_keys` parameter in your state file that you wish to migrate to new workflow introduced in v1.10.0 of Terraform Provider for MongoDB Atlas. From there you can remove it from Terraform State file. This means that assignments of the `api_keys` parameter as well as project resource itself will be preserved in the actual infrastructure, but Terraform will no longer manage them.
 
-For example if this was your current `mongodbatlas_project` resource block:
+For example, if this was your current `mongodbatlas_project` resource block:
 ```
 resource "mongodbatlas_project" "test" {
   name   = "projectName"
