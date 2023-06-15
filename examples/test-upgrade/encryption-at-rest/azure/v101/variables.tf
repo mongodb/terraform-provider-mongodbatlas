@@ -1,32 +1,32 @@
 # azure
 variable "client_id" {
-  default = ""
+  type = string
 }
 variable "subscription_id" {
-  default = ""
+  type = string
 }
 variable "resource_group_name" {
-  default = ""
+  type = string
 }
 variable "client_secret" {
-  default = ""
+  type = string
 }
 variable "tenant_id" {
-  default = ""
+  type = string
 }
 variable "key_vault_name" {
-  default = ""
+  type = string
 }
 variable "key_identifier" {
-  default = ""
+  type = string
 }
 
 # encryption at rest
 variable "project_name" {
   description = "Atlas project name"
-  default     = ""
+  type        = string
 }
 variable "org_id" {
   description = "The organization ID"
-  default     = ""
+  type        = string
 }
