@@ -427,11 +427,15 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "backup_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = "%s"
-			name         = "%s"
+			project_id   = mongodbatlas_project.backup_project.id
+			name         = %[3]q
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -444,18 +448,22 @@ func testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(projectID, clusterNa
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
-			reference_hour_of_day    = %d
-			reference_minute_of_hour = %d
-			restore_window_days      = %d
+			reference_hour_of_day    = %[4]d
+			reference_minute_of_hour = %[5]d
+			restore_window_days      = %[6]d
 		}
-	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "backup_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = "%s"
-			name         = "%s"
+			project_id   = mongodbatlas_project.backup_project.id
+			name         = %[3]q
 
 			// Provider Settings "block"
 			provider_name               = "AWS"
@@ -468,9 +476,9 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
-			reference_hour_of_day    = %d
-			reference_minute_of_hour = %d
-			restore_window_days      = %d
+			reference_hour_of_day    = %[4]d
+			reference_minute_of_hour = %[5]d
+			restore_window_days      = %[6]d
 
 			policy_item_hourly {
 				frequency_interval = 1
@@ -493,14 +501,18 @@ func testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(projectID, clusterName 
 				retention_value    = 4
 			}
 		}
-	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "backup_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = "%s"
-			name         = "%s"
+			project_id   = mongodbatlas_project.my_cluster.id
+			name         = %[3]q
 			
 			cluster_type = "REPLICASET"
             replication_specs {
@@ -524,9 +536,9 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, cluster
 			project_id   = mongodbatlas_cluster.my_cluster.project_id
 			cluster_name = mongodbatlas_cluster.my_cluster.name
 
-			reference_hour_of_day    = %d
-			reference_minute_of_hour = %d
-			restore_window_days      = %d
+			reference_hour_of_day    = %[4]d
+			reference_minute_of_hour = %[5]d
+			restore_window_days      = %[6]d
 
 			policy_item_hourly {
 				frequency_interval = 1
@@ -560,11 +572,15 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(projectID, cluster
 				should_copy_oplogs = true
 			  }
 		}
-	`, projectID, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
+	`, orgID, projectName, clusterName, *p.ReferenceHourOfDay, *p.ReferenceMinuteOfHour, *p.RestoreWindowDays)
 }
 
-func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(projectID, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
+func testAccMongoDBAtlasCloudBackupScheduleOnePolicyConfig(orgID, projectName, clusterName string, p *matlas.CloudProviderSnapshotBackupPolicy) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "backup_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_cluster" "my_cluster" {
 			project_id   = "%s"
 			name         = "%s"

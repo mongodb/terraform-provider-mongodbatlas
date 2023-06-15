@@ -16,9 +16,13 @@ import (
 
 const (
 	clusterConfig = `
+	resource "mongodbatlas_project" "cluster_project" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
 	resource "mongodbatlas_cluster" "online_archive_test" {
-		project_id   = "%s"
-		name         = "%s"
+		project_id   = mongodbatlas_project.cluster_project.id
+		name         = %[3]q
 		disk_size_gb = 10
 
 		cluster_type = "REPLICASET"
@@ -32,7 +36,7 @@ const (
 		   }
 		}
 
-		cloud_backup                 = %s
+		cloud_backup                 = %[4]s
 		auto_scaling_disk_gb_enabled = true
 
 		// Provider Settings "block"
@@ -100,14 +104,15 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		cluster                   matlas.Cluster
 		resourceName              = "mongodbatlas_cluster.online_archive_test"
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		projectID                 = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName               = acctest.RandomWithPrefix("test-acc")
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
-	initialConfig := fmt.Sprintf(clusterConfig, projectID, name, "false")
+	initialConfig := fmt.Sprintf(orgID, projectName, clusterConfig, name, "false")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
