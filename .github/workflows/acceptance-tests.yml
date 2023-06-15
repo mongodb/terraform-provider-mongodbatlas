@@ -29,8 +29,7 @@ jobs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
-      cluster: ${{ steps.filter.outputs.cluster }}
+      backup: ${{ steps.filter.outputs.backup }}
     steps:
     - uses: actions/checkout@v3
       if: ${{ github.event_name == 'push' }}
@@ -44,11 +43,8 @@ jobs:
             - 'mongodbatlas/**advanced_cluster**.go'
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
-
-          advanced_cluster:
-            - 'mongodbatlas/**advanced_cluster**.go'
-          cluster:
-            - 'mongodbatlas/**mongodbatlas_cluster**.go'
+          backup:
+            - 'mongodbatlas/**backup**.go'
 
 
   cluster_outage_simulation:
@@ -125,7 +121,7 @@ jobs:
         run: make testacc
   backup:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || inputs.parent-event-name == 'push' }}
+    if: ${{ needs.change-detection.outputs.backup == 'true' || github.event_name == 'workflow_dispatch' || inputs.parent-event-name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
