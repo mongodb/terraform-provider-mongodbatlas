@@ -5,19 +5,21 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccBackupDSDataLakes_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_data_lakes.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataLakesDataSourceConfig(projectID),
+				Config: testAccMongoDBAtlasDataLakesDataSourceConfig(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
@@ -27,10 +29,14 @@ func TestAccBackupDSDataLakes_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataLakesDataSourceConfig(projectID string) string {
+func testAccMongoDBAtlasDataLakesDataSourceConfig(orgID, projectName string) string {
 	return fmt.Sprintf(`
-		data "mongodbatlas_data_lakes" "test" {
-			project_id = "%s"
+		resource "mongodbatlas_project" "backup_project" {
+			name   = %[2]q
+			org_id = %[1]q
 		}
-	`, projectID)
+		data "mongodbatlas_data_lakes" "test" {
+			project_id = mongodbatlas_project.backup_project.id
+		}
+	`, orgID, projectName)
 }

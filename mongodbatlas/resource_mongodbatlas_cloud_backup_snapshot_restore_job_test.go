@@ -15,16 +15,19 @@ import (
 
 func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 	var (
-		cloudBackupSnapshotRestoreJob = matlas.CloudProviderSnapshotRestoreJob{}
-		resourceName                  = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
-		orgID                         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                   = acctest.RandomWithPrefix("test-acc")
-		targetProjectName             = acctest.RandomWithPrefix("test-acc")
-		clusterName                   = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		description                   = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays               = "1"
-		targetClusterName             = clusterName
-		targetGroupID                 = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		cloudBackupSnapshotRestoreJob     = matlas.CloudProviderSnapshotRestoreJob{}
+		resourceName                      = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
+		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
+		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                       = acctest.RandomWithPrefix("test-acc")
+		targetProjectName                 = acctest.RandomWithPrefix("test-acc")
+		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description                       = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays                   = "1"
+		targetClusterName                 = clusterName
+		targetGroupID                     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -39,6 +42,19 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_project_id", targetGroupID),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "retention_in_days"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.project_id"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.cluster_name"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.description"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.retention_in_days"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.project_id"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.cluster_name"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.description"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.retention_in_days"),
 				),
 			},
 		},
@@ -260,6 +276,25 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
     target_project_id   = mongodbatlas_project.backup_target_project.id
   }
 }
+
+data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+	project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+	job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id
+  
+
+data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {
+	project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+}
+
+data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
+	project_id   = mongodbatlas_cloud_backup_snapshot_restore_job.test.project_id
+	cluster_name = mongodbatlas_cloud_backup_snapshot_restore_job.test.cluster_name
+	page_num = 1
+	items_per_page = 5
+}
+
 	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName)
 }
 
