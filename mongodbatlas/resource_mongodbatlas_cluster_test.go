@@ -1032,14 +1032,13 @@ func TestAccClusterRSCluster_tenant_m5(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicGCPRegionName(t *testing.T) {
+func TestAccClusterRSCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 	var (
-		resourceName      = "mongodbatlas_cluster.test"
-		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName       = acctest.RandomWithPrefix("test-acc")
-		clusterName       = acctest.RandomWithPrefix("test-acc")
-		regionName        = "US_WEST_2"
-		regionNameUpdated = "WESTERN_US"
+		resourceName = "mongodbatlas_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc")
+		regionName   = "WESTERN_US"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1055,12 +1054,30 @@ func TestAccClusterRSCluster_basicGCPRegionName(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionName),
 				),
 			},
+		},
+	})
+}
+
+func TestAccClusterRSCluster_basicGCPRegionNameUSWest2(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		clusterName  = acctest.RandomWithPrefix("test-acc")
+		regionName   = "US_WEST_2"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasClusterConfigGCPRegionName(orgID, projectName, clusterName, regionNameUpdated),
+				Config: testAccMongoDBAtlasClusterConfigGCPRegionName(orgID, projectName, clusterName, regionName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionName),
 				),
 			},
 		},
@@ -1322,7 +1339,7 @@ func testAccMongoDBAtlasClusterConfigAWSNVMEInstance(orgID, projectName, name, i
 			project_id   = mongodbatlas_project.cluster_project.id
 			name         = %[3]q
 
-			cloud_backup                 = false
+			cloud_backup                 = true
 			// Provider Settings "block"
 			provider_region_name     = "US_EAST_1"
 			provider_name               = "AWS"
@@ -1354,7 +1371,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 		       }
 		    }
 
-			backup_enabled               = true
+			backup_enabled               = false
 			auto_scaling_disk_gb_enabled =  %[4]s
 
 			// Provider Settings "block"
