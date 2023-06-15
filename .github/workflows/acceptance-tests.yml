@@ -29,6 +29,8 @@ jobs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
+      cluster: ${{ steps.filter.outputs.cluster }}
     steps:
     - uses: actions/checkout@v3
       if: ${{ github.event_name == 'push' }}
@@ -38,6 +40,11 @@ jobs:
         filters: |
           cluster_outage_simulation:
             - 'mongodbatlas/**cluster_outage_simulation**.go'
+          advanced_cluster:
+            - 'mongodbatlas/**advanced_cluster**.go'
+          cluster:
+            - 'mongodbatlas/**mongodbatlas_cluster**.go'
+
           advanced_cluster:
             - 'mongodbatlas/**advanced_cluster**.go'
           cluster:

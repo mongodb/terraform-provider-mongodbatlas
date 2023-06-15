@@ -2,30 +2,32 @@
 
 variable "cloud_provider_access_name" {
   default = "AWS"
+  type    = string
 }
 
 # aws
 variable "access_key" {
-  default = ""
+  type = string
 }
 variable "secret_key" {
-  default = ""
+  type = string
 }
 
 # encryption at rest
 variable "customer_master_key" {
   description = "The customer master secret key for AWS Account"
-  default     = ""
+  type        = string
 }
 variable "atlas_region" {
   default     = "US_EAST_1"
   description = "Atlas Region"
+  type        = string
 }
 variable "project_name" {
   description = "Atlas project name"
-  default     = ""
+  type        = string
 }
 variable "org_id" {
   description = "The organization ID"
-  default     = ""
+  type        = string
 }

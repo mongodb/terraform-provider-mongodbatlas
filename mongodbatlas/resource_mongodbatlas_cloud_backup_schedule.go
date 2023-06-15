@@ -402,6 +402,8 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schem
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
+	d.SetId("")
+
 	return nil
 }
 
@@ -438,7 +440,22 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 }
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
-	req := &matlas.CloudProviderSnapshotBackupPolicy{}
+	_, policyMonthlyOK := d.GetOk("policy_item_monthly")
+	_, policyWeeklyOK := d.GetOk("policy_item_weekly")
+	_, policyDailyOK := d.GetOk("policy_item_daily")
+	_, policyhourlyOK := d.GetOk("policy_item_hourly")
+
+	// When a new cluster is created with the backup feature enabled,
+	// MongoDB Atlas automatically generates a default backup policy for that cluster.
+	// However, in the scenario where the user hasn't provided a backup policy,
+	// we want to make sure that the default backup policy is removed first.
+	// This is to avoid having the infrastructure differs from the TF configuration file.
+	if !policyMonthlyOK && !policyWeeklyOK && !policyDailyOK && !policyhourlyOK {
+		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
+		if err != nil {
+			log.Printf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+		}
+	}
 
 	// Get policies items
 	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
@@ -446,6 +463,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
+	req := &matlas.CloudProviderSnapshotBackupPolicy{}
 	policy := matlas.Policy{}
 	policyItem := matlas.PolicyItem{}
 	var policiesItem []matlas.PolicyItem

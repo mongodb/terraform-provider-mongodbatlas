@@ -1,17 +1,17 @@
 # gcp
 variable "service_account_key" {
-  default = ""
+  type = string
 }
 variable "gcp_key_version_resource_id" {
-  default = ""
+  type = string
 }
 
 # encryption at rest
 variable "project_name" {
   description = "Atlas project name"
-  default     = ""
+  type        = string
 }
 variable "org_id" {
   description = "The organization ID"
-  default     = ""
+  type        = string
 }
