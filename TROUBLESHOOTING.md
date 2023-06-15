@@ -40,7 +40,7 @@ resource "mongodbatlas_advanced_cluster" "main" {
 }
 ```
 
-2. User can try to maintain order when using `dynamic`. For example, by using a `type = list()` variable as shown in the example below:
+2. User can try to maintain order when using `dynamic` by using a `type = list()` variable as shown in the example below:
 
 ```
 variable "region_configs_list" {
