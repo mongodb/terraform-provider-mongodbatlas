@@ -14,22 +14,25 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccClusterRSAdvancedCluster_basicTenant(t *testing.T) {
+func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
+		cluster                matlas.AdvancedCluster
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		rName                  = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(projectID, rName),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -38,10 +41,16 @@ func TestAccClusterRSAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "termination_protection_enabled"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(projectID, rNameUpdated),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -50,6 +59,12 @@ func TestAccClusterRSAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.termination_protection_enabled"),
 				),
 			},
 			{
@@ -62,21 +77,22 @@ func TestAccClusterRSAdvancedCluster_basicTenant(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSAdvancedCluster_singleProvider(t *testing.T) {
+func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(projectID, rName),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -87,7 +103,7 @@ func TestAccClusterRSAdvancedCluster_singleProvider(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, rName),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -108,22 +124,81 @@ func TestAccClusterRSAdvancedCluster_singleProvider(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSAdvancedCluster_multicloud(t *testing.T) {
+func TestAccClusterAdvancedCluster_multicloud(t *testing.T) {
+	var (
+		cluster                matlas.AdvancedCluster
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		rName                  = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, rNameUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceClustersName, "results.0.name"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"replication_specs"},
+			},
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, rName),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(orgID, projectName, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -134,7 +209,7 @@ func TestAccClusterRSAdvancedCluster_multicloud(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, rNameUpdated),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(orgID, projectName, rNameUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -155,69 +230,23 @@ func TestAccClusterRSAdvancedCluster_multicloud(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSAdvancedCluster_multicloudSharded(t *testing.T) {
-	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(projectID, rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
-			},
-			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(projectID, rNameUpdated),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs"},
-			},
-		},
-	})
-}
-
-func TestAccClusterRSAdvancedCluster_Paused(t *testing.T) {
+func TestAccClusterAdvancedCluster_Paused(t *testing.T) {
 	SkipTest(t)
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, rName, false),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -229,7 +258,7 @@ func TestAccClusterRSAdvancedCluster_Paused(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, rName, true),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -251,14 +280,17 @@ func TestAccClusterRSAdvancedCluster_Paused(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSAdvancedCluster_advancedConf(t *testing.T) {
+func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 	var (
-		cluster      matlas.AdvancedCluster
-		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		rName        = acctest.RandomWithPrefix("test-acc")
-		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		processArgs  = &matlas.ProcessArgs{
+		cluster                matlas.AdvancedCluster
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+		dataSourceNameClusters = "data.mongodbatlas_advanced_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		rName                  = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated           = acctest.RandomWithPrefix("test-acc")
+		processArgs            = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
 			DefaultWriteConcern:              "1",
 			FailIndexKeyTooLong:              pointy.Bool(false),
@@ -283,12 +315,12 @@ func TestAccClusterRSAdvancedCluster_advancedConf(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(projectID, rName, processArgs),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -299,10 +331,14 @@ func TestAccClusterRSAdvancedCluster_advancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.name"),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(projectID, rNameUpdated, processArgsUpdated),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(orgID, projectName, rNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -313,17 +349,22 @@ func TestAccClusterRSAdvancedCluster_advancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
+					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.#"),
+					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.replication_specs.#"),
+					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.name"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccClusterRSAdvancedCluster_DefaultWrite(t *testing.T) {
+func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		processArgs  = &matlas.ProcessArgs{
@@ -349,12 +390,12 @@ func TestAccClusterRSAdvancedCluster_DefaultWrite(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(projectID, rName, processArgs),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(orgID, projectName, rName, processArgs),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -370,7 +411,7 @@ func TestAccClusterRSAdvancedCluster_DefaultWrite(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(projectID, rNameUpdated, processArgsUpdated),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(orgID, projectName, rNameUpdated, processArgsUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -389,11 +430,12 @@ func TestAccClusterRSAdvancedCluster_DefaultWrite(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.T) {
+func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		autoScaling  = &matlas.AutoScaling{
@@ -407,12 +449,12 @@ func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testin
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(projectID, rName, autoScaling),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -421,7 +463,7 @@ func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testin
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(projectID, rNameUpdated, autoScalingUpdated),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -433,11 +475,12 @@ func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testin
 	})
 }
 
-func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t *testing.T) {
+func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
 		resourceName = "mongodbatlas_advanced_cluster.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
 		autoScaling  = &matlas.AutoScaling{
@@ -451,12 +494,12 @@ func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(projectID, rName, autoScaling),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
@@ -465,7 +508,7 @@ func TestAccClusterRSAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(projectID, rNameUpdated, autoScalingUpdated),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
@@ -552,11 +595,15 @@ func testAccCheckMongoDBAtlasAdvancedClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigTenant(projectID, name string) string {
+func testAccMongoDBAtlasAdvancedClusterConfigTenant(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.cluster_project.id
+  name         = %[3]q
   cluster_type = "REPLICASET"
   retain_backups_enabled = "false"
 
@@ -572,14 +619,27 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, projectID, name)
+
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(projectID, name string) string {
+data "mongodbatlas_advanced_clusters" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+}
+	`, orgID, projectName, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.cluster_project.id
+  name         = %[3]q
   cluster_type = "REPLICASET"
   retain_backups_enabled = "false"
 
@@ -599,14 +659,23 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, projectID, name)
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(projectID, name string) string {
+	`, orgID, projectName, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigMultiCloud(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.cluster_project.id
+  name         = %[3]q
   cluster_type = "REPLICASET"
 
   replication_specs {
@@ -634,14 +703,27 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, projectID, name)
+
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(projectID, name string) string {
+data "mongodbatlas_advanced_clusters" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+}
+	`, orgID, projectName, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigMultiCloudSharded(orgID, projectName, name string) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.cluster_project.id
+  name         = %[3]q
   cluster_type = "SHARDED"
 
   replication_specs {
@@ -670,16 +752,20 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, projectID, name)
+	`, orgID, projectName, name)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(projectID, name string, paused bool) string {
+func testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, name string, paused bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.cluster_project.id
+  name         = %[3]q
   cluster_type = "REPLICASET"
-  paused       = %[3]t
+  paused       = %[4]t
 
   replication_specs {
     region_configs {
@@ -697,14 +783,18 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-	`, projectID, name, paused)
+	`, orgID, projectName, name, paused)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(projectID, name string, p *matlas.ProcessArgs) string {
+func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConf(orgID, projectName, name string, p *matlas.ProcessArgs) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = %[1]q
-  name                   = %[2]q
+  project_id             = mongodbatlas_project.cluster_project.id
+  name                   = %[3]q
   cluster_type           = "REPLICASET"
 
    replication_specs {
@@ -724,65 +814,81 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 
   advanced_configuration  {
-    fail_index_key_too_long              = %[3]t
+    fail_index_key_too_long              = %[4]t
+    javascript_enabled                   = %[5]t
+    minimum_enabled_tls_protocol         = %[6]q
+    no_table_scan                        = %[7]t
+    oplog_size_mb                        = %[8]d
+    sample_size_bi_connector			 = %[9]d
+    sample_refresh_interval_bi_connector = %[10]d
+  }
+}
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
+}
+
+data "mongodbatlas_advanced_clusters" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+}
+
+	`, orgID, projectName, name,
+		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
+		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(orgID, projectName, name string, p *matlas.ProcessArgs) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}	
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id             = mongodbatlas_project.cluster_project.id
+  name                   = %[3]q
+  cluster_type           = "REPLICASET"
+
+   replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+  }
+
+  advanced_configuration  {
     javascript_enabled                   = %[4]t
     minimum_enabled_tls_protocol         = %[5]q
     no_table_scan                        = %[6]t
     oplog_size_mb                        = %[7]d
     sample_size_bi_connector			 = %[8]d
     sample_refresh_interval_bi_connector = %[9]d
+    default_read_concern                 = %[10]q
+    default_write_concern                = %[11]q
   }
 }
 
-	`, projectID, name,
-		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
-}
-
-func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(projectID, name string, p *matlas.ProcessArgs) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = %[1]q
-  name                   = %[2]q
-  cluster_type           = "REPLICASET"
-
-   replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
-    }
-  }
-
-  advanced_configuration  {
-    javascript_enabled                   = %[3]t
-    minimum_enabled_tls_protocol         = %[4]q
-    no_table_scan                        = %[5]t
-    oplog_size_mb                        = %[6]d
-    sample_size_bi_connector			 = %[7]d
-    sample_refresh_interval_bi_connector = %[8]d
-    default_read_concern                 = %[9]q
-    default_write_concern                = %[10]q
-  }
-}
-
-	`, projectID, name, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
+	`, orgID, projectName, name, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
 		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, p.DefaultReadConcern, p.DefaultWriteConcern)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(projectID, name string, p *matlas.AutoScaling) string {
+func testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, name string, p *matlas.AutoScaling) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}	
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = %[1]q
-  name                   = %[2]q
+  project_id             = mongodbatlas_project.cluster_project.id
+  name                   = %[3]q
   cluster_type           = "REPLICASET"
 
    replication_specs {
@@ -796,9 +902,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
 	  auto_scaling {
-        compute_enabled = %[3]t
-        disk_gb_enabled = %[4]t
-		compute_max_instance_size = %[5]q
+        compute_enabled = %[4]t
+        disk_gb_enabled = %[5]t
+		compute_max_instance_size = %[6]q
 	  }
       provider_name = "AWS"
       priority      = 7
@@ -809,14 +915,20 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 }
 
-	`, projectID, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
 
-func testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(projectID, name string, p *matlas.AutoScaling) string {
+func testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAnalyticsAutoScaling(orgID, projectName, name string, p *matlas.AutoScaling) string {
 	return fmt.Sprintf(`
+
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id             = %[1]q
-  name                   = %[2]q
+  project_id             = mongodbatlas_project.cluster_project.id
+  name                   = %[3]q
   cluster_type           = "REPLICASET"
 
    replication_specs {
@@ -830,9 +942,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
 	  analytics_auto_scaling {
-        compute_enabled = %[3]t
-        disk_gb_enabled = %[4]t
-		compute_max_instance_size = %[5]q
+        compute_enabled = %[4]t
+        disk_gb_enabled = %[5]t
+		compute_max_instance_size = %[6]q
 	  }
       provider_name = "AWS"
       priority      = 7
@@ -843,5 +955,5 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 }
 
-	`, projectID, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
