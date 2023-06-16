@@ -304,7 +304,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
 				),
 			},
 			{
@@ -316,7 +316,7 @@ func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
 			},
 			{
