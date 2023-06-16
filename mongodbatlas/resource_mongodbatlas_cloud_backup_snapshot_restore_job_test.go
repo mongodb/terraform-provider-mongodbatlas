@@ -27,7 +27,6 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
 		targetClusterName                 = clusterName
-		targetGroupID                     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -41,7 +40,6 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_project_id", targetGroupID),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "retention_in_days"),

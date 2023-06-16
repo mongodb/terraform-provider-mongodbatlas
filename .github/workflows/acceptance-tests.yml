@@ -1,6 +1,8 @@
 name: 'Acceptance Tests'
 
 on:
+  schedule:
+    - cron: "0 4 * * *" # run every day at 04:00 AM
   workflow_dispatch: {} # workflow can be run manually
   workflow_call: 
     inputs:
@@ -46,7 +48,7 @@ jobs:
             - 'mongodbatlas/**backup_schedule**.go'
   cluster_outage_simulation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -70,7 +72,7 @@ jobs:
         run: make testacc
   advanced_cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'  }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -94,7 +96,7 @@ jobs:
         run: make testacc
   cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -118,7 +120,7 @@ jobs:
         run: make testacc
   backup_generic:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_generic == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.backup_generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -143,7 +145,7 @@ jobs:
         run: make testacc
   backup_online_archive:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -168,7 +170,7 @@ jobs:
         run: make testacc
   backup_snapshots:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -193,7 +195,7 @@ jobs:
         run: make testacc
   backup_schedule:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
