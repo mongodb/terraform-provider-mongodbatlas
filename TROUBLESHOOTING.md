@@ -1,12 +1,14 @@
 # Troubleshooting
 
-The following are some of the common issues/errors encountered when using MongoDB Atlas Provider for Terraform:
+The following are some of the common issues/errors encountered when using Terraform Provider for MongoDB Atlas :
 
 
 ## Issue: Order of element objects in a TypeList attribute randomly changes everytime user runs `terraform plan`:
 
 ### Cause:
-This problem occurs if the user is trying to dynamically add object to an attribute List, for example, by using `dynamic`. This is a known Terraform behavior as `dynamic` can attempt bring objects into schema in any order. This can be resolved by:
+This problem occurs if the user is trying to dynamically add object to an attribute List, for example, by using `dynamic`. This is a known Terraform behavior as `dynamic` can attempt bring objects into schema in any order. 
+
+This can be resolved by:
 
 1. Defining a static list of objects in your resource as shown in the example below:
 
