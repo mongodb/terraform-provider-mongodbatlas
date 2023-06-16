@@ -26,7 +26,7 @@ jobs:
       backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
     steps:
     - uses: actions/checkout@v3
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'}}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
