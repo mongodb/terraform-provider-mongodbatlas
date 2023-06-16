@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 	"time"
 
@@ -269,23 +268,13 @@ func roleToSchemaAuthorization(role *matlas.AWSIAMRole) map[string]interface{} {
 	return out
 }
 
-func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string) (targetRole *matlas.AWSIAMRole, err error) {
-	roles, _, err := conn.CloudProviderAccess.ListRoles(ctx, projectID)
-
+func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string) (*matlas.AWSIAMRole, error) {
+	roles, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
 	if err != nil {
 		return nil, fmt.Errorf(errorGetRead, err)
 	}
 
-	sort.Slice(roles.AWSIAMRoles,
-		func(i, j int) bool { return roles.AWSIAMRoles[i].RoleID < roles.AWSIAMRoles[j].RoleID })
-
-	index := sort.Search(len(roles.AWSIAMRoles), func(i int) bool { return roles.AWSIAMRoles[i].RoleID >= roleID })
-
-	if index < len(roles.AWSIAMRoles) && roles.AWSIAMRoles[index].RoleID == roleID {
-		targetRole = &(roles.AWSIAMRoles[index])
-	}
-
-	return
+	return &roles.AWSIAMRoles[0], nil
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0() *schema.Resource {
