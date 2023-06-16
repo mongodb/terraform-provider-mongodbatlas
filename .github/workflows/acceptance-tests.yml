@@ -7,11 +7,9 @@ on:
   workflow_call: 
     inputs:
       parent-event-name:
-      parent-event-name:
         required: true
         type: string
 
-jobs:  
 jobs:  
   change-detection:
     runs-on: ubuntu-latest
