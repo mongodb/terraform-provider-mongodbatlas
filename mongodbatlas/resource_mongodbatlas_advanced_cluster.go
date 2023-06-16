@@ -718,6 +718,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
 	}
 
+	if d.HasChange("paused") {
+		cluster.Paused = pointy.Bool(d.Get("paused").(bool))
+	}
+
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
 	// Has changes
@@ -772,6 +776,17 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 		}
 	}
+
+	// if d.Get("paused").(bool) {
+	// 	clusterRequest := &matlas.AdvancedCluster{
+	// 		Paused: pointy.Bool(true),
+	// 	}
+
+	// 	_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+	// 	if err != nil {
+	// 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+	// 	}
+	// }
 
 	return resourceMongoDBAtlasAdvancedClusterRead(ctx, d, meta)
 }
