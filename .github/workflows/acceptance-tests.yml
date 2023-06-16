@@ -1,10 +1,10 @@
 name: 'Acceptance Tests'
 
 on:
-  schedule:
-    - cron: "0 4 * * *" # run every day at 04:00 AM
   workflow_dispatch: {} # workflow can be run manually
-  workflow_call: 
+  schedule:
+    - cron: "0 4 * * *" # workflow runs every day at 04:00 AM
+  workflow_call: # workflow runs after code-health
     inputs:
       parent-event-name:
         required: true
