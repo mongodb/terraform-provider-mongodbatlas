@@ -29,7 +29,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy,
 		Steps: []resource.TestStep{

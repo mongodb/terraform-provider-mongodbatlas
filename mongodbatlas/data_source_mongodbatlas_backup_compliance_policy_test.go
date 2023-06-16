@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccBackupDSBackupCompliancePolicy_basic(t *testing.T) {
+func TestAccBackupGenericDSBackupCompliancePolicy_basic(t *testing.T) {
 	projectName := fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectOwnerID := os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

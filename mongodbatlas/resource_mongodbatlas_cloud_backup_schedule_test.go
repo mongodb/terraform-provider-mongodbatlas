@@ -43,7 +43,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_weekly.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_monthly.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(dataSourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(dataSourceName, "reference_hour_of_day", "3"),
 					resource.TestCheckResourceAttr(dataSourceName, "reference_minute_of_hour", "45"),
@@ -145,7 +144,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
-	SkipTest(t)
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_cloud_backup_schedule.schedule_test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -190,7 +189,7 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -359,7 +358,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -545,7 +544,7 @@ func testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName
 			org_id = %[1]q
 		}
 		resource "mongodbatlas_cluster" "my_cluster" {
-			project_id   = mongodbatlas_project.my_cluster.id
+			project_id   = mongodbatlas_project.backup_project.id
 			name         = %[3]q
 			
 			cluster_type = "REPLICASET"

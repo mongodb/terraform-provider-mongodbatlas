@@ -280,8 +280,8 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 	project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
 	cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-	job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id
-  
+	job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id  
+}
 
 data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {
 	project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
@@ -385,7 +385,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   delivery_type_config {
     point_in_time       = true
     target_cluster_name = mongodbatlas_cluster.target_cluster.name
-    target_project_id   = mongodbatlas_cluster.target.target_cluster.project_id
+    target_project_id   = mongodbatlas_cluster.target_cluster.project_id
     oplog_ts            = %[7]d
     oplog_inc           = 300
   }
