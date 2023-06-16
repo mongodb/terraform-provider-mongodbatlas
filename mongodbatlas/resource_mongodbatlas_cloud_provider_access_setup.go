@@ -75,13 +75,12 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
-	providerName := ids["provider_name"]
+	roleID := ids["id"]
 
-	roles, resp, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
+	roles, resp, err := conn.CloudProviderAccess.GetRole(context.Background(), projectID, roleID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -91,33 +90,11 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
-	// aws specific
-	if providerName == "AWS" {
-		var targetRole matlas.AWSIAMRole
-		// searching in roles
-		for i := range roles.AWSIAMRoles {
-			role := &(roles.AWSIAMRoles[i])
-			if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
-				targetRole = *role
-			}
+	roleSchema := roleToSchemaSetup(&roles.AWSIAMRoles[0])
+	for key, val := range roleSchema {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(fmt.Errorf(errorGetRead, err))
 		}
-		// Not Found
-		if targetRole.RoleID == "" && !d.IsNewResource() {
-			d.SetId("")
-			return nil
-		}
-
-		roleSchema := roleToSchemaSetup(&targetRole)
-
-		for key, val := range roleSchema {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGetRead, err))
-			}
-		}
-	} else {
-		// planning for the future multiple providers
-		return diag.FromErr(fmt.Errorf(errorGetRead,
-			fmt.Sprintf("unsopported provider type %s", providerName)))
 	}
 
 	return nil
