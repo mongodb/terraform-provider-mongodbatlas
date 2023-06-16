@@ -38,14 +38,12 @@ jobs:
           backup_generic:
             - 'mongodbatlas/**backup_compliance**.go'
             - 'mongodbatlas/**data_lakes**.go'
-          backup_online_archive
+          backup_online_archive:
             - 'mongodbatlas/**online_archive**.go'
-          backup_snapshots
+          backup_snapshots:
             - 'mongodbatlas/**backup_snapshot**.go'
-          backup_schedule
+          backup_schedule:
             - 'mongodbatlas/**backup_schedule**.go'
-
-
   cluster_outage_simulation:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' }}
