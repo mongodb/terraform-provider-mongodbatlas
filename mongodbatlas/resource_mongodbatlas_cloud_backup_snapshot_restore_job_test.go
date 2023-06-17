@@ -13,42 +13,42 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-// func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
-// 	var (
-// 		cloudBackupSnapshotRestoreJob     = matlas.CloudProviderSnapshotRestoreJob{}
-// 		resourceName                      = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
-// 		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
-// 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
-// 		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
-// 		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-// 		projectName                       = acctest.RandomWithPrefix("test-snapshot-acc")
-// 		targetProjectName                 = acctest.RandomWithPrefix("test-acc")
-// 		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-// 		description                       = fmt.Sprintf("My description in %s", clusterName)
-// 		retentionInDays                   = "1"
-// 		targetClusterName                 = fmt.Sprintf("test-acc-target-%s", acctest.RandString(10))
-// 	)
+func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
+	var (
+		cloudBackupSnapshotRestoreJob     = matlas.CloudProviderSnapshotRestoreJob{}
+		resourceName                      = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
+		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
+		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                       = acctest.RandomWithPrefix("test-snapshot-acc")
+		targetProjectName                 = acctest.RandomWithPrefix("test-acc")
+		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description                       = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays                   = "1"
+		targetClusterName                 = fmt.Sprintf("test-acc-target-%s", acctest.RandString(10))
+	)
 
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheckBasic(t) },
-// 		ProviderFactories: testAccProviderFactories,
-// 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
-// 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
-// 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
-// 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
-// 					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
-// 					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
-// 					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
+					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
+				),
+			},
+		},
+	})
+}
 
 func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	var (
@@ -61,7 +61,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 		retentionInDays               = "1"
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
@@ -121,7 +121,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.
 		timeUtc           = int64(1)
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
