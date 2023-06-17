@@ -30,9 +30,16 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBackupRSOnlineArchiveConfig(orgID, projectName, name),
+				// We need this step to pupulate the cluster with Sample Data
+				// The online archive won't work if the cluster does not have data
+				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfig(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -102,43 +109,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 
 func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "cluster_project" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
-	resource "mongodbatlas_cluster" "online_archive_test" {
-		project_id   = mongodbatlas_project.cluster_project.id
-		name         = %[3]q
-		disk_size_gb = 10
-
-		cluster_type = "REPLICASET"
-		replication_specs {
-		  num_shards = 1
-		  regions_config {
-			 region_name     = "US_EAST_1"
-			 electable_nodes = 3
-			 priority        = 7
-			 read_only_nodes = 0
-		   }
-		}
-
-		cloud_backup                 = false
-		auto_scaling_disk_gb_enabled = true
-
-		// Provider Settings "block"
-		provider_name               = "AWS"
-		provider_instance_size_name = "M10"
-
-		labels {
-			key   = "ArchiveTest"
-			value = "true"
-		}
-		labels {
-			key   = "Owner"
-			value = "acctest"
-		}
-	}
-
+	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
 		project_id = mongodbatlas_cluster.online_archive_test.project_id
 		cluster_name = mongodbatlas_cluster.online_archive_test.name
@@ -176,5 +147,48 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) 
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName))
+}
+
+func testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "cluster_project" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+	resource "mongodbatlas_cluster" "online_archive_test" {
+		project_id   = mongodbatlas_project.cluster_project.id
+		name         = %[3]q
+		disk_size_gb = 10
+
+		cluster_type = "REPLICASET"
+		replication_specs {
+		  num_shards = 1
+		  regions_config {
+			 region_name     = "US_EAST_1"
+			 electable_nodes = 3
+			 priority        = 7
+			 read_only_nodes = 0
+		   }
+		}
+
+		cloud_backup                 = false
+		auto_scaling_disk_gb_enabled = true
+
+		// Provider Settings "block"
+		provider_name               = "AWS"
+		provider_instance_size_name = "M10"
+
+		labels {
+			key   = "ArchiveTest"
+			value = "true"
+		}
+		labels {
+			key   = "Owner"
+			value = "acctest"
+		}
+	}
+
+	
 	`, orgID, projectName, clusterName)
 }
