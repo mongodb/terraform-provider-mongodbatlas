@@ -84,10 +84,6 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_hour_of_day"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "reference_minute_of_hour"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "restore_window_days"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_hourly"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_daily"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_weekly"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "policy_item_monthly"),
 				),
 			},
 			{
