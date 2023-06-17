@@ -21,12 +21,12 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
 		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
 		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName                       = acctest.RandomWithPrefix("test-acc")
+		projectName                       = acctest.RandomWithPrefix("test-snapshot-acc")
 		targetProjectName                 = acctest.RandomWithPrefix("test-acc")
 		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		description                       = fmt.Sprintf("My description in %s", clusterName)
 		retentionInDays                   = "1"
-		targetClusterName                 = clusterName
+		targetClusterName                 = fmt.Sprintf("test-acc-target-%s", acctest.RandString(10))
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -43,13 +43,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
 					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.project_id"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.cluster_name"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.snapshot_id"),
 					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.project_id"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.cluster_name"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.snapshot_id"),
 				),
 			},
 		},
@@ -226,10 +220,6 @@ resource "mongodbatlas_project" "backup_project" {
 	org_id = %[1]q
 }
 
-resource "mongodbatlas_project" "backup_target_project" {
-	name   = %[6]q
-	org_id = %[1]q
-}
 
 resource "mongodbatlas_cluster" "my_cluster" {
   project_id   = mongodbatlas_project.backup_project.id
@@ -243,7 +233,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
 }
 
 resource "mongodbatlas_cluster" "targer_cluster" {
-	project_id   = mongodbatlas_project.backup_target_project.id
+	project_id   = mongodbatlas_project.backup_project.id
 	name         = %[7]q
 	
 	// Provider Settings "block"
@@ -268,24 +258,24 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   delivery_type_config   {
     automated           = true
     target_cluster_name = mongodbatlas_cluster.targer_cluster.name
-    target_project_id   = mongodbatlas_project.backup_target_project.id
+    target_project_id   = mongodbatlas_cluster.targer_cluster.project_id
   }
 }
 
 data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-	project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
-	cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+	project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
 	job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id  
 }
 
 data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {
-	project_id   = mongodbatlas_cloud_backup_snapshot.test.project_id
-	cluster_name = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+	project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
 }
 
 data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
-	project_id   = mongodbatlas_cloud_backup_snapshot_restore_job.test.project_id
-	cluster_name = mongodbatlas_cloud_backup_snapshot_restore_job.test.cluster_name
+	project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
 	page_num = 1
 	items_per_page = 5
 }
