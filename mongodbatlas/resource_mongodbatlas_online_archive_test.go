@@ -14,91 +14,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const (
-	clusterConfig = `
-	resource "mongodbatlas_project" "cluster_project" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
-	resource "mongodbatlas_cluster" "online_archive_test" {
-		project_id   = mongodbatlas_project.cluster_project.id
-		name         = %[3]q
-		disk_size_gb = 10
-
-		cluster_type = "REPLICASET"
-		replication_specs {
-		  num_shards = 1
-		  regions_config {
-			 region_name     = "US_EAST_1"
-			 electable_nodes = 3
-			 priority        = 7
-			 read_only_nodes = 0
-		   }
-		}
-
-		cloud_backup                 = %[4]s
-		auto_scaling_disk_gb_enabled = true
-
-		// Provider Settings "block"
-		provider_name               = "AWS"
-		provider_instance_size_name = "M10"
-
-		labels {
-			key   = "ArchiveTest"
-			value = "true"
-		}
-		labels {
-			key   = "Owner"
-			value = "acctest"
-		}
-	}
-
-	data "mongodbatlas_clusters" "online_archive_test" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-	}
-`
-
-	onlineArchiveConfig = `
-	resource "mongodbatlas_online_archive" "users_archive" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-		cluster_name = mongodbatlas_cluster.online_archive_test.name
-		coll_name = "listingsAndReviews"
-		collection_type = "STANDARD"
-		db_name = "sample_airbnb"
-	
-		criteria {
-			type = "DATE"
-			date_field = "last_review"
-			date_format = "ISODATE"
-			expire_after_days = 2
-		}
-	
-		partition_fields {
-			field_name = "maximum_nights"
-			order = 0
-		}
-	
-		partition_fields {
-			field_name = "name"
-			order = 1
-		}
-
-		sync_creation = true
-	}
-	
-	data "mongodbatlas_online_archive" "read_archive" {
-		project_id =  mongodbatlas_online_archive.users_archive.project_id
-		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
-		archive_id = mongodbatlas_online_archive.users_archive.archive_id
-	}
-	
-	data "mongodbatlas_online_archives" "all" {
-		project_id =  mongodbatlas_online_archive.users_archive.project_id
-		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
-	}
-`
-)
-
 func TestAccBackupRSOnlineArchive(t *testing.T) {
 	var (
 		cluster                   matlas.Cluster
@@ -109,22 +24,15 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
-	initialConfig := fmt.Sprintf(orgID, projectName, clusterConfig, name, "false")
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBackupRSOnlineArchiveConfig(orgID, projectName, name, "false"),
+				Config: testAccBackupRSOnlineArchiveConfig(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					populateWithSampleData(resourceName, &cluster),
-				),
-			},
-			{
-				Config: initialConfig + onlineArchiveConfig,
-				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
@@ -192,7 +100,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName, backup string) string {
+func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "cluster_project" {
 		name   = %[2]q
@@ -214,7 +122,7 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName, backup 
 		   }
 		}
 
-		cloud_backup                 = %[4]s
+		cloud_backup                 = false
 		auto_scaling_disk_gb_enabled = true
 
 		// Provider Settings "block"
@@ -272,5 +180,5 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName, backup 
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, orgID, projectName, clusterName, backup)
+	`, orgID, projectName, clusterName)
 }
