@@ -139,10 +139,6 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) 
 		}
 	}
 
-	data "mongodbatlas_clusters" "online_archive_test" {
-		project_id = mongodbatlas_cluster.online_archive_test.project_id
-	}
-
 	resource "mongodbatlas_online_archive" "users_archive" {
 		project_id = mongodbatlas_cluster.online_archive_test.project_id
 		cluster_name = mongodbatlas_cluster.online_archive_test.name
