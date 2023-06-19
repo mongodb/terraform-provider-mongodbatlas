@@ -1005,10 +1005,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
 }
 
-func GetPauseState(d *schema.ResourceData) bool {
-	return d.Get("paused").(bool)
-}
-
 func didErrOnPausedCluster(err error) bool {
 	if err == nil {
 		return false
