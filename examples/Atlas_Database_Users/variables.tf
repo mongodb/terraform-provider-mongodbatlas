@@ -1,8 +1,10 @@
 variable "public_key" {
   description = "Public API key to authenticate to Atlas"
+  type        = string
 }
 variable "private_key" {
   description = "Private API key to authenticate to Atlas"
+  type        = string
 }
 variable "user" {
   description = "MongoDB Atlas User"
@@ -19,10 +21,13 @@ variable "database_name" {
 }
 variable "data_lake" {
   description = "The datalake name"
+  type        = string
 }
 variable "org_id" {
   description = "MongoDB Organization ID"
+  type        = string
 }
 variable "region" {
   description = "MongoDB Atlas Cluster Region"
+  type        = string
 }

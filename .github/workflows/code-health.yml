@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - master
-  pull_request:
+  pull_request: {}
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -40,19 +41,36 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "1.20"
-      - name: website lint
-        run: make tools && make website-lint
-      - name: actionlint
-        run: make tools && actionlint -verbose -color
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.4.0
+        uses: golangci/golangci-lint-action@v3.6.0
         with:
           version: v1.52.2
           args: --timeout 9m0s
+  website-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: website lint
+        run: make tools && make website-lint
   shellcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@v2
+  call-accettance-tests-workflow:
+    needs: [build, lint, shellcheck, unit-test, website-lint]
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: read
+      repository-projects: read
+    uses: ./.github/workflows/acceptance-tests.yml
+    with:
+      parent-event-name: ${{ github.event_name }}
 

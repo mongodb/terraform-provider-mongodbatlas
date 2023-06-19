@@ -109,5 +109,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationDelete(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf(errorCustomDNSConfigurationDelete, d.Id(), err))
 	}
 
+	d.SetId("")
+
 	return nil
 }

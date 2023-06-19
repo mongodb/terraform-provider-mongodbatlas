@@ -46,16 +46,6 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"write_token": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
-			},
-			"read_token": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
-			},
 			"api_key": {
 				Type:      schema.TypeString,
 				Sensitive: true,
@@ -87,14 +77,6 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Computed:  true,
-			},
-			"flow_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"org_name": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"url": {
 				Type:     schema.TypeString,

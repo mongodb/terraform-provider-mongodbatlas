@@ -7,12 +7,14 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -377,4 +379,144 @@ func flattenCloudMembers(apiObjects []*matlas.Member) []interface{} {
 	}
 
 	return tfList
+}
+
+// Support functions moved from deprecated cloud_provider resources
+
+const (
+	errorSnapshotBackupPolicyRead    = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
+	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
+)
+
+func flattenPolicies(policies []matlas.Policy) []map[string]interface{} {
+	actionList := make([]map[string]interface{}, 0)
+	for _, v := range policies {
+		actionList = append(actionList, map[string]interface{}{
+			"id":          v.ID,
+			"policy_item": flattenPolicyItems(v.PolicyItems),
+		})
+	}
+
+	return actionList
+}
+
+func flattenPolicyItems(items []matlas.PolicyItem) []map[string]interface{} {
+	policyItems := make([]map[string]interface{}, 0)
+	for _, v := range items {
+		policyItems = append(policyItems, map[string]interface{}{
+			"id":                 v.ID,
+			"frequency_interval": v.FrequencyInterval,
+			"frequency_type":     v.FrequencyType,
+			"retention_unit":     v.RetentionUnit,
+			"retention_value":    v.RetentionValue,
+		})
+	}
+
+	return policyItems
+}
+
+func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]interface{}, error) {
+	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+	if err != nil {
+		if res.StatusCode == http.StatusNotFound ||
+			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
+			strings.Contains(err.Error(), "Not Found") ||
+			strings.Contains(err.Error(), "404") {
+			return []map[string]interface{}{}, nil
+		}
+
+		return []map[string]interface{}{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
+	}
+
+	return []map[string]interface{}{
+		{
+			"cluster_id":               backupPolicy.ClusterID,
+			"cluster_name":             backupPolicy.ClusterName,
+			"next_snapshot":            backupPolicy.NextSnapshot,
+			"reference_hour_of_day":    backupPolicy.ReferenceHourOfDay,
+			"reference_minute_of_hour": backupPolicy.ReferenceMinuteOfHour,
+			"restore_window_days":      backupPolicy.RestoreWindowDays,
+			"update_snapshots":         cast.ToBool(backupPolicy.UpdateSnapshots),
+			"policies":                 flattenPolicies(backupPolicy.Policies),
+		},
+	}, nil
+}
+
+func computedCloudProviderSnapshotBackupPolicySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"cluster_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"cluster_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"next_snapshot": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"reference_hour_of_day": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"reference_minute_of_hour": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"restore_window_days": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"update_snapshots": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"policies": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"id": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"policy_item": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"frequency_interval": {
+											Type:     schema.TypeInt,
+											Computed: true,
+										},
+										"frequency_type": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"retention_unit": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"retention_value": {
+											Type:     schema.TypeInt,
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

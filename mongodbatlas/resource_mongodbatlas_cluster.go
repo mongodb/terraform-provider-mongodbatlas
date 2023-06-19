@@ -82,6 +82,12 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Default:     false,
 				Description: "Clusters running MongoDB FCV 4.2 or later and any new Atlas clusters of any type do not support this parameter",
 			},
+			"retain_backups_enabled": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
+			},
 			"bi_connector": {
 				Type:          schema.TypeMap,
 				Optional:      true,
@@ -1012,7 +1018,15 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := conn.Clusters.Delete(ctx, projectID, clusterName)
+	retainBackup := pointy.Bool(false)
+	if v, ok := d.Get("retain_backups_enabled").(bool); ok {
+		retainBackup = pointy.Bool(v)
+	}
+
+	options := &matlas.DeleteAdvanceClusterOptions{
+		RetainBackups: retainBackup,
+	}
+	_, err := conn.Clusters.Delete(ctx, projectID, clusterName, options)
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
@@ -1060,6 +1074,10 @@ func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.Resou
 	}
 
 	if err := d.Set("cloud_backup", u.ProviderBackupEnabled); err != nil {
+		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", *name, *projectID, err)
+	}
+
+	if err := d.Set("retain_backups_enabled", false); err != nil {
 		return nil, fmt.Errorf("couldn't import cluster backup configuration %s in project %s, error: %s", *name, *projectID, err)
 	}
 
@@ -1535,10 +1553,11 @@ func flattenPrivateEndpoint(privateEndpoints []matlas.PrivateEndpoint) []map[str
 	endpoints := make([]map[string]interface{}, 0)
 	for _, endpoint := range privateEndpoints {
 		endpoints = append(endpoints, map[string]interface{}{
-			"connection_string":     endpoint.ConnectionString,
-			"srv_connection_string": endpoint.SRVConnectionString,
-			"endpoints":             flattenEndpoints(endpoint.Endpoints),
-			"type":                  endpoint.Type,
+			"connection_string":                     endpoint.ConnectionString,
+			"srv_connection_string":                 endpoint.SRVConnectionString,
+			"srv_shard_optimized_connection_string": endpoint.SRVShardOptimizedConnectionString,
+			"endpoints":                             flattenEndpoints(endpoint.Endpoints),
+			"type":                                  endpoint.Type,
 		})
 	}
 	return endpoints
@@ -1636,6 +1655,10 @@ func clusterConnectionStringsSchema() *schema.Schema {
 								},
 							},
 							"srv_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"srv_shard_optimized_connection_string": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},

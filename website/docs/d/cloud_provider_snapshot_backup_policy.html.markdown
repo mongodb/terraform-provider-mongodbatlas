@@ -8,6 +8,7 @@ description: |-
 
 
  **WARNING:** This data source is deprecated, use `mongodbatlas_cloud_backup_schedule`
+ **Note:** This resource have now been fully deprecated as part of v1.10.0 release
 
 # Data Source: mongodbatlas_cloud_provider_snapshot_backup_policy
 

@@ -5,7 +5,7 @@ provider "mongodbatlas" {
 
 resource "mongodbatlas_project" "aws_atlas" {
   name   = "aws-atlas"
-  org_id = var.atlasorgid
+  org_id = var.atlas_org_id
 }
 
 resource "mongodbatlas_cluster" "cluster-atlas" {

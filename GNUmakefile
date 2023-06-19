@@ -1,5 +1,6 @@
 TEST?=$$(go list ./... | grep -v /integrationtesting)
 ACCTEST_TIMEOUT?=300m
+PARALLEL_GO_TEST?=5
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=mongodbatlas
 
@@ -15,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.46.2
+GOLANGCI_VERSION=v1.52.2
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -37,7 +38,7 @@ test: fmtcheck
 .PHONY: testacc
 testacc: fmtcheck
 	@$(eval VERSION=acc)
-	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel 5 $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(TEST) -run '$(TEST_REGEX)' -v -parallel '$(PARALLEL_GO_TEST)' $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -cover -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck
@@ -72,7 +73,7 @@ lint:
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/terraform-linters/tflint@v0.31.0
+	go install github.com/terraform-linters/tflint@v0.46.1
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
@@ -117,3 +118,7 @@ terratest: fmtcheck
 .PHONY: tflint
 tflint: fmtcheck
 	@scripts/tflint.sh
+
+.PHONY: tf-validate
+tf-validate: fmtcheck
+	@scripts/tf-validate.sh

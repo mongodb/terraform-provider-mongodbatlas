@@ -1,16 +1,16 @@
 variable "project_name" {
   description = "Atlas project name"
-  default     = ""
+  type        = string
 }
 variable "org_id" {
   description = "The organization ID"
-  default     = ""
+  type        = string
 }
 variable "username" {
   description = "Username"
-  default     = ""
+  type        = string
 }
 variable "role_name" {
   description = "The role name"
-  default     = ""
+  type        = string
 }
