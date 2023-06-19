@@ -275,6 +275,7 @@ func TestAccClusterRSCluster_emptyAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 				),
 			},
 		},
@@ -316,6 +317,7 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 				),
 			},
 			{
@@ -327,7 +329,7 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 					OplogSizeMB:                      pointy.Int64(990),
 					SampleRefreshIntervalBIConnector: pointy.Int64(0),
 					SampleSizeBIConnector:            pointy.Int64(0),
-					TransactionLifetimeLimitSeconds:  pointy.Int64(300),
+					TransactionLifetimeLimitSeconds:  pointy.Int64(60),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
@@ -339,6 +341,7 @@ func TestAccClusterRSCluster_basicAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "990"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "0"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "0"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "60"),
 				),
 			},
 		},
