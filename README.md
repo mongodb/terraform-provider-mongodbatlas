@@ -310,6 +310,9 @@ The integration tests helps the validation for resources interacting with third 
   go test -tags=integration
 ```
 
+## Troubleshooting
+See [Troubleshooting](website/docs/troubleshooting.html.markdown)
+
 ### Autoclose stale issues and PRs
 
 - After 30 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 30 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 30 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
