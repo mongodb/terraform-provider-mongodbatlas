@@ -1265,7 +1265,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
-			}
+			},
 		},
 	})
 }
