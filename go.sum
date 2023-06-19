@@ -631,8 +631,6 @@ github.com/zclconf/go-cty v1.13.2 h1:4GvrUxe/QUDYuJKAav4EYqdM47/kZa672LwmXFmEKT0
 github.com/zclconf/go-cty v1.13.2/go.mod h1:YKQzy/7pZ7iq2jNFzy5go57xdxdWoLLpaEp4u238AE0=
 github.com/zclconf/go-cty-debug v0.0.0-20191215020915-b22d67c1ba0b/go.mod h1:ZRKQfBXbGkpdV6QMzT3rU1kSTAnfu1dO8dPKjYprgj8=
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
-go.mongodb.org/atlas v0.29.1-0.20230616095930-a25f3c51561c h1:bZEHs9nRlpXymLInlwwJS9ZztIfOT9+lPkWZOWHu+SM=
-go.mongodb.org/atlas v0.29.1-0.20230616095930-a25f3c51561c/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
 go.mongodb.org/atlas v0.29.1-0.20230619065127-2d65c75616b1 h1:FwQhzkM2tjUVttdXK92ty+cEHaKiaX2CmEJfUuAQc8o=
 go.mongodb.org/atlas v0.29.1-0.20230619065127-2d65c75616b1/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
