@@ -390,6 +390,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 			OplogSizeMB:                      pointy.Int64(1000),
 			SampleRefreshIntervalBIConnector: pointy.Int64(310),
 			SampleSizeBIConnector:            pointy.Int64(110),
+			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
 		}
 	)
 
