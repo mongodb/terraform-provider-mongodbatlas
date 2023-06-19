@@ -129,6 +129,7 @@ func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 					OplogSizeMB:                      pointy.Int64(1000),
 					SampleRefreshIntervalBIConnector: pointy.Int64(310),
 					SampleSizeBIConnector:            pointy.Int64(110),
+					TransactionLifetimeLimitSeconds:  pointy.Int64(300),
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
@@ -140,6 +141,7 @@ func TestAccClusterRSCluster_basic_Partial_AdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "mongo_uri"),
@@ -1386,6 +1388,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 				oplog_size_mb                        = %[9]d
 				sample_size_bi_connector			 = %[10]d
 				sample_refresh_interval_bi_connector = %[11]d
+				transaction_lifetime_limit_seconds   = %[12]d
 			}
 		}
 
@@ -1400,7 +1403,7 @@ func testAccMongoDBAtlasClusterConfigAdvancedConf(orgID, projectName, name, auto
 
 	`, orgID, projectName, name, autoscalingEnabled,
 		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
+		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, *p.TransactionLifetimeLimitSeconds)
 }
 
 func testAccMongoDBAtlasClusterConfigAdvancedConfDefaultWriteRead(orgID, projectName, name, autoscalingEnabled string, p *matlas.ProcessArgs) string {
