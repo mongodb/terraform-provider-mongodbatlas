@@ -1171,7 +1171,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSCluster_basicAWS_paused(t *testing.T) {
+func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.test"
@@ -1220,6 +1220,52 @@ func TestAccClusterRSCluster_basicAWS_paused(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled"},
 			},
+		},
+	})
+}
+
+func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
+	var (
+		cluster      matlas.Cluster
+		resourceName = "mongodbatlas_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasClusterConfigAWSPaused(orgID, projectName, name, false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "100"),
+					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+				),
+			}
 		},
 	})
 }

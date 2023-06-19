@@ -718,7 +718,16 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
 	}
 
-	if d.HasChange("paused") {
+	// var pauseStateCurrent, pauseStateNew bool
+	// if d.HasChange("paused") {
+	// 	currentPause, newPause := d.GetChange("paused")
+	// 	pauseStateCurrent = currentPause.(bool)
+	// 	pauseStateNew = newPause.(bool)
+
+	// 	cluster.Paused = pointy.Bool(d.Get("paused").(bool))
+	// }
+
+	if d.HasChange("paused") && !d.Get("paused").(bool) {
 		cluster.Paused = pointy.Bool(d.Get("paused").(bool))
 	}
 
@@ -777,7 +786,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		}
 	}
 
+	// this breaks here because if cluster updated to pause=true, then we have already done that above at line 730
+	//
 	// if d.Get("paused").(bool) {
+	// if pauseStateNew {
 	// 	clusterRequest := &matlas.AdvancedCluster{
 	// 		Paused: pointy.Bool(true),
 	// 	}
