@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccBackupGenericRSBackupCompliancePolicy_basic(t *testing.T) {
+func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_backup_compliance_policy.backup_policy_res"
 		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
@@ -45,7 +45,7 @@ func TestAccBackupGenericRSBackupCompliancePolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccBackupGenericRSBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
+func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_backup_compliance_policy.backup_policy_res"
 		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
@@ -80,7 +80,7 @@ func TestAccBackupGenericRSBackupCompliancePolicy_withoutRestoreWindowDays(t *te
 	})
 }
 
-func TestAccBackupGenericRSBackupCompliancePolicy_importBasic(t *testing.T) {
+func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_backup_compliance_policy.backup_policy_res"
 		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))

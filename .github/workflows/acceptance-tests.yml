@@ -20,7 +20,7 @@ jobs:
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation }}
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster }}
       cluster: ${{ steps.filter.outputs.cluster }}
-      backup_generic: ${{ steps.filter.outputs.backup_generic }}
+      generic: ${{ steps.filter.outputs.generic }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
       backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
@@ -37,7 +37,7 @@ jobs:
             - 'mongodbatlas/**advanced_cluster**.go'
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
-          backup_generic:
+          generic:
             - 'mongodbatlas/**backup_compliance**.go'
             - 'mongodbatlas/**data_lakes**.go'
           backup_online_archive:
@@ -118,9 +118,9 @@ jobs:
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccClusterRSCluster"
         run: make testacc
-  backup_generic:
+  generic:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -141,33 +141,33 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
-          TEST_REGEX: "^TestAccBackupGeneric"
+          TEST_REGEX: "^TestAccGeneric"
         run: make testacc
-  # backup_online_archive:
-  #   needs: [ change-detection ]
-  #   if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version: "1.20"
-  #     - name: Acceptance Tests
-  #       env:
-  #         MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-  #         MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-  #         MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-  #         MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-  #         MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-  #         SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-  #         ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-  #         TF_LOG: ${{ vars.LOG_LEVEL }}
-  #         TF_ACC: 1
-  #         PARALLEL_GO_TEST: 20
-  #         TEST_REGEX: "^TestAccBackupRSOnlineArchive"
-  #       run: make testacc
+  backup_online_archive:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          TEST_REGEX: "^TestAccBackupRSOnlineArchive"
+        run: make testacc
   backup_snapshots:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
@@ -194,28 +194,28 @@ jobs:
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
         run: make testacc
-  # backup_schedule:
-  #   needs: [ change-detection ]
-  #   if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version: "1.20"
-  #     - name: Acceptance Tests
-  #       env:
-  #         MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-  #         MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-  #         MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-  #         MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-  #         MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
-  #         SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-  #         ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-  #         TF_LOG: ${{ vars.LOG_LEVEL }}
-  #         TF_ACC: 1
-  #         PARALLEL_GO_TEST: 20
-  #         TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
-  #       run: make testacc
+  backup_schedule:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
+        run: make testacc

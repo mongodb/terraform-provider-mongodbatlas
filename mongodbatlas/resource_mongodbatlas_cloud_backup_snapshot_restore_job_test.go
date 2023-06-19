@@ -85,37 +85,6 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	})
 }
 
-// func TestAccBackupRSCloudBackupSnapshotRestoreJob_importBasic(t *testing.T) {
-// 	var (
-// 		resourceName      = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
-// 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
-// 		projectName       = acctest.RandomWithPrefix("test-acc")
-// 		targetProjectName = acctest.RandomWithPrefix("test-acc-target")
-// 		clusterName       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-// 		description       = fmt.Sprintf("My description in %s", clusterName)
-// 		retentionInDays   = "1"
-// 		targetClusterName = clusterName
-// 	)
-
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheckBasic(t) },
-// 		ProviderFactories: testAccProviderFactories,
-// 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomatedImport(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName),
-// 			},
-// 			{
-// 				ResourceName:            resourceName,
-// 				ImportStateIdFunc:       testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobImportStateIDFunc(resourceName),
-// 				ImportState:             true,
-// 				ImportStateVerify:       true,
-// 				ImportStateVerifyIgnore: []string{"retention_in_days", "snapshot_id"},
-// 			},
-// 		},
-// 	})
-// }
-
 func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
 	SkipTestForCI(t)
 	var (
@@ -289,57 +258,6 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
 
 	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName)
 }
-
-// func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomatedImport(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName string) string {
-// 	return fmt.Sprintf(`
-
-// resource "mongodbatlas_project" "backup_project" {
-// 	name   = %[2]q
-// 	org_id = %[1]q
-// }
-
-// resource "mongodbatlas_cluster" "my_cluster" {
-//   project_id   = mongodbatlas_project.backup_project.id
-//   name         = %[3]q
-
-//   // Provider Settings "block"
-//   provider_name               = "AWS"
-//   provider_region_name        = "US_EAST_1"
-//   provider_instance_size_name = "M10"
-//   cloud_backup                = true
-// }
-
-// resource "mongodbatlas_cluster" "targer_cluster" {
-// 	project_id   = mongodbatlas_project.backup_project.id
-// 	name         = %[7]q
-
-// 	// Provider Settings "block"
-// 	provider_name               = "AWS"
-// 	provider_region_name        = "US_EAST_1"
-// 	provider_instance_size_name = "M10"
-// 	cloud_backup                = true
-//   }
-
-// resource "mongodbatlas_cloud_backup_snapshot" "test" {
-//   project_id        = mongodbatlas_cluster.my_cluster.project_id
-//   cluster_name      = mongodbatlas_cluster.my_cluster.name
-//   description       = %[4]q
-//   retention_in_days = %[5]q
-// }
-
-// resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-//   project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
-//   cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
-//   snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.id
-
-//   delivery_type_config   {
-//     automated           = true
-//     target_cluster_name = mongodbatlas_cluster.targer_cluster.name
-//     target_project_id   = mongodbatlas_cluster.targer_cluster.project_id
-//   }
-// }
-// 	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName)
-// }
 
 func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`

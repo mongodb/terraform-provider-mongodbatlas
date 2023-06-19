@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccBackupGenericDSDataLakes_basic(t *testing.T) {
+func TestAccGenericBackupDSDataLakes_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_data_lakes.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
