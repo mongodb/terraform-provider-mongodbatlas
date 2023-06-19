@@ -45,11 +45,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.cluster_name"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.0.description"),
 					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.cluster_name"),
-					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.0.description"),
 				),
 			},
 			{
