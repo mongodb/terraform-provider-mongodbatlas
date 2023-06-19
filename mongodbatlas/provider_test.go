@@ -212,6 +212,13 @@ func SkipTest(tb testing.TB) {
 	}
 }
 
+// SkipTestForCI is added to tests that cannot run as part of a CI
+func SkipTestForCI(tb testing.TB) {
+	if strings.EqualFold(os.Getenv("CI"), "true") {
+		tb.Skip()
+	}
+}
+
 func testCheckLDAP(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME") == "" ||
 		os.Getenv("MONGODB_ATLAS_LDAP_USERNAME") == "" ||
