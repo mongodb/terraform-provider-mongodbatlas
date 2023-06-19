@@ -991,27 +991,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	// if !isSharedTier(d.Get("provider_instance_size_name").(string)) {
-	// 	var pause bool
-	// 	if d.Get("paused").(bool) {
-	// 		// pause it
-	// 		pause = true
-	// 	} else {
-	// 		// leave it as is and update pause to false
-
-	// 	}
-
-	// 	if d.HasChange("paused") {
-	// 		clusterRequest := &matlas.Cluster{
-	// 			Paused: pointy.Bool(GetPauseState(d)),
-	// 		}
-	// 		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
-	// 		if err != nil {
-	// 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-	// 		}
-	// 	}
-	// }
-
 	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
 			Paused: pointy.Bool(true),
