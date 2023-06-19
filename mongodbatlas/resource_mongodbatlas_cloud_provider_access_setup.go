@@ -80,7 +80,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
-	roles, resp, err := conn.CloudProviderAccess.GetRole(context.Background(), projectID, roleID)
+	role, resp, err := conn.CloudProviderAccess.GetRole(context.Background(), projectID, roleID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -90,7 +90,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
-	roleSchema := roleToSchemaSetup(&roles.AWSIAMRoles[0])
+	roleSchema := roleToSchemaSetup(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(fmt.Errorf(errorGetRead, err))

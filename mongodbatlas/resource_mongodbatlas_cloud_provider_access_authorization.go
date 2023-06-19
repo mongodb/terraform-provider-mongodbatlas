@@ -269,12 +269,12 @@ func roleToSchemaAuthorization(role *matlas.AWSIAMRole) map[string]interface{} {
 }
 
 func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string) (*matlas.AWSIAMRole, error) {
-	roles, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
+	role, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
 	if err != nil {
 		return nil, fmt.Errorf(errorGetRead, err)
 	}
 
-	return &roles.AWSIAMRoles[0], nil
+	return role, nil
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0() *schema.Resource {
