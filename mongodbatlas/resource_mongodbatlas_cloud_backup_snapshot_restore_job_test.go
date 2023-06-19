@@ -298,11 +298,10 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
 // 	org_id = %[1]q
 // }
 
-
 // resource "mongodbatlas_cluster" "my_cluster" {
 //   project_id   = mongodbatlas_project.backup_project.id
 //   name         = %[3]q
-  
+
 //   // Provider Settings "block"
 //   provider_name               = "AWS"
 //   provider_region_name        = "US_EAST_1"
@@ -313,7 +312,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
 // resource "mongodbatlas_cluster" "targer_cluster" {
 // 	project_id   = mongodbatlas_project.backup_project.id
 // 	name         = %[7]q
-	
+
 // 	// Provider Settings "block"
 // 	provider_name               = "AWS"
 // 	provider_region_name        = "US_EAST_1"
