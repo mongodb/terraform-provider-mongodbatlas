@@ -20,7 +20,6 @@ We pre-release the provider to make for testing purpose. **A Pre-release is not 
 - Fill the pre-release tag and select the correct target branch
 
     <img width="370" alt="image2" src="https://github.com/mongodb/terraform-provider-mongodbatlas/assets/5663078/e710c0ff-dc00-44c2-9eb6-146cd791d47e">
-- Select the **master** branch
 - Generate Release Notes: Click Generate release notes button to populate release notes
 - Set publishing to Pre-release
     
