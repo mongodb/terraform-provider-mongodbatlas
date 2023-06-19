@@ -110,7 +110,7 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_importBasic(t *testing.T) {
 }
 
 func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName       = acctest.RandomWithPrefix("test-acc")

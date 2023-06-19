@@ -189,7 +189,7 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
-          SKIP_TEST: true
+          CI: true
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSCloudBackupSnapshot"
