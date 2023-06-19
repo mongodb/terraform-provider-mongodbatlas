@@ -38,20 +38,20 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TEST_REGEX: "^TestAccAdv"
         run: make testacc
 
@@ -68,20 +68,20 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          CA_CERT: ${{ secrets.CA_CERT }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TEST_REGEX: "^TestAccBackup"
         run: make testacc
 
@@ -98,20 +98,20 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TEST_REGEX: "^TestAccConfig"
         run: make testacc
 
@@ -128,20 +128,20 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TEST_REGEX: "^TestAccFed"
         run: make testacc
 
@@ -158,20 +158,20 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
 
@@ -188,20 +188,20 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_NETWORK_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_NETWORK_PROJECT_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TEST_REGEX: "^TestAccProject"
         run: make testacc
 
@@ -218,19 +218,19 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests Gov
         env:
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ secrets.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          SKIP_TEST: ${{ secrets.SKIP_TEST }}
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_GOV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_GOV }}
           MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID_GOV }}
           MONGODB_ATLAS_ORG_ID: ${{ secrets.MONGODB_ATLAS_ORG_ID_GOV }}
           MONGODB_ATLAS_DB_USERNAME: ${{ secrets.MONGODB_ATLAS_DB_USERNAME }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ secrets.MONGODB_ATLAS_TEAMS_IDS }}
-          AWS_REGION: ${{ secrets.AWS_REGION_GOV }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_ENABLE_BETA: ${{ secrets.MONGODB_ATLAS_ENABLE_BETA }}
-          ACCTEST_TIMEOUT: ${{ secrets.ACCTEST_TIMEOUT }}
           MONGODB_ATLAS_API_KEYS_IDS: ${{ secrets.MONGODB_ATLAS_API_KEYS_IDS }}
           MONGODB_ATLAS_PROJECT_OWNER_ID_GOV: ${{ secrets.MONGODB_ATLAS_PROJECT_OWNER_ID_GOV }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          SKIP_TEST: ${{ vars.SKIP_TEST }}
+          AWS_REGION: ${{ vars.AWS_REGION_GOV }}
+          MONGODB_ATLAS_ENABLE_BETA: ${{ vars.MONGODB_ATLAS_ENABLE_BETA }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
         run: make testaccgov
 
