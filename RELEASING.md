@@ -17,7 +17,7 @@
 We pre-release the provider to make for testing purpose. **A Pre-release is not published to the Hashicorp Terraform Registry**.
 
 - Open the GitHub repository release page and click draft a new release
-- Fill the pre-release tag and select the correct target branch
+- Fill the pre-release tag and select `master` as the target branch
 
     <img width="370" alt="image2" src="https://github.com/mongodb/terraform-provider-mongodbatlas/assets/5663078/e710c0ff-dc00-44c2-9eb6-146cd791d47e">
 - Generate Release Notes: Click Generate release notes button to populate release notes
