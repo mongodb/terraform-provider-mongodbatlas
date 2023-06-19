@@ -1462,7 +1462,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
-		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds >= 0 {
+		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
 			res.TransactionLifetimeLimitSeconds = pointy.Int64(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
 		} else {
 			log.Printf(errorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
