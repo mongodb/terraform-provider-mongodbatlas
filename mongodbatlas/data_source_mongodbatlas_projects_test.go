@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccProjectDSProjects_basic(t *testing.T) {
+func TestAccGenericProjectDSProjects_basic(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
@@ -59,7 +59,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 	})
 }
 
-func TestAccProjectDSProjects_withPagination(t *testing.T) {
+func TestAccGenericProjectDSProjects_withPagination(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")

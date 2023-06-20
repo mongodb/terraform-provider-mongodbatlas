@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
+func TestAccGenericProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_access_list_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -49,7 +49,7 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
+func TestAccGenericProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_access_list_api_key.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
@@ -87,7 +87,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
+func TestAccGenericProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	resourceName := "mongodbatlas_access_list_api_key.test"
