@@ -13,7 +13,8 @@ import (
 
 func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
@@ -21,12 +22,12 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 	updatedComment := fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, ipAddress, comment),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -39,7 +40,7 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, updatedIPAddress, updatedComment),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, updatedIPAddress, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -57,7 +58,8 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 
 func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
@@ -65,12 +67,12 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	updatedComment := fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(projectID, cidrBlock, comment),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -83,7 +85,7 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, updatedCIDRBlock, updatedComment),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -203,18 +205,19 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 }
 
 func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, ipAddress, comment),
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 			},
 			{
 				ResourceName:      resourceName,
@@ -282,24 +285,33 @@ func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName s
 	}
 }
 
-func testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, ipAddress, comment string) string {
+func testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_access_list" "test" {
-			project_id = "%s"
-			ip_address = "%s"
-			comment    = "%s"
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
 		}
-	`, projectID, ipAddress, comment)
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project.test.id
+			ip_address = %[3]q
+			comment    = %[4]q
+		}
+	`, orgID, projectName, ipAddress, comment)
 }
 
-func testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(projectID, cidrBlock, comment string) string {
+func testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_ip_access_list" "test" {
-			project_id = "%s"
-			cidr_block = "%s"
-			comment    = "%s"
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
 		}
-	`, projectID, cidrBlock, comment)
+
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id = mongodbatlas_project.test.id
+			cidr_block = %[3]q
+			comment    = %[4]q
+		}
+	`, orgID, projectName, cidrBlock, comment)
 }
 
 func testAccMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {

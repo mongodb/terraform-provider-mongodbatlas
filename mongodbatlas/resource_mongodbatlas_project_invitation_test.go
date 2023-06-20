@@ -17,19 +17,20 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	var (
 		invitation   matlas.Invitation
 		resourceName = "mongodbatlas_project_invitation.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"GROUP_OWNER"}
 		updateRoles  = []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_CLUSTER_MANAGER"}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(projectID, name, initialRole),
+				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
@@ -44,7 +45,7 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(projectID, name, updateRoles),
+				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, updateRoles),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectInvitationExists(t, resourceName, &invitation),
 					testAccCheckMongoDBAtlasProjectInvitationUsernameAttribute(&invitation, name),
@@ -65,18 +66,19 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_invitation.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole  = []string{"GROUP_OWNER"}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectInvitationConfig(projectID, name, initialRole),
+				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
@@ -191,13 +193,17 @@ func testAccCheckMongoDBAtlasProjectInvitationStateIDFunc(resourceName string) r
 	}
 }
 
-func testAccMongoDBAtlasProjectInvitationConfig(projectID, username string, roles []string) string {
+func testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, username string, roles []string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_project_invitation" "test" {
-			project_id = %[1]q
-			username   = %[2]q
-			roles  	 = ["%[3]s"]
-		}`, projectID, username,
+			project_id = mongodbatlas_project.test.id
+			username   = %[3]q
+			roles  	 = ["%[4]s"]
+		}`, orgID, projectName, username,
 		strings.Join(roles, `", "`),
 	)
 }

@@ -24,6 +24,7 @@ jobs:
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
       backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
+      project: ${{ steps.filter.outputs.project }}
     steps:
     - uses: actions/checkout@v3
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'}}
@@ -46,6 +47,9 @@ jobs:
             - 'mongodbatlas/**backup_snapshot**.go'
           backup_schedule:
             - 'mongodbatlas/**backup_schedule**.go'
+          project:
+            - 'mongodbatlas/**project**.go'
+            - 'mongodbatlas/**access_list**.go'
 
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -226,3 +230,30 @@ jobs:
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
         run: make testacc
+  project: 
+        needs: [ change-detection ]
+        if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Set up Go
+            uses: actions/setup-go@v4
+            with:
+              go-version: "1.20"
+          - name: Acceptance Tests
+            env:
+              MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+              MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+              MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+              MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+              MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+              MONGODB_ATLAS_API_KEYS_IDS: ${{ vars.MONGODB_ATLAS_API_KEYS_IDS }}
+              MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
+              SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+              ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+              TF_LOG: ${{ vars.LOG_LEVEL }}
+              TF_ACC: 1
+              PARALLEL_GO_TEST: 20
+              TEST_REGEX: "^TestAccProject"
+            run: make testacc

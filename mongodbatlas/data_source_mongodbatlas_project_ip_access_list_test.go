@@ -11,16 +11,17 @@ import (
 
 func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, ipAddress, comment),
+				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -37,7 +38,8 @@ func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 
 func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
@@ -46,7 +48,7 @@ func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(projectID, cidrBlock, comment),
+				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -96,33 +98,41 @@ func TestAccProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	})
 }
 
-func testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(projectID, ipAddress, comment string) string {
+func testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_project_ip_access_list" "test" {
-			project_id = "%s"
-			ip_address = "%s"
-			comment    = "%s"
+			project_id = mongodbatlas_project.test.id
+			ip_address = %[3]q
+			comment    = %[4]q
 		}
 
 		data "mongodbatlas_project_ip_access_list" "test" {
 			project_id = mongodbatlas_project_ip_access_list.test.project_id
 			ip_address = mongodbatlas_project_ip_access_list.test.ip_address
 		}
-	`, projectID, ipAddress, comment)
+	`, orgID, projectName, ipAddress, comment)
 }
 
-func testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(projectID, cidrBlock, comment string) string {
+func testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_project_ip_access_list" "test" {
-			project_id = "%s"
-			cidr_block = "%s"
-			comment    = "%s"
+			project_id = mongodbatlas_project.test.id
+			cidr_block = %[3]q
+			comment    = %[4]q
 		}
 		data "mongodbatlas_project_ip_access_list" "test" {
 			project_id = mongodbatlas_project_ip_access_list.test.project_id
 			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
 		}
-	`, projectID, cidrBlock, comment)
+	`, orgID, projectName, cidrBlock, comment)
 }
 
 func testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {

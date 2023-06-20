@@ -32,7 +32,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -160,7 +160,7 @@ func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasicOwnerID(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -213,7 +213,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasicOwnerID(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -240,7 +240,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasicOwnerID(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -269,7 +269,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -346,7 +346,7 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 	}
 }
 
-func TestAccProjectRSProject_CreateWithAdvancedCluster(t *testing.T) {
+func TestAccClusterAdvancedClusterProject_CreateWithAdvancedCluster(t *testing.T) {
 	var (
 		project             matlas.Project
 		cluster             matlas.AdvancedCluster
@@ -359,7 +359,7 @@ func TestAccProjectRSProject_CreateWithAdvancedCluster(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasicOwnerID(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
