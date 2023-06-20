@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccGenericProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
+func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -34,7 +34,7 @@ func TestAccGenericProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
+func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -60,7 +60,7 @@ func TestAccGenericProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	SkipTestExtCred(t)
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	vpcID := os.Getenv("AWS_VPC_ID")

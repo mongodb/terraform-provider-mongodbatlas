@@ -11,7 +11,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccGenericProjectDSProject_byID(t *testing.T) {
+func TestAccProjectDSProject_byID(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
@@ -59,7 +59,7 @@ func TestAccGenericProjectDSProject_byID(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectDSProject_byName(t *testing.T) {
+func TestAccProjectDSProject_byName(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
@@ -108,7 +108,7 @@ func TestAccGenericProjectDSProject_byName(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectDSProject_defaultFlags(t *testing.T) {
+func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")

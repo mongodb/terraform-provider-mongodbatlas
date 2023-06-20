@@ -14,7 +14,7 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccGenericProjectRSProject_basic(t *testing.T) {
+func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
 		project      matlas.Project
 		resourceName = "mongodbatlas_project.test"
@@ -149,7 +149,7 @@ func TestAccGenericProjectRSProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectRSProject_CreateWithProjectOwner(t *testing.T) {
+func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -176,7 +176,7 @@ func TestAccGenericProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
+func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -202,7 +202,7 @@ func TestAccGenericProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 		},
 	})
 }
-func TestAccGenericProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
+func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -229,7 +229,7 @@ func TestAccGenericProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T)
 	})
 }
 
-func TestAccGenericProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
+func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
@@ -256,7 +256,7 @@ func TestAccGenericProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing
 	})
 }
 
-func TestAccGenericProjectRSProject_withUpdatedRole(t *testing.T) {
+func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_project.test"
 		projectName     = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
@@ -292,7 +292,7 @@ func TestAccGenericProjectRSProject_withUpdatedRole(t *testing.T) {
 	})
 }
 
-func TestAccGenericProjectRSProject_importBasic(t *testing.T) {
+func TestAccProjectRSProject_importBasic(t *testing.T) {
 	var (
 		projectName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
