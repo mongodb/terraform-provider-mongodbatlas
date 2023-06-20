@@ -54,7 +54,6 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -104,7 +103,6 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -160,7 +158,6 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_realtime_performance_panel_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_schema_advisor_enabled"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
