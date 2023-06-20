@@ -1,62 +1,65 @@
 ---
-name: Create JIRA ticket for new issues
+  name: Create JIRA ticket for new issues
+  
+  on:
+    issues:
+      types: [opened]
+  permissions: 
+    issues: write
+    contents: read
+  jobs:
+    jira_task:
+      name: Create Jira issue
+      runs-on: ubuntu-latest
+      steps:
+      - name: Create JIRA ticket
+        id: create
+        shell: bash
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_ASSIGNEE: ${{ secrets.ASSIGNEE_JIRA_TICKET }}
+        run: |
 
-on:
-  issues:
-    types: [opened]
-permissions: 
-  issues: write
-  contents: read
-jobs:
-  jira_task:
-    name: Create Jira issue
-    runs-on: ubuntu-latest
-    steps:
-    - name: Create JIRA ticket
-      id: create
-      shell: bash
-      env:
-        ISSUE_TITLE: ${{ github.event.issue.title }}
-        ISSUE_BODY: ${{ github.event.issue.body }}
-        ISSUE_URL: ${{ github.event.issue.html_url }}
-        JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-        JIRA_ASSIGNEE: ${{ secrets.ASSIGNEE_JIRA_TICKET }}
-      run: |
-        json_response=$(curl --request POST \
-          --url 'https://jira.mongodb.org/rest/api/2/issue' \
-          --header 'Authorization: Bearer '"${JIRA_API_TOKEN}" \
-          --header 'Accept: application/json' \
-          --header 'Content-Type: application/json' \
-          --data '{
-            "fields": {
-                "project": {
-                    "id": "19383"
-                },
-                "summary": "HELP: '"${ISSUE_TITLE}"'",
-                "issuetype": {
-                    "id": "3"
-                },
-                "description": "This ticket tracks the following GitHub issue: '"${ISSUE_URL}"'.",
-                "components": [
-                    {
-                        "id": "27590"
-                    }
-                ],
-                "assignee": {
-                  "name": "'"${JIRA_ASSIGNEE}"'"
-                }
-            }
-          }')
-
-        echo "Response: ${json_response}"
-
-        JIRA_TICKET_ID=$(echo "${json_response}" | jq -r '.key')
-
-        echo "The following JIRA ticket has been created: ${JIRA_TICKET_ID}"
-        echo "jira-ticket-id=${JIRA_TICKET_ID}" >> "${GITHUB_OUTPUT}"
-    - name: Add comment
-      uses: peter-evans/create-or-update-comment@v3
-      with:
-        issue-number: ${{ github.event.issue.number }}
-        body: |
-          Thanks for opening this issue. The ticket [${{ steps.create.outputs.jira-ticket-id }}](https://jira.mongodb.org/browse/${{ steps.create.outputs.jira-ticket-id }}) was created for internal tracking.
+          # Use the tr command to remove the special characters from ISSUE_TITLE
+          ISSUE_TITLE_NO_SPECIAL_CHARS=$(echo "$ISSUE_TITLE" | tr -d '!$&*@#"\047\140')
+          json_response=$(curl --request POST \
+            --url 'https://jira.mongodb.org/rest/api/2/issue' \
+            --header 'Authorization: Bearer '"${JIRA_API_TOKEN}" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "fields": {
+                  "project": {
+                      "id": "19383"
+                  },
+                  "summary": "HELP: '"${ISSUE_TITLE_NO_SPECIAL_CHARS}"'",
+                  "issuetype": {
+                      "id": "3"
+                  },
+                  "description": "This ticket tracks the following GitHub issue: '"${ISSUE_URL}"'.",
+                  "components": [
+                      {
+                          "id": "27590"
+                      }
+                  ],
+                  "assignee": {
+                    "name": "'"${JIRA_ASSIGNEE}"'"
+                  }
+              }
+            }')
+  
+          echo "Response: ${json_response}"
+  
+          JIRA_TICKET_ID=$(echo "${json_response}" | jq -r '.key')
+  
+          echo "The following JIRA ticket has been created: ${JIRA_TICKET_ID}"
+          echo "jira-ticket-id=${JIRA_TICKET_ID}" >> "${GITHUB_OUTPUT}"
+      - name: Add comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thanks for opening this issue. The ticket [${{ steps.create.outputs.jira-ticket-id }}](https://jira.mongodb.org/browse/${{ steps.create.outputs.jira-ticket-id }}) was created for internal tracking.
