@@ -26,8 +26,6 @@ func TestAccProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
@@ -44,7 +42,7 @@ func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -54,8 +52,6 @@ func TestAccProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),

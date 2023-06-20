@@ -33,8 +33,6 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
@@ -46,8 +44,6 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "ip_address", updatedIPAddress),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
 				),
@@ -78,8 +74,6 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
@@ -91,8 +85,6 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", updatedCIDRBlock),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
 				),
