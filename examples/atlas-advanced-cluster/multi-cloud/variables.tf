@@ -13,5 +13,5 @@ variable "private_key" {
 variable "cluster_name" {
   description = "Atlas cluster name"
   type        = string
-  default = "MultiCloudCluster"
+  default     = "MultiCloudCluster"
 }

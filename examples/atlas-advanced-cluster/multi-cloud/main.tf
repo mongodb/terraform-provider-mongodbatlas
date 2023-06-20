@@ -10,9 +10,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   backup_enabled = true
 
   replication_specs {
-    num_shards = 3 // 3-shard Multi-Cloud Cluster
+    num_shards = 3 # 3-shard Multi-Cloud Cluster
 
-    region_configs { // shard n1 
+    region_configs { # shard n1 
       electable_specs {
         instance_size = "M30"
         node_count    = 3
@@ -26,7 +26,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_1"
     }
 
-    region_configs { // shard n2
+    region_configs { # shard n2
       electable_specs {
         instance_size = "M30"
         node_count    = 2
@@ -40,7 +40,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_name   = "US_EAST_2"
     }
 
-    region_configs { // shard n3
+    region_configs { # shard n3
       analytics_specs {
         instance_size = "M10"
         node_count    = 1
