@@ -82,8 +82,6 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),

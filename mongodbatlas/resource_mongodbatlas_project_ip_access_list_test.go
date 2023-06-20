@@ -172,7 +172,7 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 
 	//TODO: make testAccCheckMongoDBAtlasProjectIPAccessListExists dynamic
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
