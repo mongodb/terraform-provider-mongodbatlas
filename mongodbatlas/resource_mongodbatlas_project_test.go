@@ -66,6 +66,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			{
 				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,

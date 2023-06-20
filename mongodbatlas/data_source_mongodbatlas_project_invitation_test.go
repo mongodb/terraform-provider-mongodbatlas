@@ -19,7 +19,7 @@ func TestAccProjectDSProjectInvitation_basic(t *testing.T) {
 		initialRole    = []string{"GROUP_OWNER"}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,

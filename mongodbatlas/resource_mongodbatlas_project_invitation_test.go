@@ -24,7 +24,7 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 		updateRoles  = []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_CLUSTER_MANAGER"}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
@@ -70,7 +70,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 		initialRole  = []string{"GROUP_OWNER"}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
