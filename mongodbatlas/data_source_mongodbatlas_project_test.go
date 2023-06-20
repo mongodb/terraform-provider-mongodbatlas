@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccProjectDSProject_byID(t *testing.T) {
-	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
@@ -61,7 +61,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 }
 
 func TestAccProjectDSProject_byName(t *testing.T) {
-	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
@@ -111,7 +111,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 }
 
 func TestAccProjectDSProject_defaultFlags(t *testing.T) {
-	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
