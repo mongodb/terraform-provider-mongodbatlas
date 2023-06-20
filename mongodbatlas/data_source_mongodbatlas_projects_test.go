@@ -54,7 +54,6 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -104,7 +103,6 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

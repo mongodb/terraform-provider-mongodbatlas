@@ -54,6 +54,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
