@@ -287,7 +287,7 @@ Include **desired options** within advanced_configuration:
 * **Note**  A minimum oplog retention is required when seeking to change a cluster's class to Local NVMe SSD. To learn more and for latest guidance see [`oplogMinRetentionHours`](https://www.mongodb.com/docs/manual/core/replica-set-oplog/#std-label-replica-set-minimum-oplog-size) 
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
-* `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60.
+* `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
 
 
 ### labels
