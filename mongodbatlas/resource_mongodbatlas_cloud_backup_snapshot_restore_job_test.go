@@ -15,60 +15,36 @@ import (
 
 func TestAccBackupRSCloudBackupSnapshotRestoreJob_basic(t *testing.T) {
 	var (
-		cloudBackupSnapshotRestoreJob = matlas.CloudProviderSnapshotRestoreJob{}
-		resourceName                  = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
-		projectID                     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName                   = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		description                   = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays               = "1"
-		targetClusterName             = clusterName
-		targetGroupID                 = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		cloudBackupSnapshotRestoreJob     = matlas.CloudProviderSnapshotRestoreJob{}
+		resourceName                      = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		snapshotsDataSourceName           = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.test"
+		snapshotsDataSourcePaginationName = "data.mongodbatlas_cloud_backup_snapshot_restore_jobs.pagination"
+		dataSourceName                    = "data.mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		orgID                             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                       = acctest.RandomWithPrefix("test-snapshot-acc")
+		targetProjectName                 = acctest.RandomWithPrefix("test-acc")
+		clusterName                       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description                       = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays                   = "1"
+		targetClusterName                 = fmt.Sprintf("test-acc-target-%s", acctest.RandString(10))
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
+				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
 					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "automated"),
 					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_cluster_name", targetClusterName),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.target_project_id", targetGroupID),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cluster_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "snapshot_id"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(snapshotsDataSourcePaginationName, "results.#"),
 				),
-			},
-			{
-				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(projectID, clusterName, description, retentionInDays),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
-					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "download"),
-					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccBackupRSCloudBackupSnapshotRestoreJob_importBasic(t *testing.T) {
-	var (
-		resourceName      = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName       = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
-		description       = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays   = "1"
-		targetClusterName = clusterName
-		targetGroupID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID),
 			},
 			{
 				ResourceName:            resourceName,
@@ -81,24 +57,53 @@ func TestAccBackupRSCloudBackupSnapshotRestoreJob_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
-	SkipTest(t)
+func TestAccBackupRSCloudBackupSnapshotRestoreJob_basicDownload(t *testing.T) {
 	var (
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName     = acctest.RandomWithPrefix("test-acc")
-		description     = fmt.Sprintf("My description in %s", clusterName)
-		retentionInDays = "1"
-		targetGroupID   = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		timeUtc         = int64(1)
+		cloudBackupSnapshotRestoreJob = matlas.CloudProviderSnapshotRestoreJob{}
+		resourceName                  = "mongodbatlas_cloud_backup_snapshot_restore_job.test"
+		orgID                         = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                   = acctest.RandomWithPrefix("test-acc")
+		clusterName                   = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		description                   = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays               = "1"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigPointInTime(projectID, clusterName, description, retentionInDays, targetGroupID, timeUtc),
+				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobExists(resourceName, &cloudBackupSnapshotRestoreJob),
+					testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobAttributes(&cloudBackupSnapshotRestoreJob, "download"),
+					resource.TestCheckResourceAttr(resourceName, "delivery_type_config.0.download", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSnapshotRestoreJobWithPointTime_basic(t *testing.T) {
+	SkipTestForCI(t)
+	var (
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName       = acctest.RandomWithPrefix("test-acc")
+		targetProjectName = acctest.RandomWithPrefix("test-acc-target")
+		clusterName       = acctest.RandomWithPrefix("test-acc")
+		description       = fmt.Sprintf("My description in %s", clusterName)
+		retentionInDays   = "1"
+		timeUtc           = int64(1)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigPointInTime(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, timeUtc),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -183,11 +188,18 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotRestoreJobImportStateIDFunc(reso
 	}
 }
 
-func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID string) string {
+func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigAutomated(orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName string) string {
 	return fmt.Sprintf(`
+
+resource "mongodbatlas_project" "backup_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+
+
 resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.backup_project.id
+  name         = %[3]q
   
   // Provider Settings "block"
   provider_name               = "AWS"
@@ -196,11 +208,22 @@ resource "mongodbatlas_cluster" "my_cluster" {
   cloud_backup                = true
 }
 
+resource "mongodbatlas_cluster" "targer_cluster" {
+	project_id   = mongodbatlas_project.backup_project.id
+	name         = %[7]q
+	
+	// Provider Settings "block"
+	provider_name               = "AWS"
+	provider_region_name        = "US_EAST_1"
+	provider_instance_size_name = "M10"
+	cloud_backup                = true
+  }
+
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = %[3]q
-  retention_in_days = %[4]q
+  description       = %[4]q
+  retention_in_days = %[5]q
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
@@ -210,18 +233,41 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
   delivery_type_config   {
     automated           = true
-    target_cluster_name = %[5]q
-    target_project_id   = %[6]q
+    target_cluster_name = mongodbatlas_cluster.targer_cluster.name
+    target_project_id   = mongodbatlas_cluster.targer_cluster.project_id
   }
 }
-	`, projectID, clusterName, description, retentionInDays, targetClusterName, targetGroupID)
+
+data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
+	project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+	job_id       = mongodbatlas_cloud_backup_snapshot_restore_job.test.id  
 }
 
-func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(projectID, clusterName, description, retentionInDays string) string {
+data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {
+	project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+}
+
+data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "pagination" {
+	project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+	cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+	page_num = 1
+	items_per_page = 5
+}
+
+	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, targetClusterName)
+}
+
+func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigDownload(orgID, projectName, clusterName, description, retentionInDays string) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "backup_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.backup_project.id
+  name         = %[3]q
   
   provider_name               = "AWS"
   provider_region_name        = "US_EAST_1"
@@ -232,8 +278,8 @@ resource "mongodbatlas_cluster" "my_cluster" {
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = %[3]q
-  retention_in_days = %[4]q
+  description       = %[4]q
+  retention_in_days = %[5]q
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
@@ -245,13 +291,24 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
     download = true
   }
 }
-	`, projectID, clusterName, description, retentionInDays)
+	`, orgID, projectName, clusterName, description, retentionInDays)
 }
 
-func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigPointInTime(projectID, clusterName, description, retentionInDays, targetGroupID string, pointTimeUTC int64) string {
+func testAccMongoDBAtlasCloudBackupSnapshotRestoreJobConfigPointInTime(orgID, projectName, clusterName, description, retentionInDays, targetProjectName string, pointTimeUTC int64) string {
 	return fmt.Sprintf(`
+
+resource "mongodbatlas_project" "backup_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+
+resource "mongodbatlas_project" "target_project" {
+	name   = %[6]q
+	org_id = %[1]q
+}
+
 resource "mongodbatlas_cluster" "target_cluster" {
-  project_id   = %[1]q
+  project_id   = mongodbatlas_project.target_project.id
   name         = "cluster-target"
   disk_size_gb = 10
 
@@ -263,8 +320,8 @@ resource "mongodbatlas_cluster" "target_cluster" {
 }
 
 resource "mongodbatlas_cluster" "my_cluster" {
-  project_id   = %[1]q
-  name         = %[2]q
+  project_id   = mongodbatlas_project.backup_project.id
+  name         = %[3]q
   disk_size_gb = 10
 
   // Provider Settings "block"
@@ -277,8 +334,8 @@ resource "mongodbatlas_cluster" "my_cluster" {
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_cluster.my_cluster.name
-  description       = %[3]q
-  retention_in_days = %[4]q
+  description       = %[4]q
+  retention_in_days = %[5]q
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
@@ -289,10 +346,10 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
   delivery_type_config {
     point_in_time       = true
     target_cluster_name = mongodbatlas_cluster.target_cluster.name
-    target_project_id   = %[5]q
-    oplog_ts            = %[6]d
+    target_project_id   = mongodbatlas_cluster.target_cluster.project_id
+    oplog_ts            = %[7]d
     oplog_inc           = 300
   }
 }
-	`, projectID, clusterName, description, retentionInDays, targetGroupID, pointTimeUTC)
+	`, orgID, projectName, clusterName, description, retentionInDays, targetProjectName, pointTimeUTC)
 }
