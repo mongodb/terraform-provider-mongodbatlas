@@ -15,17 +15,17 @@ import (
 
 func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 	var (
-		container        matlas.Container
-		randInt          = acctest.RandIntRange(0, 255)
-		randIntUpdated   = acctest.RandIntRange(0, 255)
-		resourceName     = "mongodbatlas_network_container.test"
-		dataSourceName = "data.mongodbatlas_network_container.test_ds"
+		container                matlas.Container
+		randInt                  = acctest.RandIntRange(0, 255)
+		randIntUpdated           = acctest.RandIntRange(0, 255)
+		resourceName             = "mongodbatlas_network_container.test"
+		dataSourceName           = "data.mongodbatlas_network_container.test_ds"
 		dataSourceContainersName = "data.mongodbatlas_network_containers.test"
-		cidrBlock        = fmt.Sprintf("10.8.%d.0/24", randInt)
-		cidrBlockUpdated = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
-		providerName     = "AWS"
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acctest.RandomWithPrefix("test-acc")
+		cidrBlock                = fmt.Sprintf("10.8.%d.0/24", randInt)
+		cidrBlockUpdated         = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
+		providerName             = "AWS"
+		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName              = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +49,6 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.atlas_cidr_block"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.provider_name"),
 					resource.TestCheckResourceAttrSet(dataSourceContainersName, "results.0.provisioned"),
-	
 				),
 			},
 			{
@@ -152,15 +151,15 @@ func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
 
 func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 	var (
-		container    matlas.Container
-		randInt      = acctest.RandIntRange(0, 255)
-		resourceName = "mongodbatlas_network_container.test"
-		dataSourceName = "data.mongodbatlas_network_container.test"
+		container                matlas.Container
+		randInt                  = acctest.RandIntRange(0, 255)
+		resourceName             = "mongodbatlas_network_container.test"
+		dataSourceName           = "data.mongodbatlas_network_container.test"
 		dataSourceContainersName = "data.mongodbatlas_network_containers.test"
-		cidrBlock    = fmt.Sprintf("10.%d.0.0/21", randInt)
-		providerName = "GCP"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		cidrBlock                = fmt.Sprintf("10.%d.0.0/21", randInt)
+		providerName             = "GCP"
+		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName              = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

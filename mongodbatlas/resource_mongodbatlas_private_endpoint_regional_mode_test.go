@@ -73,8 +73,8 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
 		resourceSuffix = "atlasrm"
 		resourceName   = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,7 +83,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix,orgID, projectName, false),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, orgID, projectName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),

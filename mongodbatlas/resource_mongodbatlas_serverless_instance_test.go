@@ -14,12 +14,12 @@ import (
 
 func TestAccServerlessInstance_basic(t *testing.T) {
 	var (
-		serverlessInstance matlas.Cluster
-		resourceName       = "mongodbatlas_serverless_instance.test"
-		instanceName       = acctest.RandomWithPrefix("test-acc-serverless")
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc-serverless")
-		datasourceName = "data.mongodbatlas_serverless_instance.test_two"
+		serverlessInstance      matlas.Cluster
+		resourceName            = "mongodbatlas_serverless_instance.test"
+		instanceName            = acctest.RandomWithPrefix("test-acc-serverless")
+		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName             = acctest.RandomWithPrefix("test-acc-serverless")
+		datasourceName          = "data.mongodbatlas_serverless_instance.test_two"
 		datasourceInstancesName = "data.mongodbatlas_serverless_instances.data_serverless"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,12 +58,12 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_serverless_instance.test"
 		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acctest.RandomWithPrefix("test-acc-serverless")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t)},
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
