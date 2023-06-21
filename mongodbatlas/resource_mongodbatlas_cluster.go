@@ -1316,7 +1316,6 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 			originalRegion := ""
 			id := ""
 
-			// if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 			if okPRName && providerName == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 				if d.HasChange("provider_region_name") {
 					replaceRegion = vPRName.(string)
@@ -1414,27 +1413,54 @@ func updateRegionNames(d *schema.ResourceData, actualSpecs []map[string]interfac
 	return actualSpecs
 }
 
+// This method creates a map of all the replication_specs present in Terraform state for the cluster
+// keyed on a hash value generated from property values of a replication_spec(s).
+//
+// The value of each entry is another map keyed on a hash value generated from property values of each region_config(s) in the replication_spec
+//
+// A "region_name_by_user" property is also added to each region_config to keep track if the user is
+// using an Atlas region name or a Cloud Provider's region name.
+func getStateFileSpecsMap(stateSpecs interface{}, providerName, backingProviderName string) map[uint64]map[uint64]interface{} {
+	var stateSpec map[string]interface{}
+	var stateRegionsConfigs []interface{}
+
+	stateReplicationSpecsMap := make(map[uint64]map[uint64]interface{})
+
+	for _, s := range stateSpecs.(*schema.Set).List() {
+		stateSpec = s.(map[string]interface{})
+		stateRegionsConfigs = stateSpec["regions_config"].(*schema.Set).List()
+		stateRegionConfigsMap := make(map[uint64]interface{})
+
+		for _, r := range stateRegionsConfigs {
+			stateRegionConfig := r.(map[string]interface{})
+			// we change region_name to Atlas region so we can use this to match with actual regionConfigs received from the API
+			stateRegionConfig["region_name_by_user"] = stateRegionConfig["region_name"]
+			stateRegionConfig["region_name"], _ = GetAtlasRegion(providerName, backingProviderName, stateRegionConfig["region_name_by_user"].(string))
+
+			fmt.Println("hashing stateRegionConfig now:")
+			regionConfigHashKey := getRegionConfigHash(stateRegionConfig)
+			stateRegionConfigsMap[regionConfigHashKey] = stateRegionConfig
+		}
+		fmt.Println("hashing stateSpec now:")
+		repSpecsHashKey := getReplicationSpecHash(stateSpec, true)
+		stateReplicationSpecsMap[repSpecsHashKey] = stateRegionConfigsMap
+	}
+
+	return stateReplicationSpecsMap
+}
+
 // excluding 'id' property when generating hash of a ReplicationSpec
 func getReplicationSpecHash(repSpec map[string]interface{}, stateSpec bool) uint64 {
 	regionConfigsHash := fnv.New64a()
+	repSpecCopy := repSpec
 
 	// sorting the regionConfigs by priority so they are always hashed in same order to calculate the hash value
-	repSpecCopy := repSpec
 	regionsConfigsSorted := sortRegionConfigs(repSpecCopy)
 
-	// if !stateSpec {
-	// 	regionsConfigsSorted := repSpecCopy["regions_config"].(*schema.Set).List()
-
-	// 	for _, r := range regionsConfigsSorted {
-	// 		rConfig := r.(map[string]interface{})
-	// 		fmt.Fprintf(regionConfigsHash, "%v", getRegionConfigHash(rConfig))
-	// 	}
-	// } else {
 	for _, r := range regionsConfigsSorted {
 		rConfig := r.(map[string]interface{})
 		fmt.Fprintf(regionConfigsHash, "%v", getRegionConfigHash(rConfig))
 	}
-	// }
 
 	return getHashFromProps(repSpec["num_shards"], repSpec["zone_name"], regionConfigsHash)
 }
@@ -1481,40 +1507,21 @@ func getRegionConfigHash(regionConfig map[string]interface{}) uint64 {
 		regionConfig["read_only_nodes"])
 }
 
-// This method creates a map of all the replication_specs present in Terraform state for the cluster
-// keyed on a hash value generated from property values of a replication_spec(s).
-//
-// The value of each entry is another map keyed on a hash value generated from property values of each region_config(s) in the replication_spec
-//
-// A "region_name_by_user" property is also added to each region_config to keep track if the user is
-// using an Atlas region name or a Cloud Provider's region name.
-func getStateFileSpecsMap(stateSpecs interface{}, providerName, backingProviderName string) map[uint64]map[uint64]interface{} {
-	var stateSpec map[string]interface{}
-	var stateRegionsConfigs []interface{}
+func getHashFromProps(props ...interface{}) uint64 {
+	hash := fnv.New64a()
 
-	stateReplicationSpecsMap := make(map[uint64]map[uint64]interface{})
+	for i, prop := range props {
+		propValue := reflect.ValueOf(prop)
 
-	for _, s := range stateSpecs.(*schema.Set).List() {
-		stateSpec = s.(map[string]interface{})
-		stateRegionsConfigs = stateSpec["regions_config"].(*schema.Set).List()
-		stateRegionConfigsMap := make(map[uint64]interface{})
-
-		for _, r := range stateRegionsConfigs {
-			stateRegionConfig := r.(map[string]interface{})
-			// we change region_name to Atlas region so we can use this to match with actual regionConfigs received from the API
-			stateRegionConfig["region_name_by_user"] = stateRegionConfig["region_name"]
-			stateRegionConfig["region_name"], _ = GetAtlasRegion(providerName, backingProviderName, stateRegionConfig["region_name_by_user"].(string))
-
-			fmt.Println("hashing stateRegionConfig now:")
-			regionConfigHashKey := getRegionConfigHash(stateRegionConfig)
-			stateRegionConfigsMap[regionConfigHashKey] = stateRegionConfig
+		if number, ok := convertToInt64IfNumber(propValue); ok {
+			propValue = reflect.ValueOf(number)
 		}
-		fmt.Println("hashing stateSpec now:")
-		repSpecsHashKey := getReplicationSpecHash(stateSpec, true)
-		stateReplicationSpecsMap[repSpecsHashKey] = stateRegionConfigsMap
+		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, propValue)
+
+		fmt.Fprintf(hash, "%v", propValue)
 	}
 
-	return stateReplicationSpecsMap
+	return hash.Sum64()
 }
 
 func convertToInt64IfNumber(value reflect.Value) (int64, bool) {
@@ -1538,23 +1545,6 @@ func convertToInt64IfNumber(value reflect.Value) (int64, bool) {
 	}
 
 	return 0, false
-}
-
-func getHashFromProps(props ...interface{}) uint64 {
-	hash := fnv.New64a()
-
-	for i, prop := range props {
-		propValue := reflect.ValueOf(prop)
-
-		if number, ok := convertToInt64IfNumber(propValue); ok {
-			propValue = reflect.ValueOf(number)
-		}
-		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, propValue)
-
-		fmt.Fprintf(hash, "%v", propValue)
-	}
-
-	return hash.Sum64()
 }
 
 func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion, providerName string) (map[string]matlas.RegionsConfig, error) {
