@@ -747,7 +747,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		flattenProviderSettings(d, cluster.ProviderSettings, clusterName)
 	}
 
-	if err := d.Set("replication_specs", flattenReplicationSpecs2(cluster.ReplicationSpecs, d)); err != nil {
+	if err := d.Set("replication_specs", flattenAndUpdateReplicationSpecs(cluster.ReplicationSpecs, d)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "replication_specs", clusterName, err))
 	}
 
@@ -1359,8 +1359,30 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	return rSpecs, nil
 }
 
-func flattenReplicationSpecs2(rSpecs []matlas.ReplicationSpec, d *schema.ResourceData) []map[string]interface{} {
+func flattenAndUpdateReplicationSpecs(rSpecs []matlas.ReplicationSpec, d *schema.ResourceData) []map[string]interface{} {
+	specs := make([]map[string]interface{}, 0)
+
+	for _, rSpec := range rSpecs {
+		spec := map[string]interface{}{
+			"id":             rSpec.ID,
+			"num_shards":     rSpec.NumShards,
+			"zone_name":      cast.ToString(rSpec.ZoneName),
+			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
+		}
+		specs = append(specs, spec)
+	}
+
+	return updateRegionNames(d, specs)
+}
+
+// User can use either Atlas region names or region names of their cloud provider. Atlas cluster APIs use only Atlas regions,
+// so we update region_name usages in replication_specs to what the user has in their Terraform config
+func updateRegionNames(d *schema.ResourceData, actualSpecs []map[string]interface{}) []map[string]interface{} {
 	var providerName, backingProviderName string
+
+	if _, ok := d.GetOk("replication_specs"); !ok {
+		return actualSpecs
+	}
 
 	if val, ok := d.GetOk("provider_name"); ok {
 		providerName = val.(string)
@@ -1372,73 +1394,47 @@ func flattenReplicationSpecs2(rSpecs []matlas.ReplicationSpec, d *schema.Resourc
 		fmt.Printf("backing_provider_name in schema is: %s", val)
 	}
 
-	actualSpecs := make([]map[string]interface{}, 0)
-
-	for _, rSpec := range rSpecs {
-		spec := map[string]interface{}{
-			"id":             rSpec.ID,
-			"num_shards":     rSpec.NumShards,
-			"zone_name":      cast.ToString(rSpec.ZoneName),
-			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
-		}
-		actualSpecs = append(actualSpecs, spec)
-	}
-
-	// if replication_specs empty - (1st time create, default replicationSpecs will be added from Atlas response)
-	if _, ok := d.GetOk("replication_specs"); !ok {
-		return actualSpecs
-	}
-
-	// actualSpecs - always AtlasRegions, stateFileSpecs (d.Get("replication_specs")) can have AtlasRegions or CP regions
-	// for each actualSpec in actualSpecs
-	//		// find related stateFileSpec from stateFileSpecs
-
 	stateReplicationSpecsMap := getStateFileSpecsMap(d.Get("replication_specs"), providerName, backingProviderName)
 
 	for _, actualSpec := range actualSpecs {
 		fmt.Println("hashing actual RepSpec now:")
-		hash := getRepSpecHash2(actualSpec, true)
-		correspondingStateReplicationSpec := stateReplicationSpecsMap[hash]
+		hash := getReplicationSpecHash(actualSpec, true)
+		matchedStateReplicationSpec := stateReplicationSpecsMap[hash]
 
 		for _, actualRegionConfigElem := range actualSpec["regions_config"].([]map[string]interface{}) {
 			actualRegionConfig := actualRegionConfigElem
 			fmt.Println("hashing actualRegionConfig now:")
 			regionConfigHash := getRegionConfigHash(actualRegionConfig)
-			correspondingStateRegionConfig := correspondingStateReplicationSpec[regionConfigHash].(map[string]interface{})
+			matchedStateRegionConfig := matchedStateReplicationSpec[regionConfigHash].(map[string]interface{})
 
-			// // in case of updates, we treat it as a newSpec and get region_names from
-			// if correspondingStateRegionConfig == nil {
-
-			// }
-
-			actualRegionConfig["region_name"] = correspondingStateRegionConfig["region_name_by_user"]
+			actualRegionConfig["region_name"] = matchedStateRegionConfig["region_name_by_user"]
 		}
 	}
 
 	return actualSpecs
 }
 
-// implementing hash function because we don't want to include some fields like 'id'
-func getRepSpecHash2(repSpec map[string]interface{}, stateSpec bool) uint64 {
+// excluding 'id' property when generating hash of a ReplicationSpec
+func getReplicationSpecHash(repSpec map[string]interface{}, stateSpec bool) uint64 {
 	regionConfigsHash := fnv.New64a()
 
-	// we take RepSpec, sort the regionConfigs so they are always hashed in same order, then calculate the hash value
+	// sorting the regionConfigs by priority so they are always hashed in same order to calculate the hash value
 	repSpecCopy := repSpec
 	regionsConfigsSorted := sortRegionConfigs(repSpecCopy)
 
-	if !stateSpec {
-		regionsConfigsSorted := repSpecCopy["regions_config"].(*schema.Set).List()
+	// if !stateSpec {
+	// 	regionsConfigsSorted := repSpecCopy["regions_config"].(*schema.Set).List()
 
-		for _, r := range regionsConfigsSorted {
-			rConfig := r.(map[string]interface{})
-			fmt.Fprintf(regionConfigsHash, "%v", getRegionConfigHash(rConfig))
-		}
-	} else {
-		for _, r := range regionsConfigsSorted {
-			rConfig := r.(map[string]interface{})
-			fmt.Fprintf(regionConfigsHash, "%v", getRegionConfigHash(rConfig))
-		}
+	// 	for _, r := range regionsConfigsSorted {
+	// 		rConfig := r.(map[string]interface{})
+	// 		fmt.Fprintf(regionConfigsHash, "%v", getRegionConfigHash(rConfig))
+	// 	}
+	// } else {
+	for _, r := range regionsConfigsSorted {
+		rConfig := r.(map[string]interface{})
+		fmt.Fprintf(regionConfigsHash, "%v", getRegionConfigHash(rConfig))
 	}
+	// }
 
 	return getHashFromProps(repSpec["num_shards"], repSpec["zone_name"], regionConfigsHash)
 }
@@ -1447,7 +1443,7 @@ func sortRegionConfigs(repSpec map[string]interface{}) []interface{} {
 	regionsConfigRaw := repSpec["regions_config"]
 	var regionsConfig []interface{}
 
-	// Check the type of "regions_config" and convert it to []interface{}
+	// Check the type of "regions_config" and convert it to []interface{} as regions_config can be what received from Atlas API or what is currently present in the Terraform state
 	switch config := regionsConfigRaw.(type) {
 	case []map[string]interface{}:
 		regionsConfig = make([]interface{}, len(config))
@@ -1475,7 +1471,7 @@ func sortRegionConfigs(repSpec map[string]interface{}) []interface{} {
 	return regionsConfig
 }
 
-// implementing hash function because we don't want to include some fields like 'region_name_by_user'
+// excluding 'region_name_by_user' property when generating hash
 func getRegionConfigHash(regionConfig map[string]interface{}) uint64 {
 	return getHashFromProps(
 		regionConfig["region_name"],
@@ -1485,13 +1481,13 @@ func getRegionConfigHash(regionConfig map[string]interface{}) uint64 {
 		regionConfig["read_only_nodes"])
 }
 
-/*
-stateReplicationSpecsMap := make(map[uint64]map[uint64]interface{})
-// repSpecsHash1(int) | regionConfigHash1 | regionConfig1
-// 						regionConfigHash2 | regionConfig2
-// repSpecsHash2(int) | regionConfigHash3 | regionConfig3
-// 						regionConfigHash4 | regionConfig4
-*/
+// This method creates a map of all the replication_specs present in Terraform state for the cluster
+// keyed on a hash value generated from property values of a replication_spec(s).
+//
+// The value of each entry is another map keyed on a hash value generated from property values of each region_config(s) in the replication_spec
+//
+// A "region_name_by_user" property is also added to each region_config to keep track if the user is
+// using an Atlas region name or a Cloud Provider's region name.
 func getStateFileSpecsMap(stateSpecs interface{}, providerName, backingProviderName string) map[uint64]map[uint64]interface{} {
 	var stateSpec map[string]interface{}
 	var stateRegionsConfigs []interface{}
@@ -1500,25 +1496,21 @@ func getStateFileSpecsMap(stateSpecs interface{}, providerName, backingProviderN
 
 	for _, s := range stateSpecs.(*schema.Set).List() {
 		stateSpec = s.(map[string]interface{})
-
 		stateRegionsConfigs = stateSpec["regions_config"].(*schema.Set).List()
-
 		stateRegionConfigsMap := make(map[uint64]interface{})
-		// now all state region configs will have Atlas regions only, so we can use this to match with actual regionConfigs we got from API
+
 		for _, r := range stateRegionsConfigs {
-			// change region_name to Atlas region, so we can use this to match with actual regionConfigs received from the API
 			stateRegionConfig := r.(map[string]interface{})
+			// we change region_name to Atlas region so we can use this to match with actual regionConfigs received from the API
 			stateRegionConfig["region_name_by_user"] = stateRegionConfig["region_name"]
 			stateRegionConfig["region_name"], _ = GetAtlasRegion(providerName, backingProviderName, stateRegionConfig["region_name_by_user"].(string))
 
-			// store state region_config in map by hash
 			fmt.Println("hashing stateRegionConfig now:")
 			regionConfigHashKey := getRegionConfigHash(stateRegionConfig)
-
 			stateRegionConfigsMap[regionConfigHashKey] = stateRegionConfig
 		}
 		fmt.Println("hashing stateSpec now:")
-		repSpecsHashKey := getRepSpecHash2(stateSpec, true)
+		repSpecsHashKey := getReplicationSpecHash(stateSpec, true)
 		stateReplicationSpecsMap[repSpecsHashKey] = stateRegionConfigsMap
 	}
 
@@ -1559,27 +1551,10 @@ func getHashFromProps(props ...interface{}) uint64 {
 		}
 		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, propValue)
 
-		// Hash the string representation of the property's value
 		fmt.Fprintf(hash, "%v", propValue)
 	}
 
 	return hash.Sum64()
-}
-
-func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]interface{} {
-	specs := make([]map[string]interface{}, 0)
-
-	for _, rSpec := range rSpecs {
-		spec := map[string]interface{}{
-			"id":             rSpec.ID,
-			"num_shards":     rSpec.NumShards,
-			"zone_name":      cast.ToString(rSpec.ZoneName),
-			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
-		}
-		specs = append(specs, spec)
-	}
-
-	return specs
 }
 
 func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion, providerName string) (map[string]matlas.RegionsConfig, error) {

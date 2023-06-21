@@ -15,6 +15,7 @@ const (
 	UsEast2    AtlasRegion = "US_EAST_2"
 	UsWest1    AtlasRegion = "US_WEST_1"
 	SaEast1    AtlasRegion = "SA_EAST_1"
+	EuCentral1 AtlasRegion = "EU_CENTRAL_1"
 
 	// Azure
 	UsCentral
@@ -75,6 +76,8 @@ func awsToAtlasRegionsMap() map[string]AtlasRegion {
 		"us-east-2":    UsEast2,
 		"us-west-1":    UsWest1,
 		"sa-east-1":    SaEast1,
+		// Europe
+		"eu-central-1": EuCentral1,
 	}
 }
 

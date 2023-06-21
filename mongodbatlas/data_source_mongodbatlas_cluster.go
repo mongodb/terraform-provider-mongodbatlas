@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -495,6 +496,22 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 	d.SetId(cluster.ID)
 
 	return nil
+}
+
+func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]interface{} {
+	specs := make([]map[string]interface{}, 0)
+
+	for _, rSpec := range rSpecs {
+		spec := map[string]interface{}{
+			"id":             rSpec.ID,
+			"num_shards":     rSpec.NumShards,
+			"zone_name":      cast.ToString(rSpec.ZoneName),
+			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
+		}
+		specs = append(specs, spec)
+	}
+
+	return specs
 }
 
 func clusterAdvancedConfigurationSchemaComputed() *schema.Schema {
