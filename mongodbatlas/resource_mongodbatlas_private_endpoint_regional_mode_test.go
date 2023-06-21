@@ -76,13 +76,13 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, false),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix,orgID, projectName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -91,7 +91,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, true),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, orgID, projectName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -141,6 +141,19 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectI
 			enabled      = %[3]t
 		}
 	`, resourceName, projectID, enabled)
+}
+
+func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, orgID, projectName string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[3]q
+			org_id = %[2]q
+		}
+		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
+			project_id   = mongodbatlas_project.test.id
+			enabled      = %[4]t
+		}
+	`, resourceName, orgID, projectName, enabled)
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
