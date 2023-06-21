@@ -14,7 +14,7 @@ The following are some of the common issues/errors encountered when using Terraf
 ## Issue: The order of element objects in a TypeList attribute randomly changes every time a user runs `terraform plan`:
 
 ### Cause:
-This issue occurs if the user tries to dynamically add objects to an attribute list (for example, by using `dynamic`). This is a known Terraform behavior, as `dynamic` can attempt to bring objects into a schema in any order. 
+This issue occurs if the user tries to dynamically add objects to an attribute list (for example, by using `dynamic`). This is a known Terraform behavior, as `dynamic` can attempt to bring objects into the schema in any order. 
 
 This can be resolved by:
 
