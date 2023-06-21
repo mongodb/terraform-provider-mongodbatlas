@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 type AtlasRegion string
@@ -35,15 +36,24 @@ func IsAtlasRegion(regionName string) bool {
 	return regex.MatchString(regionName)
 }
 
-func GetAtlasRegion(cloudProvider, regionName string) (string, error) {
+func GetAtlasRegion(cloudProviderName, backingProviderName, regionName string) (string, error) {
+	var atlasRegionName AtlasRegion
+	var exists bool
+
 	if IsAtlasRegion(regionName) {
 		return regionName, nil
 	}
 
 	regionsMap := cloudProviderToAtlasRegionsMap()
-	atlasRegionName, exists := regionsMap[cloudProvider][regionName]
+
+	if cloudProviderName == "TENANT" {
+		atlasRegionName, exists = regionsMap[backingProviderName][strings.ToLower(regionName)]
+	} else {
+		atlasRegionName, exists = regionsMap[cloudProviderName][strings.ToLower(regionName)]
+	}
+
 	if !exists {
-		return "", fmt.Errorf("No Atlas region exists for cloud provider: %s, region name: %s", cloudProvider, regionName)
+		return "", fmt.Errorf("No Atlas region exists for cloud provider: %s, region name: %s", cloudProviderName, regionName)
 	}
 
 	return string(atlasRegionName), nil

@@ -5,10 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"log"
 	"net/http"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -745,7 +747,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		flattenProviderSettings(d, cluster.ProviderSettings, clusterName)
 	}
 
-	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
+	// if err := d.Set("replication_specs", flattenReplicationSpecs2(cluster.ReplicationSpecs, d)); err != nil {
+	// 	return diag.FromErr(fmt.Errorf(errorClusterSetting, "replication_specs", clusterName, err))
+	// }
+	if err := d.Set("replication_specs", flattenReplicationSpecs2(cluster.ReplicationSpecs, d)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "replication_specs", clusterName, err))
 	}
 
@@ -1273,8 +1278,19 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 		log.Printf(errorClusterSetting, "provider_name", clusterName, err)
 	}
 
-	if err := d.Set("provider_region_name", settings.RegionName); err != nil {
-		log.Printf(errorClusterSetting, "provider_region_name", clusterName, err)
+	// if err := d.Set("provider_region_name", settings.RegionName); err != nil {
+	// 	log.Printf(errorClusterSetting, "provider_region_name", clusterName, err)
+	// }
+
+	// if provider_region_name exists in the config/state, we want to make sure it doesn't change and stays what user entered
+	if val, ok := d.GetOk("provider_region_name"); ok {
+		if err := d.Set("provider_region_name", val); err != nil {
+			log.Printf(errorClusterSetting, "provider_region_name", clusterName, err)
+		}
+	} else {
+		if err := d.Set("provider_region_name", settings.RegionName); err != nil {
+			log.Printf(errorClusterSetting, "provider_region_name", clusterName, err)
+		}
 	}
 
 	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
@@ -1302,11 +1318,14 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 		for _, s := range vRSpecs.(*schema.Set).List() {
 			spec := s.(map[string]interface{})
 
+			providerName := d.Get("provider_name").(string)
+
 			replaceRegion := ""
 			originalRegion := ""
 			id := ""
 
-			if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
+			// if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
+			if okPRName && providerName == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 				if d.HasChange("provider_region_name") {
 					replaceRegion = vPRName.(string)
 					original, _ := d.GetChange("provider_region_name")
@@ -1330,7 +1349,8 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 				}
 			}
 
-			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
+			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion, providerName)
+			// regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
 			if err != nil {
 				return rSpecs, err
 			}
@@ -1348,6 +1368,374 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	return rSpecs, nil
 }
 
+func flattenReplicationSpecs2(rSpecs []matlas.ReplicationSpec, d *schema.ResourceData) []map[string]interface{} {
+	var providerName, backingProviderName string
+
+	if val, ok := d.GetOk("provider_name"); ok {
+		providerName = val.(string)
+		fmt.Printf("provider_name in schema is: %s", val)
+	}
+
+	if val, ok := d.GetOk("backing_provider_name"); ok {
+		backingProviderName = val.(string)
+		fmt.Printf("backing_provider_name in schema is: %s", val)
+	}
+
+	actualSpecs := make([]map[string]interface{}, 0)
+
+	for _, rSpec := range rSpecs {
+		spec := map[string]interface{}{
+			"id":             rSpec.ID,
+			"num_shards":     rSpec.NumShards,
+			"zone_name":      cast.ToString(rSpec.ZoneName),
+			"regions_config": flattenRegionsConfig(rSpec.RegionsConfig),
+		}
+		actualSpecs = append(actualSpecs, spec)
+	}
+
+	// if replication_specs empty - (1st time create, default replicationSpecs will be added from Atlas response)
+	if _, ok := d.GetOk("replication_specs"); !ok {
+		return actualSpecs
+	}
+
+	// actualSpecs - always AtlasRegions, stateFileSpecs (d.Get("replication_specs")) can have AtlasRegions or CP regions
+	// for each actualSpec in actualSpecs
+	//		// find related stateFileSpec from stateFileSpecs
+
+	stateReplicationSpecsMap := getStateFileSpecsMap(d.Get("replication_specs"), providerName, backingProviderName)
+
+	for _, actualSpec := range actualSpecs {
+		fmt.Println("hashing actual RepSpec now:")
+		hash := getRepSpecHash2(actualSpec, true)
+		correspondingStateReplicationSpec := stateReplicationSpecsMap[hash]
+
+		for _, actualRegionConfigElem := range actualSpec["regions_config"].([]map[string]interface{}) {
+			actualRegionConfig := actualRegionConfigElem
+			fmt.Println("hashing actualRegionConfig now:")
+			regionConfigHash := getRegionConfigHash(actualRegionConfig)
+			correspondingStateRegionConfig := correspondingStateReplicationSpec[regionConfigHash].(map[string]interface{})
+
+			// // in case of updates, we treat it as a newSpec and get region_names from
+			// if correspondingStateRegionConfig == nil {
+
+			// }
+
+			actualRegionConfig["region_name"] = correspondingStateRegionConfig["region_name_by_user"]
+		}
+
+	}
+
+	return actualSpecs
+}
+
+func getRepSpecHash2(repSpec map[string]interface{}, stateSpec bool) uint64 {
+	regionConfigsHash := fnv.New64a()
+
+	// we take RepSpec, sort the regionConfigs so they are always hashed in same order, then calculate the hash value
+	repSpecCopy := repSpec
+	regionsConfigsSorted := sortRegionConfigs(repSpecCopy)
+
+	if !stateSpec {
+		regionsConfigsSorted := repSpecCopy["regions_config"].(*schema.Set).List()
+
+		for _, r := range regionsConfigsSorted {
+			rConfig := r.(map[string]interface{})
+			regionConfigsHash.Write([]byte(fmt.Sprintf("%v", getRegionConfigHash(rConfig))))
+		}
+	} else {
+		// regionsConfigsSorted := repSpecCopy["regions_config"].([]interface{})
+
+		for _, r := range regionsConfigsSorted {
+			rConfig := r.(map[string]interface{})
+			regionConfigsHash.Write([]byte(fmt.Sprintf("%v", getRegionConfigHash(rConfig))))
+		}
+	}
+
+	return getHashFromProps(repSpec["num_shards"], repSpec["zone_name"], regionConfigsHash)
+}
+
+// implementing hash function because we don't want to include some fields like 'id'
+// func getRepSpecHash(repSpec map[string]interface{}, stateSpec bool) uint64 {
+// 	// var regionConfigsHash string
+// 	regionConfigsHash := fnv.New64a()
+
+// 	if stateSpec {
+// 		SortRegionsConfig(repSpec)
+// 		regionsConfigs := repSpec["regions_config"].(*schema.Set).List()
+// 		repSpec["regions_config"] = regionsConfigsSorted
+
+// 		for _, r := range regionsConfigsSorted {
+// 			rConfig := r.(map[string]interface{})
+// 			regionConfigsHash.Write([]byte(fmt.Sprintf("%v", getRegionConfigHash(rConfig))))
+// 		}
+// 	} else {
+// 		regionsConfigs, ok := repSpec["regions_config"].([]map[string]interface{})
+
+// 		if ok {
+// 			SortRegionsConfig(repSpec)
+// 			repSpec["regions_config"] = regionsConfigsSorted
+// 			// regionsConfig := SortRegionsConfig(repSpec["regions_config"].(*schema.Set).List(), "priority")
+// 			for _, region := range regionsConfigsSorted {
+// 				rConfig := region.(map[string]interface{})
+// 				regionConfigsHash.Write([]byte(fmt.Sprintf("%v", getRegionConfigHash(rConfig))))
+// 			}
+// 		}
+
+// 		// for _, r := range repSpec["regions_config"] {
+// 		// 	rConfig := r.(map[string]interface{})
+// 		// 	regionConfigsHash.Write([]byte(fmt.Sprintf("%v", getRegionConfigHash(rConfig))))
+// 		// }
+// 	}
+
+// 	return getHashFromProps(repSpec["num_shards"], repSpec["zone_name"], regionConfigsHash)
+// }
+
+func sortRegionConfigs(repSpec map[string]interface{}) []interface{} {
+	regionsConfigRaw := repSpec["regions_config"]
+	var regionsConfig []interface{}
+
+	// Check the type of "regions_config" and convert it to []interface{}
+	switch config := regionsConfigRaw.(type) {
+	case []map[string]interface{}:
+		regionsConfig = make([]interface{}, len(config))
+		for i, region := range config {
+			regionsConfig[i] = region
+		}
+	case *schema.Set:
+		regionsConfig = config.List()
+	default:
+		// Invalid regions_config type, return or handle the error as needed
+		return nil
+	}
+
+	// Sort the regionsConfig based on the "priority" property
+	sort.Slice(regionsConfig, func(i, j int) bool {
+		region1 := regionsConfig[i].(map[string]interface{})
+		region2 := regionsConfig[j].(map[string]interface{})
+
+		priority1, _ := convertToInt64IfNumber(reflect.ValueOf(region1["priority"]))
+		priority2, _ := convertToInt64IfNumber(reflect.ValueOf(region2["priority"]))
+
+		return priority1 < priority2
+	})
+
+	// Update the sorted list back to the repSpec
+	// repSpec["regions_config"] = regionsConfig
+	return regionsConfig
+}
+
+func convertToInt64(value interface{}) int64 {
+	switch v := value.(type) {
+	case int:
+		return int64(v)
+	case *int64:
+		return *v
+	}
+	return 0
+}
+
+// func SortRegionsConfig(repSpec map[string]interface{}) {
+// 	regionsConfigRaw := repSpec["regions_config"]
+// 	regionsConfig, ok := regionsConfigRaw.([]interface{})
+// 	if !ok {
+// 		// Handle []map[string]interface{} type
+// 		regionsConfigMap, ok := regionsConfigRaw.([]map[string]interface{})
+// 		if !ok {
+// 			// Invalid regions_config type
+// 			return
+// 		}
+// 		regionsConfig = make([]interface{}, len(regionsConfigMap))
+// 		for i, region := range regionsConfigMap {
+// 			regionsConfig[i] = region
+// 		}
+// 	}
+
+// 	sort.Slice(regionsConfig, func(i, j int) bool {
+// 		region1 := regionsConfig[i].(map[string]interface{})
+// 		region2 := regionsConfig[j].(map[string]interface{})
+
+// 		switch aVal := region1.(type) {
+// 		case int:
+// 			if bVal, ok := b.(int); ok {
+// 				return aVal < bVal
+// 			}
+// 		case *int64:
+// 			if bVal, ok := b.(*int64); ok {
+// 				return *aVal < *bVal
+// 			}
+// 		}
+
+// 		// Compare the desired property for sorting
+// 		return region1["priority"].(int) < region2["priority"].(int)
+// 	})
+
+// 	// Update the sorted list back to the repSpec
+// 	repSpec["regions_config"] = regionsConfig
+// }
+
+func SortRegionsConfigsByPriority(regionsConfig []interface{}) []interface{} {
+	// regionsConfig := repSpec["regions_config"].(*schema.Set).List()
+
+	sort.Slice(regionsConfig, func(i, j int) bool {
+		region1 := regionsConfig[i].(map[string]interface{})
+		region2 := regionsConfig[j].(map[string]interface{})
+
+		// Compare the desired property for sorting
+		return region1["priority"].(int) < region2["priority"].(int)
+	})
+
+	// Update the sorted list back to the repSpec
+	// repSpec["regions_config"] = regionsConfig
+
+	return regionsConfig
+}
+
+// implementing hash function because we don't want to include some fields like 'region_name_by_user'
+func getRegionConfigHash(regionConfig map[string]interface{}) uint64 {
+	return getHashFromProps(
+		regionConfig["region_name"],
+		regionConfig["analytics_nodes"],
+		regionConfig["electable_nodes"],
+		regionConfig["priority"],
+		regionConfig["read_only_nodes"])
+}
+
+func getStateFileSpecsMap(stateSpecs interface{}, providerName, backingProviderName string) map[uint64]map[uint64]interface{} {
+	var stateSpec map[string]interface{}
+	var stateRegionsConfigs []interface{}
+
+	stateReplicationSpecsMap := make(map[uint64]map[uint64]interface{})
+	// repSpecsHash1(int) | regionConfigHash1 | regionConfig1
+	// 						regionConfigHash2 | regionConfig2
+	// repSpecsHash2(int) | regionConfigHash3 | regionConfig3
+	// 						regionConfigHash4 | regionConfig4
+
+	for _, s := range stateSpecs.(*schema.Set).List() {
+		stateSpec = s.(map[string]interface{})
+
+		stateRegionsConfigs = stateSpec["regions_config"].(*schema.Set).List()
+
+		stateRegionConfigsMap := make(map[uint64]interface{})
+		// now all state region configs will have Atlas regions only, so we can use this to match with actual regionConfigs we got from API
+		for _, r := range stateRegionsConfigs {
+			// change region_name to Atlas region, so we can use this to match with actual regionConfigs we got from API
+			stateRegionConfig := r.(map[string]interface{})
+			stateRegionConfig["region_name_by_user"] = stateRegionConfig["region_name"]
+			stateRegionConfig["region_name"], _ = GetAtlasRegion(providerName, backingProviderName, stateRegionConfig["region_name_by_user"].(string))
+
+			// store state region_config in map by hash
+			fmt.Println("hashing stateRegionConfig now:")
+			regionConfigHashKey := getRegionConfigHash(stateRegionConfig)
+
+			stateRegionConfigsMap[regionConfigHashKey] = stateRegionConfig
+		}
+		fmt.Println("hashing stateSpec now:")
+		repSpecsHashKey := getRepSpecHash2(stateSpec, true)
+		stateReplicationSpecsMap[repSpecsHashKey] = stateRegionConfigsMap
+	}
+
+	return stateReplicationSpecsMap
+}
+
+func convertToInt64IfNumber(value reflect.Value) (int64, bool) {
+	switch value.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return value.Int(), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return int64(value.Uint()), true
+	case reflect.Float32, reflect.Float64:
+		return int64(value.Float()), true
+	case reflect.Ptr:
+		// Handle pointer types
+		if value.Elem().Kind() == reflect.Int || value.Elem().Kind() == reflect.Int64 {
+			return value.Elem().Int(), true
+		} else if value.Elem().Kind() == reflect.Uint || value.Elem().Kind() == reflect.Uint64 {
+			return int64(value.Elem().Uint()), true
+		} else if value.Elem().Kind() == reflect.Float32 || value.Elem().Kind() == reflect.Float64 {
+			return int64(value.Elem().Float()), true
+		}
+	}
+
+	return 0, false
+}
+
+func getHashFromProps(props ...interface{}) uint64 {
+	hash := fnv.New64a()
+
+	for i, prop := range props {
+		propValue := reflect.ValueOf(prop)
+
+		// Convert property to int64 if it's a number type
+		if number, ok := convertToInt64IfNumber(propValue); ok {
+			propValue = reflect.ValueOf(number)
+		}
+		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, propValue)
+
+		// Hash the string representation of the property's value
+		hash.Write([]byte(fmt.Sprintf("%v", propValue)))
+	}
+
+	return hash.Sum64()
+}
+
+// func getHashFromProps(props ...interface{}) int {
+// 	var buf bytes.Buffer
+// 	for i, prop := range props {
+
+// 		// var result int64
+// 		// switch value := prop.(type) {
+// 		// case int:
+// 		// 	result = int64(value)
+// 		// default:
+// 		// 	result = value
+// 		// }
+
+// 		dataType := reflect.TypeOf(prop)
+// 		if dataType.Kind() == reflect.Int {
+// 			prop = prop.(int64)
+// 		}
+// 		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, prop)
+// 		// buf.Write(prop.([]byte))
+// 		fmt.Fprintf(&buf, "%v\n", prop)
+// 		// buf.WriteString(prop.(string))
+// 	}
+
+// 	return HashCodeString(buf.String())
+// }
+
+// func flattenRegionsConfig2(regionsConfig map[string]matlas.RegionsConfig, d *schema.ResourceData) []map[string]interface{} {
+// 	// convert d.region_configs to a map by region
+// 	// for each regionconfig from atlasResponse, lookup d.region_config for that region
+// 	// get region_name from d.region_config and use below
+
+// 	if val, ok := d.GetOk("provider_name"); ok {
+// 		fmt.Printf("provider_name in schema is: %s", val)
+// 	}
+
+// 	if val, ok := d.GetOk("backing_provider_name"); ok {
+// 		fmt.Printf("backing_provider_name in schema is: %s", val)
+// 	}
+
+// 	if val, ok := d.GetOk("replication_specs"); ok {
+// 		fmt.Printf("replication_specs in schema is: %s", val)
+// 	}
+
+// 	regions := make([]map[string]interface{}, 0)
+
+// 	for regionName, regionConfig := range regionsConfig {
+// 		region := map[string]interface{}{
+// 			"region_name":     regionName,
+// 			"priority":        regionConfig.Priority,
+// 			"analytics_nodes": regionConfig.AnalyticsNodes,
+// 			"electable_nodes": regionConfig.ElectableNodes,
+// 			"read_only_nodes": regionConfig.ReadOnlyNodes,
+// 		}
+// 		regions = append(regions, region)
+// 	}
+
+// 	return regions
+// }
+
 func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]interface{} {
 	specs := make([]map[string]interface{}, 0)
 
@@ -1364,19 +1752,24 @@ func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]inter
 	return specs
 }
 
-func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
+func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion, providerName string) (map[string]matlas.RegionsConfig, error) {
+	// func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, r := range regions {
 		region := r.(map[string]interface{})
 
-		r, err := valRegion(region["region_name"])
+		// r, err := valRegion(region["region_name"])
+		r, err := GetAtlasRegion(providerName, "", region["region_name"].(string))
 		if err != nil {
 			return regionsConfig, err
 		}
 
-		if replaceRegion != "" && r == originalRegion {
-			r, err = valRegion(replaceRegion)
+		originalAtlasRegion, _ := GetAtlasRegion(providerName, "", originalRegion)
+		if replaceRegion != "" && r == originalAtlasRegion {
+			// r, err = valRegion(replaceRegion)
+			r, err = GetAtlasRegion(providerName, "", replaceRegion)
+
 		}
 		if err != nil {
 			return regionsConfig, err
