@@ -12,25 +12,41 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccClusterRSServerlessInstance_basic(t *testing.T) {
+func TestAccServerlessInstance_basic(t *testing.T) {
 	var (
 		serverlessInstance matlas.Cluster
 		resourceName       = "mongodbatlas_serverless_instance.test"
 		instanceName       = acctest.RandomWithPrefix("test-acc-serverless")
-		projectID          = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc-serverless")
+		datasourceName = "data.mongodbatlas_serverless_instance.test_two"
+		datasourceInstancesName = "data.mongodbatlas_serverless_instances.data_serverless"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckBetaFeatures(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, true),
+				Config: testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "termination_protection_enabled", "false"),
+					resource.TestCheckResourceAttrSet(datasourceName, "name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "state_name"),
+					resource.TestCheckResourceAttrSet(datasourceName, "create_date"),
+					resource.TestCheckResourceAttrSet(datasourceName, "mongo_db_version"),
+					resource.TestCheckResourceAttrSet(datasourceName, "continuous_backup_enabled"),
+					resource.TestCheckResourceAttrSet(datasourceName, "termination_protection_enabled"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "project_id"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.#"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.name"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.state_name"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.continuous_backup_enabled"),
+					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.termination_protection_enabled"),
 					testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
 				),
 			},
@@ -38,20 +54,21 @@ func TestAccClusterRSServerlessInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSServerlessInstance_importBasic(t *testing.T) {
+func TestAccServerlessInstance_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_serverless_instance.test"
 		instanceName = acctest.RandomWithPrefix("test-acc-serverless")
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc-serverless")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckBetaFeatures(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t)},
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, true),
+				Config: testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, instanceName, true),
 			},
 			{
 				ResourceName:      resourceName,
@@ -134,7 +151,7 @@ func testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceN
 	}
 }
 
-func testAccMongoDBAtlasServerlessInstanceConfig(projectID, name string, ignoreConnectionStrings bool) string {
+func testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, name string, ignoreConnectionStrings bool) string {
 	lifecycle := ""
 
 	if ignoreConnectionStrings {
@@ -147,16 +164,29 @@ func testAccMongoDBAtlasServerlessInstanceConfig(projectID, name string, ignoreC
 	}
 
 	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
 	resource "mongodbatlas_serverless_instance" "test" {
-		project_id   = "%[1]s"
-		name         = "%[2]s"
+		project_id   = mongodbatlas_project.test.id
+		name         = %[3]q
 
 		provider_settings_backing_provider_name = "AWS"
 		provider_settings_provider_name = "SERVERLESS"
 		provider_settings_region_name = "US_EAST_1"
 		continuous_backup_enabled = true
-		%[3]s
+		%[4]s
 	}
 
-	`, projectID, name, lifecycle)
+	data "mongodbatlas_serverless_instance" "test_two" {
+		name        = mongodbatlas_serverless_instance.test.name
+		project_id  = mongodbatlas_serverless_instance.test.project_id
+	}
+
+	data "mongodbatlas_serverless_instances" "data_serverless" {
+		project_id         = mongodbatlas_serverless_instance.test.project_id
+	}
+
+	`, orgID, projectName, name, lifecycle)
 }
