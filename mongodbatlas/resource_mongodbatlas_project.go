@@ -441,33 +441,9 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 }
 
 func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	//conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
-
 	return deleteProject(ctx, meta, projectID)
 
-	/*stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETING", "RETRY"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
-		Timeout:    30 * time.Minute,
-		MinTimeout: 30 * time.Second,
-		Delay:      0,
-	}
-
-	_, err := stateConf.WaitForStateContext(ctx)
-
-	if err != nil {
-		log.Printf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error())
-	}
-
-	_, err = conn.Projects.Delete(ctx, projectID)
-
-	if err != nil {
-		return diag.Errorf(errorProjectDelete, projectID, err)
-	}
-
-	return nil*/
 }
 
 /*
