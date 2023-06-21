@@ -1312,6 +1312,11 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			providerName := d.Get("provider_name").(string)
 
+			var backingProviderName string
+			if val, ok := d.GetOk("backing_provider_name"); ok {
+				backingProviderName = val.(string)
+			}
+
 			replaceRegion := ""
 			originalRegion := ""
 			id := ""
@@ -1340,7 +1345,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 				}
 			}
 
-			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion, providerName)
+			regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion, providerName, backingProviderName)
 			if err != nil {
 				return rSpecs, err
 			}
@@ -1539,20 +1544,20 @@ func convertToInt64IfNumber(value reflect.Value) (int64, bool) {
 	return 0, false
 }
 
-func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion, providerName string) (map[string]matlas.RegionsConfig, error) {
+func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion, providerName, backingProviderName string) (map[string]matlas.RegionsConfig, error) {
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, r := range regions {
 		region := r.(map[string]interface{})
 
-		r, err := GetAtlasRegion(providerName, "", region["region_name"].(string))
+		r, err := GetAtlasRegion(providerName, backingProviderName, region["region_name"].(string))
 		if err != nil {
 			return regionsConfig, err
 		}
 
-		originalAtlasRegion, _ := GetAtlasRegion(providerName, "", originalRegion)
+		originalAtlasRegion, _ := GetAtlasRegion(providerName, backingProviderName, originalRegion)
 		if replaceRegion != "" && r == originalAtlasRegion {
-			r, err = GetAtlasRegion(providerName, "", replaceRegion)
+			r, err = GetAtlasRegion(providerName, backingProviderName, replaceRegion)
 		}
 		if err != nil {
 			return regionsConfig, err
