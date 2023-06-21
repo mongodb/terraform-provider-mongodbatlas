@@ -718,6 +718,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
 	}
 
+	if d.HasChange("paused") && !d.Get("paused").(bool) {
+		cluster.Paused = pointy.Bool(d.Get("paused").(bool))
+	}
+
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
 	// Has changes

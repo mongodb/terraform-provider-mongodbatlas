@@ -932,6 +932,10 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	if d.HasChange("paused") && !d.Get("paused").(bool) {
+		cluster.Paused = pointy.Bool(d.Get("paused").(bool))
+	}
+
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
 	if isUpgradeRequired(d) {
