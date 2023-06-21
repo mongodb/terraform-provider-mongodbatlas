@@ -6,24 +6,26 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccNetworkRSPrivateLinkEndpointServerless_basic(t *testing.T) {
+func TestAccServerlessPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
 		instanceName = "serverlessplink"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, true),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
@@ -33,25 +35,26 @@ func TestAccNetworkRSPrivateLinkEndpointServerless_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSPrivateLinkEndpointServerless_importBasic(t *testing.T) {
+func TestAccServerlessPrivateLinkEndpoint_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint_serverless.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc-serverless")
 		instanceName = "serverlessimport"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, true),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 				),
 			},
 			{
-				Config:                  testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName, false),
+				Config:                  testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName, false),
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessImportStateIDFunc(resourceName),
 				ImportState:             true,
@@ -81,7 +84,7 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessDestroy(state *terrafo
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceName string, ignoreConnectionStrings bool) string {
+func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(orgID, projectName, instanceName string, ignoreConnectionStrings bool) string {
 	return fmt.Sprintf(`
 
 	resource "mongodbatlas_privatelink_endpoint_serverless" "test" {
@@ -91,7 +94,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServerlessConfig(projectID, instanceN
 	}
 
 	%s
-	`, testAccMongoDBAtlasServerlessInstanceConfig(projectID, instanceName, ignoreConnectionStrings))
+	`, testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, instanceName, ignoreConnectionStrings))
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServerlessExists(resourceName string) resource.TestCheckFunc {
