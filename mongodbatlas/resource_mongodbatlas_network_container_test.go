@@ -19,7 +19,7 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 		randInt                  = acctest.RandIntRange(0, 255)
 		randIntUpdated           = acctest.RandIntRange(0, 255)
 		resourceName             = "mongodbatlas_network_container.test"
-		dataSourceName           = "data.mongodbatlas_network_container.test_ds"
+		dataSourceName           = "data.mongodbatlas_network_container.test"
 		dataSourceContainersName = "data.mongodbatlas_network_containers.test"
 		cidrBlock                = fmt.Sprintf("10.8.%d.0/24", randInt)
 		cidrBlockUpdated         = fmt.Sprintf("10.8.%d.0/24", randIntUpdated)
@@ -294,9 +294,9 @@ func testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock,
 			region_name			 = "%s"
 		}
 
-		data "mongodbatlas_network_container" "test_ds" {
-			project_id   		= mongodbatlas_network_container.test_ds.project_id
-			container_id		= mongodbatlas_network_container.test_ds.id
+		data "mongodbatlas_network_container" "test" {
+			project_id   		= mongodbatlas_network_container.test.project_id
+			container_id		= mongodbatlas_network_container.test.id
 		}
 
 		data "mongodbatlas_network_containers" "test" {
