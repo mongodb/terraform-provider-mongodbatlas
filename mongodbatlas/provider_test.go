@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
