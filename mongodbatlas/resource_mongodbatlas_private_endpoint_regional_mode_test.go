@@ -73,17 +73,16 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
 		resourceSuffix = "atlasrm"
 		resourceName   = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acctest.RandomWithPrefix("test-acc")
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, orgID, projectName, false),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -92,7 +91,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, orgID, projectName, true),
+				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -135,17 +134,13 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName,
 	`, resourceName, projectID, enabled)
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, orgID, projectName string, enabled bool) string {
+func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectID string, enabled bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[3]q
-			org_id = %[2]q
-		}
 		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
-			project_id   = mongodbatlas_project.test.id
-			enabled      = %[4]t
+			project_id   = %[2]q
+			enabled      = %[3]t
 		}
-	`, resourceName, orgID, projectName, enabled)
+	`, resourceName, projectID, enabled)
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
