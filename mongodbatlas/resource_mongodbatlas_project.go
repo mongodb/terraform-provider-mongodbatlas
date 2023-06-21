@@ -172,6 +172,10 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		// adding the teams into the project
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, expandTeamsSet(teams.(*schema.Set)))
 		if err != nil {
+			_, errd := conn.Projects.Delete(ctx, project.ID)
+			if errd != nil {
+				return diag.Errorf(errorProjectDelete, project.ID, errd)
+			}
 			return diag.Errorf("error adding teams into the project: %s", err)
 		}
 	}
@@ -184,6 +188,10 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 				Roles: apiKey.roles,
 			})
 			if err != nil {
+				_, errd := conn.Projects.Delete(ctx, project.ID)
+				if errd != nil {
+					return diag.Errorf(errorProjectDelete, project.ID, errd)
+				}
 				return diag.Errorf("error assigning api keys to the project: %s", err)
 			}
 		}
@@ -191,6 +199,10 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
+		_, errd := conn.Projects.Delete(ctx, project.ID)
+		if errd != nil {
+			return diag.Errorf(errorProjectDelete, project.ID, errd)
+		}
 		return diag.Errorf("error getting project's settings assigned (%s): %s", project.ID, err)
 	}
 
@@ -220,6 +232,10 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings)
 	if err != nil {
+		_, errd := conn.Projects.Delete(ctx, project.ID)
+		if errd != nil {
+			return diag.Errorf(errorProjectDelete, project.ID, errd)
+		}
 		return diag.Errorf("error updating project's settings assigned (%s): %s", project.ID, err)
 	}
 
@@ -425,10 +441,12 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 }
 
 func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	//conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
 
-	stateConf := &resource.StateChangeConf{
+	return deleteProject(ctx, meta, projectID)
+
+	/*stateConf := &resource.StateChangeConf{
 		Pending:    []string{"DELETING", "RETRY"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
@@ -449,7 +467,7 @@ func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf(errorProjectDelete, projectID, err)
 	}
 
-	return nil
+	return nil*/
 }
 
 /*
@@ -626,4 +644,30 @@ func getStateAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, remove
 	removedAPIKeys = rAPIKeys.List()
 
 	return
+}
+
+func deleteProject(ctx context.Context, meta interface{}, projectID string) diag.Diagnostics {
+	conn := meta.(*MongoDBClient).Atlas
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"DELETING", "RETRY"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
+		Timeout:    30 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Delay:      0,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+
+	if err != nil {
+		log.Printf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error())
+	}
+
+	_, err = conn.Projects.Delete(ctx, projectID)
+
+	if err != nil {
+		return diag.Errorf(errorProjectDelete, projectID, err)
+	}
+
+	return nil
 }
