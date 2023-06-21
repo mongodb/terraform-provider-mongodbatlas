@@ -72,13 +72,6 @@ func testAccPreCheckGov(tb testing.TB) {
 	}
 }
 
-func testAccPreCheckBetaFeatures(tb testing.TB) {
-	enableFeatures, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
-	if !enableFeatures {
-		tb.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set to `true` in order to run beta features")
-	}
-}
-
 func testAccPreCheckGPCEnv(tb testing.TB) {
 	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
 		tb.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
