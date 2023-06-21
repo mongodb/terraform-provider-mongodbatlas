@@ -1385,24 +1385,20 @@ func updateRegionNames(d *schema.ResourceData, actualSpecs []map[string]interfac
 
 	if val, ok := d.GetOk("provider_name"); ok {
 		providerName = val.(string)
-		fmt.Printf("provider_name in schema is: %s", val)
 	}
 
 	if val, ok := d.GetOk("backing_provider_name"); ok {
 		backingProviderName = val.(string)
-		fmt.Printf("backing_provider_name in schema is: %s", val)
 	}
 
 	stateReplicationSpecsMap := getStateFileSpecsMap(d.Get("replication_specs"), providerName, backingProviderName)
 
 	for _, actualSpec := range actualSpecs {
-		fmt.Println("hashing actual RepSpec now:")
 		hash := getReplicationSpecHash(actualSpec, true)
 		matchedStateReplicationSpec := stateReplicationSpecsMap[hash]
 
 		for _, actualRegionConfigElem := range actualSpec["regions_config"].([]map[string]interface{}) {
 			actualRegionConfig := actualRegionConfigElem
-			fmt.Println("hashing actualRegionConfig now:")
 			regionConfigHash := getRegionConfigHash(actualRegionConfig)
 			matchedStateRegionConfig := matchedStateReplicationSpec[regionConfigHash].(map[string]interface{})
 
@@ -1437,11 +1433,9 @@ func getStateFileSpecsMap(stateSpecs interface{}, providerName, backingProviderN
 			stateRegionConfig["region_name_by_user"] = stateRegionConfig["region_name"]
 			stateRegionConfig["region_name"], _ = GetAtlasRegion(providerName, backingProviderName, stateRegionConfig["region_name_by_user"].(string))
 
-			fmt.Println("hashing stateRegionConfig now:")
 			regionConfigHashKey := getRegionConfigHash(stateRegionConfig)
 			stateRegionConfigsMap[regionConfigHashKey] = stateRegionConfig
 		}
-		fmt.Println("hashing stateSpec now:")
 		repSpecsHashKey := getReplicationSpecHash(stateSpec, true)
 		stateReplicationSpecsMap[repSpecsHashKey] = stateRegionConfigsMap
 	}
@@ -1510,14 +1504,12 @@ func getRegionConfigHash(regionConfig map[string]interface{}) uint64 {
 func getHashFromProps(props ...interface{}) uint64 {
 	hash := fnv.New64a()
 
-	for i, prop := range props {
+	for _, prop := range props {
 		propValue := reflect.ValueOf(prop)
 
 		if number, ok := convertToInt64IfNumber(propValue); ok {
 			propValue = reflect.ValueOf(number)
 		}
-		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, propValue)
-
 		fmt.Fprintf(hash, "%v", propValue)
 	}
 
