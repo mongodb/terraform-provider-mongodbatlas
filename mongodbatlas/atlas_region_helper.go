@@ -53,7 +53,7 @@ func GetAtlasRegion(cloudProviderName, backingProviderName, regionName string) (
 	}
 
 	if !exists {
-		return "", fmt.Errorf("No Atlas region exists for cloud provider: %s, region name: %s", cloudProviderName, regionName)
+		return "", fmt.Errorf("no Atlas region exists for cloud provider: %s, region name: %s", cloudProviderName, regionName)
 	}
 
 	return string(atlasRegionName), nil

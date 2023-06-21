@@ -1413,7 +1413,6 @@ func flattenReplicationSpecs2(rSpecs []matlas.ReplicationSpec, d *schema.Resourc
 
 			actualRegionConfig["region_name"] = correspondingStateRegionConfig["region_name_by_user"]
 		}
-
 	}
 
 	return actualSpecs
@@ -1555,14 +1554,13 @@ func getHashFromProps(props ...interface{}) uint64 {
 	for i, prop := range props {
 		propValue := reflect.ValueOf(prop)
 
-		// Convert property to int64 if it's a number type
 		if number, ok := convertToInt64IfNumber(propValue); ok {
 			propValue = reflect.ValueOf(number)
 		}
 		fmt.Printf("Hashing property ==> %d  ..  %s \n\n", i, propValue)
 
 		// Hash the string representation of the property's value
-		hash.Write([]byte(fmt.Sprintf("%v", propValue)))
+		fmt.Fprintf(hash, "%v", propValue)
 	}
 
 	return hash.Sum64()
@@ -1598,7 +1596,6 @@ func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion, p
 		originalAtlasRegion, _ := GetAtlasRegion(providerName, "", originalRegion)
 		if replaceRegion != "" && r == originalAtlasRegion {
 			r, err = GetAtlasRegion(providerName, "", replaceRegion)
-
 		}
 		if err != nil {
 			return regionsConfig, err
