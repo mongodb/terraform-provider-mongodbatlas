@@ -59,7 +59,7 @@ jobs:
             - 'mongodbatlas/**_network**.go'  
             - 'mongodbatlas/**_privatelink**.go' 
             - 'mongodbatlas/**_private_endpoint**.go'
-          config
+          config:
             - 'mongodbatlas/**_accesslist**.go'  
             - 'mongodbatlas/**_alert_configuration**.go' 
             - 'mongodbatlas/**_api_key**.go'    
