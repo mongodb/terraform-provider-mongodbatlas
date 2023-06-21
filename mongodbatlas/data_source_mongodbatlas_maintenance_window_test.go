@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -12,16 +13,17 @@ import (
 func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	var maintenance matlas.MaintenanceWindow
 
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	dayOfWeek := 7
 	hourOfDay := 3
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),
+				Config: testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasMaintenanceWindowExists("mongodbatlas_maintenance_window.test", &maintenance),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_maintenance_window.test", "project_id"),
@@ -34,17 +36,21 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(projectID string, dayOfWeek, hourOfDay int) string {
+func testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_maintenance_window" "test" {
-			project_id  = "%s"
-			day_of_week = %d
-			hour_of_day = %d
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+			resource "mongodbatlas_maintenance_window" "test" {
+			project_id  = mongodbatlas_project.project.id
+			day_of_week = %[3]d
+			hour_of_day = %[4]d
 			auto_defer_once_enabled = true
 		}
 
 		data "mongodbatlas_maintenance_window" "test" {
 			project_id = "${mongodbatlas_maintenance_window.test.id}"
 		}
-	`, projectID, dayOfWeek, hourOfDay)
+	`, orgID, projectName, dayOfWeek, hourOfDay)
 }

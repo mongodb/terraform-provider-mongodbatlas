@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -15,15 +16,16 @@ import (
 func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_alert_configurations.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfigurations(projectID),
+				Config: testAccDSMongoDBAtlasAlertConfigurations(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationsCount(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -33,16 +35,20 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasAlertConfigurations(projectID string) string {
+func testAccDSMongoDBAtlasAlertConfigurations(orgID, projectName string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		data "mongodbatlas_alert_configurations" "test" {
-			project_id = "%s"
+			project_id = mongodbatlas_project.test.id
 
 			list_options {
 				page_num = 0
 			}
 		}
-	`, projectID)
+	`, orgID, projectName)
 }
 
 func testAccCheckMongoDBAtlasAlertConfigurationsCount(resourceName string) resource.TestCheckFunc {

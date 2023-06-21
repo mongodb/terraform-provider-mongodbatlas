@@ -11,17 +11,18 @@ import (
 
 func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_database_users.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	roleName := "atlasAdmin"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username),
+				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user", "id"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_database_user.db_user_1", "id"),
@@ -29,7 +30,7 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(projectID, roleName, username),
+				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(orgID, projectName, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -44,28 +45,32 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username string) string {
+func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_database_user" "db_user" {
-			username           = "%[3]s"
+			username           = %[4]q
 			password           = "test-acc-password"
-			project_id         = "%[1]s"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = %[3]q
 				database_name = "admin"
 			}
 		}
 
 		resource "mongodbatlas_database_user" "db_user_1" {
-			username           = "%[3]s-1"
+			username           = "%[4]s-1"
 			password           = "test-acc-password-1"
-			project_id         = "%[1]s"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = %[3]q
 				database_name = "admin"
 			}
 
@@ -78,15 +83,15 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, usern
 				value = "value 2"
 			}
 		}
-	`, projectID, roleName, username)
+	`, orgID, projectName, roleName, username)
 }
 
-func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(projectID, roleName, username string) string {
+func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(orgID, projectName, roleName, username string) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_database_users" "test" {
-			project_id = "%s"
+			project_id = mongodbatlas_project.test.id
 		}
-	`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(projectID, roleName, username), projectID)
+	`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username), projectID)
 }

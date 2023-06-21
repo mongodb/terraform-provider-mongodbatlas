@@ -12,16 +12,17 @@ import (
 func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 	resourceName := "mongodbatlas_custom_db_role.test"
 	dataSourceName := "data.mongodbatlas_custom_db_role.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	roleName := fmt.Sprintf("test-acc-custom_role-%s", acctest.RandString(5))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasCustomDBRoleConfig(projectID, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
+				Config: testAccDSMongoDBAtlasCustomDBRoleConfig(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
 				Check: resource.ComposeTestCheckFunc(
 					// Test for Resource
 					testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName),
@@ -44,17 +45,21 @@ func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasCustomDBRoleConfig(projectID, roleName, action, databaseName string) string {
+func testAccDSMongoDBAtlasCustomDBRoleConfig(orgID, projectName, roleName, action, databaseName string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_custom_db_role" "test" {
-			project_id = "%s"
-			role_name  = "%s"
+			project_id = mongodbatlas_project.test.id
+			role_name  = %[3]q
 
 			actions {
-				action = "%s"
+				action = %[4]q
 				resources {
 					collection_name = ""
-					database_name   = "%s"
+					database_name   = %[5]q
 				}
 			}
 		}
@@ -63,5 +68,5 @@ func testAccDSMongoDBAtlasCustomDBRoleConfig(projectID, roleName, action, databa
 			project_id = "${mongodbatlas_custom_db_role.test.project_id}"
 			role_name  = "${mongodbatlas_custom_db_role.test.role_name}"
 		}
-	`, projectID, roleName, action, databaseName)
+	`, orgID, projectName, roleName, action, databaseName)
 }

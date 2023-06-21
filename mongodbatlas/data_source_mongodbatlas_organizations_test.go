@@ -11,7 +11,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 	var (
 		datasourceName = "data.mongodbatlas_organizations.test"
 	)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -30,7 +30,7 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 	var (
 		datasourceName = "data.mongodbatlas_organizations.test"
 	)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

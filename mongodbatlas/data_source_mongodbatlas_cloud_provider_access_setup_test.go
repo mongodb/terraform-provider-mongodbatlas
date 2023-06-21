@@ -13,14 +13,18 @@ import (
 
 const (
 	dataSourceCPASProviderConfig = `
+	resource "mongodbatlas_project" "test" {
+		name   = %[3]q
+		org_id = %[2]q
+	}
 	resource "mongodbatlas_cloud_provider_access_setup" "%[1]s" {
-		project_id = "%[2]s"
-		provider_name = "%[3]s"
+		project_id = mongodbatlas_project.test.id
+		provider_name = %[4]q
 	 }
 	 
 	 data "mongodbatlas_cloud_provider_access_setup" "%[4]s" {
 		project_id = mongodbatlas_cloud_provider_access_setup.%[1]s.project_id
-		provider_name = "%[3]s"
+		provider_name = %[4]q
 		role_id =  mongodbatlas_cloud_provider_access_setup.%[1]s.role_id
 	 }
 	 `
@@ -28,20 +32,21 @@ const (
 
 func TestAccConfigDSCloudProviderAccessSetup_aws_basic(t *testing.T) {
 	var (
-		suffix     = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-		name       = "cpas" + suffix
-		dataSCName = "ds_cpas" + suffix
-		projectID  = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		suffix      = acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
+		name        = "cpas" + suffix
+		dataSCName  = "ds_cpas" + suffix
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 
 		// resources fqdn name
 		resourceName = "mongodbatlas_cloud_provider_access_setup." + name
 		dsName       = "data.mongodbatlas_cloud_provider_access_setup." + dataSCName
 	)
 
-	config := fmt.Sprintf(dataSourceCPASProviderConfig, name, projectID, "AWS", dataSCName)
+	config := fmt.Sprintf(dataSourceCPASProviderConfig, name, orgID, projectName, "AWS", dataSCName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +54,6 @@ func TestAccConfigDSCloudProviderAccessSetup_aws_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
-					resource.TestCheckResourceAttr(dsName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dsName, "aws.atlas_assumed_role_external_id"),
 				),
 			},
