@@ -13,18 +13,19 @@ import (
 func TestAccProjectDSProjectInvitation_basic(t *testing.T) {
 	var (
 		dataSourceName = "mongodbatlas_project_invitation.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
 		name           = fmt.Sprintf("test-acc-%s@mongodb.com", acctest.RandString(10))
 		initialRole    = []string{"GROUP_OWNER"}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceMongoDBAtlasProjectInvitationConfig(projectID, name, initialRole),
+				Config: testAccDataSourceMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "username"),
@@ -37,19 +38,24 @@ func TestAccProjectDSProjectInvitation_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceMongoDBAtlasProjectInvitationConfig(projectID, username string, roles []string) string {
+func testAccDataSourceMongoDBAtlasProjectInvitationConfig(orgID, projectName, username string, roles []string) string {
 	return fmt.Sprintf(`
+
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_project_invitation" "test" {
-			project_id = %[1]q
-			username   = %[2]q
-			roles  	 = ["%[3]s"]
+			project_id = mongodbatlas_project.test.id
+			username   = %[3]q
+			roles  	 = ["%[4]s"]
 		}
 
 		data "mongodbatlas_project_invitation" "test" {
 			project_id    = mongodbatlas_project_invitation.test.project_id
 			username 	  = mongodbatlas_project_invitation.test.username
 			invitation_id = mongodbatlas_project_invitation.test.invitation_id
-		}`, projectID, username,
+		}`, orgID, projectName, username,
 		strings.Join(roles, `", "`),
 	)
 }

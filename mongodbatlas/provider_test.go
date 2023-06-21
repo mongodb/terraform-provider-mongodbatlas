@@ -56,6 +56,13 @@ func testAccPreCheckBasic(tb testing.TB) {
 	}
 }
 
+func testAccPreCheckBasicOwnerID(tb testing.TB) {
+	testAccPreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
+	}
+}
+
 func testAccPreCheckGov(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
