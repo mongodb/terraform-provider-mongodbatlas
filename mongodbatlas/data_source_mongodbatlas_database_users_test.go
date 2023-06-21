@@ -93,5 +93,5 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(orgID, projectName, 
 		data "mongodbatlas_database_users" "test" {
 			project_id = mongodbatlas_project.test.id
 		}
-	`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username), projectID)
+	`, testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username))
 }
