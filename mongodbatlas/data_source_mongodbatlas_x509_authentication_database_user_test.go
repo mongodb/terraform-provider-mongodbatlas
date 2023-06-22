@@ -36,8 +36,8 @@ func TestAccGenericAdvDSX509AuthDBUser_basic(t *testing.T) {
 func TestAccGenericAdvDSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	resourceName := "data.mongodbatlas_x509_authentication_database_user.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	cas := os.Getenv("MONGODB_ATLAS_CA_CERT_CLOUD_DEV")
 	projectName := acctest.RandomWithPrefix("test-acc")
-	cas := os.Getenv("CA_CERT")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
@@ -81,9 +81,7 @@ func testAccMongoX509AuthDBUserDataSourceConfigWithCustomerX509(orgID, projecNam
 		}
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
 			project_id        = mongodbatlas_project.test.id
-			customer_x509_cas = <<EOT
-								%s
-								EOT
+			customer_x509_cas = %[3]q
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {
