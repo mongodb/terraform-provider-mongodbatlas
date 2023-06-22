@@ -181,23 +181,6 @@ func testAccCheckMongoDBAtlasMaintenanceWindowAttributes(attr string, expected i
 	}
 }
 
-func testAccCheckMongoDBAtlasMaintenanceWindowDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_maintenance_window" {
-			continue
-		}
-
-		_, _, err := conn.MaintenanceWindows.Get(context.Background(), rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("maintenance Window (%s) does not exist", rs.Primary.ID)
-		}
-	}
-
-	return nil
-}
-
 func testAccCheckMongoDBAtlasMaintenanceWindowImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
