@@ -252,7 +252,7 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithCustomerX509(projectName, orgID,
 		}
 
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
-			project_id        = "${mongodbatlas_project.test.id}"
+			project_id        = mongodbatlas_project.test.id
 			customer_x509_cas =  %[3]q
 		}
 	`, projectName, orgID, cas)
@@ -266,7 +266,7 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithDatabaseUser(projectName, orgID,
 		}
 
 		resource "mongodbatlas_database_user" "user" {
-			project_id         = "${mongodbatlas_project.test.id}"
+			project_id         = mongodbatlas_project.test.id
 			username           = "%s"
 			x509_type          = "MANAGED"
 			auth_database_name = "$external"
