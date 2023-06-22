@@ -42,6 +42,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
 
     region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
       analytics_specs {
         instance_size = "M10"
         node_count    = 1
