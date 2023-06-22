@@ -23,7 +23,7 @@ resource "mongodbatlas_auditing" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to configure auditing. **Note! When changing this value to a different project_id it will delete the current audit settings for the original project that was assigned to.**
+* `project_id` - (Required) The unique ID for the project to configure auditing. **Note: When changing this value to a different project_id it will delete the current audit settings for the original project that was assigned to.**
 * `audit_authorization_success` - Indicates whether the auditing system captures successful authentication attempts for audit filters using the "atype" : "authCheck" auditing event. For more information, see [auditAuthorizationSuccess](https://docs.mongodb.com/manual/reference/parameters/#param.auditAuthorizationSuccess).  **Warning! Enabling Audit authorization successes can severely impact cluster performance. Enable this option with caution.**
 * `audit_filter` - JSON-formatted audit filter. For complete documentation on custom auditing filters, see [Configure Audit Filters](https://docs.mongodb.com/manual/tutorial/configure-audit-filters/).
 * `enabled` - Denotes whether or not the project associated with the {project_id} has database auditing enabled.  Defaults to false.
