@@ -6,11 +6,12 @@ updates:
       interval: weekly
       day: tuesday
     reviewers:
-      - "themantissa"
+      - "mongodb/apix-integrations"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
       day: tuesday
     reviewers:
-      - "themantissa"
+      - "mongodb/apix-integrations"
+
