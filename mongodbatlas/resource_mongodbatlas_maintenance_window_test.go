@@ -75,7 +75,6 @@ func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
@@ -114,7 +113,6 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(orgID, projectName, dayOfWeek, hourOfDay),

@@ -20,7 +20,7 @@ func TestAccConfigDSProjectAPIKeys_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasProjectAPIKeysConfig(orgID, projectName, description, roleName),
@@ -53,7 +53,7 @@ func testAccDSMongoDBAtlasProjectAPIKeysConfig(orgID, projectName, description, 
 		}
 
 		data "mongodbatlas_project_api_keys" "test" {
-		  project_id = mongodbatlas_project_api_key.test.id
+		  project_id = mongodbatlas_project.test.id
 		}
 	`, orgID, projectName, description, roleNames)
 }

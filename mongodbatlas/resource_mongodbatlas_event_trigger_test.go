@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -78,7 +78,7 @@ func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
 }
 
 func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -203,7 +203,7 @@ func TestAccConfigRSEventTriggerAuth_basic(t *testing.T) {
 }
 
 func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
