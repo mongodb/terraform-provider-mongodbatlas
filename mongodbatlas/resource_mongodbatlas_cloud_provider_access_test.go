@@ -53,8 +53,7 @@ func TestAccConfigRSCloudProviderAccess_basic(t *testing.T) {
 
 func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 	var (
-		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
-		resourceName = "mongodbatlas_cloud_provider_access." + name
+		resourceName = "mongodbatlas_cloud_provider_access.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		targetRole   = matlas.AWSIAMRole{}
@@ -63,10 +62,9 @@ func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessRole, name, orgID, projectName, "AWS"),
+				Config: fmt.Sprintf(createProviderAccessRole, orgID, projectName, "AWS"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
 					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),

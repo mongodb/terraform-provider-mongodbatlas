@@ -84,6 +84,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		username     = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
@@ -93,7 +94,7 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{"mongodbatlas.testing@gmail.com"}),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{username}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),

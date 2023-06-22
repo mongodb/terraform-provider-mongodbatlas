@@ -23,7 +23,7 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{

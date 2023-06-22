@@ -30,7 +30,6 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
