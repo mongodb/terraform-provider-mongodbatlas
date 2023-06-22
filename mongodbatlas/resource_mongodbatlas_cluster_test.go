@@ -1107,7 +1107,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 		num_shards = 1
 		zone_name = "us3"
 		regions_config{
-			region_name     = "US_EAST_1"
+			region_name     = "US-EAST-1"
 			electable_nodes = 3
 			priority        = 7
 			read_only_nodes = 0
@@ -1117,7 +1117,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 		num_shards = 1
 		zone_name = "us1"
 		regions_config{
-			region_name     = "US_WEST_1"
+			region_name     = "us-west-1"
 			electable_nodes = 3
 			priority        = 7
 			read_only_nodes = 0
@@ -1139,7 +1139,7 @@ func TestAccClusterRSCluster_RegionsConfig(t *testing.T) {
 		num_shards = 1
 		zone_name = "us1"
 		regions_config{
-			region_name     = "US_WEST_1"
+			region_name     = "US-WEST-1"
 			electable_nodes = 3
 			priority        = 7
 			read_only_nodes = 0
