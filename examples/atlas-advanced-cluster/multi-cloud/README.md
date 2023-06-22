@@ -30,7 +30,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-**2\. Review the Terraform plan. **
+**2\. Review the Terraform plan.**
 
 Execute the below command and ensure you are happy with the plan.
 
