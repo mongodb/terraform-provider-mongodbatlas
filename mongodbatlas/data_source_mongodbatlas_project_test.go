@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccProjectDSProject_byID(t *testing.T) {
-	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
@@ -24,7 +24,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -54,14 +54,13 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccProjectDSProject_byName(t *testing.T) {
-	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
@@ -73,7 +72,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -104,14 +103,13 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccProjectDSProject_defaultFlags(t *testing.T) {
-	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
+	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
@@ -123,7 +121,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -160,7 +158,6 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_realtime_performance_panel_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_schema_advisor_enabled"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
