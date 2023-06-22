@@ -131,7 +131,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 
-### Example of a large Multi-Cloud Cluster.
+### Example of a Multi-Cloud Cluster.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
