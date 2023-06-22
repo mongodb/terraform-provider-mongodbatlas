@@ -12,22 +12,17 @@ import (
 	"github.com/spf13/cast"
 )
 
-func TestAccAdvRSX509AuthDBUser_basic(t *testing.T) {
+func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
-		username     = os.Getenv("MONGODB_ATLAS_DB_USERNAME")
+		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
-			testAccPreCheck(t)
-			func() {
-				if os.Getenv("MONGODB_ATLAS_DB_USERNAME") == "" {
-					t.Fatal("`MONGODB_ATLAS_DB_USERNAME` must be set for MongoDB Atlas X509 Authentication Database users  testing")
-				}
-			}()
+			testAccPreCheckBasic(t)
 		},
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
@@ -45,7 +40,7 @@ func TestAccAdvRSX509AuthDBUser_basic(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
+func TestAccGenericAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		cas          = os.Getenv("CA_CERT")
@@ -54,7 +49,7 @@ func TestAccAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
 		Steps: []resource.TestStep{
@@ -70,10 +65,10 @@ func TestAccAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSX509AuthDBUser_importBasic(t *testing.T) {
+func TestAccGenericAdvRSX509AuthDBUser_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
-		username     = os.Getenv("MONGODB_ATLAS_DB_USERNAME")
+		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
@@ -81,11 +76,6 @@ func TestAccAdvRSX509AuthDBUser_importBasic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			func() {
-				if os.Getenv("MONGODB_ATLAS_DB_USERNAME") == "" {
-					t.Fatal("`MONGODB_ATLAS_DB_USERNAME` must be set for MongoDB Atlas X509 Authentication Database users  testing")
-				}
-			}()
 		},
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
@@ -102,7 +92,7 @@ func TestAccAdvRSX509AuthDBUser_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSX509AuthDBUser_WithDatabaseUser(t *testing.T) {
+func TestAccGenericAdvRSX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -112,7 +102,7 @@ func TestAccAdvRSX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
 		Steps: []resource.TestStep{
@@ -131,7 +121,7 @@ func TestAccAdvRSX509AuthDBUser_WithDatabaseUser(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSX509AuthDBUser_importWithCustomerX509(t *testing.T) {
+func TestAccGenericAdvRSX509AuthDBUser_importWithCustomerX509(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
 		cas          = os.Getenv("CA_CERT")
@@ -140,7 +130,7 @@ func TestAccAdvRSX509AuthDBUser_importWithCustomerX509(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
 		Steps: []resource.TestStep{
