@@ -46,8 +46,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
 					[]string{
-						"edgar.lopez@digitalonus.com",
-						"antonio.cabrera@digitalonus.com",
+						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -55,7 +54,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
