@@ -116,9 +116,9 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
+	roleID := ids["id"]
 
-	roles, resp, err := conn.CloudProviderAccess.ListRoles(context.Background(), projectID)
-
+	role, resp, err := conn.CloudProviderAccess.GetRole(context.Background(), projectID, roleID)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -128,25 +128,7 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
-	var targetRole matlas.AWSIAMRole
-
-	// searching in roles
-	for i := range roles.AWSIAMRoles {
-		role := &(roles.AWSIAMRoles[i])
-
-		if role.RoleID == ids["id"] && role.ProviderName == ids["provider_name"] {
-			targetRole = *role
-		}
-	}
-
-	// Not Found
-	if targetRole.RoleID == "" && !d.IsNewResource() {
-		d.SetId("")
-		return nil
-	}
-
-	roleSchema := roleToSchema(&targetRole)
-
+	roleSchema := roleToSchema(role)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(fmt.Errorf(errorGetRead, err))

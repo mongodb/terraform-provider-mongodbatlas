@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -56,19 +55,19 @@ func testAccPreCheckBasic(tb testing.TB) {
 	}
 }
 
+func testAccPreCheckBasicOwnerID(tb testing.TB) {
+	testAccPreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
+	}
+}
+
 func testAccPreCheckGov(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
 		tb.Skip()
-	}
-}
-
-func testAccPreCheckBetaFeatures(tb testing.TB) {
-	enableFeatures, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
-	if !enableFeatures {
-		tb.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set to `true` in order to run beta features")
 	}
 }
 
@@ -208,6 +207,13 @@ func testCheckTeamsIds(tb testing.TB) {
 
 func SkipTest(tb testing.TB) {
 	if strings.EqualFold(os.Getenv("SKIP_TEST"), "true") {
+		tb.Skip()
+	}
+}
+
+// SkipTestForCI is added to tests that cannot run as part of a CI
+func SkipTestForCI(tb testing.TB) {
+	if strings.EqualFold(os.Getenv("CI"), "true") {
 		tb.Skip()
 	}
 }

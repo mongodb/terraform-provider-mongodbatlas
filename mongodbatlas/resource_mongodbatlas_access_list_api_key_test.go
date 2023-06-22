@@ -19,7 +19,7 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	updatedIPAddress := fmt.Sprintf("179.154.228.%d", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	updatedCIDRBlock := fmt.Sprintf("179.154.228.%d/32", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -94,7 +94,7 @@ func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{

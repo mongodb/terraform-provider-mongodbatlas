@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -13,25 +14,24 @@ import (
 func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		region       = "us-east-1"
 		providerName = "AWS"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
@@ -43,25 +43,24 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 func TestAccNetworkRSPrivateLinkEndpointAWS_import(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		region       = "us-east-1"
 		providerName = "AWS"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
@@ -78,25 +77,24 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_import(t *testing.T) {
 func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		region       = "US_EAST_2"
 		providerName = "AZURE"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
@@ -108,25 +106,24 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 func TestAccNetworkRSPrivateLinkEndpointAzure_import(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		region       = "US_EAST_2"
 		providerName = "AZURE"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
@@ -144,25 +141,24 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_import(t *testing.T) {
 func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		region       = "us-central1"
 		providerName = "GCP"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region),
+				Config: testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasPrivateLinkEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 				),
@@ -231,12 +227,16 @@ func testAccCheckMongoDBAtlasPrivateLinkEndpointDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(projectID, providerName, region string) string {
+func testAccMongoDBAtlasPrivateLinkEndpointConfigBasic(orgID, projectName, providerName, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = "%s"
-			provider_name = "%s"
-			region        = "%s"
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
 		}
-	`, projectID, providerName, region)
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = mongodbatlas_project.test.id
+			provider_name = %[3]q
+			region        = %[4]q
+		}
+	`, orgID, projectName, providerName, region)
 }

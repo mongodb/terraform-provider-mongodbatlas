@@ -472,7 +472,9 @@ func decodeStateID(stateID string) map[string]string {
 
 	for _, value := range encodedValues {
 		keyValue := strings.Split(value, ":")
-		decodedValues[decode(keyValue[0])] = decode(keyValue[1])
+		if len(keyValue) > 1 {
+			decodedValues[decode(keyValue[0])] = decode(keyValue[1])
+		}
 	}
 
 	return decodedValues
