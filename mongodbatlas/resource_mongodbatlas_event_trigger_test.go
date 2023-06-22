@@ -49,7 +49,7 @@ func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
@@ -144,7 +144,7 @@ func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 }
 
 func TestAccConfigRSEventTriggerAuth_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -264,7 +264,7 @@ func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
 }
 
 func TestAccConfigRSEventTriggerSchedule_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -320,7 +320,7 @@ func TestAccConfigRSEventTriggerSchedule_basic(t *testing.T) {
 }
 
 func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -378,7 +378,7 @@ func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
 }
 
 func TestAccConfigRSEventTriggerFunction_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

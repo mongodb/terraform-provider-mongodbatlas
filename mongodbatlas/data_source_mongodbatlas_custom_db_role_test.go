@@ -29,8 +29,6 @@ func TestAccConfigDSCustomDBRole_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "actions.0.action"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
 					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),

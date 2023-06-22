@@ -19,7 +19,7 @@ func TestAccConfigRSCustomDNSConfigurationAWS_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasCustomDNSConfigurationAWSDestroy,
 		Steps: []resource.TestStep{

@@ -63,7 +63,7 @@ func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{

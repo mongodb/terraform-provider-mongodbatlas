@@ -22,7 +22,7 @@ const (
 		provider_name = %[4]q
 	 }
 	 
-	 data "mongodbatlas_cloud_provider_access_setup" "%[4]s" {
+	 data "mongodbatlas_cloud_provider_access_setup" "%[5]s" {
 		project_id = mongodbatlas_cloud_provider_access_setup.%[1]s.project_id
 		provider_name = %[4]q
 		role_id =  mongodbatlas_cloud_provider_access_setup.%[1]s.role_id

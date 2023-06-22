@@ -43,7 +43,7 @@ func testAccMongoDBAtlasDataSourceMaintenanceWindowConfig(orgID, projectName str
 			org_id = %[1]q
 		}
 			resource "mongodbatlas_maintenance_window" "test" {
-			project_id  = mongodbatlas_project.project.id
+			project_id  = mongodbatlas_project.test.id
 			day_of_week = %[3]d
 			hour_of_day = %[4]d
 			auto_defer_once_enabled = true

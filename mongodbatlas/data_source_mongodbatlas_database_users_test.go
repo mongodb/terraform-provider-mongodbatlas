@@ -32,7 +32,6 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfigWithDS(orgID, projectName, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.x509_type"),

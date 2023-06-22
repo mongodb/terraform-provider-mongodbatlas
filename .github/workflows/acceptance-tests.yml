@@ -250,6 +250,7 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
+          CI: true
           TEST_REGEX: "^TestAccBackupRSCloudBackupSchedule"
         run: make testacc
   project: 
@@ -277,6 +278,7 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
+          CI: true
           TEST_REGEX: "^TestAccProject"
         run: make testacc
   serverless:
@@ -301,6 +303,7 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
+          CI: true
           TEST_REGEX: "^TestAccServerless"
         run: make testacc
   network:
@@ -329,6 +332,7 @@ jobs:
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
+          CI: true
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
   config:
@@ -344,14 +348,15 @@ jobs:
           go-version: "1.20"
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
+          CI: true
           TEST_REGEX: "^TestAccConfig"
         run: make testacc
