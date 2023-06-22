@@ -443,7 +443,6 @@ func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceDa
 func resourceMongoDBAtlasProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	projectID := d.Id()
 	return deleteProject(ctx, meta, projectID)
-
 }
 
 /*
