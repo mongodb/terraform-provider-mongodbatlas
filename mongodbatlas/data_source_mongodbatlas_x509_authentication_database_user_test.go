@@ -27,7 +27,6 @@ func TestAccGenericAdvDSX509AuthDBUser_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 				),
 			},

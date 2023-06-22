@@ -75,7 +75,7 @@ func TestAccGenericAdvRSX509AuthDBUser_importBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
-			testAccPreCheck(t)
+			testAccPreCheckBasic(t)
 		},
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasX509AuthDBUserDestroy,
