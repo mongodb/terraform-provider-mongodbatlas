@@ -1405,9 +1405,12 @@ func updateRegionNames(d *schema.ResourceData, actualSpecs []map[string]interfac
 		for _, actualRegionConfigElem := range actualSpec["regions_config"].([]map[string]interface{}) {
 			actualRegionConfig := actualRegionConfigElem
 			regionConfigHash := getRegionConfigHash(actualRegionConfig)
-			matchedStateRegionConfig := matchedStateReplicationSpec[regionConfigHash].(map[string]interface{})
+			matchedStateRegionConfig := matchedStateReplicationSpec[regionConfigHash]
 
-			actualRegionConfig["region_name"] = matchedStateRegionConfig["region_name_by_user"]
+			if matchedStateRegionConfig != nil {
+				matchedStateRegionConfig := matchedStateRegionConfig.(map[string]interface{})
+				actualRegionConfig["region_name"] = matchedStateRegionConfig["region_name_by_user"]
+			}
 		}
 	}
 
