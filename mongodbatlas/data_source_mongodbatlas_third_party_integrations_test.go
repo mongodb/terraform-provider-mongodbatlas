@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		intgTypes       = []string{"NEW_RELIC", "OPS_GENIE", "DATADOG", "VICTOR_OPS", "WEBHOOK", "PROMETHEUS"}

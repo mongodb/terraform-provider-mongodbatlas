@@ -12,7 +12,7 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

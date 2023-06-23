@@ -15,26 +15,24 @@ import (
 )
 
 func TestAccConfigRSTeam_basic(t *testing.T) {
-	SkipTest(t)
 	var (
 		team         matlas.Team
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 		updatedName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username     = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, name,
 					[]string{
-						"mongodbatlas.testing@gmail.com",
-						"antonio.cabrera@digitalonus.com",
-						"edgar.lopez@digitalonus.com",
+						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -42,14 +40,13 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasTeamAttributes(&team, name),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
 					[]string{
-						"edgar.lopez@digitalonus.com",
-						"antonio.cabrera@digitalonus.com",
+						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -57,15 +54,13 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 			{
 				Config: testAccMongoDBAtlasTeamConfig(orgID, updatedName,
 					[]string{
-						"edgar.lopez@digitalonus.com",
-						"mongodbatlas.testing@gmail.com",
-						"antonio.cabrera@digitalonus.com",
+						username,
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -73,7 +68,7 @@ func TestAccConfigRSTeam_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasTeamAttributes(&team, updatedName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
 				),
 			},
 		},
@@ -84,16 +79,17 @@ func TestAccConfigRSTeam_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_teams.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		username     = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{"mongodbatlas.testing@gmail.com"}),
+				Config: testAccMongoDBAtlasTeamConfig(orgID, name, []string{username}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
