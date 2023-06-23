@@ -262,7 +262,9 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithCustomerX509(projectName, orgID,
 
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
 			project_id        = "${mongodbatlas_project.test.id}"
-			customer_x509_cas = %q
+			customer_x509_cas = <<-EOT
+			%s
+			EOT
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {
