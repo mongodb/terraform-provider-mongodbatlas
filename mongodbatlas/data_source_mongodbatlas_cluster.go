@@ -558,7 +558,10 @@ func clusterAdvancedConfigurationSchemaComputed() *schema.Schema {
 				},
 				"oplog_min_retention_hours": {
 					Type:     schema.TypeInt,
-					Optional: true,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
 					Computed: true,
 				},
 			},

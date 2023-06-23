@@ -16,10 +16,10 @@ func TestAccConfigDSAccesslistAPIKey_basic(t *testing.T) {
 	description := fmt.Sprintf("test-acc-accesslist-api_key-%s", acctest.RandString(5))
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		//CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasAccesslistAPIKeyConfig(orgID, description, ipAddress),

@@ -230,7 +230,7 @@ func TestAccClusterAdvancedCluster_multicloudSharded(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_Paused(t *testing.T) {
+func TestAccClusterAdvancedCluster_UnpausedToPaused(t *testing.T) {
 	SkipTest(t)
 	var (
 		cluster      matlas.AdvancedCluster
@@ -280,6 +280,56 @@ func TestAccClusterAdvancedCluster_Paused(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_PausedToUnpaused(t *testing.T) {
+	SkipTest(t)
+	var (
+		cluster      matlas.AdvancedCluster
+		resourceName = "mongodbatlas_advanced_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		rName        = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "true"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigSingleProviderPaused(orgID, projectName, rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"replication_specs"},
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 	var (
 		cluster                matlas.AdvancedCluster
@@ -300,6 +350,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 			OplogSizeMB:                      pointy.Int64(1000),
 			SampleRefreshIntervalBIConnector: pointy.Int64(310),
 			SampleSizeBIConnector:            pointy.Int64(110),
+			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
 		}
 		processArgsUpdated = &matlas.ProcessArgs{
 			DefaultReadConcern:               "available",
@@ -311,6 +362,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 			OplogSizeMB:                      pointy.Int64(1000),
 			SampleRefreshIntervalBIConnector: pointy.Int64(310),
 			SampleSizeBIConnector:            pointy.Int64(110),
+			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
 		}
 	)
 
@@ -331,6 +383,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.replication_specs.#"),
@@ -349,6 +402,7 @@ func TestAccClusterAdvancedCluster_advancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.oplog_size_mb", "1000"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_refresh_interval_bi_connector", "310"),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.sample_size_bi_connector", "110"),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.transaction_lifetime_limit_seconds", "300"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.#"),
 					resource.TestCheckResourceAttrSet(dataSourceNameClusters, "results.0.replication_specs.#"),
@@ -386,6 +440,7 @@ func TestAccClusterAdvancedCluster_DefaultWrite(t *testing.T) {
 			OplogSizeMB:                      pointy.Int64(1000),
 			SampleRefreshIntervalBIConnector: pointy.Int64(310),
 			SampleSizeBIConnector:            pointy.Int64(110),
+			TransactionLifetimeLimitSeconds:  pointy.Int64(300),
 		}
 	)
 
@@ -821,6 +876,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     oplog_size_mb                        = %[8]d
     sample_size_bi_connector			 = %[9]d
     sample_refresh_interval_bi_connector = %[10]d
+	transaction_lifetime_limit_seconds   = %[11]d
   }
 }
 data "mongodbatlas_advanced_cluster" "test" {
@@ -834,7 +890,7 @@ data "mongodbatlas_advanced_clusters" "test" {
 
 	`, orgID, projectName, name,
 		*p.FailIndexKeyTooLong, *p.JavascriptEnabled, p.MinimumEnabledTLSProtocol, *p.NoTableScan,
-		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector)
+		*p.OplogSizeMB, *p.SampleSizeBIConnector, *p.SampleRefreshIntervalBIConnector, *p.TransactionLifetimeLimitSeconds)
 }
 
 func testAccMongoDBAtlasAdvancedClusterConfigAdvancedConfDefaultWrite(orgID, projectName, name string, p *matlas.ProcessArgs) string {

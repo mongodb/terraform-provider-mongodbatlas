@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -69,13 +68,6 @@ func testAccPreCheckGov(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
 		tb.Skip()
-	}
-}
-
-func testAccPreCheckBetaFeatures(tb testing.TB) {
-	enableFeatures, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_BETA"))
-	if !enableFeatures {
-		tb.Fatal("`MONGODB_ATLAS_ENABLE_BETA` must be set to `true` in order to run beta features")
 	}
 }
 
