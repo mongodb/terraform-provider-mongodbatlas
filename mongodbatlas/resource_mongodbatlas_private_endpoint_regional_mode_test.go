@@ -143,15 +143,6 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectI
 	`, resourceName, projectID, enabled)
 }
 
-func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, orgID, projectName string, enabled bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
-			project_id   = %[2]q
-			enabled      = %[3]t
-		}
-	`, resourceName, projectID, enabled)
-}
-
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		fmt.Printf("==========================================================================\n")
