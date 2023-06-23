@@ -172,9 +172,9 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 		// adding the teams into the project
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, expandTeamsSet(teams.(*schema.Set)))
 		if err != nil {
-			_, errd := conn.Projects.Delete(ctx, project.ID)
+			errd := deleteProject(ctx, meta, project.ID)
 			if errd != nil {
-				return diag.Errorf(errorProjectDelete, project.ID, errd)
+				return diag.Errorf(errorProjectDelete, project.ID, err)
 			}
 			return diag.Errorf("error adding teams into the project: %s", err)
 		}
@@ -188,9 +188,9 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 				Roles: apiKey.roles,
 			})
 			if err != nil {
-				_, errd := conn.Projects.Delete(ctx, project.ID)
+				errd := deleteProject(ctx, meta, project.ID)
 				if errd != nil {
-					return diag.Errorf(errorProjectDelete, project.ID, errd)
+					return diag.Errorf(errorProjectDelete, project.ID, err)
 				}
 				return diag.Errorf("error assigning api keys to the project: %s", err)
 			}
@@ -199,9 +199,9 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
-		_, errd := conn.Projects.Delete(ctx, project.ID)
+		errd := deleteProject(ctx, meta, project.ID)
 		if errd != nil {
-			return diag.Errorf(errorProjectDelete, project.ID, errd)
+			return diag.Errorf(errorProjectDelete, project.ID, err)
 		}
 		return diag.Errorf("error getting project's settings assigned (%s): %s", project.ID, err)
 	}
@@ -232,9 +232,9 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings)
 	if err != nil {
-		_, errd := conn.Projects.Delete(ctx, project.ID)
+		errd := deleteProject(ctx, meta, project.ID)
 		if errd != nil {
-			return diag.Errorf(errorProjectDelete, project.ID, errd)
+			return diag.Errorf(errorProjectDelete, project.ID, err)
 		}
 		return diag.Errorf("error updating project's settings assigned (%s): %s", project.ID, err)
 	}
