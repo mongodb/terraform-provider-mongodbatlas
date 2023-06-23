@@ -480,7 +480,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	}
 
 	schemaVals["criteria"] = []interface{}{criteria}
-	schemaVals["schedule"] = []interface{}{schedule}
+	schemaVals["schedule"] = schedule
 
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
