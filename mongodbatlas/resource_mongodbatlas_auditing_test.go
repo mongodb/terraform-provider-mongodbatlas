@@ -61,7 +61,7 @@ func TestAccAdvRSAuditing_basic(t *testing.T) {
 	})
 }
 
-func TestAccAdvRSAuditing_importBasic(t *testing.T) {
+func TestAccGenericAdvRSAuditing_importBasic(t *testing.T) {
 	var (
 		auditing     = &matlas.Auditing{}
 		resourceName = "mongodbatlas_auditing.test"
@@ -102,7 +102,7 @@ func TestAccAdvRSAuditing_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasAuditingExists(resourceName string, auditing *matlas.Auditing) resource.TestCheckFunc {
+func testAccGenericCheckMongoDBAtlasAuditingExists(resourceName string, auditing *matlas.Auditing) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
