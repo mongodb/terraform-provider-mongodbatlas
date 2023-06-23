@@ -46,7 +46,7 @@ func TestAccGenericAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
 		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		cas            = os.Getenv("CA_CERT")
+		cas            = os.Getenv("MONGODB_ATLAS_CA_CERT_CLOUD_DEV")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
 	)
@@ -262,9 +262,7 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithCustomerX509(projectName, orgID,
 
 		resource "mongodbatlas_x509_authentication_database_user" "test" {
 			project_id        = "${mongodbatlas_project.test.id}"
-			customer_x509_cas = <<-EOT
-			%s
-			EOT
+			customer_x509_cas = %q
 		}
 
 		data "mongodbatlas_x509_authentication_database_user" "test" {
