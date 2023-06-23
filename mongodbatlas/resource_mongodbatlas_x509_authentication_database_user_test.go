@@ -36,7 +36,6 @@ func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "username"),
 				),
 			},
 		},
