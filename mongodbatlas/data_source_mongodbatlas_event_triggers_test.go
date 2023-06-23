@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccConfigDSEventTriggers_basic(t *testing.T) {
-	SkipTest(t)
+	SkipTestForCI(t)
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -38,7 +38,7 @@ func TestAccConfigDSEventTriggers_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
