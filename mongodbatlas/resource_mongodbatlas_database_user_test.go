@@ -23,7 +23,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -66,7 +66,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -97,7 +97,7 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -127,7 +127,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -161,7 +161,7 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType_import(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -198,7 +198,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -279,7 +279,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -343,7 +343,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -405,7 +405,7 @@ func TestAccConfigRSDatabaseUser_withScopesAndEmpty(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -460,7 +460,7 @@ func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -489,7 +489,7 @@ func TestAccConfigRSDatabaseUser_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -525,7 +525,7 @@ func TestAccConfigRSDatabaseUser_importX509TypeCustomer(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
@@ -562,7 +562,7 @@ func TestAccConfigRSDatabaseUser_importLDAPAuthType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{

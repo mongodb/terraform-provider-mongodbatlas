@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/spf13/cast"
@@ -18,45 +19,41 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	var (
 		maintenance      matlas.MaintenanceWindow
 		resourceName     = "mongodbatlas_maintenance_window.test"
-		projectID        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName      = acctest.RandomWithPrefix("test-acc")
 		dayOfWeek        = 7
 		hourOfDay        = 3
 		dayOfWeekUpdated = 4
 		hourOfDayUpdated = 5
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),
+				Config: testAccMongoDBAtlasMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
 					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
-
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
 					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
-
 					testAccCheckMongoDBAtlasMaintenanceWindowAttributes("day_of_week", dayOfWeek, &maintenance.DayOfWeek),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasMaintenanceWindowConfig(projectID, dayOfWeekUpdated, hourOfDayUpdated),
+				Config: testAccMongoDBAtlasMaintenanceWindowConfig(orgID, projectName, dayOfWeekUpdated, hourOfDayUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
 					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
-
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeekUpdated)),
 					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDayUpdated)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
-
 					testAccCheckMongoDBAtlasMaintenanceWindowAttributes("day_of_week", dayOfWeekUpdated, &maintenance.DayOfWeek),
 				),
 			},
@@ -68,29 +65,27 @@ func TestAccConfigRSMaintenanceWindow_importBasic(t *testing.T) {
 	var (
 		maintenance  matlas.MaintenanceWindow
 		resourceName = "mongodbatlas_maintenance_window.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		dayOfWeek    = 1
 		hourOfDay    = 3
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasMaintenanceWindowConfig(projectID, dayOfWeek, hourOfDay),
+				Config: testAccMongoDBAtlasMaintenanceWindowConfig(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
 					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
-
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
 					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 					resource.TestCheckResourceAttr(resourceName, "start_asap", "false"),
-
 					testAccCheckMongoDBAtlasMaintenanceWindowAttributes("day_of_week", dayOfWeek, &maintenance.DayOfWeek),
 				),
 			},
@@ -108,29 +103,27 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	var (
 		maintenance  matlas.MaintenanceWindow
 		resourceName = "mongodbatlas_maintenance_window.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		dayOfWeek    = 7
 		hourOfDay    = 3
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasMaintenanceWindowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(projectID, dayOfWeek, hourOfDay),
+				Config: testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(orgID, projectName, dayOfWeek, hourOfDay),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName, &maintenance),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "day_of_week"),
 					resource.TestCheckResourceAttrSet(resourceName, "hour_of_day"),
-
 					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
 					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 					resource.TestCheckResourceAttr(resourceName, "auto_defer_once_enabled", "true"),
-
 					testAccCheckMongoDBAtlasMaintenanceWindowAttributes("day_of_week", dayOfWeek, &maintenance.DayOfWeek),
 				),
 			},
@@ -138,14 +131,18 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(projectID string, dayOfWeek, hourOfDay int) string {
+func testAccMongoDBAtlasMaintenanceWindowConfigAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_maintenance_window" "test" {
-			project_id  = "%s"
-			day_of_week = %d
-			hour_of_day = %d
+			project_id  = mongodbatlas_project.test.id
+			day_of_week = %[3]d
+			hour_of_day = %[4]d
 			auto_defer_once_enabled = true
-		}`, projectID, dayOfWeek, hourOfDay)
+		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
 func testAccCheckMongoDBAtlasMaintenanceWindowExists(resourceName string, maintenance *matlas.MaintenanceWindow) resource.TestCheckFunc {
@@ -184,23 +181,6 @@ func testAccCheckMongoDBAtlasMaintenanceWindowAttributes(attr string, expected i
 	}
 }
 
-func testAccCheckMongoDBAtlasMaintenanceWindowDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_maintenance_window" {
-			continue
-		}
-
-		_, _, err := conn.MaintenanceWindows.Get(context.Background(), rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("maintenance Window (%s) does not exist", rs.Primary.ID)
-		}
-	}
-
-	return nil
-}
-
 func testAccCheckMongoDBAtlasMaintenanceWindowImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -212,11 +192,15 @@ func testAccCheckMongoDBAtlasMaintenanceWindowImportStateIDFunc(resourceName str
 	}
 }
 
-func testAccMongoDBAtlasMaintenanceWindowConfig(projectID string, dayOfWeek, hourOfDay int) string {
+func testAccMongoDBAtlasMaintenanceWindowConfig(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_maintenance_window" "test" {
-			project_id  = "%s"
-			day_of_week = %d
-			hour_of_day = %d
-		}`, projectID, dayOfWeek, hourOfDay)
+			project_id  = mongodbatlas_project.test.id
+			day_of_week = %[3]d
+			hour_of_day = %[4]d
+		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }

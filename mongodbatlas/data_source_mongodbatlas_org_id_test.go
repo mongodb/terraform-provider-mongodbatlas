@@ -17,8 +17,8 @@ func TestAccConfigDSOrgID_basic(t *testing.T) {
 		initialRole    = []string{"ORG_OWNER"}
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasOrgInvitationDestroy,
 		Steps: []resource.TestStep{
