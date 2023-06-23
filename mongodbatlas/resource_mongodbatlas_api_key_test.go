@@ -21,8 +21,8 @@ func TestAccConfigRSAPIKey_Basic(t *testing.T) {
 		roleNameUpdated   = "ORG_BILLING_ADMIN"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -32,7 +32,6 @@ func TestAccConfigRSAPIKey_Basic(t *testing.T) {
 					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
-
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 				),
@@ -43,7 +42,6 @@ func TestAccConfigRSAPIKey_Basic(t *testing.T) {
 					testAccCheckMongoDBAtlasAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
-
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", descriptionUpdate),
 				),
@@ -60,8 +58,8 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 		roleName     = "ORG_MEMBER"
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{
