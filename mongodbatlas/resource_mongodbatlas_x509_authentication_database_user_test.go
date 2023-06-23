@@ -15,6 +15,7 @@ import (
 func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
+		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -34,6 +35,8 @@ func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "username"),
 				),
 			},
 		},
@@ -43,6 +46,7 @@ func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 func TestAccGenericAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_x509_authentication_database_user.test"
+		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
 		cas          = os.Getenv("CA_CERT")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
@@ -59,6 +63,8 @@ func TestAccGenericAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 					testAccCheckMongoDBAtlasX509AuthDBUserExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "customer_x509_cas"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "customer_x509_cas"),
 				),
 			},
 		},
@@ -241,6 +247,10 @@ func testAccMongoDBAtlasX509AuthDBUserConfig(projectName, orgID, username string
 			username                = "${mongodbatlas_database_user.basic_ds.username}"
 			months_until_expiration = 5
 		}
+
+		data "mongodbatlas_x509_authentication_database_user" "test" {
+			project_id = "${mongodbatlas_x509_authentication_database_user.test.project_id}"
+		}
 	`, projectName, orgID, username)
 }
 
@@ -256,6 +266,11 @@ func testAccMongoDBAtlasX509AuthDBUserConfigWithCustomerX509(projectName, orgID,
 			customer_x509_cas = <<-EOT
 			%s
 			EOT
+		}
+
+		data "mongodbatlas_x509_authentication_database_user" "test" {
+			project_id = "${mongodbatlas_x509_authentication_database_user.test.project_id}"
+			username   = "${mongodbatlas_x509_authentication_database_user.test.username}"
 		}
 	`, projectName, orgID, cas)
 }
