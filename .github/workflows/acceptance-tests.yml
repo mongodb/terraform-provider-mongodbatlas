@@ -167,13 +167,11 @@ jobs:
           MONGODB_ATLAS_CA_CERT_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_CA_CERT_CLOUD_DEV_FAKE }}
         run: |
           echo "${{ vars.MONGODB_ATLAS_CA_CERT_CLOUD_DEV_FAKE }}" | base64 -d > .env
-          echo "${{ vars.MONGODB_ATLAS_CA_CERT_CLOUD_DEV_FAKE }}" 
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_CA_CERT_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_CA_CERT_CLOUD_DEV_FAKE }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
@@ -184,6 +182,8 @@ jobs:
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccGeneric"
         run: |
+          MONGODB_ATLAS_CA_CERT_CLOUD_DEV=$(cat .env)
+          export MONGODB_ATLAS_CA_CERT_CLOUD_DEV
           echo $MONGODB_ATLAS_CA_CERT_CLOUD_DEV
           make testacc
 
