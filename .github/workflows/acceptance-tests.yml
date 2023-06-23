@@ -178,7 +178,8 @@ jobs:
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccGeneric"
         run: |
-          echo $MONGODB_ATLAS_CA_CERT_CLOUD_DEV
+          echo "$CA_CERT" > my-secret-file.txt
+          cat my-secret-file.txt
           make testacc
 
   backup_online_archive:
