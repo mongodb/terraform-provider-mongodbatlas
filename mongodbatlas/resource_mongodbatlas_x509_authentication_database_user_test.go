@@ -14,11 +14,11 @@ import (
 
 func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_x509_authentication_database_user.test"
+		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
 		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		username     = acctest.RandomWithPrefix("test-acc")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		username       = acctest.RandomWithPrefix("test-acc")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,11 +45,11 @@ func TestAccGenericAdvRSX509AuthDBUser_basic(t *testing.T) {
 
 func TestAccGenericAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_x509_authentication_database_user.test"
+		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
 		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		cas          = os.Getenv("CA_CERT")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		cas            = os.Getenv("CA_CERT")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
