@@ -46,7 +46,7 @@ func TestAccGenericAdvRSX509AuthDBUser_WithCustomerX509(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_x509_authentication_database_user.test"
 		dataSourceName = "data.mongodbatlas_x509_authentication_database_user.test"
-		cas            = os.Getenv("MONGODB_ATLAS_CA_CERT_CLOUD_DEV")
+		cas            = os.Getenv("CA_CERT")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName    = acctest.RandomWithPrefix("test-acc")
 	)
