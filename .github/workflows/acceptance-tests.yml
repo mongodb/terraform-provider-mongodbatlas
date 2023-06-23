@@ -167,7 +167,7 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           CA_CERT: ${{ secrets.CA_CERT }}
-          MONGODB_ATLAS_CA_CERT_CLOUD_DEV: ${{ secrets.MONGODB_ATLAS_CA_CERT_CLOUD_DEV }}
+          MONGODB_ATLAS_CA_CERT_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_CA_CERT_CLOUD_DEV_FAKE }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
@@ -177,7 +177,9 @@ jobs:
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccGeneric"
-        run: make testacc
+        run: |
+          echo $MONGODB_ATLAS_CA_CERT_CLOUD_DEV
+          make testacc
 
   backup_online_archive:
     needs: [ change-detection ]
