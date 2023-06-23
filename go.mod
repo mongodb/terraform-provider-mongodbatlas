@@ -3,17 +3,17 @@ module github.com/mongodb/terraform-provider-mongodbatlas
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.272
+	github.com/aws/aws-sdk-go v1.44.287
 	github.com/go-test/deep v1.1.0
-	github.com/gruntwork-io/terratest v0.43.0
+	github.com/gruntwork-io/terratest v0.43.3
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
-	github.com/hashicorp/hcl/v2 v2.16.2
+	github.com/hashicorp/hcl/v2 v2.17.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
 	github.com/mongodb-forks/digest v1.0.4
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
 	github.com/zclconf/go-cty v1.13.2
-	go.mongodb.org/atlas v0.29.0
+	go.mongodb.org/atlas v0.29.1-0.20230619120319-f7cb3b16c08b
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 )

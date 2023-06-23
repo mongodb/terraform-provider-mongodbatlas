@@ -23,8 +23,8 @@ func TestAccConfigRSOrgInvitation_basic(t *testing.T) {
 		updateRoles  = []string{"ORG_GROUP_CREATOR", "ORG_BILLING_ADMIN"}
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasOrgInvitationDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasOrgInvitationDestroy,
 		Steps: []resource.TestStep{
@@ -75,7 +75,6 @@ func TestAccConfigRSOrgInvitation_importBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "username"),
 					resource.TestCheckResourceAttrSet(resourceName, "roles.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "invitation_id"),
-
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),

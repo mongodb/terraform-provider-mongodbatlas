@@ -30,6 +30,7 @@ func resourceMongoDBAtlasAuditing() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"audit_authorization_success": {
 				Type:     schema.TypeBool,

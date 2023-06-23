@@ -13,7 +13,7 @@ import (
 
 func TestAccNetworkDSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	resourceName := "mongodbatlas_private_endpoint_regional_mode.test"
-	projectID := os.Getenv("MONGODB_ATLAS_NETWORK_PROJECT_ID")
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },

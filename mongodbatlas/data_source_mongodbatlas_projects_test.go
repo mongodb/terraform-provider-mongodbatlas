@@ -24,7 +24,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +54,6 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -73,7 +72,7 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckTeamsIds(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -104,7 +103,6 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

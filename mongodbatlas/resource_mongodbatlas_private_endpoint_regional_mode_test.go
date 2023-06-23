@@ -73,8 +73,7 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	var (
 		resourceSuffix = "atlasrm"
 		resourceName   = fmt.Sprintf("mongodbatlas_private_endpoint_regional_mode.%s", resourceSuffix)
-
-		projectID = os.Getenv("MONGODB_ATLAS_NETWORK_PROJECT_ID")
+		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -120,10 +119,19 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeClusterData(clusterResourceNa
 func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceName, projectID string, enabled bool, dependencies []string) string {
 	resources := make([]string, len(dependencies)+1)
 
-	resources[0] = testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectID, enabled)
+	resources[0] = testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName, projectID, enabled)
 	copy(resources[1:], dependencies)
 
 	return strings.Join(resources, "\n\n")
+}
+
+func testAccMongoDBAtlasPrivateEndpointRegionalModeConfigNoProject(resourceName, projectID string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_private_endpoint_regional_mode" %[1]q {
+			project_id   = %[2]q
+			enabled      = %[3]t
+		}
+	`, resourceName, projectID, enabled)
 }
 
 func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectID string, enabled bool) string {
