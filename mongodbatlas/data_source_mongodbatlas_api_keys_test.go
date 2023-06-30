@@ -16,10 +16,10 @@ func TestAccConfigDSAPIKeys_basic(t *testing.T) {
 	description := fmt.Sprintf("test-acc-api_key-%s", acctest.RandString(5))
 	roleName := "ORG_MEMBER"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		//CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasAPIKeysConfig(orgID, description, roleName),

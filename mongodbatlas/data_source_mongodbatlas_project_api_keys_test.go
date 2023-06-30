@@ -12,23 +12,22 @@ import (
 func TestAccConfigDSProjectAPIKeys_basic(t *testing.T) {
 	resourceName := "mongodbatlas_project_api_key.test"
 	dataSourceName := "data.mongodbatlas_project_api_keys.test"
-	orgID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	description := fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
 	roleName := "GROUP_OWNER"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkPeeringDestroy,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasProjectAPIKeysConfig(orgID, description, roleName),
+				Config: testAccDSMongoDBAtlasProjectAPIKeysConfig(orgID, projectName, description, roleName),
 				Check: resource.ComposeTestCheckFunc(
 					// Test for Resource
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 
 					// Test for Data source
@@ -40,16 +39,21 @@ func TestAccConfigDSProjectAPIKeys_basic(t *testing.T) {
 	})
 }
 
-func testAccDSMongoDBAtlasProjectAPIKeysConfig(projectID, description, roleNames string) string {
+func testAccDSMongoDBAtlasProjectAPIKeysConfig(orgID, projectName, description, roleNames string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+
 		resource "mongodbatlas_project_api_key" "test" {
-		  project_id = %[1]q
-		  description  = %[2]q
-		  role_names  = [%[3]q]
+		  project_id = mongodbatlas_project.test.id
+		  description  = %[3]q
+		  role_names  = [%[4]q]
 		}
 
 		data "mongodbatlas_project_api_keys" "test" {
-		  project_id = %[1]q
+		  project_id = mongodbatlas_project.test.id
 		}
-	`, projectID, description, roleNames)
+	`, orgID, projectName, description, roleNames)
 }

@@ -12,9 +12,13 @@ import (
 
 const (
 	createProviderAccessSetupRole = `
+	resource "mongodbatlas_project" "test" {
+		name   = %[3]q
+		org_id = %[2]q
+	}
 	resource "mongodbatlas_cloud_provider_access_setup" "%[1]s" {
-		project_id = "%[2]s"
-		provider_name = "%[3]s"
+		project_id = mongodbatlas_project.test.id
+		provider_name = %[4]q
 	 }
 
 	`
@@ -24,18 +28,19 @@ func TestAccConfigRSCloudProviderAccessSetup_basic(t *testing.T) {
 	var (
 		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 		resourceName = "mongodbatlas_cloud_provider_access_setup." + name
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		targetRole   = matlas.AWSIAMRole{}
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		// same as regular cloud provider access resource
 		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessSetupRole, name, projectID, "AWS"),
+				Config: fmt.Sprintf(createProviderAccessSetupRole, name, orgID, projectName, "AWS"),
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud resource
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
@@ -52,17 +57,18 @@ func TestAccConfigRSCloudProviderAccessSetup_importBasic(t *testing.T) {
 	var (
 		name         = "test_basic" + acctest.RandStringFromCharSet(10, acctest.CharSetAlpha)
 		resourceName = "mongodbatlas_cloud_provider_access_setup." + name
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		targetRole   = matlas.AWSIAMRole{}
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessSetupRole, name, projectID, "AWS"),
+				Config: fmt.Sprintf(createProviderAccessSetupRole, name, orgID, projectName, "AWS"),
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud provider because we are just checking in the api
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),

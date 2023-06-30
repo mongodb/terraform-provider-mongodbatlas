@@ -116,7 +116,7 @@ type thirdPartyConfig struct {
 }
 
 func TestAccConfigDSThirdPartyIntegration_basic(t *testing.T) {
-	SkipTest(t) // TODO: Address failures in v1.4.6
+	SkipTestForCI(t) // TODO: Address failures in v1.4.6
 
 	var (
 		targetIntegration = matlas.ThirdPartyIntegration{}
@@ -245,8 +245,7 @@ func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 	return &matlas.ThirdPartyIntegration{
 		Type: "OPS_GENIE",
 		// Pager dutty 20-character strings
-		LicenseKey: testGenString(20, alphabet),
-		// Slack xoxb-333649436676-799261852869-clFJVVIaoJahpORboa3Ba2al
+		LicenseKey:  testGenString(20, alphabet),
 		APIToken:    fmt.Sprintf("xoxb-%s-%s-%s", testGenString(12, numeric), testGenString(12, numeric), testGenString(24, alphaNum)),
 		TeamName:    "MongoSlackTestTeam " + account,
 		ChannelName: "MongoSlackTestChannel " + account,

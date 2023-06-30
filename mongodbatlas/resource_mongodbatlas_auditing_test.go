@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -15,19 +16,20 @@ func TestAccAdvRSAuditing_basic(t *testing.T) {
 	var (
 		auditing     matlas.Auditing
 		resourceName = "mongodbatlas_auditing.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		auditAuth    = true
 		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
 		enabled      = true
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAuditingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAuditingConfig(projectID, auditFilter, auditAuth, enabled),
+				Config: testAccMongoDBAtlasAuditingConfig(orgID, projectName, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAuditingExists(resourceName, &auditing),
 
@@ -35,8 +37,6 @@ func TestAccAdvRSAuditing_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "audit_filter", auditFilter),
 					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -44,15 +44,13 @@ func TestAccAdvRSAuditing_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasAuditingConfig(projectID, "{}", false, false),
+				Config: testAccMongoDBAtlasAuditingConfig(orgID, projectName, "{}", false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAuditingExists(resourceName, &auditing),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "audit_filter", "{}"),
 					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "false"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
@@ -67,7 +65,8 @@ func TestAccAdvRSAuditing_importBasic(t *testing.T) {
 	var (
 		auditing     = &matlas.Auditing{}
 		resourceName = "mongodbatlas_auditing.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		auditAuth    = true
 		auditFilter  = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
 		enabled      = true
@@ -79,15 +78,13 @@ func TestAccAdvRSAuditing_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckMongoDBAtlasAuditingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAuditingConfig(projectID, auditFilter, auditAuth, enabled),
+				Config: testAccMongoDBAtlasAuditingConfig(orgID, projectName, auditFilter, auditAuth, enabled),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAuditingExists(resourceName, auditing),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_filter"),
 					resource.TestCheckResourceAttrSet(resourceName, "audit_authorization_success"),
 					resource.TestCheckResourceAttrSet(resourceName, "enabled"),
-
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "audit_filter", auditFilter),
 					resource.TestCheckResourceAttr(resourceName, "audit_authorization_success", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -157,12 +154,16 @@ func testAccCheckMongoDBAtlasAuditingImportStateIDFunc(resourceName string) reso
 	}
 }
 
-func testAccMongoDBAtlasAuditingConfig(projectID, auditFilter string, auditAuth, enabled bool) string {
+func testAccMongoDBAtlasAuditingConfig(orgID, projectName, auditFilter string, auditAuth, enabled bool) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_auditing" "test" {
-			project_id                  = "%s"
-			audit_filter                = "%s"
-			audit_authorization_success = %t
-			enabled                     = %t
-		}`, projectID, auditFilter, auditAuth, enabled)
+			project_id                  = mongodbatlas_project.test.id
+			audit_filter                = %[3]q
+			audit_authorization_success = %[4]t
+			enabled                     = %[5]t
+		}`, orgID, projectName, auditFilter, auditAuth, enabled)
 }

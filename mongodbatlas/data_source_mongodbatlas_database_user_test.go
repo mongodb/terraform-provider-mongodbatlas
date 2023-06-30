@@ -14,16 +14,17 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 	var dbUser matlas.DatabaseUser
 
 	resourceName := "data.mongodbatlas_database_user.test"
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
 	roleName := "atlasAdmin"
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, username),
+				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
 					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
@@ -40,16 +41,20 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, username string) string {
+func testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
 		resource "mongodbatlas_database_user" "test" {
-			username           = "%[3]s"
+			username           = %[4]q
 			password           = "test-acc-password"
-			project_id         = "%[1]s"
+			project_id         = mongodbatlas_project.test.id
 			auth_database_name = "admin"
 
 			roles {
-				role_name     = "%[2]s"
+				role_name     = %[3]q
 				database_name = "admin"
 			}
 
@@ -68,5 +73,5 @@ func testAccMongoDBAtlasDatabaseUserDataSourceConfig(projectID, roleName, userna
 			project_id         = mongodbatlas_database_user.test.project_id
 			auth_database_name = "admin"
 		}
-	`, projectID, roleName, username)
+	`, orgID, projectName, roleName, username)
 }

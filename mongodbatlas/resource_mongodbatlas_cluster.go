@@ -1465,6 +1465,14 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas
 		}
 	}
 
+	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
+		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
+			res.TransactionLifetimeLimitSeconds = pointy.Int64(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
+		} else {
+			log.Printf(errorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
+		}
+	}
+
 	return res
 }
 
@@ -1481,6 +1489,7 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
 			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
 			"sample_size_bi_connector":             p.SampleSizeBIConnector,
 			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
+			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
 		},
 	}
 }
@@ -1758,6 +1767,11 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 					Computed: true,
 				},
 				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
 					Type:     schema.TypeInt,
 					Optional: true,
 					Computed: true,
