@@ -246,7 +246,6 @@ func testAccCreateThirdPartyIntegrationConfig() *matlas.ThirdPartyIntegration {
 		Type: "OPS_GENIE",
 		// Pager dutty 20-character strings
 		LicenseKey: testGenString(20, alphabet),
-		// Slack xoxb-333649436676-799261852869-clFJVVIaoJahpORboa3Ba2al
 		APIToken:    fmt.Sprintf("xoxb-%s-%s-%s", testGenString(12, numeric), testGenString(12, numeric), testGenString(24, alphaNum)),
 		TeamName:    "MongoSlackTestTeam " + account,
 		ChannelName: "MongoSlackTestChannel " + account,
