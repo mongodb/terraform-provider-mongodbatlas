@@ -40,6 +40,6 @@ In addition to the arguments, this data source exports the following attributes:
 * `expires_at` - Timestamp in ISO 8601 date and time format in UTC when the invitation expires. Users have 30 days to accept an invitation.
 * `inviter_username` - Atlas user who invited `username` to the organization.
 * `teams_ids` - An array of unique 24-hexadecimal digit strings that identify the teams that the user was invited to join.
-* `roles` - Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#organization-roles) describes the roles a user can have.
+* `roles` - Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
 
 See the [MongoDB Atlas Administration API](https://docs.atlas.mongodb.com/reference/api/organization-get-one-invitation/) documentation for more information.
