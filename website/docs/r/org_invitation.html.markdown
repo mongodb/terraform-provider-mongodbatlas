@@ -51,7 +51,7 @@ resource "mongodbatlas_org_invitation" "test1" {
 * `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization to which you want to invite a user.
 * `username` - (Required) Email address of the invited user. This is the address to which Atlas sends the invite. If the user accepts the invitation, they log in to Atlas with this username.
 * `teams_ids` - (Optional) An array of unique 24-hexadecimal digit strings that identify the teams that the user was invited to join.
-* `roles` - (Required) Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#organization-roles) describes the roles a user can have.
+* `roles` - (Required) Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
 
 ## Attributes Reference
 
