@@ -25,12 +25,12 @@ resource "mongodbatlas_project_api_key" "test" {
 ## Example Usage - Create and Assign PAK to Multiple Projects
 
 ```terraform
-resource "mongodbatlas_api_key" "test" {
+resource "mongodbatlas_project_api_key" "test" {
   description   = "key-name"
-  org_id        = "<ORG_ID>"
+  project_id  = "<PROJECT_ID>"
   
  project_assignment {
-    project_id = <project_id>
+    project_id = "<PROJECT_ID>"
     role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
   }
   
