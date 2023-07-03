@@ -754,6 +754,7 @@ func flattenAlertConfigurationNotifications(d *schema.ResourceData, notification
 			notifications[i].WebhookSecret = notificationsSchema[i].WebhookSecret
 			notifications[i].SMSEnabled = notificationsSchema[i].SMSEnabled
 			notifications[i].EmailEnabled = notificationsSchema[i].EmailEnabled
+			notifications[i].MicrosoftTeamsWebhookURL = notificationsSchema[i].MicrosoftTeamsWebhookURL
 		}
 	}
 
