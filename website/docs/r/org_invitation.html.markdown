@@ -12,7 +12,7 @@ description: |-
 
 Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
-The [MongoDB Documentation](https://docs.atlas.mongodb.com/reference/user-roles/#organization-roles) describes the roles a user can have.
+The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
 
 ~> **IMPORTANT:** This resource is only for managing invitations, not for managing the Atlas User being invited. Possible provider behavior depending on the invitee's action:
 * If the user has not yet accepted the invitation, the provider leaves the invitation as is.
