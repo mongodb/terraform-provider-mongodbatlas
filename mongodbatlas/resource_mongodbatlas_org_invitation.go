@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -59,13 +58,6 @@ func resourceMongoDBAtlasOrgInvitation() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"ORG_OWNER",
-						"ORG_GROUP_CREATOR",
-						"ORG_BILLING_ADMIN",
-						"ORG_READ_ONLY",
-						"ORG_MEMBER",
-					}, false),
 				},
 			},
 		},
