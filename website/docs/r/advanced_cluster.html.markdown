@@ -98,8 +98,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-### Example Multicloud.
-
+### Example Multi-Cloud Cluster.
 ```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = "PROJECT ID"
@@ -131,7 +130,179 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
+
+### Example of a Multi-Cloud Cluster.
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id   = mongodbatlas_project.project.id
+  name         = var.cluster_name
+  cluster_type = "SHARDED"
+  backup_enabled = true
+
+  replication_specs {
+    num_shards = 3 
+
+    region_configs { # shard n1
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs { # shard n2
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
+    }
+
+    region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "GCP"
+      priority      = 0
+      region_name   = "US_EAST_4"
+    }
+  }
+
+  advanced_configuration {
+    javascript_enabled                   = true
+    oplog_size_mb                        = 30
+    sample_refresh_interval_bi_connector = 300
+  }
+}
 ```
+
+### Example of a Global Cluster.
+```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id     = mongodbatlas_project.project.id
+  name           = var.cluster_name
+  cluster_type   = "GEOSHARDED"
+  backup_enabled = true
+
+  replication_specs { # zone n1
+    zone_name  = "zone n1"
+    num_shards = 3 # 3-shard Multi-Cloud Cluster
+
+    region_configs { # shard n1 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+    region_configs { # shard n2
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "US_EAST_2"
+    }
+
+    region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "GCP"
+      priority      = 0
+      region_name   = "US_EAST_4"
+    }
+  }
+
+  replication_specs { # zone n2
+    zone_name  = "zone n2"
+    num_shards = 2 # 2-shard Multi-Cloud Cluster
+
+    region_configs { # shard n1 
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }
+
+    region_configs { # shard n2
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "AZURE"
+      priority      = 6
+      region_name   = "EUROPE_NORTH"
+    }
+
+    region_configs { # shard n3
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      provider_name = "GCP"
+      priority      = 0
+      region_name   = "US_EAST_4"
+    }
+  }
+
+  advanced_configuration {
+    javascript_enabled                   = true
+    oplog_size_mb                        = 999
+    sample_refresh_interval_bi_connector = 300
+  }
+```
+
 
 ### Example - Return a Connection String
 Standard
@@ -364,7 +535,25 @@ replication_specs {
 * `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs)
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
-### specs
+### electable_specs
+
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
+    * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
+    * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
+* `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
+* `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+
+### analytics_specs
+
+* `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
+* `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
+    * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
+    * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
+* `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
+* `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
+
+### read_only_specs
 
 * `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:

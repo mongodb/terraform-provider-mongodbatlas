@@ -9,6 +9,8 @@ on:
       parent-event-name:
         required: true
         type: string
+  pull_request: # you can run a specic job in your PR using GitHub labels
+    types: [ labeled ]
 
 jobs:  
   change-detection:
@@ -42,8 +44,11 @@ jobs:
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
           generic:
-            - 'mongodbatlas/**backup_compliance**.go'
-            - 'mongodbatlas/**data_lakes**.go'
+            - 'mongodbatlas/data_source_mongodbatlas_backup_compliance_policy*.go'
+            - 'mongodbatlas/resource_mongodbatlas_backup_compliance_policy*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_data_lakes_test*.go'
+            - 'mongodbatlas/resource_mongodbatlas_x509_authentication_database_user*.go'
+            - 'mongodbatlas/resource_mongodbatlas_auditing*.go'
           backup_online_archive:
             - 'mongodbatlas/**online_archive**.go'
           backup_snapshots:
@@ -51,8 +56,13 @@ jobs:
           backup_schedule:
             - 'mongodbatlas/**backup_schedule**.go'
           project:
-            - 'mongodbatlas/**project**.go'
-            - 'mongodbatlas/**access_list**.go'
+            - 'mongodbatlas/data_source_mongodbatlas_project_invitation*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_project_ip_access_list*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_project*.go'
+            - 'mongodbatlas/resource_mongodbatlas_access_list_api_key*.go'
+            - 'mongodbatlas/resource_mongodbatlas_project_invitation*.go'
+            - 'mongodbatlas/resource_mongodbatlas_project_ip_access_list*.go'
+            - 'mongodbatlas/resource_mongodbatlas_project*.go'
           serverless:
             - 'mongodbatlas/**_serverless**.go' 
           network:
@@ -60,22 +70,40 @@ jobs:
             - 'mongodbatlas/**_privatelink**.go' 
             - 'mongodbatlas/**_private_endpoint**.go'
           config:
-            - 'mongodbatlas/**_accesslist**.go'  
-            - 'mongodbatlas/**_alert_configuration**.go' 
-            - 'mongodbatlas/**_api_key**.go'    
-            - 'mongodbatlas/**_cloud_provider**.go'
-            - 'mongodbatlas/**_custom_**.go'
-            - 'mongodbatlas/**_database_user**.go'
-            - 'mongodbatlas/**_maintenance**.go'  
-            - 'mongodbatlas/**_org_**.go'
-            - 'mongodbatlas/**_organization**.go'   
-            - 'mongodbatlas/**_project**.go'   
-            - 'mongodbatlas/**_search_**.go' 
-            - 'mongodbatlas/**_team_**.go'      
+            - 'mongodbatlas/data_source_mongodbatlas_accesslist_api_key*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_alert_configuration*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_api_key*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_cloud_provider_access_setup*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_cloud_provider_access*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_custom_db_role*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_custom_dns_configuration_cluster_aws*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_database_user*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_event_trigger*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_maintenance_window*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_org_id*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_org_invitation*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_organization*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_project_api_key*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_team*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_third_party_integration*.go'
+            - 'mongodbatlas/resource_mongodbatlas_api_key*.go'
+            - 'mongodbatlas/resource_mongodbatlas_cloud_provider_access_setup*.go'
+            - 'mongodbatlas/resource_mongodbatlas_cloud_provider_access*.go'
+            - 'mongodbatlas/resource_mongodbatlas_custom_db_role*.go'
+            - 'mongodbatlas/resource_mongodbatlas_custom_dns_configuration_cluster_aws*.go'
+            - 'mongodbatlas/resource_mongodbatlas_database_user*.go'
+            - 'mongodbatlas/resource_mongodbatlas_event_trigger*.go'
+            - 'mongodbatlas/resource_mongodbatlas_maintenance_window*.go'
+            - 'mongodbatlas/resource_mongodbatlas_org_invitation*.go'
+            - 'mongodbatlas/resource_mongodbatlas_organization*.go'
+            - 'mongodbatlas/resource_mongodbatlas_project_api_key*.go'
+            - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
+            - 'mongodbatlas/resource_mongodbatlas_team*.go'
+            - 'mongodbatlas/resource_mongodbatlas_third_party_integration*.go'     
 
   cluster_outage_simulation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster-outage-simulation' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -100,7 +128,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'  }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-advanced-cluster' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -125,7 +153,7 @@ jobs:
 
   cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -150,7 +178,7 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-generic' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -163,6 +191,7 @@ jobs:
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          CA_CERT: ${{ secrets.CA_CERT }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
@@ -172,11 +201,12 @@ jobs:
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccGeneric"
-        run: make testacc
+        run: |
+          make testacc
 
   backup_online_archive:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-online-archive' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -202,7 +232,7 @@ jobs:
 
   backup_snapshots:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-snapshots' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -229,7 +259,7 @@ jobs:
         
   backup_schedule:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-schedule' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -255,7 +285,7 @@ jobs:
         run: make testacc
   project: 
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -283,7 +313,7 @@ jobs:
         run: make testacc
   serverless:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.serverless == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.serverless == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-serverless' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -308,7 +338,7 @@ jobs:
         run: make testacc
   network:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.network == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.network == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-network' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -337,7 +367,7 @@ jobs:
         run: make testacc
   config:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
