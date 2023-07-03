@@ -43,7 +43,6 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
-					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.schedule"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),

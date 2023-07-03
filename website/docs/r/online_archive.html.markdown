@@ -40,6 +40,13 @@ resource "mongodbatlas_online_archive" "test" {
         expire_after_days = 5
     }
 
+    schedule {
+        type = "DAILY"
+        end_hour = 1
+        end_minute = 1
+        start_hour = 1
+        start_minute = 1
+    }
 }
 ```
 
@@ -81,28 +88,38 @@ resource "mongodbatlas_online_archive" "test" {
 * `partition_fields` -  (Recommended) Fields to use to partition data. You can specify up to two frequently queried fields to use for partitioning data. Note that queries that don’t contain the specified fields will require a full collection scan of all archived documents, which will take longer and increase your costs. To learn more about how partition improves query performance, see [Data Structure in S3](https://docs.mongodb.com/datalake/admin/optimize-query-performance/#data-structure-in-s3). The value of a partition field can be up to a maximum of 700 characters. Documents with values exceeding 700 characters are not archived.
 * `paused`           - (Optional) State of the online archive. This is required for pausing an active or resume a paused online archive. The resume request will fail if the collection has another active online archive.
 
-### Criteria details
+### Criteria
 
 There are two types of criteria, `DATE` to select documents for archiving based on a date and
 `CUSTOM` to select documents for archiving based on a custom JSON query.
 
-* `criteria.type`          - Type of criteria (DATE, CUSTOM)
+* `type`          - Type of criteria (DATE, CUSTOM)
 
 The following fields are required for criteria type `DATE`
 
-* `criteria.date_field`    - Name of an already indexed date field from the documents. Data is archived when the current date is greater than the value of the date field specified here plus the number of days specified via the `expire_after_days` parameter.
-* `criteria.date_format`   - the date format. Valid values:  ISODATE (default), EPOCH_SECONDS, EPOCH_MILLIS, EPOCH_NANOSECONDS
-* `criteria.expire_after_days` - Number of days that specifies the age limit for the data in the live Atlas cluster. Data is archived when the current date is greater than the value of the date field specified via the `date_field` parameter plus the number of days specified here.
+* `date_field`    - Name of an already indexed date field from the documents. Data is archived when the current date is greater than the value of the date field specified here plus the number of days specified via the `expire_after_days` parameter.
+* `date_format`   - the date format. Valid values:  ISODATE (default), EPOCH_SECONDS, EPOCH_MILLIS, EPOCH_NANOSECONDS
+* `expire_after_days` - Number of days that specifies the age limit for the data in the live Atlas cluster. Data is archived when the current date is greater than the value of the date field specified via the `date_field` parameter plus the number of days specified here.
 
 The only field required for criteria type `CUSTOM`
 
-* `criteria.query` - JSON query to use to select documents for archiving. Atlas uses the specified query with the db.collection.find(query) command. The empty document {} to return all documents is not supported.
+* `query` - JSON query to use to select documents for archiving. Atlas uses the specified query with the db.collection.find(query) command. The empty document {} to return all documents is not supported.
 
-### Partition fields details
-* `partition_fields.field_name` - (Required) Name of the field. To specify a nested field, use the dot notation.
-* `partition_fields.order` - (Required) Position of the field in the partition. Value can be: 0,1,2
+### Schedule
+
+* `type`          - Type of schedule (`DEFAULT`, `DAILY`, `MONTHLY`, `WEEKLY`).
+* `start_hour`    - Hour of the day when the when the scheduled window to run one online archive starts.  
+* `end_hour`      - Hour of the day when the scheduled window to run one online archive ends.
+* `start_minute`   - Minute of the hour when the scheduled window to run one online archive starts.
+* `end_minute`     - Minute of the hour when the scheduled window to run one online archive ends.
+* `day_of_month`   - Day of the month when the scheduled archive starts. This field should be provided only when schedule `type` is `MONTHLY`.
+* `day_of_week`     - Day of the week when the scheduled archive starts. The week starts with Monday (1) and ends with Sunday (7). This field should be provided only when schedule `type` is `WEEKLY`.
+
+### Partition
+* `field_name` - (Required) Name of the field. To specify a nested field, use the dot notation.
+* `order` - (Required) Position of the field in the partition. Value can be: 0,1,2
 By default, the date field specified in the criteria.dateField parameter is in the first position of the partition.
-* `partitio_fields.field_type` - (Optional) type of the partition field
+* `field_type` - (Optional) type of the partition field
 
 ## Attributes Reference
 * `archive_id` - ID of the online archive.

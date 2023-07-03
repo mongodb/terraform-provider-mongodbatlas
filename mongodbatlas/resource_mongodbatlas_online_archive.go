@@ -480,7 +480,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	}
 
 	schemaVals["criteria"] = []interface{}{criteria}
-	schemaVals["schedule"] = schedule
+	schemaVals["schedule"] = []interface{}{schedule}
 
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
@@ -551,28 +551,28 @@ func mapSchedule(d *schema.ResourceData) *matlas.OnlineArchiveSchedule {
 		Type: scheduleTFConfig["type"].(string),
 	}
 
-	if endHour, ok := scheduleTFConfig["end_hour"].(int32); ok {
-		scheduleInput.EndHour = &endHour
+	if endHour, ok := scheduleTFConfig["end_hour"].(int); ok {
+		scheduleInput.EndHour = pointy.Int32(int32(endHour))
 	}
 
-	if endMinute, ok := scheduleTFConfig["end_minute"].(int32); ok {
-		scheduleInput.EndMinute = &endMinute
+	if endMinute, ok := scheduleTFConfig["end_minute"].(int); ok {
+		scheduleInput.EndMinute = pointy.Int32(int32(endMinute))
 	}
 
-	if startHour, ok := scheduleTFConfig["start_hour"].(int32); ok {
-		scheduleInput.StartHour = &startHour
+	if startHour, ok := scheduleTFConfig["start_hour"].(int); ok {
+		scheduleInput.StartHour = pointy.Int32(int32(startHour))
 	}
 
-	if startMinute, ok := scheduleTFConfig["start_minute"].(int32); ok {
-		scheduleInput.StartMinute = &startMinute
+	if startMinute, ok := scheduleTFConfig["start_minute"].(int); ok {
+		scheduleInput.StartMinute = pointy.Int32(int32(startMinute))
 	}
 
-	if dayOfWeek, ok := scheduleTFConfig["day_of_week"].(int32); ok {
-		scheduleInput.DayOfWeek = dayOfWeek
+	if dayOfWeek, ok := scheduleTFConfig["day_of_week"].(int); ok {
+		scheduleInput.DayOfWeek = int32(dayOfWeek)
 	}
 
-	if dayOfMonth, ok := scheduleTFConfig["day_of_month"].(int32); ok {
-		scheduleInput.DayOfMonth = dayOfMonth
+	if dayOfMonth, ok := scheduleTFConfig["day_of_month"].(int); ok {
+		scheduleInput.DayOfMonth = int32(dayOfMonth)
 	}
 
 	return scheduleInput
