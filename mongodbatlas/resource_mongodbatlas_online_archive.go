@@ -111,22 +111,22 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					"end_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed:     true,
+						Computed: true,
 					},
 					"end_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed:     true,
+						Computed: true,
 					},
 					"start_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed:     true,
+						Computed: true,
 					},
 					"start_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed:     true,
+						Computed: true,
 					},
 					"day_of_month": {
 						Type:     schema.TypeInt,
