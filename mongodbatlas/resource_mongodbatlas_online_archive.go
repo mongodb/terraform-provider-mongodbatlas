@@ -328,7 +328,7 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 	mapValues := fromOnlineArchiveToMapInCreate(outOnlineArchive)
 	for key, val := range mapValues {
 		if err := d.Set(key, val); err != nil {
-			return nil, fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error %s", atlasID, err.Error())
+			return nil, fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error: %w", atlasID, err)
 		}
 	}
 
