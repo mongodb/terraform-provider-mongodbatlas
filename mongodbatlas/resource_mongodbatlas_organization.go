@@ -200,7 +200,7 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *matlas.CreateOrganiza
 		},
 	}
 
-	if federationSettingsID, ok := d.Get("name").(string); ok && federationSettingsID != "" {
+	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
 		createRequest.FederationSettingsID = &federationSettingsID
 	}
 
