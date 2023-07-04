@@ -33,13 +33,7 @@ resource "mongodbatlas_organization" "test" {
 ~> **NOTE:** Creating an organization will return a new API Key pair that can be used to authenticate and manage the new organization  with MongoDB Atlas Terraform modules/blueprints.  You cannot use the newly created API key pair to manage the newly created organization in the same Terraform module/blueprint that the organization is created in.
 
 
-* `role_names` - (Required) List of Organization roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Organization.  You must specify an array even if you are only associating a single role with the Programmatic API key.
- The following are valid roles:
-  * `ORG_OWNER`
-  * `ORG_GROUP_CREATOR`
-  * `ORG_BILLING_ADMIN`
-  * `ORG_READ_ONLY`
-  * `ORG_MEMBER` 
+* `role_names` - (Required) List of Organization roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Organization.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
  
   
 ## Attributes Reference
@@ -50,6 +44,7 @@ In addition to all arguments above, the following attributes are exported:
 * `public_key` - Public API key value set for the specified organization API key.
 * `private_key` - Redacted private key returned for this organization API key. This key displays unredacted when first created and is saved within the Terraform state file.
 * `isDeleted` - (computed) Flag that indicates whether this organization has been deleted.
+* `federation_settings_id` - (Optional) Unique 24-hexadecimal digit string that identifies the federation to link the newly created organization to. If specified, the proposed Organization Owner of the new organization must have the Organization Owner role in an organization associated with the federation.
 
 
 ## Import
