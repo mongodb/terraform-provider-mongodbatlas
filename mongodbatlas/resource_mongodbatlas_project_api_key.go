@@ -478,14 +478,6 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOr
 				if val.ID == apiKeyID {
 					for _, r := range val.Roles {
 						temp := new(APIProjectAssignmentKeyInput)
-						/*if strings.HasPrefix(r.RoleName, "ORG_") {
-							tempOrgRoles.ProjectID = projectID
-							for _, l := range val.Roles {
-								if l.GroupID == "" {
-									tempOrgRoles.RoleNames = append(tempOrgRoles.RoleNames, l.RoleName)
-								}
-							}
-						}*/
 						if strings.HasPrefix(r.RoleName, "GROUP_") {
 							temp.ProjectID = r.GroupID
 							for _, l := range val.Roles {
