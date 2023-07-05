@@ -18,7 +18,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
 		project      matlas.Project
 		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc-project-loc")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount = "0"
 		teamsIds     = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
@@ -67,84 +67,84 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 				),
 			},
-			// {
-			// 	Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+			{
+				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
 
-			// 		[]*matlas.ProjectTeam{
-			// 			{
-			// 				TeamID:    teamsIds[0],
-			// 				RoleNames: []string{"GROUP_OWNER"},
-			// 			},
-			// 			{
-			// 				TeamID:    teamsIds[1],
-			// 				RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
-			// 			},
-			// 			{
-			// 				TeamID:    teamsIds[2],
-			// 				RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
-			// 			},
-			// 		},
-			// 		[]*apiKey{
-			// 			{
-			// 				id:    apiKeysIds[0],
-			// 				roles: []string{"GROUP_READ_ONLY"},
-			// 			},
-			// 			{
-			// 				id:    apiKeysIds[1],
-			// 				roles: []string{"GROUP_OWNER"},
-			// 			},
-			// 		},
-			// 	),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-			// 		testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-			// 		resource.TestCheckResourceAttr(resourceName, "name", projectName),
-			// 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-			// 		resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-			// 	),
-			// },
-			// {
-			// 	Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+					[]*matlas.ProjectTeam{
+						{
+							TeamID:    teamsIds[0],
+							RoleNames: []string{"GROUP_OWNER"},
+						},
+						{
+							TeamID:    teamsIds[1],
+							RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
+						},
+						{
+							TeamID:    teamsIds[2],
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+						},
+					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
 
-			// 		[]*matlas.ProjectTeam{
-			// 			{
-			// 				TeamID:    teamsIds[0],
-			// 				RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
-			// 			},
-			// 			{
-			// 				TeamID:    teamsIds[1],
-			// 				RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
-			// 			},
-			// 		},
-			// 		[]*apiKey{
-			// 			{
-			// 				id:    apiKeysIds[0],
-			// 				roles: []string{"GROUP_READ_ONLY"},
-			// 			},
-			// 			{
-			// 				id:    apiKeysIds[1],
-			// 				roles: []string{"GROUP_OWNER"},
-			// 			},
-			// 		},
-			// 	),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-			// 		testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-			// 		resource.TestCheckResourceAttr(resourceName, "name", projectName),
-			// 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-			// 		resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-			// 	),
-			// },
-			// {
-			// 	Config: testAccMongoDBAtlasProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}, []*apiKey{}),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
-			// 		testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
-			// 		resource.TestCheckResourceAttr(resourceName, "name", projectName),
-			// 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-			// 		resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
-			// 	),
-			// },
+					[]*matlas.ProjectTeam{
+						{
+							TeamID:    teamsIds[0],
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
+						},
+						{
+							TeamID:    teamsIds[1],
+							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
+						},
+					},
+					[]*apiKey{
+						{
+							id:    apiKeysIds[0],
+							roles: []string{"GROUP_READ_ONLY"},
+						},
+						{
+							id:    apiKeysIds[1],
+							roles: []string{"GROUP_OWNER"},
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID, []*matlas.ProjectTeam{}, []*apiKey{}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+				),
+			},
 		},
 	})
 }
@@ -363,9 +363,8 @@ func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
-		// if projectRes != nil {
-		if err == nil {
+		projectRes, _, _ := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.ID)
+		if projectRes != nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}
 	}
