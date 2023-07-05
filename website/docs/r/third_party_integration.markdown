@@ -12,8 +12,7 @@ description: |-
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
--> **WARNING:** This field type has values (NEW_RELIC, FLOWDOCK) that are deprecated and will be removed in 1.9.0 release release
- **Note:** Field types NEW_RELIC, FLOWDOCK have now been fully deprecated as part of v1.10.0 release
+-> **Note:** Field types NEW_RELIC, FLOWDOCK have now been fully deprecated as part of v1.10.0 release
 
 -> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.[Read more about slack setup](https://docs.atlas.mongodb.com/tutorial/third-party-service-integrations/)
 
@@ -42,23 +41,24 @@ resource "mongodbatlas_third_party_integration" "test_flowdock" {
 * `type`       - (Required) Third-Party Integration Settings type 
      * PAGER_DUTY
      * DATADOG
-     * NEW_RELIC*
      * OPS_GENIE
      * VICTOR_OPS
-     * FLOWDOCK*
      * WEBHOOK
      * MICROSOFT_TEAMS
      * PROMETHEUS
-
-     *resource is now deprecated and will be removed in the next major version, 1.9.0
+     * NEW_RELIC*
+     * FLOWDOCK*
+       
+     *resource has now been fully deprecated as part of v1.10.0 release
 
 Additional values based on Type
 
 * `PAGER_DUTY`
   * `service_key` - Your Service Key.
+  * `region` (Required) - PagerDuty region that indicates the API Uniform Resource Locator (URL) to use, either "US" or "EU". PagerDuty will use "US" by default.    
 * `DATADOG`
   * `api_key` - Your API Key.
-  * `region` - Indicates which API URL to use, either "US", "EU", "US3", or "US5". Datadog will use "US" by default.    
+  * `region` (Required) - Indicates which API URL to use, either "US", "EU", "US3", or "US5". Datadog will use "US" by default.    
 
 * `NEW_RELIC`
   * `license_key` - Your License Key.
@@ -67,7 +67,7 @@ Additional values based on Type
   * `read_token`  - Your Insights Query Key.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
-  * `region` -  Indicates which API URL to use, either US or EU. Opsgenie will use US by default.
+  * `region` (Required) -  Indicates which API URL to use, either "US" or "EU". OpsGenie will use "US" by default.
 * `VICTOR_OPS`
   * `api_key` - 	Your API Key.
   * `routing_key` - An optional field for your Routing Key.

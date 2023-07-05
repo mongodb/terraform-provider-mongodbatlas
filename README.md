@@ -1,6 +1,5 @@
 # MongoDB Atlas Provider
 [![Code Health](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml)
-[![Automated Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/automated-test.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/automated-test.yml)
 [![Acceptance Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml)
 
 
