@@ -163,7 +163,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
-	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID, projectID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
@@ -306,7 +306,7 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
 
-		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID, projectID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
@@ -393,7 +393,8 @@ func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []matlas.AtlasRole)
 	flattenedOrgRoles := []string{}
 
 	for _, role := range apiKeyRoles {
-		if strings.HasPrefix(role.RoleName, "GROUP_") && role.GroupID == projectID {
+		//if strings.HasPrefix(role.RoleName, "GROUP_") && role.GroupID == projectID {
+		if role.GroupID == projectID {
 			flattenedOrgRoles = append(flattenedOrgRoles, role.RoleName)
 		}
 	}
@@ -464,7 +465,7 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, chang
 	return
 }
 
-func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
+func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOrgList *matlas.Root, apiKeyID, projectID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
@@ -472,15 +473,33 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOr
 			if err != nil {
 				return nil, fmt.Errorf("error getting api key information: %s", err)
 			}
+			tempOrgRoles := new(APIProjectAssignmentKeyInput)
 			for _, val := range orgKeys {
 				if val.ID == apiKeyID {
 					for _, r := range val.Roles {
 						temp := new(APIProjectAssignmentKeyInput)
+						/*if strings.HasPrefix(r.RoleName, "ORG_") {
+							tempOrgRoles.ProjectID = projectID
+							for _, l := range val.Roles {
+								if l.GroupID == "" {
+									tempOrgRoles.RoleNames = append(tempOrgRoles.RoleNames, l.RoleName)
+								}
+							}
+						}*/
 						if strings.HasPrefix(r.RoleName, "GROUP_") {
 							temp.ProjectID = r.GroupID
 							for _, l := range val.Roles {
 								if l.GroupID == temp.ProjectID {
 									temp.RoleNames = append(temp.RoleNames, l.RoleName)
+								}
+								if l.GroupID == temp.ProjectID && l.GroupID == projectID {
+									for _, o := range val.Roles {
+										if strings.HasPrefix(o.RoleName, "ORG_") {
+											tempOrgRoles.ProjectID = projectID
+											tempOrgRoles.RoleNames = append(tempOrgRoles.RoleNames, o.RoleName)
+										}
+									}
+									temp.RoleNames = append(temp.RoleNames, tempOrgRoles.RoleNames...)
 								}
 							}
 							projectAssignments = append(projectAssignments, *temp)
