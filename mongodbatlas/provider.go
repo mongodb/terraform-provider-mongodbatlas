@@ -41,6 +41,8 @@ const (
 	endPointSTSDefault                    = "https://sts.amazonaws.com"
 	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
+	AttrNotSetError                       = "attribute %s must be set"
+	ProviderConfigError                   = "error in configuring the provider."
 )
 
 type SecretData struct {
@@ -54,36 +56,38 @@ func Provider() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"public_key": {
 				Type:     schema.TypeString,
-				Required: true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"MONGODB_ATLAS_PUBLIC_KEY",
-					"MCLI_PUBLIC_API_KEY",
-				}, ""),
+				Optional: true,
+				// Required: true,
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"MONGODB_ATLAS_PUBLIC_KEY",
+				// 	"MCLI_PUBLIC_API_KEY",
+				// }, ""),
 				Description: "MongoDB Atlas Programmatic Public Key",
 			},
 			"private_key": {
 				Type:     schema.TypeString,
-				Required: true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"MONGODB_ATLAS_PRIVATE_KEY",
-					"MCLI_PRIVATE_API_KEY",
-				}, ""),
+				Optional: true,
+				// Required: true,
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"MONGODB_ATLAS_PRIVATE_KEY",
+				// 	"MCLI_PRIVATE_API_KEY",
+				// }, ""),
 				Description: "MongoDB Atlas Programmatic Private Key",
 				Sensitive:   true,
 			},
 			"base_url": {
 				Type:     schema.TypeString,
 				Optional: true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"MONGODB_ATLAS_BASE_URL",
-					"MCLI_OPS_MANAGER_URL",
-				}, ""),
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"MONGODB_ATLAS_BASE_URL",
+				// 	"MCLI_OPS_MANAGER_URL",
+				// }, ""),
 				Description: "MongoDB Atlas Base URL",
 			},
 			"realm_base_url": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MONGODB_REALM_BASE_URL", ""),
+				Type:     schema.TypeString,
+				Optional: true,
+				// DefaultFunc: schema.EnvDefaultFunc("MONGODB_REALM_BASE_URL", ""),
 				Description: "MongoDB Realm Base URL",
 			},
 			"is_mongodbgov_cloud": {
@@ -91,49 +95,49 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "MongoDB Atlas Base URL default to gov",
 			},
-			"assume_role": assumeRoleSchema(),
+			// "assume_role": assumeRoleSchema(),
 			"secret_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"region": {
 				Type: schema.TypeString,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"AWS_REGION",
-					"TF_VAR_AWS_REGION",
-				}, ""),
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"AWS_REGION",
+				// 	"TF_VAR_AWS_REGION",
+				// }, ""),
 				Optional: true,
 			},
 			"sts_endpoint": {
 				Type: schema.TypeString,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"STS_ENDPOINT",
-					"TF_VAR_STS_ENDPOINT",
-				}, ""),
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"STS_ENDPOINT",
+				// 	"TF_VAR_STS_ENDPOINT",
+				// }, ""),
 				Optional: true,
 			},
 			"aws_access_key_id": {
 				Type: schema.TypeString,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"AWS_ACCESS_KEY_ID",
-					"TF_VAR_AWS_ACCESS_KEY_ID",
-				}, ""),
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"AWS_ACCESS_KEY_ID",
+				// 	"TF_VAR_AWS_ACCESS_KEY_ID",
+				// }, ""),
 				Optional: true,
 			},
 			"aws_secret_access_key": {
 				Type: schema.TypeString,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"AWS_SECRET_ACCESS_KEY",
-					"TF_VAR_AWS_SECRET_ACCESS_KEY",
-				}, ""),
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"AWS_SECRET_ACCESS_KEY",
+				// 	"TF_VAR_AWS_SECRET_ACCESS_KEY",
+				// }, ""),
 				Optional: true,
 			},
 			"aws_session_token": {
 				Type: schema.TypeString,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-					"AWS_SESSION_TOKEN",
-					"TF_VAR_AWS_SESSION_TOKEN",
-				}, ""),
+				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+				// 	"AWS_SESSION_TOKEN",
+				// 	"TF_VAR_AWS_SESSION_TOKEN",
+				// }, ""),
 				Optional: true,
 			},
 		},
@@ -303,35 +307,108 @@ func addBetaFeatures(provider *schema.Provider) {
 	}
 }
 
+func getValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []string) string {
+	var val = d.Get(attrName).(string)
+	if val == "" {
+		val = multiEnvDefaultFunc(envVars, "").(string)
+	}
+	return val
+}
+
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	var (
+		publicKey    string
+		privateKey   string
+		realmBaseUrl string
+	)
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		baseURL = "https://cloud.mongodbgov.com"
 	} else {
-		baseURL = d.Get("base_url").(string)
+		baseURL = getValueFromConfigOrEnv(d, "base_url", []string{
+			"MONGODB_ATLAS_BASE_URL",
+			"MCLI_OPS_MANAGER_URL",
+		})
+		// baseURL = d.Get("base_url").(string)
+		// if baseURL == "" {
+		// 	baseURL = multiEnvDefaultFunc([]string{
+		// 		"MONGODB_ATLAS_BASE_URL",
+		// 		"MCLI_OPS_MANAGER_URL",
+		// 	}, "").(string)
+		// }
 	}
+
+	publicKey = getValueFromConfigOrEnv(d, "public_key", []string{
+		"MONGODB_ATLAS_PUBLIC_KEY",
+		"MCLI_PUBLIC_API_KEY",
+	})
+	if publicKey == "" {
+		return nil, diag.FromErr(fmt.Errorf(AttrNotSetError, "public_key"))
+	}
+
+	privateKey = getValueFromConfigOrEnv(d, "private_key", []string{
+		"MONGODB_ATLAS_PRIVATE_KEY",
+		"MCLI_PRIVATE_API_KEY",
+	})
+	if privateKey == "" {
+		return nil, diag.FromErr(fmt.Errorf(AttrNotSetError, "private_key"))
+	}
+
+	realmBaseUrl = getValueFromConfigOrEnv(d, "realm_base_url", []string{
+		"MONGODB_REALM_BASE_URL",
+	})
+
+	// Commenting out AssumeRole for the purpose of migrating Project resource as part of POC
+
+	// if d.Get("region").(string) == "" {
+	// 	privateKey = utils.MultiEnvDefaultFunc([]string{
+	// 		"AWS_REGION",
+	// 		"TF_VAR_AWS_REGION",
+	// 	}, "").(string)
+	// }
+
+	// if d.Get("realm_base_url").(string) == "" {
+	// 	realmBaseUrl = utils.MultiEnvDefaultFunc([]string{
+	// 		"AWS_ACCESS_KEY_ID",
+	// 		"TF_VAR_AWS_ACCESS_KEY_ID",
+	// 	}, "").(string)
+	// }
+
+	// if d.Get("realm_base_url").(string) == "" {
+	// 	realmBaseUrl = utils.MultiEnvDefaultFunc([]string{
+	// 		"AWS_SECRET_ACCESS_KEY",
+	// 		"TF_VAR_AWS_SECRET_ACCESS_KEY",
+	// 	}, "").(string)
+	// }
+
+	// if d.Get("realm_base_url").(string) == "" {
+	// 	realmBaseUrl = utils.MultiEnvDefaultFunc([]string{
+	// 		"AWS_SESSION_TOKEN",
+	// 		"TF_VAR_AWS_SESSION_TOKEN",
+	// 	}, "").(string)
+	// }
 
 	config := Config{
-		PublicKey:    d.Get("public_key").(string),
-		PrivateKey:   d.Get("private_key").(string),
+		PublicKey:    publicKey,
+		PrivateKey:   privateKey,
 		BaseURL:      baseURL,
-		RealmBaseURL: d.Get("realm_base_url").(string),
+		RealmBaseURL: realmBaseUrl,
 	}
 
-	if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
-		config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
-		secret := d.Get("secret_name").(string)
-		region := d.Get("region").(string)
-		awsAccessKeyID := d.Get("aws_access_key_id").(string)
-		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
-		awsSessionToken := d.Get("aws_session_token").(string)
-		endpoint := d.Get("sts_endpoint").(string)
-		var err error
-		config, err = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-		if err != nil {
-			return nil, diag.FromErr(err)
-		}
-	}
+	// if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+	// 	config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
+	// 	secret := d.Get("secret_name").(string)
+	// 	region := d.Get("region").(string)
+	// 	awsAccessKeyID := d.Get("aws_access_key_id").(string)
+	// 	awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
+	// 	awsSessionToken := d.Get("aws_session_token").(string)
+	// 	endpoint := d.Get("sts_endpoint").(string)
+	// 	var err error
+	// 	config, err = ConfigureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+	// 	if err != nil {
+	// 		return nil, diag.FromErr(err)
+	// 	}
+	// }
 
 	return config.NewClient(ctx)
 }
@@ -791,4 +868,13 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 
 func pointer[T any](x T) *T {
 	return &x
+}
+
+func multiEnvDefaultFunc(ks []string, def interface{}) interface{} {
+	for _, k := range ks {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+	}
+	return def
 }
