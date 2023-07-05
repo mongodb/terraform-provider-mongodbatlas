@@ -55,39 +55,24 @@ func Provider() *schema.Provider {
 	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"public_key": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// Required: true,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"MONGODB_ATLAS_PUBLIC_KEY",
-				// 	"MCLI_PUBLIC_API_KEY",
-				// }, ""),
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "MongoDB Atlas Programmatic Public Key",
 			},
 			"private_key": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// Required: true,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"MONGODB_ATLAS_PRIVATE_KEY",
-				// 	"MCLI_PRIVATE_API_KEY",
-				// }, ""),
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "MongoDB Atlas Programmatic Private Key",
 				Sensitive:   true,
 			},
 			"base_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"MONGODB_ATLAS_BASE_URL",
-				// 	"MCLI_OPS_MANAGER_URL",
-				// }, ""),
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "MongoDB Atlas Base URL",
 			},
 			"realm_base_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// DefaultFunc: schema.EnvDefaultFunc("MONGODB_REALM_BASE_URL", ""),
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "MongoDB Realm Base URL",
 			},
 			"is_mongodbgov_cloud": {
@@ -101,43 +86,23 @@ func Provider() *schema.Provider {
 				Optional: true,
 			},
 			"region": {
-				Type: schema.TypeString,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"AWS_REGION",
-				// 	"TF_VAR_AWS_REGION",
-				// }, ""),
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"sts_endpoint": {
-				Type: schema.TypeString,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"STS_ENDPOINT",
-				// 	"TF_VAR_STS_ENDPOINT",
-				// }, ""),
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"aws_access_key_id": {
-				Type: schema.TypeString,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"AWS_ACCESS_KEY_ID",
-				// 	"TF_VAR_AWS_ACCESS_KEY_ID",
-				// }, ""),
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"aws_secret_access_key": {
-				Type: schema.TypeString,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"AWS_SECRET_ACCESS_KEY",
-				// 	"TF_VAR_AWS_SECRET_ACCESS_KEY",
-				// }, ""),
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"aws_session_token": {
-				Type: schema.TypeString,
-				// DefaultFunc: schema.MultiEnvDefaultFunc([]string{
-				// 	"AWS_SESSION_TOKEN",
-				// 	"TF_VAR_AWS_SESSION_TOKEN",
-				// }, ""),
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
@@ -352,7 +317,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	})
 
 	// Commenting out AssumeRole/AWS attributes for the purpose of migrating Project resource as part of POC
-
+	//
 	// if d.Get("region").(string) == "" {
 	// 	privateKey = utils.MultiEnvDefaultFunc([]string{
 	// 		"AWS_REGION",

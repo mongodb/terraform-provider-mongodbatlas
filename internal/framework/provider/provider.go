@@ -21,15 +21,9 @@ const (
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
 )
 
-// var _ provider.Provider = &MongodbtlasProvider{}
-
 var _ provider.Provider = (*MongodbtlasProvider)(nil)
 
 type MongodbtlasProvider struct {
-	// version is set to the provider version on release, "dev" when the
-	// provider is built and ran locally, and "test" when running acceptance
-	// testing.
-	// Version string
 }
 
 type MongodbtlasProviderModel struct {
@@ -100,86 +94,6 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Optional: true,
 			},
 		},
-		// TODO: validAssumeRoleDuration
-		//       validation.StringIsJSON
-		// Blocks: map[string]schema.Block{
-		// 	// Optional: true,
-		// 	"assume_role": schema.ListNestedBlock{
-		// 		// MaxItems: 1,
-		// 		Validators: []validator.List{
-		// 			listvalidator.SizeAtMost(1),
-		// 		},
-		// 		NestedObject: schema.NestedBlockObject{
-		// 			Attributes: map[string]schema.Attribute{
-		// 				"duration": schema.StringAttribute{
-		// 					Optional:    true,
-		// 					Description: "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
-		// 					// ValidateFunc:  validAssumeRoleDuration,
-		// 					Validators: []validator.String{
-		// 						stringvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("duration_seconds")),
-		// 					},
-		// 				},
-		// 				"duration_seconds": schema.Int64Attribute{
-		// 					Optional:           true,
-		// 					DeprecationMessage: "Use assume_role.duration instead",
-		// 					Description:        "The duration, in seconds, of the role session.",
-		// 					Validators: []validator.Int64{
-		// 						int64validator.ConflictsWith(path.MatchRelative().AtParent().AtName("duration")),
-		// 						int64validator.Between(900, 43200),
-		// 					},
-		// 				},
-		// 				"external_id": schema.StringAttribute{
-		// 					Optional:    true,
-		// 					Description: "A unique identifier that might be required when you assume a role in another account.",
-		// 					Validators: []validator.String{
-		// 						stringvalidator.LengthBetween(2, 1224),
-		// 						stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
-		// 					},
-		// 				},
-		// 				"policy": schema.StringAttribute{
-		// 					Optional:    true,
-		// 					Description: "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
-		// 					// ValidateFunc: validation.StringIsJSON,
-		// 				},
-		// 				"policy_arns": schema.SetAttribute{
-		// 					Optional:    true,
-		// 					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
-		// 					ElementType: types.StringType,
-		// 				},
-		// 				"role_arn": schema.StringAttribute{
-		// 					Optional:    true,
-		// 					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-		// 				},
-		// 				"session_name": schema.StringAttribute{
-		// 					Optional:    true,
-		// 					Description: "An identifier for the assumed role session.",
-		// 					Validators: []validator.String{
-		// 						stringvalidator.LengthBetween(2, 64),
-		// 						stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-		// 					},
-		// 				},
-		// 				"source_identity": schema.StringAttribute{
-		// 					Optional:    true,
-		// 					Description: "Source identity specified by the principal assuming the role.",
-		// 					Validators: []validator.String{
-		// 						stringvalidator.LengthBetween(2, 64),
-		// 						stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-		// 					},
-		// 				},
-		// 				"tags": schema.MapAttribute{
-		// 					Optional:    true,
-		// 					Description: "Assume role session tags.",
-		// 					ElementType: types.StringType,
-		// 				},
-		// 				"transitive_tag_keys": schema.SetAttribute{
-		// 					Optional:    true,
-		// 					Description: "Assume role session tag keys to pass to any subsequent sessions.",
-		// 					ElementType: types.StringType,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
 	}
 }
 
@@ -281,24 +195,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
 	}
 
-	// if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
-	// config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
-	// secret := data.SecretName.ValueString()
-	// region := data.Region.ValueString()
-	// awsAccessKeyID := data.AwsAccessKeyID.ValueString()
-	// awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
-	// awsSessionToken := data.AwsSessionToken.ValueString()
-	// endpoint := data.StsEndpoint.ValueString()
-	// var err error
-	// config, err = ConfigureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError(
-	// 		"failed to initialize a new client",
-	// 		err.Error(),
-	// 	)
-	// 	return
-	// }
-
 	client, _ := config.NewClient(ctx)
 
 	resp.DataSourceData = client
@@ -313,9 +209,8 @@ func (p *MongodbtlasProvider) DataSources(ctx context.Context) []func() datasour
 
 func (p *MongodbtlasProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		func() resource.Resource {
-			return &ExampleResource{}
-		},
+		NewExampleResource,
+		NewMongoDBAtlasProjectResource,
 	}
 }
 

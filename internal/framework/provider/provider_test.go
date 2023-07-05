@@ -1,11 +1,7 @@
 package provider
 
-// Some issues when migrating provider:
-// DefaultFunc: MultiEnvDefaultFunc not supported anymore in Framework [https://discuss.hashicorp.com/t/muxing-upgraded-tfsdk-and-framework-provider-with-default-provider-configuration/43945]
-// terraform-plugin-sdk/v2/helper/logging - logging.NewTransport no longer supported [https://discuss.hashicorp.com/t/frameworks-alternative-to-terraform-plugin-sdk-v2-helper-logging/52371/2]
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -17,30 +13,6 @@ import (
 
 	mongodbatlasSDKv2 "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 )
-
-var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"mongodbatlas": func() (tfprotov6.ProviderServer, error) {
-
-		upgradedSdkProvider, err := tf5to6server.UpgradeServer(context.Background(), mongodbatlasSDKv2.Provider().GRPCProvider)
-		if err != nil {
-			log.Fatal(err)
-		}
-		providers := []func() tfprotov6.ProviderServer{
-			func() tfprotov6.ProviderServer {
-				return upgradedSdkProvider
-			},
-			providerserver.NewProtocol6(New()()),
-		}
-
-		muxServer, err := tf6muxserver.NewMuxServer(context.Background(), providers...)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return muxServer.ProviderServer(), nil
-	},
-}
 
 func TestMuxServer(t *testing.T) {
 	resource.Test(t, resource.TestCase{
