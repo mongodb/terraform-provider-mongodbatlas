@@ -2,22 +2,10 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/utils"
-	// "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/utils"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -47,8 +35,8 @@ type MongodbtlasProvider struct {
 type MongodbtlasProviderModel struct {
 	PublicKey         types.String `tfsdk:"public_key"`
 	PrivateKey        types.String `tfsdk:"private_key"`
-	BaseUrl           types.String `tfsdk:"base_url"`
-	RealmBaseUrl      types.String `tfsdk:"realm_base_url"`
+	BaseURL           types.String `tfsdk:"base_url"`
+	RealmBaseURL      types.String `tfsdk:"realm_base_url"`
 	IsMongodbGovCloud types.Bool   `tfsdk:"is_mongodbgov_cloud"`
 
 	// AssumeRole types.Object `tfsdk:"assume_role"`
@@ -199,7 +187,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	tflog.Info(ctx, "configuring client")
 	var (
 		data    MongodbtlasProviderModel
-		baseUrl string
+		baseURL string
 	)
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -209,9 +197,9 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 
 	mongodbgovCloud := data.IsMongodbGovCloud.ValueBool()
 	if mongodbgovCloud {
-		baseUrl = "https://cloud.mongodbgov.com"
+		baseURL = "https://cloud.mongodbgov.com"
 	} else {
-		baseUrl = data.BaseUrl.ValueString()
+		baseURL = data.BaseURL.ValueString()
 	}
 
 	if data.PublicKey.ValueString() == "" {
@@ -234,15 +222,15 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		}
 	}
 
-	if data.BaseUrl.ValueString() == "" {
-		data.BaseUrl = types.StringValue(utils.MultiEnvDefaultFunc([]string{
+	if data.BaseURL.ValueString() == "" {
+		data.BaseURL = types.StringValue(utils.MultiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_BASE_URL",
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string))
 	}
 
-	if data.RealmBaseUrl.ValueString() == "" {
-		data.RealmBaseUrl = types.StringValue(utils.MultiEnvDefaultFunc([]string{
+	if data.RealmBaseURL.ValueString() == "" {
+		data.RealmBaseURL = types.StringValue(utils.MultiEnvDefaultFunc([]string{
 			"MONGODB_REALM_BASE_URL",
 		}, "").(string))
 	}
@@ -289,8 +277,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	config := Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
-		BaseURL:      baseUrl,
-		RealmBaseURL: data.RealmBaseUrl.ValueString(),
+		BaseURL:      baseURL,
+		RealmBaseURL: data.RealmBaseURL.ValueString(),
 	}
 
 	// if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
@@ -317,112 +305,9 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	resp.ResourceData = client
 }
 
-func ConfigureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
-	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
-	if err != nil {
-		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return *config, err
-	}
-
-	defaultResolver := endpoints.DefaultResolver()
-	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == endpoints.StsServiceID {
-			if endpoint == "" {
-				return endpoints.ResolvedEndpoint{
-					URL:           endPointSTSDefault,
-					SigningRegion: region,
-				}, nil
-			}
-			return endpoints.ResolvedEndpoint{
-				URL:           endpoint,
-				SigningRegion: region,
-			}, nil
-		}
-
-		return defaultResolver.EndpointFor(service, region, optFns...)
-	}
-
-	cfg := aws.Config{
-		Region:              aws.String(region),
-		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
-		STSRegionalEndpoint: ep,
-		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
-	}
-
-	sess := session.Must(session.NewSession(&cfg))
-
-	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
-
-	_, err = sess.Config.Credentials.Get()
-	if err != nil {
-		log.Printf("Session get credentials error: %s", err)
-		return *config, err
-	}
-	_, err = creds.Get()
-	if err != nil {
-		log.Printf("STS get credentials error: %s", err)
-		return *config, err
-	}
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
-	if err != nil {
-		log.Printf("Get Secrets error: %s", err)
-		return *config, err
-	}
-
-	var secretData SecretData
-	err = json.Unmarshal([]byte(secretString), &secretData)
-	if err != nil {
-		return *config, err
-	}
-	if secretData.PrivateKey == "" {
-		return *config, fmt.Errorf("secret missing value for credential PrivateKey")
-	}
-
-	if secretData.PublicKey == "" {
-		return *config, fmt.Errorf("secret missing value for credential PublicKey")
-	}
-
-	config.PublicKey = secretData.PublicKey
-	config.PrivateKey = secretData.PrivateKey
-	return *config, nil
-}
-
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
-	svc := secretsmanager.New(sess, creds)
-	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secret),
-		VersionStage: aws.String("AWSCURRENT"),
-	}
-
-	result, err := svc.GetSecretValue(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidParameterException:
-				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidRequestException:
-				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-			case secretsmanager.ErrCodeDecryptionFailure:
-				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-			case secretsmanager.ErrCodeInternalServiceError:
-				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-			default:
-				log.Println(aerr.Error())
-			}
-		} else {
-			log.Println(err.Error())
-		}
-		return "", err
-	}
-
-	return *result.SecretString, err
-}
-
 func (p *MongodbtlasProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewCoffeesDataSource,
+		NewExampleDataSource,
 	}
 }
 
@@ -439,15 +324,3 @@ func New() func() provider.Provider {
 		return &MongodbtlasProvider{}
 	}
 }
-
-// func TestAccPreCheck(tb testing.TB) {
-// 	// You can add code here to run prior to any test case execution, for example assertions
-// 	// about the appropriate environment variables being set are common to see in a pre-check
-// 	// function.
-// 	tflog.Info(context.Background(), "MONGODB_ATLAS_PUBLIC_KEY val checking in pre-check: "+os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"))
-// 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
-// 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-// 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
-// 		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
-// 	}
-// }

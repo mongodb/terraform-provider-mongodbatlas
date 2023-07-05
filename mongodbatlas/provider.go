@@ -319,7 +319,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	var (
 		publicKey    string
 		privateKey   string
-		realmBaseUrl string
+		realmBaseURL string
 	)
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
@@ -329,13 +329,6 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 			"MONGODB_ATLAS_BASE_URL",
 			"MCLI_OPS_MANAGER_URL",
 		})
-		// baseURL = d.Get("base_url").(string)
-		// if baseURL == "" {
-		// 	baseURL = multiEnvDefaultFunc([]string{
-		// 		"MONGODB_ATLAS_BASE_URL",
-		// 		"MCLI_OPS_MANAGER_URL",
-		// 	}, "").(string)
-		// }
 	}
 
 	publicKey = getValueFromConfigOrEnv(d, "public_key", []string{
@@ -354,11 +347,11 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return nil, diag.FromErr(fmt.Errorf(AttrNotSetError, "private_key"))
 	}
 
-	realmBaseUrl = getValueFromConfigOrEnv(d, "realm_base_url", []string{
+	realmBaseURL = getValueFromConfigOrEnv(d, "realm_base_url", []string{
 		"MONGODB_REALM_BASE_URL",
 	})
 
-	// Commenting out AssumeRole for the purpose of migrating Project resource as part of POC
+	// Commenting out AssumeRole/AWS attributes for the purpose of migrating Project resource as part of POC
 
 	// if d.Get("region").(string) == "" {
 	// 	privateKey = utils.MultiEnvDefaultFunc([]string{
@@ -392,7 +385,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		PublicKey:    publicKey,
 		PrivateKey:   privateKey,
 		BaseURL:      baseURL,
-		RealmBaseURL: realmBaseUrl,
+		RealmBaseURL: realmBaseURL,
 	}
 
 	// if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {

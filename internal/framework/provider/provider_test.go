@@ -5,7 +5,6 @@ package provider
 // terraform-plugin-sdk/v2/helper/logging - logging.NewTransport no longer supported [https://discuss.hashicorp.com/t/frameworks-alternative-to-terraform-plugin-sdk-v2-helper-logging/52371/2]
 import (
 	"context"
-	"fmt"
 	"log"
 	"testing"
 
@@ -76,10 +75,9 @@ func TestMuxServer(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprint(`resource mongodbatlas_example "test" {
+				Config: `resource mongodbatlas_example "test" {
 					configurable_attribute = "config_attr_val"
-					
-				}`),
+				}`,
 			},
 		},
 	})
