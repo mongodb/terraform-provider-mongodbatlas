@@ -3,15 +3,18 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
+	"runtime"
 	"time"
 
-	"github.com/mongodb-forks/digest"
-	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-	"github.com/spf13/cast"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
-
 	"go.mongodb.org/realm/realm"
+
+	"github.com/mongodb-forks/digest"
+	"github.com/spf13/cast"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 type Config struct {
@@ -40,12 +43,14 @@ type MongoDBClient struct {
 	Config *Config
 }
 
-var ua = "terraform-provider-mongodbatlas/" + version.ProviderVersion
+const ToolName = "terraform-provider-mongodbatlas"
+
+var UserAgent = fmt.Sprintf("%s/%s (%s;%s)", ToolName, version.ProviderVersion, runtime.GOOS, runtime.GOARCH)
 
 // NewClient func...
-func (c *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
+func (config *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
 	// setup a transport to handle digest
-	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
+	transport := digest.NewTransport(cast.ToString(config.PublicKey), cast.ToString(config.PrivateKey))
 
 	// initialize the client
 	client, err := transport.Client()
@@ -55,9 +60,9 @@ func (c *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
 
 	// client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(ua)}
-	if c.BaseURL != "" {
-		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(UserAgent)}
+	if config.BaseURL != "" {
+		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(config.BaseURL))
 	}
 
 	// Initialize the MongoDB Atlas API Client.
@@ -68,24 +73,24 @@ func (c *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
 
 	clients := &MongoDBClient{
 		Atlas:  atlasClient,
-		Config: c,
+		Config: config,
 	}
 
 	return clients, nil
 }
 
-func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
+func (config *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
 	// Realm
-	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
+	if config.Config.PublicKey == "" && config.Config.PrivateKey == "" {
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent(ua)}
-	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
-		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.RealmBaseURL))
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent(UserAgent)}
+	if config.Config.BaseURL != "" && config.Config.RealmBaseURL != "" {
+		optsRealm = append(optsRealm, realm.SetBaseURL(config.Config.RealmBaseURL))
 	}
 	authConfig := realmAuth.NewConfig(nil)
-	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
+	token, err := authConfig.NewTokenFromCredentials(ctx, config.Config.PublicKey, config.Config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}

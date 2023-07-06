@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	mongodbatlasSDKv2 "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"

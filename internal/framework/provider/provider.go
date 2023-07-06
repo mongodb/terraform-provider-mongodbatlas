@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/utils"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/utils"
 )
 
 const (
@@ -85,10 +84,12 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Optional: true,
 			},
 			"aws_access_key_id": schema.StringAttribute{
-				Optional: true,
+				Optional:  true,
+				Sensitive: true,
 			},
 			"aws_secret_access_key": schema.StringAttribute{
-				Optional: true,
+				Optional:  true,
+				Sensitive: true,
 			},
 			"aws_session_token": schema.StringAttribute{
 				Optional: true,
@@ -109,11 +110,10 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
+	baseURL = data.BaseURL.ValueString()
 	mongodbgovCloud := data.IsMongodbGovCloud.ValueBool()
 	if mongodbgovCloud {
 		baseURL = "https://cloud.mongodbgov.com"
-	} else {
-		baseURL = data.BaseURL.ValueString()
 	}
 
 	if data.PublicKey.ValueString() == "" {
