@@ -56,7 +56,7 @@ data "mongodbatlas_projects" "test" {
 
 ### Project
 
-* `name` - The name of the project you want to create. (Cannot be changed via this Provider after creation.)
+* `name` - The name of the project you want to create.
 * `org_id` - The ID of the organization you want to create the project within.
 * `cluster_count` - The number of Atlas clusters deployed in the project.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.

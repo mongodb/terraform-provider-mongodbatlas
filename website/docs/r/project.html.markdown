@@ -10,8 +10,6 @@ description: |-
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
 
-~> **IMPORTANT WARNING:**  Changing the name of an existing Project in your Terraform configuration will result the destruction of that Project and related resources (including Clusters) and the re-creation of those resources.  Terraform will inform you of the destroyed/created resources before applying so be sure to verify any change to your environment before applying.
-
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot delete the Atlas project if any snapshots exist.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
 ## Example Usage
@@ -51,7 +49,7 @@ resource "mongodbatlas_project" "test" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the project you want to create. (Cannot be changed via this Provider after creation.)
+* `name` - (Required) The name of the project you want to create.
 * `org_id` - (Required) The ID of the organization you want to create the project within.
 * `project_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user account to be granted the [Project Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Project-Owner) role on the specified project. If you set this parameter, it overrides the default value of the oldest [Organization Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Organization-Owner).
 * `with_default_alerts_settings` - (Optional) It allows users to disable the creation of the default alert settings. By default, this flag is set to true.
