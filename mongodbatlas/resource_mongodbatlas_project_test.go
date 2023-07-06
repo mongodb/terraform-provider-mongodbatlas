@@ -153,7 +153,7 @@ func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName    = acctest.RandomWithPrefix("test-acc")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
