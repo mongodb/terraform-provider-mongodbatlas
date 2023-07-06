@@ -55,26 +55,17 @@ func resourceMongoDBAtlasOrganization() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"federation_settings_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
 
 func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-
-	createRequest := new(matlas.CreateOrganizationRequest)
-	apiKey := &matlas.APIKeyInput{}
-
-	createRequest.Name = d.Get("name").(string)
-	createRequest.OrgOwnerID = pointy.String(d.Get("org_owner_id").(string))
-	apiKey.Desc = d.Get("description").(string)
-	apiKey.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
-
-	organization, resp, err := conn.Organizations.Create(ctx, &matlas.CreateOrganizationRequest{
-		Name:       createRequest.Name,
-		OrgOwnerID: createRequest.OrgOwnerID,
-		APIKey:     apiKey,
-	})
+	organization, resp, err := conn.Organizations.Create(ctx, newCreateOrganizationRequest(d))
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -108,6 +99,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
+		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := config.NewClient(ctx)
@@ -136,6 +128,7 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
+		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := config.NewClient(ctx)
@@ -159,6 +152,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
 		PrivateKey: d.Get("private_key").(string),
+		BaseURL:    meta.(*MongoDBClient).Config.BaseURL,
 	}
 
 	clients, _ := config.NewClient(ctx)
@@ -194,4 +188,21 @@ func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func newCreateOrganizationRequest(d *schema.ResourceData) *matlas.CreateOrganizationRequest {
+	createRequest := &matlas.CreateOrganizationRequest{
+		Name:       d.Get("name").(string),
+		OrgOwnerID: pointy.String(d.Get("org_owner_id").(string)),
+		APIKey: &matlas.APIKeyInput{
+			Roles: expandStringList(d.Get("role_names").(*schema.Set).List()),
+			Desc:  d.Get("description").(string),
+		},
+	}
+
+	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
+		createRequest.FederationSettingsID = &federationSettingsID
+	}
+
+	return createRequest
 }
