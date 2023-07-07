@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -119,6 +119,42 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 				},
 			},
 		},
+		"schedule": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"end_hour": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"end_minute": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"start_hour": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"start_minute": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"day_of_month": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"day_of_week": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
 		"partition_fields": {
 			Type:     schema.TypeList,
 			Computed: true,
@@ -205,7 +241,7 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	return nil
 }
