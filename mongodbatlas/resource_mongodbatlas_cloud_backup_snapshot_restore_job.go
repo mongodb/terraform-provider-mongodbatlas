@@ -320,6 +320,11 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context
 		shouldDelete = false
 	}
 
+	if aut, _ := d.Get("delivery_type.point_in_time").(string); aut == "true" {
+		log.Print("Point in time restore cannot be cancelled")
+		shouldDelete = false
+	}
+
 	if shouldDelete {
 		_, err := conn.CloudProviderSnapshotRestoreJobs.Delete(context.Background(), requestParameters)
 		if err != nil {
