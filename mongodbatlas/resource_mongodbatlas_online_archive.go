@@ -96,6 +96,49 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"schedule": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice([]string{"DAILY", "MONTHLY", "WEEKLY", "DEFAULT"}, false),
+					},
+					"end_hour": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Computed: true,
+					},
+					"end_minute": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Computed: true,
+					},
+					"start_hour": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Computed: true,
+					},
+					"start_minute": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Computed: true,
+					},
+					"day_of_month": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"day_of_week": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		},
 		"partition_fields": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -207,7 +250,6 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 }
 
 func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// getting the atlas id
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -283,6 +325,13 @@ func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema
 		log.Printf("error setting project id %s for Online Archive id: %s", err, atlasID)
 	}
 
+	mapValues := fromOnlineArchiveToMapInCreate(outOnlineArchive)
+	for key, val := range mapValues {
+		if err := d.Set(key, val); err != nil {
+			return nil, fmt.Errorf("error MongoDB Atlas Online Archive with id %s, read error: %w", atlasID, err)
+		}
+	}
+
 	d.SetId(encodeStateID(map[string]string{
 		"archive_id":   outOnlineArchive.ID,
 		"cluster_name": outOnlineArchive.ClusterName,
@@ -301,6 +350,7 @@ func mapToArchivePayload(d *schema.ResourceData) matlas.OnlineArchive {
 	}
 
 	requestInput.Criteria = mapCriteria(d)
+	requestInput.Schedule = mapSchedule(d)
 
 	if partitions, ok := d.GetOk("partition_fields"); ok {
 		list := partitions.([]interface{})
@@ -345,11 +395,12 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	// if the criteria or the paused is enable then perform an update
 	paused := d.HasChange("paused")
 	criteria := d.HasChange("criteria")
+	schedule := d.HasChange("schedule")
 
 	collectionType := d.HasChange("collection_type")
 
 	// nothing to do, let's go
-	if !paused && !criteria && !collectionType {
+	if !paused && !criteria && !collectionType && !schedule {
 		return nil
 	}
 
@@ -362,6 +413,10 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 
 	if criteria {
 		request.Criteria = mapCriteria(d)
+	}
+
+	if schedule {
+		request.Schedule = mapSchedule(d)
 	}
 
 	if collectionType {
@@ -395,6 +450,16 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		"query":       in.Criteria.Query,
 	}
 
+	schedule := map[string]interface{}{
+		"type":         in.Schedule.Type,
+		"day_of_month": in.Schedule.DayOfMonth,
+		"day_of_week":  in.Schedule.DayOfWeek,
+		"end_hour":     in.Schedule.EndHour,
+		"end_minute":   in.Schedule.EndMinute,
+		"start_hour":   in.Schedule.StartHour,
+		"start_minute": in.Schedule.StartMinute,
+	}
+
 	// note: criteria is a conditional field, not required when type is equal to CUSTOM
 	if in.Criteria.ExpireAfterDays != nil {
 		criteria["expire_after_days"] = int(*in.Criteria.ExpireAfterDays)
@@ -407,7 +472,15 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		}
 	}
 
+	// clean up schedule for empty values
+	for key, val := range schedule {
+		if isEmpty(val) {
+			delete(schedule, key)
+		}
+	}
+
 	schemaVals["criteria"] = []interface{}{criteria}
+	schemaVals["schedule"] = []interface{}{schedule}
 
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
@@ -468,6 +541,41 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 
 	// Pending update client missing QUERY field
 	return criteriaInput
+}
+
+func mapSchedule(d *schema.ResourceData) *matlas.OnlineArchiveSchedule {
+	scheduleTFConfigList := d.Get("schedule").([]interface{})
+	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
+
+	scheduleInput := &matlas.OnlineArchiveSchedule{
+		Type: scheduleTFConfig["type"].(string),
+	}
+
+	if endHour, ok := scheduleTFConfig["end_hour"].(int); ok {
+		scheduleInput.EndHour = pointy.Int32(int32(endHour))
+	}
+
+	if endMinute, ok := scheduleTFConfig["end_minute"].(int); ok {
+		scheduleInput.EndMinute = pointy.Int32(int32(endMinute))
+	}
+
+	if startHour, ok := scheduleTFConfig["start_hour"].(int); ok {
+		scheduleInput.StartHour = pointy.Int32(int32(startHour))
+	}
+
+	if startMinute, ok := scheduleTFConfig["start_minute"].(int); ok {
+		scheduleInput.StartMinute = pointy.Int32(int32(startMinute))
+	}
+
+	if dayOfWeek, ok := scheduleTFConfig["day_of_week"].(int); ok {
+		scheduleInput.DayOfWeek = int32(dayOfWeek)
+	}
+
+	if dayOfMonth, ok := scheduleTFConfig["day_of_month"].(int); ok {
+		scheduleInput.DayOfMonth = int32(dayOfMonth)
+	}
+
+	return scheduleInput
 }
 
 func isEmpty(val interface{}) bool {
