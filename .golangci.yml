@@ -10,6 +10,9 @@ linters-settings:
       - octalLiteral
   govet:
     check-shadowing: true
+    enable:
+      - fieldalignment
+
   revive:
     # see https://github.com/mgechev/revive#available-rules for details.
     ignore-generated-header: true
