@@ -43,6 +43,11 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
 				),
 			},
 		},
@@ -122,6 +127,14 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) 
 			date_field = "last_review"
 			date_format = "ISODATE"
 			expire_after_days = 2
+		}
+
+		schedule {
+			type = "DAILY"
+			end_hour = 1
+			end_minute = 1
+			start_hour = 1
+			start_minute = 1
 		}
 	
 		partition_fields {
