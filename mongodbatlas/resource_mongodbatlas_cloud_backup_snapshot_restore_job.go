@@ -309,7 +309,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context
 
 	shouldDelete := true
 
-	// Validate because atomated restore can not be cancelled
+	// Validate because automated restore can not be cancelled
 	if aut, _ := d.Get("delivery_type.automated").(string); aut == "true" {
 		log.Print("Automated restore cannot be cancelled")
 		shouldDelete = false
@@ -320,7 +320,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context
 		shouldDelete = false
 	}
 
-	if aut, _ := d.Get("delivery_type.point_in_time").(string); aut == "true" {
+	if aut, ok := d.Get("delivery_type_config.0.point_in_time").(bool); ok && aut {
 		log.Print("Point in time restore cannot be cancelled")
 		shouldDelete = false
 	}
