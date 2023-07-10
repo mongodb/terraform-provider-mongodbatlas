@@ -18,7 +18,7 @@ description: |-
 -> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your request body to create an automated restore job, Atlas removes all existing data on the target cluster prior to the restore.
 
 -> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your 
-`mongodbatlas_cloud_backup_snapshot_restore_job` resource, you won't be able to delete the snapshot resource in MongoDB Atlas as the functionality is currently not supported by the Admin API. The provider will remove TF resource from the state file but the MongoDB Atlas resource won't be destroyed.
+`mongodbatlas_cloud_backup_snapshot_restore_job` resource, you won't be able to delete the snapshot resource in MongoDB Atlas as the Atlas Admin API doesn't support this. The provider will remove the Terraform resource from the state file but won't destroy the MongoDB Atlas resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
