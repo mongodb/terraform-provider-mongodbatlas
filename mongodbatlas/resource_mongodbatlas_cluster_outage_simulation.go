@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -93,7 +93,7 @@ func resourceMongoDBClusterOutageSimulationCreate(ctx context.Context, d *schema
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING"},
 		Refresh:    resourceClusterOutageSimulationRefreshFunc(ctx, clusterName, projectID, conn),
@@ -172,7 +172,7 @@ func resourceMongoDBAtlasClusterOutageSimulationDelete(ctx context.Context, d *s
 
 	log.Println("[INFO] Waiting for MongoDB Cluster Outage Simulation to end")
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RECOVERY_REQUESTED", "RECOVERING", "COMPLETE"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceClusterOutageSimulationRefreshFunc(ctx, clusterName, projectID, conn),
@@ -193,7 +193,7 @@ func resourceMongoDBClusterOutageSimulationUpdate(ctx context.Context, d *schema
 	return diag.FromErr(fmt.Errorf("updating a Cluster Outage Simulation is not supported"))
 }
 
-func resourceClusterOutageSimulationRefreshFunc(ctx context.Context, clusterName, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceClusterOutageSimulationRefreshFunc(ctx context.Context, clusterName, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		outageSimulation, resp, err := client.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
 

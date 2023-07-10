@@ -9,10 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/mwielbut/pointy"
-
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -142,7 +141,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf(errorLDAPVerifyCreate, projectID, err))
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"PENDING"},
 		Target:     []string{"SUCCESS", "FAILED"},
 		Refresh:    resourceLDAPGetStatusRefreshFunc(ctx, projectID, ldap.RequestID, conn),
@@ -269,7 +268,7 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceLDAPGetStatusRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceLDAPGetStatusRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		p, resp, err := client.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
 		if err != nil {

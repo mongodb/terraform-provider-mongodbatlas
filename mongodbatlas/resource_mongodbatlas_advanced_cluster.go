@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
@@ -445,7 +445,7 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
@@ -726,7 +726,7 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
-		err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 			_, _, err := updateAdvancedCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 			if err != nil {
 				var target *matlas.ErrorResponse
@@ -736,11 +736,11 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 					}
 					_, _, err := updateAdvancedCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
 					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+						return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 					}
 				}
 				if errors.As(err, &target) && target.HTTPCode == 400 {
-					return resource.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
+					return retry.NonRetryableError(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
 				}
 			}
 			return nil
@@ -803,7 +803,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 
 	log.Println("[INFO] Waiting for MongoDB ClusterAdvanced to be destroyed")
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, clusterName, projectID, conn),
@@ -1268,7 +1268,7 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *matlas.AdvancedAutoSca
 	return tfList
 }
 
-func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.AdvancedClusters.Get(ctx, projectID, name)
 
@@ -1298,7 +1298,7 @@ func resourceClusterAdvancedRefreshFunc(ctx context.Context, name, projectID str
 	}
 }
 
-func resourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		clusters, resp, err := client.AdvancedClusters.List(ctx, projectID, nil)
 
@@ -1381,7 +1381,7 @@ func updateAdvancedCluster(
 		return nil, nil, err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterAdvancedRefreshFunc(ctx, name, projectID, conn),

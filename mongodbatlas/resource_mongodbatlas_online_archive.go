@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
@@ -202,7 +202,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 	}))
 
 	if d.Get("sync_creation").(bool) {
-		stateConf := &resource.StateChangeConf{
+		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
 			Target:     []string{"IDLE", "ACTIVE"},
 			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, outputRequest.ClusterName, outputRequest.ID, conn),
@@ -221,7 +221,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
 }
 
-func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.OnlineArchives.Get(ctx, projectID, clusterName, archiveID)
 

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -454,7 +454,7 @@ Else consider the aggregate dependents idle.
 If we get a defined error response, return that right away
 Else retry
 */
-func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		var target *matlas.ErrorResponse
 		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
@@ -623,7 +623,7 @@ func getStateAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, remove
 
 func deleteProject(ctx context.Context, meta interface{}, projectID string) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"DELETING", "RETRY"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),

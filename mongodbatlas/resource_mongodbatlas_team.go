@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -221,21 +221,21 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 	orgID := ids["org_id"]
 	id := ids["id"]
 
-	err := resource.RetryContext(ctx, 1*time.Hour, func() *resource.RetryError {
+	err := retry.RetryContext(ctx, 1*time.Hour, func() *retry.RetryError {
 		_, err := conn.Teams.RemoveTeamFromOrganization(ctx, orgID, id)
 		if err != nil {
 			var target *matlas.ErrorResponse
 			if errors.As(err, &target) && target.ErrorCode == "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT" {
 				projectID, err := getProjectIDByTeamID(ctx, conn, id)
 				if err != nil {
-					return resource.NonRetryableError(err)
+					return retry.NonRetryableError(err)
 				}
 
 				_, err = conn.Teams.RemoveTeamFromProject(ctx, projectID, id)
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf(errorTeamDelete, id, err))
+					return retry.NonRetryableError(fmt.Errorf(errorTeamDelete, id, err))
 				}
-				return resource.RetryableError(fmt.Errorf("will retry again"))
+				return retry.RetryableError(fmt.Errorf("will retry again"))
 			}
 		}
 		return nil

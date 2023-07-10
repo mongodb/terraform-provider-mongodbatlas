@@ -11,11 +11,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/spf13/cast"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -256,7 +255,7 @@ func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.R
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"provisioned_container"},
 		Target:     []string{"deleted"},
 		Refresh:    resourceNetworkContainerRefreshFunc(ctx, d, conn),
@@ -314,7 +313,7 @@ func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *sch
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) resource.StateRefreshFunc {
+func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ids := decodeStateID(d.Id())
 		projectID := ids["project_id"]

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -123,17 +123,17 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 				addManagedNamespace.IsShardKeyUnique = pointy.Bool(isShardKeyUnique.(bool))
 			}
 
-			err := resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
+			err := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
 				_, _, err := conn.GlobalClusters.AddManagedNamespace(ctx, projectID, clusterName, addManagedNamespace)
 				if err != nil {
 					var target *matlas.ErrorResponse
 					if errors.As(err, &target) && target.ErrorCode == "DUPLICATE_MANAGED_NAMESPACE" {
 						if err := removeManagedNamespaces(ctx, conn, v.(*schema.Set).List(), projectID, clusterName); err != nil {
-							return resource.NonRetryableError(fmt.Errorf(errorGlobalClusterCreate, err))
+							return retry.NonRetryableError(fmt.Errorf(errorGlobalClusterCreate, err))
 						}
-						return resource.RetryableError(err)
+						return retry.RetryableError(err)
 					}
-					return resource.NonRetryableError(fmt.Errorf(errorGlobalClusterCreate, err))
+					return retry.NonRetryableError(fmt.Errorf(errorGlobalClusterCreate, err))
 				}
 
 				return nil
