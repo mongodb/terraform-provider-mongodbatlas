@@ -768,15 +768,15 @@ func validAssumeRoleDuration(v interface{}, k string) (ws []string, errors []err
 }
 
 type AssumeRole struct {
+	Tags              map[string]string
 	RoleARN           string
-	Duration          time.Duration
 	ExternalID        string
 	Policy            string
-	PolicyARNs        []string
 	SessionName       string
 	SourceIdentity    string
-	Tags              map[string]string
+	PolicyARNs        []string
 	TransitiveTagKeys []string
+	Duration          time.Duration
 }
 
 func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
