@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -239,7 +239,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peer.ID, projectID, peerRequest.ContainerID, conn),
@@ -440,7 +440,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 		}
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peerID, projectID, "", conn),
@@ -472,7 +472,7 @@ func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.Res
 
 	log.Println("[INFO] Waiting for MongoDB Network Peering Connection to be destroyed")
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceNetworkPeeringRefreshFunc(ctx, peerID, projectID, "", conn),
@@ -528,7 +528,7 @@ func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schem
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.Peers.Get(ctx, projectID, peerID)
 		if err != nil {

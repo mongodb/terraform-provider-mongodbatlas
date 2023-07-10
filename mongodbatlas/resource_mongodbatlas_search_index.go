@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -230,7 +230,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
-		stateConf := &resource.StateChangeConf{
+		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
 			Target:     []string{"STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
@@ -397,7 +397,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	}
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
-		stateConf := &resource.StateChangeConf{
+		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
 			Target:     []string{"STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
@@ -528,7 +528,7 @@ func unmarshalSearchIndexAnalyzersFields(mappingString string) []map[string]inte
 	return fields
 }
 
-func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		searchIndex, resp, err := client.Search.GetIndex(ctx, projectID, clusterName, indexID)
 		if err != nil {
