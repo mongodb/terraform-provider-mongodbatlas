@@ -210,6 +210,7 @@ func (p *MongodbtlasProvider) DataSources(ctx context.Context) []func() datasour
 func (p *MongodbtlasProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewExampleResource,
+		NewMongoDBAtlasProjectResource,
 	}
 }
 

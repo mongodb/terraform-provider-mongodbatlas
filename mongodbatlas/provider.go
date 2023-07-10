@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -29,7 +31,6 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -208,25 +209,25 @@ func getDataSourcesMap() map[string]*schema.Resource {
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                  resourceMongoDBAtlasAdvancedCluster(),
-		"mongodbatlas_api_key":                           resourceMongoDBAtlasAPIKey(),
-		"mongodbatlas_access_list_api_key":               resourceMongoDBAtlasAccessListAPIKey(),
-		"mongodbatlas_project_api_key":                   resourceMongoDBAtlasProjectAPIKey(),
-		"mongodbatlas_custom_db_role":                    resourceMongoDBAtlasCustomDBRole(),
-		"mongodbatlas_database_user":                     resourceMongoDBAtlasDatabaseUser(),
-		"mongodbatlas_project":                           resourceMongoDBAtlasProject(),
-		"mongodbatlas_cluster":                           resourceMongoDBAtlasCluster(),
-		"mongodbatlas_network_container":                 resourceMongoDBAtlasNetworkContainer(),
-		"mongodbatlas_network_peering":                   resourceMongoDBAtlasNetworkPeering(),
-		"mongodbatlas_encryption_at_rest":                resourceMongoDBAtlasEncryptionAtRest(),
-		"mongodbatlas_maintenance_window":                resourceMongoDBAtlasMaintenanceWindow(),
-		"mongodbatlas_auditing":                          resourceMongoDBAtlasAuditing(),
-		"mongodbatlas_team":                              resourceMongoDBAtlasTeam(),
-		"mongodbatlas_teams":                             resourceMongoDBAtlasTeam(),
-		"mongodbatlas_global_cluster_config":             resourceMongoDBAtlasGlobalCluster(),
-		"mongodbatlas_alert_configuration":               resourceMongoDBAtlasAlertConfiguration(),
-		"mongodbatlas_x509_authentication_database_user": resourceMongoDBAtlasX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":    resourceMongoDBAtlasPrivateEndpointRegionalMode(),
+		"mongodbatlas_advanced_cluster":    resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_api_key":             resourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_access_list_api_key": resourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_project_api_key":     resourceMongoDBAtlasProjectAPIKey(),
+		"mongodbatlas_custom_db_role":      resourceMongoDBAtlasCustomDBRole(),
+		"mongodbatlas_database_user":       resourceMongoDBAtlasDatabaseUser(),
+		// "mongodbatlas_project":                           resourceMongoDBAtlasProject(),
+		"mongodbatlas_cluster":                                                     resourceMongoDBAtlasCluster(),
+		"mongodbatlas_network_container":                                           resourceMongoDBAtlasNetworkContainer(),
+		"mongodbatlas_network_peering":                                             resourceMongoDBAtlasNetworkPeering(),
+		"mongodbatlas_encryption_at_rest":                                          resourceMongoDBAtlasEncryptionAtRest(),
+		"mongodbatlas_maintenance_window":                                          resourceMongoDBAtlasMaintenanceWindow(),
+		"mongodbatlas_auditing":                                                    resourceMongoDBAtlasAuditing(),
+		"mongodbatlas_team":                                                        resourceMongoDBAtlasTeam(),
+		"mongodbatlas_teams":                                                       resourceMongoDBAtlasTeam(),
+		"mongodbatlas_global_cluster_config":                                       resourceMongoDBAtlasGlobalCluster(),
+		"mongodbatlas_alert_configuration":                                         resourceMongoDBAtlasAlertConfiguration(),
+		"mongodbatlas_x509_authentication_database_user":                           resourceMongoDBAtlasX509AuthDBUser(),
+		"mongodbatlas_private_endpoint_regional_mode":                              resourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(),
 		"mongodbatlas_privatelink_endpoint":                                        resourceMongoDBAtlasPrivateLinkEndpoint(),
 		"mongodbatlas_privatelink_endpoint_serverless":                             resourceMongoDBAtlasPrivateLinkEndpointServerless(),
