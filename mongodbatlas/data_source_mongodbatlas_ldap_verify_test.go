@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
-	"github.com/spf13/cast"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
