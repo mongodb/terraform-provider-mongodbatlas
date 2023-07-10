@@ -16,11 +16,11 @@ import (
 
 // Config struct ...
 type Config struct {
+	AssumeRole   *AssumeRole
 	PublicKey    string
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
-	AssumeRole   *AssumeRole
 }
 
 // MongoDBClient client
