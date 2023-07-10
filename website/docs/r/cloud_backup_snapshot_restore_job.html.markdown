@@ -17,6 +17,9 @@ description: |-
 
 -> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your request body to create an automated restore job, Atlas removes all existing data on the target cluster prior to the restore.
 
+-> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your 
+`mongodbatlas_cloud_backup_snapshot_restore_job` resource, you won't be able to delete the snapshot resource in MongoDB Atlas as the functionality is currently not supported by the Admin API. The provider will remove TF resource from the state file but the MongoDB Atlas resource won't be destroyed.
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 -> **API Key Access List**: This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
