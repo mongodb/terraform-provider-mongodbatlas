@@ -84,12 +84,12 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Optional: true,
 			},
 			"aws_access_key_id": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Optional: true,
+				// Sensitive: true,
 			},
 			"aws_secret_access_key": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Optional: true,
+				// Sensitive: true,
 			},
 			"aws_session_token": schema.StringAttribute{
 				Optional: true,
