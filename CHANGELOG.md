@@ -16,10 +16,10 @@
 **Bug Fixes**
 
 - `mongodbatlas_cloud_backup_snapshot_restore_job` extend guards for delivery type deletions - INTMDB-919 [\#1300](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1300) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- `mongodbatlas_org_invitation` is missing `ORG_BILLING_READ_ONLY` role support - INTMDB-904 [\#1287](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1287) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_org_invitation` is missing `ORG_BILLING_READ_ONLY` role - INTMDB-904 [\#1287](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1287) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Change warning to error for org key delete - INTMDB-889 [\#1283](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1283) ([martinstibbe](https://github.com/martinstibbe))
 - add MicrosoftTeamsWebhookURL to values that are based on schema vs API - INTMDB-896 [\#1279](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1279) ([martinstibbe](https://github.com/martinstibbe))
-- group\_id -\> project\_id for backup snapshots DOCSP-30798 [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
+- update `group_id` -\> `project_id` for backup snapshots DOCSP-30798 [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
 - Update example documentation for `mongodbatlas_project_api_key` - INTMDB-876 [\#1265](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1265) ([martinstibbe](https://github.com/martinstibbe))
 - make sure failed Terraform run rolls back properly - INTMDB-433 [\#1264](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1264) ([martinstibbe](https://github.com/martinstibbe))
 - Fix 'pause' during cluster and `mongodbatlas_advanced_cluster` update [\#1248](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1248) ([maastha](https://github.com/maastha))
