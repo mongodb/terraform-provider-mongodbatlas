@@ -7,7 +7,7 @@
 **Enhancements**
 
 - Support for updating the name field of a `mongodbatlas_project` without recreating a new Project - INTMDB-914 [\#1298](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1298) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Improve `mongodbatlas_organization` for linking to existing federation upon Create - INTMDB-838 [\#1289](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1289) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Support for `federation_settings_id` in `mongodbatlas_organization` to enable linking to an existing federation upon Create - INTMDB-838 [\#1289](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1289) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Add Schedule Parameter to resource `mongodbatlas_online_archive` - INTMDB-828 [\#1272](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1272) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - New `mongodbatlas_advanced_cluster` doc examples for Multi-Cloud Cluster and Global Clusters - INTMDB-442 [\#1256](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1256) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Support `transactionLifetimeLimitSeconds` parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluser` - INTMDB-874 [\#1252](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1252) ([andreaangiolillo](https://github.com/andreaangiolillo))
