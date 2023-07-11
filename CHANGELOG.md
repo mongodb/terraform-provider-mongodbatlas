@@ -18,21 +18,21 @@
 - `mongodbatlas_cloud_backup_snapshot_restore_job` extend guards for delivery type deletions - INTMDB-919 [\#1300](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1300) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - `mongodbatlas_org_invitation` is missing `ORG_BILLING_READ_ONLY` role - INTMDB-904 [\#1287](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1287) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Change warning to error for org key delete - INTMDB-889 [\#1283](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1283) ([martinstibbe](https://github.com/martinstibbe))
-- add MicrosoftTeamsWebhookURL to values that are based on schema vs API - INTMDB-896 [\#1279](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1279) ([martinstibbe](https://github.com/martinstibbe))
-- update `group_id` -\> `project_id` for backup snapshots DOCSP-30798 [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
+- Add MicrosoftTeamsWebhookURL to values that are based on schema vs API - INTMDB-896 [\#1279](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1279) ([martinstibbe](https://github.com/martinstibbe))
+- Update `group_id` -\> `project_id` for backup snapshots DOCSP-30798 [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
 - Update example documentation for `mongodbatlas_project_api_key` - INTMDB-876 [\#1265](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1265) ([martinstibbe](https://github.com/martinstibbe))
-- make sure failed Terraform run rolls back properly - INTMDB-433 [\#1264](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1264) ([martinstibbe](https://github.com/martinstibbe))
+- Make sure failed Terraform run rolls back properly - INTMDB-433 [\#1264](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1264) ([martinstibbe](https://github.com/martinstibbe))
 - Fix 'pause' during cluster and `mongodbatlas_advanced_cluster` update [\#1248](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1248) ([maastha](https://github.com/maastha))
 - Add ForceNew to audit if the project id changes - INTMDB-435 [\#1247](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1247) ([martinstibbe](https://github.com/martinstibbe))
 
 **Closed Issues:**
 
-- mongodbatlas\_alert\_configuration failing to be created on apply due to `METRIC_TYPE_UNSUPPORTED` 400 error [\#1242](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1242)
-- app\_id property doesn't work in mongodbatlas\_event\_trigger resource [\#1224](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1224)
-- Random change in region\_configs order of mongodbatlas\_advanced\_cluster [\#1204](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1204)
-- Problem returning some fields from mongodbatlas\_advanced\_cluster [\#1189](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1189)
-- `node_count` documented as read-only for advanced cluster [\#1187](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1187)
-- mongodbatlas\_third\_party\_integration - microsoft\_teams\_webhook\_url keeps updating on every apply [\#1135](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1135)
+- `mongodbatlas_alert_configuration` failing to be created on apply due to `METRIC_TYPE_UNSUPPORTED` 400 error [\#1242](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1242)
+- `app_id` property doesn't work in `mongodbatlas_event_trigger` resource [\#1224](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1224)
+- Random change in `region_configs` order of `mongodbatlas_advanced_cluster` [\#1204](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1204)
+- Problem returning some fields from `mongodbatlas_advanced_cluster` [\#1189](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1189)
+- `node_count` documented as read-only for `mongodbatlas_advanced_cluster` [\#1187](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1187)
+- In `mongodbatlas_third_party_integration` the `microsoft_teams_webhook_url` parameter keeps updating on every apply [\#1135](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1135)
 - Point in Time Restore is not enabled when `should_copy_oplogs` is set to `true`, when copying backups to other regions [\#1134](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1134)
 - Documentation: `analyzer` argument in Atlas search index is required [\#1132](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1132)
 - Serverless Instance wants to do an in-place update on every run [\#1070](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1070)
@@ -129,7 +129,7 @@
 - Failed to respond to the plugin.\(\*GRPCProvider\).PlanResourceChange call [\#1136](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1136)
 - Error: error creating MongoDB Cluster: unexpected EOF [\#674](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/674)
 
-**Merged Pull Requests:**
+**Internal Improvements:**
 
 - Chore\(deps\):  Bump actions/stale from 7 to 8 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1117)
 - Chore\(deps\):  Bump github.com/zclconf/go-cty from 1.13.1 to 1.13.2 (https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1184)
@@ -215,7 +215,7 @@
 - Sensitive information exposed as resource Id - mongodbatlas\_x509\_authentication\_database\_user  [\#884](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/884)
 - plugin crashes during apply: panic: runtime error: invalid memory address or nil pointer dereference [\#866](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/866)
 
-**Merged Pull Requests:**
+**Internal Improvements:**
 
 - Release staging v.1.8.2 [\#1115](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1115) ([martinstibbe](https://github.com/martinstibbe))
 - Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.221 to 1.44.226 [\#1109](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1109) ([dependabot[bot]](https://github.com/apps/dependabot))
@@ -273,7 +273,7 @@
 - Warning: Deprecated attribute [\#1042](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1042)
 - GCP Network Peering remains pending when created via terraform [\#917](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/917)
 
-**Merged Pull Requests:**
+**Internal Improvements:**
 
 - Chore\(deps\): Bump github.com/hashicorp/hcl/v2 from 2.16.0 to 2.16.1 [\#1062](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1062) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Update access\_list\_api\_key.html.markdown [\#1058](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1058) ([Zuhairahmed](https://github.com/Zuhairahmed))
@@ -319,11 +319,12 @@
 - `federated_settings_org_config` import example fix [\#996](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/996)
 
 **Closed Issues:**
+
 - Documentation: Expand documentation for mongodbatlas\_cloud\_backup\_schedule to include information about valid values for frequency\_interval  [\#1005](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1005)
 - Serverless instance returns incorrect connection string [\#934](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/934)
 - Terraform apply failed with Error: Provider produced inconsistent final plan This is a bug in the provider, which should be reported in the provider's own issue tracker. [\#926](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/926)
 
-**Merged Pull Requests:**
+**Internal Improvements:**
 
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.7 to 0.41.9 [\#1013](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1013) ([dependabot[bot]](https://github.com/apps/dependabot))
 
@@ -348,7 +349,7 @@
 - mongodbatlas\_alert\_configuration - api\_token keeps wanting to change [\#863](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/863)
 - Docs - Example - Return a Connection String - Azure Private Endpoint [\#713](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/713)
 
-**Merged Pull Requests:**
+**Internal Improvements:**
 
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.41.6 to 0.41.7 [\#978](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/978) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Chore\(deps\): Bump actions/stale from 6 to 7 [\#977](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/977) ([dependabot[bot]](https://github.com/apps/dependabot))
@@ -388,7 +389,7 @@
 - MILLION\_RPU unit isn't supported by provider [\#854](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/854)
 - MS Teams alert support in terraform provider is missing [\#827](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/827)
 
-**Merged Pull Requests:**
+**Internal Improvements:**
 
 - v1.6.1 - Conditionally ignore serverless connection string changes [\#953](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/953) ([evertsd](https://github.com/evertsd))
 - Swap logic for variable substitution [\#950](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/950) ([martinstibbe](https://github.com/martinstibbe))
@@ -402,10 +403,12 @@
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.5.0...v1.6.0)
 
 **Enhancements:** 
+
 - Termination Protection for Advanced Cluster/Cluster/Serverless Instances [\#912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/912) - INTMDB-444
 - AWS/Azure Serverless Private Endpoints [\#913](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/913) - INTMDB-364
 
-**Merged Pull Requests:**
+**Internal Improvements:**
+
 - docs(website): fix federated_settings_org_config resource name by removing the misleading trailing s [\#908](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/908)
 - chore(github): add link to contribution guidelines in PR template [\#910](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/910#issuecomment-1310007413)
 - docs(resource/role_mapping): indent sub-elements of role_assignments [\#918](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/918)
