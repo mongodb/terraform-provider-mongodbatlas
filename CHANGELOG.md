@@ -6,10 +6,10 @@
 
 **Enhancements**
 
-- Updating the name field of a mongodbatlas\_project recreates a new Project INTMDB-914 [\#1298](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1298) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Support for updating the name field of a `mongodbatlas\_project` without recreating a new Project - INTMDB-914 [\#1298](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1298) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Improve mongodbatlas\_organization for linking to existing federation upon Create - INTMDB-838 [\#1289](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1289) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Missing Schedule Parameter in Resource mongodbatlas\_online\_archive - INTMDB-828 [\#1272](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1272) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- mongodbatlas\_advanced\_cluster doc revision - INTMDB-442 [\#1256](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1256) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Add Schedule Parameter to resource mongodbatlas\_online\_archive - INTMDB-828 [\#1272](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1272) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- New mongodbatlas\_advanced\_cluster doc examples for Multi-Cloud Cluster and Global Clusters - INTMDB-442 [\#1256](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1256) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Support transactionLifetimeLimitSeconds parameter in Cluster and Advanced Cluser - INTMDB-874 [\#1252](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1252) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Add Troubleshooting.md to include issue with using dynamic in Terraform - INTMDB-855 [\#1240](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1240) ([maastha](https://github.com/maastha))
 
