@@ -6,27 +6,27 @@
 
 **Enhancements**
 
-- INTMDB-838: \[Terraform\] Improve mongodbatlas\_organization for linking to existing federation upon Create [\#1289](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1289) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-828: \[Terraform\] Missing Schedule Parameter in Resource mongodbatlas\_online\_archive [\#1272](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1272) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-442: \[Terraform\] mongodbatlas\_advanced\_cluster doc revision [\#1256](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1256) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-874: \[Terraform\] Support transactionLifetimeLimitSeconds parameter in Cluster and Advanced Cluser [\#1252](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1252) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-855: Add Troubleshooting.md to include issue with using dynamic in Terraform [\#1240](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1240) ([maastha](https://github.com/maastha))
+- Updating the name field of a mongodbatlas\_project recreates a new Project INTMDB-914 [\#1298](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1298) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Improve mongodbatlas\_organization for linking to existing federation upon Create - INTMDB-838 [\#1289](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1289) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Missing Schedule Parameter in Resource mongodbatlas\_online\_archive - INTMDB-828 [\#1272](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1272) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- mongodbatlas\_advanced\_cluster doc revision - INTMDB-442 [\#1256](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1256) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Support transactionLifetimeLimitSeconds parameter in Cluster and Advanced Cluser - INTMDB-874 [\#1252](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1252) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Add Troubleshooting.md to include issue with using dynamic in Terraform - INTMDB-855 [\#1240](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1240) ([maastha](https://github.com/maastha))
 
 **Bug Fixes**
 
-- INTMDB-919: resource\_mongodbatlas\_cloud\_backup\_snapshot\_restore\_job: Extend guards for delivery type deletions [\#1300](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1300) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-914: HELP: Updating the name field of a mongodbatlas\_project recreates a new Project [\#1298](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1298) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-904: HELP: mongodbatlas\_org\_invitation is missing ORG\_BILLING\_READ\_ONLY role support [\#1287](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1287) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- INTMDB-889: Change warning to error for org key delete [\#1283](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1283) ([martinstibbe](https://github.com/martinstibbe))
-- INTMDB-896: add MicrosoftTeamsWebhookURL to values that are based on schema vs API [\#1279](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1279) ([martinstibbe](https://github.com/martinstibbe))
-- DOCSP-30798: group\_id -\> project\_id for backup snapshots [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
-- INTMDB-876: Update example documentation for mongodbatlas\_project\_api\_key [\#1265](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1265) ([martinstibbe](https://github.com/martinstibbe))
-- INTMDB-433: make sure failed Terraform run rolls back properly [\#1264](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1264) ([martinstibbe](https://github.com/martinstibbe))
+- resource\_mongodbatlas\_cloud\_backup\_snapshot\_restore\_job: Extend guards for delivery type deletions - INTMDB-919 [\#1300](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1300) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- HELP: mongodbatlas\_org\_invitation is missing ORG\_BILLING\_READ\_ONLY role support - INTMDB-904 [\#1287](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1287) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Change warning to error for org key delete - INTMDB-889 [\#1283](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1283) ([martinstibbe](https://github.com/martinstibbe))
+- add MicrosoftTeamsWebhookURL to values that are based on schema vs API - INTMDB-896 [\#1279](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1279) ([martinstibbe](https://github.com/martinstibbe))
+- group\_id -\> project\_id for backup snapshots DOCSP-30798 [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
+- Update example documentation for mongodbatlas\_project\_api\_key - INTMDB-876 [\#1265](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1265) ([martinstibbe](https://github.com/martinstibbe))
+- make sure failed Terraform run rolls back properly - INTMDB-433 [\#1264](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1264) ([martinstibbe](https://github.com/martinstibbe))
 - Fix 'pause' during cluster and advanced\_cluster update [\#1248](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1248) ([maastha](https://github.com/maastha))
-- INTMDB-435: Add ForceNew to audit if the project id changes [\#1247](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1247) ([martinstibbe](https://github.com/martinstibbe))
-- INTMDB-137: \[Terraform\] Use GET one for cloud provider access \(improve existing\) [\#1246](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1246) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Add ForceNew to audit if the project id changes - INTMDB-435 [\#1247](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1247) ([martinstibbe](https://github.com/martinstibbe))
+- \[Terraform\] Use GET one for cloud provider access \(improve existing\) - INTMDB-137 [\#1246](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1246) ([andreaangiolillo](https://github.com/andreaangiolillo))
 
-**Closed issues:**
+**Closed Issues:**
 
 - mongodbatlas\_alert\_configuration failing to be created on apply due to `METRIC_TYPE_UNSUPPORTED` 400 error [\#1242](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1242)
 - app\_id property doesn't work in mongodbatlas\_event\_trigger resource [\#1224](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1224)
@@ -38,7 +38,7 @@
 - Documentation: `analyzer` argument in Atlas search index is required [\#1132](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1132)
 - Serverless Instance wants to do an in-place update on every run [\#1070](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1070)
 
-**Merged pull requests:**
+**Internal Improvements:**
 
 - INTMDB-912: Generate the CHANGELOG.md [\#1307](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1307) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Chore\(deps\): Bump github.com/gruntwork-io/terratest from 0.43.7 to 0.43.8 [\#1306](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1306) ([dependabot[bot]](https://github.com/apps/dependabot))
