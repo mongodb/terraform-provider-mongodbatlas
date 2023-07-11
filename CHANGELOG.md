@@ -1,5 +1,21 @@
 # Changelog
 
+## [v1.10.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.1) (July 10, 2023)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.0...v1.10.1)
+
+**Closed issues:**
+
+- mongodbatlas\_alert\_configuration failing to be created on apply due to `METRIC_TYPE_UNSUPPORTED` 400 error [\#1242](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1242)
+- app\_id property doesn't work in mongodbatlas\_event\_trigger resource [\#1224](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1224)
+- Random change in region\_configs order of mongodbatlas\_advanced\_cluster [\#1204](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1204)
+- Problem returning some fields from mongodbatlas\_advanced\_cluster [\#1189](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1189)
+- `node_count` documented as read-only for advanced cluster [\#1187](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1187)
+- mongodbatlas\_third\_party\_integration - microsoft\_teams\_webhook\_url keeps updating on every apply [\#1135](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1135)
+- Point in Time Restore is not enabled when `should_copy_oplogs` is set to `true`, when copying backups to other regions [\#1134](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1134)
+- Documentation: `analyzer` argument in Atlas search index is required [\#1132](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1132)
+- Serverless Instance wants to do an in-place update on every run [\#1070](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1070)
+
 ## [v1.10.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.0) (2023-6-15)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.9.0...v1.10.0)
