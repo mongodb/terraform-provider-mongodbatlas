@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.10.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.1-pre1) (July 11, 2023)
+## [v1.10.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.1) (July 11, 2023)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.0...v1.10.1)
 
