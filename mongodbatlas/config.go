@@ -31,7 +31,7 @@ type Config struct {
 	RealmBaseURL string
 }
 
-// MongoDBClient contains the mongodbatlas client and configurations
+// MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
 	Atlas    *matlasClient.Client
 	AtlasSDK *atlasSDK.APIClient
