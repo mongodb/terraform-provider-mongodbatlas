@@ -3,18 +3,26 @@ package mongodbatlas
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
+	"runtime"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 	"github.com/spf13/cast"
+	atlasSDK "go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
 )
 
-// Config struct ...
+const ToolName = "terraform-provider-mongodbatlas"
+
+var userAgent = fmt.Sprintf("%s/%s (%s;%s)", ToolName, version.ProviderVersion, runtime.GOOS, runtime.GOARCH)
+
+// Config contains the configurations needed to use SDKs
 type Config struct {
 	AssumeRole   *AssumeRole
 	PublicKey    string
@@ -23,13 +31,12 @@ type Config struct {
 	RealmBaseURL string
 }
 
-// MongoDBClient client
+// MongoDBClient contains the mongodbatlas client and configurations
 type MongoDBClient struct {
-	Atlas  *matlasClient.Client
-	Config *Config
+	Atlas    *matlasClient.Client
+	AtlasSDK *atlasSDK.APIClient
+	Config   *Config
 }
-
-var ua = "terraform-provider-mongodbatlas/" + version.ProviderVersion
 
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) {
@@ -44,7 +51,7 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(ua)}
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent)}
 	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
@@ -55,12 +62,32 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 		return nil, diag.FromErr(err)
 	}
 
+	versionedClient, err := newVersionedClient(client)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
 	clients := &MongoDBClient{
-		Atlas:  atlasClient,
-		Config: c,
+		Atlas:    atlasClient,
+		AtlasSDK: versionedClient,
+		Config:   c,
 	}
 
 	return clients, nil
+}
+
+func newVersionedClient(client *http.Client) (*atlasSDK.APIClient, error) {
+	opts := []atlasSDK.ClientModifier{
+		atlasSDK.UseHTTPClient(client),
+		atlasSDK.UseUserAgent(userAgent)}
+
+	// Initialize the MongoDB Versioned Atlas Client.
+	versionedClient, err := atlasSDK.NewClient(opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return versionedClient, nil
 }
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
@@ -69,7 +96,7 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent(ua)}
+	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent)}
 	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
 		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.RealmBaseURL))
 	}
