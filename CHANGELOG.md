@@ -11,7 +11,7 @@
 - Support for `schedule` parameter in resource `mongodbatlas_online_archive` - INTMDB-828 [\#1272](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1272) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - New `mongodbatlas_advanced_cluster` doc examples for Multi-Cloud Cluster and Global Clusters - INTMDB-442 [\#1256](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1256) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Support for `transactionLifetimeLimitSeconds` parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluser` - INTMDB-874 [\#1252](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1252) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Add Troubleshooting.md to include issue with using dynamic in Terraform - INTMDB-855 [\#1240](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1240) ([maastha](https://github.com/maastha))
+- Add Troubleshooting.md to include issue with using `dynamic` in Terraform - INTMDB-855 [\#1240](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1240) ([maastha](https://github.com/maastha))
 
 **Bug Fixes**
 
@@ -22,7 +22,7 @@
 - Update `group_id` -\> `project_id` for backup snapshots DOCSP-30798 [\#1273](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1273) ([jwilliams-mongo](https://github.com/jwilliams-mongo))
 - Update example documentation for `mongodbatlas_project_api_key` - INTMDB-876 [\#1265](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1265) ([martinstibbe](https://github.com/martinstibbe))
 - Make sure failed Terraform run rolls back properly - INTMDB-433 [\#1264](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1264) ([martinstibbe](https://github.com/martinstibbe))
-- Fix 'pause' during cluster and `mongodbatlas_advanced_cluster` update [\#1248](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1248) ([maastha](https://github.com/maastha))
+- Fix "pause" during cluster and `mongodbatlas_advanced_cluster` update [\#1248](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1248) ([maastha](https://github.com/maastha))
 - Add ForceNew to audit if the project id changes - INTMDB-435 [\#1247](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1247) ([martinstibbe](https://github.com/martinstibbe))
 
 **Closed Issues:**
