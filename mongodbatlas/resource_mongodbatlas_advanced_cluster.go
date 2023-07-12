@@ -72,8 +72,8 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			"retain_backups_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
-				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
+				Default:     true,
+				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster. (Default: true)",
 			},
 			"bi_connector": {
 				Type:          schema.TypeList,
@@ -787,7 +787,7 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	retainBackup := pointy.Bool(false)
+	retainBackup := pointy.Bool(true)
 	if v, ok := d.Get("retain_backups_enabled").(bool); ok {
 		retainBackup = pointy.Bool(v)
 	}
@@ -842,7 +842,7 @@ func resourceMongoDBAtlasAdvancedClusterImportState(ctx context.Context, d *sche
 		log.Printf(errorClusterAdvancedSetting, "name", u.ID, err)
 	}
 
-	if err := d.Set("retain_backups_enabled", false); err != nil {
+	if err := d.Set("retain_backups_enabled", true); err != nil {
 		return nil, fmt.Errorf(errorClusterAdvancedSetting, "retain_backups_enabled", u.ID, err)
 	}
 
