@@ -1374,7 +1374,7 @@ func testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name string, backup
 		    }
 			cloud_backup                 = %[4]t
 			pit_enabled                  = %[4]t
-			retain_backups_enabled       = false
+			retain_backups_enabled       = true
 			auto_scaling_disk_gb_enabled = %[5]t
 			// Provider Settings "block"
 
