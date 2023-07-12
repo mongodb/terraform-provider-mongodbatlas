@@ -1028,31 +1028,29 @@ func expandRegionConfigAutoScaling(tfList []interface{}) *matlas.AdvancedAutoSca
 	return advancedAutoScaling
 }
 
-func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *matlas.AdvancedReplicationSpec, tfMapObject map[string]interface{},
+func flattenAdvancedReplicationSpec(ctx context.Context, apiObjectResponse *matlas.AdvancedReplicationSpec, replicationSpecStateFile map[string]interface{},
 	d *schema.ResourceData, conn *matlas.Client) (map[string]interface{}, error) {
-	if apiObject == nil {
+	if apiObjectResponse == nil {
 		return nil, nil
 	}
 
 	tfMap := map[string]interface{}{}
-	tfMap["num_shards"] = apiObject.NumShards
-	tfMap["id"] = apiObject.ID
-	if tfMapObject != nil {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, tfMapObject["region_configs"].([]interface{}), d, conn)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIds
-	} else {
-		object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObject.RegionConfigs, nil, d, conn)
-		if err != nil {
-			return nil, err
-		}
-		tfMap["region_configs"] = object
-		tfMap["container_id"] = containerIds
+	tfMap["num_shards"] = apiObjectResponse.NumShards
+	tfMap["id"] = apiObjectResponse.ID
+
+	var regionsConfigsStateFile []interface{}
+	if replicationSpecStateFile != nil {
+		regionsConfigsStateFile = replicationSpecStateFile["region_configs"].([]interface{})
 	}
-	tfMap["zone_name"] = apiObject.ZoneName
+
+	object, containerIds, err := flattenAdvancedReplicationSpecRegionConfigs(ctx, apiObjectResponse.RegionConfigs, regionsConfigsStateFile, d, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	tfMap["region_configs"] = object
+	tfMap["container_id"] = containerIds
+	tfMap["zone_name"] = apiObjectResponse.ZoneName
 
 	return tfMap, nil
 }
@@ -1061,184 +1059,186 @@ func doesAdvancedReplicationSpecMatchAPI(tfObject map[string]interface{}, apiObj
 	return tfObject["id"] == apiObject.ID || (tfObject["id"] == nil && tfObject["zone_name"] == apiObject.ZoneName)
 }
 
-func flattenAdvancedReplicationSpecs(ctx context.Context, rawAPIObjects []*matlas.AdvancedReplicationSpec, tfMapObjects []interface{},
+func flattenAdvancedReplicationSpecs(ctx context.Context, responseFromAPI []*matlas.AdvancedReplicationSpec, replicasetSpecsStateFile []interface{},
 	d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, error) {
-	var apiObjects []*matlas.AdvancedReplicationSpec
 
-	for _, advancedReplicationSpec := range rawAPIObjects {
-		if advancedReplicationSpec != nil {
-			apiObjects = append(apiObjects, advancedReplicationSpec)
-		}
-	}
-
-	if len(apiObjects) == 0 {
+	if len(responseFromAPI) == 0 {
 		return nil, nil
 	}
 
-	tfList := make([]map[string]interface{}, len(apiObjects))
-	wasAPIObjectUsed := make([]bool, len(apiObjects))
+	var responseFromAPIList []*matlas.AdvancedReplicationSpec
 
-	for i := 0; i < len(tfList); i++ {
-		var tfMapObject map[string]interface{}
+	for _, advancedReplicationSpec := range responseFromAPI {
+		if advancedReplicationSpec != nil {
+			responseFromAPIList = append(responseFromAPIList, advancedReplicationSpec)
+		}
+	}
 
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]interface{})
+	out := make([]map[string]interface{}, len(responseFromAPIList))
+	wasAPIObjectUsed := make([]bool, len(responseFromAPIList))
+
+	for i := 0; i < len(out); i++ {
+		var replicaSpecObjStateFile map[string]interface{}
+
+		if len(replicasetSpecsStateFile) > i {
+			replicaSpecObjStateFile = replicasetSpecsStateFile[i].(map[string]interface{})
 		}
 
-		for j := 0; j < len(apiObjects); j++ {
+		for j := 0; j < len(responseFromAPIList); j++ {
 			if wasAPIObjectUsed[j] {
 				continue
 			}
 
-			if !doesAdvancedReplicationSpecMatchAPI(tfMapObject, apiObjects[j]) {
+			if !doesAdvancedReplicationSpecMatchAPI(replicaSpecObjStateFile, responseFromAPIList[j]) {
 				continue
 			}
 
-			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
-
+			advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, responseFromAPIList[j], replicaSpecObjStateFile, d, conn)
 			if err != nil {
 				return nil, err
 			}
 
-			tfList[i] = advancedReplicationSpec
+			out[i] = advancedReplicationSpec
 			wasAPIObjectUsed[j] = true
 			break
 		}
 	}
 
-	for i, tfo := range tfList {
+	for i, tfo := range out {
 		var tfMapObject map[string]interface{}
 
 		if tfo != nil {
 			continue
 		}
 
-		if len(tfMapObjects) > i {
-			tfMapObject = tfMapObjects[i].(map[string]interface{})
+		if len(replicasetSpecsStateFile) > i {
+			tfMapObject = replicasetSpecsStateFile[i].(map[string]interface{})
 		}
 
 		j := slices.IndexFunc(wasAPIObjectUsed, func(isUsed bool) bool { return !isUsed })
-		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, apiObjects[j], tfMapObject, d, conn)
+		advancedReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, responseFromAPIList[j], tfMapObject, d, conn)
 
 		if err != nil {
 			return nil, err
 		}
 
-		tfList[i] = advancedReplicationSpec
+		out[i] = advancedReplicationSpec
 		wasAPIObjectUsed[j] = true
 	}
 
-	return tfList, nil
+	return out, nil
 }
 
-func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegionConfig, tfMapObject map[string]interface{}) map[string]interface{} {
+func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegionConfig, regionConfigStateFile map[string]interface{}) map[string]interface{} {
 	if apiObject == nil {
 		return nil
 	}
 
 	tfMap := map[string]interface{}{}
-	if tfMapObject != nil {
-		if v, ok := tfMapObject["analytics_specs"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, tfMapObject["analytics_specs"].([]interface{}))
-		}
-		if v, ok := tfMapObject["electable_specs"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, tfMapObject["electable_specs"].([]interface{}))
-		}
-		if v, ok := tfMapObject["read_only_specs"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, tfMapObject["read_only_specs"].([]interface{}))
-		}
-		if v, ok := tfMapObject["auto_scaling"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		}
-		if v, ok := tfMapObject["analytics_auto_scaling"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
-		}
-	} else {
-		tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
-		tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
-		tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
-		tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
-		tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
-	}
-
 	tfMap["region_name"] = apiObject.RegionName
 	tfMap["provider_name"] = apiObject.ProviderName
 	tfMap["backing_provider_name"] = apiObject.BackingProviderName
 	tfMap["priority"] = apiObject.Priority
 
+	if regionConfigStateFile != nil {
+		if v, ok := regionConfigStateFile["analytics_specs"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, regionConfigStateFile["analytics_specs"].([]interface{}))
+		}
+		if v, ok := regionConfigStateFile["electable_specs"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, regionConfigStateFile["electable_specs"].([]interface{}))
+		}
+		if v, ok := regionConfigStateFile["read_only_specs"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, regionConfigStateFile["read_only_specs"].([]interface{}))
+		}
+		if v, ok := regionConfigStateFile["auto_scaling"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+		}
+		if v, ok := regionConfigStateFile["analytics_auto_scaling"]; ok && len(v.([]interface{})) > 0 {
+			tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+		}
+		return tfMap
+	}
+
+	tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, nil)
+	tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, nil)
+	tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, nil)
+	tfMap["auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AutoScaling)
+	tfMap["analytics_auto_scaling"] = flattenAdvancedReplicationSpecAutoScaling(apiObject.AnalyticsAutoScaling)
+
 	return tfMap
 }
 
-func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects []*matlas.AdvancedRegionConfig, tfMapObjects []interface{},
-	d *schema.ResourceData, conn *matlas.Client) (tfResult []map[string]interface{}, containersIDs map[string]string, err error) {
-	if len(apiObjects) == 0 {
+func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, regionConfigAPIObjs []*matlas.AdvancedRegionConfig, regionConfigStateFileList []interface{},
+	d *schema.ResourceData, conn *matlas.Client) ([]map[string]interface{}, map[string]string, error) {
+	if len(regionConfigAPIObjs) == 0 {
 		return nil, nil, nil
 	}
 
-	var tfList []map[string]interface{}
+	var outRegionConfigList []map[string]interface{}
 	containerIds := make(map[string]string)
 
-	for i, apiObject := range apiObjects {
-		if apiObject == nil {
+	for i, apiObj := range regionConfigAPIObjs {
+		if apiObj == nil {
 			continue
 		}
 
-		if len(tfMapObjects) > i {
-			tfMapObject := tfMapObjects[i].(map[string]interface{})
-			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, tfMapObject))
-		} else {
-			tfList = append(tfList, flattenAdvancedReplicationSpecRegionConfig(apiObject, nil))
+		var regionConfigStateFile map[string]interface{}
+		if len(regionConfigStateFileList) > i {
+			regionConfigStateFile = regionConfigStateFileList[i].(map[string]interface{})
 		}
 
-		if apiObject.ProviderName != "TENANT" {
+		outRegionConfigList = append(outRegionConfigList, flattenAdvancedReplicationSpecRegionConfig(apiObj, regionConfigStateFile))
+
+		if apiObj.ProviderName != "TENANT" {
 			containers, _, err := conn.Containers.List(ctx, d.Get("project_id").(string),
-				&matlas.ContainersListOptions{ProviderName: apiObject.ProviderName})
+				&matlas.ContainersListOptions{ProviderName: apiObj.ProviderName})
 			if err != nil {
 				return nil, nil, err
 			}
-			if result := getAdvancedClusterContainerID(containers, apiObject); result != "" {
+			if result := getAdvancedClusterContainerID(containers, apiObj); result != "" {
 				// Will print as "providerName:regionName" = "containerId" in terraform show
-				containerIds[fmt.Sprintf("%s:%s", apiObject.ProviderName, apiObject.RegionName)] = result
+				containerIds[fmt.Sprintf("%s:%s", apiObj.ProviderName, apiObj.RegionName)] = result
 			}
 		}
 	}
 
-	return tfList, containerIds, nil
+	return outRegionConfigList, containerIds, nil
 }
 
-func flattenAdvancedReplicationSpecRegionConfigSpec(apiObject *matlas.Specs, providerName string, tfMapObjects []interface{}) []map[string]interface{} {
-	if apiObject == nil {
+func flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs *matlas.Specs, providerName string, specsStateFile []interface{}) []map[string]interface{} {
+	if apiSpecs == nil {
 		return nil
 	}
-	var tfList []map[string]interface{}
 
+	var tfList []map[string]interface{}
 	tfMap := map[string]interface{}{}
 
-	if len(tfMapObjects) > 0 {
-		tfMapObject := tfMapObjects[0].(map[string]interface{})
+	if len(specsStateFile) == 0 {
+		tfMap["disk_iops"] = apiSpecs.DiskIOPS
+		tfMap["ebs_volume_type"] = apiSpecs.EbsVolumeType
+		tfMap["node_count"] = apiSpecs.NodeCount
+		tfMap["instance_size"] = apiSpecs.InstanceSize
+		tfList = append(tfList, tfMap)
 
-		if providerName == "AWS" {
-			if cast.ToInt64(apiObject.DiskIOPS) > 0 {
-				if v, ok := tfMapObject["disk_iops"]; ok && v.(int) > 0 {
-					tfMap["disk_iops"] = apiObject.DiskIOPS
-				}
+		return tfList
+	}
+
+	tfMapObject := specsStateFile[0].(map[string]interface{})
+	if providerName == "AWS" {
+		if cast.ToInt64(apiSpecs.DiskIOPS) > 0 {
+			if v, ok := tfMapObject["disk_iops"]; ok && v.(int) > 0 {
+				tfMap["disk_iops"] = apiSpecs.DiskIOPS
 			}
-			if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
-				tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
-			}
 		}
-		if _, ok := tfMapObject["node_count"]; ok {
-			tfMap["node_count"] = apiObject.NodeCount
+		if v, ok := tfMapObject["ebs_volume_type"]; ok && v.(string) != "" {
+			tfMap["ebs_volume_type"] = apiSpecs.EbsVolumeType
 		}
-		if v, ok := tfMapObject["instance_size"]; ok && v.(string) != "" {
-			tfMap["instance_size"] = apiObject.InstanceSize
-			tfList = append(tfList, tfMap)
-		}
-	} else {
-		tfMap["disk_iops"] = apiObject.DiskIOPS
-		tfMap["ebs_volume_type"] = apiObject.EbsVolumeType
-		tfMap["node_count"] = apiObject.NodeCount
-		tfMap["instance_size"] = apiObject.InstanceSize
+	}
+	if _, ok := tfMapObject["node_count"]; ok {
+		tfMap["node_count"] = apiSpecs.NodeCount
+	}
+	if v, ok := tfMapObject["instance_size"]; ok && v.(string) != "" {
+		tfMap["instance_size"] = apiSpecs.InstanceSize
 		tfList = append(tfList, tfMap)
 	}
 
