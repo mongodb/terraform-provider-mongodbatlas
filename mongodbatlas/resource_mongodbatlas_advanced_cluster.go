@@ -33,6 +33,7 @@ const (
 	errorAdvancedClusterAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	errorAdvancedClusterAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
 	errorAdvancedClusterListStatus         = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	AWS                                    = "AWS"
 )
 
 var upgradeRequestCtxKey acCtxKey = "upgradeRequest"
@@ -971,7 +972,7 @@ func expandRegionConfigSpec(tfList []interface{}, providerName string) *matlas.S
 
 	apiObject := &matlas.Specs{}
 
-	if providerName == "AWS" {
+	if providerName == AWS {
 		if v, ok := tfMap["disk_iops"]; ok && v.(int) > 0 {
 			apiObject.DiskIOPS = pointy.Int64(cast.ToInt64(v.(int)))
 		}
@@ -1142,10 +1143,10 @@ func flattenAdvancedReplicationSpecRegionConfig(apiObject *matlas.AdvancedRegion
 
 	if regionConfigStateFile != nil {
 		if v, ok := regionConfigStateFile["analytics_specs"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["analytics_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.ProviderName, regionConfigStateFile["analytics_specs"].([]interface{}))
+			tfMap["analytics_specs"] = flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiObject.AnalyticsSpecs, apiObject.AnalyticsAutoScaling, apiObject.ProviderName, regionConfigStateFile["analytics_specs"].([]interface{}))
 		}
 		if v, ok := regionConfigStateFile["electable_specs"]; ok && len(v.([]interface{})) > 0 {
-			tfMap["electable_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.ProviderName, regionConfigStateFile["electable_specs"].([]interface{}))
+			tfMap["electable_specs"] = flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiObject.ElectableSpecs, apiObject.AutoScaling, apiObject.ProviderName, regionConfigStateFile["electable_specs"].([]interface{}))
 		}
 		if v, ok := regionConfigStateFile["read_only_specs"]; ok && len(v.([]interface{})) > 0 {
 			tfMap["read_only_specs"] = flattenAdvancedReplicationSpecRegionConfigSpec(apiObject.ReadOnlySpecs, apiObject.ProviderName, regionConfigStateFile["read_only_specs"].([]interface{}))
@@ -1205,6 +1206,56 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, regionConf
 	return outRegionConfigList, containerIds, nil
 }
 
+func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpecs *matlas.Specs, analyticsAutoScaling *matlas.AdvancedAutoScaling, providerName string, analyticsSpecStateFile []interface{}) []map[string]interface{} {
+	if apiSpecs == nil {
+		return nil
+	}
+
+	newAnalyticsSpec := flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs, providerName, analyticsSpecStateFile)
+
+	if !isAutoScalingEnabled(analyticsAutoScaling) {
+		return newAnalyticsSpec
+	}
+
+	// Schenario: Autoscaling is enalbed for the cluster. Atlas will increase/decrease the instance_size
+	// of the cluster depending on the number of requests received. If the instance_size has change in the Atlas backend,
+	// TF will recognized a change and will suggest to set the instance_size to the same value in the state file.
+	// Example: Terraform instance_size=M10, Atlas increase the instance_size=M30. At the next terraform update,
+	// terraform will suggest to set the instance_size=M10 which is not what we want.
+	// Link to the issue: https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1299
+
+	if len(analyticsSpecStateFile) == 0 {
+		return newAnalyticsSpec
+	}
+
+	// Setting the instance_size with the value in the state file
+	if len(newAnalyticsSpec) == 1 {
+		newAnalyticsSpec[0]["instance_size"] = analyticsSpecStateFile[0].(map[string]interface{})["instance_size"]
+	}
+
+	return newAnalyticsSpec
+}
+
+func isAutoScalingEnabled(autoScaling *matlas.AdvancedAutoScaling) bool {
+	if autoScaling == nil {
+		return dataSourceMongoDBAtlasAPIKey().TestResourceData().GetRawPlan().False()
+	}
+
+	if autoScaling.Compute == nil {
+		return false
+	}
+
+	if autoScaling.Compute.Enabled == nil {
+		return false
+	}
+
+	if *autoScaling.Compute.Enabled == false {
+		return false
+	}
+
+	return true
+}
+
 func flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs *matlas.Specs, providerName string, specsStateFile []interface{}) []map[string]interface{} {
 	if apiSpecs == nil {
 		return nil
@@ -1224,7 +1275,7 @@ func flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs *matlas.Specs, prov
 	}
 
 	tfMapObject := specsStateFile[0].(map[string]interface{})
-	if providerName == "AWS" {
+	if providerName == AWS {
 		if cast.ToInt64(apiSpecs.DiskIOPS) > 0 {
 			if v, ok := tfMapObject["disk_iops"]; ok && v.(int) > 0 {
 				tfMap["disk_iops"] = apiSpecs.DiskIOPS
