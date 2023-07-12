@@ -37,7 +37,6 @@ type AssumeRole struct {
 	TransitiveTagKeys []string
 }
 
-// MongoDBClient client
 type MongoDBClient struct {
 	Atlas  *matlasClient.Client
 	Config *Config

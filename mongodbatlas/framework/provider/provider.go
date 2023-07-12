@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/utils"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/utils"
 )
 
 const (
@@ -41,7 +41,7 @@ type MongodbtlasProviderModel struct {
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
 }
 
-type SecretData struct {
+type Framework_Provider_SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
 }
@@ -99,10 +99,9 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 }
 
 func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	tflog.Info(ctx, "configuring client")
+	tflog.Debug(ctx, "configuring client")
 	var (
-		data    MongodbtlasProviderModel
-		baseURL string
+		data MongodbtlasProviderModel
 	)
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -110,10 +109,14 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	baseURL = data.BaseURL.ValueString()
-	mongodbgovCloud := data.IsMongodbGovCloud.ValueBool()
-	if mongodbgovCloud {
-		baseURL = "https://cloud.mongodbgov.com"
+	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
+		data.BaseURL = types.StringValue("https://cloud.mongodbgov.com")
+	}
+	if data.BaseURL.ValueString() == "" {
+		data.BaseURL = types.StringValue(utils.MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_BASE_URL",
+			"MCLI_OPS_MANAGER_URL",
+		}, "").(string))
 	}
 
 	if data.PublicKey.ValueString() == "" {
@@ -134,13 +137,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		if data.PrivateKey.ValueString() == "" {
 			resp.Diagnostics.AddError(utils.ProviderConfigError, fmt.Sprintf(utils.AttrNotSetError, "private_key"))
 		}
-	}
-
-	if data.BaseURL.ValueString() == "" {
-		data.BaseURL = types.StringValue(utils.MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}, "").(string))
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {
@@ -191,7 +187,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	config := Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
-		BaseURL:      baseURL,
+		BaseURL:      data.BaseURL.ValueString(),
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
 	}
 
@@ -208,6 +204,8 @@ func (p *MongodbtlasProvider) DataSources(ctx context.Context) []func() datasour
 }
 
 func (p *MongodbtlasProvider) Resources(ctx context.Context) []func() resource.Resource {
+	tflog.Debug(context.Background(), "calling Resources of provider.............")
+
 	return []func() resource.Resource{
 		NewExampleResource,
 		NewMongoDBAtlasProjectResource,

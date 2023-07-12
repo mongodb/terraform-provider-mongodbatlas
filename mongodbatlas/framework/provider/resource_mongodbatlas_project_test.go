@@ -1,5 +1,98 @@
 package provider
 
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+)
+
+func protoV6ProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		"mongodbatlas": providerserver.NewProtocol6WithError(New()()),
+	}
+}
+
+var _ plancheck.PlanCheck = debugPlan{}
+
+type debugPlan struct{}
+
+func (e debugPlan) CheckPlan(ctx context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
+	rd, err := json.Marshal(req.Plan)
+	if err != nil {
+		fmt.Println("error marshalling machine-readable plan output:", err)
+	}
+	fmt.Printf("req.Plan - %s\n", string(rd))
+}
+
+func DebugPlan() plancheck.PlanCheck {
+	return debugPlan{}
+}
+
+func Test_DebugPlan(t *testing.T) {
+	t.Parallel()
+
+	resource.Test(t, resource.TestCase{
+		// ExternalProviders: map[string]r.ExternalProvider{
+		// 	"random": {
+		// 		Source: "registry.terraform.io/hashicorp/random",
+		// 	},
+		// },
+		// ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `resource "mongodbatlas_project" "main" {
+					name   = "repro-region-config-order-issue"
+					org_id = "63bec56c014da65b8f73c05e"
+				  }`,
+				PlanOnly: true,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+			},
+		},
+	})
+}
+
+func TestResource_UpgradeFromVersion(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testAccPreCheckBasic(t) },
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.10.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: `resource "mongodbatlas_project" "test" {
+					name   = "tf-test-project-migration3"
+					org_id = "63bec56c014da65b8f73c05e"
+				  }`,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "org_id", "63bec56c014da65b8f73c05e"),
+				),
+			},
+			{
+				// ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: protoV6ProviderFactories(),
+				Config: `resource "mongodbatlas_project" "test" {
+					name   = "tf-test-project-migration3"
+					org_id = "63bec56c014da65b8f73c05e"
+				  }`,
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
 // func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 // 	var (
 // 		project        matlas.Project
@@ -11,8 +104,8 @@ package provider
 
 // 	resource.ParallelTest(t, resource.TestCase{
 // 		PreCheck:          func() { testAccPreCheckBasicOwnerID(t) },
-// 		ProviderFactories: testAccProviderFactories,
-// 		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+// 		ProviderFactories: TestAccProtoV6ProviderFactories,
+// 		// CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
 // 		Steps: []resource.TestStep{
 // 			{
 // 				Config: testAccMongoDBAtlasProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),

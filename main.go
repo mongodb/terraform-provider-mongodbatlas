@@ -5,14 +5,14 @@ import (
 	"flag"
 	"log"
 
-	framework "github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/provider"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
+	framework "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/provider"
 )
 
 func main() {

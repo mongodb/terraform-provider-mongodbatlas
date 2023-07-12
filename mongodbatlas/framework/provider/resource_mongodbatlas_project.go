@@ -10,16 +10,22 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/framework/utils"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/flatteners"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/utils"
 )
 
 const (
@@ -33,6 +39,7 @@ var _ resource.Resource = &MongoDBAtlasProjectResource{}
 var _ resource.ResourceWithImportState = &MongoDBAtlasProjectResource{}
 
 func NewMongoDBAtlasProjectResource() resource.Resource {
+	tflog.Debug(context.Background(), "calling NewMongoDBAtlasProjectResource.............")
 	return &MongoDBAtlasProjectResource{}
 }
 
@@ -55,8 +62,8 @@ type mongoDBAtlasProjectResourceModel struct {
 	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
-	Teams                                       []team       `tfsdk:"teams"`
-	ApiKeys                                     []apiKey     `tfsdk:"api_keys"`
+	Teams                                       []*team      `tfsdk:"teams"`
+	ApiKeys                                     []*apiKey    `tfsdk:"api_keys"`
 }
 
 type team struct {
@@ -76,6 +83,12 @@ func (r *MongoDBAtlasProjectResource) Metadata(ctx context.Context, req resource
 func (r *MongoDBAtlasProjectResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -88,17 +101,25 @@ func (r *MongoDBAtlasProjectResource) Schema(ctx context.Context, req resource.S
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"cluster_count": schema.NumberAttribute{
+			"cluster_count": schema.Int64Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"created": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"project_owner_id": schema.StringAttribute{
 				Optional: true,
 			},
+
 			"with_default_alerts_settings": schema.BoolAttribute{
 				Optional: true,
+				Computed: true,
 				Default:  booldefault.StaticBool(true),
 			},
 			// Since api_keys is a Computed attribute it will not be added as a Block:
@@ -108,6 +129,7 @@ func (r *MongoDBAtlasProjectResource) Schema(ctx context.Context, req resource.S
 				Computed:           true,
 				DeprecationMessage: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "mongodbatlas_project_api_key"),
 				NestedObject: schema.NestedAttributeObject{
+
 					Attributes: map[string]schema.Attribute{
 						"api_key_id": schema.StringAttribute{
 							Required: true,
@@ -118,33 +140,55 @@ func (r *MongoDBAtlasProjectResource) Schema(ctx context.Context, req resource.S
 						},
 					},
 				},
+				// https://discuss.hashicorp.com/t/computed-attributes-and-plan-modifiers/45830/12
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_data_explorer_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_extended_storage_sizes_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_performance_advisor_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_realtime_performance_panel_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_schema_advisor_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
-				Computed: true,
+				// Computed: true,
 				Optional: true,
 			},
 		},
@@ -154,9 +198,11 @@ func (r *MongoDBAtlasProjectResource) Schema(ctx context.Context, req resource.S
 					Attributes: map[string]schema.Attribute{
 						"team_id": schema.StringAttribute{
 							Required: true,
+							// Optional: true,
 						},
 						"role_names": schema.SetAttribute{
-							Required:    true,
+							Required: true,
+							// Optional:    true,
 							ElementType: types.StringType,
 						},
 					},
@@ -294,18 +340,14 @@ func (r *MongoDBAtlasProjectResource) Create(ctx context.Context, req resource.C
 	}
 
 	// ---return resourceMongoDBAtlasProjectRead(ctx, d, meta)
-	projectPlan, errString := getProjectPropsFromAtlas(ctx, conn, projectRes, projectPlan)
+	projectPlanPtr, errString := getModelWithPropsFromAtlas(ctx, conn, projectRes)
+	projectPlan = *projectPlanPtr
 
 	if errString != "" {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), errString)
 		return
 	}
 
-	// // Save updated data into Terraform state
-	// resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlan)...)
-	// if resp.Diagnostics.HasError() {
-	// 	return
-	// }
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, projectPlan)
 	resp.Diagnostics.Append(diags...)
@@ -314,7 +356,7 @@ func (r *MongoDBAtlasProjectResource) Create(ctx context.Context, req resource.C
 	}
 }
 
-func expandTeamsSet(ctx context.Context, teams []team) []*matlas.ProjectTeam {
+func expandTeamsSet(ctx context.Context, teams []*team) []*matlas.ProjectTeam {
 	res := make([]*matlas.ProjectTeam, len(teams))
 
 	for i, team := range teams {
@@ -327,7 +369,7 @@ func expandTeamsSet(ctx context.Context, teams []team) []*matlas.ProjectTeam {
 }
 
 func deleteProject(ctx context.Context, conn *matlas.Client, projectID string) error {
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"DELETING", "RETRY"},
 		Target:  []string{"IDLE"},
 		// Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
@@ -375,70 +417,55 @@ func (r *MongoDBAtlasProjectResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	// teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, projectID)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError(fmt.Sprintf("error getting project's teams assigned (%s)", projectID), err.Error())
-	// 	return
-	// }
+	projectPlanUpdatedPtr, errString := getModelWithPropsFromAtlas(ctx, conn, projectRes)
+	projectPlanUpdated := *projectPlanUpdatedPtr
 
-	// apiKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, &matlas.ListOptions{})
-	// if err != nil {
-	// 	var target *matlas.ErrorResponse
-	// 	if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
-	// 		resp.Diagnostics.AddError(fmt.Sprintf("error getting project's api keys (%s)", projectID), err.Error())
-	// 		return
-	// 	}
-	// 	tflog.Info(ctx, "[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
-	// }
+	var withDefaultAlertsSettings types.Bool
+	req.State.GetAttribute(ctx, path.Root("with_default_alerts_settings"), &withDefaultAlertsSettings)
+	projectPlanUpdated.WithDefaultAlertsSettings = withDefaultAlertsSettings
 
-	// projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
-	// if err != nil {
-	// 	resp.Diagnostics.AddError(fmt.Sprintf("error getting project's settings assigned (%s)", projectID), err.Error())
-	// 	return
-	// }
-
-	// projectPlan = convertProjectToModel(ctx, projectPlan, projectRes, teams, apiKeys, projectSettings)
-
-	projectPlan, errString := getProjectPropsFromAtlas(ctx, conn, projectRes, projectPlan)
+	// projectPlan.WithDefaultAlertsSettings = types.BoolValue(true)
 
 	if errString != "" {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), errString)
 		return
 	}
+	// var projectState mongoDBAtlasProjectResourceModel
+	// Get current state
+	// diags = req.State.Get(ctx, &projectState)
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanUpdated)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 }
 
-func getProjectPropsFromAtlas(ctx context.Context, conn *matlas.Client, projectRes *matlas.Project, projectPlan mongoDBAtlasProjectResourceModel) (mongoDBAtlasProjectResourceModel, string) {
+func getModelWithPropsFromAtlas(ctx context.Context, conn *matlas.Client, projectRes *matlas.Project) (*mongoDBAtlasProjectResourceModel, string) {
 	projectID := projectRes.ID
 	teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, projectID)
 	if err != nil {
-
-		return projectPlan, fmt.Sprintf("error getting project's teams assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Sprintf("error getting project's teams assigned (%s): %v", projectID, err.Error())
 	}
 
 	apiKeys, _, err := conn.ProjectAPIKeys.List(ctx, projectID, &matlas.ListOptions{})
 	if err != nil {
 		var target *matlas.ErrorResponse
 		if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
-			return projectPlan, fmt.Sprintf("error getting project's api keys (%s): %v", projectID, err.Error())
+			return nil, fmt.Sprintf("error getting project's api keys (%s): %v", projectID, err.Error())
 		}
 		tflog.Info(ctx, "[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
 
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
 	if err != nil {
-		return projectPlan, fmt.Sprintf("error getting project's settings assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Sprintf("error getting project's settings assigned (%s): %v", projectID, err.Error())
 	}
 
-	return convertProjectToModel(ctx, projectID, projectRes, teams, apiKeys, projectSettings), ""
+	return toProjectResourceModel(ctx, projectID, projectRes, teams, apiKeys, projectSettings), ""
 }
 
-func convertProjectToModel(ctx context.Context, projectID string, projectRes *matlas.Project, teams *matlas.TeamsAssigned, apiKeys []matlas.APIKey, projectSettings *matlas.ProjectSettings) mongoDBAtlasProjectResourceModel {
+func toProjectResourceModel(ctx context.Context, projectID string, projectRes *matlas.Project, teams *matlas.TeamsAssigned, apiKeys []matlas.APIKey, projectSettings *matlas.ProjectSettings) *mongoDBAtlasProjectResourceModel {
 	projectPlan := mongoDBAtlasProjectResourceModel{
 		ID:           types.StringValue(projectID),
 		Name:         types.StringValue(projectRes.Name),
@@ -451,8 +478,8 @@ func convertProjectToModel(ctx context.Context, projectID string, projectRes *ma
 		IsPerformanceAdvisorEnabled:                 types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		Teams:                                       convertTeamsToModel(ctx, teams),
-		ApiKeys:                                     convertApiKeysToModel(ctx, apiKeys, projectID),
+		Teams:                                       toTeamsResourceModel(ctx, teams),
+		ApiKeys:                                     toApiKeysResourceModel(ctx, apiKeys, projectID),
 	}
 	// projectPlan.Name = types.StringValue(projectRes.Name)
 	// projectPlan.OrgID = types.StringValue(projectRes.OrgID)
@@ -467,40 +494,44 @@ func convertProjectToModel(ctx context.Context, projectID string, projectRes *ma
 	// projectPlan.Teams = convertTeamsToModel(ctx, teams)
 	// projectPlan.ApiKeys = convertApiKeysToModel(ctx, apiKeys, projectID)
 
-	return projectPlan
+	return &projectPlan
 }
 
-func convertApiKeysToModel(ctx context.Context, atlasApiKeys []matlas.APIKey, projectID string) []apiKey {
-	res := make([]apiKey, len(atlasApiKeys))
+func toApiKeysResourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey, projectID string) []*apiKey {
+	res := []*apiKey{}
 
 	for _, atlasKey := range atlasApiKeys {
 		id := atlasKey.ID
 
-		var atlasRoles []string
+		var atlasRoles []attr.Value
 		for _, role := range atlasKey.Roles {
 
 			// ProjectAPIKeys.List returns all API keys of the Project, including the org and project roles
 			// For more details: https://docs.atlas.mongodb.com/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/
 			if !strings.HasPrefix(role.RoleName, "ORG_") && role.GroupID == projectID {
-				atlasRoles = append(atlasRoles, role.RoleName)
+				// atlasRoles = append(atlasRoles, role.RoleName)
+				atlasRoles = append(atlasRoles, types.StringValue(role.RoleName))
 			}
 		}
-		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasRoles)
+		// roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasRoles)
 
-		res = append(res, apiKey{
+		res = append(res, &apiKey{
 			ApiKeyID:  types.StringValue(id),
-			RoleNames: roleNames,
+			RoleNames: flatteners.StringSet(atlasRoles),
 		})
 	}
 	return res
 }
 
-func convertTeamsToModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []team {
-	teams := make([]team, atlasTeams.TotalCount)
+func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []*team {
+	if atlasTeams.TotalCount == 0 {
+		return nil
+	}
+	teams := make([]*team, atlasTeams.TotalCount)
 
 	for i, atlasTeam := range atlasTeams.Results {
 		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
-		teams[i] = team{
+		teams[i] = &team{
 			TeamID:    types.StringValue(atlasTeam.TeamID),
 			RoleNames: roleNames,
 		}
@@ -518,20 +549,12 @@ func (r *MongoDBAtlasProjectResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
-	// }
-
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlan)...)
 }
 
 func (r *MongoDBAtlasProjectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *ExampleResourceModel
+	var data *mongoDBAtlasProjectResourceModel
 
 	// Read Terraform prior state data into the model.
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
