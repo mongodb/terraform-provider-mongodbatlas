@@ -41,7 +41,7 @@ type MongodbtlasProviderModel struct {
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
 }
 
-type Framework_Provider_SecretData struct {
+type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
 }

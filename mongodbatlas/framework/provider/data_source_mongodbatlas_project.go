@@ -43,7 +43,7 @@ type projectDataSourceModel struct {
 	IsSchemaAdvisorEnabled                      types.Bool                `tfsdk:"is_schema_advisor_enabled"`
 	RegionUsageRestrictions                     types.String              `tfsdk:"region_usage_restrictions"`
 	Teams                                       []projectDataSourceTeam   `tfsdk:"teams"`
-	ApiKeys                                     []projectDataSourceApiKey `tfsdk:"api_keys"`
+	APIKeys                                     []projectDataSourceAPIKey `tfsdk:"api_keys"`
 }
 
 type projectDataSourceTeam struct {
@@ -51,8 +51,8 @@ type projectDataSourceTeam struct {
 	RoleNames types.List   `tfsdk:"role_names"`
 }
 
-type projectDataSourceApiKey struct {
-	ApiKeyID  types.String `tfsdk:"api_key_id"`
+type projectDataSourceAPIKey struct {
+	APIKeyID  types.String `tfsdk:"api_key_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
 }
 
@@ -210,9 +210,7 @@ func (d *ProjectDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, stateModel.ProjectID.ValueString()), err.Error())
 		return
-
 	}
-
 	teams, apiKeys, projectSettings, err := getProjectPropsFromAtlas(ctx, conn, project)
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
@@ -262,14 +260,14 @@ func toProjectDataSourceModel(ctx context.Context, project *matlas.Project, team
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		Teams:                                       toTeamsDataSourceModel(ctx, teams),
-		ApiKeys:                                     toApiKeysDataSourceModel(ctx, apiKeys),
+		APIKeys:                                     toAPIKeysDataSourceModel(ctx, apiKeys),
 	}
 
 	return projectStateModel
 }
 
-func toApiKeysDataSourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) []projectDataSourceApiKey {
-	res := []projectDataSourceApiKey{}
+func toAPIKeysDataSourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) []projectDataSourceAPIKey {
+	res := []projectDataSourceAPIKey{}
 
 	for _, atlasKey := range atlasApiKeys {
 		id := atlasKey.ID
@@ -277,11 +275,9 @@ func toApiKeysDataSourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey)
 		var atlasRoles []attr.Value
 		for _, role := range atlasKey.Roles {
 			atlasRoles = append(atlasRoles, types.StringValue(role.RoleName))
-
 		}
-
-		res = append(res, projectDataSourceApiKey{
-			ApiKeyID:  types.StringValue(id),
+		res = append(res, projectDataSourceAPIKey{
+			APIKeyID:  types.StringValue(id),
 			RoleNames: utils.ArrToListValue(atlasRoles),
 		})
 	}

@@ -165,7 +165,7 @@ func (d *ProjectsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	populateProjectsDataSourceModel(ctx, conn, stateModel, projects.Results)
+	err = populateProjectsDataSourceModel(ctx, conn, stateModel, projects.Results)
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
 	}
@@ -186,7 +186,6 @@ func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, s
 		}
 		projectModel := toProjectDataSourceModel(ctx, project, teams, apiKeys, projectSettings)
 		results = append(results, projectModel)
-
 	}
 
 	stateModel.Results = results

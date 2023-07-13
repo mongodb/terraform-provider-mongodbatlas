@@ -23,7 +23,7 @@ type debugPlan struct{}
 func (e debugPlan) CheckPlan(ctx context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
 	rd, err := json.Marshal(req.Plan)
 	if err != nil {
-		fmt.Println("error marshalling machine-readable plan output:", err)
+		fmt.Println("error marshaling machine-readable plan output:", err)
 	}
 	fmt.Printf("req.Plan - %s\n", string(rd))
 }

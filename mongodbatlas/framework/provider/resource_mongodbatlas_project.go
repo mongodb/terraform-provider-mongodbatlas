@@ -62,7 +62,7 @@ type projectResourceModel struct {
 	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Teams                                       []team       `tfsdk:"teams"`
-	ApiKeys                                     []apiKey     `tfsdk:"api_keys"`
+	APIKeys                                     []apiKey     `tfsdk:"api_keys"`
 }
 
 type team struct {
@@ -71,7 +71,7 @@ type team struct {
 }
 
 type apiKey struct {
-	ApiKeyID  types.String `tfsdk:"api_key_id"`
+	APIKeyID  types.String `tfsdk:"api_key_id"`
 	RoleNames types.Set    `tfsdk:"role_names"`
 }
 
@@ -282,10 +282,10 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Check if api keys were set, if so we need to add keys into the project
-	if len(projectPlan.ApiKeys) > 0 {
+	if len(projectPlan.APIKeys) > 0 {
 		// assign api keys to the project
-		for _, apiKey := range projectPlan.ApiKeys {
-			_, err := conn.ProjectAPIKeys.Assign(ctx, project.ID, apiKey.ApiKeyID.ValueString(), &matlas.AssignAPIKey{
+		for _, apiKey := range projectPlan.APIKeys {
+			_, err := conn.ProjectAPIKeys.Assign(ctx, project.ID, apiKey.APIKeyID.ValueString(), &matlas.AssignAPIKey{
 				Roles: utils.TypesSetToString(ctx, apiKey.RoleNames),
 			})
 			if err != nil {
@@ -464,7 +464,8 @@ func getProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID strin
 	return filteredKeys, nil
 }
 
-func toProjectResourceModel(ctx context.Context, projectID string, projectRes *matlas.Project, teams *matlas.TeamsAssigned, apiKeys []matlas.APIKey, projectSettings *matlas.ProjectSettings) *projectResourceModel {
+func toProjectResourceModel(ctx context.Context, projectID string, projectRes *matlas.Project,
+	teams *matlas.TeamsAssigned, apiKeys []matlas.APIKey, projectSettings *matlas.ProjectSettings) *projectResourceModel {
 	projectPlan := projectResourceModel{
 		ID:           types.StringValue(projectID),
 		Name:         types.StringValue(projectRes.Name),
@@ -478,7 +479,7 @@ func toProjectResourceModel(ctx context.Context, projectID string, projectRes *m
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		Teams:                                       toTeamsResourceModel(ctx, teams),
-		ApiKeys:                                     toApiKeysResourceModel(ctx, apiKeys),
+		APIKeys:                                     toAPIKeysResourceModel(ctx, apiKeys),
 	}
 	// projectPlan.Name = types.StringValue(projectRes.Name)
 	// projectPlan.OrgID = types.StringValue(projectRes.OrgID)
@@ -496,7 +497,7 @@ func toProjectResourceModel(ctx context.Context, projectID string, projectRes *m
 	return &projectPlan
 }
 
-func toApiKeysResourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) []apiKey {
+func toAPIKeysResourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) []apiKey {
 	res := []apiKey{}
 
 	for _, atlasKey := range atlasApiKeys {
@@ -508,7 +509,7 @@ func toApiKeysResourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) [
 		}
 
 		res = append(res, apiKey{
-			ApiKeyID:  types.StringValue(id),
+			APIKeyID:  types.StringValue(id),
 			RoleNames: utils.ArrToSetValue(atlasRoles),
 		})
 	}
