@@ -787,9 +787,9 @@ func resourceMongoDBAtlasAdvancedClusterDelete(ctx context.Context, d *schema.Re
 	clusterName := ids["cluster_name"]
 
 	var options *matlas.DeleteAdvanceClusterOptions
-	if v, ok := d.Get("retain_backups_enabled").(bool); ok {
+	if v, ok := d.GetOkExists("retain_backups_enabled"); ok {
 		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: pointy.Bool(v),
+			RetainBackups: pointy.Bool(v.(bool)),
 		}
 	}
 

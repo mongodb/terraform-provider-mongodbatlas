@@ -950,7 +950,7 @@ func TestAccClusterRSCluster_importBasic(t *testing.T) {
 		resourceName = "mongodbatlas_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -978,7 +978,7 @@ func TestAccClusterRSCluster_tenant(t *testing.T) {
 		resourceName = "mongodbatlas_cluster.tenant"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		name         = acctest.RandomWithPrefix("test-acc")
 	)
 
 	dbMajorVersion := testAccGetMongoDBAtlasMajorVersion()
