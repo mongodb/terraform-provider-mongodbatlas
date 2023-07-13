@@ -10,8 +10,6 @@ description: |-
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
 
-~> **IMPORTANT WARNING:**  Changing the name of an existing Project in your Terraform configuration will result the destruction of that Project and related resources (including Clusters) and the re-creation of those resources.  Terraform will inform you of the destroyed/created resources before applying so be sure to verify any change to your environment before applying.
-
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot delete the Atlas project if any snapshots exist.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
 ## Example Usage
@@ -51,7 +49,7 @@ resource "mongodbatlas_project" "test" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the project you want to create. (Cannot be changed via this Provider after creation.)
+* `name` - (Required) The name of the project you want to create.
 * `org_id` - (Required) The ID of the organization you want to create the project within.
 * `project_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user account to be granted the [Project Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Project-Owner) role on the specified project. If you set this parameter, it overrides the default value of the oldest [Organization Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Organization-Owner).
 * `with_default_alerts_settings` - (Optional) It allows users to disable the creation of the default alert settings. By default, this flag is set to true.
@@ -63,14 +61,7 @@ Teams attribute is optional
 
 * `team_id` - (Required) The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
 
-* `role_names` - (Required) Each string in the array represents a project role you want to assign to the team. Every user associated with the team inherits these roles. You must specify an array even if you are only associating a single role with the team.
- The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`
+* `role_names` - (Required) Each string in the array represents a project role you want to assign to the team. Every user associated with the team inherits these roles. You must specify an array even if you are only associating a single role with the team. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
@@ -81,14 +72,7 @@ api_keys allows one to assign an existing organization programmatic API key to a
 
 **WARNING:** The `api_keys` parameter is deprecated and will be removed in v1.12.0 release from codebase. Use `mongodbatlas_project_api_key`  resource instead. 
 
-* `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key.
- The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`  
+* `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.  
  
 * `is_collect_database_specifics_statistics_enabled` - (Optional) Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
 * `is_data_explorer_enabled` - (Optional) Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.  When Data Explorer is disabled, you cannot terminate slow operations from the [Real-Time Performance Panel](https://www.mongodb.com/docs/atlas/real-time-performance-panel/#std-label-real-time-metrics-status-tab) or create indexes from the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor). You can still view Performance Advisor recommendations, but you must create those indexes from [mongosh](https://www.mongodb.com/docs/mongodb-shell/#mongodb-binary-bin.mongosh).
