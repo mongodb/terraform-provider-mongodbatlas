@@ -19,7 +19,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: "1.20"
+        go-version-file: 'go.mod'
     - name: Build
       run: make build
   unit-test:
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version-file: 'go.mod'
       - name: Unit Test
         run: make test
   lint:
@@ -42,7 +42,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version-file: 'go.mod'
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.6.0
         with:
@@ -56,7 +56,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version-file: 'go.mod'
       - name: website lint
         run: make tools && make website-lint
   shellcheck:
