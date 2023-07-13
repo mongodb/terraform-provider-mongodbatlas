@@ -14,7 +14,7 @@
 - Add Troubleshooting.md to include issue with using `dynamic` in Terraform - INTMDB-855 [\#1240](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1240) ([maastha](https://github.com/maastha))
 
 **Bug Fixes:**
-
+- Remove default value to [retainBackups parameter](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Multi-Cloud-Clusters/operation/deleteCluster) in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` - INTMDB-932 [\#1314](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1314) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - `mongodbatlas_cloud_backup_snapshot_restore_job` extend guards for delivery type deletions - INTMDB-919 [\#1300](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1300) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - `mongodbatlas_org_invitation` is missing `ORG_BILLING_READ_ONLY` role - INTMDB-904 [\#1287](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1287) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Change warning to error for org key delete - INTMDB-889 [\#1283](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1283) ([martinstibbe](https://github.com/martinstibbe))
