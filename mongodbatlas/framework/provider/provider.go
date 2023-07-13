@@ -201,7 +201,7 @@ func (p *MongodbtlasProvider) DataSources(ctx context.Context) []func() datasour
 	return []func() datasource.DataSource{
 		NewExampleDataSource,
 		NewProjectDataSource,
-		// NewProjectsDataSource,
+		NewProjectsDataSource,
 	}
 }
 
