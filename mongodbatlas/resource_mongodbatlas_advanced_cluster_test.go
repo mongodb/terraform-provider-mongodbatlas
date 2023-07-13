@@ -58,7 +58,6 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", rNameUpdated),
 					resource.TestCheckResourceAttr(dataSourceName, "termination_protection_enabled", "false"),
@@ -69,11 +68,10 @@ func TestAccClusterAdvancedCluster_basicTenant(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"retain_backups_enabled"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -100,6 +98,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
@@ -111,6 +110,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "false"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
 				),
@@ -120,7 +120,7 @@ func TestAccClusterAdvancedCluster_singleProvider(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"replication_specs"},
+				ImportStateVerifyIgnore: []string{"replication_specs", "retain_backups_enabled"},
 			},
 		},
 	})
@@ -662,7 +662,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = mongodbatlas_project.cluster_project.id
   name         = %[3]q
   cluster_type = "REPLICASET"
-  retain_backups_enabled = "true"
 
   replication_specs {
     region_configs {
@@ -698,7 +697,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = mongodbatlas_project.cluster_project.id
   name         = %[3]q
   cluster_type = "REPLICASET"
-  retain_backups_enabled = "false"
+  retain_backups_enabled = "true"
 
   replication_specs {
     region_configs {
@@ -734,6 +733,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = mongodbatlas_project.cluster_project.id
   name         = %[3]q
   cluster_type = "REPLICASET"
+  retain_backups_enabled = false
 
   replication_specs {
     region_configs {
