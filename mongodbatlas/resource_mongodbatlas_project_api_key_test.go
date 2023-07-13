@@ -21,9 +21,10 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		PreCheck: func() { testAccPreCheckBasic(t) },
+		// ProviderFactories: testAccProviderFactories,
+		ProtoV6ProviderFactories: TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName),

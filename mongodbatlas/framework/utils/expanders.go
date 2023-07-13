@@ -6,16 +6,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// StringSet accepts a `types.Set` and returns a slice of strings.
-func StringSet(ctx context.Context, in types.Set) []string {
+func TypesSetToString(ctx context.Context, set types.Set) []string {
 	results := []string{}
-	_ = in.ElementsAs(ctx, &results, false)
+	_ = set.ElementsAs(ctx, &results, false)
 	return results
 }
 
-// StringList accepts a `types.List` and returns a slice of strings.
-func StringList(ctx context.Context, in types.List) []string {
+func TypesListToString(ctx context.Context, set types.List) []string {
 	results := []string{}
-	_ = in.ElementsAs(ctx, &results, false)
+	_ = set.ElementsAs(ctx, &results, false)
 	return results
 }

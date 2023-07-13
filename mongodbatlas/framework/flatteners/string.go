@@ -1,10 +1,5 @@
 package flatteners
 
-import (
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-)
-
 // String accepts a `string` and returns a `basetypes.StringValue`. The
 // return type automatically handles `StringNull` should the string be empty.
 //
@@ -19,9 +14,9 @@ import (
 // Not recommended if you care about returning an empty string for the state.
 //
 // nolint: contextcheck
-func String(in string) basetypes.StringValue {
-	if in == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(in)
-}
+// func String(in string) basetypes.StringValue {
+// 	if in == "" {
+// 		return types.StringNull()
+// 	}
+// 	return types.StringValue(in)
+// }

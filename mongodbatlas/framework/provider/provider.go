@@ -200,6 +200,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 func (p *MongodbtlasProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewExampleDataSource,
+		NewProjectDataSource,
+		// NewProjectsDataSource,
 	}
 }
 
@@ -208,7 +210,7 @@ func (p *MongodbtlasProvider) Resources(ctx context.Context) []func() resource.R
 
 	return []func() resource.Resource{
 		NewExampleResource,
-		NewMongoDBAtlasProjectResource,
+		NewProjectResource,
 	}
 }
 

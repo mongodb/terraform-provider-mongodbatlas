@@ -21,6 +21,8 @@ require (
 	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
 )
 
+require github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
+
 require (
 	cloud.google.com/go v0.110.0 // indirect
 	cloud.google.com/go/compute v1.19.1 // indirect
