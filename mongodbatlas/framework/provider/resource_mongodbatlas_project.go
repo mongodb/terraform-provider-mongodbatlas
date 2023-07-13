@@ -497,10 +497,10 @@ func toProjectResourceModel(ctx context.Context, projectID string, projectRes *m
 	return &projectPlan
 }
 
-func toAPIKeysResourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) []apiKey {
+func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) []apiKey {
 	res := []apiKey{}
 
-	for _, atlasKey := range atlasApiKeys {
+	for _, atlasKey := range atlasAPIKeys {
 		id := atlasKey.ID
 
 		var atlasRoles []attr.Value

@@ -266,10 +266,10 @@ func toProjectDataSourceModel(ctx context.Context, project *matlas.Project, team
 	return projectStateModel
 }
 
-func toAPIKeysDataSourceModel(ctx context.Context, atlasApiKeys []matlas.APIKey) []projectDataSourceAPIKey {
+func toAPIKeysDataSourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) []projectDataSourceAPIKey {
 	res := []projectDataSourceAPIKey{}
 
-	for _, atlasKey := range atlasApiKeys {
+	for _, atlasKey := range atlasAPIKeys {
 		id := atlasKey.ID
 
 		var atlasRoles []attr.Value
