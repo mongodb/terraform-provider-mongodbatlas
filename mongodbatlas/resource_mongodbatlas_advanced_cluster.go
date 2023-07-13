@@ -72,7 +72,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			"retain_backups_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster. (Default: true)",
+				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
 			},
 			"bi_connector": {
 				Type:          schema.TypeList,
