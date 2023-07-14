@@ -452,7 +452,7 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	}
 
 	var schedule map[string]interface{}
-	// When schedule is not provided in CREATE/UPDATE the GET return Schedule.Type = DEFAULT
+	// When schedule is not provided in CREATE/UPDATE the GET returns Schedule.Type = DEFAULT
 	// In this case, we don't want to update the schema as there is no SCHEDULE
 	if in.Schedule != nil && in.Schedule.Type != scheduleTypeDefault {
 		schedule = map[string]interface{}{
