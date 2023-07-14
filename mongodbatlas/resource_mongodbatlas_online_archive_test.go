@@ -50,6 +50,14 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
 				),
 			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+				),
+			},
 		},
 	})
 }
@@ -137,6 +145,49 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) 
 			start_minute = 1
 		}
 	
+		partition_fields {
+			field_name = "maximum_nights"
+			order = 0
+		}
+	
+		partition_fields {
+			field_name = "name"
+			order = 1
+		}
+
+		sync_creation = true
+	}
+	
+	data "mongodbatlas_online_archive" "read_archive" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+		archive_id = mongodbatlas_online_archive.users_archive.archive_id
+	}
+	
+	data "mongodbatlas_online_archives" "all" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+	}
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName))
+}
+
+func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {
+	return fmt.Sprintf(`
+	%s
+	resource "mongodbatlas_online_archive" "users_archive" {
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
+		db_name = "sample_airbnb"
+	
+		criteria {
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "ISODATE"
+			expire_after_days = 2
+		}
+
 		partition_fields {
 			field_name = "maximum_nights"
 			order = 0
