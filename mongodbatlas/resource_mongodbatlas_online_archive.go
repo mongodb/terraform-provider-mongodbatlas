@@ -20,6 +20,7 @@ import (
 const (
 	errorOnlineArchivesCreate = "error creating MongoDB Atlas Online Archive:: %s"
 	errorOnlineArchivesDelete = "error deleting MongoDB Atlas Online Archive: %s archive_id (%s)"
+	scheduleTypeDefault       = "DEFAULT"
 )
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
@@ -106,27 +107,23 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					"type": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"DAILY", "MONTHLY", "WEEKLY", "DEFAULT"}, false),
+						ValidateFunc: validation.StringInSlice([]string{"DAILY", "MONTHLY", "WEEKLY"}, false),
 					},
 					"end_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"end_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"start_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"start_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"day_of_month": {
 						Type:     schema.TypeInt,
@@ -450,14 +447,19 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		"query":       in.Criteria.Query,
 	}
 
-	schedule := map[string]interface{}{
-		"type":         in.Schedule.Type,
-		"day_of_month": in.Schedule.DayOfMonth,
-		"day_of_week":  in.Schedule.DayOfWeek,
-		"end_hour":     in.Schedule.EndHour,
-		"end_minute":   in.Schedule.EndMinute,
-		"start_hour":   in.Schedule.StartHour,
-		"start_minute": in.Schedule.StartMinute,
+	var schedule map[string]interface{}
+	// When schedule is not provided in CREATE/UPDATE the GET returns Schedule.Type = DEFAULT
+	// In this case, we don't want to update the schema as there is no SCHEDULE
+	if in.Schedule != nil && in.Schedule.Type != scheduleTypeDefault {
+		schedule = map[string]interface{}{
+			"type":         in.Schedule.Type,
+			"day_of_month": in.Schedule.DayOfMonth,
+			"day_of_week":  in.Schedule.DayOfWeek,
+			"end_hour":     in.Schedule.EndHour,
+			"end_minute":   in.Schedule.EndMinute,
+			"start_hour":   in.Schedule.StartHour,
+			"start_minute": in.Schedule.StartMinute,
+		}
 	}
 
 	// note: criteria is a conditional field, not required when type is equal to CUSTOM
@@ -480,7 +482,10 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	}
 
 	schemaVals["criteria"] = []interface{}{criteria}
-	schemaVals["schedule"] = []interface{}{schedule}
+
+	if schedule != nil {
+		schemaVals["schedule"] = []interface{}{schedule}
+	}
 
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
@@ -544,10 +549,29 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 }
 
 func mapSchedule(d *schema.ResourceData) *matlas.OnlineArchiveSchedule {
-	scheduleTFConfigList := d.Get("schedule").([]interface{})
-	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
-
+	// We have to provide schedule.type="DEFAULT" when the schedule block is not provided or removed
 	scheduleInput := &matlas.OnlineArchiveSchedule{
+		Type: scheduleTypeDefault,
+	}
+
+	scheduleTFConfigInterface := d.Get("schedule")
+	if scheduleTFConfigInterface == nil {
+		return scheduleInput
+	}
+
+	scheduleTFConfigList, ok := scheduleTFConfigInterface.([]interface{})
+	if !ok {
+		return scheduleInput
+	}
+
+	if len(scheduleTFConfigList) == 0 {
+		return &matlas.OnlineArchiveSchedule{
+			Type: scheduleTypeDefault,
+		}
+	}
+
+	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
+	scheduleInput = &matlas.OnlineArchiveSchedule{
 		Type: scheduleTFConfig["type"].(string),
 	}
 
