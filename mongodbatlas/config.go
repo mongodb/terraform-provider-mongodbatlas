@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"runtime"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
@@ -20,7 +19,7 @@ import (
 
 const ToolName = "terraform-provider-mongodbatlas"
 
-var userAgent = fmt.Sprintf("%s/%s (%s;%s)", ToolName, version.ProviderVersion, runtime.GOOS, runtime.GOARCH)
+var userAgent = fmt.Sprintf("%s/%s", ToolName, version.ProviderVersion)
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
@@ -33,9 +32,9 @@ type Config struct {
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
-	Atlas    *matlasClient.Client
-	AtlasSDK *atlasSDK.APIClient
-	Config   *Config
+	Atlas   *matlasClient.Client
+	AtlasV2 *atlasSDK.APIClient
+	Config  *Config
 }
 
 // NewClient func...
@@ -62,32 +61,33 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 		return nil, diag.FromErr(err)
 	}
 
-	versionedClient, err := newVersionedClient(client)
+	sdkV2Client, err := newSDKV2Client(client)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
 
 	clients := &MongoDBClient{
-		Atlas:    atlasClient,
-		AtlasSDK: versionedClient,
-		Config:   c,
+		Atlas:   atlasClient,
+		AtlasV2: sdkV2Client,
+		Config:  c,
 	}
 
 	return clients, nil
 }
 
-func newVersionedClient(client *http.Client) (*atlasSDK.APIClient, error) {
+func newSDKV2Client(client *http.Client) (*atlasSDK.APIClient, error) {
 	opts := []atlasSDK.ClientModifier{
 		atlasSDK.UseHTTPClient(client),
-		atlasSDK.UseUserAgent(userAgent)}
+		atlasSDK.UseUserAgent(userAgent),
+		atlasSDK.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
-	versionedClient, err := atlasSDK.NewClient(opts...)
+	sdkv2, err := atlasSDK.NewClient(opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return versionedClient, nil
+	return sdkv2, nil
 }
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
