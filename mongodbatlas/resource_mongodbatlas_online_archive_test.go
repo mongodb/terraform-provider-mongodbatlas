@@ -24,7 +24,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
@@ -38,7 +38,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfig(orgID, projectName, name),
+				Config: testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -48,6 +48,41 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
+	var (
+		cluster                   matlas.Cluster
+		resourceName              = "mongodbatlas_cluster.online_archive_test"
+		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
+		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName               = acctest.RandomWithPrefix("test-acc")
+		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				// We need this step to pupulate the cluster with Sample Data
+				// The online archive won't work if the cluster does not have data
+				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					populateWithSampleData(resourceName, &cluster),
 				),
 			},
 			{
@@ -120,7 +155,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) string {
+func testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, clusterName string) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {

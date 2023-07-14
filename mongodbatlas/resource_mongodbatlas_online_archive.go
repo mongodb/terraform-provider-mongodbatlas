@@ -20,6 +20,7 @@ import (
 const (
 	errorOnlineArchivesCreate = "error creating MongoDB Atlas Online Archive:: %s"
 	errorOnlineArchivesDelete = "error deleting MongoDB Atlas Online Archive: %s archive_id (%s)"
+	scheduleTypeDefault       = "DEFAULT"
 )
 
 func resourceMongoDBAtlasOnlineArchive() *schema.Resource {
@@ -450,14 +451,19 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 		"query":       in.Criteria.Query,
 	}
 
-	schedule := map[string]interface{}{
-		"type":         in.Schedule.Type,
-		"day_of_month": in.Schedule.DayOfMonth,
-		"day_of_week":  in.Schedule.DayOfWeek,
-		"end_hour":     in.Schedule.EndHour,
-		"end_minute":   in.Schedule.EndMinute,
-		"start_hour":   in.Schedule.StartHour,
-		"start_minute": in.Schedule.StartMinute,
+	var schedule map[string]interface{}
+	// When schedule is not provided in CREATE/UPDATE the GET return Schedule.Type = DEFAULT
+	// In this case, we don't want to update the schema as there is no SCHEDULE
+	if in.Schedule != nil && in.Schedule.Type != scheduleTypeDefault {
+		schedule = map[string]interface{}{
+			"type":         in.Schedule.Type,
+			"day_of_month": in.Schedule.DayOfMonth,
+			"day_of_week":  in.Schedule.DayOfWeek,
+			"end_hour":     in.Schedule.EndHour,
+			"end_minute":   in.Schedule.EndMinute,
+			"start_hour":   in.Schedule.StartHour,
+			"start_minute": in.Schedule.StartMinute,
+		}
 	}
 
 	// note: criteria is a conditional field, not required when type is equal to CUSTOM
@@ -480,7 +486,10 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 	}
 
 	schemaVals["criteria"] = []interface{}{criteria}
-	schemaVals["schedule"] = []interface{}{schedule}
+
+	if schedule != nil {
+		schemaVals["schedule"] = []interface{}{schedule}
+	}
 
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
@@ -545,6 +554,9 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 
 func mapSchedule(d *schema.ResourceData) *matlas.OnlineArchiveSchedule {
 	scheduleTFConfigList := d.Get("schedule").([]interface{})
+	if len(scheduleTFConfigList) == 0 {
+		return nil
+	}
 	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
 
 	scheduleInput := &matlas.OnlineArchiveSchedule{
