@@ -110,9 +110,11 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 					var j, j2 interface{}
 					if err := json.Unmarshal([]byte(old), &j); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
+						return false
 					}
 					if err := json.Unmarshal([]byte(new), &j2); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
+						return false
 					}
 					if diff := deep.Equal(&j, &j2); diff != nil {
 						log.Printf("[DEBUG] deep equal not passed: %v", diff)
@@ -130,9 +132,11 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 					var j, j2 interface{}
 					if err := json.Unmarshal([]byte(old), &j); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
+						return false
 					}
 					if err := json.Unmarshal([]byte(new), &j2); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
+						return false
 					}
 					if diff := deep.Equal(&j, &j2); diff != nil {
 						log.Printf("[DEBUG] deep equal not passed: %v", diff)
