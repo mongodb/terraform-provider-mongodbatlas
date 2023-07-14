@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var _ datasource.DataSource = &ProjectDataSource{}
-var _ datasource.DataSourceWithConfigure = &ProjectDataSource{}
+var _ datasource.DataSource = &ProjectsDataSource{}
+var _ datasource.DataSourceWithConfigure = &ProjectsDataSource{}
 
 func NewProjectsDataSource() datasource.DataSource {
-	return &ProjectDataSource{}
+	return &ProjectsDataSource{}
 }
 
 type ProjectsDataSource struct {

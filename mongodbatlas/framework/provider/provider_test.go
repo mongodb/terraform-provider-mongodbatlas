@@ -25,7 +25,7 @@ func init() {
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_PROJECT_ID"),
-		RealmBaseURL: os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
+		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
 
 	testMongoDBClient, _ = config.NewClient(context.Background())
