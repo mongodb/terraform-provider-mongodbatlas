@@ -107,27 +107,23 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 					"type": {
 						Type:         schema.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice([]string{"DAILY", "MONTHLY", "WEEKLY", "DEFAULT"}, false),
+						ValidateFunc: validation.StringInSlice([]string{"DAILY", "MONTHLY", "WEEKLY"}, false),
 					},
 					"end_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"end_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"start_hour": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"start_minute": {
 						Type:     schema.TypeInt,
 						Optional: true,
-						Computed: true,
 					},
 					"day_of_month": {
 						Type:     schema.TypeInt,
