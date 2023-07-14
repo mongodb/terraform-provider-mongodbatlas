@@ -208,7 +208,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, start_hour int) string {
+func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, startHour int) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -256,7 +256,7 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), start_hour)
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
 }
 
 func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {
@@ -345,7 +345,7 @@ func testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName
 	`, orgID, projectName, clusterName)
 }
 
-func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName string, start_hour int) string {
+func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName string, startHour int) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -394,10 +394,10 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), start_hour)
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
 }
 
-func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName string, start_hour int) string {
+func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName string, startHour int) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -446,5 +446,5 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), start_hour)
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
 }
