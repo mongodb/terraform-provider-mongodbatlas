@@ -553,13 +553,29 @@ func mapCriteria(d *schema.ResourceData) *matlas.OnlineArchiveCriteria {
 }
 
 func mapSchedule(d *schema.ResourceData) *matlas.OnlineArchiveSchedule {
-	scheduleTFConfigList := d.Get("schedule").([]interface{})
-	if len(scheduleTFConfigList) == 0 {
-		return nil
-	}
-	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
-
+	// We have to provide schedule.type="DEFAULT" when the schedule block is not provided or removed
 	scheduleInput := &matlas.OnlineArchiveSchedule{
+		Type: scheduleTypeDefault,
+	}
+
+	scheduleTFConfigInterface := d.Get("schedule")
+	if scheduleTFConfigInterface == nil {
+		return scheduleInput
+	}
+
+	scheduleTFConfigList, ok := scheduleTFConfigInterface.([]interface{})
+	if !ok {
+		return scheduleInput
+	}
+
+	if len(scheduleTFConfigList) == 0 {
+		return &matlas.OnlineArchiveSchedule{
+			Type: scheduleTypeDefault,
+		}
+	}
+
+	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
+	scheduleInput = &matlas.OnlineArchiveSchedule{
 		Type: scheduleTFConfig["type"].(string),
 	}
 

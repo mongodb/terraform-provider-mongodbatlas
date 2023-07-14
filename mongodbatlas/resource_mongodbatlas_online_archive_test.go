@@ -38,7 +38,20 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, name),
+				Config: testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, name, 1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, name, 2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -56,6 +69,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "schedule.#"),
 				),
 			},
 		},
@@ -155,7 +169,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, clusterName string) string {
+func testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, clusterName string, start_hour int) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -176,7 +190,7 @@ func testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, clusterN
 			type = "DAILY"
 			end_hour = 1
 			end_minute = 1
-			start_hour = 1
+			start_hour = %d
 			start_minute = 1
 		}
 	
@@ -203,7 +217,7 @@ func testAccBackupRSOnlineArchiveConfigWithSchedule(orgID, projectName, clusterN
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName))
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), start_hour)
 }
 
 func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {
