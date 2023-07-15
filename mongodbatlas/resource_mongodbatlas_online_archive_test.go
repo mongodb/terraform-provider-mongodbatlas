@@ -234,7 +234,7 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 		}
 
 		partition_fields {
-			field_name = "date"
+			field_name = "last_review"
 			order = 0
 		}
 	
