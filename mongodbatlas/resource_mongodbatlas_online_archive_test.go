@@ -282,7 +282,7 @@ func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clust
 		}
 
 		partition_fields {
-			field_name = "date"
+			field_name = "last_review"
 			order = 0
 		}
 
@@ -382,7 +382,7 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 		}
 
 		partition_fields {
-			field_name = "date"
+			field_name = "last_review"
 			order = 0
 		}
 	
@@ -439,7 +439,7 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 		}
 
 		partition_fields {
-			field_name = "date"
+			field_name = "last_review"
 			order = 0
 		}
 	
