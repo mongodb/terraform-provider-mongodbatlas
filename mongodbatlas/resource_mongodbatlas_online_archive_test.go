@@ -243,6 +243,11 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 			order = 1
 		}
 
+		partition_fields {
+			field_name = "date"
+			order = 1
+		}
+
 		sync_creation = true
 	}
 	
@@ -283,6 +288,11 @@ func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clust
 	
 		partition_fields {
 			field_name = "name"
+			order = 1
+		}
+
+		partition_fields {
+			field_name = "date"
 			order = 1
 		}
 
@@ -381,6 +391,11 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 			order = 1
 		}
 
+		partition_fields {
+			field_name = "date"
+			order = 1
+		}
+
 		sync_creation = true
 	}
 	
@@ -430,6 +445,11 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 	
 		partition_fields {
 			field_name = "name"
+			order = 1
+		}
+
+		partition_fields {
+			field_name = "date"
 			order = 1
 		}
 
