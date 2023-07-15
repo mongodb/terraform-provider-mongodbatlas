@@ -24,7 +24,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
@@ -38,7 +38,103 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfig(orgID, projectName, name),
+				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, name, 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, name, 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.type"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "schedule.#"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
+	var (
+		cluster                   matlas.Cluster
+		resourceName              = "mongodbatlas_cluster.online_archive_test"
+		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
+		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName               = acctest.RandomWithPrefix("test-acc")
+		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				// We need this step to pupulate the cluster with Sample Data
+				// The online archive won't work if the cluster does not have data
+				Config: testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					populateWithSampleData(resourceName, &cluster),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
+					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -112,7 +208,7 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) string {
+func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, startHour int) string {
 	return fmt.Sprintf(`
 	%s
 	resource "mongodbatlas_online_archive" "users_archive" {
@@ -133,10 +229,53 @@ func testAccBackupRSOnlineArchiveConfig(orgID, projectName, clusterName string) 
 			type = "DAILY"
 			end_hour = 1
 			end_minute = 1
-			start_hour = 1
+			start_hour = %d
 			start_minute = 1
 		}
 	
+		partition_fields {
+			field_name = "maximum_nights"
+			order = 0
+		}
+	
+		partition_fields {
+			field_name = "name"
+			order = 1
+		}
+
+		sync_creation = true
+	}
+	
+	data "mongodbatlas_online_archive" "read_archive" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+		archive_id = mongodbatlas_online_archive.users_archive.archive_id
+	}
+	
+	data "mongodbatlas_online_archives" "all" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+	}
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
+}
+
+func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {
+	return fmt.Sprintf(`
+	%s
+	resource "mongodbatlas_online_archive" "users_archive" {
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
+		db_name = "sample_airbnb"
+	
+		criteria {
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "ISODATE"
+			expire_after_days = 2
+		}
+
 		partition_fields {
 			field_name = "maximum_nights"
 			order = 0
@@ -204,4 +343,108 @@ func testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName
 
 	
 	`, orgID, projectName, clusterName)
+}
+
+func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, clusterName string, startHour int) string {
+	return fmt.Sprintf(`
+	%s
+	resource "mongodbatlas_online_archive" "users_archive" {
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
+		db_name = "sample_airbnb"
+	
+		criteria {
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "ISODATE"
+			expire_after_days = 2
+		}
+
+		schedule {
+			type = "WEEKLY"
+			day_of_week = 1
+			end_hour = 1
+			end_minute = 1
+			start_hour = %d
+			start_minute = 1
+		}
+	
+		partition_fields {
+			field_name = "maximum_nights"
+			order = 0
+		}
+	
+		partition_fields {
+			field_name = "name"
+			order = 1
+		}
+
+		sync_creation = true
+	}
+	
+	data "mongodbatlas_online_archive" "read_archive" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+		archive_id = mongodbatlas_online_archive.users_archive.archive_id
+	}
+	
+	data "mongodbatlas_online_archives" "all" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+	}
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
+}
+
+func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, clusterName string, startHour int) string {
+	return fmt.Sprintf(`
+	%s
+	resource "mongodbatlas_online_archive" "users_archive" {
+		project_id = mongodbatlas_cluster.online_archive_test.project_id
+		cluster_name = mongodbatlas_cluster.online_archive_test.name
+		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
+		db_name = "sample_airbnb"
+	
+		criteria {
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "ISODATE"
+			expire_after_days = 2
+		}
+
+		schedule {
+			type = "MONTHLY"
+			day_of_month = 1
+			end_hour = 1
+			end_minute = 1
+			start_hour = %d
+			start_minute = 1
+		}
+	
+		partition_fields {
+			field_name = "maximum_nights"
+			order = 0
+		}
+	
+		partition_fields {
+			field_name = "name"
+			order = 1
+		}
+
+		sync_creation = true
+	}
+	
+	data "mongodbatlas_online_archive" "read_archive" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+		archive_id = mongodbatlas_online_archive.users_archive.archive_id
+	}
+	
+	data "mongodbatlas_online_archives" "all" {
+		project_id =  mongodbatlas_online_archive.users_archive.project_id
+		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
+	}
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
 }
