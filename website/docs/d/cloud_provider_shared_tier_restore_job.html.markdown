@@ -3,7 +3,7 @@ layout: "mongodbatlas"
 page_title: "MongoDB Atlas: mongodbatlas_shared_tier_restore_job"
 sidebar_current: "docs-mongodbatlas-datasource-mongodbatlas-shared-tier-restore-jobs"
 description: |-
-    Provides a Cloud Backup Snapshot Restore Job Datasource.
+    Provides a Cloud Backup Shared Tier Snapshot Restore Job Datasource.
 ---
 
 
