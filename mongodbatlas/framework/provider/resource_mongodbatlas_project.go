@@ -61,8 +61,11 @@ type projectResourceModel struct {
 	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
-	Teams                                       []team       `tfsdk:"teams"`
-	APIKeys                                     []apiKey     `tfsdk:"api_keys"`
+	Teams                                       types.Set    `tfsdk:"teams"`
+	APIKeys                                     types.Set    `tfsdk:"api_keys"`
+	// Teams                                       []team       `tfsdk:"teams"`
+	// APIKeys                                     []apiKey     `tfsdk:"api_keys"`
+
 }
 
 type team struct {
@@ -267,9 +270,14 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Check if teams were set, if so we need to add the teams into the project
-	if len(projectPlan.Teams) > 0 {
+	var teams []types.Object
+	projectPlan.Teams.ElementsAs(ctx, &teams, false)
+
+	if len(projectPlan.Teams.Elements()) > 0 {
 		// adding the teams into the project
-		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, expandTeamsSet(ctx, projectPlan.Teams))
+		var teams []team
+		_ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
+		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, expandTeamsSet(ctx, teams))
 		if err != nil {
 			errd := deleteProject(ctx, conn, project.ID)
 			if errd != nil {
@@ -282,9 +290,11 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Check if api keys were set, if so we need to add keys into the project
-	if len(projectPlan.APIKeys) > 0 {
+	if len(projectPlan.APIKeys.Elements()) > 0 {
+		var apiKeys []apiKey
+		_ = projectPlan.APIKeys.ElementsAs(ctx, &apiKeys, false)
 		// assign api keys to the project
-		for _, apiKey := range projectPlan.APIKeys {
+		for _, apiKey := range apiKeys {
 			_, err := conn.ProjectAPIKeys.Assign(ctx, project.ID, apiKey.APIKeyID.ValueString(), &matlas.AssignAPIKey{
 				Roles: utils.TypesSetToString(ctx, apiKey.RoleNames),
 			})
@@ -530,6 +540,7 @@ func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned)
 			RoleNames: roleNames,
 		}
 	}
+
 	return teams
 }
 
