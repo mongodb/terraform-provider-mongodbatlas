@@ -45,3 +45,18 @@ func testAccPreCheckBasic(tb testing.TB) {
 		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
 	}
 }
+
+func testAccPreCheckGov(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PROJECT_ID_GOV") == "" ||
+		os.Getenv("MONGODB_ATLAS_ORG_ID_GOV") == "" {
+		tb.Skip()
+	}
+}
+
+func testCheckTeamsIds(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_TEAMS_IDS") == "" {
+		tb.Skip("`MONGODB_ATLAS_TEAMS_IDS` must be set for Projects acceptance testing")
+	}
+}
