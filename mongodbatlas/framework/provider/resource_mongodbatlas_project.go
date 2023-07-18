@@ -63,9 +63,8 @@ type projectResourceModel struct {
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Teams                                       types.Set    `tfsdk:"teams"`
 	APIKeys                                     types.Set    `tfsdk:"api_keys"`
-	// Teams                                       []team       `tfsdk:"teams"`
-	// APIKeys                                     []apiKey     `tfsdk:"api_keys"`
-
+	// Teams   []team   `tfsdk:"teams"`
+	// APIKeys []apiKey `tfsdk:"api_keys"`
 }
 
 type team struct {
@@ -507,7 +506,9 @@ func toProjectResourceModel(ctx context.Context, projectID string, projectRes *m
 	return &projectPlan
 }
 
-func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) []apiKey {
+// func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) []apiKey {
+func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) types.Set {
+
 	res := []apiKey{}
 
 	for _, atlasKey := range atlasAPIKeys {
@@ -523,12 +524,16 @@ func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) [
 			RoleNames: utils.ArrToSetValue(atlasRoles),
 		})
 	}
-	return res
+	// return res
+	return types.SetValue()
 }
 
-func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []team {
+// func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []team {
+func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) types.Set {
+
 	if atlasTeams.TotalCount == 0 {
-		return nil
+		// return nil
+		types.SetNull()
 	}
 	teams := make([]team, atlasTeams.TotalCount)
 
@@ -541,7 +546,8 @@ func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned)
 		}
 	}
 
-	return teams
+	return types.SetValueFrom()
+	// return teams
 }
 
 func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
