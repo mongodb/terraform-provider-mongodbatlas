@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	atlasSDK "go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
@@ -86,6 +87,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error setting `total_count`: %w", err))
 	}
 
+	d.SetId(id.UniqueId())
 	return nil
 }
 
@@ -97,13 +99,13 @@ func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnaps
 	results := make([]map[string]interface{}, len(sharedTierSnapshots))
 	for k, sharedTierSnapshot := range sharedTierSnapshots {
 		results[k] = map[string]interface{}{
-			"snapshot_id":    sharedTierSnapshot.Id,
-			"start_time":     sharedTierSnapshot.StartTime,
-			"finish_time":    sharedTierSnapshot.FinishTime,
-			"scheduled_time": sharedTierSnapshot.ScheduledTime,
-			"expiration":     sharedTierSnapshot.Expiration,
-			"mongod_version": sharedTierSnapshot.MongoDBVersion,
-			"status":         sharedTierSnapshot.Status,
+			"snapshot_id":      sharedTierSnapshot.Id,
+			"start_time":       sharedTierSnapshot.StartTime.String(),
+			"finish_time":      sharedTierSnapshot.FinishTime.String(),
+			"scheduled_time":   sharedTierSnapshot.ScheduledTime.String(),
+			"expiration":       sharedTierSnapshot.Expiration.String(),
+			"mongo_db_version": sharedTierSnapshot.MongoDBVersion,
+			"status":           sharedTierSnapshot.Status,
 		}
 	}
 
