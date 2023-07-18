@@ -114,8 +114,9 @@ func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[
 	}
 
 	results := make([]map[string]interface{}, len(sharedTierJobs))
-	for k, sharedTierJob := range sharedTierJobs {
-		results[k] = map[string]interface{}{
+	for i := range sharedTierJobs {
+		sharedTierJob := &sharedTierJobs[i]
+		results[i] = map[string]interface{}{
 			"job_id":                      sharedTierJob.Id,
 			"status":                      sharedTierJob.Status,
 			"target_project_id":           sharedTierJob.TargetProjectId,

@@ -8,7 +8,6 @@ linters-settings:
       - style
     disabled-checks:
       - octalLiteral
-      - rangeValCopy
   govet:
     check-shadowing: true
     enable:
