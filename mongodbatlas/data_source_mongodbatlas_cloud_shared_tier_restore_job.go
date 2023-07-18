@@ -103,15 +103,15 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_id` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("snapshot_finished_date", job.SnapshotFinishedDate); err != nil {
+	if err = d.Set("snapshot_finished_date", job.SnapshotFinishedDate.String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `snapshot_finished_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("restore_scheduled_date", job.RestoreScheduledDate); err != nil {
+	if err = d.Set("restore_scheduled_date", job.RestoreScheduledDate.String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `restore_scheduled_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("restore_finished_date", job.RestoreFinishedDate); err != nil {
+	if err = d.Set("restore_finished_date", job.RestoreFinishedDate.String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `restore_finished_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
@@ -119,7 +119,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error setting `delivery_type` for shared tier restore job '%s': %w", jobID, err))
 	}
 
-	if err = d.Set("expiration_date", job.ExpirationDate); err != nil {
+	if err = d.Set("expiration_date", job.ExpirationDate.String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expiration_date` for shared tier restore job '%s': %w", jobID, err))
 	}
 
