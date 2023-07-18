@@ -6,13 +6,13 @@
 
 **Bug Fixes:**
 
-- Advanced Cluster Doc is not formatted correctly [\#1326](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1326) - INTMDB-941 ([andreaangiolillo](https://github.com/andreaangiolillo))
-- mongodbatlas\_event\_trigger is not updated if config\_match is added [\#1305](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1305) - INTMDB-922 ([andreaangiolillo](https://github.com/andreaangiolillo))
-- mongodbatlas\_online\_archive schedule parameter update causing crashing in terraform apply - INTMDB-935 [\#1320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1320) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_advanced_cluster` doc is not formatted correctly [\#1326](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1326) - INTMDB-941 ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_event_trigger` is not updated if config\_match is added [\#1305](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1305) - INTMDB-922 ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_online_archive` `schedule` parameter update causing crashing in terraform apply - INTMDB-935 [\#1320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1320) ([andreaangiolillo](https://github.com/andreaangiolillo))
 
 **Internal Improvements:**
 
-- Fix Online Archive tests - INTMDB-938 [\#1321](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1321) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Fix `mongodbatlas_online_archive` tests - INTMDB-938 [\#1321](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1321) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.298 to 1.44.299 [\#1312](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1312) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v1.10.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.1) (2023-7-13)
