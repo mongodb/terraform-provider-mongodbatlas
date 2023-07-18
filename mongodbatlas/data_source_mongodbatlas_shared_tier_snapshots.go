@@ -78,7 +78,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf("error getting shard-tier snapshots for cluster '%s': %w", clusterName, err))
 	}
 
-	if err := d.Set("results", flattenShardTierSnapshots(snapshots.Results)); err != nil {
+	if err := d.Set("results", flattenSharedTierSnapshots(snapshots.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %w", err))
 	}
 
@@ -89,21 +89,21 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 	return nil
 }
 
-func flattenShardTierSnapshots(shardTierSnapshots []atlasSDK.BackupTenantSnapshot) []map[string]interface{} {
-	if len(shardTierSnapshots) == 0 {
+func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnapshot) []map[string]interface{} {
+	if len(sharedTierSnapshots) == 0 {
 		return nil
 	}
 
-	results := make([]map[string]interface{}, len(shardTierSnapshots))
-	for k, shardTierSnapshot := range shardTierSnapshots {
+	results := make([]map[string]interface{}, len(sharedTierSnapshots))
+	for k, sharedTierSnapshot := range sharedTierSnapshots {
 		results[k] = map[string]interface{}{
-			"snapshot_id":    shardTierSnapshot.Id,
-			"start_time":     shardTierSnapshot.StartTime,
-			"finish_time":    shardTierSnapshot.FinishTime,
-			"scheduled_time": shardTierSnapshot.ScheduledTime,
-			"expiration":     shardTierSnapshot.Expiration,
-			"mongod_version": shardTierSnapshot.MongoDBVersion,
-			"status":         shardTierSnapshot.Status,
+			"snapshot_id":    sharedTierSnapshot.Id,
+			"start_time":     sharedTierSnapshot.StartTime,
+			"finish_time":    sharedTierSnapshot.FinishTime,
+			"scheduled_time": sharedTierSnapshot.ScheduledTime,
+			"expiration":     sharedTierSnapshot.Expiration,
+			"mongod_version": sharedTierSnapshot.MongoDBVersion,
+			"status":         sharedTierSnapshot.Status,
 		}
 	}
 
