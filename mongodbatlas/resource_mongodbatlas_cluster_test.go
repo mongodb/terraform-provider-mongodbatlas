@@ -42,6 +42,7 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 				),
 			},
@@ -57,6 +58,7 @@ func TestAccClusterRSCluster_basicAWS_simple(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
+					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 				),
 			},
@@ -948,7 +950,7 @@ func TestAccClusterRSCluster_importBasic(t *testing.T) {
 		resourceName = "mongodbatlas_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		clusterName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		clusterName  = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -964,7 +966,7 @@ func TestAccClusterRSCluster_importBasic(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled"},
+				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled", "retain_backups_enabled"},
 			},
 		},
 	})
@@ -976,7 +978,7 @@ func TestAccClusterRSCluster_tenant(t *testing.T) {
 		resourceName = "mongodbatlas_cluster.tenant"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		name         = acctest.RandomWithPrefix("test-acc")
 	)
 
 	dbMajorVersion := testAccGetMongoDBAtlasMajorVersion()
@@ -1374,7 +1376,7 @@ func testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name string, backup
 		    }
 			cloud_backup                 = %[4]t
 			pit_enabled                  = %[4]t
-			retain_backups_enabled       = false
+			retain_backups_enabled       = true
 			auto_scaling_disk_gb_enabled = %[5]t
 			// Provider Settings "block"
 
