@@ -8,11 +8,12 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -90,7 +91,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 		Refresh:    resourcePrivateLinkEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endPoint.ID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		Delay:      5 * time.Second,
 	}
 	// RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
 	// Wait, catching any errors
@@ -182,7 +183,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context
 		Refresh:    resourcePrivateLinkEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		Delay:      5 * time.Second,
 	}
 	// Wait, catching any errors
 	_, err = stateConf.WaitForStateContext(ctx)
