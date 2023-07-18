@@ -7,7 +7,7 @@
 **Bug Fixes:**
 
 - `mongodbatlas_advanced_cluster` doc is not formatted correctly [\#1326](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1326) - INTMDB-941 ([andreaangiolillo](https://github.com/andreaangiolillo))
-- `mongodbatlas_event_trigger` is not updated if config\_match is added [\#1305](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1305) - INTMDB-922 ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_event_trigger` is not updated if `config_match` is added [\#1305](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1305) - INTMDB-922 ([andreaangiolillo](https://github.com/andreaangiolillo))
 - `mongodbatlas_online_archive` `schedule` parameter update causing crashing in terraform apply - INTMDB-935 [\#1320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1320) ([andreaangiolillo](https://github.com/andreaangiolillo))
 
 **Internal Improvements:**
