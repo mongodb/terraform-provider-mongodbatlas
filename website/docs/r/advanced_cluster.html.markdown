@@ -130,7 +130,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-
+```
 ### Example of a Multi-Cloud Cluster.
 
 ```terraform
@@ -372,7 +372,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 This parameter defaults to false.
 
-* `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter defaults to false.
+* `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. M10 and above only.
 
 **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
 
