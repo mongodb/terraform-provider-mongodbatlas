@@ -17,7 +17,7 @@ description: |-
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_shared_tier_snapshot" "test" {
+data "mongodbatlas_shared_tier_snapshot" "test" {
   project_id          = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"
   snapshot_id       = "5d1285acd5ec13b6c2d1726a"
