@@ -539,7 +539,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 				// when autoscaling is configured
 				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
-					updateClusterInstanceSizeElectableSpecs(resourceName, "M20"),
+					updateClusterInstanceSize(resourceName, "M20"),
 				),
 			},
 			{
@@ -1040,7 +1040,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
 
-func updateClusterInstanceSizeElectableSpecs(resourceName, tier string) resource.TestCheckFunc {
+func updateClusterInstanceSize(resourceName, tier string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -1063,12 +1063,22 @@ func updateClusterInstanceSizeElectableSpecs(resourceName, tier string) resource
 			return fmt.Errorf("cluster(%s:%s) does not exist %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 		}
 
+		clusterName := clusterResp.Name
 		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.InstanceSize = tier
+		clusterResp.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize = tier
+		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ReadOnlySpecs.InstanceSize = tier
+
+		// Remove READ-ONLY attributes
+		clusterResp.ReplicationSpecs[0].ID = ""
 		clusterResp.ConnectionStrings = nil
 		clusterResp.ID = ""
 		clusterResp.GroupID = ""
 		clusterResp.CreateDate = ""
 		clusterResp.StateName = ""
+		clusterResp.MongoDBVersion = ""
+		clusterResp.MongoDBMajorVersion = ""
+		clusterResp.VersionReleaseSystem = ""
+		clusterResp.RootCertType = ""
 
 		cluster, _, err := conn.AdvancedClusters.Update(context.Background(), ids["project_id"], ids["cluster_name"], clusterResp)
 
@@ -1076,20 +1086,15 @@ func updateClusterInstanceSizeElectableSpecs(resourceName, tier string) resource
 			return fmt.Errorf("cluster(%s:%s) update throw an error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 		}
 
-		ticker := time.NewTicker(600 * time.Second)
-
-	JOB:
-		for {
-			select {
-			case <-time.After(20 * time.Second):
-				log.Println("timeout elapsed ....")
-			case <-ticker.C:
-				cluster, _, err = conn.AdvancedClusters.Get(context.Background(), ids["project_id"], cluster.ID)
-				fmt.Println("querying for job ")
-				if cluster.StateName != "UPDATING" {
-					break JOB
-				}
+		totalDuration := 15 * time.Minute
+		waitTime := 20 * time.Second
+		startTime := time.Now()
+		for time.Since(startTime) < totalDuration {
+			cluster, _, err = conn.AdvancedClusters.Get(context.Background(), ids["project_id"], clusterName)
+			if cluster.StateName == "IDLE" || err != nil {
+				break
 			}
+			time.Sleep(waitTime)
 		}
 
 		if err != nil {
@@ -1099,6 +1104,7 @@ func updateClusterInstanceSizeElectableSpecs(resourceName, tier string) resource
 		if cluster.StateName != "IDLE" {
 			return fmt.Errorf("cluster(%s:%s) update throw an error %s", rs.Primary.Attributes["project_id"], cluster.ID, cluster.StateName)
 		}
+
 		return nil
 	}
 }
