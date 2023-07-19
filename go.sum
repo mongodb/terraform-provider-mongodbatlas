@@ -204,8 +204,8 @@ github.com/apparentlymart/go-textseg/v13 v13.0.0 h1:Y+KvPE1NYz0xl601PVImeQfFyEy6
 github.com/apparentlymart/go-textseg/v13 v13.0.0/go.mod h1:ZK2fH7c4NqDTLtiYLvIkEghdlcqw7yxLeM89kiTRPUo=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=
 github.com/aws/aws-sdk-go v1.44.122/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
-github.com/aws/aws-sdk-go v1.44.299 h1:HVD9lU4CAFHGxleMJp95FV/sRhtg7P4miHD1v88JAQk=
-github.com/aws/aws-sdk-go v1.44.299/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.302 h1:ST3ko6GrJKn3Xi+nAvxjG3uk/V1pW8KC52WLeIxqqNk=
+github.com/aws/aws-sdk-go v1.44.302/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d h1:xDfNPAt8lFiC1UJrqV3uuy861HCTo708pDMbjHHdCas=
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d/go.mod h1:6QX/PXZ00z/TKoufEY6K/a0k6AhaJrQKdFe6OfVXsa4=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
@@ -600,6 +600,8 @@ github.com/zclconf/go-cty-debug v0.0.0-20191215020915-b22d67c1ba0b/go.mod h1:ZRK
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
 go.mongodb.org/atlas v0.31.0 h1:NgLqsNYm6wDYeDUO90etw1sl8T1U2DUKu36eUdnrFSI=
 go.mongodb.org/atlas v0.31.0/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
+go.mongodb.org/atlas-sdk/v20230201002 v20230201002.0.0 h1:ANYyIzbdxSdwwbragGKDuAg+3bmr940rbxCvZdIwnPk=
+go.mongodb.org/atlas-sdk/v20230201002 v20230201002.0.0/go.mod h1:SG7r2T7R595Z/+x/miXGR89ZsinqXG/P6k0p+CSNBPY=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

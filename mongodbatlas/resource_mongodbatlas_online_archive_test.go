@@ -232,15 +232,20 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 			start_hour = %d
 			start_minute = 1
 		}
-	
+
 		partition_fields {
-			field_name = "maximum_nights"
+			field_name = "last_review"
 			order = 0
 		}
 	
 		partition_fields {
-			field_name = "name"
+			field_name = "maximum_nights"
 			order = 1
+		}
+	
+		partition_fields {
+			field_name = "name"
+			order = 2
 		}
 
 		sync_creation = true
@@ -277,13 +282,18 @@ func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clust
 		}
 
 		partition_fields {
-			field_name = "maximum_nights"
+			field_name = "last_review"
 			order = 0
+		}
+
+		partition_fields {
+			field_name = "maximum_nights"
+			order = 1
 		}
 	
 		partition_fields {
 			field_name = "name"
-			order = 1
+			order = 2
 		}
 
 		sync_creation = true
@@ -370,15 +380,20 @@ func testAccBackupRSOnlineArchiveConfigWithWeeklySchedule(orgID, projectName, cl
 			start_hour = %d
 			start_minute = 1
 		}
-	
+
 		partition_fields {
-			field_name = "maximum_nights"
+			field_name = "last_review"
 			order = 0
 		}
 	
 		partition_fields {
-			field_name = "name"
+			field_name = "maximum_nights"
 			order = 1
+		}
+	
+		partition_fields {
+			field_name = "name"
+			order = 2
 		}
 
 		sync_creation = true
@@ -422,16 +437,23 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(orgID, projectName, c
 			start_hour = %d
 			start_minute = 1
 		}
-	
+
 		partition_fields {
-			field_name = "maximum_nights"
+			field_name = "last_review"
 			order = 0
 		}
 	
 		partition_fields {
-			field_name = "name"
+			field_name = "maximum_nights"
 			order = 1
 		}
+
+
+		partition_fields {
+			field_name = "name"
+			order = 2
+		}
+
 
 		sync_creation = true
 	}
