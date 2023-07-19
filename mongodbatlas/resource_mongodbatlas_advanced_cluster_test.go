@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -512,13 +513,33 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
 		Steps: []resource.TestStep{
+			// {
+			// 	Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+			// 		testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+			// 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+			// 		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+			// 		testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScaling.Compute.Enabled),
+			// 	),
+			// },
+			// {
+			// 	Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+			// 		testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+			// 		resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+			// 		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+			// 		testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
+			// 	),
+			// },
 			{
+				// We use this step to manually upgrade the instance_size to simulate the
+				// increase of the TIER and ensure that instance_size is not updated by terraform
+				// when autoscaling is configured
 				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
-					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
-					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
-					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScaling.Compute.Enabled),
+					updateClusterInstanceSizeElectableSpecs(resourceName, "M20"),
 				),
 			},
 			{
@@ -527,6 +548,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
 					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
 					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
 				),
 			},
@@ -1016,4 +1038,67 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+}
+
+func updateClusterInstanceSizeElectableSpecs(resourceName, tier string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("no ID is set")
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		log.Printf("[DEBUG] projectID: %s, name %s", ids["project_id"], ids["cluster_name"])
+
+		clusterResp, _, err := conn.AdvancedClusters.Get(context.Background(), ids["project_id"], ids["cluster_name"])
+
+		if err != nil {
+			return fmt.Errorf("cluster(%s:%s) does not exist %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
+		}
+
+		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.InstanceSize = tier
+		clusterResp.ConnectionStrings = nil
+		clusterResp.ID = ""
+		clusterResp.GroupID = ""
+		clusterResp.CreateDate = ""
+		clusterResp.StateName = ""
+
+		cluster, _, err := conn.AdvancedClusters.Update(context.Background(), ids["project_id"], ids["cluster_name"], clusterResp)
+
+		if err != nil {
+			return fmt.Errorf("cluster(%s:%s) update throw an error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
+		}
+
+		ticker := time.NewTicker(600 * time.Second)
+
+	JOB:
+		for {
+			select {
+			case <-time.After(20 * time.Second):
+				log.Println("timeout elapsed ....")
+			case <-ticker.C:
+				cluster, _, err = conn.AdvancedClusters.Get(context.Background(), ids["project_id"], cluster.ID)
+				fmt.Println("querying for job ")
+				if cluster.StateName != "UPDATING" {
+					break JOB
+				}
+			}
+		}
+
+		if err != nil {
+			return fmt.Errorf("cluster(%s:%s) update throw an error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
+		}
+
+		if cluster.StateName != "IDLE" {
+			return fmt.Errorf("cluster(%s:%s) update throw an error %s", rs.Primary.Attributes["project_id"], cluster.ID, cluster.StateName)
+		}
+		return nil
+	}
 }

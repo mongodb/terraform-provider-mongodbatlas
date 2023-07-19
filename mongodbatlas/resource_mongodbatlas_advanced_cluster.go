@@ -1199,18 +1199,18 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, regionConf
 	return outRegionConfigList, containerIds, nil
 }
 
-func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpecs *matlas.Specs, analyticsAutoScaling *matlas.AdvancedAutoScaling, providerName string, analyticsSpecStateFile []interface{}) []map[string]interface{} {
+func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpecs *matlas.Specs, autoScaling *matlas.AdvancedAutoScaling, providerName string, analyticsSpecStateFile []interface{}) []map[string]interface{} {
 	if apiSpecs == nil {
 		return nil
 	}
 
 	newAnalyticsSpec := flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs, providerName, analyticsSpecStateFile)
 
-	if !isAutoScalingEnabled(analyticsAutoScaling) {
+	if !isAutoScalingEnabled(autoScaling) {
 		return newAnalyticsSpec
 	}
 
-	// Schenario: Autoscaling is enalbed for the cluster. Atlas will increase/decrease the instance_size
+	// Scenario: Autoscaling is enabled for the cluster. Atlas will increase/decrease the instance_size
 	// of the cluster depending on the number of requests received. If the instance_size has change in the Atlas backend,
 	// TF will recognized a change and will suggest to set the instance_size to the same value in the state file.
 	// Example: Terraform instance_size=M10, Atlas increase the instance_size=M30. At the next terraform update,
@@ -1222,8 +1222,8 @@ func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpec
 	}
 
 	// Setting the instance_size with the value in the state file
-	if len(newAnalyticsSpec) == 1 {
-		newAnalyticsSpec[0]["instance_size"] = analyticsSpecStateFile[0].(map[string]interface{})["instance_size"]
+	for i := range newAnalyticsSpec {
+		newAnalyticsSpec[i]["instance_size"] = analyticsSpecStateFile[i].(map[string]interface{})["instance_size"]
 	}
 
 	return newAnalyticsSpec
@@ -1231,7 +1231,7 @@ func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpec
 
 func isAutoScalingEnabled(autoScaling *matlas.AdvancedAutoScaling) bool {
 	if autoScaling == nil {
-		return dataSourceMongoDBAtlasAPIKey().TestResourceData().GetRawPlan().False()
+		return false
 	}
 
 	if autoScaling.Compute == nil {
