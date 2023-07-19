@@ -121,11 +121,11 @@ func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[
 			"target_deployment_item_name": sharedTierJob.TargetDeploymentItemName,
 			"snapshot_url":                sharedTierJob.SnapshotUrl,
 			"snapshot_id":                 sharedTierJob.SnapshotId,
-			"snapshot_finished_date":      sharedTierJob.SnapshotFinishedDate.String(),
-			"restore_scheduled_date":      sharedTierJob.RestoreScheduledDate.String(),
-			"restore_finished_date":       sharedTierJob.RestoreFinishedDate.String(),
 			"delivery_type":               sharedTierJob.DeliveryType,
-			"expiration_date":             sharedTierJob.ExpirationDate.String(),
+			"snapshot_finished_date":      sharedTierJob.GetSnapshotFinishedDate().String(),
+			"restore_scheduled_date":      sharedTierJob.GetRestoreScheduledDate().String(),
+			"restore_finished_date":       sharedTierJob.GetRestoreFinishedDate().String(),
+			"expiration_date":             sharedTierJob.GetExpirationDate().String(),
 		}
 	}
 
