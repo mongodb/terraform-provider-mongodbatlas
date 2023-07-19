@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.10.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.2) (2023-07-18)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.1...v1.10.2)
+
+**Bug Fixes:**
+
+- `mongodbatlas_advanced_cluster` doc is not formatted correctly [\#1326](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1326) - INTMDB-941 ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_event_trigger` is not updated if `config_match` is added [\#1305](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1305) - INTMDB-922 ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `mongodbatlas_online_archive` `schedule` parameter update causing crashing in terraform apply - INTMDB-935 [\#1320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1320) ([andreaangiolillo](https://github.com/andreaangiolillo))
+
+**Internal Improvements:**
+
+- Fix `mongodbatlas_online_archive` tests - INTMDB-938 [\#1321](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1321) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Chore\(deps\): Bump github.com/aws/aws-sdk-go from 1.44.298 to 1.44.299 [\#1312](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1312) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v1.10.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.1) (2023-7-13)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.0...v1.10.1)
