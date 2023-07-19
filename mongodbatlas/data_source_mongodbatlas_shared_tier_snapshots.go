@@ -72,9 +72,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	snapshots, resp, err := conn.SharedTierSnapshotsApi.ListSharedClusterBackups(ctx, projectID, clusterName).Execute()
-	defer resp.Body.Close()
-
+	snapshots, _, err := conn.SharedTierSnapshotsApi.ListSharedClusterBackups(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting shard-tier snapshots for cluster '%s': %w", clusterName, err))
 	}
@@ -100,12 +98,12 @@ func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnaps
 	for k, sharedTierSnapshot := range sharedTierSnapshots {
 		results[k] = map[string]interface{}{
 			"snapshot_id":      sharedTierSnapshot.Id,
-			"start_time":       sharedTierSnapshot.StartTime.String(),
-			"finish_time":      sharedTierSnapshot.FinishTime.String(),
-			"scheduled_time":   sharedTierSnapshot.ScheduledTime.String(),
-			"expiration":       sharedTierSnapshot.Expiration.String(),
 			"mongo_db_version": sharedTierSnapshot.MongoDBVersion,
 			"status":           sharedTierSnapshot.Status,
+			"start_time":       sharedTierSnapshot.GetStartTime().String(),
+			"finish_time":      sharedTierSnapshot.GetFinishTime().String(),
+			"scheduled_time":   sharedTierSnapshot.GetScheduledTime().String(),
+			"expiration":       sharedTierSnapshot.GetExpiration().String(),
 		}
 	}
 

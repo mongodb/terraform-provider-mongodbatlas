@@ -59,9 +59,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshotRead(ctx context.Context, d *schema
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	snapshotID := d.Get("snapshot_id").(string)
-	snapshot, resp, err := conn.SharedTierSnapshotsApi.GetSharedClusterBackup(ctx, projectID, clusterName, snapshotID).Execute()
-	defer resp.Body.Close()
-
+	snapshot, _, err := conn.SharedTierSnapshotsApi.GetSharedClusterBackup(ctx, projectID, clusterName, snapshotID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting shard-tier snapshot '%s': %w", snapshotID, err))
 	}
@@ -74,19 +72,19 @@ func dataSourceMongoDBAtlasSharedTierSnapshotRead(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf("error setting `mongo_db_version` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("start_time", snapshot.StartTime.String()); err != nil {
+	if err = d.Set("start_time", snapshot.GetStartTime().String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `start_time` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("expiration", snapshot.Expiration.String()); err != nil {
+	if err = d.Set("expiration", snapshot.GetExpiration().String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `expiration` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("finish_time", snapshot.FinishTime.String()); err != nil {
+	if err = d.Set("finish_time", snapshot.GetFinishTime().String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `finish_time` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
-	if err = d.Set("scheduled_time", snapshot.ScheduledTime.String()); err != nil {
+	if err = d.Set("scheduled_time", snapshot.GetScheduledTime().String()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `scheduled_time` for shard-tier snapshot '%s': %w", snapshotID, err))
 	}
 
