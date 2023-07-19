@@ -25,7 +25,7 @@ We pre-release the provider to make for testing purpose. **A Pre-release is not 
     
     <img width="477" alt="image3" src="https://github.com/mongodb/terraform-provider-mongodbatlas/assets/5663078/30d2db83-6b2d-4eb2-9da6-93fc34d64c09">
 
-- **There is a bug in the GitHub release page**: after binaries get created, GitHub  flips backthe  status of release as Draft so you have to set it to Pre-Release again.
+- **There is a bug in the GitHub release page**: after binaries get created, GitHub  flips backthe  status of release as Draft so you have to set it to Pre-Release (or Latest, if publishing the final version) again.
 
 ### Release the provider
 - Follow the same steps in the pre-release but provide the final release tag (example `v1.9.0`). This will trigger the release action that will release the provider to the GitHub Release page. Harshicorp has a process in place that will retrieve the latest release from the GitHub repository and add the binaries to the Hashicorp Terraform Registry.
