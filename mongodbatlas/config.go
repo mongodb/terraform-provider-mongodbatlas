@@ -78,8 +78,8 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 func (c *Config) newSDKV2Client(client *http.Client) (*atlasSDK.APIClient, error) {
 	opts := []atlasSDK.ClientModifier{
 		atlasSDK.UseHTTPClient(client),
-		atlasSDK.UseBaseURL(c.BaseURL),
 		atlasSDK.UseUserAgent(userAgent),
+		atlasSDK.UseBaseURL(c.BaseURL),
 		atlasSDK.UseDebug(false)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
