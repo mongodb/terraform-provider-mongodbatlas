@@ -90,7 +90,6 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d 
 	clusterName := d.Get("cluster_name").(string)
 
 	jobs, _, err := conn.SharedTierRestoreJobsApi.ListSharedClusterBackupRestoreJobs(ctx, clusterName, projectID).Execute()
-
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting shared tier restore jobs for cluster '%s': %w", clusterName, err))
 	}
