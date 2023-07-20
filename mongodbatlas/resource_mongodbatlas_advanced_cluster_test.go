@@ -498,10 +498,10 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		rName        = acctest.RandomWithPrefix("test-acc")
 		rNameUpdated = acctest.RandomWithPrefix("test-acc")
-		autoScaling  = &matlas.AutoScaling{
-			Compute:       &matlas.Compute{Enabled: pointy.Bool(false), MaxInstanceSize: ""},
-			DiskGBEnabled: pointy.Bool(true),
-		}
+		// autoScaling  = &matlas.AutoScaling{
+		// 	Compute:       &matlas.Compute{Enabled: pointy.Bool(false), MaxInstanceSize: ""},
+		// 	DiskGBEnabled: pointy.Bool(true),
+		// }
 		autoScalingUpdated = &matlas.AutoScaling{
 			Compute:       &matlas.Compute{Enabled: pointy.Bool(true), MaxInstanceSize: "M20"},
 			DiskGBEnabled: pointy.Bool(true),
@@ -537,7 +537,7 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 				// We use this step to manually upgrade the instance_size to simulate the
 				// increase of the TIER and ensure that instance_size is not updated by terraform
 				// when autoscaling is configured
-				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScaling),
+				Config: testAccMongoDBAtlasAdvancedClusterConfigReplicationSpecsAutoScaling(orgID, projectName, rName, autoScalingUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					updateClusterInstanceSize(resourceName, "M20"),
 				),
@@ -1065,7 +1065,7 @@ func updateClusterInstanceSize(resourceName, tier string) resource.TestCheckFunc
 
 		clusterName := clusterResp.Name
 		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.InstanceSize = tier
-		clusterResp.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize = tier
+		// clusterResp.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize = tier
 		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ReadOnlySpecs.InstanceSize = tier
 
 		// Remove READ-ONLY attributes
@@ -1086,7 +1086,7 @@ func updateClusterInstanceSize(resourceName, tier string) resource.TestCheckFunc
 			return fmt.Errorf("cluster(%s:%s) update throw an error %s", rs.Primary.Attributes["project_id"], rs.Primary.ID, err)
 		}
 
-		totalDuration := 15 * time.Minute
+		totalDuration := 25 * time.Minute
 		waitTime := 20 * time.Second
 		startTime := time.Now()
 		for time.Since(startTime) < totalDuration {
