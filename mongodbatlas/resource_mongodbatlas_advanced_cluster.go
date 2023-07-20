@@ -1199,12 +1199,12 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, regionConf
 	return outRegionConfigList, containerIds, nil
 }
 
-func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpecs *matlas.Specs, autoScaling *matlas.AdvancedAutoScaling, providerName string, analyticsSpecStateFile []interface{}) []map[string]interface{} {
+func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpecs *matlas.Specs, autoScaling *matlas.AdvancedAutoScaling, providerName string, specStateFile []interface{}) []map[string]interface{} {
 	if apiSpecs == nil {
 		return nil
 	}
 
-	newAnalyticsSpec := flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs, providerName, analyticsSpecStateFile)
+	newAnalyticsSpec := flattenAdvancedReplicationSpecRegionConfigSpec(apiSpecs, providerName, specStateFile)
 
 	if !isAutoScalingEnabled(autoScaling) {
 		return newAnalyticsSpec
@@ -1217,13 +1217,13 @@ func flattenAdvancedReplicationAnalyticsAndElectableSpecRegionConfigSpec(apiSpec
 	// terraform will suggest to set the instance_size=M10 which is not what we want.
 	// Link to the issue: https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1299
 
-	if len(analyticsSpecStateFile) == 0 {
+	if len(specStateFile) == 0 {
 		return newAnalyticsSpec
 	}
 
 	// Setting the instance_size with the value in the state file
 	for i := range newAnalyticsSpec {
-		newAnalyticsSpec[i]["instance_size"] = analyticsSpecStateFile[i].(map[string]interface{})["instance_size"]
+		newAnalyticsSpec[i]["instance_size"] = specStateFile[i].(map[string]interface{})["instance_size"]
 	}
 
 	return newAnalyticsSpec

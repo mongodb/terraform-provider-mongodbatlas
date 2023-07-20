@@ -556,6 +556,51 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAutoScaling(t *testing.
 	})
 }
 
+func TestAccClusterAdvancedClusterConfig_AutoScaling(t *testing.T) {
+	var (
+		cluster            matlas.AdvancedCluster
+		resourceName       = "mongodbatlas_advanced_cluster.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acctest.RandomWithPrefix("test-acc")
+		rName              = acctest.RandomWithPrefix("test-acc")
+		rNameUpdated       = acctest.RandomWithPrefix("test-acc")
+		autoScalingUpdated = &matlas.AutoScaling{
+			Compute:       &matlas.Compute{Enabled: pointy.Bool(true), MaxInstanceSize: "M20"},
+			DiskGBEnabled: pointy.Bool(true),
+		}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				// We use this step to manually upgrade the instance_size to simulate the
+				// increase of the TIER and ensure that instance_size is not updated by terraform
+				// when autoscaling is configured
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAutoScaling(orgID, projectName, rName, autoScalingUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					updateClusterInstanceSize(resourceName, "M20"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigAutoScaling(orgID, projectName, rNameUpdated, autoScalingUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rNameUpdated),
+					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.region_configs.#"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.electable_specs.0.instance_size", "M10"),
+					resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.1.analytics_specs.0.instance_size", "M10"),
+					testAccCheckMongoDBAtlasAdvancedClusterScaling(&cluster, *autoScalingUpdated.Compute.Enabled),
+				),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	var (
 		cluster      matlas.AdvancedCluster
@@ -993,8 +1038,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
       region_name   = "US_EAST_1"
     }
   }
-
-
 }
 
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
@@ -1040,6 +1083,75 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
 }
 
+func testAccMongoDBAtlasAdvancedClusterConfigAutoScaling(orgID, projectName, name string, p *matlas.AutoScaling) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "cluster_project" {
+	name   = %[2]q
+	org_id = %[1]q
+}	
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id             = mongodbatlas_project.cluster_project.id
+  name                   = %[3]q
+  cluster_type           = "REPLICASET"
+
+   replication_specs {
+    region_configs {
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      analytics_specs {
+        instance_size = "M10"
+        node_count    = 1
+      }
+	  auto_scaling {
+        compute_enabled = %[4]t
+        disk_gb_enabled = %[5]t
+		compute_max_instance_size = %[6]q
+	  }
+
+	  analytics_auto_scaling {
+        compute_enabled = %[4]t
+        disk_gb_enabled = %[5]t
+		compute_max_instance_size = %[6]q
+	  }
+
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }
+
+	region_configs {
+		electable_specs {
+		  instance_size = "M10"
+		  node_count    = 3
+		}
+		analytics_specs {
+		  instance_size = "M10"
+		  node_count    = 1
+		}
+		auto_scaling {
+		  compute_enabled = %[4]t
+		  disk_gb_enabled = %[5]t
+		  compute_max_instance_size = %[6]q
+		}
+  
+		analytics_auto_scaling {
+		  compute_enabled = %[4]t
+		  disk_gb_enabled = %[5]t
+		  compute_max_instance_size = %[6]q
+		}
+  
+		provider_name = "AWS"
+		priority      = 7
+		region_name   = "US_EAST_1"
+	  }
+  }
+}
+
+	`, orgID, projectName, name, *p.Compute.Enabled, *p.DiskGBEnabled, p.Compute.MaxInstanceSize)
+}
+
 func updateClusterInstanceSize(resourceName, tier string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -1065,8 +1177,11 @@ func updateClusterInstanceSize(resourceName, tier string) resource.TestCheckFunc
 
 		clusterName := clusterResp.Name
 		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ElectableSpecs.InstanceSize = tier
-		// clusterResp.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize = tier
+		clusterResp.ReplicationSpecs[0].RegionConfigs[0].AnalyticsSpecs.InstanceSize = tier
 		clusterResp.ReplicationSpecs[0].RegionConfigs[0].ReadOnlySpecs.InstanceSize = tier
+		clusterResp.ReplicationSpecs[0].RegionConfigs[1].ElectableSpecs.InstanceSize = tier
+		clusterResp.ReplicationSpecs[0].RegionConfigs[1].AnalyticsSpecs.InstanceSize = tier
+		clusterResp.ReplicationSpecs[0].RegionConfigs[1].ReadOnlySpecs.InstanceSize = tier
 
 		// Remove READ-ONLY attributes
 		clusterResp.ReplicationSpecs[0].ID = ""
