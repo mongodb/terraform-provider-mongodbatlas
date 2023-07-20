@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -136,7 +136,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 	projectID := ids["project_id"]
 	bucketID := ids["id"]
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"PENDING", "REPEATING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx, conn, projectID, bucketID),
@@ -195,7 +195,7 @@ func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, bucketI
 	return
 }
 
-func resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx context.Context, client *matlas.Client, projectID, exportBucketID string) resource.StateRefreshFunc {
+func resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx context.Context, client *matlas.Client, projectID, exportBucketID string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
 		if err != nil {

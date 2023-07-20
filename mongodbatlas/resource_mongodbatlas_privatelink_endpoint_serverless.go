@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -84,7 +84,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 		return diag.Errorf(errorServerlessServiceEndpointAdd, privateLinkRequest.CloudProviderEndpointID, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
 		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
 		Refresh:    resourcePrivateLinkEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endPoint.ID),
@@ -176,7 +176,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context
 		return diag.Errorf("error deleting serverless private link endpoint(%s): %s", endpointID, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
 		Refresh:    resourcePrivateLinkEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
@@ -244,7 +244,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Co
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourcePrivateLinkEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, privateLinkID string) resource.StateRefreshFunc {
+func resourcePrivateLinkEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, privateLinkID string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		p, resp, err := client.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, privateLinkID)
 		if err != nil {

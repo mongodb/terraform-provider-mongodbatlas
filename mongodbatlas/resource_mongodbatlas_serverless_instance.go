@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -55,7 +55,7 @@ func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema
 			return diag.Errorf("error updating serverless instance: %s", err)
 		}
 
-		stateConf := &resource.StateChangeConf{
+		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 			Target:     []string{"IDLE"},
 			Refresh:    resourceServerlessInstanceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
@@ -201,7 +201,7 @@ func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema
 
 	log.Println("[INFO] Waiting for MongoDB Serverless Instance to be destroyed")
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceServerlessInstanceRefreshFunc(ctx, serverlessName, projectID, conn),
@@ -320,7 +320,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 		return diag.Errorf("error creating serverless instance: %s", err)
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceServerlessInstanceRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
@@ -343,7 +343,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 	return resourceMongoDBAtlasServerlessInstanceRead(ctx, d, meta)
 }
 
-func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.ServerlessInstances.Get(ctx, projectID, name)
 
@@ -371,7 +371,7 @@ func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID 
 	}
 }
 
-func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.ServerlessInstances.List(ctx, projectID, nil)
 

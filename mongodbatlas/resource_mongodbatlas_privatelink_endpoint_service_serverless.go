@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -109,7 +109,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 		return diag.Errorf(errorServerlessServiceEndpointAdd, endpointID, err)
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"RESERVATION_REQUESTED", "INITIATING", "DELETING"},
 		Target:     []string{"RESERVED", "FAILED", "DELETED", "AVAILABLE"},
 		Refresh:    resourceServiceEndpointServerlessRefreshFunc(ctx, conn, projectID, instanceName, endpointID),
@@ -123,7 +123,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessCreate(ctx context.
 		return diag.FromErr(fmt.Errorf(errorServerlessServiceEndpointAdd, endpointID, err))
 	}
 
-	clusterConf := &resource.StateChangeConf{
+	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    resourceServerlessInstanceListRefreshFunc(ctx, projectID, conn),
@@ -276,7 +276,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceServerlessImportState(ctx con
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, endpointServiceID string) resource.StateRefreshFunc {
+func resourceServiceEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, endpointServiceID string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		i, resp, err := client.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, endpointServiceID)
 		if err != nil {
