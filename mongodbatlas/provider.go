@@ -236,7 +236,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_restore_job":                                      dataSourceMongoDBAtlasCloudSharedTierRestoreJob(),
 		"mongodbatlas_shared_tier_restore_jobs":                                     dataSourceMongoDBAtlasCloudSharedTierRestoreJobs(),
 		"mongodbatlas_shared_tier_snapshot":                                         dataSourceMongoDBAtlasSharedTierSnapshot(),
-		"mongodbatlas_shared_tier_snapshots":  										dataSourceMongoDBAtlasSharedTierSnapshots(),
+		"mongodbatlas_shared_tier_snapshots":                                        dataSourceMongoDBAtlasSharedTierSnapshots(),
 	}
 	return dataSourcesMap
 }
