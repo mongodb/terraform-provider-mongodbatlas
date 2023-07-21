@@ -11,7 +11,7 @@ import (
 
 func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_database_users.test"
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	orgID := os.Getenv("MONGDB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
