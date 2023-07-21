@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
+
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -53,6 +55,10 @@ func resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive()
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Hour),
+			Delete: schema.DefaultTimeout(2 * time.Hour),
 		},
 	}
 }

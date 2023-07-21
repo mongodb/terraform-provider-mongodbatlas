@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -100,7 +100,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *
 			fmt.Sprintf("unsupported provider type %s", providerName)))
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	return nil
 }

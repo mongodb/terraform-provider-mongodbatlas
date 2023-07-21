@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -41,7 +41,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *sc
 		return diag.FromErr(fmt.Errorf("error setting results for third party integrations %s", err))
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	return nil
 }

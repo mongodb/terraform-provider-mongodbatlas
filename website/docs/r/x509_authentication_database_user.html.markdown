@@ -22,7 +22,7 @@ description: |-
 ### Example Usage: Generate an Atlas-managed X.509 certificate for a MongoDB user
 ```terraform
 resource "mongodbatlas_database_user" "user" {
-  project_id    = "<PROJECT-ID>"
+  project_id    = "64b926dd56206839b1c8bae9"
   username      = "myUsername"
   x509_type     = "MANAGED"
   database_name = "$external"
@@ -45,7 +45,7 @@ resource "mongodbatlas_x509_authentication_database_user" "test" {
 }
 ```
 
-### Example Usage: Save a customer-managed X.509 configuration for an Atlas project
+### Example Usage: Save a self-managed X.509 certificate for an Atlas project and use it with a dababase user
 ```terraform
 resource "mongodbatlas_x509_authentication_database_user" "test" {
   project_id        = "<PROJECT-ID>"
@@ -67,6 +67,23 @@ resource "mongodbatlas_x509_authentication_database_user" "test" {
     iul59bdl18gVqXia1Yeq/iK7Ohfy/Jwd7Hsm530elwkM/ZEkYDjBlZSXYdyz
     -----END CERTIFICATE-----"
   EOT
+}
+
+resource "mongodbatlas_database_user" "user" {
+  project_id    = "64b926dd56206839b1c8bae9"
+  username      = "myUsername"
+  x509_type     = "CUSTOMER" # Make sure to set x509_type = "CUSTOMER"
+  database_name = "$external"
+
+  roles {
+    role_name     = "atlasAdmin"
+    database_name = "admin"
+  }
+
+  labels {
+    key   = "My Key"
+    value = "My Value"
+  }
 }
 ```
 

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -128,7 +128,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "DELETING"},
 		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
 		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateEndpointConn.ID),
@@ -246,7 +246,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schem
 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
 		Refresh:    resourcePrivateLinkEndpointRefreshFunc(ctx, conn, projectID, providerName, privateLinkID),
@@ -302,7 +302,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourcePrivateLinkEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID string) resource.StateRefreshFunc {
+func resourcePrivateLinkEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		p, resp, err := client.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 		if err != nil {

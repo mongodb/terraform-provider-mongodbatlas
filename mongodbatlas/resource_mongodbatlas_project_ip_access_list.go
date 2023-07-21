@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -105,7 +105,7 @@ func resourceMongoDBAtlasProjectIPAccessListCreate(ctx context.Context, d *schem
 		return diag.FromErr(errors.New("cidr_block, ip_address or aws_security_group needs to contain a value"))
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (interface{}, string, error) {
@@ -180,38 +180,38 @@ func resourceMongoDBAtlasProjectIPAccessListRead(ctx context.Context, d *schema.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	return diag.FromErr(resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
+	return diag.FromErr(retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
 		accessList, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			switch {
 			case strings.Contains(err.Error(), "500"):
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			case strings.Contains(err.Error(), "404"):
 				if !d.IsNewResource() {
 					d.SetId("")
 					return nil
 				}
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			default:
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
 			}
 		}
 
 		if accessList != nil {
 			if err := d.Set("aws_security_group", accessList.AwsSecurityGroup); err != nil {
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListSetting, "aws_security_group", ids["project_id"], err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListSetting, "aws_security_group", ids["project_id"], err))
 			}
 
 			if err := d.Set("cidr_block", accessList.CIDRBlock); err != nil {
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListSetting, "cidr_block", ids["project_id"], err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListSetting, "cidr_block", ids["project_id"], err))
 			}
 
 			if err := d.Set("ip_address", accessList.IPAddress); err != nil {
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListSetting, "ip_address", ids["project_id"], err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListSetting, "ip_address", ids["project_id"], err))
 			}
 
 			if err := d.Set("comment", accessList.Comment); err != nil {
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListSetting, "comment", ids["project_id"], err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListSetting, "comment", ids["project_id"], err))
 			}
 		}
 
@@ -224,16 +224,16 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	return diag.FromErr(resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	return diag.FromErr(retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
 		_, err := conn.ProjectIPAccessList.Delete(ctx, ids["project_id"], ids["entry"])
 		if err != nil {
 			if strings.Contains(err.Error(), "500") ||
 				strings.Contains(err.Error(), "Unexpected error") ||
 				strings.Contains(err.Error(), "UNEXPECTED_ERROR") {
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
+			return retry.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
 		}
 
 		entry, _, err := conn.ProjectIPAccessList.Get(ctx, ids["project_id"], ids["entry"])
@@ -244,11 +244,11 @@ func resourceMongoDBAtlasProjectIPAccessListDelete(ctx context.Context, d *schem
 				return nil
 			}
 
-			return resource.RetryableError(err)
+			return retry.RetryableError(err)
 		}
 
 		if entry != nil {
-			return resource.RetryableError(fmt.Errorf(errorAccessListDelete, "Access list still exists"))
+			return retry.RetryableError(fmt.Errorf(errorAccessListDelete, "Access list still exists"))
 		}
 
 		return nil
@@ -286,16 +286,16 @@ func resourceMongoDBAtlasIPAccessListImportState(ctx context.Context, d *schema.
 func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projectID, entry string) (bool, error) {
 	currentPage := 1
 	exists := false
-	err := resource.RetryContext(ctx, 2*time.Minute, func() *resource.RetryError {
+	err := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
 		accessList, resp, err := conn.ProjectIPAccessList.List(ctx, projectID, &matlas.ListOptions{PageNum: currentPage})
 		if err != nil {
 			switch {
 			case strings.Contains(err.Error(), "500"):
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			case strings.Contains(err.Error(), "404"):
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			default:
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
 			}
 		}
 
@@ -311,12 +311,12 @@ func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projec
 		if !exists {
 			currentPage, err = resp.CurrentPage()
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
+				return retry.NonRetryableError(fmt.Errorf(errorAccessListRead, err))
 			}
 
 			if !resp.IsLastPage() {
 				currentPage++
-				return resource.RetryableError(fmt.Errorf("[DEBUG] Current page : %d Next page: %d, will retry again", currentPage-1, currentPage))
+				return retry.RetryableError(fmt.Errorf("[DEBUG] Current page : %d Next page: %d, will retry again", currentPage-1, currentPage))
 			}
 		}
 

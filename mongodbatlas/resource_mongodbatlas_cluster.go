@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
@@ -558,7 +558,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, d.Get("name").(string), projectID, conn),
@@ -951,7 +951,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			"provider_name": updatedCluster.ProviderSettings.ProviderName,
 		}))
 	} else if !reflect.DeepEqual(cluster, clusterChangeDetect) {
-		err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 			_, _, err := updateCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
 			if didErrOnPausedCluster(err) {
@@ -963,7 +963,7 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 			}
 
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
+				return retry.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
 			}
 
 			return nil
@@ -1035,7 +1035,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 
 	log.Println("[INFO] Waiting for MongoDB Cluster to be destroyed")
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
@@ -1487,7 +1487,7 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
 	}
 }
 
-func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) resource.StateRefreshFunc {
+func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		c, resp, err := client.Clusters.Get(ctx, projectID, name)
 
@@ -1780,7 +1780,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Clu
 		return nil, nil, err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
@@ -1806,7 +1806,7 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cl
 		return nil, nil, err
 	}
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
 		Target:     []string{"IDLE"},
 		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),

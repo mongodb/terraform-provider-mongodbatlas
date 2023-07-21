@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 )
 
 func TestTerraformResourceMongoDBAtlasEncryptionAtRestWithRole_basicAWS(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -240,7 +240,7 @@ func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.R
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	clusters, resp, err := conn.AdvancedClusters.List(ctx, projectID, nil)
 	if err != nil {
