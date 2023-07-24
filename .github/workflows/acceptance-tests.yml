@@ -87,6 +87,7 @@ jobs:
             - 'mongodbatlas/data_source_mongodbatlas_team*.go'
             - 'mongodbatlas/data_source_mongodbatlas_third_party_integration*.go'
             - 'mongodbatlas/resource_mongodbatlas_api_key*.go'
+            - 'mongodbatlas/resource_mongodbatlas_alert_configuration*.go'
             - 'mongodbatlas/resource_mongodbatlas_cloud_provider_access_setup*.go'
             - 'mongodbatlas/resource_mongodbatlas_cloud_provider_access*.go'
             - 'mongodbatlas/resource_mongodbatlas_custom_db_role*.go'
