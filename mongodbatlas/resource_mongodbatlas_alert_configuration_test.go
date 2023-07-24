@@ -41,12 +41,32 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName, false),
+				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "threshold_config.#"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -483,52 +503,6 @@ resource "mongodbatlas_alert_configuration" "test" {
 	`, orgID, projectName, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName string, enabled bool) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[1]q
-}
-
-resource "mongodbatlas_alert_configuration" "test" {
-  project_id = mongodbatlas_project.test.id
-  event_type = "OUTSIDE_METRIC_THRESHOLD"
-  enabled    = "%[3]t"
-
-  notification {
-    type_name     = "GROUP"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = false
-    email_enabled = true
-    roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
-  }
-
-  notification {
-    type_name     = "ORG"
-    interval_min  = 5
-    delay_min     = 0
-    sms_enabled   = true
-    email_enabled = false
-  }
-
-  matcher {
-    field_name = "HOSTNAME_AND_PORT"
-    operator   = "EQUALS"
-    value      = "SECONDARY"
-  }
-
-  metric_threshold_config {
-    metric_name = "ASSERT_REGULAR"
-    operator    = "LESS_THAN"
-    threshold   = 99.0
-    units       = "RAW"
-    mode        = "AVERAGE"
-  }
-}
-	`, orgID, projectName, enabled)
-}
-
 func testAccMongoDBAtlasAlertConfigurationConfigNotifications(orgID, projectName string, enabled, smsEnabled, emailEnabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -799,4 +773,38 @@ resource "mongodbatlas_alert_configuration" "test" {
   }
 }
 	`, projectID, apiKey, enabled)
+}
+
+func testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = mongodbatlas_project.test.id
+  event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 60
+    delay_min     = 0
+    sms_enabled   = true
+    email_enabled = false
+	roles         = ["GROUP_OWNER"]
+  }
+
+
+  metric_threshold_config {}
+
+  threshold_config {
+    operator    = "LESS_THAN"
+    threshold   = 72
+    units       = "HOURS"
+  }
+
+}
+	`, orgID, projectName, enabled)
 }
