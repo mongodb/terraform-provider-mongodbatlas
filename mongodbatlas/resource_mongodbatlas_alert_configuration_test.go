@@ -41,6 +41,13 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
 				),
 			},
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
 		},
 	})
 }
@@ -431,6 +438,52 @@ func testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName st
 }
 
 func testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = mongodbatlas_project.test.id
+  event_type = "OUTSIDE_METRIC_THRESHOLD"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = false
+    email_enabled = true
+    roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER", "GROUP_DATA_ACCESS_ADMIN"]
+  }
+
+  notification {
+    type_name     = "ORG"
+    interval_min  = 5
+    delay_min     = 0
+    sms_enabled   = true
+    email_enabled = false
+  }
+
+  matcher {
+    field_name = "HOSTNAME_AND_PORT"
+    operator   = "EQUALS"
+    value      = "SECONDARY"
+  }
+
+  metric_threshold_config {
+    metric_name = "ASSERT_REGULAR"
+    operator    = "LESS_THAN"
+    threshold   = 99.0
+    units       = "RAW"
+    mode        = "AVERAGE"
+  }
+}
+	`, orgID, projectName, enabled)
+}
+
+func testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_project" "test" {
 	name   = %[2]q
