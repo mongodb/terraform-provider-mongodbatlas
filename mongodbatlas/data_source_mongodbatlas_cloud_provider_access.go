@@ -67,6 +67,22 @@ func dataSourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 				Elem:     featureUsagesSchema(),
 				Computed: true,
 			},
+			"atlas_azure_app_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_principal_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"tenant_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -116,15 +132,20 @@ func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles) (list 
 	return list
 }
 
-func roleToSchema(role *matlas.AWSIAMRole) map[string]interface{} {
+func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		"authorized_date":                role.AuthorizedDate,
 		"created_date":                   role.CreatedDate,
+		"last_update_date":               role.LastUpdatedDate,
+		"id":                             role.AzureID,
 		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
 		"provider_name":                  role.ProviderName,
 		"role_id":                        role.RoleID,
+		"tenant_id":                      role.AzureTenantID,
+		"service_principal_id":           role.AzureServicePrincipalID,
+		"atlas_azure_app_id":             role.AtlasAzureAppID,
 	}
 
 	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))

@@ -73,7 +73,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *
 
 	// aws specific
 	if providerName == "AWS" {
-		var targetRole matlas.AWSIAMRole
+		var targetRole matlas.CloudProviderAccessRole
 		// searching in roles
 		for i := range roles.AWSIAMRoles {
 			role := &(roles.AWSIAMRoles[i])

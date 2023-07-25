@@ -31,7 +31,7 @@ func TestAccConfigRSCloudProviderAccess_basic(t *testing.T) {
 		resourceName = "mongodbatlas_cloud_provider_access.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		targetRole   = matlas.AWSIAMRole{}
+		targetRole   = matlas.CloudProviderAccessRole{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -56,7 +56,7 @@ func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 		resourceName = "mongodbatlas_cloud_provider_access.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
-		targetRole   = matlas.AWSIAMRole{}
+		targetRole   = matlas.CloudProviderAccessRole{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,7 +110,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 			return fmt.Errorf(errorGetRead, err)
 		}
 
-		var targetRole matlas.AWSIAMRole
+		var targetRole matlas.CloudProviderAccessRole
 
 		// searching in roles
 		for i := range roles.AWSIAMRoles {
@@ -130,7 +130,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRole *matlas.AWSIAMRole) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRole *matlas.CloudProviderAccessRole) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
 
@@ -144,6 +144,8 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
+		providerName := ids["provider_name"]
+		id := ids["id"]
 
 		roles, _, err := conn.CloudProviderAccess.ListRoles(context.Background(), ids["project_id"])
 
@@ -151,11 +153,21 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 			return fmt.Errorf(errorGetRead, err)
 		}
 
-		// searching in roles
-		for i := range roles.AWSIAMRoles {
-			if roles.AWSIAMRoles[i].RoleID == ids["id"] && roles.AWSIAMRoles[i].ProviderName == ids["provider_name"] {
-				*targetRole = roles.AWSIAMRoles[i]
-				return nil
+		if providerName == "AWS" {
+			for i := range roles.AWSIAMRoles {
+				if roles.AWSIAMRoles[i].RoleID == id && roles.AWSIAMRoles[i].ProviderName == providerName {
+					*targetRole = roles.AWSIAMRoles[i]
+					return nil
+				}
+			}
+		}
+
+		if providerName == "AZURE" {
+			for i := range roles.AzureServicePrincipals {
+				if *roles.AzureServicePrincipals[i].AzureID == id && roles.AzureServicePrincipals[i].ProviderName == providerName {
+					*targetRole = roles.AzureServicePrincipals[i]
+					return nil
+				}
 			}
 		}
 
