@@ -17,6 +17,11 @@ type apiKey struct {
 	roles []string
 }
 
+type projectLimit struct {
+	name  string
+	value int64
+}
+
 func dataSourceMongoDBAtlasProject() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasProjectRead,
@@ -109,6 +114,34 @@ func dataSourceMongoDBAtlasProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"limits": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"current_usage": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"default_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"maximum_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -139,6 +172,7 @@ func getProjectAPIKeys(ctx context.Context, conn *matlas.Client, orgID, projectI
 func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	name, nameOk := d.GetOk("name")
@@ -175,6 +209,12 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 		}
 		log.Println("[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
+
+	limits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, project.ID).Execute()
+	if err != nil {
+		return diag.Errorf("error getting project's limits (%s): %s", projectID, err)
+	}
+
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
 		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
@@ -203,6 +243,11 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
 		return diag.Errorf(errorProjectSetting, `api_keys`, project.ID, err)
 	}
+
+	if err := d.Set("limits", flattenLimits(limits)); err != nil {
+		return diag.Errorf(errorProjectSetting, `limits`, projectID, err)
+	}
+
 	if err := d.Set("is_collect_database_specifics_statistics_enabled", projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled); err != nil {
 		return diag.Errorf(errorProjectSetting, `is_collect_database_specifics_statistics_enabled`, project.ID, err)
 	}

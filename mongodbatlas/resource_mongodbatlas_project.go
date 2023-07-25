@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -133,6 +134,34 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Computed: true,
 				Optional: true,
 			},
+			"limits": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"current_usage": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"default_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"maximum_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -145,6 +174,7 @@ type AtlastProjectDependents struct {
 func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectReq := &matlas.Project{
 		OrgID:                     d.Get("org_id").(string),
@@ -192,6 +222,26 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 					return diag.Errorf(errorProjectDelete, project.ID, err)
 				}
 				return diag.Errorf("error assigning api keys to the project: %s", err)
+			}
+		}
+	}
+
+	// Check if limits were set, if so we need to add into the project
+	if limits, ok := d.GetOk("limits"); ok {
+		// assign limits to the project
+		for _, limit := range expandLimitsSet(limits.(*schema.Set)) {
+			limitModel := &admin.DataFederationLimit{
+				Name:  limit.name,
+				Value: limit.value,
+			}
+			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, project.ID, limitModel).Execute()
+
+			if err != nil {
+				errd := deleteProject(ctx, meta, project.ID)
+				if errd != nil {
+					return diag.Errorf(errorProjectDelete, project.ID, err)
+				}
+				return diag.Errorf("error assigning limits to the project: %s", err)
 			}
 		}
 	}
@@ -245,6 +295,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Id()
 
 	projectRes, resp, err := conn.Projects.GetOneProject(context.Background(), projectID)
@@ -271,6 +322,20 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 		log.Println("[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
 
+	if definedLimits, ok := d.GetOk("limits"); ok {
+		definedLimitsList := expandLimitsSet(definedLimits.(*schema.Set))
+
+		// terraform state will only save user defined limits
+		filteredLimits, err := fetchUserDefinedLimits(definedLimitsList, connV2, ctx, projectID)
+		if err != nil {
+			return err
+		}
+
+		if err := d.Set("limits", flattenLimits(filteredLimits)); err != nil {
+			return diag.Errorf(errorProjectSetting, `limits`, projectID, err)
+		}
+	}
+
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
 	if err != nil {
 		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
@@ -293,7 +358,7 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
-		return diag.Errorf(errorProjectSetting, `created`, projectID, err)
+		return diag.Errorf(errorProjectSetting, `teams`, projectID, err)
 	}
 
 	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
@@ -322,10 +387,39 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
+func fetchUserDefinedLimits(definedLimitsList []*projectLimit, connV2 *admin.APIClient, ctx context.Context, projectID string) ([]admin.DataFederationLimit, diag.Diagnostics) {
+	definedLimitsMap := make(map[string]*projectLimit)
+	for _, definedLimit := range definedLimitsList {
+		definedLimitsMap[definedLimit.name] = definedLimit
+	}
+
+	fetchedLimits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, projectID).Execute()
+	if err != nil {
+		return nil, diag.Errorf("error getting project's limits (%s): %s", projectID, err)
+	}
+	filteredLimits := []admin.DataFederationLimit{}
+	for i := range fetchedLimits {
+		limitRes := fetchedLimits[i]
+		if _, ok := definedLimitsMap[limitRes.Name]; ok {
+			filteredLimits = append(filteredLimits, limitRes)
+		}
+	}
+	return filteredLimits, nil
+}
+
 func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	updateProject(ctx, d, meta)
-	updateTeams(ctx, d, meta)
-	updateAPIKeys(ctx, d, meta)
+	if err := updateProject(ctx, d, meta); err != nil {
+		return err
+	}
+	if err := updateTeams(ctx, d, meta); err != nil {
+		return err
+	}
+	if err := updateAPIKeys(ctx, d, meta); err != nil {
+		return err
+	}
+	if err := updateLimits(ctx, d, meta); err != nil {
+		return err
+	}
 
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
@@ -434,6 +528,20 @@ func expandAPIKeysSet(apiKeys *schema.Set) []*apiKey {
 	return res
 }
 
+func expandLimitsSet(limits *schema.Set) []*projectLimit {
+	res := make([]*projectLimit, limits.Len())
+
+	for i, value := range limits.List() {
+		v := value.(map[string]interface{})
+		res[i] = &projectLimit{
+			name:  v["name"].(string),
+			value: int64(v["value"].(int)),
+		}
+	}
+
+	return res
+}
+
 func expandTeamsList(teams []interface{}) []*matlas.ProjectTeam {
 	res := make([]*matlas.ProjectTeam, len(teams))
 
@@ -462,6 +570,20 @@ func expandAPIKeysList(apiKeys []interface{}) []*apiKey {
 	return res
 }
 
+func expandLimitsList(limits []interface{}) []*projectLimit {
+	res := make([]*projectLimit, len(limits))
+
+	for i, value := range limits {
+		v := value.(map[string]interface{})
+		res[i] = &projectLimit{
+			name:  v["name"].(string),
+			value: int64(v["value"].(int)),
+		}
+	}
+
+	return res
+}
+
 func flattenTeams(ta *matlas.TeamsAssigned) []map[string]interface{} {
 	teams := ta.Results
 	res := make([]map[string]interface{}, len(teams))
@@ -483,6 +605,28 @@ func flattenAPIKeys(keys []*apiKey) []map[string]interface{} {
 		res[i] = map[string]interface{}{
 			"api_key_id": key.id,
 			"role_names": key.roles,
+		}
+	}
+
+	return res
+}
+
+func flattenLimits(limits []admin.DataFederationLimit) []map[string]interface{} {
+	res := make([]map[string]interface{}, len(limits))
+
+	for i, limit := range limits {
+		res[i] = map[string]interface{}{
+			"name":  limit.Name,
+			"value": limit.Value,
+		}
+		if limit.CurrentUsage != nil {
+			res[i]["current_usage"] = *limit.CurrentUsage
+		}
+		if limit.DefaultLimit != nil {
+			res[i]["default_limit"] = *limit.DefaultLimit
+		}
+		if limit.MaximumLimit != nil {
+			res[i]["maximum_limit"] = *limit.MaximumLimit
 		}
 	}
 
@@ -541,6 +685,34 @@ func getStateAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, remove
 
 	newAPIKeys = nAPIKeys.List()
 	removedAPIKeys = rAPIKeys.List()
+
+	return
+}
+
+func getStateLimits(d *schema.ResourceData) (newLimits, changedLimits, removedLimits []interface{}) {
+	currentLimits, changes := d.GetChange("limits")
+
+	rLimits := currentLimits.(*schema.Set).Difference(changes.(*schema.Set))
+	nLimits := changes.(*schema.Set).Difference(currentLimits.(*schema.Set))
+	changedLimits = make([]interface{}, 0)
+
+	for _, changed := range nLimits.List() {
+		for _, removed := range rLimits.List() {
+			if changed.(map[string]interface{})["name"] == removed.(map[string]interface{})["name"] {
+				rLimits.Remove(removed)
+			}
+		}
+
+		for _, current := range currentLimits.(*schema.Set).List() {
+			if changed.(map[string]interface{})["name"] == current.(map[string]interface{})["name"] {
+				changedLimits = append(changedLimits, changed.(map[string]interface{}))
+				nLimits.Remove(changed)
+			}
+		}
+	}
+
+	newLimits = nLimits.List()
+	removedLimits = rLimits.List()
 
 	return
 }
@@ -681,6 +853,56 @@ func updateAPIKeys(ctx context.Context, d *schema.ResourceData, meta interface{}
 		})
 		if err != nil {
 			return diag.Errorf("error updating role names for the api_key(%s): %s", apiKey, err)
+		}
+	}
+
+	return nil
+}
+
+func updateLimits(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if !d.HasChange("limits") {
+		return nil
+	}
+
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	projectID := d.Id()
+
+	// get the current limits and the new limits with changes
+	newLimits, changedLimits, removedLimits := getStateLimits(d)
+
+	// adding new limits into the project
+	if len(newLimits) > 0 {
+		for _, limit := range expandLimitsList(newLimits) {
+			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, projectID, &admin.DataFederationLimit{
+				Name:  limit.name,
+				Value: limit.value,
+			}).Execute()
+
+			if err != nil {
+				return diag.Errorf("error assigning limit %s to the project: %s", limit.name, err)
+			}
+		}
+	}
+
+	// Removing limits from the project
+	for _, limit := range removedLimits {
+		limitName := limit.(map[string]interface{})["name"].(string)
+		_, _, err := connV2.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute()
+		if err != nil {
+			return diag.Errorf("error removing limit %s from the project(%s): %s", limitName, projectID, err)
+		}
+	}
+
+	// Updating values for changed limits
+	for _, limit := range expandLimitsList(changedLimits) {
+		limitModel := &admin.DataFederationLimit{
+			Name:  limit.name,
+			Value: limit.value,
+		}
+		_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, projectID, limitModel).Execute()
+
+		if err != nil {
+			return diag.Errorf("error updating limit %s to the project: %s", limitModel.Name, err)
 		}
 	}
 

@@ -114,6 +114,34 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"limits": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"value": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"current_usage": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"default_limit": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"maximum_limit": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -127,7 +155,8 @@ func dataSourceMongoDBAtlasProjects() *schema.Resource {
 
 func dataSourceMongoDBAtlasProjectsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	client := meta.(*MongoDBClient)
+	conn := client.Atlas
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),
 		ItemsPerPage: d.Get("items_per_page").(int),
@@ -138,7 +167,7 @@ func dataSourceMongoDBAtlasProjectsRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(fmt.Errorf("error getting projects information: %s", err))
 	}
 
-	if err := d.Set("results", flattenProjects(ctx, conn, projects.Results)); err != nil {
+	if err := d.Set("results", flattenProjects(ctx, client, projects.Results)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
@@ -151,7 +180,10 @@ func dataSourceMongoDBAtlasProjectsRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matlas.Project) []map[string]interface{} {
+func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*matlas.Project) []map[string]interface{} {
+	conn := client.Atlas
+	connV2 := client.AtlasV2
+
 	var results []map[string]interface{}
 
 	if len(projects) > 0 {
@@ -166,6 +198,11 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 			apiKeys, err := getProjectAPIKeys(ctx, conn, project.OrgID, project.ID)
 			if err != nil {
 				fmt.Printf("[WARN] error getting project's api keys (%s): %s", project.ID, err)
+			}
+
+			limits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, project.ID).Execute()
+			if err != nil {
+				fmt.Printf("[WARN] error getting project's limits (%s): %s", project.ID, err)
 			}
 
 			projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
@@ -188,6 +225,7 @@ func flattenProjects(ctx context.Context, conn *matlas.Client, projects []*matla
 				"is_realtime_performance_panel_enabled":            projectSettings.IsRealtimePerformancePanelEnabled,
 				"is_schema_advisor_enabled":                        projectSettings.IsSchemaAdvisorEnabled,
 				"region_usage_restrictions":                        project.RegionUsageRestrictions,
+				"limits":                                           flattenLimits(limits),
 			}
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -321,6 +322,112 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_project.test"
+		projectName  = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+					{
+						name:  "atlas.project.deployment.clusters",
+						value: 1,
+					},
+					{
+						name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+						value: 1,
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
+					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "limits.1.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
+					resource.TestCheckResourceAttr(resourceName, "limits.1.value", "1"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+					{
+						name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+						value: 2,
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
+					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
+	var (
+		projectName = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+					{
+						name:  "incorrect.name",
+						value: 1,
+					},
+				}),
+				ExpectError: regexp.MustCompile("Limit not found"),
+			},
+		},
+	})
+}
+
+func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_project.test"
+		projectName  = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+					{
+						name:  "incorrect.name",
+						value: 1,
+					},
+				}),
+				ExpectError: regexp.MustCompile("Limit not found"),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
@@ -475,4 +582,26 @@ func testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, or
 			is_schema_advisor_enabled = false
 		}
 	`, projectName, orgID, projectOwnerID)
+}
+
+func testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID string, limits []*projectLimit) string {
+	var limitsString string
+
+	for _, limit := range limits {
+		limitsString += fmt.Sprintf(`
+		limits {
+			name = "%s"
+			value = %d
+		}
+		`, limit.name, limit.value)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   			 = "%s"
+			org_id 			 = "%s"
+
+			%s
+		}
+	`, projectName, orgID, limitsString)
 }

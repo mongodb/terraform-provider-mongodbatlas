@@ -28,7 +28,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithDSByID(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -49,7 +49,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 							roles: []string{"GROUP_OWNER"},
 						},
 					},
-				),
+				)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
@@ -76,7 +76,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -98,7 +98,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 							roles: []string{"GROUP_OWNER"},
 						},
 					},
-				),
+				)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
@@ -125,7 +125,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -147,7 +147,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 							roles: []string{"GROUP_OWNER"},
 						},
 					},
-				),
+				)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
@@ -163,22 +163,32 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasProjectConfigWithDSByID(projectName, orgID string, teams []*matlas.ProjectTeam, apiKeys []*apiKey) string {
-	return fmt.Sprintf(`
-		%s
+func TestAccProjectDSProject_limits(t *testing.T) {
+	projectName := acctest.RandomWithPrefix("test-acc")
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
-		data "mongodbatlas_project" "test" {
-			project_id = "${mongodbatlas_project.test.id}"
-		}
-	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams, apiKeys))
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "name"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "org_id"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "limits.0.name"),
+				),
+			},
+		},
+	})
 }
 
-func testAccMongoDBAtlasProjectConfigWithDSByName(projectName, orgID string, teams []*matlas.ProjectTeam, apiKeys []*apiKey) string {
+func testAccMongoDBAtlasProjectDSUsingRS(resource string) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_project" "test" {
 			name = "${mongodbatlas_project.test.name}"
 		}
-	`, testAccMongoDBAtlasProjectConfig(projectName, orgID, teams, apiKeys))
+	`, resource)
 }
