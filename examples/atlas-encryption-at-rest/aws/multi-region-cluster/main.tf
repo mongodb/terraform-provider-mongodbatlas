@@ -1,12 +1,15 @@
-
+resource "mongodbatlas_project" "project" {
+  name   = var.atlas_project_name
+  org_id = var.atlas_org_id
+}
 
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = var.atlas_project_id
+  project_id    = mongodbatlas_project.project.id
   provider_name = "AWS"
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-  project_id = var.atlas_project_id
+  project_id = mongodbatlas_project.project.id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
   aws {
@@ -15,7 +18,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 resource "mongodbatlas_encryption_at_rest" "test" {
-  project_id = var.atlas_project_id
+  project_id = mongodbatlas_project.project.id
 
   aws_kms_config {
     enabled                = true
@@ -26,17 +29,11 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 }
 
 module "multi-region-cluster" {
-  source = "./modules/multi-region-cluster"
-  user-name = var.user-name
-  user-role = var.user-role
-  project_id = "${module.project_test.project_id}"
+  source             = "./modules/multi-region-cluster"
+  atlas_project_id   = mongodbatlas_encryption_at_rest.test.project_id
+  provider_name      = "AWS"
+  aws_region_shard_1 = var.aws_region_shard_1
+  aws_region_shard_2 = var.aws_region_shard_2
+  cluster_name       = var.cluster_name
 }
 
-# uncomment below when importing an existing cluster
-# resource "mongodbatlas_cluster" "my_cluster" {
-#   project_id                  = var.atlas_project_id
-#   provider_name               = "AWS"
-#   encryption_at_rest_provider = "AWS"
-#   name                        = "MyCluster"
-#   provider_instance_size_name = "M10"
-# }

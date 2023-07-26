@@ -1,6 +1,6 @@
 # Atlas Terraform Provider Example: Encryption at rest - AWS - Multi-Region Cluster
 
-This example sets up encryption at rest using AWS KMS for your Atlas Project. It creates the encryption key in AWS KMS, an IAM role and policy so that Atlas can access the key, and enables encryption at rest for the Atlas Project. Finally, it creates a 3-shards Multi-Cloud Cluster with encryption at rest enabled.
+This example sets up encryption at rest using AWS KMS for your Atlas Project. It creates the encryption key in AWS KMS, an IAM role and policy so that Atlas can access the key, and enables encryption at rest for the Atlas Project. Finally, it creates a 2-shards Multi-Region Cluster with encryption at rest enabled.
 
 ## Dependencies
 

@@ -23,11 +23,13 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   }
 }
 
-# uncomment below when importing an existing cluster
-# resource "mongodbatlas_cluster" "my_cluster" {
-#   project_id                  = var.atlas_project_id
-#   provider_name               = "AWS"
-#   encryption_at_rest_provider = "AWS"
-#   name                        = "MyCluster"
-#   provider_instance_size_name = "M10"
-# }
+resource "mongodbatlas_cluster" "cluster" {
+  project_id                  = var.atlas_project_id
+  name                        = "MyCluster"
+  cluster_type                = "REPLICASET"
+  provider_name               = "AWS"
+  encryption_at_rest_provider = "AWS"
+  backing_provider_name       = "AWS"
+  provider_region_name        = "US_EAST_1"
+  provider_instance_size_name = "M10"
+}

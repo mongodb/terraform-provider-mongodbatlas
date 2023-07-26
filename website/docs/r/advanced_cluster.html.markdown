@@ -116,7 +116,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
       provider_name = "AWS"
-      priority      = 1
+      priority      = 7
       region_name   = "US_EAST_1"
     }
     region_configs {
@@ -181,7 +181,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }
