@@ -181,7 +181,7 @@ func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
-		projectName    = fmt.Sprintf("testacc-project-gov-%s", acctest.RandString(10))
+		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID_GOV")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID_GOV")
 	)
@@ -207,7 +207,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
@@ -234,7 +234,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 	var (
 		project        matlas.Project
 		resourceName   = "mongodbatlas_project.test"
-		projectName    = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName    = acctest.RandomWithPrefix("tf-acc-project")
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 	)
@@ -260,7 +260,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_project.test"
-		projectName     = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName     = acctest.RandomWithPrefix("tf-acc-project")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		roleName        = "GROUP_DATA_ACCESS_ADMIN"
 		roleNameUpdated = "GROUP_READ_ONLY"
@@ -295,7 +295,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 
 func TestAccProjectRSProject_importBasic(t *testing.T) {
 	var (
-		projectName  = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		resourceName = "mongodbatlas_project.test"
 	)
@@ -325,7 +325,7 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
@@ -374,7 +374,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 
 func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 	var (
-		projectName = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName = acctest.RandomWithPrefix("tf-acc-project")
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
@@ -399,7 +399,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
-		projectName  = fmt.Sprintf("testacc-project-%s", acctest.RandString(10))
+		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
