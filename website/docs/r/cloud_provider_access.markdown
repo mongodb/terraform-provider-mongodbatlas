@@ -19,19 +19,30 @@ the initial configuration (create, delete operations). The second resource, `mon
 
 ## mongodbatlas_cloud_provider_access
 
-`mongodbatlas_cloud_provider_access` Allows you to register and authorize AWS IAM roles in Atlas. This is the resource to use for the single resource path described above.
+`mongodbatlas_cloud_provider_access` Allows you to register and authorize AWS IAM roles and Azure Service Principal in Atlas. This is the resource to use for the single resource path described above.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 -> **NOTE:** The update of the argument iam_assumed_role_arn is one step in a procedure to create unified AWS access for Atlas services. For the complete procedure, see [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access).
 
-## Example Usage
+## Example Usage with AWS
 
 ```terraform
 
 resource "mongodbatlas_cloud_provider_access" "test_role" {
-   project_id = "<PROJECT-ID>"
+   project_id = "32b6e34b3d91647abb20e7b8"
    provider_name = "AWS"
+}
+
+```
+
+## Example Usage with Azure
+
+```terraform
+
+resource "mongodbatlas_cloud_provider_access" "test_role" {
+   project_id = "32b6e34b3d91647abb20e7b8"
+   provider_name = "AZURE"
 }
 
 ```
@@ -52,7 +63,8 @@ resource "mongodbatlas_cloud_provider_access" "test_role" {
 * `created_date`                   - Date on which this role was created.
 * `feature_usages`                 - Atlas features this AWS IAM role is linked to.
 * `provider_name`                  - Name of the cloud provider. Currently limited to AWS.
-* `role_id`                        - Unique ID of this role.
+* `role_id`                        - Unique ID of this role. When using Azure, this field identifies the Azure Service Principal in Atlas.
+* `lastUpdatedDate`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 
 ## Authorize role
 
