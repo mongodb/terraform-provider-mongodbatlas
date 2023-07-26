@@ -35,7 +35,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
+				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
 				ForceNew:     true,
 			},
 			"aws": {
@@ -154,7 +154,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	roleSchema := roleToSchemaSetup(role)
 
 	resourceID := role.RoleID
-	if role.ProviderName == "AZURE" {
+	if role.ProviderName == AZURE {
 		resourceID = *role.AzureID
 	}
 

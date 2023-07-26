@@ -26,7 +26,32 @@ const (
 	`
 )
 
-func TestAccConfigRSCloudProviderAccess_basic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccessAWS_basic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_provider_access.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		targetRole   = matlas.CloudProviderAccessRole{}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(createProviderAccessRole, orgID, projectName, "AWS"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_aws_account_arn"),
+				),
+			},
+		},
+	},
+	)
+}
+
+func TestAccConfigRSCloudProviderAccessAzure_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_cloud_provider_access.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

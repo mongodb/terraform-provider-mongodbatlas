@@ -36,7 +36,7 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
 			},
 			"atlas_aws_account_arn": {
 				Type:     schema.TypeString,
@@ -56,10 +56,6 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 			"tenant_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
-			},
-			"id": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"atlas_assumed_role_external_id": {
@@ -108,29 +104,41 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schem
 
 	conn := meta.(*MongoDBClient).Atlas
 
-	requestParameters := &matlas.CloudProviderAccessRoleRequest{
+	req := &matlas.CloudProviderAccessRoleRequest{
 		ProviderName: d.Get("provider_name").(string),
 	}
 
-	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
+	if req.ProviderName == AZURE {
+		if value, ok := d.GetOk("atlas_azure_app_id"); ok {
+			req.AtlasAzureAppID = pointer(value.(string))
+		}
 
+		if value, ok := d.GetOk("service_principal_id"); ok {
+			req.AzureServicePrincipalID = pointer(value.(string))
+		}
+
+		if value, ok := d.GetOk("tenant_id"); ok {
+			req.AzureTenantID = pointer(value.(string))
+		}
+	}
+
+	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, req)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
 
 	roleSchema := roleToSchema(role)
+	for key, val := range roleSchema {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+		}
+	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"id":            role.RoleID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
 	}))
-
-	for key, val := range roleSchema {
-		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
-		}
-	}
 
 	return nil
 }
@@ -325,4 +333,31 @@ func resourceMongoDBAtlasCloudProviderAccessV0() *schema.Resource {
 func resourceMongoDBAtlasCloudProviderAccessStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState["feature_usages"] = []interface{}{map[string]interface{}{}}
 	return rawState, nil
+}
+
+func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]interface{} {
+	out := map[string]interface{}{
+		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+		"authorized_date":                role.AuthorizedDate,
+		"created_date":                   role.CreatedDate,
+		"last_update_date":               role.LastUpdatedDate,
+		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
+		"provider_name":                  role.ProviderName,
+		"role_id":                        role.RoleID,
+		"tenant_id":                      role.AzureTenantID,
+		"service_principal_id":           role.AzureServicePrincipalID,
+		"atlas_azure_app_id":             role.AtlasAzureAppID,
+	}
+
+	if role.ProviderName == AZURE {
+		out["role_id"] = role.AzureID
+	}
+
+	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	for _, featureUsage := range role.FeatureUsages {
+		features = append(features, featureToSchema(featureUsage))
+	}
+	out["feature_usages"] = features
+	return out
 }
