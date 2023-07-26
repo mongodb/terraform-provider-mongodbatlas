@@ -72,18 +72,6 @@ func dataSourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 				Elem:     featureUsagesSchema(),
 				Computed: true,
 			},
-			"atlas_azure_app_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"service_principal_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"tenant_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -117,6 +105,10 @@ func dataSourceMongoDBAtlasCloudProviderAccessAzure() *schema.Resource {
 				Computed: true,
 			},
 			"tenant_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"last_updated_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -188,7 +180,6 @@ func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		"authorized_date":                role.AuthorizedDate,
 		"created_date":                   role.CreatedDate,
-		"last_update_date":               role.LastUpdatedDate,
 		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
 		"provider_name":                  role.ProviderName,
 		"role_id":                        role.RoleID,
@@ -208,7 +199,7 @@ func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{
 func roleToSchemaAzure(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"created_date":         role.CreatedDate,
-		"last_update_date":     role.LastUpdatedDate,
+		"last_updated_date":    role.LastUpdatedDate,
 		"provider_name":        role.ProviderName,
 		"role_id":              role.AzureID,
 		"tenant_id":            role.AzureTenantID,

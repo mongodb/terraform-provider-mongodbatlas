@@ -46,13 +46,13 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acctest.RandomWithPrefix("tf-acc")
-		atlasAzureAppID    = "6f2deb0d-be72-4524-a403-df531868bac0" // os.Getenv("AZURE_ATLAS_APP_ID")
-		servicePrincipalID = "48f1d2a6-d0e9-482a-83a4-b8dd7dddc5c1" // os.Getenv("AZURE_SERVICE_PRICIPAL_ID")
-		tenantID           = "91405384-d71e-47f5-92dd-759e272cdc1c" // os.Getenv("AZURE_TENANT_OD")
+		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRICIPAL_ID")
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheckCloudProviderAccessAzure(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{

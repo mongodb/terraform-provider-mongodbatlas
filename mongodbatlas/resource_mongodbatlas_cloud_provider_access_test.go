@@ -28,10 +28,11 @@ const (
 
 func TestAccConfigRSCloudProviderAccessAWS_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_provider_access.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		targetRole   = matlas.CloudProviderAccessRole{}
+		resourceName   = "mongodbatlas_cloud_provider_access.test"
+		dataSourceName = "data.mongodbatlas_cloud_provider_access.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		targetRole     = matlas.CloudProviderAccessRole{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,11 +40,17 @@ func TestAccConfigRSCloudProviderAccessAWS_basic(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessRole, orgID, projectName, "AWS"),
+				Config: testAccMongoDBAtlasCloudProviderAccessAWS(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
 					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "atlas_aws_account_arn"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_iam_roles.0.atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_iam_roles.0.atlas_aws_account_arn"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_iam_roles.0.created_date"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_iam_roles.0.provider_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_iam_roles.0.role_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_iam_roles.0.created_date"),
 				),
 			},
 		},
@@ -53,23 +60,45 @@ func TestAccConfigRSCloudProviderAccessAWS_basic(t *testing.T) {
 
 func TestAccConfigRSCloudProviderAccessAzure_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_provider_access.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		targetRole   = matlas.CloudProviderAccessRole{}
+		resourceName       = "mongodbatlas_cloud_provider_access.test"
+		dataSourceName     = "data.mongodbatlas_cloud_provider_access.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRICIPAL_ID")
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+		projectName        = acctest.RandomWithPrefix("test-acc")
+		targetRole         = matlas.CloudProviderAccessRole{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
+		PreCheck:          func() { testAccPreCheckCloudProviderAccessAzure(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessRole, orgID, projectName, "AWS"),
+				Config: testAccMongoDBAtlasCloudProviderAccessAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
-					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "atlas_aws_account_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "last_update_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "tenant_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "service_principal_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "atlas_azure_app_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.last_updated_date"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.created_date"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.provider_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.role_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.service_principal_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_iam_roles.0.atlas_azure_app_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	},
@@ -89,7 +118,7 @@ func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(createProviderAccessRole, orgID, projectName, "AWS"),
+				Config: testAccMongoDBAtlasCloudProviderAccessAWS(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
 					resource.TestCheckResourceAttrSet(resourceName, "atlas_assumed_role_external_id"),
@@ -198,4 +227,41 @@ func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRol
 
 		return fmt.Errorf("error cloud Provider Access (%s) does not exist", ids["project_id"])
 	}
+}
+
+func testAccMongoDBAtlasCloudProviderAccessAWS(orgID, projectName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+	resource "mongodbatlas_cloud_provider_access" "test" {
+		project_id = mongodbatlas_project.test.id
+		provider_name = "AWS"
+	 }
+
+	 data "mongodbatlas_cloud_provider_access" "test" {
+		project_id = mongodbatlas_cloud_provider_access.test.project_id
+	 }	 
+	`, orgID, projectName)
+}
+
+func testAccMongoDBAtlasCloudProviderAccessAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+	resource "mongodbatlas_cloud_provider_access" "test" {
+		project_id = mongodbatlas_project.test.id
+		provider_name = "AZURE"
+		atlas_azure_app_id = %[3]q
+		service_principal_id = %[4]q
+		tenant_id = %[5]q
+	 }
+
+	 data "mongodbatlas_cloud_provider_access" "test" {
+		project_id = mongodbatlas_cloud_provider_access.test.project_id
+	 }	 
+	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
 }

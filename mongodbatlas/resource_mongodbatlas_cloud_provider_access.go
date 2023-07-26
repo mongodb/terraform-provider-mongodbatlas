@@ -100,10 +100,8 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	projectID := d.Get("project_id").(string)
-
 	conn := meta.(*MongoDBClient).Atlas
-
+	projectID := d.Get("project_id").(string)
 	req := &matlas.CloudProviderAccessRoleRequest{
 		ProviderName: d.Get("provider_name").(string),
 	}
@@ -134,8 +132,13 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schem
 		}
 	}
 
+	resourceID := role.RoleID
+	if role.ProviderName == AZURE {
+		resourceID = *role.AzureID
+	}
+
 	d.SetId(encodeStateID(map[string]string{
-		"id":            role.RoleID,
+		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
 	}))
