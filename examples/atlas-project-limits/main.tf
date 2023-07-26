@@ -3,12 +3,12 @@ resource "mongodbatlas_project" "test" {
   org_id = var.org_id
 
   limits {
-    name = "atlas.project.deployment.clusters"
+    name  = "atlas.project.deployment.clusters"
     value = 2
   }
 
   limits {
-    name = "atlas.project.deployment.nodesPerPrivateLinkRegion"
+    name  = "atlas.project.deployment.nodesPerPrivateLinkRegion"
     value = 3
   }
 }
