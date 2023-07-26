@@ -633,86 +633,35 @@ func flattenLimits(limits []admin.DataFederationLimit) []map[string]interface{} 
 	return res
 }
 
-func getStateTeams(d *schema.ResourceData) (newTeams, changedTeams, removedTeams []interface{}) {
-	currentTeams, changes := d.GetChange("teams")
+// getChangesInSet divides modified elements of a Set into 3 distinct groups using an a specific key for comparing elements. This is useful for update in Set values. 
+// The function receives an attribute key where the Set is stored, and a elementsIdKey to uniquely identify each element.
+// - newElements: new elements that where not present in previous state
+// - changedElements: elements where some value was modified but is still present
+// - removedElements: elements that are no longer present
+func getChangesInSet(d *schema.ResourceData, attributeKey string, elementsIdKey string) (newElements, changedElements, removedElements []interface{}) {
+	oldSet, newSet := d.GetChange(attributeKey)
 
-	rTeams := currentTeams.(*schema.Set).Difference(changes.(*schema.Set))
-	nTeams := changes.(*schema.Set).Difference(currentTeams.(*schema.Set))
-	changedTeams = make([]interface{}, 0)
+	removedSchemaSet := oldSet.(*schema.Set).Difference(newSet.(*schema.Set))
+	newSchemaSet := newSet.(*schema.Set).Difference(oldSet.(*schema.Set))
+	changedElements = make([]interface{}, 0)
 
-	for _, changed := range nTeams.List() {
-		for _, removed := range rTeams.List() {
-			if changed.(map[string]interface{})["team_id"] == removed.(map[string]interface{})["team_id"] {
-				rTeams.Remove(removed)
+	for _, new := range newSchemaSet.List() {
+		for _, removed := range removedSchemaSet.List() {
+			if new.(map[string]interface{})[elementsIdKey] == removed.(map[string]interface{})[elementsIdKey] {
+				removedSchemaSet.Remove(removed)
 			}
 		}
 
-		for _, current := range currentTeams.(*schema.Set).List() {
-			if changed.(map[string]interface{})["team_id"] == current.(map[string]interface{})["team_id"] {
-				changedTeams = append(changedTeams, changed.(map[string]interface{}))
-				nTeams.Remove(changed)
-			}
-		}
-	}
-
-	newTeams = nTeams.List()
-	removedTeams = rTeams.List()
-
-	return
-}
-
-func getStateAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, removedAPIKeys []interface{}) {
-	currentAPIKeys, changes := d.GetChange("api_keys")
-
-	rAPIKeys := currentAPIKeys.(*schema.Set).Difference(changes.(*schema.Set))
-	nAPIKeys := changes.(*schema.Set).Difference(currentAPIKeys.(*schema.Set))
-	changedAPIKeys = make([]interface{}, 0)
-
-	for _, changed := range nAPIKeys.List() {
-		for _, removed := range rAPIKeys.List() {
-			if changed.(map[string]interface{})["api_key_id"] == removed.(map[string]interface{})["api_key_id"] {
-				rAPIKeys.Remove(removed)
-			}
-		}
-
-		for _, current := range currentAPIKeys.(*schema.Set).List() {
-			if changed.(map[string]interface{})["api_key_id"] == current.(map[string]interface{})["api_key_id"] {
-				changedAPIKeys = append(changedAPIKeys, changed.(map[string]interface{}))
-				nAPIKeys.Remove(changed)
+		for _, old := range oldSet.(*schema.Set).List() {
+			if new.(map[string]interface{})[elementsIdKey] == old.(map[string]interface{})[elementsIdKey] {
+				changedElements = append(changedElements, new.(map[string]interface{}))
+				newSchemaSet.Remove(new)
 			}
 		}
 	}
 
-	newAPIKeys = nAPIKeys.List()
-	removedAPIKeys = rAPIKeys.List()
-
-	return
-}
-
-func getStateLimits(d *schema.ResourceData) (newLimits, changedLimits, removedLimits []interface{}) {
-	currentLimits, changes := d.GetChange("limits")
-
-	rLimits := currentLimits.(*schema.Set).Difference(changes.(*schema.Set))
-	nLimits := changes.(*schema.Set).Difference(currentLimits.(*schema.Set))
-	changedLimits = make([]interface{}, 0)
-
-	for _, changed := range nLimits.List() {
-		for _, removed := range rLimits.List() {
-			if changed.(map[string]interface{})["name"] == removed.(map[string]interface{})["name"] {
-				rLimits.Remove(removed)
-			}
-		}
-
-		for _, current := range currentLimits.(*schema.Set).List() {
-			if changed.(map[string]interface{})["name"] == current.(map[string]interface{})["name"] {
-				changedLimits = append(changedLimits, changed.(map[string]interface{}))
-				nLimits.Remove(changed)
-			}
-		}
-	}
-
-	newLimits = nLimits.List()
-	removedLimits = rLimits.List()
+	newElements = newSchemaSet.List()
+	removedElements = removedSchemaSet.List()
 
 	return
 }
@@ -773,7 +722,7 @@ func updateTeams(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 	projectID := d.Id()
 
 	// get the current teams and the new teams with changes
-	newTeams, changedTeams, removedTeams := getStateTeams(d)
+	newTeams, changedTeams, removedTeams := getChangesInSet(d, "teams", "team_id")
 
 	// adding new teams into the project
 	if len(newTeams) > 0 {
@@ -823,7 +772,7 @@ func updateAPIKeys(ctx context.Context, d *schema.ResourceData, meta interface{}
 	projectID := d.Id()
 
 	// get the current api_keys and the new api_keys with changes
-	newAPIKeys, changedAPIKeys, removedAPIKeys := getStateAPIKeys(d)
+	newAPIKeys, changedAPIKeys, removedAPIKeys := getChangesInSet(d, "api_keys", "api_key_id")
 
 	// adding new api_keys into the project
 	if len(newAPIKeys) > 0 {
@@ -868,7 +817,7 @@ func updateLimits(ctx context.Context, d *schema.ResourceData, meta interface{})
 	projectID := d.Id()
 
 	// get the current limits and the new limits with changes
-	newLimits, changedLimits, removedLimits := getStateLimits(d)
+	newLimits, changedLimits, removedLimits := getChangesInSet(d, "limits", "name")
 
 	// adding new limits into the project
 	if len(newLimits) > 0 {
