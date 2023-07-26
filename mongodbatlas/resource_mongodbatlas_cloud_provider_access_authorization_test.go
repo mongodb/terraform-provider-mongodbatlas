@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
-	// SkipTestExtCred(t)
+	SkipTestExtCred(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		policyName      = acctest.RandomWithPrefix("tf-acc")
@@ -42,7 +42,6 @@ func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 }
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
-	// SkipTestExtCred(t)
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acctest.RandomWithPrefix("tf-acc")

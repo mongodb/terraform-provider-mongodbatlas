@@ -12,20 +12,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const (
-	createProviderAccessRole = `
-	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
-	resource "mongodbatlas_cloud_provider_access" "test" {
-		project_id = mongodbatlas_project.test.id
-		provider_name = %[3]q
-	 }
-
-	`
-)
-
 func TestAccConfigRSCloudProviderAccessAWS_basic(t *testing.T) {
 	var (
 		resourceName   = "mongodbatlas_cloud_provider_access.test"
