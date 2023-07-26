@@ -528,6 +528,11 @@ func expandAPIKeysSet(apiKeys *schema.Set) []*apiKey {
 	return res
 }
 
+type projectLimit struct {
+	name  string
+	value int64
+}
+
 func expandLimitsSet(limits *schema.Set) []*projectLimit {
 	res := make([]*projectLimit, limits.Len())
 
@@ -633,12 +638,12 @@ func flattenLimits(limits []admin.DataFederationLimit) []map[string]interface{} 
 	return res
 }
 
-// getChangesInSet divides modified elements of a Set into 3 distinct groups using an a specific key for comparing elements. This is useful for update in Set values. 
+// getChangesInSet divides modified elements of a Set into 3 distinct groups using an a specific key for comparing elements. This is useful for update in Set values.
 // The function receives an attribute key where the Set is stored, and a elementsIdKey to uniquely identify each element.
 // - newElements: new elements that where not present in previous state
 // - changedElements: elements where some value was modified but is still present
 // - removedElements: elements that are no longer present
-func getChangesInSet(d *schema.ResourceData, attributeKey string, elementsIdKey string) (newElements, changedElements, removedElements []interface{}) {
+func getChangesInSet(d *schema.ResourceData, attributeKey, elementsIDKey string) (newElements, changedElements, removedElements []interface{}) {
 	oldSet, newSet := d.GetChange(attributeKey)
 
 	removedSchemaSet := oldSet.(*schema.Set).Difference(newSet.(*schema.Set))
@@ -647,13 +652,13 @@ func getChangesInSet(d *schema.ResourceData, attributeKey string, elementsIdKey 
 
 	for _, new := range newSchemaSet.List() {
 		for _, removed := range removedSchemaSet.List() {
-			if new.(map[string]interface{})[elementsIdKey] == removed.(map[string]interface{})[elementsIdKey] {
+			if new.(map[string]interface{})[elementsIDKey] == removed.(map[string]interface{})[elementsIDKey] {
 				removedSchemaSet.Remove(removed)
 			}
 		}
 
 		for _, old := range oldSet.(*schema.Set).List() {
-			if new.(map[string]interface{})[elementsIdKey] == old.(map[string]interface{})[elementsIdKey] {
+			if new.(map[string]interface{})[elementsIDKey] == old.(map[string]interface{})[elementsIDKey] {
 				changedElements = append(changedElements, new.(map[string]interface{}))
 				newSchemaSet.Remove(new)
 			}
@@ -822,13 +827,8 @@ func updateLimits(ctx context.Context, d *schema.ResourceData, meta interface{})
 	// adding new limits into the project
 	if len(newLimits) > 0 {
 		for _, limit := range expandLimitsList(newLimits) {
-			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, projectID, &admin.DataFederationLimit{
-				Name:  limit.name,
-				Value: limit.value,
-			}).Execute()
-
-			if err != nil {
-				return diag.Errorf("error assigning limit %s to the project: %s", limit.name, err)
+			if err := setLimitToProject(ctx, limit, projectID, connV2); err != nil {
+				return err
 			}
 		}
 	}
@@ -844,16 +844,22 @@ func updateLimits(ctx context.Context, d *schema.ResourceData, meta interface{})
 
 	// Updating values for changed limits
 	for _, limit := range expandLimitsList(changedLimits) {
-		limitModel := &admin.DataFederationLimit{
-			Name:  limit.name,
-			Value: limit.value,
-		}
-		_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, projectID, limitModel).Execute()
-
-		if err != nil {
-			return diag.Errorf("error updating limit %s to the project: %s", limitModel.Name, err)
+		if err := setLimitToProject(ctx, limit, projectID, connV2); err != nil {
+			return err
 		}
 	}
 
+	return nil
+}
+
+func setLimitToProject(ctx context.Context, limit *projectLimit, projectID string, connV2 *admin.APIClient) diag.Diagnostics {
+	limitModel := &admin.DataFederationLimit{
+		Name:  limit.name,
+		Value: limit.value,
+	}
+	_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, projectID, limitModel).Execute()
+	if err != nil {
+		return diag.Errorf("error assigning limit %s to the project: %s", limitModel.Name, err)
+	}
 	return nil
 }

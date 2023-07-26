@@ -17,11 +17,6 @@ type apiKey struct {
 	roles []string
 }
 
-type projectLimit struct {
-	name  string
-	value int64
-}
-
 func dataSourceMongoDBAtlasProject() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceMongoDBAtlasProjectRead,
