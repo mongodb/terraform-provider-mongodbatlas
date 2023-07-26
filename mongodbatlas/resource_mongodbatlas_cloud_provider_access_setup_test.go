@@ -81,7 +81,7 @@ func TestAccConfigRSCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		dataSourceName     = "data.mongodbatlas_cloud_provider_access_setup.test"
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
-		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRICIPAL_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
 		projectName        = acctest.RandomWithPrefix("test-acc")
 		targetRole         = matlas.CloudProviderAccessRole{}
