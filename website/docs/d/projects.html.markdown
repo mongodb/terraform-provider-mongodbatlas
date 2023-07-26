@@ -25,15 +25,21 @@ resource "mongodbatlas_project" "test" {
   teams {
     team_id    = "5e0fa8c99ccf641c722fe645"
     role_names = ["GROUP_OWNER"]
-
   }
+
   teams {
     team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
     role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
   }
+  
   api_keys {
     api_key_id = "61003b299dda8d54a9d7d10c"
     role_names = ["GROUP_READ_ONLY"]
+  }
+
+  limits {
+    name = "atlas.project.deployment.clusters"
+    value = 26
   }
 }
 
