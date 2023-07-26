@@ -39,8 +39,3 @@ variable "aws_region_shard_2" {
   default     = "US_EAST_2"
 }
 
-variable "aws_region_shard_3" {
-  description = "Region of the third shard"
-  type        = string
-  default     = "US_WEST_2"
-}
