@@ -157,6 +157,8 @@ func dataSourceMongoDBAtlasProjectsRead(ctx context.Context, d *schema.ResourceD
 	// Get client connection.
 	client := meta.(*MongoDBClient)
 	conn := client.Atlas
+	var diags diag.Diagnostics
+
 	options := &matlas.ListOptions{
 		PageNum:      d.Get("page_num").(int),
 		ItemsPerPage: d.Get("items_per_page").(int),
@@ -164,25 +166,35 @@ func dataSourceMongoDBAtlasProjectsRead(ctx context.Context, d *schema.ResourceD
 
 	projects, _, err := conn.Projects.GetAllProjects(ctx, options)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting projects information: %s", err))
+		diagError := diag.Errorf("error getting projects information: %s", err)
+		diags = append(diags, diagError...)
 	}
 
-	if err := d.Set("results", flattenProjects(ctx, client, projects.Results)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
+	results, projectDiag := flattenProjects(ctx, client, projects.Results)
+	if projectDiag != nil {
+		diags = append(diags, projectDiag...)
+	}
+
+	if err := d.Set("results", results); err != nil {
+		diagError := diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
+		diags = append(diags, diagError...)
 	}
 
 	if err := d.Set("total_count", projects.TotalCount); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
+		diagError := diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
+		diags = append(diags, diagError...)
 	}
 
 	d.SetId(id.UniqueId())
 
-	return nil
+	return diags
 }
 
-func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*matlas.Project) []map[string]interface{} {
+func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*matlas.Project) ([]map[string]interface{}, diag.Diagnostics) {
 	conn := client.Atlas
 	connV2 := client.AtlasV2
+
+	var diags diag.Diagnostics
 
 	var results []map[string]interface{}
 
@@ -192,22 +204,42 @@ func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*mat
 		for k, project := range projects {
 			teams, _, err := conn.Projects.GetProjectTeamsAssigned(ctx, project.ID)
 			if err != nil {
-				fmt.Printf("[WARN] error getting project's teams assigned (%s): %s", project.ID, err)
+				diagWarning := diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Error getting project's teams assigned",
+					Detail:   fmt.Sprintf("Error getting project's teams assigned (%s): %s", project.ID, err),
+				}
+				diags = append(diags, diagWarning)
 			}
 
 			apiKeys, err := getProjectAPIKeys(ctx, conn, project.OrgID, project.ID)
 			if err != nil {
-				fmt.Printf("[WARN] error getting project's api keys (%s): %s", project.ID, err)
+				diagWarning := diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Error getting project's api keys",
+					Detail:   fmt.Sprintf("Error getting project's api keys (%s): %s", project.ID, err),
+				}
+				diags = append(diags, diagWarning)
 			}
 
 			limits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, project.ID).Execute()
 			if err != nil {
-				fmt.Printf("[WARN] error getting project's limits (%s): %s", project.ID, err)
+				diagWarning := diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Error getting project's limits",
+					Detail:   fmt.Sprintf("Error getting project's limits (%s): %s", project.ID, err),
+				}
+				diags = append(diags, diagWarning)
 			}
 
 			projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 			if err != nil {
-				fmt.Printf("[WARN] error getting project's settings assigned (%s): %s", project.ID, err)
+				diagWarning := diag.Diagnostic{
+					Severity: diag.Warning,
+					Summary:  "Error getting project's settings assigned",
+					Detail:   fmt.Sprintf("Error getting project's settings assigned (%s): %s", project.ID, err),
+				}
+				diags = append(diags, diagWarning)
 			}
 
 			results[k] = map[string]interface{}{
@@ -230,5 +262,5 @@ func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*mat
 		}
 	}
 
-	return results
+	return results, diags
 }
