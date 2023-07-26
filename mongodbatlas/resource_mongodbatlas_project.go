@@ -326,7 +326,7 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 		definedLimitsList := expandLimitsSet(definedLimits.(*schema.Set))
 
 		// terraform state will only save user defined limits
-		filteredLimits, err := fetchUserDefinedLimits(definedLimitsList, connV2, ctx, projectID)
+		filteredLimits, err := fetchUserDefinedLimits(ctx, definedLimitsList, projectID, connV2)
 		if err != nil {
 			return err
 		}
@@ -387,7 +387,7 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func fetchUserDefinedLimits(definedLimitsList []*projectLimit, connV2 *admin.APIClient, ctx context.Context, projectID string) ([]admin.DataFederationLimit, diag.Diagnostics) {
+func fetchUserDefinedLimits(ctx context.Context, definedLimitsList []*projectLimit, projectID string, connV2 *admin.APIClient) ([]admin.DataFederationLimit, diag.Diagnostics) {
 	definedLimitsMap := make(map[string]*projectLimit)
 	for _, definedLimit := range definedLimitsList {
 		definedLimitsMap[definedLimit.name] = definedLimit

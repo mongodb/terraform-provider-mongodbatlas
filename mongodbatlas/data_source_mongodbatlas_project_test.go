@@ -183,12 +183,12 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasProjectDSUsingRS(resource string) string {
+func testAccMongoDBAtlasProjectDSUsingRS(rs string) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_project" "test" {
 			name = "${mongodbatlas_project.test.name}"
 		}
-	`, resource)
+	`, rs)
 }
