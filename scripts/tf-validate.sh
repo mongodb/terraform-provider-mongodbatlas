@@ -36,7 +36,11 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   terraform init
   
   echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
-  cat main.tf
+  if [ -e "main.tf" ]; then
+    echo "The file '$filename' exists in the current folder."
+    cat main.tf
+  fi
+
 
   terraform fmt -check -recursive
 
