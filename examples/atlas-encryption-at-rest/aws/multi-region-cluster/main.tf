@@ -5,6 +5,7 @@ module "multi-region-cluster" {
   aws_region_shard_1 = var.aws_region_shard_1
   aws_region_shard_2 = var.aws_region_shard_2
   cluster_name       = var.cluster_name
+  instance_size      = "M10"
 }
 
 resource "mongodbatlas_project" "project" {

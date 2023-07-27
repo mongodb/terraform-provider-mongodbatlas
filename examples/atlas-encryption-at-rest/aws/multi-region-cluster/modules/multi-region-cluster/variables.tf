@@ -6,7 +6,7 @@ variable "atlas_project_id" {
 variable "cluster_name" {
   description = "Atlas cluster name"
   type        = string
-  default     = "MultiCloudCluster"
+  default     = "MultiRegionCluster"
 }
 
 variable "aws_region_shard_1" {
