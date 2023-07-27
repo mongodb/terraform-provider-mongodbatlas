@@ -26,12 +26,12 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   }
 }
 
-module "multi-region-cluster" {
-  source             = "./modules/multi-region-cluster"
-  atlas_project_id   = mongodbatlas_encryption_at_rest.test.project_id
-  provider_name      = "AWS"
-  aws_region_shard_1 = var.aws_region_shard_1
-  aws_region_shard_2 = var.aws_region_shard_2
-  cluster_name       = var.cluster_name
-}
+# module "multi-region-cluster" {
+#   source             = "./modules/multi-region-cluster"
+#   atlas_project_id   = mongodbatlas_encryption_at_rest.test.project_id
+#   provider_name      = "AWS"
+#   aws_region_shard_1 = var.aws_region_shard_1
+#   aws_region_shard_2 = var.aws_region_shard_2
+#   cluster_name       = var.cluster_name
+# }
 
