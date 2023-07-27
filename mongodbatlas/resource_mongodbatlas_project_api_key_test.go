@@ -65,6 +65,41 @@ func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSProjectAPIKey_UpdateDescription(t *testing.T) {
+	var (
+		resourceName       = "mongodbatlas_project_api_key.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acctest.RandomWithPrefix("test-acc")
+		description        = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		updatedDescription = fmt.Sprintf("test-acc-project-api_key-updated-%s", acctest.RandString(5))
+		roleName           = "GROUP_OWNER"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, updatedDescription, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
