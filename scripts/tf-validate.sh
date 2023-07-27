@@ -36,6 +36,8 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   terraform init
   
   echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
+  cat main.tf
+
   terraform fmt -check -recursive
 
   echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
