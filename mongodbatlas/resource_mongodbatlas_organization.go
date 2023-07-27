@@ -115,7 +115,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 			d.SetId("")
 			return nil
 		}
-		return diag.FromErr(fmt.Errorf("error deleting organization information: %s", err))
+		return diag.FromErr(fmt.Errorf("error reading organization information: %s", err))
 	}
 	d.SetId(encodeStateID(map[string]string{
 		"org_id": organization.ID,
