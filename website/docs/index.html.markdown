@@ -206,7 +206,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 
 [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 
-[Support covered by MongoDB Atlas support plans, Developer and above.](https://docs.atlas.mongodb.com/support/) 
+[Support covered by MongoDB Atlas support plans, Developer and above](https://docs.atlas.mongodb.com/support/) 
 
 ## Examples from MongoDB and the Community
 
