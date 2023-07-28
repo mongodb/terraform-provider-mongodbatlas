@@ -244,7 +244,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }
@@ -291,7 +291,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }
@@ -301,6 +301,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
+}
 ```
 
 
