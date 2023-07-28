@@ -311,6 +311,22 @@ The integration tests helps the validation for resources interacting with third 
   go test -tags=integration
 ```
 
+## Supported OS and Architectures
+As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
+- Darwin / AMD64
+- Darwin / ARMv8
+- Linux / AMD64
+- Linux / ARMv8 (sometimes referred to as AArch64 or ARM64)
+- Linux / ARMv6
+- Windows / AMD64
+
+We ship binaries but do not prioritize fixes for the following operating system / architecture combinations:
+- Linux / 386
+- Windows / 386
+- FreeBSD / 386
+- FreeBSD / AMD64
+
+
 ## Troubleshooting
 See [Troubleshooting](website/docs/troubleshooting.html.markdown)
 
