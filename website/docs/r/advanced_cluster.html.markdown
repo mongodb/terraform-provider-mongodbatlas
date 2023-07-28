@@ -48,7 +48,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
       provider_name = "AWS"
-      priority      = 1
+      priority      = 7
       region_name   = "US_EAST_1"
     }
   }
@@ -71,7 +71,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
       region_name           = "US_EAST_1"
-      priority              = 1
+      priority              = 7
     }
   }
 }
@@ -92,7 +92,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name         = "AWS"
       region_name           = "US_EAST_1"
-      priority              = 1
+      priority              = 7
     }
   }
 }
@@ -496,7 +496,7 @@ replication_specs {
       node_count    = 1
     }
     provider_name = "AWS"
-    priority      = 1
+    priority      = 7
     region_name   = "US_EAST_1"
   }
   region_configs {
