@@ -534,7 +534,10 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		req.UseOrgAndGroupNamesInExportPrefix = pointy.Bool(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
-	policy.ID = resp.Policies[0].ID
+	if len(resp.Policies) == 1 {
+		policy.ID = resp.Policies[0].ID
+	}
+
 	policy.PolicyItems = policiesItem
 	if len(policiesItem) > 0 {
 		req.Policies = []matlas.Policy{policy}
