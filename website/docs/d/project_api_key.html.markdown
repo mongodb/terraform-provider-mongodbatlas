@@ -43,13 +43,6 @@ In addition to all arguments above, the following attributes are exported:
 * `description` - Description of this Project API key.
 * `public_key` - Public key for this Organization API key.
 * `private_key` - Private key for this Organization API key.
-* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas.
-The following are valid roles:
-  * `GROUP_OWNER`
-  * `GROUP_READ_ONLY`
-  * `GROUP_DATA_ACCESS_ADMIN`
-  * `GROUP_DATA_ACCESS_READ_WRITE`
-  * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`  
+* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
     
 See [MongoDB Atlas API - API Key](https://www.mongodb.com/docs/atlas/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/) - Documentation for more information.

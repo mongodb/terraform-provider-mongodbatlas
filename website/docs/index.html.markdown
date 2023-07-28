@@ -181,6 +181,21 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
+## Supported OS and Architectures
+As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
+- Darwin / AMD64
+- Darwin / ARMv8
+- Linux / AMD64
+- Linux / ARMv8 (sometimes referred to as AArch64 or ARM64)
+- Linux / ARMv6
+- Windows / AMD64
+
+We ship binaries but do not prioritize fixes for the following operating system / architecture combinations:
+- Linux / 386
+- Windows / 386
+- FreeBSD / 386
+- FreeBSD / AMD64
+
 ## Helpful Links/Information
 
 [Upgrade Guide for Terraform MongoDB Atlas 0.4.0](https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040)
@@ -191,7 +206,7 @@ For more information on configuring and managing programmatic API Keys see the [
 
 [Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 
-[Support](https://docs.atlas.mongodb.com/support/) covered by MongoDB Atlas support plans, Developer and above.
+[Support covered by MongoDB Atlas support plans, Developer and above](https://docs.atlas.mongodb.com/support/) 
 
 ## Examples from MongoDB and the Community
 

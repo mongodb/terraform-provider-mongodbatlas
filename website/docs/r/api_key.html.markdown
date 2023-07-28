@@ -49,7 +49,8 @@ api_keys allows one to assign an existing organization programmatic API key to a
   * `GROUP_DATA_ACCESS_ADMIN`
   * `GROUP_DATA_ACCESS_READ_WRITE`
   * `GROUP_DATA_ACCESS_READ_ONLY`
-  * `GROUP_CLUSTER_MANAGER`  
+  * `GROUP_CLUSTER_MANAGER`
+ 
  ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
