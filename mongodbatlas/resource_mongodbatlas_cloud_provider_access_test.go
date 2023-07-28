@@ -184,4 +184,3 @@ func testAccMongoDBAtlasCloudProviderAccessAWS(orgID, projectName string) string
 	 }	 
 	`, orgID, projectName)
 }
-
