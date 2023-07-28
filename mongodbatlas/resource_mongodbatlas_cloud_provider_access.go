@@ -295,7 +295,6 @@ func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		"authorized_date":                role.AuthorizedDate,
 		"created_date":                   role.CreatedDate,
-		"last_update_date":               role.LastUpdatedDate,
 		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
 		"provider_name":                  role.ProviderName,
 		"role_id":                        role.RoleID,
