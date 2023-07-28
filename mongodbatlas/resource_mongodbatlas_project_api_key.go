@@ -232,16 +232,6 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
-	if d.HasChange("description") {
-		newDescription := d.Get("description").(string)
-		_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &admin.CreateAtlasProjectApiKey{
-			Desc: &newDescription,
-		}).Execute()
-		if err != nil {
-			return diag.Errorf("error updating description in api key(%s): %s", apiKeyID, err)
-		}
-	}
-
 	updateRequest := new(matlas.AssignAPIKey)
 	if d.HasChange("role_names") {
 		updateRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
@@ -292,6 +282,16 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 			}
 		}
 	}
+
+	if d.HasChange("description") {
+		newDescription := d.Get("description").(string)
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &admin.CreateAtlasProjectApiKey{
+			Desc: &newDescription,
+		}).Execute(); err != nil {
+			return diag.Errorf("error updating description in api key(%s): %s", apiKeyID, err)
+		}
+	}
+
 	return resourceMongoDBAtlasProjectAPIKeyRead(ctx, d, meta)
 }
 
