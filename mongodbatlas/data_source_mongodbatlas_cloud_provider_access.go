@@ -16,7 +16,8 @@ const (
 
 func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasCloudProviderAccessRead,
+		ReadContext:        dataSourceMongoDBAtlasCloudProviderAccessRead,
+		DeprecationMessage: fmt.Sprintf(DeprecationMessage, "v1.14.0", "mongodbatlas_cloud_provider_access"),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,

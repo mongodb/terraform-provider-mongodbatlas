@@ -6,6 +6,8 @@ description: |-
     Allows you to get the list of cloud provider access roles
 ---
 
+**WARNING:** The data source `mongodbatlas_cloud_provider_access` is deprecated and will be removed in version v1.14.0, use the data source `mongodbatlas_cloud_provider_access_setup` instead.
+
 # Data Source: mongodbatlas_cloud_provider_access
 
 `mongodbatlas_cloud_provider_access` allows you to get the list of cloud provider access roles, currently only AWS is supported.
