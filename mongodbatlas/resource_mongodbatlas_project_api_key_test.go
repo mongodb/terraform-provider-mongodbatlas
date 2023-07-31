@@ -41,11 +41,13 @@ func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
 
 func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project_api_key.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		description  = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
-		roleName     = "GROUP_OWNER"
+		resourceName    = "mongodbatlas_project_api_key.test"
+		dataSourceName  = "data.mongodbatlas_project_api_key.test"
+		dataSourcesName = "data.mongodbatlas_project_api_keys.test"
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acctest.RandomWithPrefix("test-acc")
+		description     = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		roleName        = "GROUP_OWNER"
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -59,6 +61,14 @@ func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "description"),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "project_assignment.0.role_names.0"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_assignment.0.project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_assignment.0.role_names.0"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourcesName, "results.0.project_assignment.0.project_id"),
+					resource.TestCheckResourceAttrSet(dataSourcesName, "results.0.project_assignment.0.role_names.0"),
 				),
 			},
 		},
@@ -246,5 +256,15 @@ func testAccMongoDBAtlasProjectAPIKeyConfigMultiple(orgID, projectName, descript
 			  }
 
 		}
+
+		data "mongodbatlas_project_api_key" "test" {
+			project_id      = mongodbatlas_project.test.id
+			api_key_id  = mongodbatlas_project_api_key.test.api_key_id
+		}
+		
+		data "mongodbatlas_project_api_keys" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+
 	`, orgID, projectName, description, roleNames)
 }

@@ -39,6 +39,26 @@ func dataSourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
+			},
+			"project_assignment": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"project_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"role_names": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -67,6 +87,12 @@ func dataSourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Reso
 
 			if err := d.Set("private_key", val.PrivateKey); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
+			}
+
+			if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+				if err := d.Set("project_assignment", projectAssignments); err != nil {
+					return diag.Errorf(errorProjectSetting, `project_assignment`, projectID, err)
+				}
 			}
 
 			if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
