@@ -60,7 +60,8 @@ func TestProjectDataSource_Basic_Migration(t *testing.T) {
 					},
 				},
 				Config: fmt.Sprintf(`data "mongodbatlas_project" "test" {
-					name   = "%s"
+					name   = "%s",
+					org_id = "%s"
 				  }`, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),

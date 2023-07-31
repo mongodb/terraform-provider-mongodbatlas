@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -63,9 +65,20 @@ type projectResourceModel struct {
 	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Teams                                       types.Set    `tfsdk:"teams"`
 	APIKeys                                     types.Set    `tfsdk:"api_keys"`
+	APIKeysAll                                  types.Set    `tfsdk:"api_keys_all"`
 	// Teams   []team   `tfsdk:"teams"`
 	// APIKeys []apiKey `tfsdk:"api_keys"`
 }
+
+var teamObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"team_id":    types.StringType,
+	"role_names": types.SetType{ElemType: types.StringType},
+}}
+
+var apiKeyObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"api_key_id": types.StringType,
+	"role_names": types.SetType{ElemType: types.StringType},
+}}
 
 type team struct {
 	TeamID    types.String `tfsdk:"team_id"`
@@ -130,12 +143,11 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			// Since api_keys is a Computed attribute it will not be added as a Block:
 			// https://developer.hashicorp.com/terraform/plugin/framework/migrating/attributes-blocks/blocks-computed
-			"api_keys": schema.SetNestedAttribute{
-				Optional:           true,
-				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "mongodbatlas_project_api_key"),
+			// https://discuss.hashicorp.com/t/optional-computed-block-handling-in-plugin-framework/56337/4
+			"api_keys_all": schema.SetNestedAttribute{
+				Computed: true,
+				// DeprecationMessage: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "mongodbatlas_project_api_key"),
 				NestedObject: schema.NestedAttributeObject{
-
 					Attributes: map[string]schema.Attribute{
 						"api_key_id": schema.StringAttribute{
 							Required: true,
@@ -211,6 +223,24 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 					},
 				},
 			},
+			"api_keys": schema.SetNestedBlock{
+				DeprecationMessage: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "mongodbatlas_project_api_key"),
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"api_key_id": schema.StringAttribute{
+							Required: true,
+						},
+						"role_names": schema.SetAttribute{
+							Required:    true,
+							ElementType: types.StringType,
+						},
+					},
+				},
+				// https://discuss.hashicorp.com/t/computed-attributes-and-plan-modifiers/45830/12
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+			},
 		},
 	}
 }
@@ -269,8 +299,8 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Check if teams were set, if so we need to add the teams into the project
-	var teams []types.Object
-	projectPlan.Teams.ElementsAs(ctx, &teams, false)
+	// var teams []types.Object
+	// projectPlan.Teams.ElementsAs(ctx, &teams, false)
 
 	if len(projectPlan.Teams.Elements()) > 0 {
 		// adding the teams into the project
@@ -349,8 +379,8 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	projectPlanPtr, err := getModelWithPropsFromAtlas(ctx, conn, projectRes)
-	projectPlan = *projectPlanPtr
+	projectPlanNewPtr, err := getModelWithPropsFromAtlas(ctx, conn, projectRes)
+	updatePlanFromConfig(projectPlanNewPtr, projectPlan)
 
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), err.Error())
@@ -358,11 +388,20 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Set state to fully populated data
-	diags = resp.State.Set(ctx, projectPlan)
+	diags = resp.State.Set(ctx, projectPlanNewPtr)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func updatePlanFromConfig(projectPlanNewPtr *projectResourceModel, projectPlan projectResourceModel) {
+	// we need to reset defaults from what was previously in the state:
+	// // https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
+	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
+	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
+	projectPlanNewPtr.APIKeys = projectPlan.APIKeys
+
 }
 
 func expandTeamsSet(ctx context.Context, teams []team) []*matlas.ProjectTeam {
@@ -401,13 +440,17 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	projectPlanUpdatedPtr, err := getModelWithPropsFromAtlas(ctx, conn, projectRes)
-	projectPlanUpdated := *projectPlanUpdatedPtr
+	updatePlanFromConfig(projectPlanUpdatedPtr, projectPlan)
 
 	// we need to reset defaults from what was previously in the state:
 	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
-	var withDefaultAlertsSettings types.Bool
-	req.State.GetAttribute(ctx, path.Root("with_default_alerts_settings"), &withDefaultAlertsSettings)
-	projectPlanUpdated.WithDefaultAlertsSettings = withDefaultAlertsSettings
+	// var withDefaultAlertsSettings types.Bool
+	// req.State.GetAttribute(ctx, path.Root("with_default_alerts_settings"), &withDefaultAlertsSettings)
+	// projectPlanUpdated.WithDefaultAlertsSettings = withDefaultAlertsSettings
+
+	// var projectOwnerId types.String
+	// req.State.GetAttribute(ctx, path.Root("project_owner_id"), &projectOwnerId)
+	// projectPlanUpdated.ProjectOwnerID = projectOwnerId
 
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), err.Error())
@@ -415,7 +458,7 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanUpdated)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanUpdatedPtr)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -476,11 +519,12 @@ func getProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID strin
 func toProjectResourceModel(ctx context.Context, projectID string, projectRes *matlas.Project,
 	teams *matlas.TeamsAssigned, apiKeys []matlas.APIKey, projectSettings *matlas.ProjectSettings) *projectResourceModel {
 	projectPlan := projectResourceModel{
-		ID:           types.StringValue(projectID),
-		Name:         types.StringValue(projectRes.Name),
-		OrgID:        types.StringValue(projectRes.OrgID),
-		ClusterCount: types.Int64Value(int64(projectRes.ClusterCount)),
-		Created:      types.StringValue(projectRes.Created),
+		ID:                        types.StringValue(projectID),
+		Name:                      types.StringValue(projectRes.Name),
+		OrgID:                     types.StringValue(projectRes.OrgID),
+		ClusterCount:              types.Int64Value(int64(projectRes.ClusterCount)),
+		Created:                   types.StringValue(projectRes.Created),
+		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
 		IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
 		IsDataExplorerEnabled:                       types.BoolValue(*projectSettings.IsDataExplorerEnabled),
 		IsExtendedStorageSizesEnabled:               types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled),
@@ -488,7 +532,8 @@ func toProjectResourceModel(ctx context.Context, projectID string, projectRes *m
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		Teams:                                       toTeamsResourceModel(ctx, teams),
-		APIKeys:                                     toAPIKeysResourceModel(ctx, apiKeys),
+		// APIKeys:                                     toAPIKeysResourceModel(ctx, apiKeys),
+		APIKeysAll: toAPIKeysResourceModel(ctx, apiKeys),
 	}
 	// projectPlan.Name = types.StringValue(projectRes.Name)
 	// projectPlan.OrgID = types.StringValue(projectRes.OrgID)
@@ -524,17 +569,12 @@ func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) t
 			RoleNames: utils.ArrToSetValue(atlasRoles),
 		})
 	}
-	// return res
-	return types.SetValue()
+	s, _ := types.SetValueFrom(ctx, apiKeyObjectType, res)
+	return s
 }
 
 // func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []team {
 func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) types.Set {
-
-	if atlasTeams.TotalCount == 0 {
-		// return nil
-		types.SetNull()
-	}
 	teams := make([]team, atlasTeams.TotalCount)
 
 	for i, atlasTeam := range atlasTeams.Results {
@@ -546,22 +586,162 @@ func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned)
 		}
 	}
 
-	return types.SetValueFrom()
-	// return teams
+	s, _ := types.SetValueFrom(ctx, teamObjectType, teams)
+
+	return s
 }
 
 func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var projectPlan *projectResourceModel
+	var projectState projectResourceModel
+	var projectPlan projectResourceModel
+	conn := r.client.Atlas
 
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &projectPlan)...)
-
+	// Get current state
+	diags := req.State.Get(ctx, &projectState)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// Get current plan
+	diags = req.Plan.Get(ctx, &projectPlan)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	projectID := projectState.ID.ValueString()
+
+	var planTeams []team
+	var stateTeams []team
+	req.Plan.GetAttribute(ctx, path.Root("teams"), &planTeams)
+	req.State.GetAttribute(ctx, path.Root("teams"), &stateTeams)
+
+	if HasTeamsChanged(planTeams, stateTeams) {
+		tflog.Info(ctx, " Teams change detected")
+		// remove all current teams
+		for _, team := range stateTeams {
+			_, err := conn.Teams.RemoveTeamFromProject(ctx, projectID, team.TeamID.ValueString())
+			if err != nil {
+				resp.Diagnostics.AddError("error removing team from the project", err.Error())
+				return
+			}
+		}
+		// adding new teams into the project
+		if len(planTeams) > 0 {
+			// var teams []team
+			//  _ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
+			_, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, expandTeamsSet(ctx, planTeams))
+			if err != nil {
+				resp.Diagnostics.AddError("error adding teams into the project", err.Error())
+				return
+			}
+		}
+
+	}
+
+	var planAPIKeys []apiKey
+	var stateAPIKeys []apiKey
+	req.Plan.GetAttribute(ctx, path.Root("api_keys"), &planAPIKeys)
+	req.State.GetAttribute(ctx, path.Root("api_keys"), &stateAPIKeys)
+	if HasAPIKeysChanged(planAPIKeys, stateAPIKeys) {
+		tflog.Info(ctx, " APIKeys change detected")
+		// remove existing APIKeys
+		for _, apiKey := range stateAPIKeys {
+			_, err := conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKey.APIKeyID.ValueString())
+			if err != nil {
+				resp.Diagnostics.AddError("error removing api keys to the project", fmt.Sprintf("error removing api_key(%s) from the project(%s): %s", apiKey.APIKeyID, projectID, err))
+			}
+		}
+
+		// assign api keys to the project
+		for _, apiKey := range planAPIKeys {
+			// _ = projectPlan.APIKeys.ElementsAs(ctx, &planAPIKeys, false)
+
+			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.APIKeyID.ValueString(), &matlas.AssignAPIKey{
+				Roles: utils.TypesSetToString(ctx, apiKey.RoleNames),
+			})
+			if err != nil {
+				resp.Diagnostics.AddError("error assigning api keys to the project", err.Error())
+				return
+			}
+		}
+	}
+
+	if HasProjectSettingsChanged(projectPlan, projectState) {
+		projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
+		if err != nil {
+			errd := deleteProject(ctx, conn, projectID)
+			if errd != nil {
+				resp.Diagnostics.AddError(fmt.Sprintf(errorProjectDelete, projectID), err.Error())
+				return
+			}
+			resp.Diagnostics.AddError(fmt.Sprintf("error getting project's settings assigned (%s):", projectID), err.Error())
+			return
+		}
+		projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled = projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled.ValueBoolPointer()
+		projectSettings.IsDataExplorerEnabled = projectPlan.IsDataExplorerEnabled.ValueBoolPointer()
+		projectSettings.IsExtendedStorageSizesEnabled = projectPlan.IsExtendedStorageSizesEnabled.ValueBoolPointer()
+		projectSettings.IsPerformanceAdvisorEnabled = projectPlan.IsPerformanceAdvisorEnabled.ValueBoolPointer()
+		projectSettings.IsRealtimePerformancePanelEnabled = projectPlan.IsRealtimePerformancePanelEnabled.ValueBoolPointer()
+		projectSettings.IsSchemaAdvisorEnabled = projectPlan.IsSchemaAdvisorEnabled.ValueBoolPointer()
+
+		_, _, err = conn.Projects.UpdateProjectSettings(ctx, projectID, projectSettings)
+		if err != nil {
+			resp.Diagnostics.AddError(fmt.Sprintf("error updating project's settings assigned (%s):", projectID), err.Error())
+			return
+		}
+	}
+
+	// do a Read GET request
+	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
+	if err != nil {
+		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), err.Error())
+		return
+	}
+
+	projectPlanNewPtr, err := getModelWithPropsFromAtlas(ctx, conn, projectRes)
+	updatePlanFromConfig(projectPlanNewPtr, projectPlan)
+
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), err.Error())
+		return
+	}
+
 	// Save updated data into Terraform state.
-	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanNewPtr)...)
+}
+
+func HasProjectSettingsChanged(projectPlan, projectState projectResourceModel) bool {
+	return projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled != projectState.IsCollectDatabaseSpecificsStatisticsEnabled ||
+		projectPlan.IsDataExplorerEnabled != projectState.IsDataExplorerEnabled ||
+		projectPlan.IsPerformanceAdvisorEnabled != projectState.IsPerformanceAdvisorEnabled ||
+		projectPlan.IsRealtimePerformancePanelEnabled != projectState.IsRealtimePerformancePanelEnabled ||
+		projectPlan.IsSchemaAdvisorEnabled != projectState.IsSchemaAdvisorEnabled ||
+		projectPlan.IsExtendedStorageSizesEnabled != projectState.IsExtendedStorageSizesEnabled
+}
+
+func HasTeamsChanged(planTeams, stateTeams []team) bool {
+	sort.Slice(planTeams, func(i, j int) bool {
+		return planTeams[i].TeamID.ValueString() < planTeams[j].TeamID.ValueString()
+	})
+	sort.Slice(stateTeams, func(i, j int) bool {
+		return stateTeams[i].TeamID.ValueString() < stateTeams[j].TeamID.ValueString()
+	})
+	return !reflect.DeepEqual(planTeams, stateTeams)
+}
+
+func HasAPIKeysChanged(planKeys, stateKeys []apiKey) bool {
+	sort.Slice(planKeys, func(i, j int) bool {
+		return planKeys[i].APIKeyID.ValueString() < planKeys[j].APIKeyID.ValueString()
+	})
+	sort.Slice(stateKeys, func(i, j int) bool {
+		return stateKeys[i].APIKeyID.ValueString() < stateKeys[j].APIKeyID.ValueString()
+	})
+	return !reflect.DeepEqual(planKeys, stateKeys)
 }
 
 func (r *ProjectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

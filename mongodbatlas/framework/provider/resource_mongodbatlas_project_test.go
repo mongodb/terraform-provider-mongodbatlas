@@ -39,33 +39,32 @@ func DebugPlan() plancheck.PlanCheck {
 }
 
 // This test only helps to see what the plan is for debugging purposes
-//
-// func Test_DebugPlan(t *testing.T) {
-// var (
-// 	resourceName = "mongodbatlas_project.test"
-// 	projectName  = acctest.RandomWithPrefix("test-acc-migration")
-// 	orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-// )
-// 	t.Parallel()
+func Test_DebugPlan(t *testing.T) {
+	var (
+		// resourceName = "mongodbatlas_project.test"
+		projectName = acctest.RandomWithPrefix("test-acc-migration")
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	t.Parallel()
 
-// 	resource.Test(t, resource.TestCase{
-// 		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "main" {
-// 					name   = "repro-region-config-order-issue"
-// 					org_id = "%s"
-// 				  }`,orgID),
-// 				PlanOnly: true,
-// 				ConfigPlanChecks: resource.ConfigPlanChecks{
-// 					PostApplyPreRefresh: []plancheck.PlanCheck{
-// 						DebugPlan(),
-// 					},
-// 				},
-// 			},
-// 		},
-// 	})
-// }
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "mongodbatlas_project" "main" {
+					name   = "%s"
+					org_id = "%s"
+				  }`, projectName, orgID),
+				PlanOnly: true,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+			},
+		},
+	})
+}
 
 func TestProjectResource_Basic_Migration(t *testing.T) {
 	var (
@@ -98,6 +97,11 @@ func TestProjectResource_Basic_Migration(t *testing.T) {
 					name   = "%s"
 					org_id = "%s"
 				  }`, projectName, orgID),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
 				PlanOnly: true,
 			},
 		},
@@ -120,12 +124,13 @@ func TestProjectResource_Migration(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.10.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
+				// ExternalProviders: map[string]resource.ExternalProvider{
+				// 	"mongodbatlas": {
+				// 		VersionConstraint: "1.10.0",
+				// 		Source:            "mongodb/mongodbatlas",
+				// 	},
+				// },
+				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
@@ -156,32 +161,32 @@ func TestProjectResource_Migration(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
 				),
 			},
-			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
-				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
-					[]*matlas.ProjectTeam{
-						{
-							TeamID:    teamsIds[0],
-							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
-						},
-						{
-							TeamID:    teamsIds[1],
-							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
-						},
-					},
-					[]*testAPIKey{
-						{
-							id:    apiKeysIds[0],
-							roles: []string{"GROUP_READ_ONLY"},
-						},
-						{
-							id:    apiKeysIds[1],
-							roles: []string{"GROUP_OWNER"},
-						},
-					},
-				),
-				PlanOnly: true,
-			},
+			// {
+			// 	ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+			// 	Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
+			// 		[]*matlas.ProjectTeam{
+			// 			{
+			// 				TeamID:    teamsIds[0],
+			// 				RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+			// 			},
+			// 			{
+			// 				TeamID:    teamsIds[1],
+			// 				RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+			// 			},
+			// 		},
+			// 		[]*testAPIKey{
+			// 			{
+			// 				id:    apiKeysIds[0],
+			// 				roles: []string{"GROUP_READ_ONLY"},
+			// 			},
+			// 			{
+			// 				id:    apiKeysIds[1],
+			// 				roles: []string{"GROUP_OWNER"},
+			// 			},
+			// 		},
+			// 	),
+			// 	PlanOnly: true,
+			// },
 		},
 	})
 }
@@ -477,6 +482,11 @@ func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.
 		}
 
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
+
+		projectResTmp, resp, errTmp := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"])
+		log.Printf("[DEBUG] projectResTmp: %v", projectResTmp)
+		log.Printf("[DEBUG] resp: %v", resp)
+		log.Printf("[DEBUG] err: %s", errTmp)
 
 		if projectResp, _, err := conn.Projects.GetOneProjectByName(context.Background(), rs.Primary.Attributes["name"]); err == nil {
 			*project = *projectResp

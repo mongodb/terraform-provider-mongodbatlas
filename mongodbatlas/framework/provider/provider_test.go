@@ -20,11 +20,10 @@ func init() {
 	testProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 		"mongodbatlas": providerserver.NewProtocol6WithError(New()()),
 	}
-
 	config := Config{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
-		BaseURL:      os.Getenv("MONGODB_ATLAS_PROJECT_ID"),
+		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
 
