@@ -3,13 +3,13 @@ This example shows how to perform authorization for a cloud provider AWS role.
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.10.0
+* Terraform MongoDB Atlas Provider v1.11.0
 * A MongoDB Atlas account 
 * An AZURE account
 
 
 ```
-Terraform v1.10.0
+Terraform v1.5.2
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.11.0
 ```
 
