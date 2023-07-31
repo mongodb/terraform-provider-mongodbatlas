@@ -55,8 +55,6 @@ export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
 ```terraform
-access_key           = "<AWS_ACCESS_KEY_ID>"
-secret_key           = "<AWS_SECRET_ACCESS_KEY>"
 public_key           = "<MONGODB_ATLAS_PUBLIC_KEY>"
 private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 ```
