@@ -34,7 +34,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
    azure_config {
       atlas_azure_app_id = "9f2deb0d-be22-4524-a403-df531868bac0"
       service_principal_id = "22f1d2a6-d0e9-482a-83a4-b8dd7dddc2c1"
-      tenant_id = "91402384-d71e-22f5-22dd-759e272cdc1c
+      tenant_id = "91402384-d71e-22f5-22dd-759e272cdc1c"
    }
 }
 

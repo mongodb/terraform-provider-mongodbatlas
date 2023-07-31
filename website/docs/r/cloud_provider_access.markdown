@@ -48,8 +48,8 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
    azure_config {
       atlas_azure_app_id = "9f2deb0d-be22-4524-a403-df531868bac0"
       service_principal_id = "22f1d2a6-d0e9-482a-83a4-b8dd7dddc2c1"
-      tenant_id = "91402384-d71e-22f5-22dd-759e272cdc1c
-	}
+      tenant_id = "91402384-d71e-22f5-22dd-759e272cdc1c"
+   }
 }
 
 ```
@@ -82,16 +82,16 @@ can be imported using project ID and the provider name and mongodbatlas role id,
 $ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf99403840e8934-AWS-5fc17d476f7a33224f5b224e
 ```
 
-## mongodbatlas_cloud_provider_authorization (optional)
+## mongodbatlas_cloud_provider_authorization
 
 This is the second resource in the two-resource path as described above.
-`mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS IAM roles in Atlas.
+`mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS or AZURE IAM roles in Atlas.
 
-## Example Usage
+## Example Usage with AWS
 ```terraform
 
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-   project_id = "<PROJECT-ID>"
+   project_id = "64259ee860c43338194b0f8e"
    provider_name = "AWS"
 }
 
@@ -106,6 +106,32 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 ```
+
+
+```terraform
+
+resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+   project_id = "64259ee860c43338194b0f8e"
+   provider_name = "AZURE"
+   azure_config {
+      atlas_azure_app_id = "9f2deb0d-be22-4524-a403-df531868bac0"
+      service_principal_id = "22f1d2a6-d0e9-482a-83a4-b8dd7dddc2c1"
+      tenant_id = "91402384-d71e-22f5-22dd-759e272cdc1c"
+	}
+}
+
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+   project_id =  mongodbatlas_cloud_provider_access_setup.setup_only.project_id
+   role_id    =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+
+   azure {
+      atlas_azure_app_id = "9f2deb0d-be22-4524-a403-df531868bac0"
+      service_principal_id = "22f1d2a6-d0e9-482a-83a4-b8dd7dddc2c1"
+      tenant_id = "91402384-d71e-22f5-22dd-759e272cdc1c"
+   }
+}
+
 
 ## Argument Reference
 
@@ -137,7 +163,7 @@ Conditional
 ```terraform
 
 resource "mongodbatlas_cloud_provider_access" "test_role" {
-   project_id = "<PROJECT-ID>"
+   project_id = "64259ee860c43338194b0f8e"
    provider_name = "AWS"
 }
 

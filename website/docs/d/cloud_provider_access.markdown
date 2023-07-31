@@ -15,7 +15,7 @@ description: |-
 ## Example Usage
 ```terraform
 resource "mongodbatlas_cloud_provider_access" "test_role" {
-   project_id = "<PROJECT-ID>"
+   project_id = "64259ee860c43338194b0f8e"
    provider_name = "AWS"
 }
 
