@@ -146,7 +146,6 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 			// https://discuss.hashicorp.com/t/optional-computed-block-handling-in-plugin-framework/56337/4
 			"api_keys_all": schema.SetNestedAttribute{
 				Computed: true,
-				// DeprecationMessage: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "mongodbatlas_project_api_key"),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"api_key_id": schema.StringAttribute{
@@ -158,7 +157,6 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 						},
 					},
 				},
-				// https://discuss.hashicorp.com/t/computed-attributes-and-plan-modifiers/45830/12
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.UseStateForUnknown(),
 				},
@@ -298,10 +296,6 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Check if teams were set, if so we need to add the teams into the project
-	// var teams []types.Object
-	// projectPlan.Teams.ElementsAs(ctx, &teams, false)
-
 	if len(projectPlan.Teams.Elements()) > 0 {
 		// adding the teams into the project
 		var teams []team
@@ -397,7 +391,7 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 
 func updatePlanFromConfig(projectPlanNewPtr *projectResourceModel, projectPlan projectResourceModel) {
 	// we need to reset defaults from what was previously in the state:
-	// // https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
+	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
 	projectPlanNewPtr.APIKeys = projectPlan.APIKeys
@@ -441,16 +435,6 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	projectPlanUpdatedPtr, err := getModelWithPropsFromAtlas(ctx, conn, projectRes)
 	updatePlanFromConfig(projectPlanUpdatedPtr, projectPlan)
-
-	// we need to reset defaults from what was previously in the state:
-	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
-	// var withDefaultAlertsSettings types.Bool
-	// req.State.GetAttribute(ctx, path.Root("with_default_alerts_settings"), &withDefaultAlertsSettings)
-	// projectPlanUpdated.WithDefaultAlertsSettings = withDefaultAlertsSettings
-
-	// var projectOwnerId types.String
-	// req.State.GetAttribute(ctx, path.Root("project_owner_id"), &projectOwnerId)
-	// projectPlanUpdated.ProjectOwnerID = projectOwnerId
 
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectRead, projectID), err.Error())
@@ -535,23 +519,10 @@ func toProjectResourceModel(ctx context.Context, projectID string, projectRes *m
 		// APIKeys:                                     toAPIKeysResourceModel(ctx, apiKeys),
 		APIKeysAll: toAPIKeysResourceModel(ctx, apiKeys),
 	}
-	// projectPlan.Name = types.StringValue(projectRes.Name)
-	// projectPlan.OrgID = types.StringValue(projectRes.OrgID)
-	// projectPlan.ClusterCount = types.Int64Value(int64(projectRes.ClusterCount))
-	// projectPlan.Created = types.StringValue(projectRes.Created)
-	// projectPlan.IsCollectDatabaseSpecificsStatisticsEnabled = types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled)
-	// projectPlan.IsDataExplorerEnabled = types.BoolValue(*projectSettings.IsDataExplorerEnabled)
-	// projectPlan.IsExtendedStorageSizesEnabled = types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled)
-	// projectPlan.IsPerformanceAdvisorEnabled = types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled)
-	// projectPlan.IsRealtimePerformancePanelEnabled = types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled)
-	// projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
-	// projectPlan.Teams = convertTeamsToModel(ctx, teams)
-	// projectPlan.ApiKeys = convertApiKeysToModel(ctx, apiKeys, projectID)
 
 	return &projectPlan
 }
 
-// func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) []apiKey {
 func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) types.Set {
 
 	res := []apiKey{}
@@ -573,7 +544,6 @@ func toAPIKeysResourceModel(ctx context.Context, atlasAPIKeys []matlas.APIKey) t
 	return s
 }
 
-// func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []team {
 func toTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) types.Set {
 	teams := make([]team, atlasTeams.TotalCount)
 
