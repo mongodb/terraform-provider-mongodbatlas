@@ -15,7 +15,7 @@ func main() {
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := &plugin.ServeOpts{ProviderFunc: mongodbatlas.Provider}
+	opts := &plugin.ServeOpts{Debug: debugMode, ProviderFunc: mongodbatlas.Provider}
 
 	if debugMode {
 		err := plugin.Debug(context.Background(), "registry.terraform.io/mongodb/mongodbatlas", opts)

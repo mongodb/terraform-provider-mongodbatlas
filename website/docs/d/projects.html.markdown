@@ -25,15 +25,21 @@ resource "mongodbatlas_project" "test" {
   teams {
     team_id    = "5e0fa8c99ccf641c722fe645"
     role_names = ["GROUP_OWNER"]
-
   }
+
   teams {
     team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
     role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
   }
+  
   api_keys {
     api_key_id = "61003b299dda8d54a9d7d10c"
     role_names = ["GROUP_READ_ONLY"]
+  }
+
+  limits {
+    name = "atlas.project.deployment.clusters"
+    value = 26
   }
 }
 
@@ -64,6 +70,11 @@ data "mongodbatlas_projects" "test" {
 * `teams.#.role_names` - Each string in the array represents a project role assigned to the team. Every user associated with the team inherits these roles. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
 * `api_keys.#.api_key_id` - The unique identifier of the Organization Programmatic API key assigned to the Project. 
 * `api_keys.#.role_names` -  List of roles that the Organization Programmatic API key has been assigned. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
+* `limits.#.name` - Human-readable label that identifies this project limit.
+* `limits.#.value` - Amount the limit is set to.
+* `limits.#.current_usage` - Amount that indicates the current usage of the limit.
+* `limits.#.default_limit` - Default value of the limit.
+* `limits.#.maximum_limit` - Maximum value of the limit.
 
 * `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
 * `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.
