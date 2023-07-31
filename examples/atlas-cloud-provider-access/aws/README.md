@@ -9,8 +9,8 @@ This example shows how to perform authorization for a cloud provider AWS role.
 
 
 ```
-Terraform v1.10.0
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.11.0
+Terraform v1.5.2
++ provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
 ```
 
 ## Usage
