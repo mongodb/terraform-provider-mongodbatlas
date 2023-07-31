@@ -76,28 +76,30 @@ func dataSourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Reso
 	}
 
 	for _, val := range projectAPIKeys {
-		if val.ID == apiKeyID {
-			if err := d.Set("description", val.Desc); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
-			}
+		if val.ID != apiKeyID {
+			continue
+		}
 
-			if err := d.Set("public_key", val.PublicKey); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
-			}
+		if err := d.Set("description", val.Desc); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
+		}
 
-			if err := d.Set("private_key", val.PrivateKey); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
-			}
+		if err := d.Set("public_key", val.PublicKey); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+		}
 
-			if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
-				if err := d.Set("project_assignment", projectAssignments); err != nil {
-					return diag.Errorf(errorProjectSetting, `project_assignment`, projectID, err)
-				}
-			}
+		if err := d.Set("private_key", val.PrivateKey); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
+		}
 
-			if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
+		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+			if err := d.Set("project_assignment", projectAssignments); err != nil {
+				return diag.Errorf(errorProjectSetting, `project_assignment`, projectID, err)
 			}
+		}
+
+		if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 		}
 	}
 

@@ -191,7 +191,6 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 					return diag.Errorf(errorProjectSetting, `created`, projectID, err)
 				}
 			}
-
 		} else {
 			if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
