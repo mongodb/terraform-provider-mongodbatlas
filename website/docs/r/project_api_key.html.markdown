@@ -35,7 +35,7 @@ resource "mongodbatlas_project_api_key" "test" {
   }
   
   project_assignment {
-    project_id = "64259ee860c43338194b0f8e"
+    project_id = "74259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY"]
   }
   

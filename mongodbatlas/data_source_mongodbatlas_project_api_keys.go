@@ -113,23 +113,26 @@ func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.Res
 func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID string, apiKeys []matlas.APIKey) ([]map[string]interface{}, error) {
 	var results []map[string]interface{}
 
-	if len(apiKeys) > 0 {
-		results = make([]map[string]interface{}, len(apiKeys))
-		for k, apiKey := range apiKeys {
-			results[k] = map[string]interface{}{
-				"api_key_id":  apiKey.ID,
-				"description": apiKey.Desc,
-				"public_key":  apiKey.PublicKey,
-				"private_key": apiKey.PrivateKey,
-				"role_names":  flattenProjectAPIKeyRoles(projectID, apiKey.Roles),
-			}
+	if len(apiKeys) == 0 {
+		return nil, nil
+	}
 
-			projectAssignment, err := newProjectAssignment(ctx, conn, apiKey.ID)
-			if err != nil {
-				return nil, err
-			}
-			results[k]["project_assignment"] = projectAssignment
+	results = make([]map[string]interface{}, len(apiKeys))
+	for k, apiKey := range apiKeys {
+		results[k] = map[string]interface{}{
+			"api_key_id":  apiKey.ID,
+			"description": apiKey.Desc,
+			"public_key":  apiKey.PublicKey,
+			"private_key": apiKey.PrivateKey,
+			"role_names":  flattenProjectAPIKeyRoles(projectID, apiKey.Roles),
 		}
+
+		projectAssignment, err := newProjectAssignment(ctx, conn, apiKey.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		results[k]["project_assignment"] = projectAssignment
 	}
 	return results, nil
 }
