@@ -1,20 +1,20 @@
 # mongo
 variable "project_id" {
-  type    = string
+  type = string
 }
 variable "cloud_provider_access_name" {
   type    = string
   default = "AZURE"
 }
 variable "public_key" {
-  type    = string
+  type = string
 }
 variable "private_key" {
-  type    = string
+  type = string
 }
 
 variable "azure_tenant_id" {
-  type    = string
+  type = string
 }
 
 variable "atlas_azure_app_id" {
