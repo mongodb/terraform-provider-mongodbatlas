@@ -75,7 +75,7 @@ This project currently supports the below deployments:
 
 **5\. Execute the Terraform apply.**
 
-Now execute the plan to provision the Federated settings resources.
+Now execute the plan to provision the resources.
 
 ``` bash
 $ terraform apply
