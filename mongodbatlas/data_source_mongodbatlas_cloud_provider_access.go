@@ -28,11 +28,6 @@ func dataSourceMongoDBAtlasCloudProviderAccessList() *schema.Resource {
 				Elem:     dataSourceMongoDBAtlasCloudProviderAccess(),
 				Computed: true,
 			},
-			"azure_iam_roles": {
-				Type:     schema.TypeList,
-				Elem:     dataSourceMongoDBAtlasCloudProviderAccessAzure(),
-				Computed: true,
-			},
 		},
 	}
 }
@@ -77,46 +72,6 @@ func dataSourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderAccessAzure() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"created_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"provider_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"role_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"feature_usages": {
-				Type:     schema.TypeList,
-				Elem:     featureUsagesSchema(),
-				Computed: true,
-			},
-			"atlas_azure_app_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"service_principal_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"tenant_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"last_updated_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
-	}
-}
-
 func featureUsagesSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -146,10 +101,6 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
-	if err = d.Set("azure_iam_roles", flatCloudProviderAccessRolesAzure(roles)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGetRead, err))
-	}
-
 	d.SetId(id.UniqueId())
 
 	return nil
@@ -165,16 +116,6 @@ func flatCloudProviderAccessRolesAWS(roles *matlas.CloudProviderAccessRoles) (li
 	return list
 }
 
-func flatCloudProviderAccessRolesAzure(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
-	list = make([]map[string]interface{}, 0, len(roles.AzureServicePrincipals))
-	for i := range roles.AzureServicePrincipals {
-		role := &(roles.AzureServicePrincipals[i])
-		list = append(list, roleToSchemaAzure(role))
-	}
-
-	return list
-}
-
 func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
@@ -184,28 +125,6 @@ func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{
 		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
 		"provider_name":                  role.ProviderName,
 		"role_id":                        role.RoleID,
-	}
-
-	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
-
-	for _, featureUsage := range role.FeatureUsages {
-		features = append(features, featureToSchema(featureUsage))
-	}
-
-	out["feature_usages"] = features
-
-	return out
-}
-
-func roleToSchemaAzure(role *matlas.CloudProviderAccessRole) map[string]interface{} {
-	out := map[string]interface{}{
-		"created_date":         role.CreatedDate,
-		"last_updated_date":    role.LastUpdatedDate,
-		"provider_name":        role.ProviderName,
-		"role_id":              role.AzureID,
-		"tenant_id":            role.AzureTenantID,
-		"service_principal_id": role.AzureServicePrincipalID,
-		"atlas_azure_app_id":   role.AtlasAzureAppID,
 	}
 
 	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
