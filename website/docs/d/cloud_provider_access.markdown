@@ -10,7 +10,7 @@ description: |-
 
 # Data Source: mongodbatlas_cloud_provider_access
 
-`mongodbatlas_cloud_provider_access` allows you to get the list of cloud provider access roles, currently only AWS is supported.
+`mongodbatlas_cloud_provider_access` allows you to get the list of cloud provider access roles, currently only AWS and Azure is supported.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
