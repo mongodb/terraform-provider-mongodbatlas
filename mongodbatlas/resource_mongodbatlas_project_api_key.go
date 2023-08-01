@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -181,25 +182,34 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}
+	apiKeyIsPresent := false
 	for _, val := range projectAPIKeys {
-		if val.ID == apiKeyID {
-			if err := d.Set("api_key_id", val.ID); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
-			}
+		if val.ID != apiKeyID {
+			continue
+		}
 
-			if err := d.Set("description", val.Desc); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
-			}
+		apiKeyIsPresent = true
+		if err := d.Set("api_key_id", val.ID); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
+		}
 
-			if err := d.Set("public_key", val.PublicKey); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
-			}
-			if roleOk {
-				if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
-					return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
-				}
+		if err := d.Set("description", val.Desc); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
+		}
+
+		if err := d.Set("public_key", val.PublicKey); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+		}
+		if roleOk {
+			if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
+				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 			}
 		}
+	}
+	if !apiKeyIsPresent {
+		// api key has been deleted, marking resource as destroyed
+		d.SetId("")
+		return nil
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
@@ -216,12 +226,13 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
+
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	apiKeyID := ids["api_key_id"]
 
 	updateRequest := new(matlas.AssignAPIKey)
-
 	if d.HasChange("role_names") {
 		updateRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
 		if updateRequest.Roles != nil {
@@ -271,6 +282,16 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 			}
 		}
 	}
+
+	if d.HasChange("description") {
+		newDescription := d.Get("description").(string)
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &admin.CreateAtlasProjectApiKey{
+			Desc: &newDescription,
+		}).Execute(); err != nil {
+			return diag.Errorf("error updating description in api key(%s): %s", apiKeyID, err)
+		}
+	}
+
 	return resourceMongoDBAtlasProjectAPIKeyRead(ctx, d, meta)
 }
 

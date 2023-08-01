@@ -27,6 +27,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+// 	opts := &plugin.ServeOpts{Debug: debugMode, ProviderFunc: mongodbatlas.Provider}
+
+
 	providers := []func() tfprotov6.ProviderServer{
 		func() tfprotov6.ProviderServer {
 			return upgradedSdkProvider

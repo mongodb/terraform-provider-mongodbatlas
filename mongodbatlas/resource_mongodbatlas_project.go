@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -35,7 +36,6 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"org_id": {
 				Type:     schema.TypeString,
@@ -134,6 +134,34 @@ func resourceMongoDBAtlasProject() *schema.Resource {
 				Computed: true,
 				Optional: true,
 			},
+			"limits": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"current_usage": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"default_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"maximum_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -146,6 +174,7 @@ type AtlastProjectDependents struct {
 func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectReq := &matlas.Project{
 		OrgID:                     d.Get("org_id").(string),
@@ -193,6 +222,26 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 					return diag.Errorf(errorProjectDelete, project.ID, err)
 				}
 				return diag.Errorf("error assigning api keys to the project: %s", err)
+			}
+		}
+	}
+
+	// Check if limits were set, if so we need to add into the project
+	if limits, ok := d.GetOk("limits"); ok {
+		// assign limits to the project
+		for _, limit := range expandLimitsSet(limits.(*schema.Set)) {
+			limitModel := &admin.DataFederationLimit{
+				Name:  limit.name,
+				Value: limit.value,
+			}
+			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, project.ID, limitModel).Execute()
+
+			if err != nil {
+				errd := deleteProject(ctx, meta, project.ID)
+				if errd != nil {
+					return diag.Errorf(errorProjectDelete, project.ID, err)
+				}
+				return diag.Errorf("error assigning limits to the project: %s", err)
 			}
 		}
 	}
@@ -246,6 +295,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 
 func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Id()
 
 	projectRes, resp, err := conn.Projects.GetOneProject(context.Background(), projectID)
@@ -272,6 +322,20 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 		log.Println("[WARN] `api_keys` will be empty because the user has no permissions to read the api keys endpoint")
 	}
 
+	if definedLimits, ok := d.GetOk("limits"); ok {
+		definedLimitsList := expandLimitsSet(definedLimits.(*schema.Set))
+
+		// terraform state will only save user defined limits
+		filteredLimits, err := fetchUserDefinedLimits(ctx, definedLimitsList, projectID, connV2)
+		if err != nil {
+			return err
+		}
+
+		if err := d.Set("limits", flattenLimits(filteredLimits)); err != nil {
+			return diag.Errorf(errorProjectSetting, `limits`, projectID, err)
+		}
+	}
+
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
 	if err != nil {
 		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
@@ -294,7 +358,7 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	if err := d.Set("teams", flattenTeams(teams)); err != nil {
-		return diag.Errorf(errorProjectSetting, `created`, projectID, err)
+		return diag.Errorf(errorProjectSetting, `teams`, projectID, err)
 	}
 
 	if err := d.Set("api_keys", flattenAPIKeys(apiKeys)); err != nil {
@@ -323,89 +387,43 @@ func resourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
+func fetchUserDefinedLimits(ctx context.Context, definedLimitsList []*projectLimit, projectID string, connV2 *admin.APIClient) ([]admin.DataFederationLimit, diag.Diagnostics) {
+	definedLimitsMap := make(map[string]*projectLimit)
+	for _, definedLimit := range definedLimitsList {
+		definedLimitsMap[definedLimit.name] = definedLimit
+	}
+
+	fetchedLimits, _, err := connV2.ProjectsApi.ListProjectLimits(ctx, projectID).Execute()
+	if err != nil {
+		return nil, diag.Errorf("error getting project's limits (%s): %s", projectID, err)
+	}
+	filteredLimits := []admin.DataFederationLimit{}
+	for i := range fetchedLimits {
+		limitRes := fetchedLimits[i]
+		if _, ok := definedLimitsMap[limitRes.Name]; ok {
+			filteredLimits = append(filteredLimits, limitRes)
+		}
+	}
+	return filteredLimits, nil
+}
+
 func resourceMongoDBAtlasProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if err := updateProject(ctx, d, meta); err != nil {
+		return err
+	}
+	if err := updateTeams(ctx, d, meta); err != nil {
+		return err
+	}
+	if err := updateAPIKeys(ctx, d, meta); err != nil {
+		return err
+	}
+	if err := updateLimits(ctx, d, meta); err != nil {
+		return err
+	}
+
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Id()
-
-	if d.HasChange("teams") {
-		// get the current teams and the new teams with changes
-		newTeams, changedTeams, removedTeams := getStateTeams(d)
-
-		// adding new teams into the project
-		if len(newTeams) > 0 {
-			_, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, expandTeamsList(newTeams))
-			if err != nil {
-				return diag.Errorf("error adding teams into the project(%s): %s", projectID, err)
-			}
-		}
-
-		// Removing teams from the project
-		for _, team := range removedTeams {
-			teamID := team.(map[string]interface{})["team_id"].(string)
-
-			_, err := conn.Teams.RemoveTeamFromProject(ctx, projectID, teamID)
-			if err != nil {
-				var target *matlas.ErrorResponse
-				if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
-					return diag.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
-				}
-				log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err)
-			}
-		}
-
-		// Updating the role names for a team
-		for _, t := range changedTeams {
-			team := t.(map[string]interface{})
-
-			_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, team["team_id"].(string),
-				&matlas.TeamUpdateRoles{
-					RoleNames: expandStringList(team["role_names"].(*schema.Set).List()),
-				},
-			)
-			if err != nil {
-				return diag.Errorf("error updating role names for the team(%s): %s", team["team_id"], err)
-			}
-		}
-	}
-
-	if d.HasChange("api_keys") {
-		// get the current api_keys and the new api_keys with changes
-		newAPIKeys, changedAPIKeys, removedAPIKeys := getStateAPIKeys(d)
-
-		// adding new api_keys into the project
-		if len(newAPIKeys) > 0 {
-			for _, apiKey := range expandAPIKeysList(newAPIKeys) {
-				_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
-					Roles: apiKey.roles,
-				})
-				if err != nil {
-					return diag.Errorf("error assigning api_keys into the project(%s): %s", projectID, err)
-				}
-			}
-		}
-
-		// Removing api_keys from the project
-		for _, apiKey := range removedAPIKeys {
-			apiKeyID := apiKey.(map[string]interface{})["api_key_id"].(string)
-			_, err := conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
-			if err != nil {
-				return diag.Errorf("error removing api_key(%s) from the project(%s): %s", apiKeyID, projectID, err)
-			}
-		}
-
-		// Updating the role names for the api_key
-		for _, apiKey := range expandAPIKeysList(changedAPIKeys) {
-			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
-				Roles: apiKey.roles,
-			})
-			if err != nil {
-				return diag.Errorf("error updating role names for the api_key(%s): %s", apiKey, err)
-			}
-		}
-	}
-
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
-
 	if err != nil {
 		return diag.Errorf("error getting project's settings assigned (%s): %s", projectID, err)
 	}
@@ -510,6 +528,25 @@ func expandAPIKeysSet(apiKeys *schema.Set) []*apiKey {
 	return res
 }
 
+type projectLimit struct {
+	name  string
+	value int64
+}
+
+func expandLimitsSet(limits *schema.Set) []*projectLimit {
+	res := make([]*projectLimit, limits.Len())
+
+	for i, value := range limits.List() {
+		v := value.(map[string]interface{})
+		res[i] = &projectLimit{
+			name:  v["name"].(string),
+			value: int64(v["value"].(int)),
+		}
+	}
+
+	return res
+}
+
 func expandTeamsList(teams []interface{}) []*matlas.ProjectTeam {
 	res := make([]*matlas.ProjectTeam, len(teams))
 
@@ -532,6 +569,20 @@ func expandAPIKeysList(apiKeys []interface{}) []*apiKey {
 		res[i] = &apiKey{
 			id:    v["api_key_id"].(string),
 			roles: expandStringList(v["role_names"].(*schema.Set).List()),
+		}
+	}
+
+	return res
+}
+
+func expandLimitsList(limits []interface{}) []*projectLimit {
+	res := make([]*projectLimit, len(limits))
+
+	for i, value := range limits {
+		v := value.(map[string]interface{})
+		res[i] = &projectLimit{
+			name:  v["name"].(string),
+			value: int64(v["value"].(int)),
 		}
 	}
 
@@ -565,58 +616,57 @@ func flattenAPIKeys(keys []*apiKey) []map[string]interface{} {
 	return res
 }
 
-func getStateTeams(d *schema.ResourceData) (newTeams, changedTeams, removedTeams []interface{}) {
-	currentTeams, changes := d.GetChange("teams")
+func flattenLimits(limits []admin.DataFederationLimit) []map[string]interface{} {
+	res := make([]map[string]interface{}, len(limits))
 
-	rTeams := currentTeams.(*schema.Set).Difference(changes.(*schema.Set))
-	nTeams := changes.(*schema.Set).Difference(currentTeams.(*schema.Set))
-	changedTeams = make([]interface{}, 0)
-
-	for _, changed := range nTeams.List() {
-		for _, removed := range rTeams.List() {
-			if changed.(map[string]interface{})["team_id"] == removed.(map[string]interface{})["team_id"] {
-				rTeams.Remove(removed)
-			}
+	for i, limit := range limits {
+		res[i] = map[string]interface{}{
+			"name":  limit.Name,
+			"value": limit.Value,
 		}
-
-		for _, current := range currentTeams.(*schema.Set).List() {
-			if changed.(map[string]interface{})["team_id"] == current.(map[string]interface{})["team_id"] {
-				changedTeams = append(changedTeams, changed.(map[string]interface{}))
-				nTeams.Remove(changed)
-			}
+		if limit.CurrentUsage != nil {
+			res[i]["current_usage"] = *limit.CurrentUsage
+		}
+		if limit.DefaultLimit != nil {
+			res[i]["default_limit"] = *limit.DefaultLimit
+		}
+		if limit.MaximumLimit != nil {
+			res[i]["maximum_limit"] = *limit.MaximumLimit
 		}
 	}
 
-	newTeams = nTeams.List()
-	removedTeams = rTeams.List()
-
-	return
+	return res
 }
 
-func getStateAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, removedAPIKeys []interface{}) {
-	currentAPIKeys, changes := d.GetChange("api_keys")
+// getChangesInSet divides modified elements of a Set into 3 distinct groups using an a specific key for comparing elements. This is useful for update in Set values.
+// The function receives an attribute key where the Set is stored, and a elementsIdKey to uniquely identify each element.
+// - newElements: new elements that where not present in previous state
+// - changedElements: elements where some value was modified but is still present
+// - removedElements: elements that are no longer present
+func getChangesInSet(d *schema.ResourceData, attributeKey, elementsIDKey string) (newElements, changedElements, removedElements []interface{}) {
+	oldSet, newSet := d.GetChange(attributeKey)
 
-	rAPIKeys := currentAPIKeys.(*schema.Set).Difference(changes.(*schema.Set))
-	nAPIKeys := changes.(*schema.Set).Difference(currentAPIKeys.(*schema.Set))
-	changedAPIKeys = make([]interface{}, 0)
+	removedSchemaSet := oldSet.(*schema.Set).Difference(newSet.(*schema.Set))
+	newSchemaSet := newSet.(*schema.Set).Difference(oldSet.(*schema.Set))
+	changedElements = make([]interface{}, 0)
 
-	for _, changed := range nAPIKeys.List() {
-		for _, removed := range rAPIKeys.List() {
-			if changed.(map[string]interface{})["api_key_id"] == removed.(map[string]interface{})["api_key_id"] {
-				rAPIKeys.Remove(removed)
+	for _, new := range newSchemaSet.List() {
+		for _, removed := range removedSchemaSet.List() {
+			if new.(map[string]interface{})[elementsIDKey] == removed.(map[string]interface{})[elementsIDKey] {
+				removedSchemaSet.Remove(removed)
 			}
 		}
 
-		for _, current := range currentAPIKeys.(*schema.Set).List() {
-			if changed.(map[string]interface{})["api_key_id"] == current.(map[string]interface{})["api_key_id"] {
-				changedAPIKeys = append(changedAPIKeys, changed.(map[string]interface{}))
-				nAPIKeys.Remove(changed)
+		for _, old := range oldSet.(*schema.Set).List() {
+			if new.(map[string]interface{})[elementsIDKey] == old.(map[string]interface{})[elementsIDKey] {
+				changedElements = append(changedElements, new.(map[string]interface{}))
+				newSchemaSet.Remove(new)
 			}
 		}
 	}
 
-	newAPIKeys = nAPIKeys.List()
-	removedAPIKeys = rAPIKeys.List()
+	newElements = newSchemaSet.List()
+	removedElements = removedSchemaSet.List()
 
 	return
 }
@@ -644,5 +694,172 @@ func deleteProject(ctx context.Context, meta interface{}, projectID string) diag
 		return diag.Errorf(errorProjectDelete, projectID, err)
 	}
 
+	return nil
+}
+
+func updateProject(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if !d.HasChange("name") {
+		return nil
+	}
+
+	conn := meta.(*MongoDBClient).Atlas
+	projectID := d.Id()
+
+	if _, _, err := conn.Projects.Update(ctx, projectID, newProjectUpdateRequest(d)); err != nil {
+		return diag.Errorf("error updating the project(%s): %s", projectID, err)
+	}
+
+	return nil
+}
+
+func newProjectUpdateRequest(d *schema.ResourceData) *matlas.ProjectUpdateRequest {
+	return &matlas.ProjectUpdateRequest{
+		Name: d.Get("name").(string),
+	}
+}
+
+func updateTeams(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if !d.HasChange("teams") {
+		return nil
+	}
+
+	conn := meta.(*MongoDBClient).Atlas
+	projectID := d.Id()
+
+	// get the current teams and the new teams with changes
+	newTeams, changedTeams, removedTeams := getChangesInSet(d, "teams", "team_id")
+
+	// adding new teams into the project
+	if len(newTeams) > 0 {
+		_, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, expandTeamsList(newTeams))
+		if err != nil {
+			return diag.Errorf("error adding teams into the project(%s): %s", projectID, err)
+		}
+	}
+
+	// Removing teams from the project
+	for _, team := range removedTeams {
+		teamID := team.(map[string]interface{})["team_id"].(string)
+
+		_, err := conn.Teams.RemoveTeamFromProject(ctx, projectID, teamID)
+		if err != nil {
+			var target *matlas.ErrorResponse
+			if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
+				return diag.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
+			}
+			log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err)
+		}
+	}
+
+	// Updating the role names for a team
+	for _, t := range changedTeams {
+		team := t.(map[string]interface{})
+
+		_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, team["team_id"].(string),
+			&matlas.TeamUpdateRoles{
+				RoleNames: expandStringList(team["role_names"].(*schema.Set).List()),
+			},
+		)
+		if err != nil {
+			return diag.Errorf("error updating role names for the team(%s): %s", team["team_id"], err)
+		}
+	}
+
+	return nil
+}
+
+func updateAPIKeys(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if !d.HasChange("api_keys") {
+		return nil
+	}
+
+	conn := meta.(*MongoDBClient).Atlas
+	projectID := d.Id()
+
+	// get the current api_keys and the new api_keys with changes
+	newAPIKeys, changedAPIKeys, removedAPIKeys := getChangesInSet(d, "api_keys", "api_key_id")
+
+	// adding new api_keys into the project
+	if len(newAPIKeys) > 0 {
+		for _, apiKey := range expandAPIKeysList(newAPIKeys) {
+			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
+				Roles: apiKey.roles,
+			})
+			if err != nil {
+				return diag.Errorf("error assigning api_keys into the project(%s): %s", projectID, err)
+			}
+		}
+	}
+
+	// Removing api_keys from the project
+	for _, apiKey := range removedAPIKeys {
+		apiKeyID := apiKey.(map[string]interface{})["api_key_id"].(string)
+		_, err := conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
+		if err != nil {
+			return diag.Errorf("error removing api_key(%s) from the project(%s): %s", apiKeyID, projectID, err)
+		}
+	}
+
+	// Updating the role names for the api_key
+	for _, apiKey := range expandAPIKeysList(changedAPIKeys) {
+		_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
+			Roles: apiKey.roles,
+		})
+		if err != nil {
+			return diag.Errorf("error updating role names for the api_key(%s): %s", apiKey, err)
+		}
+	}
+
+	return nil
+}
+
+func updateLimits(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if !d.HasChange("limits") {
+		return nil
+	}
+
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	projectID := d.Id()
+
+	// get the current limits and the new limits with changes
+	newLimits, changedLimits, removedLimits := getChangesInSet(d, "limits", "name")
+
+	// adding new limits into the project
+	if len(newLimits) > 0 {
+		for _, limit := range expandLimitsList(newLimits) {
+			if err := setLimitToProject(ctx, limit, projectID, connV2); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Removing limits from the project
+	for _, limit := range removedLimits {
+		limitName := limit.(map[string]interface{})["name"].(string)
+		_, _, err := connV2.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute()
+		if err != nil {
+			return diag.Errorf("error removing limit %s from the project(%s): %s", limitName, projectID, err)
+		}
+	}
+
+	// Updating values for changed limits
+	for _, limit := range expandLimitsList(changedLimits) {
+		if err := setLimitToProject(ctx, limit, projectID, connV2); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func setLimitToProject(ctx context.Context, limit *projectLimit, projectID string, connV2 *admin.APIClient) diag.Diagnostics {
+	limitModel := &admin.DataFederationLimit{
+		Name:  limit.name,
+		Value: limit.value,
+	}
+	_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.name, projectID, limitModel).Execute()
+	if err != nil {
+		return diag.Errorf("error assigning limit %s to the project: %s", limitModel.Name, err)
+	}
 	return nil
 }

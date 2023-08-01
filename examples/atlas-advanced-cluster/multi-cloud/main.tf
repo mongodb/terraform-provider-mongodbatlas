@@ -50,7 +50,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }

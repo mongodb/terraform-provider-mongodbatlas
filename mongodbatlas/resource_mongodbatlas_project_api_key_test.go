@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigRSProjectAPIKey_Basic(t *testing.T) {
@@ -64,6 +66,41 @@ func TestAccConfigRSProjectAPIKey_Multiple(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSProjectAPIKey_UpdateDescription(t *testing.T) {
+	var (
+		resourceName       = "mongodbatlas_project_api_key.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acctest.RandomWithPrefix("test-acc")
+		description        = fmt.Sprintf("test-acc-project-api_key-%s", acctest.RandString(5))
+		updatedDescription = fmt.Sprintf("test-acc-project-api_key-updated-%s", acctest.RandString(5))
+		roleName           = "GROUP_OWNER"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, updatedDescription, roleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project_api_key.test"
@@ -89,6 +126,60 @@ func TestAccConfigRSProjectAPIKey_importBasic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccConfigRSProjectAPIKey_RecreateWhenDeletedExternally(t *testing.T) {
+	var (
+		resourceName      = "mongodbatlas_project_api_key.test"
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName       = acctest.RandomWithPrefix("test-acc")
+		descriptionPrefix = "test-acc-project-to-delete-api-key"
+		description       = fmt.Sprintf("%s-%s", descriptionPrefix, acctest.RandString(5))
+		roleName          = "GROUP_OWNER"
+	)
+
+	projectAPIKeyConfig := testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description, roleName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: projectAPIKeyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+				),
+			},
+			{
+				PreConfig: func() {
+					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
+						t.Fatalf("failed to manually delete API key resource: %s", err)
+					}
+				},
+				Config:             projectAPIKeyConfig,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true, // should detect that api key has to be recreated
+			},
+		},
+	})
+}
+
+func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
+	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	list, _, err := conn.APIKeys.List(context.Background(), orgID, &matlas.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, key := range list {
+		if strings.HasPrefix(key.Desc, descriptionPrefix) {
+			if _, err := conn.APIKeys.Delete(context.Background(), orgID, key.ID); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func testAccCheckMongoDBAtlasProjectAPIKeyDestroy(s *terraform.State) error {

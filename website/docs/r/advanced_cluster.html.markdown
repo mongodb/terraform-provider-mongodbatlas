@@ -48,7 +48,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
       provider_name = "AWS"
-      priority      = 1
+      priority      = 7
       region_name   = "US_EAST_1"
     }
   }
@@ -71,7 +71,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name         = "TENANT"
       backing_provider_name = "AWS"
       region_name           = "US_EAST_1"
-      priority              = 1
+      priority              = 7
     }
   }
 }
@@ -92,7 +92,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
       }
       provider_name         = "AWS"
       region_name           = "US_EAST_1"
-      priority              = 1
+      priority              = 7
     }
   }
 }
@@ -116,7 +116,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 1
       }
       provider_name = "AWS"
-      priority      = 1
+      priority      = 7
       region_name   = "US_EAST_1"
     }
     region_configs {
@@ -130,7 +130,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
   }
 }
-
+```
 ### Example of a Multi-Cloud Cluster.
 
 ```terraform
@@ -181,7 +181,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }
@@ -244,7 +244,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }
@@ -291,7 +291,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         node_count    = 1
       }
       provider_name = "GCP"
-      priority      = 0
+      priority      = 5
       region_name   = "US_EAST_4"
     }
   }
@@ -301,6 +301,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
+}
 ```
 
 
@@ -372,7 +373,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 This parameter defaults to false.
 
-* `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter defaults to false.
+* `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. M10 and above only.
 
 **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
 
@@ -495,7 +496,7 @@ replication_specs {
       node_count    = 1
     }
     provider_name = "AWS"
-    priority      = 1
+    priority      = 7
     region_name   = "US_EAST_1"
   }
   region_configs {
@@ -537,11 +538,11 @@ replication_specs {
 
 ### electable_specs
 
+* `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
 * `disk_iops` - (Optional) Target throughput (IOPS) desired for AWS storage attached to your cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
     * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
-* `instance_size` - (Optional) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
 
 ### analytics_specs

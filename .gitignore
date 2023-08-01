@@ -29,6 +29,8 @@ website/node_modules
 *.tfvars
 service-account.json
 log.*
+test.env
+__debug_*
 
 website/vendor
 

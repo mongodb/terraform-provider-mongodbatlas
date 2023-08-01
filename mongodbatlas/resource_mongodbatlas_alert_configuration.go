@@ -574,10 +574,10 @@ func expandAlertConfigurationThreshold(d *schema.ResourceData) *matlas.Threshold
 
 func expandAlertConfigurationMetricThresholdConfig(d *schema.ResourceData) *matlas.MetricThreshold {
 	if value, ok := d.GetOk("metric_threshold_config"); ok {
-		vL := value.([]interface{})
+		metricThresholdConfigLists := value.([]interface{})
 
-		if len(vL) > 0 {
-			v := vL[0].(map[string]interface{})
+		if len(metricThresholdConfigLists) == 1 && metricThresholdConfigLists[0] != nil {
+			v := metricThresholdConfigLists[0].(map[string]interface{})
 
 			return &matlas.MetricThreshold{
 				MetricName: cast.ToString(v["metric_name"]),
