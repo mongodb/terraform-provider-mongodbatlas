@@ -1,5 +1,5 @@
 # MongoDB Atlas Provider -- Cloud Provider Access Role with AZURE
-This example shows how to perform authorization for a cloud provider AWS role.
+This example shows how to perform authorization for a cloud provider Azure Service Principal. 
 
 ## Dependencies
 
