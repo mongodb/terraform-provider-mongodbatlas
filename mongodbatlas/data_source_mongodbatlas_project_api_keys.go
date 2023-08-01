@@ -54,6 +54,7 @@ func dataSourceMongoDBAtlasProjectAPIKeys() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
 						},
 						"project_assignment": {
 							Type:     schema.TypeSet,
