@@ -284,7 +284,17 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName)
+
+	// When a new cluster is created with the backup feature enabled,
+	// MongoDB Atlas automatically generates a default backup policy for that cluster.
+	// As a result, we need to first delete the default policies to avoid having 
+	// the infrastructure differs from the TF configuration file.
+	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
+	if err != nil {
+		log.Printf("error deleting default MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+	}
+
+	err = cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName)
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleCreate, err)
 	}
@@ -440,23 +450,6 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 }
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
-	_, policyMonthlyOK := d.GetOk("policy_item_monthly")
-	_, policyWeeklyOK := d.GetOk("policy_item_weekly")
-	_, policyDailyOK := d.GetOk("policy_item_daily")
-	_, policyhourlyOK := d.GetOk("policy_item_hourly")
-
-	// When a new cluster is created with the backup feature enabled,
-	// MongoDB Atlas automatically generates a default backup policy for that cluster.
-	// However, in the scenario where the user hasn't provided a backup policy,
-	// we want to make sure that the default backup policy is removed first.
-	// This is to avoid having the infrastructure differs from the TF configuration file.
-	if !policyMonthlyOK && !policyWeeklyOK && !policyDailyOK && !policyhourlyOK {
-		_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
-		if err != nil {
-			log.Printf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
-		}
-	}
-
 	// Get policies items
 	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
@@ -477,6 +470,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
 		item := v.([]interface{})
 		itemObj := item[0].(map[string]interface{})
+		policyItem.ID = policyItemID(itemObj)
 		policyItem.FrequencyType = snapshotScheduleHourly
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -486,6 +480,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	if v, ok := d.GetOk("policy_item_daily"); ok {
 		item := v.([]interface{})
 		itemObj := item[0].(map[string]interface{})
+		policyItem.ID = policyItemID(itemObj)
 		policyItem.FrequencyType = snapshotScheduleDaily
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -496,6 +491,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		items := v.([]interface{})
 		for _, s := range items {
 			itemObj := s.(map[string]interface{})
+			policyItem.ID = policyItemID(itemObj)
 			policyItem.FrequencyType = snapshotScheduleWeekly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -507,6 +503,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		items := v.([]interface{})
 		for _, s := range items {
 			itemObj := s.(map[string]interface{})
+			policyItem.ID = policyItemID(itemObj)
 			policyItem.FrequencyType = snapshotScheduleMonthly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			policyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -640,4 +637,16 @@ func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
 		copySettings = append(copySettings, *apiObject)
 	}
 	return copySettings
+}
+
+func policyItemID(policyState map[string]interface{}) string {
+	 // if the policyItem has the ID field, this is the update operation
+	 // we return the ID that was stored in the TF state
+	if val, ok := policyState["id"]; ok {
+		if id, ok := val.(string); ok {
+			return id
+		}
+	}
+
+	return ""
 }
