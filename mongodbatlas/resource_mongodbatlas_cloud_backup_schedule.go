@@ -284,18 +284,15 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-
 	// When a new cluster is created with the backup feature enabled,
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
-	// As a result, we need to first delete the default policies to avoid having 
+	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	_, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName)
-	if err != nil {
+	if _, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName); err != nil {
 		log.Printf("error deleting default MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
-	err = cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName)
-	if err != nil {
+	if err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleCreate, err)
 	}
 
@@ -640,8 +637,8 @@ func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
 }
 
 func policyItemID(policyState map[string]interface{}) string {
-	 // if the policyItem has the ID field, this is the update operation
-	 // we return the ID that was stored in the TF state
+	// if the policyItem has the ID field, this is the update operation
+	// we return the ID that was stored in the TF state
 	if val, ok := policyState["id"]; ok {
 		if id, ok := val.(string); ok {
 			return id
