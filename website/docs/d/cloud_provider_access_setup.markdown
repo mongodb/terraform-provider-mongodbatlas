@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: mongodbatlas_cloud_provider_access
 
-`mongodbatlas_cloud_provider_access` allows you to get a single role for a provider access role setup, currently only AWS and AZURE are supported.
+`mongodbatlas_cloud_provider_access` allows you to get a single role for a provider access role setup, currently only AWS and Azure are supported.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
