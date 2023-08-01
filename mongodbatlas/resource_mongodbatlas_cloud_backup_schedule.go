@@ -280,6 +280,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -289,11 +290,17 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
 	if _, _, err := conn.CloudProviderSnapshotBackupPolicies.Delete(ctx, projectID, clusterName); err != nil {
-		log.Printf("error deleting default MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+		diagWarning := diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Error deleting default backup schedule",
+			Detail:   fmt.Sprintf("error deleting default MongoDB Cloud Backup Schedule (%s): %s", clusterName, err),
+		}
+		diags = append(diags, diagWarning)
 	}
 
 	if err := cloudBackupScheduleCreateOrUpdate(ctx, conn, d, projectID, clusterName); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleCreate, err)
+		diags = append(diags, diag.Errorf(errorSnapshotBackupScheduleCreate, err)...)
+		return diags
 	}
 
 	d.SetId(encodeStateID(map[string]string{
