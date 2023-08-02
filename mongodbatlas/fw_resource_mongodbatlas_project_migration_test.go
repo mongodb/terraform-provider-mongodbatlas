@@ -42,7 +42,12 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				ProviderFactories: testAccProviderFactories, // SDKv2 provider
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.10.2",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -52,7 +57,7 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories, // Framework-only provider
+				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -94,8 +99,13 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				ProviderFactories: testAccProviderFactories, // SDKv2 provider
-				Config:            configWithTeams,
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.10.2",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
 					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
@@ -105,7 +115,7 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories, // Framework-only provider
+				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -133,8 +143,13 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				ProviderFactories: testAccProviderFactories, // SDKv2 provider
-				Config:            configWithTeams,
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.10.2",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
 					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
@@ -143,7 +158,7 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories, // Framework-only provider
+				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -178,8 +193,13 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				ProviderFactories: testAccProviderFactories, // SDKv2 provider
-				Config:            config,
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
@@ -190,7 +210,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories, // Framework-only provider
+				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
