@@ -39,12 +39,12 @@ var (
 )
 
 const (
-	endPointSTSDefault   = "https://sts.amazonaws.com"
-	DeprecationMessage   = "this resource is deprecated and will be removed in %s, please transition to %s"
-	MissingAuthAttrError = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
-	ProviderConfigError  = "error in configuring the provider."
-	AWS                  = "AWS"
-	AZURE                = "AZURE"
+	endPointSTSDefault                    = "https://sts.amazonaws.com"
+	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
+	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
+	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	AWS                                   = "AWS"
+	AZURE                                 = "AZURE"
 	GCP
 )
 
