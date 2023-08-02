@@ -32,11 +32,11 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// Note: when new providers will be added, this will trigger a recreate
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
+				ForceNew:     true,
 			},
 			"aws": {
 				Type:     schema.TypeMap,
@@ -62,7 +62,31 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 					},
 				},
 			},
+			"azure_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"atlas_azure_app_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"service_principal_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"created_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"last_updated_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -109,8 +133,19 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		ProviderName: d.Get("provider_name").(string),
 	}
 
-	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
+	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
+		requestParameters.AtlasAzureAppID = pointer(value.(string))
+	}
 
+	if value, ok := d.GetOk("azure_config.0.service_principal_id"); ok {
+		requestParameters.AzureServicePrincipalID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.tenant_id"); ok {
+		requestParameters.AzureTenantID = pointer(value.(string))
+	}
+
+	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
@@ -118,8 +153,13 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	// once multiple providers enable here do a switch, select for provider type
 	roleSchema := roleToSchemaSetup(role)
 
+	resourceID := role.RoleID
+	if role.ProviderName == AZURE {
+		resourceID = *role.AzureID
+	}
+
 	d.SetId(encodeStateID(map[string]string{
-		"id":            role.RoleID,
+		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
 	}))
@@ -148,27 +188,44 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *
 	}
 
 	_, err := conn.CloudProviderAccess.DeauthorizeRole(ctx, req)
-
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}
 
+	d.SetId("")
 	return nil
 }
 
-func roleToSchemaSetup(role *matlas.AWSIAMRole) map[string]interface{} {
+func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interface{} {
+	if role.ProviderName == "AWS" {
+		out := map[string]interface{}{
+			"provider_name": role.ProviderName,
+			"aws": map[string]interface{}{ // Deprecated, will be deleted later
+				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+			},
+			"aws_config": []interface{}{map[string]interface{}{
+				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+			}},
+			"created_date": role.CreatedDate,
+			"role_id":      role.RoleID,
+		}
+		return out
+	}
+
 	out := map[string]interface{}{
 		"provider_name": role.ProviderName,
-		"aws": map[string]interface{}{ // Deprecated, will be deleted later
-			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
-			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
-		},
-		"aws_config": []interface{}{map[string]interface{}{
-			"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
-			"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+		"azure_config": []interface{}{map[string]interface{}{
+			"atlas_azure_app_id":   role.AtlasAzureAppID,
+			"service_principal_id": role.AzureServicePrincipalID,
+			"tenant_id":            role.AzureTenantID,
 		}},
-		"created_date": role.CreatedDate,
-		"role_id":      role.RoleID,
+		"aws":               map[string]interface{}{},
+		"aws_config":        []interface{}{map[string]interface{}{}},
+		"created_date":      role.CreatedDate,
+		"last_updated_date": role.LastUpdatedDate,
+		"role_id":           role.AzureID,
 	}
 
 	return out
