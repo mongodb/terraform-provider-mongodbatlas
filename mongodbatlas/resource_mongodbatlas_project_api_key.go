@@ -98,20 +98,21 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
 		for _, apiKeyList := range projectAssignmentList {
-			if apiKeyList.ProjectID != projectID {
-				createRequest.Roles = apiKeyList.RoleNames
-				apiKey, resp, err := conn.ProjectAPIKeys.Assign(ctx, apiKeyList.ProjectID, apiKeyID, &matlas.AssignAPIKey{
-					Roles: createRequest.Roles,
-				})
-				if err != nil {
-					if resp != nil && resp.StatusCode == http.StatusNotFound {
-						d.SetId("")
-						return nil
-					}
-				}
-				publicKey = apiKey.PublicKey
-				privateKey = apiKey.PrivateKey
+			if apiKeyList.ProjectID == projectID {
+				continue
 			}
+			createRequest.Roles = apiKeyList.RoleNames
+			apiKey, resp, err := conn.ProjectAPIKeys.Assign(ctx, apiKeyList.ProjectID, apiKeyID, &matlas.AssignAPIKey{
+				Roles: createRequest.Roles,
+			})
+			if err != nil {
+				if resp != nil && resp.StatusCode == http.StatusNotFound {
+					d.SetId("")
+					return nil
+				}
+			}
+			publicKey = apiKey.PublicKey
+			privateKey = apiKey.PrivateKey
 		}
 	} else {
 		createRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
