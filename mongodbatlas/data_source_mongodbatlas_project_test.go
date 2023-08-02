@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccProjectDSProject_byID(t *testing.T) {
@@ -37,16 +38,6 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 						{
 							TeamID:    teamsIds[1],
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
-						},
-					},
-					[]*apiKey{
-						{
-							id:    apiKeysIds[0],
-							roles: []string{"GROUP_READ_ONLY"},
-						},
-						{
-							id:    apiKeysIds[1],
-							roles: []string{"GROUP_OWNER"},
 						},
 					},
 				)),
@@ -88,16 +79,6 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
-					[]*apiKey{
-						{
-							id:    apiKeysIds[0],
-							roles: []string{"GROUP_READ_ONLY"},
-						},
-						{
-							id:    apiKeysIds[1],
-							roles: []string{"GROUP_OWNER"},
-						},
-					},
 				)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
@@ -135,16 +116,6 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 
 							TeamID:    teamsIds[1],
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
-						},
-					},
-					[]*apiKey{
-						{
-							id:    apiKeysIds[0],
-							roles: []string{"GROUP_READ_ONLY"},
-						},
-						{
-							id:    apiKeysIds[1],
-							roles: []string{"GROUP_OWNER"},
 						},
 					},
 				)),

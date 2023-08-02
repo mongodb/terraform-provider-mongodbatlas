@@ -6,10 +6,11 @@ import (
 	"log"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 type apiKey struct {
@@ -267,4 +268,53 @@ func dataSourceMongoDBAtlasProjectRead(ctx context.Context, d *schema.ResourceDa
 	d.SetId(project.ID)
 
 	return nil
+}
+
+func flattenTeams(ta *matlas.TeamsAssigned) []map[string]interface{} {
+	teams := ta.Results
+	res := make([]map[string]interface{}, len(teams))
+
+	for i, team := range teams {
+		res[i] = map[string]interface{}{
+			"team_id":    team.TeamID,
+			"role_names": team.RoleNames,
+		}
+	}
+
+	return res
+}
+
+func flattenAPIKeys(keys []*apiKey) []map[string]interface{} {
+	res := make([]map[string]interface{}, len(keys))
+
+	for i, key := range keys {
+		res[i] = map[string]interface{}{
+			"api_key_id": key.id,
+			"role_names": key.roles,
+		}
+	}
+
+	return res
+}
+
+func flattenLimits(limits []admin.DataFederationLimit) []map[string]interface{} {
+	res := make([]map[string]interface{}, len(limits))
+
+	for i, limit := range limits {
+		res[i] = map[string]interface{}{
+			"name":  limit.Name,
+			"value": limit.Value,
+		}
+		if limit.CurrentUsage != nil {
+			res[i]["current_usage"] = *limit.CurrentUsage
+		}
+		if limit.DefaultLimit != nil {
+			res[i]["default_limit"] = *limit.DefaultLimit
+		}
+		if limit.MaximumLimit != nil {
+			res[i]["maximum_limit"] = *limit.MaximumLimit
+		}
+	}
+
+	return res
 }
