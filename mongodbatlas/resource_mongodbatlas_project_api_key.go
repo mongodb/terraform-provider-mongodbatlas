@@ -53,6 +53,7 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				ConflictsWith: []string{"project_assignment"},
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
 			},
 			"project_assignment": {
 				Type:     schema.TypeSet,
@@ -377,24 +378,6 @@ func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID string, apiKeys []matlas.APIKey) []map[string]interface{} {
-	var results []map[string]interface{}
-
-	if len(apiKeys) > 0 {
-		results = make([]map[string]interface{}, len(apiKeys))
-		for k, apiKey := range apiKeys {
-			results[k] = map[string]interface{}{
-				"api_key_id":  apiKey.ID,
-				"description": apiKey.Desc,
-				"public_key":  apiKey.PublicKey,
-				"private_key": apiKey.PrivateKey,
-				"role_names":  flattenProjectAPIKeyRoles(projectID, apiKey.Roles),
-			}
-		}
-	}
-	return results
-}
-
 func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []matlas.AtlasRole) []string {
 	if len(apiKeyRoles) == 0 {
 		return nil
@@ -425,13 +408,23 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 	return res
 }
 
-func FlattenProjectAssignment(apiKeyAssignmentSet []APIProjectAssignmentKeyInput) []map[string]interface{} {
+func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID string) ([]map[string]interface{}, error) {
+	apiKeyOrgList, _, err := conn.Root.List(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error getting api key information: %s", err)
+	}
+
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting api key information: %s", err)
+	}
+
 	var results []map[string]interface{}
 	var atlasRoles []matlas.AtlasRole
 	var atlasRole matlas.AtlasRole
-	if len(apiKeyAssignmentSet) > 0 {
-		results = make([]map[string]interface{}, len(apiKeyAssignmentSet))
-		for k, apiKey := range apiKeyAssignmentSet {
+	if len(projectAssignments) > 0 {
+		results = make([]map[string]interface{}, len(projectAssignments))
+		for k, apiKey := range projectAssignments {
 			for _, roleName := range apiKey.RoleNames {
 				atlasRole.GroupID = apiKey.ProjectID
 				atlasRole.RoleName = roleName
@@ -443,7 +436,7 @@ func FlattenProjectAssignment(apiKeyAssignmentSet []APIProjectAssignmentKeyInput
 			}
 		}
 	}
-	return results
+	return results, nil
 }
 
 func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, removedAPIKeys []interface{}) {
