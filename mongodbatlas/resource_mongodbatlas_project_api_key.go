@@ -65,6 +65,10 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"role_names": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -81,7 +85,8 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 }
 
 type APIProjectAssignmentKeyInput struct {
-	ProjectID string   `json:"desc,omitempty"`
+	ProjectID string   `json:"projectId,omitempty"`
+	Desc      string   `json:"desc,omitempty"`
 	RoleNames []string `json:"roles,omitempty"`
 }
 
@@ -94,16 +99,16 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 	var err error
 	var resp *matlas.Response
 
-	createRequest.Desc = d.Get("description").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	var publicKey, privateKey string
 	if projectAssignments, ok := d.GetOk("project_assignment"); ok {
-		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
+		projectAssignmentList := expandProjectAssignmentSet(projectAssignments.(*schema.Set))
 		for _, apiKeyList := range projectAssignmentList {
 			if apiKeyList.ProjectID == projectID {
 				continue
 			}
 			createRequest.Roles = apiKeyList.RoleNames
+			createRequest.Desc = apiKeyList.Desc
 			apiKey, resp, err := conn.ProjectAPIKeys.Assign(ctx, apiKeyList.ProjectID, apiKeyID, &matlas.AssignAPIKey{
 				Roles: createRequest.Roles,
 			})
@@ -117,6 +122,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 			privateKey = apiKey.PrivateKey
 		}
 	} else {
+		createRequest.Desc = d.Get("description").(string)
 		createRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
 		apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 		if err != nil {
@@ -386,13 +392,14 @@ func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []matlas.AtlasRole)
 	return flattenedOrgRoles
 }
 
-func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
+func expandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAssignmentKeyInput {
 	res := make([]*APIProjectAssignmentKeyInput, projectAssignments.Len())
 
 	for i, value := range projectAssignments.List() {
 		v := value.(map[string]interface{})
 		res[i] = &APIProjectAssignmentKeyInput{
 			ProjectID: v["project_id"].(string),
+			Desc:      v["description"].(string),
 			RoleNames: expandStringList(v["role_names"].(*schema.Set).List()),
 		}
 	}
@@ -423,8 +430,9 @@ func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID str
 				atlasRoles = append(atlasRoles, atlasRole)
 			}
 			results[k] = map[string]interface{}{
-				"project_id": apiKey.ProjectID,
-				"role_names": flattenProjectAPIKeyRoles(apiKey.ProjectID, atlasRoles),
+				"project_id":  apiKey.ProjectID,
+				"description": apiKey.Desc,
+				"role_names":  flattenProjectAPIKeyRoles(apiKey.ProjectID, atlasRoles),
 			}
 		}
 	}
