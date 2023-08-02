@@ -213,7 +213,7 @@ func resourceMongoDBAtlasProjectCreate(ctx context.Context, d *schema.ResourceDa
 	if apiKeys, ok := d.GetOk("api_keys"); ok {
 		// assign api keys to the project
 		for _, apiKey := range expandAPIKeysSet(apiKeys.(*schema.Set)) {
-			_, err := conn.ProjectAPIKeys.Assign(ctx, project.ID, apiKey.id, &matlas.AssignAPIKey{
+			_, _, err := conn.ProjectAPIKeys.Assign(ctx, project.ID, apiKey.id, &matlas.AssignAPIKey{
 				Roles: apiKey.roles,
 			})
 			if err != nil {
@@ -782,7 +782,7 @@ func updateAPIKeys(ctx context.Context, d *schema.ResourceData, meta interface{}
 	// adding new api_keys into the project
 	if len(newAPIKeys) > 0 {
 		for _, apiKey := range expandAPIKeysList(newAPIKeys) {
-			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
+			_, _, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
 				Roles: apiKey.roles,
 			})
 			if err != nil {
@@ -802,7 +802,7 @@ func updateAPIKeys(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 	// Updating the role names for the api_key
 	for _, apiKey := range expandAPIKeysList(changedAPIKeys) {
-		_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
+		_, _, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKey.id, &matlas.AssignAPIKey{
 			Roles: apiKey.roles,
 		})
 		if err != nil {
