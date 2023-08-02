@@ -8,10 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var _ plancheck.PlanCheck = debugPlan{}
@@ -38,7 +39,7 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy2,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				ProviderFactories: testAccProviderFactories, // SDKv2 provider
@@ -75,7 +76,7 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount    = "0"
 		teamsIds        = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-		configWithTeams = testAccMongoDBAtlasProjectConfig2(projectName, orgID,
+		configWithTeams = testAccMongoDBAtlasProjectConfig(projectName, orgID,
 			[]*matlas.ProjectTeam{
 				{
 					TeamID:    teamsIds[0],
@@ -90,14 +91,14 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy2,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				ProviderFactories: testAccProviderFactories, // SDKv2 provider
 				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists2(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes2(&project, projectName),
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
@@ -129,14 +130,14 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasicOwnerID(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy2,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				ProviderFactories: testAccProviderFactories, // SDKv2 provider
 				Config:            configWithTeams,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectExists2(resourceName, &project),
-					testAccCheckMongoDBAtlasProjectAttributes2(&project, projectName),
+					testAccCheckMongoDBAtlasProjectExists(resourceName, &project),
+					testAccCheckMongoDBAtlasProjectAttributes(&project, projectName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
@@ -174,7 +175,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy2,
+		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				ProviderFactories: testAccProviderFactories, // SDKv2 provider

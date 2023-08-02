@@ -2,7 +2,9 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"sort"
@@ -24,6 +26,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+)
+
+const (
+	errorProjectCreate  = "error creating Project: %s"
+	errorProjectRead    = "error getting project(%s): %s"
+	errorProjectDelete  = "error deleting project (%s): %s"
+	errorProjectSetting = "error setting `%s` for project (%s): %s"
+	errorProjectUpdate  = "error updating project (%s): %s"
 )
 
 var _ resource.Resource = &ProjectResource{}
@@ -80,6 +90,11 @@ var tfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"default_limit": types.Int64Type,
 	"maximum_limit": types.Int64Type,
 }}
+
+// Resources that need to be cleaned up before a project can be deleted
+type AtlastProjectDependents struct {
+	AdvancedClusters *matlas.AdvancedClustersResponse
+}
 
 func (r *ProjectResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_project"
@@ -279,7 +294,7 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, project.ID, toAtlasProjectTeams(ctx, teams))
 		if err != nil {
-			errd := deleteProject(ctx, conn, project.ID)
+			errd := deleteProject(ctx, r.client.Atlas, project.ID)
 			if errd != nil {
 				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 				return
@@ -300,7 +315,7 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 			}
 			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), project.ID, dataFederationLimit).Execute()
 			if err != nil {
-				errd := deleteProject(ctx, conn, project.ID)
+				errd := deleteProject(ctx, r.client.Atlas, project.ID)
 				if errd != nil {
 					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 					return
@@ -314,7 +329,7 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	// ADD SETTINGS
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
-		errd := deleteProject(ctx, conn, project.ID)
+		errd := deleteProject(ctx, r.client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
@@ -344,7 +359,7 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 
 	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings)
 	if err != nil {
-		errd := deleteProject(ctx, conn, project.ID)
+		errd := deleteProject(ctx, r.client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
 			return
@@ -375,7 +390,7 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 
 	atlaslimits = filterUserDefinedLimits(atlaslimits, limits)
 	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasteams, atlasprojectSettings, atlaslimits)
-	updatePlanFromConfig2(projectPlanNew, projectPlan)
+	updatePlanFromConfig(projectPlanNew, projectPlan)
 
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, projectPlanNew)
@@ -423,7 +438,7 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	atlaslimits = filterUserDefinedLimits(atlaslimits, limits)
 	projectStateNew := toTFProjectResourceModel(ctx, projectRes, atlasteams, atlasprojectSettings, atlaslimits)
-	updatePlanFromConfig2(projectStateNew, projectState)
+	updatePlanFromConfig(projectStateNew, projectState)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectStateNew)...)
@@ -450,7 +465,7 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	projectID := projectState.ID.ValueString()
 
-	err := updateProject2(ctx, conn, projectState, projectPlan)
+	err := updateProject(ctx, conn, projectState, projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
@@ -496,7 +511,7 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	atlaslimits = filterUserDefinedLimits(atlaslimits, planLimits)
 	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasteams, atlasprojectSettings, atlaslimits)
-	updatePlanFromConfig2(projectPlanNew, projectPlan)
+	updatePlanFromConfig(projectPlanNew, projectPlan)
 
 	// Save updated data into Terraform state.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanNew)...)
@@ -512,7 +527,7 @@ func (r *ProjectResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProject2(ctx, r.client.Atlas, projectID)
+	err := deleteProject(ctx, r.client.Atlas, projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))
@@ -524,7 +539,7 @@ func (r *ProjectResource) ImportState(ctx context.Context, req resource.ImportSt
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func updatePlanFromConfig2(projectPlanNewPtr *tfProjectResourceModel, projectPlan tfProjectResourceModel) {
+func updatePlanFromConfig(projectPlanNewPtr *tfProjectResourceModel, projectPlan tfProjectResourceModel) {
 	// we need to reset defaults from what was previously in the state:
 	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
@@ -771,27 +786,27 @@ func hasLimitsChanged(planLimits, stateLimits []tfLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func updateProject2(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectResourceModel) error {
+func updateProject(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectResourceModel) error {
 	if projectPlan.Name.Equal(projectState.Name) {
 		return nil
 	}
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := conn.Projects.Update(ctx, projectID, newProjectUpdateRequest2(projectPlan)); err != nil {
+	if _, _, err := conn.Projects.Update(ctx, projectID, newProjectUpdateRequest(projectPlan)); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 
 	return nil
 }
 
-func newProjectUpdateRequest2(tfProject tfProjectResourceModel) *matlas.ProjectUpdateRequest {
+func newProjectUpdateRequest(tfProject tfProjectResourceModel) *matlas.ProjectUpdateRequest {
 	return &matlas.ProjectUpdateRequest{
 		Name: tfProject.Name.ValueString(),
 	}
 }
 
-func deleteProject2(ctx context.Context, conn *matlas.Client, projectID string) error {
+func deleteProject(ctx context.Context, conn *matlas.Client, projectID string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"DELETING", "RETRY"},
 		Target:     []string{"IDLE"},
@@ -810,4 +825,41 @@ func deleteProject2(ctx context.Context, conn *matlas.Client, projectID string) 
 	_, err = conn.Projects.Delete(ctx, projectID)
 
 	return err
+}
+
+/*
+This assumes the project CRUD outcome will be the same for any non-zero number of dependents
+
+If all dependents are deleting, wait to try and delete
+Else consider the aggregate dependents idle.
+
+If we get a defined error response, return that right away
+Else retry
+*/
+func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		var target *matlas.ErrorResponse
+		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
+		dependents := AtlastProjectDependents{AdvancedClusters: clusters}
+
+		if errors.As(err, &target) {
+			return nil, "", err
+		} else if err != nil {
+			return nil, "RETRY", nil
+		}
+
+		if dependents.AdvancedClusters.TotalCount == 0 {
+			return dependents, "IDLE", nil
+		}
+
+		for _, v := range dependents.AdvancedClusters.Results {
+			if v.StateName != "DELETING" {
+				return dependents, "IDLE", nil
+			}
+		}
+
+		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", projectID, "DELETING")
+
+		return dependents, "DELETING", nil
+	}
 }
