@@ -182,15 +182,15 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 			if val.ID != apiKeyID {
 				continue
 			}
-	
+
 			if err := d.Set("api_key_id", val.ID); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `api_key_id`: %s", err))
 			}
-	
+
 			if err := d.Set("description", val.Desc); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `description`: %s", err))
 			}
-	
+
 			if err := d.Set("public_key", val.PublicKey); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 			}
