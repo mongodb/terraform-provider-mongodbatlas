@@ -24,9 +24,9 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
 			},
 			"api_key_id": {
 				Type:     schema.TypeString,
@@ -34,8 +34,9 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 				Computed: true,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
 			},
 			"public_key": {
 				Type:     schema.TypeString,
@@ -154,23 +155,14 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 
 	_, roleOk := d.GetOk("role_names")
 	if !roleOk {
-		options := &matlas.ListOptions{}
-		apiKeyOrgList, _, err := conn.Root.List(ctx, options)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-		}
-
-		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
-		}
-
 		if err := d.Set("role_names", nil); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 		}
 
-		if err := d.Set("project_assignment", FlattenProjectAssignment(projectAssignments)); err != nil {
-			return diag.Errorf(errorProjectSetting, `created`, projectID, err)
+		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+			if err := d.Set("project_assignment", projectAssignments); err != nil {
+				return diag.Errorf(errorProjectSetting, `created`, projectID, err)
+			}
 		}
 	}
 
