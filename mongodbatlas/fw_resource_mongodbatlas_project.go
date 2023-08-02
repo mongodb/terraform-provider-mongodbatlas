@@ -137,7 +137,7 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
-				// This needs to be Computed now otherwise Terraform throws error:
+				// Default values also must be Computed otherwise Terraform throws error:
 				// Schema Using Attribute Default For Non-Computed Attribute
 				Optional: true,
 				Computed: true,
@@ -187,8 +187,6 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Optional: true,
-				// This is only set during Create in SDKv2 resource, this should not be computed
-				// Computed: true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -382,14 +380,14 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// GET PROJECT PROPS
-	atlasteams, atlaslimits, atlasprojectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
 		return
 	}
 
-	atlaslimits = filterUserDefinedLimits(atlaslimits, limits)
-	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasteams, atlasprojectSettings, atlaslimits)
+	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
+	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, projectPlan)
 
 	// Set state to fully populated data
@@ -430,14 +428,14 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// GET PROJECT PROPS
-	atlasteams, atlaslimits, atlasprojectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
 		return
 	}
 
-	atlaslimits = filterUserDefinedLimits(atlaslimits, limits)
-	projectStateNew := toTFProjectResourceModel(ctx, projectRes, atlasteams, atlasprojectSettings, atlaslimits)
+	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
+	projectStateNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, projectState)
 
 	// Save updated data into Terraform state
@@ -502,15 +500,15 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// GET PROJECT PROPS
-	atlasteams, atlaslimits, atlasprojectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
+	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
 		return
 	}
 	var planLimits []tfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
-	atlaslimits = filterUserDefinedLimits(atlaslimits, planLimits)
-	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasteams, atlasprojectSettings, atlaslimits)
+	atlasLimits = filterUserDefinedLimits(atlasLimits, planLimits)
+	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, projectPlan)
 
 	// Save updated data into Terraform state.
@@ -599,7 +597,6 @@ func toTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
 		Teams:                                       toTFTeamsResourceModel(ctx, teams),
 		Limits:                                      toTFLimitsResourceModel(ctx, limits),
 	}
-
 	return &projectPlan
 }
 
