@@ -12,6 +12,7 @@
 - New example for Encryption at Rest using Customer Key Management and multi-region cluster [\#1349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1349) ([andreaangiolillo](https://github.com/andreaangiolillo)) - INTMDB-340
 
 **Deprecations and Removals**   
+
 - Marking `cloud_provider_access` resource and data source as deprecated [\#1355](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1355) ([AgustinBettati](https://github.com/AgustinBettati)) - INTMDB-967	
 
 **Bug Fixes**
