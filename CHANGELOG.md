@@ -9,6 +9,7 @@
 - Azure Service Principles support in `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` [\#1343](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1343) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Atlas [Shared Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/shared-cluster-backup/) support in `mongodbatlas_shared_tier_snapshot` and `mongodbatlas_shared_tier_restore_job` [\#1324](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1324) ([andreaangiolillo](https://github.com/andreaangiolillo)) and [\#1323](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1323) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Atlas Project `limits` support in `mongodbatlas_project` [\#1347](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1347) ([AgustinBettati](https://github.com/AgustinBettati))
+- New example for Encryption at Rest using Customer Key Management and multi-region cluster [\#1349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1349) ([andreaangiolillo](https://github.com/andreaangiolillo))
 
 **Bug Fixes**
 
@@ -43,7 +44,6 @@
 - add prefix to dependabot PR [\#1361](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1361) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Marking `cloud_provider_access` resource and data source as deprecated [\#1355](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1355) ([AgustinBettati](https://github.com/AgustinBettati))
 - Update README.md with supported OS/Arch [\#1350](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1350) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Create new example for BYOK and multi-region cluster [\#1349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1349) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Add PR lint to repo [\#1348](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1348) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Mark `instance_size` in electable specs required in `advanced_cluster` documentation [\#1339](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1339) ([maastha](https://github.com/maastha))
 - Update RELEASE.md Github issue [\#1331](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1331) ([maastha](https://github.com/maastha))
