@@ -20,9 +20,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),
@@ -54,9 +54,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_withoutRestoreWindowDays(t *te
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasBackupCompliancePolicyConfigWithoutRestoreDays(projectName, orgID, projectOwnerID),
@@ -89,9 +89,9 @@ func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),
@@ -109,7 +109,7 @@ func TestAccGenericBackupRSBackupCompliancePolicy_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,7 +133,7 @@ func testAccCheckMongoDBAtlasBackupCompliancePolicyExists(resourceName string) r
 }
 
 func testAccCheckMongoDBAtlasBackupCompliancePolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_backup_compliance_policy" {

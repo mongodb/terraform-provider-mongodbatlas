@@ -30,9 +30,9 @@ func TestAccAdvRSLDAPVerify_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
@@ -66,9 +66,9 @@ func TestAccAdvRSLDAPVerifyWithConfiguration_CACertificate(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyWithConfigurationConfig(projectName, orgID, clusterName, hostname, username, password, caCertificate, cast.ToInt(port), true),
@@ -108,9 +108,9 @@ func TestAccAdvRSLDAPVerify_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasLDAPVerifyDestroy,
+		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasLDAPVerifyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),
@@ -137,7 +137,7 @@ func TestAccAdvRSLDAPVerify_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName string, ldapConf *matlas.LDAPConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -160,7 +160,7 @@ func testAccCheckMongoDBAtlasLDAPVerifyExists(resourceName string, ldapConf *mat
 }
 
 func testAccCheckMongoDBAtlasLDAPVerifyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_ldap_verify" {

@@ -19,9 +19,9 @@ func TestAccOutageSimulationClusterDS_SingleRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSSingleRegion(projectName, orgID, clusterName),
@@ -48,9 +48,9 @@ func TestAccOutageSimulationClusterDS_MultiRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigDSMultiRegion(projectName, orgID, clusterName),

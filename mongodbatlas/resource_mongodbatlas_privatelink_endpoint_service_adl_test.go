@@ -20,9 +20,9 @@ func TestAccNetworkRSPrivateLinkEndpointServiceADL_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, commentOrigin),
@@ -56,9 +56,9 @@ func TestAccNetworkRSPrivateLinkEndpointServiceADL_importBasic(t *testing.T) {
 		commentOrigin = "this is a comment for adl private link endpoint"
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointID, commentOrigin),
@@ -81,7 +81,7 @@ func TestAccNetworkRSPrivateLinkEndpointServiceADL_importBasic(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLDestroy(state *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_adl" {
@@ -113,7 +113,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointI
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -19,9 +19,9 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	updatedIPAddress := fmt.Sprintf("179.154.228.%d", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress),
@@ -57,9 +57,9 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	updatedCIDRBlock := fmt.Sprintf("179.154.228.%d/32", acctest.RandIntRange(0, 255))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingCIDRBlock(orgID, description, cidrBlock),
@@ -94,9 +94,9 @@ func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 	description := fmt.Sprintf("test-acc-access_list-api_key-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAccessListAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAccessListAPIKeyConfigSettingIPAddress(orgID, description, ipAddress),
@@ -113,7 +113,7 @@ func TestAccProjectRSAccessListAPIKey_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -136,7 +136,7 @@ func testAccCheckMongoDBAtlasAccessListAPIKeyExists(resourceName string) resourc
 }
 
 func testAccCheckMongoDBAtlasAccessListAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_access_list_api_key" {

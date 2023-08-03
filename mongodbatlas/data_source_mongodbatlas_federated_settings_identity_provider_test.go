@@ -16,8 +16,8 @@ func TestAccFedDSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 		idpID               = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsIdentityProviderConfig(federatedSettingsID, idpID),

@@ -21,9 +21,9 @@ func TestAccBackupRSBackupSnapshotExportJob_basic(t *testing.T) {
 		iamRoleID         = os.Getenv("IAM_ROLE_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasBackupSnapshotExportJobConfig(projectID, bucketName, iamRoleID),
@@ -48,9 +48,9 @@ func TestAccBackupRSBackupSnapshotExportJob_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasBackupSnapshotExportJobConfig(projectID, bucketName, iamRoleID),
@@ -67,7 +67,7 @@ func TestAccBackupRSBackupSnapshotExportJob_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasBackupSnapshotExportJobExists(resourceName string, snapshotExportJob *matlas.CloudProviderSnapshotExportJob) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -91,7 +91,7 @@ func testAccCheckMongoDBAtlasBackupSnapshotExportJobExists(resourceName string, 
 }
 
 func testAccCheckMongoDBAtlasBackupSnapshotExportJobDestroy(state *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot_export_job" {

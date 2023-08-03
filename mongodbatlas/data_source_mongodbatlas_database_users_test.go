@@ -18,8 +18,8 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 	roleName := "atlasAdmin"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleName, username),

@@ -1,11 +1,10 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas"
 )
 
@@ -15,17 +14,17 @@ func main() {
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := &plugin.ServeOpts{Debug: debugMode, ProviderFunc: mongodbatlas.Provider}
+	var serveOpts []tf6server.ServeOpt
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/mongodb/mongodbatlas", opts)
-
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-
-		return
+		serveOpts = append(serveOpts, tf6server.WithManagedDebug())
 	}
-
-	plugin.Serve(opts)
+	err := tf6server.Serve(
+		"registry.terraform.io/mongodb/mongodbatlas",
+		mongodbatlas.MuxProviderFactory(),
+		serveOpts...,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
