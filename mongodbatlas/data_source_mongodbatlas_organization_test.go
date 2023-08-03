@@ -13,7 +13,7 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationConfigWithDS(orgID),

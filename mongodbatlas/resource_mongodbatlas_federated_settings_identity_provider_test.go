@@ -22,8 +22,8 @@ func TestAccFedRSFederatedSettingsIdentityProvider_basic(t *testing.T) {
 		issuerURI                         = os.Getenv("MONGODB_ATLAS_FEDERATED_ISSUER_URI")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config:            testAccMongoDBAtlasFederatedSettingsIdentityProviderConfig(federationSettingsID, ssoURL, issuerURI),
@@ -59,8 +59,8 @@ func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 
 			{
@@ -77,7 +77,7 @@ func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName string,
 	federatedSettingsIdentityProvider *matlas.FederatedSettingsIdentityProvider, idpID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
@@ -38,14 +37,14 @@ type MongoDBClient struct {
 }
 
 // NewClient func...
-func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) {
+func (c *Config) NewClient(ctx context.Context) (interface{}, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
 
 	// initialize the client
 	client, err := transport.Client()
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return nil, err
 	}
 
 	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
@@ -58,12 +57,12 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 	// Initialize the MongoDB Atlas API Client.
 	atlasClient, err := matlasClient.New(client, optsAtlas...)
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return nil, err
 	}
 
 	sdkV2Client, err := c.newSDKV2Client(client)
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return nil, err
 	}
 
 	clients := &MongoDBClient{

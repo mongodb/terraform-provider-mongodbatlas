@@ -14,8 +14,8 @@ func TestAccNetworkDSPrivateLinkEndpointsServiceADL_basic(t *testing.T) {
 	endpointID := "vpce-jjg5e24qp93513h03"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateLinkEndpointsADLDataSourceConfig(projectID, endpointID),

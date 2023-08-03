@@ -57,7 +57,7 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config: fmt.Sprintf(`resource "mongodbatlas_project" "test" {
 					name   = "%s"
 					org_id = "%s"
@@ -115,7 +115,7 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -158,7 +158,7 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config:                   configWithTeams,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
@@ -210,7 +210,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 				),
 			},
 			{
-				ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config:                   config,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{

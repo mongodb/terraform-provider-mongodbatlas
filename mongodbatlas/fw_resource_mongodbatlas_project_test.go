@@ -36,7 +36,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,7 +133,7 @@ func TestAccProjectRSProject_CreateWithProjectOwner(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -160,9 +160,8 @@ func TestAccProjectRSGovProject_CreateWithProjectOwner(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckGov(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
-
-		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGovProjectConfigWithProjectOwner(projectName, orgID, projectOwnerID),
@@ -187,7 +186,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -214,7 +213,7 @@ func TestAccProjectRSProject_CreateWithFalseDefaultAdvSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasicOwnerID(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -243,7 +242,7 @@ func TestAccProjectRSProject_withUpdatedRole(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -275,7 +274,7 @@ func TestAccProjectRSProject_importBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -303,7 +302,7 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -352,7 +351,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -377,7 +376,7 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -402,7 +401,7 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectExists(resourceName string, project *matlas.Project) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testMongoDBClient.(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -435,7 +434,7 @@ func testAccCheckMongoDBAtlasProjectAttributes(project *matlas.Project, projectN
 }
 
 func testAccCheckMongoDBAtlasProjectDestroy(s *terraform.State) error {
-	conn := testMongoDBClient.(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project" {

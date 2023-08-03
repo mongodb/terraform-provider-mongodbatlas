@@ -49,9 +49,9 @@ func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabase(projectID, appID, `"INSERT", "UPDATE"`, &event, false, false),
@@ -115,9 +115,9 @@ func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE"`, awsAccountID, awsRegion, &event),
@@ -174,9 +174,9 @@ func TestAccConfigRSEventTriggerAuth_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthentication(projectID, appID, `"anon-user", "local-userpass"`, &event),
@@ -235,9 +235,9 @@ func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigAuthenticationEP(projectID, appID, `"anon-user", "local-userpass"`, awsAccountID, awsRegion, &event),
@@ -291,9 +291,9 @@ func TestAccConfigRSEventTriggerSchedule_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigSchedule(projectID, appID, &event),
@@ -349,9 +349,9 @@ func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigScheduleEP(projectID, appID, awsAccountID, awsRegion, &event),
@@ -405,9 +405,9 @@ func TestAccConfigRSEventTriggerFunction_basic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasEventTriggerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasEventTriggerFunctionConfig(projectID, appID, &event),
@@ -436,7 +436,7 @@ func TestAccConfigRSEventTriggerFunction_basic(t *testing.T) {
 func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigger *realm.EventTrigger) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
-		conn, err := testAccProvider.Meta().(*MongoDBClient).GetRealmClient(ctx)
+		conn, err := testAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
 		if err != nil {
 			return err
 		}
@@ -466,7 +466,7 @@ func testAccCheckMongoDBAtlasEventTriggerExists(resourceName string, eventTrigge
 
 func testAccCheckMongoDBAtlasEventTriggerDestroy(s *terraform.State) error {
 	ctx := context.Background()
-	conn, err := testAccProvider.Meta().(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := testAccProviderSdkV2.Meta().(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return err
 	}

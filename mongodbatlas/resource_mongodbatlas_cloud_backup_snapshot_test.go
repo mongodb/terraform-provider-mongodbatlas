@@ -29,9 +29,9 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupSnapshotConfig(orgID, projectName, clusterName, description, retentionInDays),
@@ -61,7 +61,7 @@ func TestAccBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCloudBackupSnapshotExists(resourceName string, cloudBackupSnapshot *matlas.CloudProviderSnapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -103,7 +103,7 @@ func testAccCheckMongoDBAtlasCloudBackupSnapshotAttributes(cloudBackupSnapshot *
 }
 
 func testAccCheckMongoDBAtlasCloudBackupSnapshotDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_snapshot" {

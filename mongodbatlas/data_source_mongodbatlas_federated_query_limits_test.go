@@ -33,8 +33,8 @@ func TestAccDataSourceFederatedDatabaseQueryLimits_basic(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseQueryLimitsDataSourceConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitsDataSourceConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "tenant_name"),

@@ -40,8 +40,8 @@ func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 	intgResourcesHCL := testAccMongoDBAtlasThirdPartyIntegrationsDataSourceConfig(hclConfig, projectID)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: intgResourcesHCL,

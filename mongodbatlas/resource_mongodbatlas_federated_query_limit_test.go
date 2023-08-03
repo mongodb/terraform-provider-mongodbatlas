@@ -36,8 +36,8 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasFederatedDatabaseQueryLimitConfig(policyName, roleName, projectName, orgID, tenantName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "tenant_name"),
@@ -45,11 +45,11 @@ func TestAccFederatedDatabaseQueryLimit_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ProviderFactories: testAccProviderFactories,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:             resourceName,
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				ImportStateIdFunc:        testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resourceName),
+				ImportState:              true,
+				ImportStateVerify:        true,
 			},
 		},
 	})
@@ -206,7 +206,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitImportStateIDFunc(resour
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseQueryLimitDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_query_limit" {

@@ -16,8 +16,8 @@ func TestAccNetworkDSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeDataSourceConfig(projectID),
@@ -32,7 +32,7 @@ func TestAccNetworkDSPrivateEndpointRegionalMode_basic(t *testing.T) {
 
 func testAccMongoDBAtlasPrivateEndpointRegionalModeUnmanagedResource(resourceName, projectID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		setting, _, err := conn.PrivateEndpoints.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID)
 
