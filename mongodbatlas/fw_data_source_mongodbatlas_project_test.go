@@ -22,11 +22,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-<<<<<<< HEAD:mongodbatlas/data_source_mongodbatlas_project_test.go
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-=======
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
->>>>>>> f32c9d60 (data sources):mongodbatlas/fw_data_source_mongodbatlas_project_test.go
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
@@ -60,11 +56,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-<<<<<<< HEAD:mongodbatlas/data_source_mongodbatlas_project_test.go
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-=======
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
->>>>>>> f32c9d60 (data sources):mongodbatlas/fw_data_source_mongodbatlas_project_test.go
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
@@ -99,11 +91,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-<<<<<<< HEAD:mongodbatlas/data_source_mongodbatlas_project_test.go
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-=======
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
->>>>>>> f32c9d60 (data sources):mongodbatlas/fw_data_source_mongodbatlas_project_test.go
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
@@ -140,11 +128,7 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
-<<<<<<< HEAD:mongodbatlas/data_source_mongodbatlas_project_test.go
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-=======
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
->>>>>>> f32c9d60 (data sources):mongodbatlas/fw_data_source_mongodbatlas_project_test.go
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),

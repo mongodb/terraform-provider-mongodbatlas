@@ -22,11 +22,7 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-<<<<<<< HEAD:mongodbatlas/data_source_mongodbatlas_projects_test.go
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-=======
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
->>>>>>> f32c9d60 (data sources):mongodbatlas/fw_data_source_mongodbatlas_projects_test.go
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectsConfigWithDS(projectName, orgID,
@@ -64,11 +60,7 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-<<<<<<< HEAD:mongodbatlas/data_source_mongodbatlas_projects_test.go
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-=======
-		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
->>>>>>> f32c9d60 (data sources):mongodbatlas/fw_data_source_mongodbatlas_projects_test.go
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectsConfigWithPagination(projectName, orgID,
