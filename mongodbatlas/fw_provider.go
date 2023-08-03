@@ -119,7 +119,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 				Validators: []validator.String{
 					cstmvalidator.ValidDurationBetween(15, 12*60),
 					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRoot("assume_role.0.duration_seconds"),
+						path.MatchRelative().AtParent().AtName("duration_seconds"),
 					}...),
 				},
 			},
@@ -130,7 +130,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 				Validators: []validator.Int64{
 					int64validator.Between(900, 43200),
 					int64validator.ConflictsWith(path.Expressions{
-						path.MatchRoot("assume_role.0.duration"),
+						path.MatchRelative().AtParent().AtName("duration"),
 					}...),
 				},
 			},
@@ -259,7 +259,7 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 
 	if !tfAssumeRoleModel.PolicyARNs.IsNull() {
 		var policiesARNs []string
-		tfAssumeRoleModel.PolicyARNs.ElementsAs(ctx, policiesARNs, true)
+		tfAssumeRoleModel.PolicyARNs.ElementsAs(ctx, &policiesARNs, true)
 		assumeRole.PolicyARNs = policiesARNs
 	}
 
@@ -269,7 +269,7 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 
 	if !tfAssumeRoleModel.TransitiveTagKeys.IsNull() {
 		var transitiveTagKeys []string
-		tfAssumeRoleModel.TransitiveTagKeys.ElementsAs(ctx, transitiveTagKeys, true)
+		tfAssumeRoleModel.TransitiveTagKeys.ElementsAs(ctx, &transitiveTagKeys, true)
 		assumeRole.TransitiveTagKeys = transitiveTagKeys
 	}
 
