@@ -22,7 +22,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+)
+
+const (
+	errorConfigureSummary = "Unexpected Resource Configure Type"
+	errorConfigure        = "Expected *MongoDBClient, got: %T. Please report this issue to the provider developers."
 )
 
 type MongodbtlasProvider struct{}
@@ -351,13 +357,14 @@ func defaultValuesAndValidations(data *tfMongodbAtlasProviderModel, resp *provid
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// NewExampleDataSource,
+		NewProjectDS,
+		NewProjectsDS,
 	}
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		// NewExampleResource,
+		NewProjectRS,
 	}
 }
 
