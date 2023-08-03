@@ -751,7 +751,6 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 		_, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, planTeams))
 		if err != nil {
 			return fmt.Errorf("error adding teams to the project: %v", err.Error())
-
 		}
 	}
 	return nil
