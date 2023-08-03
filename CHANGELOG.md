@@ -1,15 +1,14 @@
 # Changelog
 
-## [v1.11.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.11.0) (August 02, 2023)
+## [v1.11.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.11.0) (2023-08-04)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.2...v1.11.0)
 
 **Enhancements**
 
-- Support for project `limits` in project resource and project/projects data sources [\#1347](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1347) ([AgustinBettati](https://github.com/AgustinBettati))
-- Add cloud provider access for azure [\#1343](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1343) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Add shared-tier restore job [\#1324](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1324) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Add shared-tier snapshots [\#1323](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1323) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Support for Azure Service Principles in `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` [\#1343](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1343) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Add support for Atlas [Shared Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/shared-cluster-backup/) in `mongodbatlas_shared_tier_snapshot` and `mongodbatlas_shared_tier_restore_job` [\#1324](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1324) ([andreaangiolillo](https://github.com/andreaangiolillo)) and [\#1323](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1323) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Support for project `limits` in `mongodbatlas_project` [\#1347](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1347) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
 
