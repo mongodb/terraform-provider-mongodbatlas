@@ -16,20 +16,16 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
-	if len(apiKeysIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByIDUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -54,20 +50,16 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
-	if len(apiKeysIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -93,20 +85,16 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
 	}
-	if len(apiKeysIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -139,11 +127,11 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "org_id"),
@@ -154,12 +142,22 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 	})
 }
 
-func testAccMongoDBAtlasProjectDSUsingRS(rs string) string {
+func testAccMongoDBAtlasProjectDSByNameUsingRS(rs string) string {
 	return fmt.Sprintf(`
 		%s
 
 		data "mongodbatlas_project" "test" {
 			name = "${mongodbatlas_project.test.name}"
+		}
+	`, rs)
+}
+
+func testAccMongoDBAtlasProjectDSByIDUsingRS(rs string) string {
+	return fmt.Sprintf(`
+		%s
+
+		data "mongodbatlas_project" "test" {
+			project_id = "${mongodbatlas_project.test.id}"
 		}
 	`, rs)
 }

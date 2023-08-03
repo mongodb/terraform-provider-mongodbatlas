@@ -36,18 +36,18 @@ const (
 	errorProjectUpdate  = "error updating project (%s): %s"
 )
 
-var _ resource.Resource = &ProjectResource{}
-var _ resource.ResourceWithImportState = &ProjectResource{}
+var _ resource.Resource = &ProjectRS{}
+var _ resource.ResourceWithImportState = &ProjectRS{}
 
-func NewProjectResource() resource.Resource {
-	return &ProjectResource{}
+func NewProjectRS() resource.Resource {
+	return &ProjectRS{}
 }
 
-type ProjectResource struct {
+type ProjectRS struct {
 	client *MongoDBClient
 }
 
-type tfProjectResourceModel struct {
+type tfProjectRSModel struct {
 	ID                                          types.String `tfsdk:"id"`
 	Name                                        types.String `tfsdk:"name"`
 	OrgID                                       types.String `tfsdk:"org_id"`
@@ -96,11 +96,24 @@ type AtlastProjectDependents struct {
 	AdvancedClusters *matlas.AdvancedClustersResponse
 }
 
-func (r *ProjectResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_project"
 }
 
-func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+	client, ok := req.ProviderData.(*MongoDBClient)
+
+	if !ok {
+		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
+		return
+	}
+	r.client = client
+}
+
+func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -232,26 +245,8 @@ func (r *ProjectResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *ProjectResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*MongoDBClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *MongoDBClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	r.client = client
-}
-
-func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var projectPlan tfProjectResourceModel
+func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var projectPlan tfProjectRSModel
 	var teams []tfTeamModel
 	var limits []tfLimitModel
 
@@ -398,15 +393,14 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 }
 
-func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var projectState tfProjectResourceModel
+func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var projectState tfProjectRSModel
 	var limits []tfLimitModel
 	conn := r.client.Atlas
 	connV2 := r.client.AtlasV2
 
 	// Get current state
-	diags := req.State.Get(ctx, &projectState)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -445,9 +439,9 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 }
 
-func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var projectState tfProjectResourceModel
-	var projectPlan tfProjectResourceModel
+func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var projectState tfProjectRSModel
+	var projectPlan tfProjectRSModel
 	conn := r.client.Atlas
 	connV2 := r.client.AtlasV2
 
@@ -515,8 +509,8 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanNew)...)
 }
 
-func (r *ProjectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var project *tfProjectResourceModel
+func (r *ProjectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var project *tfProjectRSModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &project)...)
@@ -533,11 +527,11 @@ func (r *ProjectResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *ProjectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *ProjectRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func updatePlanFromConfig(projectPlanNewPtr *tfProjectResourceModel, projectPlan tfProjectResourceModel) {
+func updatePlanFromConfig(projectPlanNewPtr *tfProjectRSModel, projectPlan tfProjectRSModel) {
 	// we need to reset defaults from what was previously in the state:
 	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
@@ -580,8 +574,8 @@ func getProjectPropsFromAPI(ctx context.Context, conn *matlas.Client, connV2 *ad
 }
 
 func toTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
-	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) *tfProjectResourceModel {
-	projectPlan := tfProjectResourceModel{
+	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
+	projectPlan := tfProjectRSModel{
 		ID:                        types.StringValue(projectRes.ID),
 		Name:                      types.StringValue(projectRes.Name),
 		OrgID:                     types.StringValue(projectRes.OrgID),
@@ -645,7 +639,7 @@ func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) []*matlas.Pro
 	return res
 }
 
-func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectResourceModel) error {
+func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectRSModel) error {
 	hasChanged := false
 	projectID := projectState.ID.ValueString()
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
@@ -687,7 +681,7 @@ func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectStat
 	return nil
 }
 
-func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan tfProjectResourceModel) error {
+func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan tfProjectRSModel) error {
 	var planLimits []tfLimitModel
 	var stateLimits []tfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
@@ -732,7 +726,7 @@ func setProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectID st
 	return nil
 }
 
-func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectResourceModel) error {
+func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectRSModel) error {
 	var planTeams []tfTeamModel
 	var stateTeams []tfTeamModel
 	_ = projectPlan.Teams.ElementsAs(ctx, &planTeams, false)
@@ -783,7 +777,7 @@ func hasLimitsChanged(planLimits, stateLimits []tfLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func updateProject(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectResourceModel) error {
+func updateProject(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectRSModel) error {
 	if projectPlan.Name.Equal(projectState.Name) {
 		return nil
 	}
@@ -797,7 +791,7 @@ func updateProject(ctx context.Context, conn *matlas.Client, projectState, proje
 	return nil
 }
 
-func newProjectUpdateRequest(tfProject tfProjectResourceModel) *matlas.ProjectUpdateRequest {
+func newProjectUpdateRequest(tfProject tfProjectRSModel) *matlas.ProjectUpdateRequest {
 	return &matlas.ProjectUpdateRequest{
 		Name: tfProject.Name.ValueString(),
 	}
