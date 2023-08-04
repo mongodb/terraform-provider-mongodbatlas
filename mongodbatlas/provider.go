@@ -312,7 +312,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 func setDefaultsAndValidations(d *schema.ResourceData) error {
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
-		if err := d.Set("base_url", "https://cloud.mongodbgov.com"); err != nil {
+		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
 			return err
 		}
 	} else {

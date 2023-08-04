@@ -27,32 +27,32 @@ import (
 
 type MongodbtlasProvider struct{}
 
-type tfMongodbAtlasProviderModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
+type tfMongodbAtlasProviderModel struct {
+	AssumeRole           types.List   `tfsdk:"assume_role"`
 	PublicKey            types.String `tfsdk:"public_key"`
 	PrivateKey           types.String `tfsdk:"private_key"`
 	BaseURL              types.String `tfsdk:"base_url"`
 	RealmBaseURL         types.String `tfsdk:"realm_base_url"`
-	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
-	AssumeRole           types.List   `tfsdk:"assume_role"`
 	SecretName           types.String `tfsdk:"secret_name"`
 	Region               types.String `tfsdk:"region"`
 	StsEndpoint          types.String `tfsdk:"sts_endpoint"`
 	AwsAccessKeyID       types.String `tfsdk:"aws_access_key_id"`
 	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
+	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
 }
 
-type tfAssumeRoleModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
+type tfAssumeRoleModel struct {
+	PolicyARNs        types.Set    `tfsdk:"policy_arns"`
+	TransitiveTagKeys types.Set    `tfsdk:"transitive_tag_keys"`
+	Tags              types.Map    `tfsdk:"tags"`
 	Duration          types.String `tfsdk:"duration"`
-	DurationSeconds   types.Int64  `tfsdk:"duration_seconds"`
 	ExternalID        types.String `tfsdk:"external_id"`
 	Policy            types.String `tfsdk:"policy"`
-	PolicyARNs        types.Set    `tfsdk:"policy_arns"`
 	RoleARN           types.String `tfsdk:"role_arn"`
 	SessionName       types.String `tfsdk:"session_name"`
 	SourceIdentity    types.String `tfsdk:"source_identity"`
-	Tags              types.Map    `tfsdk:"tags"`
-	TransitiveTagKeys types.Set    `tfsdk:"transitive_tag_keys"`
+	DurationSeconds   types.Int64  `tfsdk:"duration_seconds"`
 }
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -189,9 +189,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 }
 
 func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var (
-		data tfMongodbAtlasProviderModel
-	)
+	var data tfMongodbAtlasProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -276,9 +274,11 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 	return &assumeRole
 }
 
+const MongodbGovCloudURL = "https://cloud.mongodbgov.com"
+
 func defaultValuesAndValidations(data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		data.BaseURL = types.StringValue("https://cloud.mongodbgov.com")
+		data.BaseURL = types.StringValue(MongodbGovCloudURL)
 	}
 	if data.BaseURL.ValueString() == "" {
 		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
@@ -369,7 +369,7 @@ func MuxProviderFactory() func() tfprotov6.ProviderServer {
 	return muxProviderFactoryUsingExistingSdkV2(NewSdkV2Provider())
 }
 
-// creates mux server using existing sdk v2 provider passed as parameter, and new framework provider
+// muxProviderFactoryUsingExistingSdkV2 creates mux server using existing sdk v2 provider passed as parameter, and new framework provider
 func muxProviderFactoryUsingExistingSdkV2(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
 	fwProvider := NewFrameworkProvider()
 
