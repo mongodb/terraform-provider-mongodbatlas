@@ -197,6 +197,6 @@ func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, c
 
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.TotalCount))
-	stateModel.ID = types.StringValue("test")
+	stateModel.ID = types.StringValue(fmt.Sprint(projectsRes.TotalCount))
 	return nil
 }
