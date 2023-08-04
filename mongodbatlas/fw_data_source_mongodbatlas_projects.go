@@ -26,12 +26,12 @@ type ProjectsDS struct {
 	client *MongoDBClient
 }
 
-type tfProjectsDSModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
+type tfProjectsDSModel struct {
 	ID           types.String       `tfsdk:"id"`
+	Results      []tfProjectDSModel `tfsdk:"results"`
 	PageNum      types.Int64        `tfsdk:"page_num"`
 	ItemsPerPage types.Int64        `tfsdk:"items_per_page"`
 	TotalCount   types.Int64        `tfsdk:"total_count"`
-	Results      []tfProjectDSModel `tfsdk:"results"`
 }
 
 func (d *ProjectsDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

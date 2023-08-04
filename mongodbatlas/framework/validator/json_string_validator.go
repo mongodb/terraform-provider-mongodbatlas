@@ -18,7 +18,6 @@ func (v jsonStringValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-//nolint:gocritic //we have to comply with validator interface, cannot pass req as a pointer
 func (v jsonStringValidator) ValidateString(ctx context.Context, req validator.StringRequest, response *validator.StringResponse) {
 	// If the value is unknown or null, there is nothing to validate.
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {

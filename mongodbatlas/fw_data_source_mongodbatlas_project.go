@@ -29,22 +29,22 @@ type ProjectDS struct {
 	client *MongoDBClient
 }
 
-type tfProjectDSModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
-	ID                                          types.String    `tfsdk:"id"`
+type tfProjectDSModel struct {
+	RegionUsageRestrictions                     types.String    `tfsdk:"region_usage_restrictions"`
 	ProjectID                                   types.String    `tfsdk:"project_id"`
 	Name                                        types.String    `tfsdk:"name"`
 	OrgID                                       types.String    `tfsdk:"org_id"`
-	ClusterCount                                types.Int64     `tfsdk:"cluster_count"`
 	Created                                     types.String    `tfsdk:"created"`
+	ID                                          types.String    `tfsdk:"id"`
+	Limits                                      []tfLimitModel  `tfsdk:"limits"`
+	Teams                                       []tfDSTeamModel `tfsdk:"teams"`
+	ClusterCount                                types.Int64     `tfsdk:"cluster_count"`
 	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool      `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsDataExplorerEnabled                       types.Bool      `tfsdk:"is_data_explorer_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool      `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool      `tfsdk:"is_performance_advisor_enabled"`
 	IsRealtimePerformancePanelEnabled           types.Bool      `tfsdk:"is_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                      types.Bool      `tfsdk:"is_schema_advisor_enabled"`
-	RegionUsageRestrictions                     types.String    `tfsdk:"region_usage_restrictions"`
-	Teams                                       []tfDSTeamModel `tfsdk:"teams"`
-	Limits                                      []tfLimitModel  `tfsdk:"limits"`
+	IsPerformanceAdvisorEnabled                 types.Bool      `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool      `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool      `tfsdk:"is_data_explorer_enabled"`
 }
 
 type tfDSTeamModel struct {

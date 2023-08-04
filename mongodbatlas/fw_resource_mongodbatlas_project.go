@@ -26,6 +26,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
+	expanders "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/expanders"
 )
 
 const (
@@ -47,23 +49,23 @@ type ProjectRS struct {
 	client *MongoDBClient
 }
 
-type tfProjectRSModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
-	ID                                          types.String `tfsdk:"id"`
+type tfProjectRSModel struct {
+	Limits                                      types.Set    `tfsdk:"limits"`
+	Teams                                       types.Set    `tfsdk:"teams"`
+	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
 	Name                                        types.String `tfsdk:"name"`
 	OrgID                                       types.String `tfsdk:"org_id"`
-	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
 	Created                                     types.String `tfsdk:"created"`
 	ProjectOwnerID                              types.String `tfsdk:"project_owner_id"`
-	WithDefaultAlertsSettings                   types.Bool   `tfsdk:"with_default_alerts_settings"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	ID                                          types.String `tfsdk:"id"`
+	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
 	IsDataExplorerEnabled                       types.Bool   `tfsdk:"is_data_explorer_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
 	IsPerformanceAdvisorEnabled                 types.Bool   `tfsdk:"is_performance_advisor_enabled"`
 	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
-	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
-	Teams                                       types.Set    `tfsdk:"teams"`
-	Limits                                      types.Set    `tfsdk:"limits"`
+	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	WithDefaultAlertsSettings                   types.Bool   `tfsdk:"with_default_alerts_settings"`
 }
 
 type tfTeamModel struct {
@@ -633,7 +635,7 @@ func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) []*matlas.Pro
 	for i, team := range teams {
 		res[i] = &matlas.ProjectTeam{
 			TeamID:    team.TeamID.ValueString(),
-			RoleNames: TypesSetToString(ctx, team.RoleNames),
+			RoleNames: expanders.TypesSetToString(ctx, team.RoleNames),
 		}
 	}
 	return res
