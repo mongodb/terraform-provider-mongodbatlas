@@ -89,22 +89,28 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Description: "MongoDB Atlas Base URL default to gov",
 			},
 			"secret_name": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Name of secret stored in AWS Secret Manager.",
 			},
 			"region": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Region where secret is stored as part of AWS Secret Manager.",
 			},
 			"sts_endpoint": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "AWS Security Token Service endpoint. Required for cross-AWS region or cross-AWS account secrets.",
 			},
 			"aws_access_key_id": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "AWS API Access Key.",
 			},
 			"aws_secret_access_key": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "AWS API Access Secret Key.",
 			},
 			"aws_session_token": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "AWS Security Token Service provided session token.",
 			},
 		},
 	}
