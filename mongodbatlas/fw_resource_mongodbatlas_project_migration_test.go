@@ -75,13 +75,17 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 }
 
 func TestAccRSProject_Migration_Teams(t *testing.T) {
+	var teamsIds = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
+	if len(teamsIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
+
 	var (
 		project         matlas.Project
 		resourceName    = "mongodbatlas_project.test"
 		projectName     = acctest.RandomWithPrefix("test-acc-teams")
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		clusterCount    = "0"
-		teamsIds        = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 		configWithTeams = testAccMongoDBAtlasProjectConfig(projectName, orgID,
 			[]*matlas.ProjectTeam{
 				{
@@ -94,9 +98,6 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 				},
 			})
 	)
-	if len(teamsIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
-	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },

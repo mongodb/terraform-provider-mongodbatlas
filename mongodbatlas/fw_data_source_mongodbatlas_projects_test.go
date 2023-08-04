@@ -50,12 +50,8 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 	projectName := fmt.Sprintf("test-datasource-project-%s", acctest.RandString(10))
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	teamsIds := strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
-	apiKeysIds := strings.Split(os.Getenv("MONGODB_ATLAS_API_KEYS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
-	}
-	if len(apiKeysIds) < 2 {
-		t.Skip("`MONGODB_ATLAS_API_KEYS_IDS` must have 2 api key ids for this acceptance testing")
 	}
 
 	resource.Test(t, resource.TestCase{
