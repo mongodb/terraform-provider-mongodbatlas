@@ -94,6 +94,9 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 				},
 			})
 	)
+	if len(teamsIds) < 2 {
+		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
