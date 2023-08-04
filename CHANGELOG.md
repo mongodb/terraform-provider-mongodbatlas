@@ -1,5 +1,68 @@
 # Changelog
 
+## [v1.11.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.11.0) (2023-08-04)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.2...v1.11.0)
+
+**Enhancements**
+
+- [Azure Service Principles](https://learn.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals?tabs=browser) support in `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` [\#1343](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1343) ([andreaangiolillo](https://github.com/andreaangiolillo)) - INTMDB-545
+- Atlas [Shared Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/shared-cluster-backup/) support in `mongodbatlas_shared_tier_snapshot` and `mongodbatlas_shared_tier_restore_job` [\#1324](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1324) ([andreaangiolillo](https://github.com/andreaangiolillo)) and [\#1323](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1323) ([andreaangiolillo](https://github.com/andreaangiolillo)) - INTMDB-546
+- Atlas Project `limits` support in `mongodbatlas_project` [\#1347](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1347) ([AgustinBettati](https://github.com/AgustinBettati)) - INTMDB-554
+- New example for Encryption at Rest using Customer Key Management and multi-region cluster [\#1349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1349) ([andreaangiolillo](https://github.com/andreaangiolillo)) - INTMDB-340
+
+**Deprecations and Removals**   
+
+- Marking `cloud_provider_access` resource and data source as deprecated [\#1355](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1355) ([AgustinBettati](https://github.com/AgustinBettati)) - INTMDB-967	
+
+**Bug Fixes**
+
+- Update `mongodbatlas_cloud_backup_schedule` to add the ID field to policyItems [\#1357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1357) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- `project_api_key` data source missing `project_assignment` attribute [\#1356](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1356) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Support update of description for project api key resource [\#1354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1354) ([AgustinBettati](https://github.com/AgustinBettati))
+- Null pointer in `resource_mongodbatlas_cloud_backup_schedule` [\#1353](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1353) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Plugin did not respond - panic: interface conversion: interface is nil, not map[string]interface [\#1342](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1342) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Error deleting organization information when importing organization [\#1352](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1352) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Mark project api key resource as destroyed if not present [\#1351](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1351) ([AgustinBettati](https://github.com/AgustinBettati))
+- `mongodbatlas_privatelink_endpoint_service` data source doc bug fix [\#1334](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1334) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Make region atributed optional computed in third-party-integration [\#1332](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1332) ([maastha](https://github.com/maastha))
+
+**Closed Issues**
+
+- json: cannot unmarshal number 4841168896 into Go struct field CloudProviderSnapshot.storageSizeBytes of type int [\#1333](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1333)
+- Labels is not creating tags in the MongoAtlas UI [\#1319](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1319)
+- `mongodbatlas_online_archive` `schedule` parameter update causing crashing in `terraform apply` [\#1318](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1318)
+- Update Pager Duty integration fails with INTEGRATION\_FIELDS\_INVALID [\#1316](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1316)
+- mongodbatlas\_event\_trigger is not updated if config\_match is added [\#1302](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1302)
+- Updating the 'name' field of a 'mongodbatlas\_project' recreates a new Project [\#1296](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1296)
+- mongodbatlas\_org\_invitation is missing ORG\_BILLING\_READ\_ONLY role support [\#1280](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1280)
+- mongodbatlas\_alert\_configuration notification microsoft\_teams\_webhook\_url is always updated [\#1275](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1275)
+- Provider not destroying API keys [\#1261](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1261)
+- Has `project_assignment` of `mongodbatlas_api_key` not been implemented? [\#1249](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1249)
+- Invalid attribute providerBackupEnabled specified. [\#1245](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1245)
+
+**Internal Improvements**
+
+- Fix documentation for `mongodbatlas_api_key` [\#1363](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1363) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Improve self-managed x509 database user docs [\#1336](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1336) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- add prefix to dependabot PR [\#1361](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1361) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Update README.md with supported OS/Arch [\#1350](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1350) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Add PR lint to repo [\#1348](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1348) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Mark `instance_size` in electable specs required in `advanced_cluster` documentation [\#1339](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1339) ([maastha](https://github.com/maastha))
+- Update RELEASE.md Github issue [\#1331](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1331) ([maastha](https://github.com/maastha))
+- Update privatelink endpoint service resources timeout config [\#1329](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1329) ([maastha](https://github.com/maastha))
+- Use go-version-file in github actions [\#1315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1315) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Add autogenerated SDK to terraform [\#1309](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1309) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Migrate to terraform-plugin-testing [\#1301](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1301) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Bump github.com/aws/aws-sdk-go from 1.44.308 to 1.44.314 [\#1360](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1360) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/gruntwork-io/terratest from 0.43.10 to 0.43.11 [\#1358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1358) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/hashicorp/terraform-plugin-testing from 1.3.0 to 1.4.0 [\#1346](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1346) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/gruntwork-io/terratest from 0.43.8 to 0.43.10 [\#1345](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1345) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/aws/aws-sdk-go from 1.44.304 to 1.44.308 [\#1344](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1344) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/aws/aws-sdk-go from 1.44.302 to 1.44.304 [\#1335](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1335) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/aws/aws-sdk-go from 1.44.299 to 1.44.302 [\#1330](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1330) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+
 ## [v1.10.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.10.2) (2023-07-19)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.10.1...v1.10.2)
