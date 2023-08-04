@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 type MongodbtlasProvider struct{}
@@ -57,7 +58,7 @@ type tfAssumeRoleModel struct {
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
-	// resp.Version = "" we can look into defining this value automatically for release process
+	resp.Version = version.ProviderVersion
 }
 
 func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
