@@ -78,7 +78,7 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 }
 
 type APIProjectAssignmentKeyInput struct {
-	ProjectID string   `json:"desc,omitempty"`
+	ProjectID string   `json:"projectId,omitempty"`
 	RoleNames []string `json:"roles,omitempty"`
 }
 
@@ -123,7 +123,6 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		}
 	} else {
 		createRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
-
 		apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -186,7 +185,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 			if err := d.Set("role_names", nil); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 			}
-			if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+			if projectAssignments, err := newProjectAssignment(ctx, conn, projectID, apiKeyID); err == nil {
 				if err := d.Set("project_assignment", projectAssignments); err != nil {
 					return diag.Errorf(errorProjectSetting, `created`, projectID, err)
 				}
@@ -317,7 +316,7 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
 
-		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+		projectAssignments, err := getAPIProjectAssignments(ctx, conn, projectID, apiKeyOrgList, apiKeyID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
@@ -386,7 +385,7 @@ func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []matlas.AtlasRole)
 	flattenedOrgRoles := []string{}
 
 	for _, role := range apiKeyRoles {
-		if strings.HasPrefix(role.RoleName, "GROUP_") && role.GroupID == projectID {
+		if role.GroupID == projectID {
 			flattenedOrgRoles = append(flattenedOrgRoles, role.RoleName)
 		}
 	}
@@ -408,13 +407,13 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 	return res
 }
 
-func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID string) ([]map[string]interface{}, error) {
+func newProjectAssignment(ctx context.Context, conn *matlas.Client, projectID, apiKeyID string) ([]map[string]interface{}, error) {
 	apiKeyOrgList, _, err := conn.Root.List(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error getting api key information: %s", err)
 	}
 
-	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, projectID, apiKeyOrgList, apiKeyID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting api key information: %s", err)
 	}
@@ -467,14 +466,16 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, chang
 	return
 }
 
-func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
+func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectIDUsedToCreateApiKeys string, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
+	orgRoles := map[string]string{}
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
 			orgKeys, _, err := conn.APIKeys.List(ctx, apiKeyOrgList.APIKey.Roles[idx].OrgID, nil)
 			if err != nil {
 				return nil, fmt.Errorf("error getting api key information: %s", err)
 			}
+
 			for _, val := range orgKeys {
 				if val.ID == apiKeyID {
 					for _, r := range val.Roles {
@@ -484,13 +485,41 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOr
 							for _, l := range val.Roles {
 								if l.GroupID == temp.ProjectID {
 									temp.RoleNames = append(temp.RoleNames, l.RoleName)
+								} else if projectIDUsedToCreateApiKeys == temp.ProjectID {
+									orgRoles[r.RoleName] = r.RoleName
 								}
 							}
-							projectAssignments = append(projectAssignments, *temp)
+
+							if projectIDUsedToCreateApiKeys != temp.ProjectID {
+								projectAssignments = append(projectAssignments, *temp)
+							}
+
+						} else {
+							orgRoles[r.RoleName] = r.RoleName
+							// orgID := r.OrgID
+							// for _, l := range val.Roles {
+							// 	if orgID == l.OrgID {
+							// 		temp.RoleNames = append(temp.RoleNames, l.RoleName)
+							// 	}
+							// }
+							// temp.ProjectID = projectIDUsedToCreateApiKeys
+							// projectAssignments = append(projectAssignments, *temp)
 						}
 					}
 				}
 			}
+
+			temp := new(APIProjectAssignmentKeyInput)
+			temp.ProjectID = projectIDUsedToCreateApiKeys
+
+			keys := make([]string, 0, len(orgRoles))
+			for k := range orgRoles {
+				keys = append(keys, k)
+			}
+
+			temp.RoleNames = append(temp.RoleNames, keys...)
+			projectAssignments = append(projectAssignments, *temp)
+
 			break
 		}
 	}
