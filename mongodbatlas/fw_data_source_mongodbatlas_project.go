@@ -29,7 +29,7 @@ type ProjectDS struct {
 	client *MongoDBClient
 }
 
-type tfProjectDSModel struct {
+type tfProjectDSModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
 	ID                                          types.String    `tfsdk:"id"`
 	ProjectID                                   types.String    `tfsdk:"project_id"`
 	Name                                        types.String    `tfsdk:"name"`

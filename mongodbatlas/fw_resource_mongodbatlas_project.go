@@ -47,7 +47,7 @@ type ProjectRS struct {
 	client *MongoDBClient
 }
 
-type tfProjectRSModel struct {
+type tfProjectRSModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
 	ID                                          types.String `tfsdk:"id"`
 	Name                                        types.String `tfsdk:"name"`
 	OrgID                                       types.String `tfsdk:"org_id"`
@@ -274,14 +274,14 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		}
 	}
 
-	// CREATE PROJECT
+	// create project
 	project, _, err := conn.Projects.Create(ctx, projectReq, createProjectOptions)
 	if err != nil {
 		resp.Diagnostics.AddError(errorProjectCreate, err.Error())
 		return
 	}
 
-	// ADD TEAMS
+	// add teams
 	if len(projectPlan.Teams.Elements()) > 0 {
 		_ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
 
@@ -297,7 +297,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		}
 	}
 
-	// ADD LIMITS
+	// add limits
 	if len(projectPlan.Limits.Elements()) > 0 {
 		_ = projectPlan.Limits.ElementsAs(ctx, &limits, false)
 
@@ -319,7 +319,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		}
 	}
 
-	// ADD SETTINGS
+	// add settings
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, project.ID)
 	if err != nil {
 		errd := deleteProject(ctx, r.client.Atlas, project.ID)
@@ -362,7 +362,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// READ
-	// GET PROJECT
+	// get project
 	projectID := project.ID
 	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
 	if err != nil {
@@ -374,7 +374,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	// GET PROJECT PROPS
+	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
@@ -383,9 +383,9 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
 	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
-	updatePlanFromConfig(projectPlanNew, projectPlan)
+	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
-	// Set state to fully populated data
+	// set state to fully populated data
 	diags = resp.State.Set(ctx, projectPlanNew)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -399,7 +399,7 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	conn := r.client.Atlas
 	connV2 := r.client.AtlasV2
 
-	// Get current state
+	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -410,7 +410,7 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		_ = projectState.Limits.ElementsAs(ctx, &limits, false)
 	}
 
-	// GET PROJECT
+	// get project
 	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
 	if err != nil {
 		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
@@ -421,7 +421,7 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	// GET PROJECT PROPS
+	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
@@ -430,9 +430,9 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
 	projectStateNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
-	updatePlanFromConfig(projectStateNew, projectState)
+	updatePlanFromConfig(projectStateNew, &projectState)
 
-	// Save updated data into Terraform state
+	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectStateNew)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -445,44 +445,44 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	conn := r.client.Atlas
 	connV2 := r.client.AtlasV2
 
-	// Get current state
+	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Get current plan
+	// get current plan
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &projectPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	projectID := projectState.ID.ValueString()
 
-	err := updateProject(ctx, conn, projectState, projectPlan)
+	err := updateProject(ctx, conn, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = updateProjectTeams(ctx, conn, projectState, projectPlan)
+	err = updateProjectTeams(ctx, conn, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project teams update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = updateProjectLimits(ctx, connV2, projectState, projectPlan)
+	err = updateProjectLimits(ctx, connV2, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project limits update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = updateProjectSettings(ctx, conn, projectState, projectPlan)
+	err = updateProjectSettings(ctx, conn, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project settings update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
 	// READ
-	// GET PROJECT
+	// get project
 	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
 	if err != nil {
 		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
@@ -493,7 +493,7 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	// GET PROJECT PROPS
+	// get project props
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(errorProjectRead, projectID, err.Error()))
@@ -503,16 +503,16 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	atlasLimits = filterUserDefinedLimits(atlasLimits, planLimits)
 	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
-	updatePlanFromConfig(projectPlanNew, projectPlan)
+	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
-	// Save updated data into Terraform state.
+	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectPlanNew)...)
 }
 
 func (r *ProjectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var project *tfProjectRSModel
 
-	// Read Terraform prior state data into the model
+	// read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &project)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -531,7 +531,7 @@ func (r *ProjectRS) ImportState(ctx context.Context, req resource.ImportStateReq
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func updatePlanFromConfig(projectPlanNewPtr *tfProjectRSModel, projectPlan tfProjectRSModel) {
+func updatePlanFromConfig(projectPlanNewPtr, projectPlan *tfProjectRSModel) {
 	// we need to reset defaults from what was previously in the state:
 	// https://discuss.hashicorp.com/t/boolean-optional-default-value-migration-to-framework/55932
 	projectPlanNewPtr.WithDefaultAlertsSettings = projectPlan.WithDefaultAlertsSettings
@@ -612,7 +612,7 @@ func toTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.D
 }
 
 func toTFTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) types.Set {
-	teams := make([]tfTeamModel, atlasTeams.TotalCount)
+	teams := make([]tfTeamModel, len(atlasTeams.Results))
 
 	for i, atlasTeam := range atlasTeams.Results {
 		roleNames, _ := types.SetValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
@@ -639,7 +639,7 @@ func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) []*matlas.Pro
 	return res
 }
 
-func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectRSModel) error {
+func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectState, projectPlan *tfProjectRSModel) error {
 	hasChanged := false
 	projectID := projectState.ID.ValueString()
 	projectSettings, _, err := conn.Projects.GetProjectSettings(ctx, projectID)
@@ -681,7 +681,7 @@ func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectStat
 	return nil
 }
 
-func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan tfProjectRSModel) error {
+func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
 	var planLimits []tfLimitModel
 	var stateLimits []tfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
@@ -693,7 +693,7 @@ func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectSt
 
 	projectID := projectState.ID.ValueString()
 
-	// Removing limits from the project
+	// removing limits from the project
 	for _, limit := range stateLimits {
 		limitName := limit.Name.ValueString()
 		_, _, err := connV2.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute()
@@ -726,7 +726,7 @@ func setProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectID st
 	return nil
 }
 
-func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectRSModel) error {
+func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, projectPlan *tfProjectRSModel) error {
 	var planTeams []tfTeamModel
 	var stateTeams []tfTeamModel
 	_ = projectPlan.Teams.ElementsAs(ctx, &planTeams, false)
@@ -776,7 +776,7 @@ func hasLimitsChanged(planLimits, stateLimits []tfLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func updateProject(ctx context.Context, conn *matlas.Client, projectState, projectPlan tfProjectRSModel) error {
+func updateProject(ctx context.Context, conn *matlas.Client, projectState, projectPlan *tfProjectRSModel) error {
 	if projectPlan.Name.Equal(projectState.Name) {
 		return nil
 	}
@@ -790,7 +790,7 @@ func updateProject(ctx context.Context, conn *matlas.Client, projectState, proje
 	return nil
 }
 
-func newProjectUpdateRequest(tfProject tfProjectRSModel) *matlas.ProjectUpdateRequest {
+func newProjectUpdateRequest(tfProject *tfProjectRSModel) *matlas.ProjectUpdateRequest {
 	return &matlas.ProjectUpdateRequest{
 		Name: tfProject.Name.ValueString(),
 	}

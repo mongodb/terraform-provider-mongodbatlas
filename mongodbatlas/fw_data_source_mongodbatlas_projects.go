@@ -26,7 +26,7 @@ type ProjectsDS struct {
 	client *MongoDBClient
 }
 
-type tfProjectsDSModel struct {
+type tfProjectsDSModel struct { //nolint:govet //prefer to maintain order of attributes over small byte optimization
 	ID           types.String       `tfsdk:"id"`
 	PageNum      types.Int64        `tfsdk:"page_num"`
 	ItemsPerPage types.Int64        `tfsdk:"items_per_page"`

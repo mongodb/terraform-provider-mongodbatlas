@@ -10,6 +10,7 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -22,9 +23,9 @@ type debugPlan struct{}
 func (e debugPlan) CheckPlan(ctx context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
 	rd, err := json.Marshal(req.Plan)
 	if err != nil {
-		fmt.Println("error marshaling machine-readable plan output:", err)
+		tflog.Debug(ctx, fmt.Sprintf("error marshaling machine-readable plan output: %s", err))
 	}
-	fmt.Printf("req.Plan - %s\n", string(rd))
+	tflog.Info(ctx, fmt.Sprintf("req.Plan - %s\n", string(rd)))
 }
 
 func DebugPlan() plancheck.PlanCheck {
@@ -44,7 +45,7 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.10.2",
+						VersionConstraint: "1.11.0",
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -101,7 +102,7 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.10.2",
+						VersionConstraint: "1.11.0",
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -145,7 +146,7 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.10.2",
+						VersionConstraint: "1.11.0",
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -183,7 +184,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 			},
 			{
 				name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
-				value: 1,
+				value: 2,
 			},
 		})
 	)
@@ -206,7 +207,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.clusters"),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "1"),
 					resource.TestCheckResourceAttr(resourceName, "limits.1.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
-					resource.TestCheckResourceAttr(resourceName, "limits.1.value", "1"),
+					resource.TestCheckResourceAttr(resourceName, "limits.1.value", "2"),
 				),
 			},
 			{
