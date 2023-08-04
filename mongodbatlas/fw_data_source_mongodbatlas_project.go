@@ -190,7 +190,6 @@ func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		}
 	}
 
-	// GET PROJECT PROPS
 	atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(errorProjectRead, project.ID, err.Error()))
@@ -207,7 +206,7 @@ func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 func toTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
 	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) tfProjectDSModel {
-	projectStateModel := tfProjectDSModel{
+	return tfProjectDSModel{
 		ID:           types.StringValue(project.ID),
 		ProjectID:    types.StringValue(project.ID),
 		Name:         types.StringValue(project.Name),
@@ -223,8 +222,6 @@ func toTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
 		Teams:                                       toTFTeamsDataSourceModel(ctx, teams),
 		Limits:                                      toTFLimitsDataSourceModel(ctx, limits),
 	}
-
-	return projectStateModel
 }
 
 func toTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []tfDSTeamModel {

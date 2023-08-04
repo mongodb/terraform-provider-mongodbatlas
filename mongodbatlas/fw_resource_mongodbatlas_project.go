@@ -103,16 +103,23 @@ func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, 
 }
 
 func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*MongoDBClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
+	client, err := configure(req.ProviderData)
+	if err != nil {
+		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
 	r.client = client
+}
+
+func configure(providerData any) (*MongoDBClient, error) {
+	if providerData == nil {
+		return nil, fmt.Errorf("ProviderData is null")
+	}
+	client, ok := providerData.(*MongoDBClient)
+	if !ok {
+		return nil, fmt.Errorf(errorConfigure, providerData)
+	}
+	return client, nil
 }
 
 func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -352,8 +359,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		projectSettings.IsSchemaAdvisorEnabled = projectPlan.IsSchemaAdvisorEnabled.ValueBoolPointer()
 	}
 
-	_, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings)
-	if err != nil {
+	if _, _, err = conn.Projects.UpdateProjectSettings(ctx, project.ID, projectSettings); err != nil {
 		errd := deleteProject(ctx, r.client.Atlas, project.ID)
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.ID, err.Error()))
@@ -363,8 +369,6 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	// READ
-	// get project
 	projectID := project.ID
 	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
 	if err != nil {
@@ -483,8 +487,6 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	// READ
-	// get project
 	projectRes, atlasResp, err := conn.Projects.GetOneProject(ctx, projectID)
 	if err != nil {
 		if resp != nil && atlasResp.StatusCode == http.StatusNotFound {
@@ -749,9 +751,10 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 	}
 
 	// adding updated teams into the project
-	if len(planTeams) > 0 {
-		_, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, planTeams))
-		if err != nil {
+	if len(planTeams) == 0 {
+	    return nil
+	}
+		if _, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, planTeams)); err != nil {
 			return fmt.Errorf("error adding teams to the project: %v", err.Error())
 		}
 	}
@@ -820,7 +823,7 @@ func deleteProject(ctx context.Context, conn *matlas.Client, projectID string) e
 }
 
 /*
-This assumes the project CRUD outcome will be the same for any non-zero number of dependents
+resourceProjectDependentsDeletingRefreshFunc assumes the project CRUD outcome will be the same for any non-zero number of dependents
 
 If all dependents are deleting, wait to try and delete
 Else consider the aggregate dependents idle.
@@ -836,7 +839,9 @@ func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 
 		if errors.As(err, &target) {
 			return nil, "", err
-		} else if err != nil {
+		}
+		
+		if err != nil {
 			return nil, "RETRY", nil
 		}
 

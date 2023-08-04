@@ -24,7 +24,7 @@ var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, erro
 // this provider instance has to be passed into mux server factory for its configure method to be invoked
 var testAccProviderSdkV2 *schema.Provider
 
-// Manually configured client client required for Framework-based acceptance tests
+// testMongoDBClient is used to configure client required for Framework-based acceptance tests
 var testMongoDBClient interface{}
 
 func init() {
