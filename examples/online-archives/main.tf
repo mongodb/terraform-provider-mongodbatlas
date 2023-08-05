@@ -12,13 +12,18 @@ resource "mongodbatlas_online_archive" "users_archive" {
   }
 
   partition_fields {
-    field_name = var.partition_field_one
+    field_name = "created"
     order      = 0
   }
 
   partition_fields {
-    field_name = var.partition_field_two
+    field_name = var.partition_field_one
     order      = 1
+  }
+
+  partition_fields {
+    field_name = var.partition_field_two
+    order      = 2
   }
 }
 
