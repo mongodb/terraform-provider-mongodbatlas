@@ -372,12 +372,13 @@ func NewFrameworkProvider() provider.Provider {
 	return &MongodbtlasProvider{}
 }
 
-func MuxProviderFactory() func() tfprotov6.ProviderServer {
-	return muxProviderFactoryUsingExistingSdkV2(NewSdkV2Provider())
+func MuxedProviderFactory() func() tfprotov6.ProviderServer {
+	return muxedProviderFactory(NewSdkV2Provider())
 }
 
-// muxProviderFactoryUsingExistingSdkV2 creates mux server using existing sdk v2 provider passed as parameter, and new framework provider
-func muxProviderFactoryUsingExistingSdkV2(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
+// muxedProviderFactory creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
+// Used in testing where existing sdk v2 provider has to be used.
+func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
 	fwProvider := NewFrameworkProvider()
 
 	ctx := context.Background()

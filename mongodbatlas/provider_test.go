@@ -27,7 +27,7 @@ func init() {
 
 	testAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return muxProviderFactoryUsingExistingSdkV2(testAccProviderSdkV2)(), nil
+			return muxedProviderFactory(testAccProviderSdkV2)(), nil
 		},
 	}
 }
