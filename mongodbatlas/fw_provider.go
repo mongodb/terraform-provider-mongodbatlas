@@ -28,7 +28,7 @@ import (
 
 const (
 	errorConfigureSummary = "Unexpected Resource Configure Type"
-	errorConfigure        = "Expected *MongoDBClient, got: %T. Please report this issue to the provider developers."
+	errorConfigure        = "expected *MongoDBClient, got: %T. Please report this issue to the provider developers"
 )
 
 type MongodbtlasProvider struct{}
