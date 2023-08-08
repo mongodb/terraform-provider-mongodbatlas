@@ -321,13 +321,13 @@ func setDefaultsAndValidations(d *schema.ResourceData) error {
 		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
 			return err
 		}
-	} else {
-		if err := setValueFromConfigOrEnv(d, "base_url", []string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}); err != nil {
-			return err
-		}
+	}
+
+	if err := setValueFromConfigOrEnv(d, "base_url", []string{
+		"MONGODB_ATLAS_BASE_URL",
+		"MCLI_OPS_MANAGER_URL",
+	}); err != nil {
+		return err
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
