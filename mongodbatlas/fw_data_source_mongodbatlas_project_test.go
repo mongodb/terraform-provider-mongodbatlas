@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -131,7 +132,7 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),
+				Config: testAccMongoDBAtlasProjectDSByNameUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{})),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "org_id"),

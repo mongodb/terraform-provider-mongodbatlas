@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-var _ datasource.DataSource = &ProjectsDS{}
-var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
+const projectsDataSourceName = "projects"
 
 var _ datasource.DataSource = &ProjectsDS{}
 var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
@@ -26,15 +26,17 @@ type ProjectsDS struct {
 }
 
 type tfProjectsDSModel struct {
-	ID           types.String       `tfsdk:"id"`
-	Results      []tfProjectDSModel `tfsdk:"results"`
-	PageNum      types.Int64        `tfsdk:"page_num"`
-	ItemsPerPage types.Int64        `tfsdk:"items_per_page"`
-	TotalCount   types.Int64        `tfsdk:"total_count"`
+	ID           types.String        `tfsdk:"id"`
+	Results      []*tfProjectDSModel `tfsdk:"results"`
+	PageNum      types.Int64         `tfsdk:"page_num"`
+	ItemsPerPage types.Int64         `tfsdk:"items_per_page"`
+	TotalCount   types.Int64         `tfsdk:"total_count"`
 }
 
 func (d *ProjectsDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_projects"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectsDataSourceName)
+
 }
 
 func (d *ProjectsDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -183,7 +185,7 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 }
 
 func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, connV2 *admin.APIClient, stateModel *tfProjectsDSModel, projectsRes *matlas.Projects) error {
-	results := make([]tfProjectDSModel, len(projectsRes.Results))
+	results := make([]*tfProjectDSModel, len(projectsRes.Results))
 
 	for i, project := range projectsRes.Results {
 		atlasTeams, atlasLimits, atlasProjectSettings, err := getProjectPropsFromAPI(ctx, conn, connV2, project.ID)
@@ -191,11 +193,11 @@ func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, c
 			return fmt.Errorf("error while getting project properties for project %s: %v", project.ID, err.Error())
 		}
 		projectModel := toTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
-		results[i] = projectModel
+		results[i] = &projectModel
 	}
 
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.TotalCount))
-	stateModel.ID = types.StringValue(fmt.Sprint(projectsRes.TotalCount))
+	stateModel.ID = types.StringValue(fmt.Sprint(id.UniqueId()))
 	return nil
 }

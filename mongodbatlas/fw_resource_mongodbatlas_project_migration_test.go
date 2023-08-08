@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -181,14 +182,14 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 		resourceName = "mongodbatlas_project.test"
 		projectName  = acctest.RandomWithPrefix("tf-acc-project")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		config       = testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+		config       = testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 			{
-				name:  "atlas.project.deployment.clusters",
-				value: 1,
+				Name:  "atlas.project.deployment.clusters",
+				Value: 1,
 			},
 			{
-				name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
-				value: 2,
+				Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+				Value: 2,
 			},
 		})
 	)

@@ -9,17 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
-
-type projectLimit struct {
-	name  string
-	value int64
-}
 
 func TestAccProjectRSProject_basic(t *testing.T) {
 	var (
@@ -306,14 +302,14 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
-						name:  "atlas.project.deployment.clusters",
-						value: 1,
+						Name:  "atlas.project.deployment.clusters",
+						Value: 1,
 					},
 					{
-						name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
-						value: 1,
+						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+						Value: 1,
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -326,10 +322,10 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
-						name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
-						value: 2,
+						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+						Value: 2,
 					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -355,10 +351,10 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
-						name:  "incorrect.name",
-						value: 1,
+						Name:  "incorrect.name",
+						Value: 1,
 					},
 				}),
 				ExpectError: regexp.MustCompile("Limit not found"),
@@ -380,17 +376,17 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{}),
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
 					{
-						name:  "incorrect.name",
-						value: 1,
+						Name:  "incorrect.name",
+						Value: 1,
 					},
 				}),
 				ExpectError: regexp.MustCompile("Limit not found"),
@@ -546,7 +542,7 @@ func testAccMongoDBAtlasProjectConfigWithFalseDefaultAdvSettings(projectName, or
 	`, projectName, orgID, projectOwnerID)
 }
 
-func testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID string, limits []*projectLimit) string {
+func testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID string, limits []*admin.DataFederationLimit) string {
 	var limitsString string
 
 	for _, limit := range limits {
@@ -555,7 +551,7 @@ func testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID string, limit
 			name = "%s"
 			value = %d
 		}
-		`, limit.name, limit.value)
+		`, limit.Name, limit.Value)
 	}
 
 	return fmt.Sprintf(`

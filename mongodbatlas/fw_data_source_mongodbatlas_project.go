@@ -18,9 +18,6 @@ import (
 var _ datasource.DataSource = &ProjectDS{}
 var _ datasource.DataSourceWithConfigure = &ProjectDS{}
 
-var _ datasource.DataSource = &ProjectDS{}
-var _ datasource.DataSourceWithConfigure = &ProjectDS{}
-
 func NewProjectDS() datasource.DataSource {
 	return &ProjectDS{}
 }
@@ -30,30 +27,30 @@ type ProjectDS struct {
 }
 
 type tfProjectDSModel struct {
-	RegionUsageRestrictions                     types.String    `tfsdk:"region_usage_restrictions"`
-	ProjectID                                   types.String    `tfsdk:"project_id"`
-	Name                                        types.String    `tfsdk:"name"`
-	OrgID                                       types.String    `tfsdk:"org_id"`
-	Created                                     types.String    `tfsdk:"created"`
-	ID                                          types.String    `tfsdk:"id"`
-	Limits                                      []tfLimitModel  `tfsdk:"limits"`
-	Teams                                       []tfDSTeamModel `tfsdk:"teams"`
-	ClusterCount                                types.Int64     `tfsdk:"cluster_count"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool      `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool      `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool      `tfsdk:"is_schema_advisor_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool      `tfsdk:"is_performance_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool      `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsDataExplorerEnabled                       types.Bool      `tfsdk:"is_data_explorer_enabled"`
+	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
+	ProjectID                                   types.String     `tfsdk:"project_id"`
+	Name                                        types.String     `tfsdk:"name"`
+	OrgID                                       types.String     `tfsdk:"org_id"`
+	Created                                     types.String     `tfsdk:"created"`
+	ID                                          types.String     `tfsdk:"id"`
+	Limits                                      []*tfLimitModel  `tfsdk:"limits"`
+	Teams                                       []*tfTeamDSModel `tfsdk:"teams"`
+	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool       `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool       `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
 }
 
-type tfDSTeamModel struct {
+type tfTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
 }
 
 func (d *ProjectDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_project"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectResourceName)
 }
 
 func (d *ProjectDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -224,16 +221,16 @@ func toTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
 	}
 }
 
-func toTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []tfDSTeamModel {
+func toTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []*tfTeamDSModel {
 	if atlasTeams.TotalCount == 0 {
 		return nil
 	}
-	teams := make([]tfDSTeamModel, len(atlasTeams.Results))
+	teams := make([]*tfTeamDSModel, len(atlasTeams.Results))
 
 	for i, atlasTeam := range atlasTeams.Results {
 		roleNames, _ := types.ListValueFrom(ctx, types.StringType, atlasTeam.RoleNames)
 
-		teams[i] = tfDSTeamModel{
+		teams[i] = &tfTeamDSModel{
 			TeamID:    types.StringValue(atlasTeam.TeamID),
 			RoleNames: roleNames,
 		}
@@ -241,11 +238,11 @@ func toTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssig
 	return teams
 }
 
-func toTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []tfLimitModel {
-	limits := make([]tfLimitModel, len(dataFederationLimits))
+func toTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*tfLimitModel {
+	limits := make([]*tfLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {
-		limits[i] = tfLimitModel{
+		limits[i] = &tfLimitModel{
 			Name:         types.StringValue(dataFederationLimit.Name),
 			Value:        types.Int64Value(dataFederationLimit.Value),
 			CurrentUsage: types.Int64PointerValue(dataFederationLimit.CurrentUsage),

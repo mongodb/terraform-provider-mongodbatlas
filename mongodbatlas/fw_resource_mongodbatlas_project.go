@@ -31,11 +31,15 @@ import (
 )
 
 const (
-	errorProjectCreate  = "error creating Project: %s"
-	errorProjectRead    = "error getting project(%s): %s"
-	errorProjectDelete  = "error deleting project (%s): %s"
-	errorProjectSetting = "error setting `%s` for project (%s): %s"
-	errorProjectUpdate  = "error updating project (%s): %s"
+	projectResourceName            = "project"
+	errorProjectCreate             = "error creating Project: %s"
+	errorProjectRead               = "error getting project(%s): %s"
+	errorProjectDelete             = "error deleting project (%s): %s"
+	errorProjectSetting            = "error setting `%s` for project (%s): %s"
+	errorProjectUpdate             = "error updating project (%s): %s"
+	projectDependentsStateIdle     = "IDLE"
+	projectDependentsStateDeleting = "DELETING"
+	projectDependentsStateRetry    = "RETRY"
 )
 
 var _ resource.Resource = &ProjectRS{}
@@ -99,7 +103,7 @@ type AtlastProjectDependents struct {
 }
 
 func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_project"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectResourceName)
 }
 
 func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -113,7 +117,7 @@ func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest
 
 func configure(providerData any) (*MongoDBClient, error) {
 	if providerData == nil {
-		return nil, fmt.Errorf("ProviderData is null")
+		return nil, nil
 	}
 	client, ok := providerData.(*MongoDBClient)
 	if !ok {
@@ -752,12 +756,12 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 
 	// adding updated teams into the project
 	if len(planTeams) == 0 {
-	    return nil
+		return nil
 	}
-		if _, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, planTeams)); err != nil {
-			return fmt.Errorf("error adding teams to the project: %v", err.Error())
-		}
+	if _, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, planTeams)); err != nil {
+		return fmt.Errorf("error adding teams to the project: %v", err.Error())
 	}
+
 	return nil
 }
 
@@ -840,23 +844,23 @@ func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 		if errors.As(err, &target) {
 			return nil, "", err
 		}
-		
+
 		if err != nil {
-			return nil, "RETRY", nil
+			return nil, projectDependentsStateRetry, nil
 		}
 
 		if dependents.AdvancedClusters.TotalCount == 0 {
-			return dependents, "IDLE", nil
+			return dependents, projectDependentsStateIdle, nil
 		}
 
 		for _, v := range dependents.AdvancedClusters.Results {
-			if v.StateName != "DELETING" {
-				return dependents, "IDLE", nil
+			if v.StateName != projectDependentsStateDeleting {
+				return dependents, projectDependentsStateIdle, nil
 			}
 		}
 
-		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", projectID, "DELETING")
+		log.Printf("[DEBUG] status for MongoDB project %s dependents: %s", projectID, projectDependentsStateDeleting)
 
-		return dependents, "DELETING", nil
+		return dependents, projectDependentsStateDeleting, nil
 	}
 }
