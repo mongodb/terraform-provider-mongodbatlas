@@ -59,7 +59,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 See [Troubleshooting](website/docs/troubleshooting.html.markdown).
 
 ## Developing the Provider
-See [CONTRIBUTIg.md](./CONTRIBUTING.md).
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ### Autoclose stale issues and PRs
 
