@@ -1,49 +1,5 @@
-Contributing
----------------------------
-
 # Contributing
 
-## Workflow
-
-MongoDB welcomes community contributions! If you’re interested in making a contribution to  Terraform MongoDB Atlas provider, please follow the steps below before you start writing any code:
-
-1. Sign the [contributor's agreement](http://www.mongodb.com/contributor). This will allow us to review and accept contributions.
-1. Read the [Terraform contribution guidelines](https://www.terraform.io/docs/extend/community/contributing.html) and the [README](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/README.md) in this repo
-1. Reach out by filing an [issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues) to discuss your proposed contribution, be it a bug fix or feature/other improvements.  
-
-After the above 3 steps are completed and we've agreed on a path forward:
-1. Fork the repository on GitHub
-1. Create a branch with a name that briefly describes your submission
-1. Implement your feature, improvement or bug fix, ensuring it adheres to the [Terraform Plugin Best Practices](https://www.terraform.io/docs/extend/best-practices/index.html)
-1. Ensure you follow the [Terraform Plugin Testing requirements](https://www.terraform.io/docs/extend/testing/index.html).
-1. Add comments around your new code that explain what's happening
-1. Commit and push your changes to your branch then submit a pull request against the current release branch, not master.  The naming scheme of the branch is `release-staging-v#.#.#`. Note: There will only be one release branch at a time.  
-1. A repo maintainer will review the your pull request, and may either request additional changes or merge the pull request.
-
-## PR Title Format
-We use [*Conventional Commits*](https://www.conventionalcommits.org/):
-- `fix: description of the PR`: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
-- `chore: description of the PR`: the commit includes a technical or preventative maintenance task that is necessary for managing the product or the repository, but it is not tied to any specific feature or user story (this correlates with PATCH in Semantic Versioning).
-- `doc: description of the PR`: The commit adds, updates, or revises documentation that is stored in the repository (this correlates with PATCH in Semantic Versioning).
-- `test: description of the PR`: The commit enhances, adds to, revised, or otherwise changes the suite of automated tests for the product (this correlates with PATCH in Semantic Versioning).
-- `security: description of the PR`: The commit improves the security of the product or resolves a security issue that has been reported (this correlates with PATCH in Semantic Versioning).
-- `refactor: description of the PR`: The commit refactors existing code in the product, but does not alter or change existing behavior in the product (this correlates with Minor in Semantic Versioning).
-- `perf: description of the PR`: The commit improves the performance of algorithms or general execution time of the product, but does not fundamentally change an existing feature (this correlates with Minor in Semantic Versioning).
-- `ci: description of the PR`: The commit makes changes to continuous integration or continuous delivery scripts or configuration files (this correlates with Minor in Semantic Versioning).
-- `revert: description of the PR`: The commit reverts one or more commits that were previously included in the product, but were accidentally merged or serious issues were discovered that required their removal from the main branch (this correlates with Minor in Semantic Versioning).
-- `style: description of the PR`: The commit updates or reformats the style of the source code, but does not otherwise change the product implementation (this correlates with Minor in Semantic Versioning).
-- `feat: description of the PR`: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
-- `deprecate: description of the PR`: The commit deprecates existing functionality, but does not remove it from the product (this correlates with MINOR in Semantic Versioning).
-- `BREAKING CHANGE`: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
-Examples:
-  - `fix!: description of the ticket`
-  - If the PR has `BREAKING CHANGE`: in its description is a breaking change
-- `remove!: description of the PR`: The commit removes a feature from the product. Typically features are deprecated first for a period of time before being removed. Removing a feature is a breaking change (correlating with MAJOR in Semantic Versioning).
-
-
-## Documentation Best Practises
-
-1. In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
 
 ## Development Setup
 ### Prerequisite Tools
@@ -57,8 +13,6 @@ Examples:
 - Clone your forked repository locally.
 - We use Go Modules to manage dependencies, so you can develop outside your `$GOPATH`.
 - We use [golangci-lint](https://github.com/golangci/golangci-lint) to lint our code, you can install it locally via `make setup`.
-
-
 ### Building
 - Enter the provider directory
 - Run `make tools` to install the needed tools for the provider
@@ -85,6 +39,14 @@ Examples:
 
 For more explained information about plugin override check [Development Overrides for Provider Developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
 
+### Open a Pull Request
+- Sign the [contributor's agreement](http://www.mongodb.com/contributor). This will allow us to review and accept contributions.
+- Implement your feature, improvement or bug fix, ensuring it adheres to the [Terraform Plugin Best Practices](https://www.terraform.io/docs/extend/best-practices/index.html).
+- Make sure that the PR title follows [*Conventional Commits*](https://www.conventionalcommits.org/).
+- Add comments around your new code that explain what's happening.
+- Commit and push your changes to your branch then submit a pull request against the `master` branch.
+- A repo maintainer will review the your pull request, and may either request additional changes or merge the pull request.
+
 ### Testing the Provider
 
 In order to test the provider, you can run `make test`. You can use [meta-arguments](https://www.terraform.io/docs/configuration/providers.html) such as `alias` and `version`. The following arguments are supported in the MongoDB Atlas `provider` block:
@@ -105,26 +67,27 @@ In order to test the provider, you can run `make test`. You can use [meta-argume
 
 It's necessary to generate and configure an API key for your organization for the acceptance test to succeed. To grant programmatic access to an organization or project using only the [API](https://docs.atlas.mongodb.com/api/) you need to know:
 
-  1. The programmatic API key has two parts: a Public Key and a Private Key. To see more details on how to create a programmatic API key visit https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys.
+  - The programmatic API key has two parts: a Public Key and a Private Key. To see more details on how to create a programmatic API key visit https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys.
 
-  1. The programmatic API key must be granted roles sufficient for the acceptance test to succeed. The Organization Owner and Project Owner roles should be sufficient. You can see the available roles at https://docs.atlas.mongodb.com/reference/user-roles.
+  - The programmatic API key must be granted roles sufficient for the acceptance test to succeed. The Organization Owner and Project Owner roles should be sufficient. You can see the available roles at https://docs.atlas.mongodb.com/reference/user-roles.
 
-  1. You must [configure Atlas API Access](https://docs.atlas.mongodb.com/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs.
+  - You must [configure Atlas API Access](https://docs.atlas.mongodb.com/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs.
 
 #### Configuring environment variables
 
 You must also configure the following environment variables before running the test:
 
 ##### MongoDB Atlas env variables
-```bash
-export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
-export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
-export MONGODB_ATLAS_PUBLIC_KEY=<YOUR_PUBLIC_KEY>
-export MONGODB_ATLAS_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+- Required env variables:
+  ```bash
+  export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
+  export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
+  export MONGODB_ATLAS_PUBLIC_KEY=<YOUR_PUBLIC_KEY>
+  export MONGODB_ATLAS_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
 
-# This env variable is optional and allow you to run terraform with a custom server
-export MONGODB_ATLAS_BASE_URL=<CUSTOM_SERVER_URL>
-```
+  # This env variable is optional and allow you to run terraform with a custom server
+  export MONGODB_ATLAS_BASE_URL=<CUSTOM_SERVER_URL>
+  ```
 
 - For `Authentication database user` resource configuration:
   ```bash
@@ -243,7 +206,7 @@ export MONGODB_ATLAS_BASE_URL=<CUSTOM_SERVER_URL>
 
 
 #### Run Acceptance tests
-**Notice:** Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
+~> **Notice:** Acceptance tests create real resources, and often cost money to run. Please note in any PRs made if you are unable to pay to run acceptance tests for your contribution. We will accept "best effort" implementations of acceptance tests in this case and run them for you on our side. This may delay the contribution but we do not want your contribution blocked by funding.
 - Run `make testacc`
 
 
@@ -296,3 +259,30 @@ To do this you can:
 - Next in the `tf_cache` directory replace existing terraform provider core files (Terraform Atlas Provider version binary, `CHANGELOG.md`, `LICENSE`, and `README.md`) with the version you seek to test locally. Make sure to keep folder structure the same. 
 
 - Lastly, in the terminal run `terraform init` again and this time terraform will pull provider version from `tf_cache` network mirror. You can confirm this by noting the `Terraform has been successfully initialized! Using mongodb/mongodbatlas Vx.x.x from the shared cache directory` message.  
+
+
+
+## Documentation Best Practises
+
+- In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
+
+
+## PR Title Format
+We use [*Conventional Commits*](https://www.conventionalcommits.org/):
+- `fix: description of the PR`: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
+- `chore: description of the PR`: the commit includes a technical or preventative maintenance task that is necessary for managing the product or the repository, but it is not tied to any specific feature or user story (this correlates with PATCH in Semantic Versioning).
+- `doc: description of the PR`: The commit adds, updates, or revises documentation that is stored in the repository (this correlates with PATCH in Semantic Versioning).
+- `test: description of the PR`: The commit enhances, adds to, revised, or otherwise changes the suite of automated tests for the product (this correlates with PATCH in Semantic Versioning).
+- `security: description of the PR`: The commit improves the security of the product or resolves a security issue that has been reported (this correlates with PATCH in Semantic Versioning).
+- `refactor: description of the PR`: The commit refactors existing code in the product, but does not alter or change existing behavior in the product (this correlates with Minor in Semantic Versioning).
+- `perf: description of the PR`: The commit improves the performance of algorithms or general execution time of the product, but does not fundamentally change an existing feature (this correlates with Minor in Semantic Versioning).
+- `ci: description of the PR`: The commit makes changes to continuous integration or continuous delivery scripts or configuration files (this correlates with Minor in Semantic Versioning).
+- `revert: description of the PR`: The commit reverts one or more commits that were previously included in the product, but were accidentally merged or serious issues were discovered that required their removal from the main branch (this correlates with Minor in Semantic Versioning).
+- `style: description of the PR`: The commit updates or reformats the style of the source code, but does not otherwise change the product implementation (this correlates with Minor in Semantic Versioning).
+- `feat: description of the PR`: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
+- `deprecate: description of the PR`: The commit deprecates existing functionality, but does not remove it from the product (this correlates with MINOR in Semantic Versioning).
+- `BREAKING CHANGE`: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
+Examples:
+  - `fix!: description of the ticket`
+  - If the PR has `BREAKING CHANGE`: in its description is a breaking change
+- `remove!: description of the PR`: The commit removes a feature from the product. Typically features are deprecated first for a period of time before being removed. Removing a feature is a breaking change (correlating with MAJOR in Semantic Versioning).
