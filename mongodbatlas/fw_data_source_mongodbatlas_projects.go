@@ -36,7 +36,6 @@ type tfProjectsDSModel struct {
 func (d *ProjectsDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_projects"
 	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectsDataSourceName)
-
 }
 
 func (d *ProjectsDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -198,6 +197,6 @@ func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, c
 
 	stateModel.Results = results
 	stateModel.TotalCount = types.Int64Value(int64(projectsRes.TotalCount))
-	stateModel.ID = types.StringValue(fmt.Sprint(id.UniqueId()))
+	stateModel.ID = types.StringValue(id.UniqueId())
 	return nil
 }
