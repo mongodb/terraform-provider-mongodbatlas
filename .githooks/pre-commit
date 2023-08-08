@@ -11,7 +11,7 @@ done
 
 if [[ -n "${STAGED_GO_FILES}" ]]; then
     set -o errexit
-    make fix-lint
+    make lint-fix
     make lint
     set +o errexit
     for FILE in ${STAGED_GO_FILES}
