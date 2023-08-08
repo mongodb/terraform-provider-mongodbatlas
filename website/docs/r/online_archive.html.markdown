@@ -64,7 +64,7 @@ resource "mongodbatlas_online_archive" "test" {
         order      = 0 
     }
 
-    partitions_fields {
+    partition_fields {
         field_name = "secondName"
         order      = 1 
     }
