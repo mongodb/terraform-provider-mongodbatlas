@@ -33,7 +33,7 @@ In order to use and/or test beta resources and datasources in this provider you'
 ```bash
 export MONGODB_ATLAS_ENABLE_BETA = true
 ```
-### Logs
+## Logs
 To help with issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 
 
 To export logs to file, you can use `export TF_LOG_PATH=terraform.log`
