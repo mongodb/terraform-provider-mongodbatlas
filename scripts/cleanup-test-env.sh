@@ -22,20 +22,21 @@ projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 projects=$(atlas project ls -o json)
 
 echo ${projects} | jq -c '.results[].id' | while read id; do
-# Trim the quotes from the id
-clean_project_id=$(echo "$id" | tr -d '"')
+    # Trim the quotes from the id
+    clean_project_id=$(echo "$id" | tr -d '"')
 
-if [ "${clean_string_id}" = "${projectToSkip}" ]; then
-    echo "Skipping project with ID ${projectToSkip}"
-    continue
-fi
+    if [ "${clean_string_id}" = "${projectToSkip}" ]; then
+        echo "Skipping project with ID ${projectToSkip}"
+        continue
+    fi
 
-clusters=$(atlas cluster ls --projectId ${clean_project_id} -o=go-template="{{.TotalCount}}")
-if [ "${clusters}" != "0" ]; then
-    echo "Project ${clean_project_id} contains clusters. Skipping..."
-    continue
-fi
+    clusters=$(atlas cluster ls --projectId ${clean_project_id} -o=go-template="{{.TotalCount}}")
+    if [ "${clusters}" != "0" ]; then
+        echo "Project ${clean_project_id} contains clusters. Skipping..."
+        continue
+    fi
 
-echo "Deleting projectId ${clean_string_id}"
-# This command will fail if the project has a cluster inside
-atlas project delete ${clean_project_id} --force
+    echo "Deleting projectId ${clean_string_id}"
+    # This command will fail if the project has a cluster inside
+    atlas project delete ${clean_project_id} --force
+done
