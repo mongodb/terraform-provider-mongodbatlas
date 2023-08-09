@@ -399,3 +399,14 @@ func muxProviderFactoryUsingExistingSdkV2(sdkV2Provider *sdkv2schema.Provider) f
 	}
 	return muxServer.ProviderServer
 }
+
+func configureClientInResource(providerData any) (*MongoDBClient, error) {
+	if providerData == nil {
+		return nil, nil
+	}
+	client, ok := providerData.(*MongoDBClient)
+	if !ok {
+		return nil, fmt.Errorf(errorConfigure, providerData)
+	}
+	return client, nil
+}
