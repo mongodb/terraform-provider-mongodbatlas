@@ -107,23 +107,12 @@ func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, 
 }
 
 func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := configure(req.ProviderData)
+	client, err := ConfigureClientInResource(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
 	r.client = client
-}
-
-func configure(providerData any) (*MongoDBClient, error) {
-	if providerData == nil {
-		return nil, nil
-	}
-	client, ok := providerData.(*MongoDBClient)
-	if !ok {
-		return nil, fmt.Errorf(errorConfigure, providerData)
-	}
-	return client, nil
 }
 
 func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
