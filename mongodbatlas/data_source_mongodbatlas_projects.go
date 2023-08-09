@@ -248,9 +248,9 @@ func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*mat
 				"name":                      project.Name,
 				"cluster_count":             project.ClusterCount,
 				"created":                   project.Created,
+				"region_usage_restrictions": project.RegionUsageRestrictions,
 				"teams":                     flattenTeams(teams),
 				"api_keys":                  flattenAPIKeys(apiKeys),
-				"region_usage_restrictions": project.RegionUsageRestrictions,
 				"limits":                    flattenLimits(limits),
 			}
 
