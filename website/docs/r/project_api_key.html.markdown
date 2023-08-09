@@ -54,6 +54,7 @@ resource "mongodbatlas_project_api_key" "api_1" {
   description = "test api_key multi"
   project_id  = mongodbatlas_project.atlas-project.id
 
+  // NOTE: The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
   project_assignment {
     project_id = mongodbatlas_project.atlas-project.id
     role_names = ["ORG_READ_ONLY", "ORG_BILLING_ADMIN", "GROUP_READ_ONLY"]
