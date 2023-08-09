@@ -35,7 +35,7 @@ echo "${projects}" | jq -c '.results[].id' | while read -r id; do
         continue
     fi
 
-    echo "Deleting projectId ${clean_string_id}"
+    echo "Deleting projectId ${clean_project_id}"
     # This command will fail if the project has a cluster inside
     atlas project delete "${clean_project_id}" --force
 done
