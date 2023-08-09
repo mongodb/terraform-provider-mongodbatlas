@@ -323,7 +323,12 @@ func testAccMongoDBAtlasProjectAPIKeyConfigOrgRoles(orgID, firstProjectName, sec
 			project_assignment  {
 				project_id = mongodbatlas_project.test.id
 				role_names = ["ORG_READ_ONLY", "ORG_BILLING_ADMIN", "GROUP_READ_ONLY"]
-			  }
+			}
+			
+			project_assignment {
+				project_id = mongodbatlas_project.testProject.id
+				role_names = ["GROUP_OWNER"]
+			}
 
 		}
 
