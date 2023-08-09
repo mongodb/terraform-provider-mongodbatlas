@@ -40,6 +40,10 @@ func TestAccProjectDSProjects_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
+					// Test for Data source
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_projects.test", "total_count"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_projects.test", "results.#"),
 				),
 			},
 		},
@@ -75,6 +79,10 @@ func TestAccProjectDSProjects_withPagination(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
+					// Test for Data source
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_projects.test", "total_count"),
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_projects.test", "results.#"),
 				),
 			},
 		},

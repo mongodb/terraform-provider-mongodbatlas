@@ -41,6 +41,7 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
 				),
 			},
 		},
@@ -76,6 +77,7 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "name"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "org_id"),
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
 				),
 			},
 		},
@@ -117,6 +119,7 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_performance_advisor_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_realtime_performance_panel_enabled"),
 					resource.TestCheckResourceAttrSet("mongodbatlas_project.test", "is_schema_advisor_enabled"),
+					resource.TestCheckResourceAttr("mongodbatlas_project.test", "teams.#", "2"),
 				),
 			},
 		},
