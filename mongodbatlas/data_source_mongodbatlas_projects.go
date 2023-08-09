@@ -242,23 +242,28 @@ func flattenProjects(ctx context.Context, client *MongoDBClient, projects []*mat
 				diags = append(diags, diagWarning)
 			}
 
-			results[k] = map[string]interface{}{
-				"id":            project.ID,
-				"org_id":        project.OrgID,
-				"name":          project.Name,
-				"cluster_count": project.ClusterCount,
-				"created":       project.Created,
-				"teams":         flattenTeams(teams),
-				"api_keys":      flattenAPIKeys(apiKeys),
-				"is_collect_database_specifics_statistics_enabled": projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled,
-				"is_data_explorer_enabled":                         projectSettings.IsDataExplorerEnabled,
-				"is_extended_storage_sizes_enabled":                projectSettings.IsExtendedStorageSizesEnabled,
-				"is_performance_advisor_enabled":                   projectSettings.IsPerformanceAdvisorEnabled,
-				"is_realtime_performance_panel_enabled":            projectSettings.IsRealtimePerformancePanelEnabled,
-				"is_schema_advisor_enabled":                        projectSettings.IsSchemaAdvisorEnabled,
-				"region_usage_restrictions":                        project.RegionUsageRestrictions,
-				"limits":                                           flattenLimits(limits),
+			resultEntry := map[string]interface{}{
+				"id":                        project.ID,
+				"org_id":                    project.OrgID,
+				"name":                      project.Name,
+				"cluster_count":             project.ClusterCount,
+				"created":                   project.Created,
+				"region_usage_restrictions": project.RegionUsageRestrictions,
+				"teams":                     flattenTeams(teams),
+				"api_keys":                  flattenAPIKeys(apiKeys),
+				"limits":                    flattenLimits(limits),
 			}
+
+			if projectSettings != nil {
+				resultEntry["is_collect_database_specifics_statistics_enabled"] = projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled
+				resultEntry["is_data_explorer_enabled"] = projectSettings.IsDataExplorerEnabled
+				resultEntry["is_extended_storage_sizes_enabled"] = projectSettings.IsExtendedStorageSizesEnabled
+				resultEntry["is_performance_advisor_enabled"] = projectSettings.IsPerformanceAdvisorEnabled
+				resultEntry["is_realtime_performance_panel_enabled"] = projectSettings.IsRealtimePerformancePanelEnabled
+				resultEntry["is_schema_advisor_enabled"] = projectSettings.IsSchemaAdvisorEnabled
+			}
+
+			results[k] = resultEntry
 		}
 	}
 
