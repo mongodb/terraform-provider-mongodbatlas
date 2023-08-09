@@ -137,9 +137,6 @@ func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			},
 			"name": schema.StringAttribute{
 				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"org_id": schema.StringAttribute{
 				Required: true,
@@ -442,7 +439,7 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	projectStateNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
-	// save updated data into Terraform state
+	// save read data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectStateNew)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -546,19 +543,20 @@ func updatePlanFromConfig(projectPlanNewPtr, projectPlan *tfProjectRSModel) {
 	projectPlanNewPtr.ProjectOwnerID = projectPlan.ProjectOwnerID
 }
 
-func filterUserDefinedLimits(fetchedLimits []admin.DataFederationLimit, tflimits []tfLimitModel) []admin.DataFederationLimit {
-	definedLimitsMap := make(map[string]tfLimitModel)
-	for _, definedLimit := range tflimits {
-		definedLimitsMap[definedLimit.Name.ValueString()] = definedLimit
+func filterUserDefinedLimits(allAtlasLimits []admin.DataFederationLimit, tflimits []tfLimitModel) []admin.DataFederationLimit {
+	filteredLimits := []admin.DataFederationLimit{}
+	allLimitsMap := make(map[string]admin.DataFederationLimit)
+
+	for _, limit := range allAtlasLimits {
+		allLimitsMap[limit.Name] = limit
 	}
 
-	filteredLimits := []admin.DataFederationLimit{}
-	for i := range fetchedLimits {
-		limitRes := fetchedLimits[i]
-		if _, ok := definedLimitsMap[limitRes.Name]; ok {
-			filteredLimits = append(filteredLimits, limitRes)
+	for _, definedTfLimit := range tflimits {
+		if limit, ok := allLimitsMap[definedTfLimit.Name.ValueString()]; ok {
+			filteredLimits = append(filteredLimits, limit)
 		}
 	}
+
 	return filteredLimits
 }
 
@@ -700,23 +698,30 @@ func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectSt
 	}
 
 	projectID := projectState.ID.ValueString()
+	newLimits, changedLimits, removedLimits := getChangesInLimitsSet(planLimits, stateLimits)
 
 	// removing limits from the project
-	for _, limit := range stateLimits {
+	for _, limit := range removedLimits {
 		limitName := limit.Name.ValueString()
-		_, _, err := connV2.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute()
-		if err != nil {
+		if _, _, err := connV2.ProjectsApi.DeleteProjectLimit(ctx, limitName, projectID).Execute(); err != nil {
 			return fmt.Errorf("error removing limit %s from the project(%s) during update: %s", limitName, projectID, err)
 		}
 	}
 
-	// adding updated limits into the project
-	if len(planLimits) > 0 {
-		err := setProjectLimits(ctx, connV2, projectID, planLimits)
-		if err != nil {
+	// updating values for changed limits
+	if len(changedLimits) > 0 {
+		if err := setProjectLimits(ctx, connV2, projectID, changedLimits); err != nil {
+			return fmt.Errorf("error adding modified limits into the project during update: %v", err.Error())
+		}
+	}
+
+	// adding new limits into the project
+	if len(newLimits) > 0 {
+		if err := setProjectLimits(ctx, connV2, projectID, newLimits); err != nil {
 			return fmt.Errorf("error adding limits into the project during update: %v", err.Error())
 		}
 	}
+
 	return nil
 }
 
@@ -745,20 +750,37 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 	}
 
 	projectID := projectState.ID.ValueString()
+	newTeams, changedTeams, removedTeams := getChangesInTeamsSet(planTeams, stateTeams)
 
-	// remove all current teams
-	for _, team := range stateTeams {
+	// removing teams from the project
+	for _, team := range removedTeams {
+		teamID := team.TeamID.ValueString()
 		_, err := conn.Teams.RemoveTeamFromProject(ctx, projectID, team.TeamID.ValueString())
 		if err != nil {
-			return fmt.Errorf("error removing team from the project: %v", err.Error())
+			var target *matlas.ErrorResponse
+			if errors.As(err, &target) && target.ErrorCode != "USER_UNAUTHORIZED" {
+				return fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
+			}
+			log.Printf("[WARN] error removing team(%s) from the project(%s): %s", teamID, projectID, err)
 		}
 	}
 
-	// adding updated teams into the project
-	if len(planTeams) == 0 {
-		return nil
+	// updating the role names for a team
+	for _, team := range changedTeams {
+		teamID := team.TeamID.ValueString()
+
+		_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, teamID,
+			&matlas.TeamUpdateRoles{
+				RoleNames: expanders.TypesSetToString(ctx, team.RoleNames),
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("error updating role names for the team(%s): %s", teamID, err.Error())
+		}
 	}
-	if _, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, planTeams)); err != nil {
+
+	// adding new teams into the project
+	if _, _, err := conn.Projects.AddTeamsToProject(ctx, projectID, toAtlasProjectTeams(ctx, newTeams)); err != nil {
 		return fmt.Errorf("error adding teams to the project: %v", err.Error())
 	}
 
@@ -807,8 +829,8 @@ func newProjectUpdateRequest(tfProject *tfProjectRSModel) *matlas.ProjectUpdateR
 
 func deleteProject(ctx context.Context, conn *matlas.Client, projectID string) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"DELETING", "RETRY"},
-		Target:     []string{"IDLE"},
+		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
+		Target:     []string{projectDependentsStateIdle},
 		Refresh:    resourceProjectDependentsDeletingRefreshFunc(ctx, projectID, conn),
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
@@ -863,4 +885,68 @@ func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 
 		return dependents, projectDependentsStateDeleting, nil
 	}
+}
+
+func getChangesInTeamsSet(planTeams, stateTeams []tfTeamModel) (newElements, changedElements, removedElements []tfTeamModel) {
+	var removedTeams, newTeams, changedTeams []tfTeamModel
+
+	planTeamsMap := toTfTeamModelMap(planTeams)
+	stateTeamsMap := toTfTeamModelMap(stateTeams)
+
+	for teamID, stateTeam := range stateTeamsMap {
+		if plannedTeam, exists := planTeamsMap[teamID]; exists {
+			if !reflect.DeepEqual(plannedTeam, stateTeam) {
+				changedTeams = append(changedTeams, plannedTeam)
+			}
+		} else {
+			removedTeams = append(removedTeams, stateTeam)
+		}
+	}
+
+	for teamID, team := range planTeamsMap {
+		if _, exists := stateTeamsMap[teamID]; !exists {
+			newTeams = append(newTeams, team)
+		}
+	}
+	return newTeams, changedTeams, removedTeams
+}
+
+func toTfTeamModelMap(teams []tfTeamModel) map[types.String]tfTeamModel {
+	teamsMap := make(map[types.String]tfTeamModel)
+	for _, team := range teams {
+		teamsMap[team.TeamID] = team
+	}
+	return teamsMap
+}
+
+func getChangesInLimitsSet(planLimits, stateLimits []tfLimitModel) (newElements, changedElements, removedElements []tfLimitModel) {
+	var removedLimits, newLimits, changedLimits []tfLimitModel
+
+	planLimitsMap := toTfLimitModelMap(planLimits)
+	stateTeamsMap := toTfLimitModelMap(stateLimits)
+
+	for name, stateLimit := range stateTeamsMap {
+		if plannedTeam, exists := planLimitsMap[name]; exists {
+			if !reflect.DeepEqual(plannedTeam, stateLimit) {
+				changedLimits = append(changedLimits, plannedTeam)
+			}
+		} else {
+			removedLimits = append(removedLimits, stateLimit)
+		}
+	}
+
+	for name, limit := range planLimitsMap {
+		if _, exists := stateTeamsMap[name]; !exists {
+			newLimits = append(newLimits, limit)
+		}
+	}
+	return newLimits, changedLimits, removedLimits
+}
+
+func toTfLimitModelMap(limits []tfLimitModel) map[types.String]tfLimitModel {
+	limitsMap := make(map[types.String]tfLimitModel)
+	for _, limit := range limits {
+		limitsMap[limit.Name] = limit
+	}
+	return limitsMap
 }

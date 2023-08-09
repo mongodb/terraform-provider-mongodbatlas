@@ -54,11 +54,11 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
 				),
 			},
 			{
 				Config: testAccMongoDBAtlasProjectConfig(projectName, orgID,
-
 					[]*matlas.ProjectTeam{
 						{
 							TeamID:    teamsIds[0],
@@ -80,6 +80,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "teams.#", "3"),
 				),
 			},
 			{
@@ -102,6 +103,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckResourceAttr(resourceName, "teams.#", "2"),
 				),
 			},
 			{
@@ -112,6 +114,7 @@ func TestAccProjectRSProject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_count", clusterCount),
+					resource.TestCheckNoResourceAttr(resourceName, "teams.#"),
 				),
 			},
 		},
@@ -333,6 +336,50 @@ func TestAccProjectRSProject_withUpdatedLimits(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.name", "atlas.project.deployment.nodesPerPrivateLinkRegion"),
 					resource.TestCheckResourceAttr(resourceName, "limits.0.value", "2"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*admin.DataFederationLimit{
+					{
+						Name:  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+						Value: 3,
+					},
+					{
+						Name:  "atlas.project.security.databaseAccess.customRoles",
+						Value: 110,
+					},
+					{
+						Name:  "atlas.project.security.databaseAccess.users",
+						Value: 30,
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						resourceName,
+						"limits.*",
+						map[string]string{
+							"name":  "atlas.project.deployment.nodesPerPrivateLinkRegion",
+							"value": "3",
+						},
+					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						resourceName,
+						"limits.*",
+						map[string]string{
+							"name":  "atlas.project.security.databaseAccess.customRoles",
+							"value": "110",
+						},
+					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						resourceName,
+						"limits.*",
+						map[string]string{
+							"name":  "atlas.project.security.databaseAccess.users",
+							"value": "30",
+						},
+					),
 				),
 			},
 		},
