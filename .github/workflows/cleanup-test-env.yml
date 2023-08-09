@@ -20,18 +20,18 @@ jobs:
         with:
           sparse-checkout: |
             scripts
-      - name: cleanup cloud-dev
+      - name: Cleanup cloud-dev
         shell: bash
         env:
           MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
-        run: ./scripts/cleanup-test.sh      
+        run: ./scripts/cleanup-test-env.sh      
   clenup-test-env-network:
     runs-on: ubuntu-latest
     steps:
-      - name: setup Atlas CLI
+      - name: Setup Atlas CLI
         uses: andreaangiolillo/atlas-cli-github-action@v1.1.1
         with:
           public-key: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
@@ -42,7 +42,7 @@ jobs:
         with:
           sparse-checkout: |
             scripts
-      - name: cleanup test env network
+      - name: Cleanup test env network
         shell: bash
         env:
           MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
@@ -50,4 +50,4 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
           PROJECT_TO_NOT_DELETE: ${{vars.MONGODB_ATLAS_PROJECT_ID_CLOUD_DEV_NETWORK}}
-        run: ./scripts/cleanup-test.sh
+        run: ./scripts/cleanup-test-env.sh
