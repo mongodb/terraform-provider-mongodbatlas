@@ -35,10 +35,39 @@ resource "mongodbatlas_project_api_key" "test" {
   }
   
   project_assignment {
-    project_id = "74259ee860c43338194b0f8e"
+    project_id = "64229ee820c42228194b0f4a"
     role_names = ["GROUP_READ_ONLY"]
   }
   
+}
+```
+
+## Example Usage - Create Org PAK and Assign it to Multiple Projects
+
+```terraform
+resource "mongodbatlas_project" "atlas-project" {
+  name   = "ProjectTest"
+  org_id = "60ddf55c27a5a20955a707d7"
+}
+
+resource "mongodbatlas_project_api_key" "api_1" {
+  description = "test api_key multi"
+  project_id  = mongodbatlas_project.atlas-project.id
+
+  project_assignment {
+    project_id = mongodbatlas_project.atlas-project.id
+    role_names = ["ORG_READ_ONLY", "ORG_BILLING_ADMIN", "GROUP_READ_ONLY"]
+  }
+
+  project_assignment {
+    project_id = "63dcfc256af00a5934e60924"
+    role_names = ["GROUP_READ_ONLY"]
+  }
+
+  project_assignment {
+    project_id = "64c23af6f133166c39176cbf"
+    role_names = ["GROUP_OWNER"]
+  }
 }
 ```
 
@@ -56,6 +85,7 @@ List of Project roles that the Programmatic API key needs to have. `project_assi
 * `project_id` - (Required) Project ID to assign to Access Key
 * `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
 
+~> **NOTE:** The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
