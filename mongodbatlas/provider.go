@@ -82,28 +82,34 @@ func NewSdkV2Provider() *schema.Provider {
 			},
 			"assume_role": assumeRoleSchema(),
 			"secret_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Name of secret stored in AWS Secret Manager.",
 			},
 			"region": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Region where secret is stored as part of AWS Secret Manager.",
 			},
 			"sts_endpoint": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "AWS Security Token Service endpoint. Required for cross-AWS region or cross-AWS account secrets.",
 			},
 			"aws_access_key_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "AWS API Access Key.",
 			},
 			"aws_secret_access_key": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "AWS API Access Secret Key.",
 			},
 			"aws_session_token": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "AWS Security Token Service provided session token.",
 			},
 		},
 		DataSourcesMap:       getDataSourcesMap(),
@@ -310,16 +316,16 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 func setDefaultsAndValidations(d *schema.ResourceData) error {
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
-		if err := d.Set("base_url", "https://cloud.mongodbgov.com"); err != nil {
+		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
 			return err
 		}
-	} else {
-		if err := setValueFromConfigOrEnv(d, "base_url", []string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}); err != nil {
-			return err
-		}
+	}
+
+	if err := setValueFromConfigOrEnv(d, "base_url", []string{
+		"MONGODB_ATLAS_BASE_URL",
+		"MCLI_OPS_MANAGER_URL",
+	}); err != nil {
+		return err
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
