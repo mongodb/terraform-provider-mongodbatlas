@@ -24,7 +24,6 @@ projects=$(atlas project ls -o json)
 echo "${projects}" | jq -c '.results[].id' | while read -r id; do
     # Trim the quotes from the id
     clean_project_id=$(echo "$id" | tr -d '"')
-
     if [ "${clean_project_id}" = "${projectToSkip}" ]; then
         echo "Skipping project with ID ${projectToSkip}"
         continue
