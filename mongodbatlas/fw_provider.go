@@ -203,8 +203,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	defaultValuesAndValidations(&data, resp)
-
+	data = setDefaultValuesWithValidations(&data, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -228,7 +227,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		config, err = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return
@@ -249,6 +248,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	resp.ResourceData = client
 }
 
+// parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
 func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *AssumeRole {
 	assumeRole := AssumeRole{}
 
@@ -283,7 +283,7 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 
 const MongodbGovCloudURL = "https://cloud.mongodbgov.com"
 
-func defaultValuesAndValidations(data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) {
+func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
 		data.BaseURL = types.StringValue(MongodbGovCloudURL)
 	}
@@ -354,6 +354,8 @@ func defaultValuesAndValidations(data *tfMongodbAtlasProviderModel, resp *provid
 			"TF_VAR_AWS_SESSION_TOKEN",
 		}, "").(string))
 	}
+
+	return *data
 }
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {

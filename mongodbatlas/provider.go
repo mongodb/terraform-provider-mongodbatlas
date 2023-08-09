@@ -302,7 +302,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		awsSessionToken := d.Get("aws_session_token").(string)
 		endpoint := d.Get("sts_endpoint").(string)
 		var err error
-		config, err = configureCredentialsSTS(&config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
@@ -410,11 +410,11 @@ func MultiEnvDefaultFunc(ks []string, def interface{}) interface{} {
 	return def
 }
 
-func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
+func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return *config, err
+		return config, err
 	}
 
 	defaultResolver := endpoints.DefaultResolver()
@@ -449,35 +449,35 @@ func configureCredentialsSTS(config *Config, secret, region, awsAccessKeyID, aws
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
 		log.Printf("Session get credentials error: %s", err)
-		return *config, err
+		return config, err
 	}
 	_, err = creds.Get()
 	if err != nil {
 		log.Printf("STS get credentials error: %s", err)
-		return *config, err
+		return config, err
 	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
-		return *config, err
+		return config, err
 	}
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return *config, err
+		return config, err
 	}
 	if secretData.PrivateKey == "" {
-		return *config, fmt.Errorf("secret missing value for credential PrivateKey")
+		return config, fmt.Errorf("secret missing value for credential PrivateKey")
 	}
 
 	if secretData.PublicKey == "" {
-		return *config, fmt.Errorf("secret missing value for credential PublicKey")
+		return config, fmt.Errorf("secret missing value for credential PublicKey")
 	}
 
 	config.PublicKey = secretData.PublicKey
 	config.PrivateKey = secretData.PrivateKey
-	return *config, nil
+	return config, nil
 }
 
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
