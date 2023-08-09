@@ -21,7 +21,7 @@ projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 # Get all project Ids inside the organization
 projects=$(atlas project ls -o json)
 
-echo ${projects} | jq -c '.results[].id' | while read id; do
+echo "${projects}" | jq -c '.results[].id' | while read id; do
     # Trim the quotes from the id
     clean_project_id=$(echo "$id" | tr -d '"')
 
@@ -30,7 +30,7 @@ echo ${projects} | jq -c '.results[].id' | while read id; do
         continue
     fi
 
-    clusters=$(atlas cluster ls --projectId ${clean_project_id} -o=go-template="{{.TotalCount}}")
+    clusters=$(atlas cluster ls --projectId "${clean_project_id}" -o=go-template="{{.TotalCount}}")
     if [ "${clusters}" != "0" ]; then
         echo "Project ${clean_project_id} contains clusters. Skipping..."
         continue
@@ -38,5 +38,5 @@ echo ${projects} | jq -c '.results[].id' | while read id; do
 
     echo "Deleting projectId ${clean_string_id}"
     # This command will fail if the project has a cluster inside
-    atlas project delete ${clean_project_id} --force
+    atlas project delete "${clean_project_id}" --force
 done
