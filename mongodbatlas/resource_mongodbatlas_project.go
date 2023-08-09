@@ -590,6 +590,10 @@ func expandLimitsList(limits []interface{}) []*projectLimit {
 }
 
 func flattenTeams(ta *matlas.TeamsAssigned) []map[string]interface{} {
+	if ta == nil || ta.Results == nil || ta.TotalCount == 0 {
+		return nil
+	}
+
 	teams := ta.Results
 	res := make([]map[string]interface{}, len(teams))
 
