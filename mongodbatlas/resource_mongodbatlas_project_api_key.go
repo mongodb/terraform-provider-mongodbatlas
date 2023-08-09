@@ -13,6 +13,14 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	orgRolePrefix     = "ORG_"
+	projectRolePrefix = "GROUP_"
+	orgReadOnlyRole   = "ORG_READ_ONLY"
+)
+
+var orgRoleProvided = false
+
 func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasProjectAPIKeyCreate,
@@ -97,6 +105,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		for _, apiKeyList := range projectAssignmentList {
 			if apiKeyList.ProjectID == projectID {
 				createRequest.Roles = apiKeyList.RoleNames
+				orgRoleProvided = apiKeyList.findOrgRole()
 				apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 				if err != nil {
 					if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -466,9 +475,8 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, chang
 	return
 }
 
-func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectIDUsedToCreateApiKeys string, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
+func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectIDUsedToCreateAPIKeys string, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
-	orgRoles := map[string]string{}
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
 			orgKeys, _, err := conn.APIKeys.List(ctx, apiKeyOrgList.APIKey.Roles[idx].OrgID, nil)
@@ -480,48 +488,46 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectI
 				if val.ID == apiKeyID {
 					for _, r := range val.Roles {
 						temp := new(APIProjectAssignmentKeyInput)
-						if strings.HasPrefix(r.RoleName, "GROUP_") {
+						roles := map[string]string{}
+						if strings.HasPrefix(r.RoleName, projectRolePrefix) {
 							temp.ProjectID = r.GroupID
 							for _, l := range val.Roles {
-								if l.GroupID == temp.ProjectID {
-									temp.RoleNames = append(temp.RoleNames, l.RoleName)
-								} else if projectIDUsedToCreateApiKeys == temp.ProjectID {
-									orgRoles[r.RoleName] = r.RoleName
+								if l.GroupID == temp.ProjectID || (l.GroupID == "" && temp.ProjectID == projectIDUsedToCreateAPIKeys) {
+									roles[l.RoleName] = l.RoleName
 								}
 							}
 
-							if projectIDUsedToCreateApiKeys != temp.ProjectID {
-								projectAssignments = append(projectAssignments, *temp)
+							tempRoleList := make([]string, 0, len(roles))
+							for k := range roles {
+								if !orgRoleProvided && k == orgReadOnlyRole {
+									// When the user does not provide org roles
+									// the API key POST endpoing creates an org api key with
+									// the role ORG_READ_ONLY. We want to remove this from the state
+									// since the user did not provided it
+									continue
+								}
+
+								tempRoleList = append(tempRoleList, k)
 							}
 
-						} else {
-							orgRoles[r.RoleName] = r.RoleName
-							// orgID := r.OrgID
-							// for _, l := range val.Roles {
-							// 	if orgID == l.OrgID {
-							// 		temp.RoleNames = append(temp.RoleNames, l.RoleName)
-							// 	}
-							// }
-							// temp.ProjectID = projectIDUsedToCreateApiKeys
-							// projectAssignments = append(projectAssignments, *temp)
+							temp.RoleNames = tempRoleList
+							projectAssignments = append(projectAssignments, *temp)
 						}
 					}
 				}
 			}
-
-			temp := new(APIProjectAssignmentKeyInput)
-			temp.ProjectID = projectIDUsedToCreateApiKeys
-
-			keys := make([]string, 0, len(orgRoles))
-			for k := range orgRoles {
-				keys = append(keys, k)
-			}
-
-			temp.RoleNames = append(temp.RoleNames, keys...)
-			projectAssignments = append(projectAssignments, *temp)
-
 			break
 		}
 	}
 	return projectAssignments, nil
+}
+
+func (apiKey *APIProjectAssignmentKeyInput) findOrgRole() bool {
+	for _, r := range apiKey.RoleNames {
+		if strings.HasPrefix(r, orgRolePrefix) {
+			return true
+		}
+	}
+
+	return false
 }
