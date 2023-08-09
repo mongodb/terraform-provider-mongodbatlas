@@ -21,11 +21,11 @@ projectToSkip="${PROJECT_TO_NOT_DELETE:-NONE}"
 # Get all project Ids inside the organization
 projects=$(atlas project ls -o json)
 
-echo "${projects}" | jq -c '.results[].id' | while read id; do
+echo "${projects}" | jq -c '.results[].id' | while read -r id; do
     # Trim the quotes from the id
     clean_project_id=$(echo "$id" | tr -d '"')
 
-    if [ "${clean_string_id}" = "${projectToSkip}" ]; then
+    if [ "${clean_project_id}" = "${projectToSkip}" ]; then
         echo "Skipping project with ID ${projectToSkip}"
         continue
     fi
