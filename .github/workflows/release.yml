@@ -4,7 +4,8 @@ on:
     tags:
       - 'v*'
 jobs:
-
+  # Check that the last run of the acceptance tests was successful
+  # We run the acceptance tests only if the last run of the sceduled workflow failed 
   check-acceptance-tests-status:
     runs-on: ubuntu-latest
     outputs:
@@ -17,7 +18,7 @@ jobs:
         run: |
           LAST_JOB_STATUS=$(gh run list --workflow acceptance-tests.yml |grep -oh "completed.*" | grep -h "schedule.*" | head -1 | awk '{print $2}')
           echo "acceptanceTestsStatus=${LAST_JOB_STATUS}" >> $GITHUB_OUTPUT
-  
+  # We run the acceptance tests only if the last run of the sceduled workflow failed 
   run-accettance-tests-workflow:
     needs: [ check-acceptance-tests-status ]
     if: ${{ needs.check-acceptance-tests-status.outputs.acceptance_tests_status != 'success'}}
@@ -29,7 +30,7 @@ jobs:
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       parent-event-name: 'release'   
-
+  # Release the provider
   goreleaser:
     runs-on: ubuntu-latest
     needs: [ check-acceptance-tests-status, run-accettance-tests-workflow ]
