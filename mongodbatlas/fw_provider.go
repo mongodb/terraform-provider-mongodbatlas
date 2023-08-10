@@ -26,6 +26,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
+const (
+	errorConfigureSummary = "Unexpected Resource Configure Type"
+	errorConfigure        = "expected *MongoDBClient, got: %T. Please report this issue to the provider developers"
+)
+
 type MongodbtlasProvider struct{}
 
 type tfMongodbAtlasProviderModel struct {
@@ -360,13 +365,14 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *pr
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// NewExampleDataSource,
+		NewProjectDS,
+		NewProjectsDS,
 	}
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		// NewExampleResource,
+		NewProjectRS,
 	}
 }
 
@@ -401,4 +407,15 @@ func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.
 		log.Fatal(err)
 	}
 	return muxServer.ProviderServer
+}
+
+func ConfigureClientInResource(providerData any) (*MongoDBClient, error) {
+	if providerData == nil {
+		return nil, nil
+	}
+	client, ok := providerData.(*MongoDBClient)
+	if !ok {
+		return nil, fmt.Errorf(errorConfigure, providerData)
+	}
+	return client, nil
 }

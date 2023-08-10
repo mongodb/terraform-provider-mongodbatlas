@@ -1,6 +1,7 @@
 package mongodbatlas
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -22,6 +23,9 @@ var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, erro
 // this provider instance has to be passed into mux server factory for its configure method to be invoked
 var testAccProviderSdkV2 *schema.Provider
 
+// testMongoDBClient is used to configure client required for Framework-based acceptance tests
+var testMongoDBClient interface{}
+
 func init() {
 	testAccProviderSdkV2 = NewSdkV2Provider()
 
@@ -30,6 +34,14 @@ func init() {
 			return muxedProviderFactory(testAccProviderSdkV2)(), nil
 		},
 	}
+
+	config := Config{
+		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
+		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
+		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
+	}
+	testMongoDBClient, _ = config.NewClient(context.Background())
 }
 
 func TestSdkV2Provider(t *testing.T) {

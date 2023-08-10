@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -29,7 +31,6 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -134,8 +135,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_project_api_key":                   dataSourceMongoDBAtlasProjectAPIKey(),
 		"mongodbatlas_project_api_keys":                  dataSourceMongoDBAtlasProjectAPIKeys(),
 		"mongodbatlas_roles_org_id":                      dataSourceMongoDBAtlasOrgID(),
-		"mongodbatlas_project":                           dataSourceMongoDBAtlasProject(),
-		"mongodbatlas_projects":                          dataSourceMongoDBAtlasProjects(),
 		"mongodbatlas_cluster":                           dataSourceMongoDBAtlasCluster(),
 		"mongodbatlas_clusters":                          dataSourceMongoDBAtlasClusters(),
 		"mongodbatlas_network_container":                 dataSourceMongoDBAtlasNetworkContainer(),
@@ -223,7 +222,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_project_api_key":                   resourceMongoDBAtlasProjectAPIKey(),
 		"mongodbatlas_custom_db_role":                    resourceMongoDBAtlasCustomDBRole(),
 		"mongodbatlas_database_user":                     resourceMongoDBAtlasDatabaseUser(),
-		"mongodbatlas_project":                           resourceMongoDBAtlasProject(),
 		"mongodbatlas_cluster":                           resourceMongoDBAtlasCluster(),
 		"mongodbatlas_network_container":                 resourceMongoDBAtlasNetworkContainer(),
 		"mongodbatlas_network_peering":                   resourceMongoDBAtlasNetworkPeering(),

@@ -40,6 +40,15 @@ Examples:
   - If the PR has `BREAKING CHANGE`: in its description is a breaking change
 - `remove!: description of the PR`: The commit removes a feature from the product. Typically features are deprecated first for a period of time before being removed. Removing a feature is a breaking change (correlating with MAJOR in Semantic Versioning).
 
+## Terraform Plugin Framework Migration
+Certain plugin resources are implemented using the new Terraform Plugin Framework or have been migrated from Terraform Plugin SDKv2-based implementation.
+
+
+Below conventions are followed for resources implemented with Terraform Plugin Framework:
+- **File names:** All resource/data source and test files for resources implemented with Terraform Plugin Framework must be prefixed with `fw_`. For example, `fw_mongodbatlas_resource_project.go`, `fw_mongodbatlas_resource_project_test.go`and `fw_mongodbatlas_datasource_project.go`.
+- **Data models:** Data models associated to a resource/data source schema must follow naming format - `tf<resourceName><RS|DS>Model`, where `RS|DS` demonstrates whether the model belongs to a Terraform resource (`RS`) or Data source (`DS`).
+For example, `tfProjectRSModel` or `tfProjectDSModel`.
+
 
 ## Documentation Best Practises
 
