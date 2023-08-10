@@ -78,7 +78,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:          schema.TypeList,
 				Optional:      true,
 				ConflictsWith: []string{"bi_connector_config"},
-				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "bi_connector_config.duration"),
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "bi_connector_config"),
 				Computed:      true,
 				MaxItems:      1,
 				Elem: &schema.Resource{
