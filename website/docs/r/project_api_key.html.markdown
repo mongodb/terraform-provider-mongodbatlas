@@ -87,6 +87,8 @@ List of Project roles that the Programmatic API key needs to have. `project_assi
 * `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
 
 ~> **NOTE:** The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
+
+~> **NOTE:** The organization level roles can be defined only in the first `project_assignment` element.
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
