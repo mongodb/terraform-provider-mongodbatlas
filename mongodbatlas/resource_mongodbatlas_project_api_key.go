@@ -19,7 +19,7 @@ const (
 	orgReadOnlyRole   = "ORG_READ_ONLY"
 )
 
-var orgRoleProvided = false
+var projectAPIKeyOrgRoleProvided = false
 
 func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 	return &schema.Resource{
@@ -105,7 +105,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		for _, apiKeyList := range projectAssignmentList {
 			if apiKeyList.ProjectID == projectID {
 				createRequest.Roles = apiKeyList.RoleNames
-				orgRoleProvided = apiKeyList.findOrgRole()
+				projectAPIKeyOrgRoleProvided = apiKeyList.findOrgRole()
 				apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 				if err != nil {
 					if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -499,7 +499,7 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectI
 
 							tempRoleList := make([]string, 0, len(roles))
 							for k := range roles {
-								if !orgRoleProvided && k == orgReadOnlyRole {
+								if !projectAPIKeyOrgRoleProvided && k == orgReadOnlyRole {
 									// When the user does not provide org roles
 									// the API key POST endpoing creates an org api key with
 									// the role ORG_READ_ONLY. We want to remove this from the state
