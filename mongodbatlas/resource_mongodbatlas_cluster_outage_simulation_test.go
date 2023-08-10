@@ -12,7 +12,6 @@ import (
 )
 
 func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
-	SkipTestExtCred(t)
 	var (
 		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -41,7 +40,6 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 }
 
 func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
-	SkipTestExtCred(t)
 	var (
 		dataSourceName = "mongodbatlas_cluster_outage_simulation.test_outage"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
