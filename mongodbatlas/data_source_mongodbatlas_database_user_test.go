@@ -20,8 +20,8 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 	username := fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username),

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -15,25 +16,24 @@ const (
 	ProviderNameMongoDBAtlas = "mongodbatlas"
 )
 
-var testAccProviders map[string]*schema.Provider
+var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
-var testAccProviderFactories map[string]func() (*schema.Provider, error)
-
-var testAccProvider *schema.Provider
+// only being used in tests obtaining client: .Meta().(*MongoDBClient)
+// this provider instance has to be passed into mux server factory for its configure method to be invoked
+var testAccProviderSdkV2 *schema.Provider
 
 func init() {
-	testAccProvider = Provider()
-	testAccProviders = map[string]*schema.Provider{
-		ProviderNameMongoDBAtlas: testAccProvider,
-	}
+	testAccProviderSdkV2 = NewSdkV2Provider()
 
-	testAccProviderFactories = map[string]func() (*schema.Provider, error){
-		ProviderNameMongoDBAtlas: func() (*schema.Provider, error) { return testAccProvider, nil },
+	testAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
+		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
+			return muxedProviderFactory(testAccProviderSdkV2)(), nil
+		},
 	}
 }
 
-func TestProvider(t *testing.T) {
-	if err := Provider().InternalValidate(); err != nil {
+func TestSdkV2Provider(t *testing.T) {
+	if err := NewSdkV2Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }

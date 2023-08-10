@@ -22,9 +22,9 @@ func TestAccProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 	updatedComment := fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
@@ -63,9 +63,9 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	updatedComment := fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
@@ -110,9 +110,9 @@ func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	updatedComment := fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
@@ -172,9 +172,9 @@ func TestAccProjectRSProjectIPAccessList_SettingMultiple(t *testing.T) {
 
 	//TODO: make testAccCheckMongoDBAtlasProjectIPAccessListExists dynamic
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
@@ -204,9 +204,9 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
@@ -223,7 +223,7 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -246,7 +246,7 @@ func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) reso
 }
 
 func testAccCheckMongoDBAtlasProjectIPAccessListDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_project_ip_access_list" {

@@ -18,8 +18,8 @@ func TestAccBackupDSCloudBackupSnapshotExportBuckets_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceCloudBackupSnapshotExportBucketsConfig(projectID, bucketName, iamRoleID),

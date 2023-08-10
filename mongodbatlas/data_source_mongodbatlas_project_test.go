@@ -24,8 +24,8 @@ func TestAccProjectDSProject_byID(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
@@ -72,8 +72,8 @@ func TestAccProjectDSProject_byName(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
@@ -121,8 +121,8 @@ func TestAccProjectDSProject_defaultFlags(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t); testCheckTeamsIds(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfig(projectName, orgID,
@@ -168,8 +168,8 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),

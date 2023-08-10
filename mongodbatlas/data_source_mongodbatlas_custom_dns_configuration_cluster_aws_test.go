@@ -15,8 +15,8 @@ func TestAccConfigDSCustomDNSConfigurationAWS_basic(t *testing.T) {
 	projectName := acctest.RandomWithPrefix("test-acc")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDNSConfigurationAWSDataSourceConfig(orgID, projectName, true),

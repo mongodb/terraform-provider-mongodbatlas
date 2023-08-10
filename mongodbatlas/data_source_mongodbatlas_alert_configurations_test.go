@@ -21,8 +21,8 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasAlertConfigurations(orgID, projectName),
@@ -53,7 +53,7 @@ func testAccDSMongoDBAtlasAlertConfigurations(orgID, projectName string) string 
 
 func testAccCheckMongoDBAtlasAlertConfigurationsCount(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

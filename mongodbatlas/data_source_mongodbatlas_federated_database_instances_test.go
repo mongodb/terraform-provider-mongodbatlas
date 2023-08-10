@@ -34,8 +34,8 @@ func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, region),
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasFederatedDatabaseInstancesDataSourceConfig(policyName, roleName, projectName, orgID, firstName, secondName, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),

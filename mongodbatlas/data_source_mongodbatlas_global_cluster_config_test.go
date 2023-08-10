@@ -17,9 +17,9 @@ func TestAccClusterDSGlobalCluster_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name),

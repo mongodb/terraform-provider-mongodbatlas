@@ -22,9 +22,9 @@ func TestAccConfigRSAPIKey_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleName),
@@ -59,9 +59,9 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasAPIKeyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAPIKeyConfigBasic(orgID, description, roleName),
@@ -78,7 +78,7 @@ func TestAccConfigRSAPIKey_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -101,7 +101,7 @@ func testAccCheckMongoDBAtlasAPIKeyExists(resourceName string) resource.TestChec
 }
 
 func testAccCheckMongoDBAtlasAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_api_key" {

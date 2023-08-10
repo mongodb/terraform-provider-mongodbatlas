@@ -21,9 +21,9 @@ func TestAccClusterRSDataLakePipeline_basic(t *testing.T) {
 		name         = acctest.RandomWithPrefix("test-acc-index")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasSearchIndexDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, name),
@@ -59,7 +59,7 @@ func testAccCheckMongoDBAtlasDataLakePipelineImportStateIDFunc(resourceName stri
 
 func testAccCheckMongoDBAtlasDataLakePipelineExists(resourceName string, pipeline *matlas.DataLakePipeline) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

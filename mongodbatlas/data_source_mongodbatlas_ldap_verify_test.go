@@ -26,9 +26,9 @@ func TestAccAdvDSLDAPVerify_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testCheckLDAP(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
+		PreCheck:                 func() { testAccPreCheck(t); testCheckLDAP(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasLDAPConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceLDAPVerifyConfig(projectName, orgID, clusterName, hostname, username, password, cast.ToInt(port)),

@@ -18,9 +18,9 @@ func TestAccConfigDSProjectAPIKeys_basic(t *testing.T) {
 	roleName := "GROUP_OWNER"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasProjectAPIKeysConfig(orgID, projectName, description, roleName),

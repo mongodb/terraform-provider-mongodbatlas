@@ -34,8 +34,8 @@ func TestAccConfigRSCloudProviderAccessSetup_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		// same as regular cloud provider access resource
 		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
@@ -63,9 +63,9 @@ func TestAccConfigRSCloudProviderAccessSetup_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(createProviderAccessSetupRole, name, orgID, projectName, "AWS"),

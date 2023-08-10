@@ -18,9 +18,9 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasTeamDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfig(orgID, name, username),
@@ -44,9 +44,9 @@ func TestAccConfigDSTeamByName_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasTeamDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasTeamConfigByName(orgID, name, username),
