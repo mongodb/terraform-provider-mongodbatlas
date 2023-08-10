@@ -14,12 +14,9 @@ import (
 )
 
 const (
-	orgRolePrefix     = "ORG_"
 	projectRolePrefix = "GROUP_"
 	orgReadOnlyRole   = "ORG_READ_ONLY"
 )
-
-var projectAPIKeyOrgRoleProvided = false
 
 func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 	return &schema.Resource{
@@ -104,8 +101,11 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
 		for _, apiKeyList := range projectAssignmentList {
 			if apiKeyList.ProjectID == projectID {
+				if err := apiKeyList.validateOrgKeyRoles(); err != nil {
+					return diag.FromErr(err)
+				}
+
 				createRequest.Roles = apiKeyList.RoleNames
-				projectAPIKeyOrgRoleProvided = apiKeyList.findOrgRole()
 				apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 				if err != nil {
 					if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -499,7 +499,7 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectI
 
 							tempRoleList := make([]string, 0, len(roles))
 							for k := range roles {
-								if !projectAPIKeyOrgRoleProvided && k == orgReadOnlyRole {
+								if k == orgReadOnlyRole {
 									// When the user does not provide org roles
 									// the API key POST endpoing creates an org api key with
 									// the role ORG_READ_ONLY. We want to remove this from the state
@@ -522,12 +522,16 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectI
 	return projectAssignments, nil
 }
 
-func (apiKey *APIProjectAssignmentKeyInput) findOrgRole() bool {
+func (apiKey *APIProjectAssignmentKeyInput) validateOrgKeyRoles() error {
+	// When the user does not provide org roles
+	// the API key POST endpoing creates an org api key with
+	// the role ORG_READ_ONLY. We want to remove this from the state
+	// to avoid differences between config and state
 	for _, r := range apiKey.RoleNames {
-		if strings.HasPrefix(r, orgRolePrefix) {
-			return true
+		if r == orgReadOnlyRole {
+			return fmt.Errorf(`%[1]s is not an allowed role for the resource. Remove %[1]s from the roles and run terraform apply again. Check out the resource documentation to know more`, orgReadOnlyRole)
 		}
 	}
 
-	return false
+	return nil
 }

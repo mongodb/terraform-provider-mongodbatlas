@@ -57,7 +57,7 @@ resource "mongodbatlas_project_api_key" "api_1" {
   // NOTE: The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
   project_assignment {
     project_id = mongodbatlas_project.atlas-project.id
-    role_names = ["ORG_READ_ONLY", "ORG_BILLING_ADMIN", "GROUP_READ_ONLY"]
+    role_names = ["ORG_BILLING_ADMIN", "GROUP_READ_ONLY"]
   }
 
   project_assignment {
@@ -89,6 +89,9 @@ List of Project roles that the Programmatic API key needs to have. `project_assi
 ~> **NOTE:** The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
 
 ~> **NOTE:** The organization level roles can be defined only in the first `project_assignment` element.
+
+~> **NOTE:** The `ORG_READ_ONLY` role at the organization level is invalid in this context. When the `project_assignment``` lacks organizational roles, the `mongodbatlas_project_api_key` resource generates an organization API key with the `ORG_READ_ONLY` role and associates it with `GROUP_*` roles. Consequently, the resource does not permit the use of `ORG_READ_ONLY` to ensure consistency between configuration and state.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
