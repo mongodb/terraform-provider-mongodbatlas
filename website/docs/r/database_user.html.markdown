@@ -135,7 +135,7 @@ Accepted values include:
   * `MANAGED` - The user is being created for use with Atlas-managed X.509.Externally authenticated users can only be created on the `$external` database.
   * `CUSTOMER` -  The user is being created for use with Self-Managed X.509. Users created with this x509Type require a Common Name (CN) in the username field. Externally authenticated users can only be created on the `$external` database.
 
-* `aws_iam_type` - (Optional) If this value is set, the new database user authenticates with AWS IAM credentials. If no value is given, Atlas uses the default value of `NONE``. The accepted types are:
+* `aws_iam_type` - (Optional) If this value is set, the new database user authenticates with AWS IAM credentials. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
   * `NONE` -	The user does not use AWS IAM credentials.
   * `USER` - New database user has AWS IAM user credentials.
   * `ROLE` -  New database user has credentials associated with an AWS IAM role.
