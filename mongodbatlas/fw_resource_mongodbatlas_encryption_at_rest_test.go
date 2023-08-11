@@ -97,7 +97,7 @@ data "aws_iam_role" "test" {
 )
 
 func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
-	SkipTestExtCred(t)
+	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -143,7 +143,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
-	SkipTestExtCred(t)
+	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -197,7 +197,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
-	SkipTestExtCred(t)
+	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -277,7 +277,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -297,7 +297,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {
