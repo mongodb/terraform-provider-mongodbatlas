@@ -97,7 +97,6 @@ data "aws_iam_role" "test" {
 )
 
 func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
-	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -143,7 +142,6 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
-	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -197,7 +195,6 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
-	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")

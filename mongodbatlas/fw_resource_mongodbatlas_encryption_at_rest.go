@@ -24,7 +24,13 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-const encryptionAtRestResourceName = "encryption_at_rest"
+const (
+	encryptionAtRestResourceName = "encryption_at_rest"
+	errorCreateEncryptionAtRest  = "error creating Encryption At Rest: %s"
+	errorReadEncryptionAtRest    = "error getting Encryption At Rest: %s"
+	errorDeleteEncryptionAtRest  = "error deleting Encryption At Rest: (%s): %s"
+	errorUpdateEncryptionAtRest  = "error updating Encryption At Rest: %s"
+)
 
 var _ resource.Resource = &EncryptionAtRestRS{}
 var _ resource.ResourceWithImportState = &EncryptionAtRestRS{}
@@ -38,28 +44,22 @@ type EncryptionAtRestRS struct {
 }
 
 type tfEncryptionAtRestRSModel struct {
-	ID        types.String `tfsdk:"id"`
-	ProjectID types.String `tfsdk:"project_id"`
-
-	// AwsKms         types.Map `tfsdk:"aws_kms"`
-	// AzureKeyVault  types.Map `tfsdk:"azure_key_vault"`
-	// GoogleCloudKms types.Map `tfsdk:"google_cloud_kms"`
-
-	AwsKmsConfig         types.List `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  types.List `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig types.List `tfsdk:"google_cloud_kms_config"`
+	ID                   types.String `tfsdk:"id"`
+	ProjectID            types.String `tfsdk:"project_id"`
+	AwsKmsConfig         types.List   `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig  types.List   `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig types.List   `tfsdk:"google_cloud_kms_config"`
 }
 
 type tfAwsKmsConfigModel struct {
-	Enabled             types.Bool   `tfsdk:"enabled"`
 	AccessKeyID         types.String `tfsdk:"access_key_id"`
 	SecretAccessKey     types.String `tfsdk:"secret_access_key"`
 	CustomerMasterKeyID types.String `tfsdk:"customer_master_key_id"`
 	Region              types.String `tfsdk:"region"`
 	RoleID              types.String `tfsdk:"role_id"`
+	Enabled             types.Bool   `tfsdk:"enabled"`
 }
 type tfAzureKeyVaultConfigModel struct {
-	Enabled           types.Bool   `tfsdk:"enabled"`
 	ClientID          types.String `tfsdk:"client_id"`
 	AzureEnvironment  types.String `tfsdk:"azure_environment"`
 	SubscriptionID    types.String `tfsdk:"subscription_id"`
@@ -68,11 +68,12 @@ type tfAzureKeyVaultConfigModel struct {
 	KeyIdentifier     types.String `tfsdk:"key_identifier"`
 	Secret            types.String `tfsdk:"secret"`
 	TenantID          types.String `tfsdk:"tenant_id"`
+	Enabled           types.Bool   `tfsdk:"enabled"`
 }
 type tfGcpKmsConfigModel struct {
-	Enabled              types.Bool   `tfsdk:"enabled"`
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
+	Enabled              types.Bool   `tfsdk:"enabled"`
 }
 
 var tfAwsKmsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -222,10 +223,6 @@ func (r *EncryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 
 func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var encryptionAtRestPlan tfEncryptionAtRestRSModel
-	var awsKmsConfig []tfAwsKmsConfigModel
-	// var azureKeyVaultConfig tfAzureKeyVaultConfigModel
-	// var googleCloudKmsConfig tfGcpKmsConfigModel
-
 	conn := r.client.Atlas
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &encryptionAtRestPlan)...)
@@ -239,7 +236,6 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	if !encryptionAtRestPlan.AwsKmsConfig.IsNull() {
-		req.Plan.GetAttribute(ctx, path.Root("aws_kms_config"), &awsKmsConfig)
 		encryptionAtRestReq.AwsKms = *toAtlasAwsKms(ctx, encryptionAtRestPlan.AwsKmsConfig)
 	}
 	if !encryptionAtRestPlan.AzureKeyVaultConfig.IsNull() {
@@ -376,7 +372,6 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &encryptionAtRestStateNew)...)
-
 }
 
 func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState basetypes.ListValue) bool {
@@ -389,7 +384,6 @@ func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigS
 
 func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState basetypes.ListValue) bool {
 	return !reflect.DeepEqual(awsKmsConfigPlan, awsKmsConfigState)
-
 }
 
 func (r *EncryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

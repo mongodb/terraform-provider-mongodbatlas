@@ -43,16 +43,7 @@ func (v awsKmsConfigValidator) ValidateObject(ctx context.Context, req validator
 			v.Description(ctx),
 			req.ConfigValue.String(),
 		))
-
 	}
-
-	// if _, err := structure.NormalizeJsonString(req.ConfigValue.ValueString()); err != nil {
-	// 	response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
-	// 		req.Path,
-	// 		v.Description(ctx),
-	// 		req.ConfigValue.ValueString(),
-	// 	))
-	// }
 }
 
 func AwsKmsConfig() validator.Object {
