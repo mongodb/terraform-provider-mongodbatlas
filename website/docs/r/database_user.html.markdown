@@ -101,6 +101,24 @@ resource "mongodbatlas_database_user" "test" {
 }
 ```
 
+
+## Example of how to create a OIDC federated authentication user
+```terraform
+resource "mongodbatlas_database_user" "test" {
+  username           = "64d613677e1ad50839cce4db/testUserOrGroupName"
+  project_id         = "6414908c207f4d22f4d8f232"
+  auth_database_name = "admin"
+  oidc_auth_type     = "IDP_GROUP"
+
+  roles {
+    role_name     = "readWriteAnyDatabase"
+    database_name = "admin"
+  }
+}
+```
+
+
+
 ## Argument Reference
 
 * `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.
@@ -117,7 +135,7 @@ Accepted values include:
   * `MANAGED` - The user is being created for use with Atlas-managed X.509.Externally authenticated users can only be created on the `$external` database.
   * `CUSTOMER` -  The user is being created for use with Self-Managed X.509. Users created with this x509Type require a Common Name (CN) in the username field. Externally authenticated users can only be created on the `$external` database.
 
-* `aws_iam_type` - (Optional) If this value is set, the new database user authenticates with AWS IAM credentials. If no value is given, Atlas uses the default value of NONE. The accepted types are:
+* `aws_iam_type` - (Optional) If this value is set, the new database user authenticates with AWS IAM credentials. If no value is given, Atlas uses the default value of `NONE``. The accepted types are:
   * `NONE` -	The user does not use AWS IAM credentials.
   * `USER` - New database user has AWS IAM user credentials.
   * `ROLE` -  New database user has credentials associated with an AWS IAM role.
@@ -127,6 +145,10 @@ Accepted values include:
   * `USER` - LDAP server authenticates this user through the user's LDAP user. `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
   * `GROUP` - LDAP server authenticates this user using their LDAP user and authorizes this user using their LDAP group. To learn more about LDAP security, see [Set up User Authentication and Authorization with LDAP](https://docs.atlas.mongodb.com/security-ldaps). `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
 
+
+* `oidc_auth_type` - (Optional) Human-readable label that indicates whether the new database user authenticates with OIDC federated authentication. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
+  * `NONE` -	The user does not use OIDC federated authentication.
+  * `IDP_GROUP` - Create a OIDC federated authentication user. To learn more about OIDC federated authentication, see [Set up Workforce Identity Federation with OIDC](https://www.mongodb.com/docs/atlas/security-oidc/).
 ### Roles
 
 Block mapping a user's role to a database / collection. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well.

@@ -24,7 +24,7 @@ export SHELL := env PATH=$(PATH) /bin/bash
 default: build
 
 .PHONY: build
-build: fmtcheck
+build: fmt fmtcheck
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
 .PHONY: install
