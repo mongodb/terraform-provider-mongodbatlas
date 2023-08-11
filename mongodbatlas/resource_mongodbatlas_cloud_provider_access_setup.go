@@ -44,7 +44,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Deprecated: "use aws_config instead",
+				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "aws_config"),
 			},
 			"aws_config": {
 				Type:     schema.TypeList,
