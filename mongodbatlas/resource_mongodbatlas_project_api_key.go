@@ -13,6 +13,11 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
+const (
+	projectRolePrefix = "GROUP_"
+	orgReadOnlyRole   = "ORG_READ_ONLY"
+)
+
 func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMongoDBAtlasProjectAPIKeyCreate,
@@ -78,7 +83,7 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 }
 
 type APIProjectAssignmentKeyInput struct {
-	ProjectID string   `json:"desc,omitempty"`
+	ProjectID string   `json:"projectId,omitempty"`
 	RoleNames []string `json:"roles,omitempty"`
 }
 
@@ -96,6 +101,10 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		projectAssignmentList := ExpandProjectAssignmentSet(projectAssignments.(*schema.Set))
 		for _, apiKeyList := range projectAssignmentList {
 			if apiKeyList.ProjectID == projectID {
+				if err := apiKeyList.validateOrgKeyRoles(); err != nil {
+					return diag.FromErr(err)
+				}
+
 				createRequest.Roles = apiKeyList.RoleNames
 				apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 				if err != nil {
@@ -123,7 +132,6 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 		}
 	} else {
 		createRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
-
 		apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -186,7 +194,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 			if err := d.Set("role_names", nil); err != nil {
 				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
 			}
-			if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+			if projectAssignments, err := newProjectAssignment(ctx, conn, projectID, apiKeyID); err == nil {
 				if err := d.Set("project_assignment", projectAssignments); err != nil {
 					return diag.Errorf(errorProjectSetting, `created`, projectID, err)
 				}
@@ -317,7 +325,7 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
 
-		projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+		projectAssignments, err := getAPIProjectAssignments(ctx, conn, projectID, apiKeyOrgList, apiKeyID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 		}
@@ -386,7 +394,7 @@ func flattenProjectAPIKeyRoles(projectID string, apiKeyRoles []matlas.AtlasRole)
 	flattenedOrgRoles := []string{}
 
 	for _, role := range apiKeyRoles {
-		if strings.HasPrefix(role.RoleName, "GROUP_") && role.GroupID == projectID {
+		if role.GroupID == projectID {
 			flattenedOrgRoles = append(flattenedOrgRoles, role.RoleName)
 		}
 	}
@@ -408,13 +416,13 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 	return res
 }
 
-func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID string) ([]map[string]interface{}, error) {
+func newProjectAssignment(ctx context.Context, conn *matlas.Client, projectID, apiKeyID string) ([]map[string]interface{}, error) {
 	apiKeyOrgList, _, err := conn.Root.List(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error getting api key information: %s", err)
 	}
 
-	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, projectID, apiKeyOrgList, apiKeyID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting api key information: %s", err)
 	}
@@ -467,7 +475,7 @@ func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, chang
 	return
 }
 
-func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
+func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, projectIDUsedToCreateAPIKeys string, apiKeyOrgList *matlas.Root, apiKeyID string) ([]APIProjectAssignmentKeyInput, error) {
 	projectAssignments := []APIProjectAssignmentKeyInput{}
 	for idx, role := range apiKeyOrgList.APIKey.Roles {
 		if strings.HasPrefix(role.RoleName, "ORG_") {
@@ -475,17 +483,34 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOr
 			if err != nil {
 				return nil, fmt.Errorf("error getting api key information: %s", err)
 			}
+
 			for _, val := range orgKeys {
 				if val.ID == apiKeyID {
 					for _, r := range val.Roles {
 						temp := new(APIProjectAssignmentKeyInput)
-						if strings.HasPrefix(r.RoleName, "GROUP_") {
+						roles := map[string]string{}
+						if strings.HasPrefix(r.RoleName, projectRolePrefix) {
 							temp.ProjectID = r.GroupID
 							for _, l := range val.Roles {
-								if l.GroupID == temp.ProjectID {
-									temp.RoleNames = append(temp.RoleNames, l.RoleName)
+								if l.GroupID == temp.ProjectID || (l.GroupID == "" && temp.ProjectID == projectIDUsedToCreateAPIKeys) {
+									roles[l.RoleName] = l.RoleName
 								}
 							}
+
+							tempRoleList := make([]string, 0, len(roles))
+							for k := range roles {
+								if k == orgReadOnlyRole {
+									// When the user does not provide org roles
+									// the API key POST endpoing creates an org api key with
+									// the role ORG_READ_ONLY. We want to remove this from the state
+									// since the user did not provided it
+									continue
+								}
+
+								tempRoleList = append(tempRoleList, k)
+							}
+
+							temp.RoleNames = tempRoleList
 							projectAssignments = append(projectAssignments, *temp)
 						}
 					}
@@ -495,4 +520,18 @@ func getAPIProjectAssignments(ctx context.Context, conn *matlas.Client, apiKeyOr
 		}
 	}
 	return projectAssignments, nil
+}
+
+func (apiKey *APIProjectAssignmentKeyInput) validateOrgKeyRoles() error {
+	// When the user does not provide org roles
+	// the API key POST endpoing creates an org api key with
+	// the role ORG_READ_ONLY. We want to remove this from the state
+	// to avoid differences between config and state
+	for _, r := range apiKey.RoleNames {
+		if r == orgReadOnlyRole {
+			return fmt.Errorf(`%[1]s is not an allowed role for the resource. Remove %[1]s from the roles and run terraform apply again. Check out the resource documentation to know more`, orgReadOnlyRole)
+		}
+	}
+
+	return nil
 }
