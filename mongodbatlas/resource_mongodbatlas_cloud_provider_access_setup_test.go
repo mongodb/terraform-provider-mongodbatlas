@@ -88,8 +88,8 @@ func TestAccConfigRSCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckCloudProviderAccessAzure(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckCloudProviderAccessAzure(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderAccessSetupAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID),
