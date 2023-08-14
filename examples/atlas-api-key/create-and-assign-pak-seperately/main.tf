@@ -1,32 +1,22 @@
-
-# Create Programmatic API Key
-resource "mongodbatlas_api_key" "orgKey1" {
-  description = "orgKey2"
-  org_id      = var.org_id
-  role_names  = ["ORG_OWNER"]
+resource "mongodbatlas_project" "atlas-project" {
+  name   = "Test API Keys"
+  org_id = var.org_id
 }
 
-# Assign Newly Created Programmatic API Key to Project 
-resource "mongodbatlas_project" "test2" {
-  name   = "testorgapikey"
-  org_id = var.org_id
+resource "mongodbatlas_project_api_key" "api_1" {
+  description = "test api_key multi"
+  project_id  = mongodbatlas_project.atlas-project.id
 
-  api_keys {
-    api_key_id = mongodbatlas_api_key.orgKey1.api_key_id
-    role_names = ["GROUP_OWNER"]
+  project_assignment {
+    project_id = mongodbatlas_project.atlas-project.id
+    role_names = ["ORG_OWNER", "GROUP_OWNER"]
   }
-
-  /* ensure this assignment gets cleaned up if the organization key created with api_key is deleted.  api_keys block would still need to be removed from the terraform config file */
-  depends_on = [
-    mongodbatlas_api_key.orgKey1
-  ]
-
 }
 
 # Add IP Access List Entry to Programmatic API Key 
 resource "mongodbatlas_access_list_api_key" "test3" {
   org_id     = var.org_id
   cidr_block = "0.0.0.0/1"
-  api_key_id = mongodbatlas_api_key.orgKey1.api_key_id
+  api_key_id = mongodbatlas_project_api_key.api_1.api_key_id
 }
 
