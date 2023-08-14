@@ -99,22 +99,25 @@ data "aws_iam_role" "test" {
 func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		// projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = "63bec58b014da65b8f73c06c"
 
 		awsKms = matlas.AwsKms{
-			Enabled:             pointy.Bool(true),
-			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
-			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			Enabled: pointy.Bool(true),
+			// AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
+			// SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
 			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
 			Region:              os.Getenv("AWS_REGION"),
+			RoleID:              os.Getenv("AWS_ROLE_ID"),
 		}
 
 		awsKmsUpdated = matlas.AwsKms{
-			Enabled:             pointy.Bool(true),
-			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID_UPDATED"),
-			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
+			Enabled: pointy.Bool(true),
+			// AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID_UPDATED"),
+			// SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
 			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED"),
 			Region:              os.Getenv("AWS_REGION_UPDATED"),
+			RoleID:              os.Getenv("AWS_ROLE_ID"),
 		}
 	)
 
@@ -236,15 +239,16 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
-	SkipTestExtCred(t)
+	// SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
+	// SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		accessKeyID  = os.Getenv("AWS_ACCESS_KEY_ID")
-		secretKey    = os.Getenv("AWS_SECRET_ACCESS_KEY")
-		policyName   = acctest.RandomWithPrefix("test-aws-policy")
-		roleName     = acctest.RandomWithPrefix("test-aws-role")
+		// projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID   = "64da133335aa2242e1889109"
+		accessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
+		secretKey   = os.Getenv("AWS_SECRET_ACCESS_KEY")
+		policyName  = acctest.RandomWithPrefix("test-aws-policy")
+		roleName    = acctest.RandomWithPrefix("test-aws-role")
 
 		awsKms = matlas.AwsKms{
 			Enabled:             pointy.Bool(true),
@@ -321,13 +325,12 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *matl
 
 		  aws_kms_config {
 				enabled                = %t
-				access_key_id          = "%s"
-				secret_access_key      = "%s"
 				customer_master_key_id = "%s"
 				region                 = "%s"
+				role_id              = "%s"
 			}
 		}
-	`, projectID, *aws.Enabled, aws.AccessKeyID, aws.SecretAccessKey, aws.CustomerMasterKeyID, aws.Region)
+	`, projectID, *aws.Enabled, aws.CustomerMasterKeyID, aws.Region, aws.RoleID)
 }
 
 func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, azure *matlas.AzureKeyVault) string {

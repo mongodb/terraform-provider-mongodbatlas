@@ -222,10 +222,12 @@ func (r *EncryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 }
 
 func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var encryptionAtRestPlan tfEncryptionAtRestRSModel
+	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
+	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
 	conn := r.client.Atlas
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &encryptionAtRestPlan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -276,7 +278,8 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := toTFEncryptionAtRestRSModel(ctx, encryptionResp)
+	encryptionAtRestPlanNew := toTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	resetDefaults(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
 	diags := resp.State.Set(ctx, encryptionAtRestPlanNew)
@@ -284,6 +287,46 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func resetDefaults(ctx context.Context, encryptionAtRestRS *tfEncryptionAtRestRSModel, encryptionAtRestRSNew *tfEncryptionAtRestRSModel, encryptionAtRestRSConfig *tfEncryptionAtRestRSModel) {
+	if encryptionAtRestRS.AwsKmsConfig.IsNull() {
+		tfAwsKmsConfigs := make([]tfAwsKmsConfigModel, 0)
+		encryptionAtRestRSNew.AwsKmsConfig, _ = types.ListValueFrom(ctx, tfAwsKmsObjectType, tfAwsKmsConfigs)
+	} else {
+
+		var awsKmsConfigsNew []tfAwsKmsConfigModel
+		encryptionAtRestRSNew.AwsKmsConfig.ElementsAs(ctx, &awsKmsConfigsNew, false)
+
+		// user may set "region" equal to 'US_EAST_1' or 'US-EAST-1' in config, we ensure to update new plan/state with value that is used in the config
+		if encryptionAtRestRSConfig != nil {
+			var awsKmsConfigs []tfAwsKmsConfigModel
+			encryptionAtRestRSConfig.AwsKmsConfig.ElementsAs(ctx, &awsKmsConfigs, false)
+
+			awsKmsConfigsNew[0].Region = awsKmsConfigs[0].Region
+		} else {
+			var awsKmsConfigs []tfAwsKmsConfigModel
+			encryptionAtRestRS.AwsKmsConfig.ElementsAs(ctx, &awsKmsConfigs, false)
+
+			awsKmsConfigsNew[0].Region = awsKmsConfigs[0].Region
+		}
+		encryptionAtRestRSNew.AwsKmsConfig, _ = types.ListValueFrom(ctx, tfAwsKmsObjectType, awsKmsConfigsNew)
+	}
+	if encryptionAtRestRS.AzureKeyVaultConfig.IsNull() {
+		// encryptionAtRestPlanNew.AzureKeyVaultConfig = types.ListNull(tfAzureKeyVaultObjectType)
+		tfAzKeyVaultConfigs := make([]tfAzureKeyVaultConfigModel, 0)
+		encryptionAtRestRSNew.AzureKeyVaultConfig, _ = types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, tfAzKeyVaultConfigs)
+	}
+	if encryptionAtRestRS.GoogleCloudKmsConfig.IsNull() {
+		// encryptionAtRestPlanNew.GoogleCloudKmsConfig = types.ListNull(tfGcpKmsObjectType)
+		tfGcpKmsConfigs := make([]tfGcpKmsConfigModel, 0)
+		encryptionAtRestRSNew.GoogleCloudKmsConfig, _ = types.ListValueFrom(ctx, tfGcpKmsObjectType, tfGcpKmsConfigs)
+
+	}
+}
+
+func resetDefaultsForRead(encryptionAtRestState *tfEncryptionAtRestRSModel, encryptionAtRestStateNew *tfEncryptionAtRestRSModel) {
+
 }
 
 func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -305,7 +348,9 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	encryptionAtRestStateNew := toTFEncryptionAtRestRSModel(ctx, encryptionResp)
+	encryptionAtRestStateNew := toTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	resetDefaults(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
+	// resetDefaultsForRead(&encryptionAtRestState, encryptionAtRestStateNew)
 
 	// save read data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &encryptionAtRestStateNew)...)
@@ -315,10 +360,16 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var encryptionAtRestState tfEncryptionAtRestRSModel
-	var encryptionAtRestPlan tfEncryptionAtRestRSModel
+	var encryptionAtRestState *tfEncryptionAtRestRSModel
+	var encryptionAtRestConfig *tfEncryptionAtRestRSModel
+	var encryptionAtRestPlan *tfEncryptionAtRestRSModel
 	conn := r.client.Atlas
 
+	// get current config
+	resp.Diagnostics.Append(req.Config.Get(ctx, &encryptionAtRestConfig)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &encryptionAtRestState)...)
 	if resp.Diagnostics.HasError() {
@@ -340,16 +391,17 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if !hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
+	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
 		atlasEncryptionAtRest.AwsKms = *toAtlasAwsKms(ctx, encryptionAtRestPlan.AwsKmsConfig)
 	}
-	if !hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
+	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
 		atlasEncryptionAtRest.AzureKeyVault = *toAtlasAzureKeyVault(ctx, encryptionAtRestPlan.AzureKeyVaultConfig)
 	}
-	if !hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
+	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
 		atlasEncryptionAtRest.GoogleCloudKms = *toAtlasGcpKms(ctx, encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
+	atlasEncryptionAtRest.GroupID = projectID
 	_, _, err = conn.EncryptionsAtRest.Create(ctx, atlasEncryptionAtRest)
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
@@ -368,7 +420,8 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	encryptionAtRestStateNew := toTFEncryptionAtRestRSModel(ctx, encryptionResp)
+	encryptionAtRestStateNew := toTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	resetDefaults(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &encryptionAtRestStateNew)...)
@@ -409,10 +462,10 @@ func (r *EncryptionAtRestRS) ImportState(ctx context.Context, req resource.Impor
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func toTFEncryptionAtRestRSModel(ctx context.Context, encryptionResp *matlas.EncryptionAtRest) *tfEncryptionAtRestRSModel {
+func toTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *matlas.EncryptionAtRest) *tfEncryptionAtRestRSModel {
 	encryptionAtRest := tfEncryptionAtRestRSModel{
-		ID:                   types.StringValue(encryptionResp.GroupID),
-		ProjectID:            types.StringValue(encryptionResp.GroupID),
+		ID:                   types.StringValue(projectID),
+		ProjectID:            types.StringValue(projectID),
 		AwsKmsConfig:         toTFAwsKmsConfig(ctx, &encryptionResp.AwsKms),
 		AzureKeyVaultConfig:  toTFAzureKeyVaultConfig(ctx, &encryptionResp.AzureKeyVault),
 		GoogleCloudKmsConfig: toTFGcpKmsConfig(ctx, &encryptionResp.GoogleCloudKms),
@@ -423,12 +476,32 @@ func toTFEncryptionAtRestRSModel(ctx context.Context, encryptionResp *matlas.Enc
 func toTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms) types.List {
 	tfAwsKmsConfigs := make([]tfAwsKmsConfigModel, 1)
 
-	tfAwsKmsConfigs[0].Enabled = types.BoolPointerValue(awsKms.Enabled)
-	tfAwsKmsConfigs[0].AccessKeyID = types.StringValue(awsKms.AccessKeyID)
-	tfAwsKmsConfigs[0].SecretAccessKey = types.StringValue(awsKms.SecretAccessKey)
-	tfAwsKmsConfigs[0].CustomerMasterKeyID = types.StringValue(awsKms.CustomerMasterKeyID)
-	tfAwsKmsConfigs[0].Region = types.StringValue(awsKms.Region)
-	tfAwsKmsConfigs[0].RoleID = types.StringValue(awsKms.RoleID)
+	if awsKms != nil {
+		tfAwsKmsConfigs[0].Enabled = types.BoolPointerValue(awsKms.Enabled)
+		tfAwsKmsConfigs[0].CustomerMasterKeyID = types.StringValue(awsKms.CustomerMasterKeyID)
+		tfAwsKmsConfigs[0].Region = types.StringValue(awsKms.Region)
+
+		if accessKeyID := awsKms.AccessKeyID; accessKeyID == "" {
+			tfAwsKmsConfigs[0].AccessKeyID = types.StringNull()
+		} else {
+			tfAwsKmsConfigs[0].AccessKeyID = types.StringValue(accessKeyID)
+		}
+		// tfAwsKmsConfigs[0].AccessKeyID = types.StringValue(awsKms.AccessKeyID)
+
+		if secretAccessKey := awsKms.SecretAccessKey; secretAccessKey == "" {
+			tfAwsKmsConfigs[0].SecretAccessKey = types.StringNull()
+		} else {
+			tfAwsKmsConfigs[0].SecretAccessKey = types.StringValue(secretAccessKey)
+		}
+		// tfAwsKmsConfigs[0].SecretAccessKey = types.StringValue(awsKms.SecretAccessKey)
+
+		if roleID := awsKms.RoleID; roleID == "" {
+			tfAwsKmsConfigs[0].RoleID = types.StringNull()
+		} else {
+			tfAwsKmsConfigs[0].RoleID = types.StringValue(roleID)
+		}
+		// tfAwsKmsConfigs[0].RoleID = types.StringValue(awsKms.RoleID)
+	}
 
 	list, _ := types.ListValueFrom(ctx, tfAwsKmsObjectType, tfAwsKmsConfigs)
 	return list
@@ -444,8 +517,14 @@ func toTFAzureKeyVaultConfig(ctx context.Context, az *matlas.AzureKeyVault) type
 	tfAzKeyVaultConfigs[0].ResourceGroupName = types.StringValue(az.ResourceGroupName)
 	tfAzKeyVaultConfigs[0].KeyVaultName = types.StringValue(az.KeyVaultName)
 	tfAzKeyVaultConfigs[0].KeyIdentifier = types.StringValue(az.KeyIdentifier)
-	tfAzKeyVaultConfigs[0].Secret = types.StringValue(az.Secret)
 	tfAzKeyVaultConfigs[0].TenantID = types.StringValue(az.TenantID)
+
+	if secret := az.Secret; secret == "" {
+		tfAzKeyVaultConfigs[0].Secret = types.StringNull()
+	} else {
+		tfAzKeyVaultConfigs[0].Secret = types.StringValue(secret)
+	}
+	// tfAzKeyVaultConfigs[0].Secret = types.StringValue(az.Secret)
 
 	list, _ := types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, tfAzKeyVaultConfigs)
 	return list
@@ -455,8 +534,14 @@ func toTFGcpKmsConfig(ctx context.Context, gcpKms *matlas.GoogleCloudKms) types.
 	tfGcpKmsConfigs := make([]tfGcpKmsConfigModel, 1)
 
 	tfGcpKmsConfigs[0].Enabled = types.BoolPointerValue(gcpKms.Enabled)
-	tfGcpKmsConfigs[0].ServiceAccountKey = types.StringValue(gcpKms.ServiceAccountKey)
+	// tfGcpKmsConfigs[0].ServiceAccountKey = types.StringValue(gcpKms.ServiceAccountKey)
 	tfGcpKmsConfigs[0].KeyVersionResourceID = types.StringValue(gcpKms.KeyVersionResourceID)
+
+	if serviceAccountKey := gcpKms.ServiceAccountKey; serviceAccountKey == "" {
+		tfGcpKmsConfigs[0].ServiceAccountKey = types.StringNull()
+	} else {
+		tfGcpKmsConfigs[0].ServiceAccountKey = types.StringValue(serviceAccountKey)
+	}
 
 	list, _ := types.ListValueFrom(ctx, tfGcpKmsObjectType, tfGcpKmsConfigs)
 	return list
