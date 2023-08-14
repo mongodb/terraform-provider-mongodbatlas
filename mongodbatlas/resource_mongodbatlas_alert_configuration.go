@@ -92,7 +92,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				ConflictsWith: []string{"metric_threshold_config"},
-				Deprecated:    "use metric_threshold_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "metric_threshold_config"),
 			},
 			"threshold": {
 				Type:     schema.TypeMap,
@@ -101,7 +101,7 @@ func resourceMongoDBAtlasAlertConfiguration() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				ConflictsWith: []string{"threshold_config"},
-				Deprecated:    "use threshold_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "threshold_config"),
 			},
 			"metric_threshold_config": {
 				Type:          schema.TypeList,

@@ -40,7 +40,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 				Type:          schema.TypeMap,
 				Optional:      true,
 				Sensitive:     true,
-				Deprecated:    "use aws_kms_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "aws_kms_config"),
 				ConflictsWith: []string{"aws_kms_config"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -64,7 +64,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 				Type:          schema.TypeMap,
 				Optional:      true,
 				Sensitive:     true,
-				Deprecated:    "use azure_key_vault_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "azure_key_vault_config"),
 				ConflictsWith: []string{"azure_key_vault_config"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -74,7 +74,7 @@ func resourceMongoDBAtlasEncryptionAtRest() *schema.Resource {
 				Type:          schema.TypeMap,
 				Optional:      true,
 				Sensitive:     true,
-				Deprecated:    "use google_cloud_kms_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "google_cloud_kms_config"),
 				ConflictsWith: []string{"google_cloud_kms_config"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,

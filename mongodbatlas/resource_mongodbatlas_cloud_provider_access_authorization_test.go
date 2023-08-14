@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccConfigRSCloudProviderAccessAuthorization_basic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -19,7 +19,13 @@ func TestAccConfigRSCloudProviderAccessAuthorization_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck: func() { testAccPreCheck(t) },
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"aws": {
+				VersionConstraint: "5.1.0",
+				Source:            "hashicorp/aws",
+			},
+		},
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		// same as regular cloud provider access resource
 		CheckDestroy: testAccCheckMongoDBAtlasProviderAccessDestroy,
@@ -29,6 +35,28 @@ func TestAccConfigRSCloudProviderAccessAuthorization_basic(t *testing.T) {
 			},
 			{
 				Config: testAccMongoDBAtlasCloudProviderAccessAuthorizationConfig(projectID, policyName, roleNameUpdated),
+			},
+		},
+	},
+	)
+}
+
+func TestAccConfigRSCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
+	var (
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = acctest.RandomWithPrefix("tf-acc")
+		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckCloudProviderAccessAzure(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasProviderAccessDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID),
 			},
 		},
 	},
@@ -94,4 +122,32 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   }
 }
 	`, projectID, policyName, roleName)
+}
+
+func testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_project" "test" {
+		name   = %[2]q
+		org_id = %[1]q
+	}
+	resource "mongodbatlas_cloud_provider_access_setup" "test" {
+		project_id = mongodbatlas_project.test.id
+		provider_name = "AZURE"
+		azure_config {
+			atlas_azure_app_id = %[3]q
+			service_principal_id = %[4]q
+			tenant_id = %[5]q
+		}
+	 }
+
+   resource "mongodbatlas_cloud_provider_access_authorization" "test" {
+		project_id = mongodbatlas_project.test.id
+    role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
+		azure {
+			atlas_azure_app_id = %[3]q
+			service_principal_id = %[4]q
+			tenant_id = %[5]q
+		}
+	 }
+	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
 }

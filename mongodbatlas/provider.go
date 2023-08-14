@@ -43,6 +43,9 @@ const (
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
 	AttrNotSetError                       = "attribute %s must be set"
 	ProviderConfigError                   = "error in configuring the provider."
+	AWS                                   = "AWS"
+	AZURE                                 = "AZURE"
+	GCP
 )
 
 type SecretData struct {
@@ -715,7 +718,7 @@ func assumeRoleSchema() *schema.Schema {
 				"duration_seconds": {
 					Type:          schema.TypeInt,
 					Optional:      true,
-					Deprecated:    "Use assume_role.duration instead",
+					Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "assume_role.duration"),
 					Description:   "The duration, in seconds, of the role session.",
 					ValidateFunc:  validation.IntBetween(900, 43200),
 					ConflictsWith: []string{"assume_role.0.duration"},

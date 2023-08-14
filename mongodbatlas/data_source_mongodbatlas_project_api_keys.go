@@ -54,6 +54,26 @@ func dataSourceMongoDBAtlasProjectAPIKeys() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
+						},
+						"project_assignment": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"project_id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"role_names": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -77,11 +97,43 @@ func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))
 	}
 
-	if err := d.Set("results", flattenProjectAPIKeys(ctx, conn, projectID, apiKeys)); err != nil {
+	results, err := flattenProjectAPIKeys(ctx, conn, projectID, apiKeys)
+	if err != nil {
+		diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
+	}
+
+	if err := d.Set("results", results); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 
 	d.SetId(id.UniqueId())
 
 	return nil
+}
+
+func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID string, apiKeys []matlas.APIKey) ([]map[string]interface{}, error) {
+	var results []map[string]interface{}
+
+	if len(apiKeys) == 0 {
+		return nil, nil
+	}
+
+	results = make([]map[string]interface{}, len(apiKeys))
+	for k, apiKey := range apiKeys {
+		results[k] = map[string]interface{}{
+			"api_key_id":  apiKey.ID,
+			"description": apiKey.Desc,
+			"public_key":  apiKey.PublicKey,
+			"private_key": apiKey.PrivateKey,
+			"role_names":  flattenProjectAPIKeyRoles(projectID, apiKey.Roles),
+		}
+
+		projectAssignment, err := newProjectAssignment(ctx, conn, projectID, apiKey.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		results[k]["project_assignment"] = projectAssignment
+	}
+	return results, nil
 }

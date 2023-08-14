@@ -25,7 +25,7 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"auth_database_name"},
-				Deprecated:    "use auth_database_name instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "auth_database_name"),
 			},
 			"auth_database_name": {
 				Type:          schema.TypeString,

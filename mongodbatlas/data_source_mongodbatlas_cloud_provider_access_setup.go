@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
@@ -51,7 +50,31 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 					},
 				},
 			},
+			"azure_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"atlas_azure_app_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"created_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"last_updated_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -62,45 +85,20 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
-	providerName := d.Get("provider_name").(string)
 	roleID := d.Get("role_id").(string)
 
-	roles, _, err := conn.CloudProviderAccess.ListRoles(ctx, projectID)
-
+	role, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
-	// aws specific
-	if providerName == "AWS" {
-		var targetRole matlas.AWSIAMRole
-		// searching in roles
-		for i := range roles.AWSIAMRoles {
-			role := &(roles.AWSIAMRoles[i])
-			if role.RoleID == roleID && role.ProviderName == providerName {
-				targetRole = *role
-			}
+	roleSchema := roleToSchemaSetup(role)
+	for key, val := range roleSchema {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(fmt.Errorf(errorGetRead, err))
 		}
-		// Not Found
-		if targetRole.RoleID == "" && !d.IsNewResource() {
-			d.SetId("")
-			return nil
-		}
-
-		roleSchema := roleToSchemaSetup(&targetRole)
-
-		for key, val := range roleSchema {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(fmt.Errorf(errorGetRead, err))
-			}
-		}
-	} else {
-		// planning for the future multiple providers
-		return diag.FromErr(fmt.Errorf(errorGetRead,
-			fmt.Sprintf("unsupported provider type %s", providerName)))
 	}
 
 	d.SetId(id.UniqueId())
-
 	return nil
 }
