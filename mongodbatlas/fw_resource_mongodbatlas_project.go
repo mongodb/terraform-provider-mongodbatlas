@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	expanders "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/expanders"
+	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
 
 const (
@@ -632,7 +632,7 @@ func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) []*matlas.Pro
 	for i, team := range teams {
 		res[i] = &matlas.ProjectTeam{
 			TeamID:    team.TeamID.ValueString(),
-			RoleNames: expanders.TypesSetToString(ctx, team.RoleNames),
+			RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 		}
 	}
 	return res
@@ -764,7 +764,7 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 
 		_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, teamID,
 			&matlas.TeamUpdateRoles{
-				RoleNames: expanders.TypesSetToString(ctx, team.RoleNames),
+				RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 			},
 		)
 		if err != nil {

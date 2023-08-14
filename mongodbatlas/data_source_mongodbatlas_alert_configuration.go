@@ -3,11 +3,14 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -503,4 +506,179 @@ func convertNotificationToCtyValues(notification *matlas.Notification) map[strin
 	}
 
 	return values
+}
+
+func flattenAlertConfigurationMetricThreshold(m *matlas.MetricThreshold) map[string]interface{} {
+	if m != nil {
+		return map[string]interface{}{
+			"metric_name": m.MetricName,
+			"operator":    m.Operator,
+			"threshold":   cast.ToString(m.Threshold),
+			"units":       m.Units,
+			"mode":        m.Mode,
+		}
+	}
+
+	return map[string]interface{}{}
+}
+
+func flattenAlertConfigurationThreshold(m *matlas.Threshold) map[string]interface{} {
+	if m != nil {
+		return map[string]interface{}{
+			"operator":  m.Operator,
+			"units":     m.Units,
+			"threshold": cast.ToString(m.Threshold),
+		}
+	}
+
+	return map[string]interface{}{}
+}
+
+func flattenAlertConfigurationMetricThresholdConfig(m *matlas.MetricThreshold) []interface{} {
+	if m != nil {
+		return []interface{}{map[string]interface{}{
+			"metric_name": m.MetricName,
+			"operator":    m.Operator,
+			"threshold":   m.Threshold,
+			"units":       m.Units,
+			"mode":        m.Mode,
+		}}
+	}
+
+	return []interface{}{}
+}
+
+func flattenAlertConfigurationThresholdConfig(m *matlas.Threshold) []interface{} {
+	if m != nil {
+		return []interface{}{map[string]interface{}{
+			"operator":  m.Operator,
+			"units":     m.Units,
+			"threshold": m.Threshold,
+		}}
+	}
+
+	return []interface{}{}
+}
+
+func expandAlertConfigurationNotification(d *schema.ResourceData) ([]matlas.Notification, error) {
+	notificationCount := 0
+
+	if notifications, ok := d.GetOk("notification"); ok {
+		notificationCount = len(notifications.([]interface{}))
+	}
+
+	notifications := make([]matlas.Notification, notificationCount)
+
+	if notificationCount == 0 {
+		return notifications, nil
+	}
+
+	for i, value := range d.Get("notification").([]interface{}) {
+		v := value.(map[string]interface{})
+		if v1, ok := v["interval_min"]; ok && v1.(int) > 0 {
+			typeName := v["type_name"].(string)
+			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
+				return nil, fmt.Errorf(`'interval_min' doesn't need to be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
+			}
+		}
+		notifications[i] = matlas.Notification{
+			APIToken:                 cast.ToString(v["api_token"]),
+			ChannelName:              cast.ToString(v["channel_name"]),
+			DatadogAPIKey:            cast.ToString(v["datadog_api_key"]),
+			DatadogRegion:            cast.ToString(v["datadog_region"]),
+			DelayMin:                 pointy.Int(v["delay_min"].(int)),
+			EmailAddress:             cast.ToString(v["email_address"]),
+			EmailEnabled:             pointy.Bool(v["email_enabled"].(bool)),
+			IntervalMin:              cast.ToInt(v["interval_min"]),
+			MobileNumber:             cast.ToString(v["mobile_number"]),
+			OpsGenieAPIKey:           cast.ToString(v["ops_genie_api_key"]),
+			OpsGenieRegion:           cast.ToString(v["ops_genie_region"]),
+			ServiceKey:               cast.ToString(v["service_key"]),
+			SMSEnabled:               pointy.Bool(v["sms_enabled"].(bool)),
+			TeamID:                   cast.ToString(v["team_id"]),
+			TypeName:                 cast.ToString(v["type_name"]),
+			Username:                 cast.ToString(v["username"]),
+			VictorOpsAPIKey:          cast.ToString(v["victor_ops_api_key"]),
+			VictorOpsRoutingKey:      cast.ToString(v["victor_ops_routing_key"]),
+			Roles:                    cast.ToStringSlice(v["roles"]),
+			MicrosoftTeamsWebhookURL: cast.ToString(v["microsoft_teams_webhook_url"]),
+			WebhookSecret:            cast.ToString(v["webhook_secret"]),
+			WebhookURL:               cast.ToString(v["webhook_url"]),
+		}
+	}
+
+	return notifications, nil
+}
+
+func flattenAlertConfigurationNotifications(d *schema.ResourceData, notifications []matlas.Notification) []map[string]interface{} {
+	notificationsSchema, err := expandAlertConfigurationNotification(d)
+	if err != nil {
+		return nil
+	}
+
+	if len(notificationsSchema) > 0 {
+		for i := range notificationsSchema {
+			notifications[i].APIToken = notificationsSchema[i].APIToken
+			notifications[i].DatadogAPIKey = notificationsSchema[i].DatadogAPIKey
+			notifications[i].OpsGenieAPIKey = notificationsSchema[i].OpsGenieAPIKey
+			notifications[i].ServiceKey = notificationsSchema[i].ServiceKey
+			notifications[i].VictorOpsAPIKey = notificationsSchema[i].VictorOpsAPIKey
+			notifications[i].VictorOpsRoutingKey = notificationsSchema[i].VictorOpsRoutingKey
+			notifications[i].WebhookURL = notificationsSchema[i].WebhookURL
+			notifications[i].WebhookSecret = notificationsSchema[i].WebhookSecret
+			notifications[i].SMSEnabled = notificationsSchema[i].SMSEnabled
+			notifications[i].EmailEnabled = notificationsSchema[i].EmailEnabled
+			notifications[i].MicrosoftTeamsWebhookURL = notificationsSchema[i].MicrosoftTeamsWebhookURL
+		}
+	}
+
+	nts := make([]map[string]interface{}, len(notifications))
+
+	for i := range notifications {
+		nts[i] = map[string]interface{}{
+			"api_token":                   notifications[i].APIToken,
+			"channel_name":                notifications[i].ChannelName,
+			"datadog_api_key":             notifications[i].DatadogAPIKey,
+			"datadog_region":              notifications[i].DatadogRegion,
+			"delay_min":                   notifications[i].DelayMin,
+			"email_address":               notifications[i].EmailAddress,
+			"email_enabled":               notifications[i].EmailEnabled,
+			"interval_min":                notifications[i].IntervalMin,
+			"mobile_number":               notifications[i].MobileNumber,
+			"ops_genie_api_key":           notifications[i].OpsGenieAPIKey,
+			"ops_genie_region":            notifications[i].OpsGenieRegion,
+			"service_key":                 notifications[i].ServiceKey,
+			"sms_enabled":                 notifications[i].SMSEnabled,
+			"team_id":                     notifications[i].TeamID,
+			"team_name":                   notifications[i].TeamName,
+			"type_name":                   notifications[i].TypeName,
+			"username":                    notifications[i].Username,
+			"victor_ops_api_key":          notifications[i].VictorOpsAPIKey,
+			"victor_ops_routing_key":      notifications[i].VictorOpsRoutingKey,
+			"microsoft_teams_webhook_url": notifications[i].MicrosoftTeamsWebhookURL,
+			"webhook_secret":              notifications[i].WebhookSecret,
+			"webhook_url":                 notifications[i].WebhookURL,
+		}
+
+		// We need to validate it due to the datasource haven't the roles attribute
+		if len(notifications[i].Roles) > 0 {
+			nts[i]["roles"] = notifications[i].Roles
+		}
+	}
+
+	return nts
+}
+
+func flattenAlertConfigurationMatchers(matchers []matlas.Matcher) []map[string]interface{} {
+	mts := make([]map[string]interface{}, len(matchers))
+
+	for i, m := range matchers {
+		mts[i] = map[string]interface{}{
+			"field_name": m.FieldName,
+			"operator":   m.Operator,
+			"value":      m.Value,
+		}
+	}
+
+	return mts
 }

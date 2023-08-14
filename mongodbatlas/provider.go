@@ -234,7 +234,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_team":                              resourceMongoDBAtlasTeam(),
 		"mongodbatlas_teams":                             resourceMongoDBAtlasTeam(),
 		"mongodbatlas_global_cluster_config":             resourceMongoDBAtlasGlobalCluster(),
-		"mongodbatlas_alert_configuration":               resourceMongoDBAtlasAlertConfiguration(),
 		"mongodbatlas_x509_authentication_database_user": resourceMongoDBAtlasX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    resourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(),
