@@ -16,8 +16,8 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
-  description   = "key-name"
-  project_id    = "<PROJECT_ID>"
+  description   = "Description of your API key"
+  project_id    = "64259ee860c43338194b0f8e"
   role_names    = ["GROUP_OWNER"]
 }
 ```
@@ -26,35 +26,71 @@ resource "mongodbatlas_project_api_key" "test" {
 
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
-  description   = "key-name"
-  project_id  = "<PROJECT_ID>"
+  description   = "Description of your API key"
+  project_id  = "64259ee860c43338194b0f8e"
   
  project_assignment {
-    project_id = "<PROJECT_ID>"
+    project_id = "64259ee860c43338194b0f8e"
     role_names = ["GROUP_READ_ONLY", "GROUP_OWNER"]
   }
   
   project_assignment {
-    project_id = <additional_project_id>
+    project_id = "64229ee820c42228194b0f4a"
     role_names = ["GROUP_READ_ONLY"]
   }
   
 }
 ```
 
+## Example Usage - Create Org PAK and Assign it to Multiple Projects
+
+```terraform
+resource "mongodbatlas_project" "atlas-project" {
+  name   = "ProjectTest"
+  org_id = "60ddf55c27a5a20955a707d7"
+}
+
+resource "mongodbatlas_project_api_key" "api_1" {
+  description = "test api_key multi"
+  project_id  = mongodbatlas_project.atlas-project.id
+
+  // NOTE: The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
+  project_assignment {
+    project_id = mongodbatlas_project.atlas-project.id
+    role_names = ["ORG_BILLING_ADMIN", "GROUP_READ_ONLY"]
+  }
+
+  project_assignment {
+    project_id = "63dcfc256af00a5934e60924"
+    role_names = ["GROUP_READ_ONLY"]
+  }
+
+  project_assignment {
+    project_id = "64c23af6f133166c39176cbf"
+    role_names = ["GROUP_OWNER"]
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` -Unique 24-hexadecimal digit string that identifies your project.
-* `description` - Description of this Organization API key.
-* `role_names` - (Deprecated use project_assignment) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned. 
+* `description` - Description of this Project API key.
+* `role_names` -  List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned. **DEPRECATED** Use `project_assignment` instead.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
 ### project_assignment
-Project Assignment attribute is optional (Use project_assignment going forward as role_names parameter above is deprecated)
+List of Project roles that the Programmatic API key needs to have. `project_assignment` attribute is optional.
 
 * `project_id` - (Required) Project ID to assign to Access Key
 * `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
+
+~> **NOTE:** The `project_id` of the first `project_assignment` element must be the same as the `project_id` of the resource.
+
+~> **NOTE:** The organization level roles can be defined only in the first `project_assignment` element.
+
+~> **NOTE:** The `ORG_READ_ONLY` role at the organization level is invalid in this context. When the `project_assignment``` lacks organizational roles, the `mongodbatlas_project_api_key` resource generates an organization API key with the `ORG_READ_ONLY` role and associates it with `GROUP_*` roles. Consequently, the resource does not permit the use of `ORG_READ_ONLY` to ensure consistency between configuration and state.
 
 ## Attributes Reference
 

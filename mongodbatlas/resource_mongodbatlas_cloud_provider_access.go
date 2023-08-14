@@ -147,9 +147,9 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 	roleID := ids["id"]
 
 	if d.HasChanges("provider_name", "iam_assumed_role_arn") {
-		req := &matlas.CloudProviderAuthorizationRequest{
+		req := &matlas.CloudProviderAccessRoleRequest{
 			ProviderName:      d.Get("provider_name").(string),
-			IAMAssumedRoleARN: d.Get("iam_assumed_role_arn").(string),
+			IAMAssumedRoleARN: pointer(d.Get("iam_assumed_role_arn").(string)),
 		}
 
 		role, _, err := conn.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
@@ -288,4 +288,23 @@ func resourceMongoDBAtlasCloudProviderAccessV0() *schema.Resource {
 func resourceMongoDBAtlasCloudProviderAccessStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState["feature_usages"] = []interface{}{map[string]interface{}{}}
 	return rawState, nil
+}
+
+func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]interface{} {
+	out := map[string]interface{}{
+		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
+		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
+		"authorized_date":                role.AuthorizedDate,
+		"created_date":                   role.CreatedDate,
+		"iam_assumed_role_arn":           role.IAMAssumedRoleARN,
+		"provider_name":                  role.ProviderName,
+		"role_id":                        role.RoleID,
+	}
+
+	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	for _, featureUsage := range role.FeatureUsages {
+		features = append(features, featureToSchema(featureUsage))
+	}
+	out["feature_usages"] = features
+	return out
 }

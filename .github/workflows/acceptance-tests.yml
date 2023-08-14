@@ -32,7 +32,7 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
     steps:
     - uses: actions/checkout@v3
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'}}
+      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -58,11 +58,13 @@ jobs:
           project:
             - 'mongodbatlas/data_source_mongodbatlas_project_invitation*.go'
             - 'mongodbatlas/data_source_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/fw_data_source_mongodbatlas_project*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_project.go'
+            - 'mongodbatlas/data_source_mongodbatlas_projects.go'
             - 'mongodbatlas/resource_mongodbatlas_access_list_api_key*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_invitation*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_project*.go'
+            - 'mongodbatlas/resource_mongodbatlas_project.go'
+            - 'mongodbatlas/resource_mongodbatlas_project_test.go'
           serverless:
             - 'mongodbatlas/**_serverless**.go' 
           network:
@@ -104,7 +106,7 @@ jobs:
 
   cluster_outage_simulation:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster-outage-simulation' }}
+    if: ${{ needs.change-detection.outputs.cluster_outage_simulation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster-outage-simulation' || inputs.parent-event-name == 'release'  }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -129,7 +131,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-advanced-cluster' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-advanced-cluster' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -154,7 +156,7 @@ jobs:
 
   cluster:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster' }}
+    if: ${{ needs.change-detection.outputs.cluster == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -179,7 +181,7 @@ jobs:
 
   generic: # Acceptance tests that do not use any time-consuming resource (example: cluster)
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-generic' }}
+    if: ${{ needs.change-detection.outputs.generic == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-generic' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -207,7 +209,7 @@ jobs:
 
   backup_online_archive:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-online-archive' }}
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-online-archive' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -233,7 +235,7 @@ jobs:
 
   backup_snapshots:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-snapshots' }}
+    if: ${{ needs.change-detection.outputs.backup_snapshots == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-snapshots' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -260,7 +262,7 @@ jobs:
         
   backup_schedule:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-schedule' }}
+    if: ${{ needs.change-detection.outputs.backup_schedule == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-backup-schedule' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -286,7 +288,7 @@ jobs:
         run: make testacc
   project: 
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' }}
+    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -314,7 +316,7 @@ jobs:
         run: make testacc
   serverless:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.serverless == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-serverless' }}
+    if: ${{ needs.change-detection.outputs.serverless == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-serverless' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -339,7 +341,7 @@ jobs:
         run: make testacc
   network:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.network == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-network' }}
+    if: ${{ needs.change-detection.outputs.network == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-network' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -368,7 +370,7 @@ jobs:
         run: make testacc
   config:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' }}
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -385,6 +387,9 @@ jobs:
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           MONGODB_ATLAS_USERNAME_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
+          AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
+          AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
           ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1

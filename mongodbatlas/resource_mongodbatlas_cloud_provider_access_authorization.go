@@ -45,6 +45,27 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 					},
 				},
 			},
+			"azure": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"atlas_azure_app_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"service_principal_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"feature_usages": {
 				Type:     schema.TypeList,
 				Elem:     featureUsagesSchema(),
@@ -90,7 +111,6 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 	}
 
 	roleSchema := roleToSchemaAuthorization(targetRole)
-
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(fmt.Errorf(errorGetRead, err))
@@ -98,7 +118,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 	}
 
 	// If not authorize , then request the authorization
-	if targetRole.AuthorizedDate == "" && !d.IsNewResource() {
+	if targetRole.ProviderName == AWS && targetRole.AuthorizedDate == "" && !d.IsNewResource() {
 		d.SetId("")
 		return nil
 	}
@@ -123,64 +143,14 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 		return diag.FromErr(fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
-	// once multiple providers added, modify this section
-	roleAWS, ok := d.GetOk("aws")
-
-	if !ok {
-		return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
-	}
-
-	iamRole := roleAWS.([]interface{})[0].(map[string]interface{})["iam_assumed_role_arn"]
-
-	req := &matlas.CloudProviderAuthorizationRequest{
-		ProviderName:      targetRole.ProviderName,
-		IAMAssumedRoleARN: iamRole.(string),
-	}
-
-	var role *matlas.AWSIAMRole
-
-	// aws takes time to update , in case of single path
-	for i := 0; i < 3; i++ {
-		role, _, err = conn.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
-		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") {
-			log.Printf("warning issue performing authorize: %s \n", err.Error())
-			log.Println("retrying ")
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		if err != nil {
-			log.Printf("MISSED ERRROR %s", err.Error())
-		}
-		break
-	}
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error cloud provider access authorization %s", err))
-	}
-
-	authSchema := roleToSchemaAuthorization(role)
-
-	// role id
-	d.SetId(encodeStateID(map[string]string{
-		"id":         role.RoleID,
-		"project_id": projectID,
-	}))
-
-	for key, val := range authSchema {
-		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
-		}
-	}
-
-	return nil
+	return authorizeRole(ctx, conn, d, projectID, targetRole)
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
-	roleID := ids["id"] // atlas ID
+	roleID := ids["id"]
 	projectID := ids["project_id"]
 
 	targetRole, err := FindRole(ctx, conn, projectID, roleID)
@@ -193,61 +163,19 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Cont
 		return diag.FromErr(fmt.Errorf(errorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
-	if d.HasChange("aws") {
-		roleAWS, ok := d.GetOk("aws")
-
-		if !ok {
-			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
-		}
-
-		iamRole := roleAWS.([]interface{})[0].(map[string]interface{})["iam_assumed_role_arn"]
-
-		req := &matlas.CloudProviderAuthorizationRequest{
-			ProviderName:      targetRole.ProviderName,
-			IAMAssumedRoleARN: iamRole.(string),
-		}
-
-		var role *matlas.AWSIAMRole
-
-		// aws takes time to update , in case of single path
-		for i := 0; i < 3; i++ {
-			role, _, err = conn.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
-			if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") {
-				log.Printf("warning issue performing authorize: %s \n", err.Error())
-				log.Println("retrying ")
-				time.Sleep(10 * time.Second)
-				continue
-			}
-			break
-		}
-
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error cloud provider access authorization update %s", err))
-		}
-
-		authSchema := roleToSchemaAuthorization(role)
-
-		// role id
-		d.SetId(encodeStateID(map[string]string{
-			"id":         role.RoleID,
-			"project_id": projectID,
-		}))
-
-		for key, val := range authSchema {
-			if err := d.Set(key, val); err != nil {
-				return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
-			}
-		}
+	if d.HasChange("aws") || d.HasChange("azure") {
+		return authorizeRole(ctx, conn, d, projectID, targetRole)
 	}
 
 	return nil
 }
 
 func resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	d.SetId("")
 	return nil
 }
 
-func roleToSchemaAuthorization(role *matlas.AWSIAMRole) map[string]interface{} {
+func roleToSchemaAuthorization(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"role_id": role.RoleID,
 		"aws": []interface{}{map[string]interface{}{
@@ -256,19 +184,28 @@ func roleToSchemaAuthorization(role *matlas.AWSIAMRole) map[string]interface{} {
 		"authorized_date": role.AuthorizedDate,
 	}
 
-	// features
-	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	if role.ProviderName == "AZURE" {
+		out = map[string]interface{}{
+			"role_id": role.AzureID,
+			"azure": []interface{}{map[string]interface{}{
+				"atlas_azure_app_id":   role.AtlasAzureAppID,
+				"service_principal_id": role.AzureServicePrincipalID,
+				"tenant_id":            role.AzureTenantID,
+			}},
+			"authorized_date": role.AuthorizedDate,
+		}
+	}
 
+	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
 	for _, featureUsage := range role.FeatureUsages {
 		features = append(features, featureToSchema(featureUsage))
 	}
 
 	out["feature_usages"] = features
-
 	return out
 }
 
-func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string) (*matlas.AWSIAMRole, error) {
+func FindRole(ctx context.Context, conn *matlas.Client, projectID, roleID string) (*matlas.CloudProviderAccessRole, error) {
 	role, _, err := conn.CloudProviderAccess.GetRole(ctx, projectID, roleID)
 	if err != nil {
 		return nil, fmt.Errorf(errorGetRead, err)
@@ -317,4 +254,67 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0(ctx cont
 	rawState["aws"] = []interface{}{}
 
 	return rawState, nil
+}
+
+func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.ResourceData, projectID string, targetRole *matlas.CloudProviderAccessRole) diag.Diagnostics {
+	req := &matlas.CloudProviderAccessRoleRequest{
+		ProviderName: targetRole.ProviderName,
+	}
+
+	roleID := targetRole.RoleID
+	if targetRole.ProviderName == AWS {
+		roleAWS, ok := d.GetOk("aws")
+		if !ok {
+			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
+		}
+
+		req.IAMAssumedRoleARN = pointer(roleAWS.([]interface{})[0].(map[string]interface{})["iam_assumed_role_arn"].(string))
+	}
+
+	if targetRole.ProviderName == AZURE {
+		req.AtlasAzureAppID = targetRole.AtlasAzureAppID
+		req.AzureTenantID = targetRole.AzureTenantID
+		req.AzureServicePrincipalID = targetRole.AzureServicePrincipalID
+		roleID = *targetRole.AzureID
+	}
+
+	var role *matlas.CloudProviderAccessRole
+	var err error
+
+	for i := 0; i < 3; i++ {
+		role, _, err = client.CloudProviderAccess.AuthorizeRole(ctx, projectID, roleID, req)
+		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
+			log.Printf("warning issue performing authorize: %s \n", err.Error())
+			log.Println("retrying")
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		if err != nil {
+			log.Printf("MISSED ERRROR %s", err.Error())
+		}
+		break
+	}
+
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error cloud provider access authorization %s", err))
+	}
+
+	authSchema := roleToSchemaAuthorization(role)
+
+	resourceID := role.RoleID
+	if role.ProviderName == AZURE {
+		resourceID = *role.AzureID
+	}
+	d.SetId(encodeStateID(map[string]string{
+		"id":         resourceID,
+		"project_id": projectID,
+	}))
+
+	for key, val := range authSchema {
+		if err := d.Set(key, val); err != nil {
+			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+		}
+	}
+
+	return nil
 }
