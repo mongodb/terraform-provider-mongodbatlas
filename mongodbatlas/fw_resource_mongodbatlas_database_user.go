@@ -431,7 +431,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 		Scopes:           scopesSet,
 	}
 
-	if model != nil {
+	if model != nil && model.Password.ValueString() != "" {
 		// The Password is not retuned from the endpoint so we use the one provided in the model
 		databaseUserModel.Password = types.StringValue(model.Password.ValueString())
 	}
