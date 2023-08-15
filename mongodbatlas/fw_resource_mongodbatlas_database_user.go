@@ -118,6 +118,7 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"x509_type": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Default:  stringdefault.StaticString("NONE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "MANAGED", "CUSTOMER"),
@@ -127,6 +128,7 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Default:  stringdefault.StaticString("NONE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "USER", "GROUP"),
@@ -136,6 +138,7 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"aws_iam_type": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				Default:  stringdefault.StaticString("NONE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "USER", "ROLE"),
