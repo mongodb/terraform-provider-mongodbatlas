@@ -598,9 +598,12 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		projectID, username, authDatabaseName, err := splitDatabaseUserImportID(rs.Primary.ID)
+		if err != nil {
+			return "", fmt.Errorf("error splitting database User info from ID: %s", rs.Primary.ID)
+		}
 
-		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
+		return fmt.Sprintf("%s-%s-%s", projectID, username, authDatabaseName), nil
 	}
 }
 
@@ -657,11 +660,14 @@ func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		projectID, username, authDatabaseName, err := splitDatabaseUserImportID(rs.Primary.ID)
+		if err != nil {
+			continue
+		}
 		// Try to find the database user
-		_, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], ids["username"])
+		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 		if err == nil {
-			return fmt.Errorf("database user (%s) still exists", ids["project_id"])
+			return fmt.Errorf("database user (%s) still exists", projectID)
 		}
 	}
 
