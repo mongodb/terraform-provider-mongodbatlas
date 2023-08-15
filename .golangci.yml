@@ -149,4 +149,5 @@ run:
     - integration
   skip-dirs:
     - internal/mocks
+    - mongodbatlas/description
   modules-download-mode: readonly
