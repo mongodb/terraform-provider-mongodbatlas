@@ -163,7 +163,7 @@ func (d *DatabaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	dbUserModel, diag := newTFDatabaseUserModel(ctx, dbUser)
+	dbUserModel, diag := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return

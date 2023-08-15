@@ -107,6 +107,7 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 						"roles": schema.SetNestedAttribute{
 							MarkdownDescription: description.Roles,
 							Description:         description.Roles,
+							Computed:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"collection_name": schema.StringAttribute{
@@ -128,6 +129,9 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 							},
 						},
 						"labels": schema.SetNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: description.Labels,
+							Description:         description.Labels,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"key": schema.StringAttribute{
@@ -144,6 +148,9 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 							},
 						},
 						"scopes": schema.SetNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: description.Scopes,
+							Description:         description.Scopes,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"name": schema.StringAttribute{
@@ -199,7 +206,7 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []matlas.DatabaseUser) (*tfDatabaseUsersModel, diag.Diagnostics) {
 	results := make([]*tfDatabaseUserModel, len(dbUsers))
 	for i := range dbUsers {
-		dbUserModel, d := newTFDatabaseUserModel(ctx, &dbUsers[i])
+		dbUserModel, d := newTFDatabaseUserModel(ctx, nil, &dbUsers[i])
 		if d.HasError() {
 			return nil, d
 		}

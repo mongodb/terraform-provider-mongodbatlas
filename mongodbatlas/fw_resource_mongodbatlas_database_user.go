@@ -63,9 +63,9 @@ type DatabaseUserRS struct {
 }
 
 var RoleObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"roleName":       types.StringType,
-	"collectionName": types.StringType,
-	"databaseName":   types.StringType,
+	"role_name":       types.StringType,
+	"collection_name": types.StringType,
+	"database_name":   types.StringType,
 }}
 
 var LabelObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -111,8 +111,15 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Description:         description.Username,
 			},
 			"password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
+				Optional:  true,
+				Sensitive: true,
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("x509_type"),
+						path.MatchRelative().AtParent().AtName("ldap_auth_type"),
+						path.MatchRelative().AtParent().AtName("aws_iam_type"),
+					}...),
+				},
 				MarkdownDescription: description.Password,
 				Description:         description.Password,
 			},
@@ -255,7 +262,7 @@ func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, dbUser)
+	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -294,7 +301,7 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, dbUser)
+	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -328,7 +335,7 @@ func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, dbUser)
+	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -348,9 +355,10 @@ func (r *DatabaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	err := deleteProject(ctx, r.client.Atlas, dbUserModel.ProjectID.ValueString())
+	conn := r.client.Atlas
+	_, err := conn.DatabaseUsers.Delete(ctx, dbUserModel.AuthDatabaseName.ValueString(), dbUserModel.ProjectID.ValueString(), dbUserModel.Username.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, dbUserModel.ProjectID.ValueString(), err.Error()))
+		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())
 		return
 	}
 }
@@ -393,7 +401,7 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 	}, nil
 }
 
-func newTFDatabaseUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) (*tfDatabaseUserModel, diag.Diagnostics) {
+func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbUser *matlas.DatabaseUser) (*tfDatabaseUserModel, diag.Diagnostics) {
 	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, newTFRolesModel(dbUser.Roles))
 	if diagnostic.HasError() {
 		return nil, diagnostic
@@ -415,13 +423,17 @@ func newTFDatabaseUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) (*
 		ProjectID:        types.StringValue(dbUser.GroupID),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
-		Password:         types.StringValue(dbUser.Password),
 		X509Type:         types.StringValue(dbUser.X509Type),
 		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
 		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
 		Roles:            rolesSet,
 		Labels:           labelsSet,
 		Scopes:           scopesSet,
+	}
+
+	if model != nil {
+		// The Password is not retuned from the endpoint so we use the one provided in the model
+		databaseUserModel.Password = types.StringValue(model.Password.ValueString())
 	}
 
 	return databaseUserModel, nil
