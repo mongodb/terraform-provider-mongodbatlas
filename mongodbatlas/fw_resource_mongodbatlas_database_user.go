@@ -490,7 +490,7 @@ func newTFRolesModel(roles []matlas.Role) []tfRoleModel {
 
 func newMongoDBAtlasRoles(roles []*tfRoleModel) []matlas.Role {
 	if len(roles) == 0 {
-		return nil
+		return []matlas.Role{}
 	}
 
 	out := make([]matlas.Role, len(roles))
@@ -507,7 +507,7 @@ func newMongoDBAtlasRoles(roles []*tfRoleModel) []matlas.Role {
 
 func newMongoDBAtlasLabels(labels []*tfLabelModel) []matlas.Label {
 	if len(labels) == 0 {
-		return nil
+		return []matlas.Label{}
 	}
 
 	out := make([]matlas.Label, len(labels))
@@ -523,7 +523,7 @@ func newMongoDBAtlasLabels(labels []*tfLabelModel) []matlas.Label {
 
 func newMongoDBAtlasScopes(scopes []*tfScopeModel) []matlas.Scope {
 	if len(scopes) == 0 {
-		return nil
+		return []matlas.Scope{}
 	}
 
 	out := make([]matlas.Scope, len(scopes))
