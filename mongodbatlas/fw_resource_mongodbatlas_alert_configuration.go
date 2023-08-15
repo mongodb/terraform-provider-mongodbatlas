@@ -22,15 +22,16 @@ import (
 )
 
 const (
-	errorCreateAlertConf  = "error creating Alert Configuration information: %s"
-	errorReadAlertConf    = "error getting Alert Configuration information: %s"
-	errorUpdateAlertConf  = "error updating Alert Configuration information: %s"
-	errorAlertConfSetting = "error setting `%s` for Alert Configuration (%s): %s"
-	pagerDuty             = "PAGER_DUTY"
-	opsGenie              = "OPS_GENIE"
-	victorOps             = "VICTOR_OPS"
-	encodedIDKeyAlertID   = "id"
-	encodedIDKeyProjectID = "project_id"
+	alertConfigurationResourceName = "alert_configuration"
+	errorCreateAlertConf           = "error creating Alert Configuration information: %s"
+	errorReadAlertConf             = "error getting Alert Configuration information: %s"
+	errorUpdateAlertConf           = "error updating Alert Configuration information: %s"
+	errorAlertConfSetting          = "error setting `%s` for Alert Configuration (%s): %s"
+	pagerDuty                      = "PAGER_DUTY"
+	opsGenie                       = "OPS_GENIE"
+	victorOps                      = "VICTOR_OPS"
+	encodedIDKeyAlertID            = "id"
+	encodedIDKeyProjectID          = "project_id"
 )
 
 var _ resource.Resource = &AlertConfigurationRS{}
@@ -105,7 +106,7 @@ type tfNotificationModel struct {
 }
 
 func (r *AlertConfigurationRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_alert_configuration"
+	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, alertConfigurationResourceName)
 }
 
 func (r *AlertConfigurationRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -404,8 +405,7 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 	if err != nil {
 		// deleted in the backend case
 		if getResp != nil && getResp.StatusCode == http.StatusNotFound {
-			alertConfigState.ID = types.StringValue("") // TODO verify this works
-			resp.Diagnostics.Append(resp.State.Set(ctx, alertConfigState)...)
+			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
