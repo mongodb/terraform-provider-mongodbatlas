@@ -325,10 +325,6 @@ func resetDefaults(ctx context.Context, encryptionAtRestRS *tfEncryptionAtRestRS
 	}
 }
 
-func resetDefaultsForRead(encryptionAtRestState *tfEncryptionAtRestRSModel, encryptionAtRestStateNew *tfEncryptionAtRestRSModel) {
-
-}
-
 func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var encryptionAtRestState tfEncryptionAtRestRSModel
 

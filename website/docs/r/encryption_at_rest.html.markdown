@@ -116,9 +116,6 @@ resource "mongodbatlas_cluster" "example_cluster" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier for the project.
-* `aws_kms` - (Required) Specifies AWS KMS configuration details and whether Encryption at Rest is enabled for an Atlas project.
-* `azure_key_vault` - (Required) Specifies Azure Key Vault configuration details and whether Encryption at Rest is enabled for an Atlas project.
-* `google_cloud_kms` - (Required) Specifies GCP KMS configuration details and whether Encryption at Rest is enabled for an Atlas project.
 
 ### aws_kms_config
 Refer to the example in the [official github repository](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples) to implement Encryption at Rest

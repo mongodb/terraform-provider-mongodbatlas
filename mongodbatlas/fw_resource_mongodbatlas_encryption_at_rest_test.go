@@ -81,7 +81,7 @@ EOF
 resource "mongodbatlas_encryption_at_rest" "test" {
 	project_id = "%s"
 
-	aws_kms {
+	aws_kms_config {
 		enabled                = %t
 		customer_master_key_id = "%s"
 		region                 = "%s"
@@ -244,7 +244,7 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		// projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		projectID   = "64da133335aa2242e1889109"
+		projectID   = "63bec58b014da65b8f73c06c"
 		accessKeyID = os.Getenv("AWS_ACCESS_KEY_ID")
 		secretKey   = os.Getenv("AWS_SECRET_ACCESS_KEY")
 		policyName  = acctest.RandomWithPrefix("test-aws-policy")
@@ -258,7 +258,13 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck: func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"aws": {
+				VersionConstraint: "5.1.0",
+				Source:            "hashicorp/aws",
+			},
+		},
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
