@@ -81,12 +81,11 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 				MarkdownDescription: description.AWSIAMType,
 				Description:         description.AWSIAMType,
 			},
-		},
-		Blocks: map[string]schema.Block{
-			"roles": schema.SetNestedBlock{
+			"roles": schema.ListNestedAttribute{
+				Computed:            true,
 				MarkdownDescription: description.Roles,
 				Description:         description.Roles,
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
 							Computed:            true,
@@ -106,8 +105,11 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 					},
 				},
 			},
-			"labels": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
+			"labels": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: description.Labels,
+				Description:         description.Labels,
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
 							Computed:            true,
@@ -122,8 +124,11 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 					},
 				},
 			},
-			"scopes": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
+			"scopes": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: description.Scopes,
+				Description:         description.Scopes,
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Computed:            true,

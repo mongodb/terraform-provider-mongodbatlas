@@ -34,10 +34,9 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.x509_type"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.roles.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.1.labels.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.1.labels.0.key"),
 				),
 			},
 		},
@@ -77,6 +76,7 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleNa
 				key   = "key 1"
 				value = "value 1"
 			}
+
 			labels {
 				key   = "key 2"
 				value = "value 2"

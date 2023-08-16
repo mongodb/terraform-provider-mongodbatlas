@@ -111,9 +111,9 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 							Description:         description.AWSIAMType,
 						},
 						"roles": schema.SetNestedAttribute{
+							Computed:            true,
 							MarkdownDescription: description.Roles,
 							Description:         description.Roles,
-							Computed:            true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"collection_name": schema.StringAttribute{
