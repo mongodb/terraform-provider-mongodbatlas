@@ -37,7 +37,7 @@ func TestAccConfigDSDatabaseUsers_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.x509_type"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.0.roles.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "results.0.scopes.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "results.1.labels.#"),
 				),
 			},
 		},

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/description"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -68,6 +69,11 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: description.ID,
+							Description:         description.ID,
+						},
 						"project_id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.ProjectID,
@@ -216,5 +222,6 @@ func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []mat
 	return &tfDatabaseUsersModel{
 		ProjectID: types.StringValue(projectID),
 		Results:   results,
+		ID:        types.StringValue(id.UniqueId()),
 	}, nil
 }
