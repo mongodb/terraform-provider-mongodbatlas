@@ -194,7 +194,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)

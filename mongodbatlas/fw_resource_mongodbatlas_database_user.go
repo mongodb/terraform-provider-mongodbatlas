@@ -286,7 +286,8 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	projectID := databaseUserModel.ProjectID.ValueString()
 	authDatabaseName := databaseUserModel.AuthDatabaseName.ValueString()
 
-	if databaseUserModel.ID.ValueString() != "" {
+	// Use the ID only with the IMPORT operation
+	if databaseUserModel.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
 		projectID, username, authDatabaseName, err = splitDatabaseUserImportID(databaseUserModel.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
