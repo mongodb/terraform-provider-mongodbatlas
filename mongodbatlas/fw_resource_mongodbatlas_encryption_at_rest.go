@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -20,8 +22,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -316,7 +318,25 @@ func resetDefaults(ctx context.Context, encryptionAtRestRS *tfEncryptionAtRestRS
 		// encryptionAtRestPlanNew.AzureKeyVaultConfig = types.ListNull(tfAzureKeyVaultObjectType)
 		tfAzKeyVaultConfigs := make([]tfAzureKeyVaultConfigModel, 0)
 		encryptionAtRestRSNew.AzureKeyVaultConfig, _ = types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, tfAzKeyVaultConfigs)
+	} else {
+
+		var azureConfigsNew []tfAzureKeyVaultConfigModel
+		encryptionAtRestRSNew.AzureKeyVaultConfig.ElementsAs(ctx, &azureConfigsNew, false)
+
+		if encryptionAtRestRSConfig != nil {
+			var azureConfigs []tfAzureKeyVaultConfigModel
+			encryptionAtRestRSConfig.AzureKeyVaultConfig.ElementsAs(ctx, &azureConfigs, false)
+
+			azureConfigsNew[0].Secret = azureConfigs[0].Secret
+		} else {
+			var azureConfigs []tfAzureKeyVaultConfigModel
+			encryptionAtRestRS.AzureKeyVaultConfig.ElementsAs(ctx, &azureConfigs, false)
+
+			azureConfigsNew[0].Secret = azureConfigs[0].Secret
+		}
+		encryptionAtRestRSNew.AzureKeyVaultConfig, _ = types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, azureConfigsNew)
 	}
+
 	if encryptionAtRestRS.GoogleCloudKmsConfig.IsNull() {
 		// encryptionAtRestPlanNew.GoogleCloudKmsConfig = types.ListNull(tfGcpKmsObjectType)
 		tfGcpKmsConfigs := make([]tfGcpKmsConfigModel, 0)
