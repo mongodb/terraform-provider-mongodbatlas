@@ -97,7 +97,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
-	if err = d.Set("aws_iam_roles", flatCloudProviderAccessRoles(roles)); err != nil {
+	if err = d.Set("aws_iam_roles", flatCloudProviderAccessRolesAWS(roles)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorGetRead, err))
 	}
 
@@ -106,18 +106,17 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schem
 	return nil
 }
 
-func flatCloudProviderAccessRoles(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
+func flatCloudProviderAccessRolesAWS(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
 	list = make([]map[string]interface{}, 0, len(roles.AWSIAMRoles))
-
 	for i := range roles.AWSIAMRoles {
 		role := &(roles.AWSIAMRoles[i])
-		list = append(list, roleToSchema(role))
+		list = append(list, roleToSchemaAWS(role))
 	}
 
 	return list
 }
 
-func roleToSchema(role *matlas.AWSIAMRole) map[string]interface{} {
+func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 	out := map[string]interface{}{
 		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,

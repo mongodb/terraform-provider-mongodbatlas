@@ -9,26 +9,29 @@
 ### Pre-release the provider 
 We pre-release the provider to make for testing purpose. **A Pre-release is not published to the Hashicorp Terraform Registry**.
 
-- Open the GitHub repository release page and click draft a new release
-- Fill the pre-release tag and select `master` as the target branch
-
-    <img width="370" alt="image2" src="https://github.com/mongodb/terraform-provider-mongodbatlas/assets/5663078/e710c0ff-dc00-44c2-9eb6-146cd791d47e">
-- Generate Release Notes: Click Generate release notes button to populate release notes
-- Set publishing to Pre-release
-    
-    <img width="477" alt="image3" src="https://github.com/mongodb/terraform-provider-mongodbatlas/assets/5663078/30d2db83-6b2d-4eb2-9da6-93fc34d64c09">
-
-- **There is a bug in the GitHub release page**: after binaries get created, GitHub  flips backthe  status of release as Draft so you have to set it to Pre-Release (or Latest, if publishing the final version) again.
+- Create and push the pre-release tag (`X.Y.Z-pre`) to master
+```bash
+git tag [YOUR_TAG]-pre
+git push origin [YOUR_TAG]-pre
+```
+- You will see the release in the [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) once the [release action](.github/workflows/release.yml) has completed.
 
 ### Generate the CHANGELOG.md 
+We use a tool called [github changelog generator](https://github.com/github-changelog-generator/github-changelog-generator) to automatically update our changelog. It provides options for downloading a CLI or using a docker image with interactive mode to update the CHANGELOG.md file locally.
+
 - Update `since_tag` and `future-release` in [.github_changelog_generator](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/.github_changelog_generator)
 - **There is a bug with `github_changelog_generator` ([#971](https://github.com/github-changelog-generator/github-changelog-generator/issues/971))**: Make sure to update the `future-tag` with the pre-release tag. Once you generate the changelog, update `future-tag` with the final release tag in [.github_changelog_generator](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/.github_changelog_generator). Then, manually update the generated changelog to remove references to the pre-release tag
-- Run
+- Run the following command: 
 
     ```bash 
-    github_changelog_generator -u mongodb -p terraform-provider-mongodbatlas --enhancement-label "**Enhancements**" --bugs-label "**Bug Fixes**"  --issues-label "**Closed Issues**" --pr-label "**Internal Improvements**"
+    github_changelog_generator -u mongodb -p terraform-provider-mongodbatlas -t <GH_TOKEN> --enhancement-label "**Enhancements**" --bugs-label "**Bug Fixes**"  --issues-label "**Closed Issues**" --pr-label "**Internal Improvements**"
     ```
--  Open a PR against the **master** branch
+    or using docker image
+    ```bash 
+    docker run -it --rm -v "$(pwd)":/usr/local/src/your-app githubchangeloggenerator/github-changelog-generator -u mongodb -p terraform-provider-mongodbatlas -t <GH_TOKEN> --enhancement-label "**Enhancements**" --bugs-label "**Bug Fixes**"  --issues-label "**Closed Issues**" --pr-label "**Internal Improvements**"
+    ```
+    To obtain your github personal access token you can use the following guide: [Authorizing a personal access token for use with SAML single sign-on](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on)
+-  Make any manual adjustments if needed, and open a PR against the **master** branch
 -  Example: [#1308](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1308)
 
 ### Release the provider

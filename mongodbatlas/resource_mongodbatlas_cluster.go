@@ -90,7 +90,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"bi_connector": {
 				Type:          schema.TypeMap,
 				Optional:      true,
-				Deprecated:    "use bi_connector_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "bi_connector_config"),
 				ConflictsWith: []string{"bi_connector_config"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -153,7 +153,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				Default:    false,
-				Deprecated: "This field is deprecated,please use cloud_backup instead",
+				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "cloud_backup"),
 			},
 			"cloud_backup": {
 				Type:          schema.TypeBool,
@@ -1616,12 +1616,12 @@ func clusterConnectionStringsSchema() *schema.Schema {
 				"aws_private_link": {
 					Type:       schema.TypeMap,
 					Computed:   true,
-					Deprecated: "This field is deprecated. Use connection_strings.private_endpoint[n].connection_string instead",
+					Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "connection_strings.private_endpoint[n].connection_string"),
 				},
 				"aws_private_link_srv": {
 					Type:       schema.TypeMap,
 					Computed:   true,
-					Deprecated: "This field is deprecated. Use connection_strings.private_endpoint[n].srv_connection_string instead",
+					Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "connection_strings.private_endpoint[n].srv_connection_string"),
 				},
 				"private": {
 					Type:     schema.TypeString,

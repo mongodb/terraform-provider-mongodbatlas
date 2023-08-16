@@ -42,7 +42,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
 				Type:          schema.TypeMap,
 				Optional:      true,
 				ForceNew:      true,
-				Deprecated:    "use delivery_type_config instead",
+				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "delivery_type_config"),
 				ConflictsWith: []string{"delivery_type_config"},
 				Elem: &schema.Schema{
 					Type: schema.TypeString,

@@ -124,3 +124,9 @@ tflint: fmtcheck
 .PHONY: tf-validate
 tf-validate: fmtcheck
 	@scripts/tf-validate.sh
+
+.PHONY: link-git-hooks
+link-git-hooks: ## Install git hooks
+	@echo "==> Installing all git hooks..."
+	find .git/hooks -type l -exec rm {} \;
+	find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;

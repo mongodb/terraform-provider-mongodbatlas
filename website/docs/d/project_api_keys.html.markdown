@@ -18,8 +18,8 @@ description: |-
 
 ```terraform
 resource "mongodbatlas_project_api_key" "test" {
-  description   = "key-name"
-  project_id    = "<PROJECT_ID>"
+  description   = "Description of the API key"
+  project_id    = "32b6e34b3d91647abb20e7b8"
   role_names = ["GROUP_READ_ONLY"]
   }
 }
@@ -27,7 +27,7 @@ resource "mongodbatlas_project_api_key" "test" {
 data "mongodbatlas_project_api_keys" "test" {
   page_num       = 1
   items_per_page = 5
-  project_id     = "<PROJECT_ID>"
+  project_id     = "32b6e34b3d91647abb20e7b8"
 }
 ```
 
@@ -45,6 +45,13 @@ data "mongodbatlas_project_api_keys" "test" {
 * `project_id` - Unique identifier for the project whose API keys you want to retrieve. Use the /groups endpoint to retrieve all projects to which the authenticated user has access.
 * `api_key_id` - Unique identifier for the API key you want to update. Use the /orgs/{ORG-ID}/apiKeys endpoint to retrieve all API keys to which the authenticated user has access for the specified organization.
 * `description` -	Description of this Project API key.
-* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
+* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned. **DEPRECATED** Use `project_assignment` instead.
+
+### project_assignment
+List of Project roles that the Programmatic API key needs to have.
+
+* `project_id` -  Project ID to assign to Access Key
+* `role_names` -  List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
+ 
   
 See [MongoDB Atlas API - API Keys](https://www.mongodb.com/docs/atlas/reference/api/projectApiKeys/get-all-apiKeys-in-one-project/) - Documentation for more information.
