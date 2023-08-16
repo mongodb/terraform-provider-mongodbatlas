@@ -368,6 +368,7 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 		Password:     dbUserModel.Password.ValueString(),
 		X509Type:     dbUserModel.X509Type.ValueString(),
 		AWSIAMType:   dbUserModel.AWSIAMType.ValueString(),
+		OIDCAuthType: dbUserModel.OIDCAuthType.ValueString(),
 		LDAPAuthType: dbUserModel.LDAPAuthType.ValueString(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
 		Roles:        newMongoDBAtlasRoles(rolesModel),
