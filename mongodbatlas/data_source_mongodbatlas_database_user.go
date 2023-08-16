@@ -40,6 +40,10 @@ func dataSourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"oidc_auth_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"ldap_auth_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -145,6 +149,10 @@ func dataSourceMongoDBAtlasDatabaseUserRead(ctx context.Context, d *schema.Resou
 
 	if err := d.Set("aws_iam_type", dbUser.AWSIAMType); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err))
+	}
+
+	if err := d.Set("oidc_auth_type", dbUser.OIDCAuthType); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `oidc_auth_type` for database user (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("ldap_auth_type", dbUser.LDAPAuthType); err != nil {
