@@ -69,6 +69,12 @@ func resourceMongoDBAtlasDatabaseUser() *schema.Resource {
 				Default:      "NONE",
 				ValidateFunc: validation.StringInSlice([]string{"NONE", "USER", "ROLE"}, false),
 			},
+			"oidc_auth_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "NONE",
+				ValidateFunc: validation.StringInSlice([]string{"NONE", "IDP_GROUP"}, false),
+			},
 			"roles": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -181,6 +187,10 @@ func resourceMongoDBAtlasDatabaseUserRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error setting `aws_iam_type` for database user (%s): %s", d.Id(), err))
 	}
 
+	if err := d.Set("oidc_auth_type", dbUser.OIDCAuthType); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `oidc_auth_type` for database user (%s): %s", d.Id(), err))
+	}
+
 	if err := d.Set("ldap_auth_type", dbUser.LDAPAuthType); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `ldap_auth_type` for database user (%s): %s", d.Id(), err))
 	}
@@ -231,6 +241,7 @@ func resourceMongoDBAtlasDatabaseUserCreate(ctx context.Context, d *schema.Resou
 		Password:     d.Get("password").(string),
 		X509Type:     d.Get("x509_type").(string),
 		AWSIAMType:   d.Get("aws_iam_type").(string),
+		OIDCAuthType: d.Get("oidc_auth_type").(string),
 		LDAPAuthType: d.Get("ldap_auth_type").(string),
 		DatabaseName: authDatabaseName,
 		Labels:       expandLabelSliceFromSetSchema(d),
