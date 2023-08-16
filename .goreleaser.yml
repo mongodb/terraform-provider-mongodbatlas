@@ -46,7 +46,8 @@ signs:
       - "--detach-sign"
       - "${artifact}"
 release:
-  draft: true
+  name_template: "{{.Version}}"
+  prerelease: auto
 changelog:
   skip: false
   sort: asc
