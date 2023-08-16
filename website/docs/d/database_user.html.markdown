@@ -64,7 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 * `x509_type` - X.509 method by which the provided username is authenticated.
 * `aws_iam_type` - The new database user authenticates with AWS IAM credentials. Default is `NONE`, `USER` means user has AWS IAM user credentials, `ROLE` - means user has credentials associated with an AWS IAM role.
 * `ldap_auth_type` - Method by which the provided username is authenticated. Default is `NONE`. Other valid values are: `USER`, `GROUP`.
-* `oidc_auth_type` - (Optional) Human-readable label that indicates whether the new database user authenticates with OIDC federated authentication. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
+* `oidc_auth_type` - (Optional) Human-readable label that indicates whether the new database user authenticates with OIDC (OpenID Connect) federated authentication. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
   * `NONE` -	The user does not use OIDC federated authentication.
   * `IDP_GROUP` - Create a OIDC federated authentication user. To learn more about OIDC federated authentication, see [Set up Workforce Identity Federation with OIDC](https://www.mongodb.com/docs/atlas/security-oidc/).
 * `scopes` - Array of clusters and Atlas Data Lakes that this user has access to.
