@@ -146,7 +146,7 @@ Accepted values include:
   * `GROUP` - LDAP server authenticates this user using their LDAP user and authorizes this user using their LDAP group. To learn more about LDAP security, see [Set up User Authentication and Authorization with LDAP](https://docs.atlas.mongodb.com/security-ldaps). `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
 
 
-* `oidc_auth_type` - (Optional) Human-readable label that indicates whether the new database user authenticates with OIDC federated authentication. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
+* `oidc_auth_type` - (Optional) Human-readable label that indicates whether the new database user authenticates with OIDC (OpenID Connect) federated authentication. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
   * `NONE` -	The user does not use OIDC federated authentication.
   * `IDP_GROUP` - Create a OIDC federated authentication user. To learn more about OIDC federated authentication, see [Set up Workforce Identity Federation with OIDC](https://www.mongodb.com/docs/atlas/security-oidc/).
 ### Roles
