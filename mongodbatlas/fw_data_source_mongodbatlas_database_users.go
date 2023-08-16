@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/description"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -55,14 +54,10 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: description.ID,
-				Description:         description.ID,
+				Computed: true,
 			},
 			"project_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: description.ProjectID,
-				Description:         description.ProjectID,
+				Required: true,
 			},
 
 			"results": schema.ListNestedAttribute{
@@ -70,104 +65,68 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.ID,
-							Description:         description.ID,
+							Computed: true,
 						},
 						"project_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.ProjectID,
-							Description:         description.ProjectID,
+							Computed: true,
 						},
 						"auth_database_name": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.ProjectID,
-							Description:         description.ProjectID,
+							Computed: true,
 						},
 						"username": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.Username,
-							Description:         description.Username,
+							Computed: true,
 						},
 						"password": schema.StringAttribute{
-							Computed:            true,
-							Sensitive:           true,
-							MarkdownDescription: description.Password,
-							Description:         description.Password,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"x509_type": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.X509Type,
-							Description:         description.X509Type,
+							Computed: true,
 						},
 						"ldap_auth_type": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.LDAPAuthYype,
-							Description:         description.LDAPAuthYype,
+							Computed: true,
 						},
 						"aws_iam_type": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: description.AWSIAMType,
-							Description:         description.AWSIAMType,
+							Computed: true,
 						},
 						"roles": schema.SetNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: description.Roles,
-							Description:         description.Roles,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"collection_name": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.CollectionName,
-										Description:         description.CollectionName,
+										Computed: true,
 									},
 									"database_name": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.DatabaseName,
-										Description:         description.DatabaseName,
+										Computed: true,
 									},
 									"role_name": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.RoleName,
-										Description:         description.RoleName,
+										Computed: true,
 									},
 								},
 							},
 						},
 						"labels": schema.SetNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: description.Labels,
-							Description:         description.Labels,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"key": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.Key,
-										Description:         description.Key,
+										Computed: true,
 									},
 									"value": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.Value,
-										Description:         description.Value,
+										Computed: true,
 									},
 								},
 							},
 						},
 						"scopes": schema.SetNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: description.Scopes,
-							Description:         description.Scopes,
+							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"name": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.Name,
-										Description:         description.Name,
+										Computed: true,
 									},
 									"type": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: description.Type,
-										Description:         description.Type,
+										Computed: true,
 									},
 								},
 							},
@@ -176,8 +135,6 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 				},
 			},
 		},
-		MarkdownDescription: description.DatabaseUsersDS,
-		Description:         description.DatabaseUsersDS,
 	}
 }
 

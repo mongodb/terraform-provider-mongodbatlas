@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/description"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -86,29 +85,21 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				MarkdownDescription: description.ID,
-				Description:         description.ID,
 			},
 			"project_id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: description.ProjectID,
-				Description:         description.ProjectID,
 			},
 			"auth_database_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: description.ProjectID,
-				Description:         description.ProjectID,
+				Required: true,
 			},
 			"username": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: description.Username,
-				Description:         description.Username,
 			},
 			"password": schema.StringAttribute{
 				Optional:  true,
@@ -120,8 +111,6 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 						path.MatchRelative().AtParent().AtName("aws_iam_type"),
 					}...),
 				},
-				MarkdownDescription: description.Password,
-				Description:         description.Password,
 			},
 			"x509_type": schema.StringAttribute{
 				Optional: true,
@@ -130,8 +119,6 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "MANAGED", "CUSTOMER"),
 				},
-				MarkdownDescription: description.X509Type,
-				Description:         description.X509Type,
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Optional: true,
@@ -140,8 +127,6 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "USER", "GROUP"),
 				},
-				MarkdownDescription: description.LDAPAuthYype,
-				Description:         description.LDAPAuthYype,
 			},
 			"aws_iam_type": schema.StringAttribute{
 				Optional: true,
@@ -150,33 +135,23 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "USER", "ROLE"),
 				},
-				MarkdownDescription: description.AWSIAMType,
-				Description:         description.AWSIAMType,
 			},
 		},
 		Blocks: map[string]schema.Block{
 			"roles": schema.SetNestedBlock{
-				MarkdownDescription: description.Roles,
-				Description:         description.Roles,
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.CollectionName,
-							Description:         description.CollectionName,
+							Optional: true,
+							Computed: true,
 						},
 						"database_name": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.DatabaseName,
-							Description:         description.DatabaseName,
+							Optional: true,
+							Computed: true,
 						},
 						"role_name": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.RoleName,
-							Description:         description.RoleName,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -185,16 +160,12 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.Key,
-							Description:         description.Key,
+							Optional: true,
+							Computed: true,
 						},
 						"value": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.Value,
-							Description:         description.Value,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -203,23 +174,17 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.Name,
-							Description:         description.Name,
+							Optional: true,
+							Computed: true,
 						},
 						"type": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: description.Type,
-							Description:         description.Type,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
 			},
 		},
-		MarkdownDescription: description.DatabaseUserResource,
-		Description:         description.DatabaseUserResource,
 	}
 }
 
