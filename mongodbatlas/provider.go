@@ -147,8 +147,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_team":                              dataSourceMongoDBAtlasTeam(),
 		"mongodbatlas_teams":                             dataSourceMongoDBAtlasTeam(),
 		"mongodbatlas_global_cluster_config":             dataSourceMongoDBAtlasGlobalCluster(),
-		"mongodbatlas_alert_configuration":               dataSourceMongoDBAtlasAlertConfiguration(),
-		"mongodbatlas_alert_configurations":              dataSourceMongoDBAtlasAlertConfigurations(),
 		"mongodbatlas_x509_authentication_database_user": dataSourceMongoDBAtlasX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    dataSourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(),

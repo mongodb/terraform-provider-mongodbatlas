@@ -29,7 +29,6 @@ const (
 	errorCreateAlertConf           = "error creating Alert Configuration information: %s"
 	errorReadAlertConf             = "error getting Alert Configuration information: %s"
 	errorUpdateAlertConf           = "error updating Alert Configuration information: %s"
-	errorAlertConfSetting          = "error setting `%s` for Alert Configuration (%s): %s"
 	pagerDuty                      = "PAGER_DUTY"
 	opsGenie                       = "OPS_GENIE"
 	victorOps                      = "VICTOR_OPS"
