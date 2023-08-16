@@ -6,7 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/description"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 type DatabaseUserDS struct {
@@ -15,6 +18,20 @@ type DatabaseUserDS struct {
 
 func NewDatabaseUserDS() datasource.DataSource {
 	return &DatabaseUserDS{}
+}
+
+type tfDatabaseUserDSModel struct {
+	ID               types.String   `tfsdk:"id"`
+	ProjectID        types.String   `tfsdk:"project_id"`
+	AuthDatabaseName types.String   `tfsdk:"auth_database_name"`
+	Username         types.String   `tfsdk:"username"`
+	Password         types.String   `tfsdk:"password"`
+	X509Type         types.String   `tfsdk:"x509_type"`
+	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
+	AWSIAMType       types.String   `tfsdk:"aws_iam_type"`
+	Roles            []tfRoleModel  `tfsdk:"roles"`
+	Labels           []tfLabelModel `tfsdk:"labels"`
+	Scopes           []tfScopeModel `tfsdk:"scopes"`
 }
 
 var _ datasource.DataSource = &DatabaseUserDS{}
@@ -150,16 +167,16 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 }
 
 func (d *DatabaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseUserModel *tfDatabaseUserModel
+	var databaseDSUserModel *tfDatabaseUserDSModel
 	var err error
-	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseUserModel)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	username := databaseUserModel.Username.ValueString()
-	projectID := databaseUserModel.ProjectID.ValueString()
-	authDatabaseName := databaseUserModel.AuthDatabaseName.ValueString()
+	username := databaseDSUserModel.Username.ValueString()
+	projectID := databaseDSUserModel.ProjectID.ValueString()
+	authDatabaseName := databaseDSUserModel.AuthDatabaseName.ValueString()
 
 	conn := d.client.Atlas
 	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
@@ -168,8 +185,8 @@ func (d *DatabaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	dbUserModel, diag := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
-	resp.Diagnostics.Append(diag...)
+	dbUserModel, diagnostic := newTFDatabaseDSUserModel(ctx, dbUser)
+	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -178,4 +195,23 @@ func (d *DatabaseUserDS) Read(ctx context.Context, req datasource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func newTFDatabaseDSUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) (*tfDatabaseUserDSModel, diag.Diagnostics) {
+	id := fmt.Sprintf("%s-%s-%s", dbUser.GroupID, dbUser.Username, dbUser.DatabaseName)
+	databaseUserModel := &tfDatabaseUserDSModel{
+		ID:               types.StringValue(id),
+		ProjectID:        types.StringValue(dbUser.GroupID),
+		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
+		Username:         types.StringValue(dbUser.Username),
+		Password:         types.StringValue(dbUser.Password),
+		X509Type:         types.StringValue(dbUser.X509Type),
+		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
+		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
+		Roles:            newTFRolesModel(dbUser.Roles),
+		Labels:           newTFLabelsModel(dbUser.Labels),
+		Scopes:           newTFScopesModel(dbUser.Scopes),
+	}
+
+	return databaseUserModel, nil
 }

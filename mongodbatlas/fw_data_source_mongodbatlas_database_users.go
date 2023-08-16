@@ -45,10 +45,10 @@ func (d *DatabaseUsersDS) Configure(ctx context.Context, req datasource.Configur
 	d.client = client
 }
 
-type tfDatabaseUsersModel struct {
-	ID        types.String           `tfsdk:"id"`
-	ProjectID types.String           `tfsdk:"project_id"`
-	Results   []*tfDatabaseUserModel `tfsdk:"results"`
+type tfDatabaseUsersDSModel struct {
+	ID        types.String             `tfsdk:"id"`
+	ProjectID types.String             `tfsdk:"project_id"`
+	Results   []*tfDatabaseUserDSModel `tfsdk:"results"`
 }
 
 func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -182,7 +182,7 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 }
 
 func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseUsersModel *tfDatabaseUsersModel
+	var databaseUsersModel *tfDatabaseUsersDSModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseUsersModel)...)
 	if resp.Diagnostics.HasError() {
@@ -209,17 +209,17 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 }
 
-func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []matlas.DatabaseUser) (*tfDatabaseUsersModel, diag.Diagnostics) {
-	results := make([]*tfDatabaseUserModel, len(dbUsers))
+func newTFDatabaseUsersMode(ctx context.Context, projectID string, dbUsers []matlas.DatabaseUser) (*tfDatabaseUsersDSModel, diag.Diagnostics) {
+	results := make([]*tfDatabaseUserDSModel, len(dbUsers))
 	for i := range dbUsers {
-		dbUserModel, d := newTFDatabaseUserModel(ctx, nil, &dbUsers[i])
+		dbUserModel, d := newTFDatabaseDSUserModel(ctx, &dbUsers[i])
 		if d.HasError() {
 			return nil, d
 		}
 		results[i] = dbUserModel
 	}
 
-	return &tfDatabaseUsersModel{
+	return &tfDatabaseUsersDSModel{
 		ProjectID: types.StringValue(projectID),
 		Results:   results,
 		ID:        types.StringValue(id.UniqueId()),
