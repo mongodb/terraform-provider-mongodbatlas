@@ -83,6 +83,9 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 						"x509_type": schema.StringAttribute{
 							Computed: true,
 						},
+						"oidc_auth_type": schema.StringAttribute{
+							Computed: true,
+						},
 						"ldap_auth_type": schema.StringAttribute{
 							Computed: true,
 						},

@@ -34,6 +34,7 @@ type tfDatabaseUserModel struct {
 	Username         types.String `tfsdk:"username"`
 	Password         types.String `tfsdk:"password"`
 	X509Type         types.String `tfsdk:"x509_type"`
+	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
 	Roles            types.Set    `tfsdk:"roles"`
@@ -118,6 +119,14 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Default:  stringdefault.StaticString("NONE"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("NONE", "MANAGED", "CUSTOMER"),
+				},
+			},
+			"oidc_auth_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("NONE"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("NONE", "IDP_GROUP"),
 				},
 			},
 			"ldap_auth_type": schema.StringAttribute{
@@ -390,6 +399,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
 		X509Type:         types.StringValue(dbUser.X509Type),
+		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
 		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
 		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
 		Roles:            rolesSet,

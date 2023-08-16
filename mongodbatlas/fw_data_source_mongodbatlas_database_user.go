@@ -26,6 +26,7 @@ type tfDatabaseUserDSModel struct {
 	Username         types.String   `tfsdk:"username"`
 	Password         types.String   `tfsdk:"password"`
 	X509Type         types.String   `tfsdk:"x509_type"`
+	OIDCAuthType     types.String   `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String   `tfsdk:"aws_iam_type"`
 	Roles            []tfRoleModel  `tfsdk:"roles"`
@@ -73,6 +74,9 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 				Sensitive: true,
 			},
 			"x509_type": schema.StringAttribute{
+				Computed: true,
+			},
+			"oidc_auth_type": schema.StringAttribute{
 				Computed: true,
 			},
 			"ldap_auth_type": schema.StringAttribute{
@@ -167,6 +171,7 @@ func newTFDatabaseDSUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) 
 		Username:         types.StringValue(dbUser.Username),
 		Password:         types.StringValue(dbUser.Password),
 		X509Type:         types.StringValue(dbUser.X509Type),
+		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
 		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
 		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
 		Roles:            newTFRolesModel(dbUser.Roles),
