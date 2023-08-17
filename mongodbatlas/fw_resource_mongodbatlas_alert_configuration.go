@@ -384,12 +384,12 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	apiReq := &matlas.AlertConfiguration{
 		EventTypeName:   alertConfigPlan.EventType.ValueString(),
 		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        expandTFAlertConfigurationMatchers(alertConfigPlan.Matcher),
-		MetricThreshold: expandTFAlertConfigurationMetricThresholdConfig(alertConfigPlan.MetricThresholdConfig),
-		Threshold:       expandTFAlertConfigurationThresholdConfig(alertConfigPlan.ThresholdConfig),
+		Matchers:        newMatcherList(alertConfigPlan.Matcher),
+		MetricThreshold: newMetricThreshold(alertConfigPlan.MetricThresholdConfig),
+		Threshold:       newThreshold(alertConfigPlan.ThresholdConfig),
 	}
 
-	notifications, err := expandTFAlertConfigurationNotification(alertConfigPlan.Notification)
+	notifications, err := newNotificationList(alertConfigPlan.Notification)
 	if err != nil {
 		resp.Diagnostics.AddError(errorCreateAlertConf, err.Error())
 		return
@@ -408,7 +408,7 @@ func (r *AlertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)
 
-	newAlertConfigurationState := toTFAlertConfigurationModel(apiResp, &alertConfigPlan)
+	newAlertConfigurationState := newTFAlertConfigurationModel(apiResp, &alertConfigPlan)
 
 	// set state to fully populated data
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAlertConfigurationState)...)
@@ -438,7 +438,7 @@ func (r *AlertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	newAlertConfigurationState := toTFAlertConfigurationModel(alert, &alertConfigState)
+	newAlertConfigurationState := newTFAlertConfigurationModel(alert, &alertConfigState)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
@@ -478,19 +478,19 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.MetricThresholdConfig, alertConfigState.MetricThresholdConfig) {
-		apiReq.MetricThreshold = expandTFAlertConfigurationMetricThresholdConfig(alertConfigPlan.MetricThresholdConfig)
+		apiReq.MetricThreshold = newMetricThreshold(alertConfigPlan.MetricThresholdConfig)
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.ThresholdConfig, alertConfigState.ThresholdConfig) {
-		apiReq.Threshold = expandTFAlertConfigurationThresholdConfig(alertConfigPlan.ThresholdConfig)
+		apiReq.Threshold = newThreshold(alertConfigPlan.ThresholdConfig)
 	}
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
-		apiReq.Matchers = expandTFAlertConfigurationMatchers(alertConfigPlan.Matcher)
+		apiReq.Matchers = newMatcherList(alertConfigPlan.Matcher)
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call
-	notifications, err := expandTFAlertConfigurationNotification(alertConfigPlan.Notification)
+	notifications, err := newNotificationList(alertConfigPlan.Notification)
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdateAlertConf, err.Error())
 		return
@@ -513,7 +513,7 @@ func (r *AlertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	newAlertConfigurationState := toTFAlertConfigurationModel(updatedAlertConfigResp, &alertConfigPlan)
+	newAlertConfigurationState := newTFAlertConfigurationModel(updatedAlertConfigResp, &alertConfigPlan)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newAlertConfigurationState)...)
@@ -553,7 +553,7 @@ func (r *AlertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 }
 
-func expandTFAlertConfigurationNotification(tfNotificationSlice []tfNotificationModel) ([]matlas.Notification, error) {
+func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]matlas.Notification, error) {
 	notifications := make([]matlas.Notification, len(tfNotificationSlice))
 	if len(tfNotificationSlice) == 0 {
 		return notifications, nil
@@ -598,7 +598,7 @@ func expandTFAlertConfigurationNotification(tfNotificationSlice []tfNotification
 	return notifications, nil
 }
 
-func expandTFAlertConfigurationThresholdConfig(tfThresholdConfigSlice []tfThresholdConfigModel) *matlas.Threshold {
+func newThreshold(tfThresholdConfigSlice []tfThresholdConfigModel) *matlas.Threshold {
 	if len(tfThresholdConfigSlice) < 1 {
 		return nil
 	}
@@ -611,7 +611,7 @@ func expandTFAlertConfigurationThresholdConfig(tfThresholdConfigSlice []tfThresh
 	}
 }
 
-func expandTFAlertConfigurationMetricThresholdConfig(tfMetricThresholdConfigSlice []tfMetricThresholdConfigModel) *matlas.MetricThreshold {
+func newMetricThreshold(tfMetricThresholdConfigSlice []tfMetricThresholdConfigModel) *matlas.MetricThreshold {
 	if len(tfMetricThresholdConfigSlice) < 1 {
 		return nil
 	}
@@ -625,7 +625,7 @@ func expandTFAlertConfigurationMetricThresholdConfig(tfMetricThresholdConfigSlic
 	}
 }
 
-func expandTFAlertConfigurationMatchers(tfMatcherSlice []tfMatcherModel) []matlas.Matcher {
+func newMatcherList(tfMatcherSlice []tfMatcherModel) []matlas.Matcher {
 	matchers := make([]matlas.Matcher, len(tfMatcherSlice))
 
 	for i, m := range tfMatcherSlice {
@@ -639,7 +639,7 @@ func expandTFAlertConfigurationMatchers(tfMatcherSlice []tfMatcherModel) []matla
 	return matchers
 }
 
-func toTFAlertConfigurationModel(apiRespConfig *matlas.AlertConfiguration, currState *tfAlertConfigurationRSModel) tfAlertConfigurationRSModel {
+func newTFAlertConfigurationModel(apiRespConfig *matlas.AlertConfiguration, currState *tfAlertConfigurationRSModel) tfAlertConfigurationRSModel {
 	return tfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
@@ -648,14 +648,14 @@ func toTFAlertConfigurationModel(apiRespConfig *matlas.AlertConfiguration, currS
 		Created:               types.StringValue(apiRespConfig.Created),
 		Updated:               types.StringValue(apiRespConfig.Updated),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: toTFMetricThresholdConfiguration(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
-		ThresholdConfig:       toTFThresholdConfiguration(apiRespConfig.Threshold, currState.ThresholdConfig),
-		Notification:          toTFAlertConfigurationNotifications(apiRespConfig.Notifications, currState.Notification),
-		Matcher:               toTFMatchers(apiRespConfig.Matchers, currState.Matcher),
+		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
+		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
+		Notification:          newTFNotificationModelList(apiRespConfig.Notifications, currState.Notification),
+		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, currState.Matcher),
 	}
 }
 
-func toTFAlertConfigurationNotifications(matlasSlice []matlas.Notification, currStateNotifications []tfNotificationModel) []tfNotificationModel {
+func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNotifications []tfNotificationModel) []tfNotificationModel {
 	notifications := make([]tfNotificationModel, len(matlasSlice))
 
 	if len(matlasSlice) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
@@ -737,7 +737,7 @@ func toTFAlertConfigurationNotifications(matlasSlice []matlas.Notification, curr
 	return notifications
 }
 
-func toTFMetricThresholdConfiguration(matlasMetricThreshold *matlas.MetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
+func newTFMetricThresholdConfigModel(matlasMetricThreshold *matlas.MetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
 	if matlasMetricThreshold == nil {
 		return []tfMetricThresholdConfigModel{}
 	}
@@ -770,7 +770,7 @@ func toTFMetricThresholdConfiguration(matlasMetricThreshold *matlas.MetricThresh
 	return []tfMetricThresholdConfigModel{newState}
 }
 
-func toTFThresholdConfiguration(atlasThreshold *matlas.Threshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
+func newTFThresholdConfigModel(atlasThreshold *matlas.Threshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
 	if atlasThreshold == nil {
 		return []tfThresholdConfigModel{}
 	}
@@ -797,7 +797,7 @@ func toTFThresholdConfiguration(atlasThreshold *matlas.Threshold, currStateSlice
 	return []tfThresholdConfigModel{newState}
 }
 
-func toTFMatchers(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel) []tfMatcherModel {
+func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel) []tfMatcherModel {
 	matchers := make([]tfMatcherModel, len(matlasSlice))
 	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, value := range matlasSlice {
