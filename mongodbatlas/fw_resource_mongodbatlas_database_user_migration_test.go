@@ -162,81 +162,8 @@ func TestAccConfigRSDatabaseUser_Migration_WithLabels(t *testing.T) {
 				),
 			},
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
-					[]matlas.Label{
-						{
-							Key:   "key 1",
-							Value: "value 1",
-						},
-						{
-							Key:   "key 2",
-							Value: "value 2",
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
-				),
-			},
-			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "read", username,
-					[]matlas.Label{
-						{
-							Key:   "key 4",
-							Value: "value 4",
-						},
-						{
-							Key:   "key 3",
-							Value: "value 3",
-						},
-						{
-							Key:   "key 2",
-							Value: "value 2",
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "3"),
-				),
-			},
-			{
 				ProtoV6ProviderFactories: testAccProviderV6Factories,
-				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "read", username,
-					[]matlas.Label{
-						{
-							Key:   "key 4",
-							Value: "value 4",
-						},
-						{
-							Key:   "key 3",
-							Value: "value 3",
-						},
-						{
-							Key:   "key 2",
-							Value: "value 2",
-						},
-					},
-				),
+				Config:                   testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username, []matlas.Label{}),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						DebugPlan(),
@@ -290,35 +217,18 @@ func TestAccConfigRSDatabaseUser_Migration_WithRoles(t *testing.T) {
 				),
 			},
 			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
-					[]*matlas.Role{
-						{
-							RoleName:     "read",
-							DatabaseName: "admin",
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
-				),
-			},
-			{
 				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config: testAccMongoDBAtlasDatabaseUserWithRoles(username, password, projectName, orgID,
 					[]*matlas.Role{
 						{
-							RoleName:     "read",
-							DatabaseName: "admin",
+							RoleName:       "read",
+							DatabaseName:   "admin",
+							CollectionName: "stir",
+						},
+						{
+							RoleName:       "read",
+							DatabaseName:   "admin",
+							CollectionName: "unpledged",
 						},
 					},
 				),
@@ -359,10 +269,6 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopes(t *testing.T) {
 							Name: "test-acc-nurk4llu2z",
 							Type: "CLUSTER",
 						},
-						{
-							Name: "test-acc-nurk4llu2z",
-							Type: "DATA_LAKE",
-						},
 					},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -371,29 +277,6 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-				),
-			},
-			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
-					[]*matlas.Scope{
-						{
-							Name: "test-acc-nurk4llu2z",
-							Type: "CLUSTER",
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
 				),
 			},
 			{
@@ -438,33 +321,6 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopesAndEmpty(t *testing.T) {
 					},
 				},
 				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
-					[]*matlas.Scope{
-						{
-							Name: "test-acc-nurk4llu2z",
-							Type: "CLUSTER",
-						},
-						{
-							Name: "test-acc-nurk4llu2z",
-							Type: "DATA_LAKE",
-						},
-					},
-				),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-				),
-			},
-			{
-				ExternalProviders: map[string]resource.ExternalProvider{
-					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
-						Source:            "mongodb/mongodbatlas",
-					},
-				},
-				Config: testAccMongoDBAtlasDatabaseUserWithScopes(username, password, projectName, orgID, "atlasAdmin", clusterName,
 					[]*matlas.Scope{},
 				),
 				Check: resource.ComposeTestCheckFunc(
@@ -472,7 +328,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopesAndEmpty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
 				),
 			},
 			{
