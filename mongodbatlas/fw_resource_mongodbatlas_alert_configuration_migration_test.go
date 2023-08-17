@@ -76,6 +76,9 @@ func TestAccConfigRSAlertConfiguration_Migration_WithThreshold(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "matcher.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "1"),
 				),
 			},
 			{
@@ -116,6 +119,10 @@ func TestAccConfigRSAlertConfiguration_Migration_EmptyOptionalBlocks(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "matcher.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "0"),
 				),
 			},
 			{
@@ -166,6 +173,7 @@ func TestAccConfigRSAlertConfiguration_Migration_MultipleMatchers(t *testing.T) 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "matcher.#", "2"),
 				),
 			},
 			{
@@ -206,6 +214,7 @@ func TestAccConfigRSAlertConfiguration_Migration_EmptyOptionalAttributes(t *test
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
 			},
 			{

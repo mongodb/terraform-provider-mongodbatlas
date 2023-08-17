@@ -735,7 +735,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 
 		notifications[i] = newState
 	}
-	
+
 	return notifications
 }
 
@@ -810,7 +810,7 @@ func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatc
 			}
 		}
 		return matchers
-	} 
+	}
 	for i, value := range matlasSlice {
 		currState := currStateSlice[i]
 		newState := tfMatcherModel{}
