@@ -164,7 +164,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_schedule":                                        dataSourceMongoDBAtlasCloudBackupSchedule(),
 		"mongodbatlas_third_party_integrations":                                     dataSourceMongoDBAtlasThirdPartyIntegrations(),
 		"mongodbatlas_third_party_integration":                                      dataSourceMongoDBAtlasThirdPartyIntegration(),
-		"mongodbatlas_project_ip_access_list":                                       dataSourceMongoDBAtlasProjectIPAccessList(),
 		"mongodbatlas_cloud_provider_access":                                        dataSourceMongoDBAtlasCloudProviderAccessList(),
 		"mongodbatlas_cloud_provider_access_setup":                                  dataSourceMongoDBAtlasCloudProviderAccessSetup(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
