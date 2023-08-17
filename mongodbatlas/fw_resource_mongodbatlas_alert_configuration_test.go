@@ -241,6 +241,30 @@ func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
+	var (
+		alert        = &matlas.AlertConfiguration{}
+		resourceName = "mongodbatlas_alert_configuration.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

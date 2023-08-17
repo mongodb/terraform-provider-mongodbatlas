@@ -12,6 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -154,6 +157,9 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 			"enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -189,6 +195,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"threshold": schema.Float64Attribute{
 							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Float64{
+								float64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"units": schema.StringAttribute{
 							Optional: true,
@@ -210,6 +220,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"threshold": schema.Float64Attribute{
 							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Float64{
+								float64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"units": schema.StringAttribute{
 							Optional: true,
@@ -261,12 +275,20 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"delay_min": schema.Int64Attribute{
 							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Int64{
+								int64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"email_address": schema.StringAttribute{
 							Optional: true,
 						},
 						"email_enabled": schema.BoolAttribute{
 							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"interval_min": schema.Int64Attribute{
 							Optional: true,
@@ -290,6 +312,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"sms_enabled": schema.BoolAttribute{
 							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"team_id": schema.StringAttribute{
 							Optional: true,
@@ -679,9 +705,6 @@ func toTFAlertConfigurationNotifications(matlasSlice []matlas.Notification, curr
 			if !currState.DatadogRegion.IsNull() {
 				newState.DatadogRegion = conversion.StringNullIfEmpty(value.DatadogRegion)
 			}
-			if !currState.DelayMin.IsNull() && value.DelayMin != nil {
-				newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
-			}
 			if !currState.EmailAddress.IsNull() {
 				newState.EmailAddress = conversion.StringNullIfEmpty(value.EmailAddress)
 			}
@@ -704,13 +727,10 @@ func toTFAlertConfigurationNotifications(matlasSlice []matlas.Notification, curr
 				newState.Username = conversion.StringNullIfEmpty(value.Username)
 			}
 
-			// if user defined value of boolean is false, api response does not return a value so we have to explicitly set the false in this case.
-			if !currState.EmailEnabled.IsNull() {
-				newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
-			}
-			if !currState.SMSEnabled.IsNull() {
-				newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
-			}
+			newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
+			newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
+			newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
+
 			notifications[i] = newState
 		}
 	}
@@ -740,15 +760,13 @@ func toTFMetricThresholdConfiguration(matlasMetricThreshold *matlas.MetricThresh
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(matlasMetricThreshold.Operator)
 	}
-	if !currState.Threshold.IsNull() {
-		newState.Threshold = types.Float64Value(matlasMetricThreshold.Threshold)
-	}
 	if !currState.Units.IsNull() {
 		newState.Units = conversion.StringNullIfEmpty(matlasMetricThreshold.Units)
 	}
 	if !currState.Mode.IsNull() {
 		newState.Mode = conversion.StringNullIfEmpty(matlasMetricThreshold.Mode)
 	}
+	newState.Threshold = types.Float64Value(matlasMetricThreshold.Threshold)
 	return []tfMetricThresholdConfigModel{newState}
 }
 
@@ -771,12 +789,10 @@ func toTFThresholdConfiguration(atlasThreshold *matlas.Threshold, currStateSlice
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(atlasThreshold.Operator)
 	}
-	if !currState.Threshold.IsNull() {
-		newState.Threshold = types.Float64Value(atlasThreshold.Threshold)
-	}
 	if !currState.Units.IsNull() {
 		newState.Units = conversion.StringNullIfEmpty(atlasThreshold.Units)
 	}
+	newState.Threshold = types.Float64Value(atlasThreshold.Threshold)
 
 	return []tfThresholdConfigModel{newState}
 }
