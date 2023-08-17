@@ -638,16 +638,16 @@ func toTFAlertConfigurationNotifications(matlasSlice []matlas.Notification, curr
 			notifications[i] = tfNotificationModel{
 				TeamName:       types.StringValue(value.TeamName),
 				Roles:          value.Roles,
-				ChannelName:    conversion.StringValueToFramework(value.ChannelName),
-				DatadogRegion:  conversion.StringValueToFramework(value.DatadogRegion),
+				ChannelName:    conversion.StringNullIfEmpty(value.ChannelName),
+				DatadogRegion:  conversion.StringNullIfEmpty(value.DatadogRegion),
 				DelayMin:       types.Int64Value(int64(*value.DelayMin)),
-				EmailAddress:   conversion.StringValueToFramework(value.EmailAddress),
+				EmailAddress:   conversion.StringNullIfEmpty(value.EmailAddress),
 				IntervalMin:    types.Int64Value(int64(value.IntervalMin)),
-				MobileNumber:   conversion.StringValueToFramework(value.MobileNumber),
-				OpsGenieRegion: conversion.StringValueToFramework(value.OpsGenieRegion),
-				TeamID:         conversion.StringValueToFramework(value.TeamID),
-				TypeName:       conversion.StringValueToFramework(value.TypeName),
-				Username:       conversion.StringValueToFramework(value.Username),
+				MobileNumber:   conversion.StringNullIfEmpty(value.MobileNumber),
+				OpsGenieRegion: conversion.StringNullIfEmpty(value.OpsGenieRegion),
+				TeamID:         conversion.StringNullIfEmpty(value.TeamID),
+				TypeName:       conversion.StringNullIfEmpty(value.TypeName),
+				Username:       conversion.StringNullIfEmpty(value.Username),
 				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
 				SMSEnabled:     types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled),
 			}
@@ -662,46 +662,46 @@ func toTFAlertConfigurationNotifications(matlasSlice []matlas.Notification, curr
 			}
 
 			// sentive attributes do not use value returned from API
-			newState.APIToken = conversion.StringValueToFramework(currState.APIToken.ValueString())
-			newState.DatadogAPIKey = conversion.StringValueToFramework(currState.DatadogAPIKey.ValueString())
-			newState.OpsGenieAPIKey = conversion.StringValueToFramework(currState.OpsGenieAPIKey.ValueString())
-			newState.ServiceKey = conversion.StringValueToFramework(currState.ServiceKey.ValueString())
-			newState.VictorOpsAPIKey = conversion.StringValueToFramework(currState.VictorOpsAPIKey.ValueString())
-			newState.VictorOpsRoutingKey = conversion.StringValueToFramework(currState.VictorOpsRoutingKey.ValueString())
-			newState.WebhookURL = conversion.StringValueToFramework(currState.WebhookURL.ValueString())
-			newState.WebhookSecret = conversion.StringValueToFramework(currState.WebhookSecret.ValueString())
-			newState.MicrosoftTeamsWebhookURL = conversion.StringValueToFramework(currState.MicrosoftTeamsWebhookURL.ValueString())
+			newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
+			newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
+			newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
+			newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
+			newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
+			newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
+			newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
+			newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
+			newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
 
 			// for optional attributes that are not computed we must check if they were previously defined in state
 			if !currState.ChannelName.IsNull() {
-				newState.ChannelName = conversion.StringValueToFramework(value.ChannelName)
+				newState.ChannelName = conversion.StringNullIfEmpty(value.ChannelName)
 			}
 			if !currState.DatadogRegion.IsNull() {
-				newState.DatadogRegion = conversion.StringValueToFramework(value.DatadogRegion)
+				newState.DatadogRegion = conversion.StringNullIfEmpty(value.DatadogRegion)
 			}
 			if !currState.DelayMin.IsNull() && value.DelayMin != nil {
 				newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
 			}
 			if !currState.EmailAddress.IsNull() {
-				newState.EmailAddress = conversion.StringValueToFramework(value.EmailAddress)
+				newState.EmailAddress = conversion.StringNullIfEmpty(value.EmailAddress)
 			}
 			if !currState.IntervalMin.IsNull() {
 				newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
 			}
 			if !currState.MobileNumber.IsNull() {
-				newState.MobileNumber = conversion.StringValueToFramework(value.MobileNumber)
+				newState.MobileNumber = conversion.StringNullIfEmpty(value.MobileNumber)
 			}
 			if !currState.OpsGenieRegion.IsNull() {
-				newState.OpsGenieRegion = conversion.StringValueToFramework(value.OpsGenieRegion)
+				newState.OpsGenieRegion = conversion.StringNullIfEmpty(value.OpsGenieRegion)
 			}
 			if !currState.TeamID.IsNull() {
-				newState.TeamID = conversion.StringValueToFramework(value.TeamID)
+				newState.TeamID = conversion.StringNullIfEmpty(value.TeamID)
 			}
 			if !currState.TypeName.IsNull() {
-				newState.TypeName = conversion.StringValueToFramework(value.TypeName)
+				newState.TypeName = conversion.StringNullIfEmpty(value.TypeName)
 			}
 			if !currState.Username.IsNull() {
-				newState.Username = conversion.StringValueToFramework(value.Username)
+				newState.Username = conversion.StringNullIfEmpty(value.Username)
 			}
 
 			// if user defined value of boolean is false, api response does not return a value so we have to explicitly set the false in this case.
@@ -724,30 +724,30 @@ func toTFMetricThresholdConfiguration(matlasMetricThreshold *matlas.MetricThresh
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
 		return []tfMetricThresholdConfigModel{
 			{
-				MetricName: conversion.StringValueToFramework(matlasMetricThreshold.MetricName),
-				Operator:   conversion.StringValueToFramework(matlasMetricThreshold.Operator),
+				MetricName: conversion.StringNullIfEmpty(matlasMetricThreshold.MetricName),
+				Operator:   conversion.StringNullIfEmpty(matlasMetricThreshold.Operator),
 				Threshold:  types.Float64Value(matlasMetricThreshold.Threshold),
-				Units:      conversion.StringValueToFramework(matlasMetricThreshold.Units),
-				Mode:       conversion.StringValueToFramework(matlasMetricThreshold.Mode),
+				Units:      conversion.StringNullIfEmpty(matlasMetricThreshold.Units),
+				Mode:       conversion.StringNullIfEmpty(matlasMetricThreshold.Mode),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := tfMetricThresholdConfigModel{}
 	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringValueToFramework(matlasMetricThreshold.MetricName)
+		newState.MetricName = conversion.StringNullIfEmpty(matlasMetricThreshold.MetricName)
 	}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringValueToFramework(matlasMetricThreshold.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(matlasMetricThreshold.Operator)
 	}
 	if !currState.Threshold.IsNull() {
 		newState.Threshold = types.Float64Value(matlasMetricThreshold.Threshold)
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringValueToFramework(matlasMetricThreshold.Units)
+		newState.Units = conversion.StringNullIfEmpty(matlasMetricThreshold.Units)
 	}
 	if !currState.Mode.IsNull() {
-		newState.Mode = conversion.StringValueToFramework(matlasMetricThreshold.Mode)
+		newState.Mode = conversion.StringNullIfEmpty(matlasMetricThreshold.Mode)
 	}
 	return []tfMetricThresholdConfigModel{newState}
 }
@@ -760,22 +760,22 @@ func toTFThresholdConfiguration(atlasThreshold *matlas.Threshold, currStateSlice
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
 		return []tfThresholdConfigModel{
 			{
-				Operator:  conversion.StringValueToFramework(atlasThreshold.Operator),
+				Operator:  conversion.StringNullIfEmpty(atlasThreshold.Operator),
 				Threshold: types.Float64Value(atlasThreshold.Threshold),
-				Units:     conversion.StringValueToFramework(atlasThreshold.Units),
+				Units:     conversion.StringNullIfEmpty(atlasThreshold.Units),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := tfThresholdConfigModel{}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringValueToFramework(atlasThreshold.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(atlasThreshold.Operator)
 	}
 	if !currState.Threshold.IsNull() {
 		newState.Threshold = types.Float64Value(atlasThreshold.Threshold)
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringValueToFramework(atlasThreshold.Units)
+		newState.Units = conversion.StringNullIfEmpty(atlasThreshold.Units)
 	}
 
 	return []tfThresholdConfigModel{newState}
@@ -786,9 +786,9 @@ func toTFMatchers(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel)
 	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, value := range matlasSlice {
 			matchers[i] = tfMatcherModel{
-				FieldName: conversion.StringValueToFramework(value.FieldName),
-				Operator:  conversion.StringValueToFramework(value.Operator),
-				Value:     conversion.StringValueToFramework(value.Value),
+				FieldName: conversion.StringNullIfEmpty(value.FieldName),
+				Operator:  conversion.StringNullIfEmpty(value.Operator),
+				Value:     conversion.StringNullIfEmpty(value.Value),
 			}
 		}
 	} else {
@@ -796,13 +796,13 @@ func toTFMatchers(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel)
 			currState := currStateSlice[i]
 			newState := tfMatcherModel{}
 			if !currState.FieldName.IsNull() {
-				newState.FieldName = conversion.StringValueToFramework(value.FieldName)
+				newState.FieldName = conversion.StringNullIfEmpty(value.FieldName)
 			}
 			if !currState.Operator.IsNull() {
-				newState.Operator = conversion.StringValueToFramework(value.Operator)
+				newState.Operator = conversion.StringNullIfEmpty(value.Operator)
 			}
 			if !currState.Value.IsNull() {
-				newState.Value = conversion.StringValueToFramework(value.Value)
+				newState.Value = conversion.StringNullIfEmpty(value.Value)
 			}
 			matchers[i] = newState
 		}

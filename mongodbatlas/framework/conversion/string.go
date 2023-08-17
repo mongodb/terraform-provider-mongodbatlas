@@ -18,9 +18,9 @@ func TypesListToString(ctx context.Context, set types.List) []string {
 	return results
 }
 
-// StringValueToFramework converts a string value to a Framework String value.
+// StringNullIfEmpty converts a string value to a Framework String value.
 // An empty string is converted to a null String. Useful for optional attributes.
-func StringValueToFramework(v string) types.String {
+func StringNullIfEmpty(v string) types.String {
 	if v == "" {
 		return types.StringNull()
 	}
