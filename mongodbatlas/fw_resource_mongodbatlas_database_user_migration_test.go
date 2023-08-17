@@ -328,7 +328,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopesAndEmpty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "0"),
 				),
 			},
 			{
