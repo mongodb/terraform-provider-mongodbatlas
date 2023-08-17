@@ -184,11 +184,9 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Optional: true,
-							Computed: true,
 						},
 						"type": schema.StringAttribute{
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
