@@ -182,6 +182,8 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"labels": schema.SetNestedBlock{
+				MarkdownDescription: description.Labels,
+				Description:         description.Labels,
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -200,6 +202,8 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"scopes": schema.SetNestedBlock{
+				MarkdownDescription: description.Scopes,
+				Description:         description.Scopes,
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{

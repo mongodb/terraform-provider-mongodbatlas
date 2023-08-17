@@ -52,35 +52,35 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"on_demand_policy_item": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"frequency_interval": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"frequency_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"retention_unit": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"retention_value": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-					},
-				},
-			},
+			// "on_demand_policy_item": {
+			// 	Type:     schema.TypeList,
+			// 	MaxItems: 1,
+			// 	Required: true,
+			// 	Elem: &schema.Resource{
+			// 		Schema: map[string]*schema.Schema{
+			// 			"id": {
+			// 				Type:     schema.TypeString,
+			// 				Computed: true,
+			// 			},
+			// 			"frequency_interval": {
+			// 				Type:     schema.TypeInt,
+			// 				Required: true,
+			// 			},
+			// 			"frequency_type": {
+			// 				Type:     schema.TypeString,
+			// 				Computed: true,
+			// 			},
+			// 			"retention_unit": {
+			// 				Type:     schema.TypeString,
+			// 				Required: true,
+			// 			},
+			// 			"retention_value": {
+			// 				Type:     schema.TypeInt,
+			// 				Required: true,
+			// 			},
+			// 		},
+			// 	},
+			// },
 			"pit_enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
