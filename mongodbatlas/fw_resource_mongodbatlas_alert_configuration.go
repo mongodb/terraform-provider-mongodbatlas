@@ -678,62 +678,64 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 				SMSEnabled:     types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled),
 			}
 		}
-	} else {
-		for i := range matlasSlice {
-			value := matlasSlice[i]
-			currState := currStateNotifications[i]
-			newState := tfNotificationModel{
-				TeamName: types.StringValue(value.TeamName),
-				Roles:    value.Roles,
-			}
-
-			// sentive attributes do not use value returned from API
-			newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
-			newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
-			newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
-			newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
-			newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
-			newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
-			newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
-			newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
-			newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
-
-			// for optional attributes that are not computed we must check if they were previously defined in state
-			if !currState.ChannelName.IsNull() {
-				newState.ChannelName = conversion.StringNullIfEmpty(value.ChannelName)
-			}
-			if !currState.DatadogRegion.IsNull() {
-				newState.DatadogRegion = conversion.StringNullIfEmpty(value.DatadogRegion)
-			}
-			if !currState.EmailAddress.IsNull() {
-				newState.EmailAddress = conversion.StringNullIfEmpty(value.EmailAddress)
-			}
-			if !currState.IntervalMin.IsNull() {
-				newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
-			}
-			if !currState.MobileNumber.IsNull() {
-				newState.MobileNumber = conversion.StringNullIfEmpty(value.MobileNumber)
-			}
-			if !currState.OpsGenieRegion.IsNull() {
-				newState.OpsGenieRegion = conversion.StringNullIfEmpty(value.OpsGenieRegion)
-			}
-			if !currState.TeamID.IsNull() {
-				newState.TeamID = conversion.StringNullIfEmpty(value.TeamID)
-			}
-			if !currState.TypeName.IsNull() {
-				newState.TypeName = conversion.StringNullIfEmpty(value.TypeName)
-			}
-			if !currState.Username.IsNull() {
-				newState.Username = conversion.StringNullIfEmpty(value.Username)
-			}
-
-			newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
-			newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
-			newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
-
-			notifications[i] = newState
-		}
+		return notifications
 	}
+
+	for i := range matlasSlice {
+		value := matlasSlice[i]
+		currState := currStateNotifications[i]
+		newState := tfNotificationModel{
+			TeamName: types.StringValue(value.TeamName),
+			Roles:    value.Roles,
+		}
+
+		// sentive attributes do not use value returned from API
+		newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
+		newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
+		newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
+		newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
+		newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
+		newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
+		newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
+		newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
+		newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
+
+		// for optional attributes that are not computed we must check if they were previously defined in state
+		if !currState.ChannelName.IsNull() {
+			newState.ChannelName = conversion.StringNullIfEmpty(value.ChannelName)
+		}
+		if !currState.DatadogRegion.IsNull() {
+			newState.DatadogRegion = conversion.StringNullIfEmpty(value.DatadogRegion)
+		}
+		if !currState.EmailAddress.IsNull() {
+			newState.EmailAddress = conversion.StringNullIfEmpty(value.EmailAddress)
+		}
+		if !currState.IntervalMin.IsNull() {
+			newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
+		}
+		if !currState.MobileNumber.IsNull() {
+			newState.MobileNumber = conversion.StringNullIfEmpty(value.MobileNumber)
+		}
+		if !currState.OpsGenieRegion.IsNull() {
+			newState.OpsGenieRegion = conversion.StringNullIfEmpty(value.OpsGenieRegion)
+		}
+		if !currState.TeamID.IsNull() {
+			newState.TeamID = conversion.StringNullIfEmpty(value.TeamID)
+		}
+		if !currState.TypeName.IsNull() {
+			newState.TypeName = conversion.StringNullIfEmpty(value.TypeName)
+		}
+		if !currState.Username.IsNull() {
+			newState.Username = conversion.StringNullIfEmpty(value.Username)
+		}
+
+		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
+		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
+		newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
+
+		notifications[i] = newState
+	}
+	
 	return notifications
 }
 
@@ -807,21 +809,21 @@ func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatc
 				Value:     conversion.StringNullIfEmpty(value.Value),
 			}
 		}
-	} else {
-		for i, value := range matlasSlice {
-			currState := currStateSlice[i]
-			newState := tfMatcherModel{}
-			if !currState.FieldName.IsNull() {
-				newState.FieldName = conversion.StringNullIfEmpty(value.FieldName)
-			}
-			if !currState.Operator.IsNull() {
-				newState.Operator = conversion.StringNullIfEmpty(value.Operator)
-			}
-			if !currState.Value.IsNull() {
-				newState.Value = conversion.StringNullIfEmpty(value.Value)
-			}
-			matchers[i] = newState
+		return matchers
+	} 
+	for i, value := range matlasSlice {
+		currState := currStateSlice[i]
+		newState := tfMatcherModel{}
+		if !currState.FieldName.IsNull() {
+			newState.FieldName = conversion.StringNullIfEmpty(value.FieldName)
 		}
+		if !currState.Operator.IsNull() {
+			newState.Operator = conversion.StringNullIfEmpty(value.Operator)
+		}
+		if !currState.Value.IsNull() {
+			newState.Value = conversion.StringNullIfEmpty(value.Value)
+		}
+		matchers[i] = newState
 	}
 	return matchers
 }
