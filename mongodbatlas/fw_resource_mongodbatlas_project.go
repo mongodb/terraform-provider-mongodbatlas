@@ -107,7 +107,7 @@ func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, 
 }
 
 func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClientInResource(req.ProviderData)
+	client, err := ConfigureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
