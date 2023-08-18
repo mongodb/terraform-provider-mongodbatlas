@@ -134,6 +134,61 @@ func TestAccConfigRSDatabaseUser_Migration_WithAWSIAMType(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSDatabaseUser_Migration_WithLabels(t *testing.T) {
+	var (
+		dbUser       matlas.DatabaseUser
+		resourceName = "mongodbatlas_database_user.test"
+		username     = acctest.RandomWithPrefix("test-acc")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
+					[]matlas.Label{
+						{
+							Key:   "key 1",
+							Value: "value 1",
+						},
+						{
+							Key:   "key 2",
+							Value: "value 2",
+						},
+					},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
+					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
+			},
+		},
+	})
+}
 func TestAccConfigRSDatabaseUser_Migration_WithEmptyLabels(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
