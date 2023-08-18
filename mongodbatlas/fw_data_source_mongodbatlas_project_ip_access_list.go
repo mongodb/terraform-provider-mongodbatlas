@@ -36,7 +36,7 @@ func (d *ProjectIPAccessListDS) Metadata(ctx context.Context, req datasource.Met
 }
 
 func (d *ProjectIPAccessListDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClientInResource(req.ProviderData)
+	client, err := ConfigureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
