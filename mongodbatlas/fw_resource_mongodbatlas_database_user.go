@@ -204,7 +204,7 @@ func (r *DatabaseUserRS) Metadata(ctx context.Context, req resource.MetadataRequ
 }
 
 func (r *DatabaseUserRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClientInResource(req.ProviderData)
+	client, err := ConfigureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return

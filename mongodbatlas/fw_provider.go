@@ -412,7 +412,7 @@ func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.
 	return muxServer.ProviderServer
 }
 
-func ConfigureClientInResource(providerData any) (*MongoDBClient, error) {
+func ConfigureClient(providerData any) (*MongoDBClient, error) {
 	if providerData == nil {
 		return nil, nil
 	}

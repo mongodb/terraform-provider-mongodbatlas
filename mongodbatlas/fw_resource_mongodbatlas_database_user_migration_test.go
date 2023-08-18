@@ -134,7 +134,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithAWSIAMType(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithLabels(t *testing.T) {
+func TestAccConfigRSDatabaseUser_Migration_WithEmptyLabels(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_database_user.test"
 		username     = acctest.RandomWithPrefix("test-acc")
