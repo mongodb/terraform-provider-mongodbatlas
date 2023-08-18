@@ -43,6 +43,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 			"app_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
