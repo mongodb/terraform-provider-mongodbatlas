@@ -36,15 +36,12 @@ func (d *ProjectIPAccessListDS) Metadata(ctx context.Context, req datasource.Met
 }
 
 func (d *ProjectIPAccessListDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
+	client, err := ConfigureClientInResource(req.ProviderData)
+	if err != nil {
+		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
-	client, ok := req.ProviderData.(*MongoDBClient)
 
-	if !ok {
-		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
-		return
-	}
 	d.client = client
 }
 
