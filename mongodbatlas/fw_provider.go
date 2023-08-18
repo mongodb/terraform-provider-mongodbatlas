@@ -367,12 +367,15 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	return []func() datasource.DataSource{
 		NewProjectDS,
 		NewProjectsDS,
+		NewDatabaseUserDS,
+		NewDatabaseUsersDS,
 	}
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewProjectRS,
+		NewDatabaseUserRS,
 		NewAlertConfigurationRS,
 	}
 }
@@ -410,13 +413,15 @@ func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.
 	return muxServer.ProviderServer
 }
 
-func ConfigureClientInResource(providerData any) (*MongoDBClient, error) {
+func ConfigureClient(providerData any) (*MongoDBClient, error) {
 	if providerData == nil {
 		return nil, nil
 	}
+
 	client, ok := providerData.(*MongoDBClient)
 	if !ok {
 		return nil, fmt.Errorf(errorConfigure, providerData)
 	}
+
 	return client, nil
 }

@@ -69,17 +69,17 @@ type tfMatcherModel struct {
 }
 
 type tfMetricThresholdConfigModel struct {
+	Threshold  types.Float64 `tfsdk:"threshold"`
 	MetricName types.String  `tfsdk:"metric_name"`
 	Operator   types.String  `tfsdk:"operator"`
 	Units      types.String  `tfsdk:"units"`
 	Mode       types.String  `tfsdk:"mode"`
-	Threshold  types.Float64 `tfsdk:"threshold"`
 }
 
 type tfThresholdConfigModel struct {
+	Threshold types.Float64 `tfsdk:"threshold"`
 	Operator  types.String  `tfsdk:"operator"`
 	Units     types.String  `tfsdk:"units"`
-	Threshold types.Float64 `tfsdk:"threshold"`
 }
 
 type tfNotificationModel struct {
@@ -113,7 +113,7 @@ func (r *AlertConfigurationRS) Metadata(ctx context.Context, req resource.Metada
 }
 
 func (r *AlertConfigurationRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClientInResource(req.ProviderData)
+	client, err := ConfigureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
