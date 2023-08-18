@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -200,7 +200,8 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		// projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID = "63bec58b014da65b8f73c06c"
 
 		googleCloudKms = matlas.GoogleCloudKms{
 			Enabled:              pointy.Bool(true),
