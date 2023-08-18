@@ -178,7 +178,18 @@ func TestAccConfigRSDatabaseUser_Migration_WithLabels(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: testAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasDatabaseUserWithAWSIAMTypeConfig(projectName, orgID, "atlasAdmin", username, "First Key", "First value"),
+				Config: testAccMongoDBAtlasDatabaseUserWithLabelsConfig(projectName, orgID, "atlasAdmin", username,
+					[]matlas.Label{
+						{
+							Key:   "key 1",
+							Value: "value 1",
+						},
+						{
+							Key:   "key 2",
+							Value: "value 2",
+						},
+					},
+				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
 						DebugPlan(),
