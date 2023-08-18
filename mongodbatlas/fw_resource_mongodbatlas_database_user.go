@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -149,6 +150,9 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 		},
 		Blocks: map[string]schema.Block{
 			"roles": schema.SetNestedBlock{
+				Validators: []validator.Set{
+					setvalidator.IsRequired(),
+				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
