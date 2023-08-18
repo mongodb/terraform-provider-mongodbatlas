@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -155,12 +156,10 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 							Computed: true,
 						},
 						"database_name": schema.StringAttribute{
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 						"role_name": schema.StringAttribute{
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 					},
 				},
@@ -268,8 +267,15 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
+	dbUser, httpResponse, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
 	if err != nil {
+		// case 404
+		// deleted in the backend case
+		if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError("resource not found", err.Error())
+			return
+		}
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return
 	}
