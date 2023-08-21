@@ -376,6 +376,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		NewProjectRS,
 		NewDatabaseUserRS,
+		NewAlertConfigurationRS,
 	}
 }
 

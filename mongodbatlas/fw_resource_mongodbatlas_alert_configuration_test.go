@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -47,10 +48,8 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 
 func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,13 +59,8 @@ func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) 
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName, true),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "threshold_config.#"),
-				),
-				ExpectNonEmptyPlan: true,
+				// metric threshold is not created so state is inconsistent with plan
+				ExpectError: regexp.MustCompile("Error: Provider produced inconsistent result after apply"),
 			},
 		},
 	})
@@ -154,7 +148,7 @@ func TestAccConfigRSAlertConfiguration_WithMatchers(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_whitMetricUpdated(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -238,6 +232,30 @@ func TestAccConfigRSAlertConfiguration_whitoutRoles(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAlertConfigurationConfigWithoutRoles(orgID, projectName, true, 99.0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
+	var (
+		alert        = &matlas.AlertConfiguration{}
+		resourceName = "mongodbatlas_alert_configuration.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -403,7 +421,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 
 func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert *matlas.AlertConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -416,9 +434,9 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		alertResp, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
+		alertResp, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
 		if err != nil {
-			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids["id"])
+			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[encodedIDKeyAlertID])
 		}
 
 		alert = alertResp
@@ -428,7 +446,7 @@ func testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName string, alert
 }
 
 func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_alert_configuration" {
@@ -437,9 +455,9 @@ func testAccCheckMongoDBAtlasAlertConfigurationDestroy(s *terraform.State) error
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids["project_id"], ids["id"])
+		alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(context.Background(), ids[encodedIDKeyProjectID], ids[encodedIDKeyAlertID])
 		if alert != nil {
-			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids["id"], err)
+			return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[encodedIDKeyAlertID], err)
 		}
 	}
 
@@ -498,7 +516,7 @@ resource "mongodbatlas_alert_configuration" "test" {
     threshold   = 99.0
     units       = "RAW"
     mode        = "AVERAGE"
-  }
+  } 
 }
 	`, orgID, projectName, enabled)
 }
