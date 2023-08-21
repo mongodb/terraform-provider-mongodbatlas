@@ -369,6 +369,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		NewProjectsDS,
 		NewDatabaseUserDS,
 		NewDatabaseUsersDS,
+		NewAlertConfigurationDS,
+		NewAlertConfigurationsDS,
 		NewProjectIPAccessListDS,
 	}
 }
@@ -377,6 +379,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		NewProjectRS,
 		NewDatabaseUserRS,
+		NewAlertConfigurationRS,
 	}
 }
 
