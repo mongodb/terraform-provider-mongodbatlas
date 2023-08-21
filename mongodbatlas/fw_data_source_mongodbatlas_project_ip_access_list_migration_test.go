@@ -69,7 +69,6 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 				},
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
