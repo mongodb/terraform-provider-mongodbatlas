@@ -367,6 +367,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	return []func() datasource.DataSource{
 		NewProjectDS,
 		NewProjectsDS,
+		NewDatabaseUserDS,
+		NewDatabaseUsersDS,
 		NewProjectIPAccessListDS,
 	}
 }

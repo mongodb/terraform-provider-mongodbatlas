@@ -89,7 +89,7 @@ func (d *ProjectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("aws_security_group"),
+						path.MatchRelative().AtParent().AtName("ip_address"),
 						path.MatchRelative().AtParent().AtName("cidr_block"),
 					}...),
 				},

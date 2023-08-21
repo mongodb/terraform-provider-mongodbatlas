@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
+	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
@@ -29,11 +29,11 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T
 				},
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
@@ -51,7 +51,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T
 }
 
 func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test"
+	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
@@ -69,12 +69,12 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 				},
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					testAccCheckMongoDBAtlasProjectIPAccessListExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
+					resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
@@ -93,7 +93,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 
 func TestAccProjectDSProjectIPAccessList_Migration_SettingAWSSecurityGroup(t *testing.T) {
 	SkipTestExtCred(t)
-	resourceName := "mongodbatlas_project_ip_access_list.test"
+	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
 	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
 	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
@@ -116,14 +116,14 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingAWSSecurityGroup(t *te
 				},
 				Config: testAccDataMongoDBAtlasProjectIPAccessListConfigSettingAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "aws_security_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+					testAccCheckMongoDBAtlasProjectIPAccessListExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_security_group"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "comment"),
 
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 				),
 			},
 			{
