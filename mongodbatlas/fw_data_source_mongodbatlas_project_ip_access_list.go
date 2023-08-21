@@ -110,7 +110,7 @@ func (d *ProjectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	if databaseDSUserConfig.CIDRBlock.IsNull() && databaseDSUserConfig.IPAddress.IsNull() && databaseDSUserConfig.AWSSecurityGroup.IsNull() {
-		resp.Diagnostics.Append(diag.NewErrorDiagnostic("validation error", "Once between cidr_block, ip_address or aws_security_group needs to contain a value"))
+		resp.Diagnostics.Append(diag.NewErrorDiagnostic("validation error", "One of cidr_block, ip_address or aws_security_group needs to contain a value"))
 		return
 	}
 
