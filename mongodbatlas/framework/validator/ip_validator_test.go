@@ -9,37 +9,42 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestValidCIDR(t *testing.T) {
+func TestValidIP(t *testing.T) {
 	tests := []struct {
 		name    string
-		cidr    string
+		ip      string
 		wantErr bool
 	}{
 		{
-			name:    "Valid Value",
-			cidr:    "192.0.0.0/28",
+			name:    "Valid IP v4",
+			ip:      "192.0.2.1",
 			wantErr: false,
 		},
 		{
-			name:    "invalid value",
-			cidr:    "12312321",
-			wantErr: true,
+			name:    "Valid IP v6",
+			ip:      "2001:db8::68",
+			wantErr: false,
 		},
 		{
-			name:    "missing slash",
-			cidr:    "192.0.0.8",
+			name:    "Valid IP v6",
+			ip:      "::ffff:192.0.2.1",
+			wantErr: false,
+		},
+		{
+			name:    "invalid IP",
+			ip:      "12312321",
 			wantErr: true,
 		},
 		{
 			name:    "empty",
-			cidr:    "",
+			ip:      "",
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
-		val := tt.cidr
+		val := tt.ip
 		wantErr := tt.wantErr
-		cidrValidator := CIDRValidator{}
+		cidrValidator := IPValidator{}
 
 		validatorRequest := validator.StringRequest{
 			ConfigValue: types.StringValue(val),

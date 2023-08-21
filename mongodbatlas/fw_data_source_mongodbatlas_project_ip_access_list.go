@@ -78,6 +78,7 @@ func (d *ProjectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
+					cstmvalidator.ValidIP(),
 					stringvalidator.ConflictsWith(path.Expressions{
 						path.MatchRelative().AtParent().AtName("aws_security_group"),
 						path.MatchRelative().AtParent().AtName("cidr_block"),
