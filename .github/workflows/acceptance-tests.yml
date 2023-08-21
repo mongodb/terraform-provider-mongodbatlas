@@ -73,7 +73,7 @@ jobs:
             - 'mongodbatlas/**_private_endpoint**.go'
           config:
             - 'mongodbatlas/data_source_mongodbatlas_accesslist_api_key*.go'
-            - 'mongodbatlas/data_source_mongodbatlas_alert_configuration*.go'
+            - 'mongodbatlas/fw_data_source_mongodbatlas_alert_configuration*.go'
             - 'mongodbatlas/data_source_mongodbatlas_api_key*.go'
             - 'mongodbatlas/data_source_mongodbatlas_cloud_provider_access_setup*.go'
             - 'mongodbatlas/data_source_mongodbatlas_cloud_provider_access*.go'
