@@ -341,6 +341,22 @@ func resetDefaults(ctx context.Context, encryptionAtRestRS *tfEncryptionAtRestRS
 		// encryptionAtRestPlanNew.GoogleCloudKmsConfig = types.ListNull(tfGcpKmsObjectType)
 		tfGcpKmsConfigs := make([]tfGcpKmsConfigModel, 0)
 		encryptionAtRestRSNew.GoogleCloudKmsConfig, _ = types.ListValueFrom(ctx, tfGcpKmsObjectType, tfGcpKmsConfigs)
+	} else {
+		var gcpConfigsNew []tfGcpKmsConfigModel
+		encryptionAtRestRSNew.GoogleCloudKmsConfig.ElementsAs(ctx, &gcpConfigsNew, false)
+
+		if encryptionAtRestRSConfig != nil {
+			var gcpConfigs []tfGcpKmsConfigModel
+			encryptionAtRestRSConfig.GoogleCloudKmsConfig.ElementsAs(ctx, &gcpConfigs, false)
+
+			gcpConfigsNew[0].ServiceAccountKey = gcpConfigs[0].ServiceAccountKey
+		} else {
+			var gcpConfigs []tfGcpKmsConfigModel
+			encryptionAtRestRS.GoogleCloudKmsConfig.ElementsAs(ctx, &gcpConfigs, false)
+
+			gcpConfigsNew[0].ServiceAccountKey = gcpConfigs[0].ServiceAccountKey
+		}
+		encryptionAtRestRSNew.GoogleCloudKmsConfig, _ = types.ListValueFrom(ctx, tfGcpKmsObjectType, gcpConfigsNew)
 
 	}
 }
