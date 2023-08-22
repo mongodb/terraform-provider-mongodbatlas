@@ -304,9 +304,6 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *pr
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
-		if data.PublicKey.ValueString() == "" {
-			resp.Diagnostics.AddError(ProviderConfigError, fmt.Sprintf(AttrNotSetError, "public_key"))
-		}
 	}
 
 	if data.PrivateKey.ValueString() == "" {
@@ -314,9 +311,6 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *pr
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
-		if data.PrivateKey.ValueString() == "" {
-			resp.Diagnostics.AddError(ProviderConfigError, fmt.Sprintf(AttrNotSetError, "private_key"))
-		}
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {

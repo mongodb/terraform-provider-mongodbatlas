@@ -330,19 +330,12 @@ func setDefaultsAndValidations(d *schema.ResourceData) error {
 	}); err != nil {
 		return err
 	}
-	if d.Get("public_key").(string) == "" {
-		return fmt.Errorf(AttrNotSetError, "public_key")
-	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
 		"MONGODB_ATLAS_PRIVATE_KEY",
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
 		return err
-	}
-
-	if d.Get("private_key").(string) == "" {
-		return fmt.Errorf(AttrNotSetError, "private_key")
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
