@@ -17,7 +17,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.basic_ds"
-		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username     = acctest.RandomWithPrefix("dbUser")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
@@ -37,6 +37,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
 			{
@@ -49,6 +50,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 				),
 			},
 		},
@@ -192,7 +194,7 @@ func TestAccConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	var (
 		dbUser       matlas.DatabaseUser
 		resourceName = "mongodbatlas_database_user.test"
-		username     = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		username     = acctest.RandomWithPrefix("test-acc")
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 	)
@@ -596,15 +598,18 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		projectID, username, authDatabaseName, err := splitDatabaseUserImportID(rs.Primary.ID)
+		if err != nil {
+			return "", fmt.Errorf("error splitting database User info from ID: %s", rs.Primary.ID)
+		}
 
-		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
+		return fmt.Sprintf("%s-%s-%s", projectID, username, authDatabaseName), nil
 	}
 }
 
 func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *matlas.DatabaseUser) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -612,18 +617,27 @@ func testAccCheckMongoDBAtlasDatabaseUserExists(resourceName string, dbUser *mat
 		}
 
 		if rs.Primary.Attributes["project_id"] == "" {
-			return fmt.Errorf("no ID is set")
+			return fmt.Errorf("no project_id is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-		username := ids["username"]
+		if rs.Primary.Attributes["auth_database_name"] == "" {
+			return fmt.Errorf("no auth_database_name is set")
+		}
 
-		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], username); err == nil {
+		if rs.Primary.Attributes["username"] == "" {
+			return fmt.Errorf("no username is set")
+		}
+
+		authDB := rs.Primary.Attributes["auth_database_name"]
+		projectID := rs.Primary.Attributes["project_id"]
+		username := rs.Primary.Attributes["username"]
+
+		if dbUserResp, _, err := conn.DatabaseUsers.Get(context.Background(), authDB, projectID, username); err == nil {
 			*dbUser = *dbUserResp
 			return nil
 		}
 
-		return fmt.Errorf("database user(%s) does not exist", ids["project_id"])
+		return fmt.Errorf("database user(%s-%s-%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"], rs.Primary.Attributes["auth_database_name"])
 	}
 }
 
@@ -639,18 +653,21 @@ func testAccCheckMongoDBAtlasDatabaseUserAttributes(dbUser *matlas.DatabaseUser,
 }
 
 func testAccCheckMongoDBAtlasDatabaseUserDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
 			continue
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		projectID, username, authDatabaseName, err := splitDatabaseUserImportID(rs.Primary.ID)
+		if err != nil {
+			continue
+		}
 		// Try to find the database user
-		_, _, err := conn.DatabaseUsers.Get(context.Background(), ids["auth_database_name"], ids["project_id"], ids["username"])
+		_, _, err = conn.DatabaseUsers.Get(context.Background(), authDatabaseName, projectID, username)
 		if err == nil {
-			return fmt.Errorf("database user (%s) still exists", ids["project_id"])
+			return fmt.Errorf("database user (%s) still exists", projectID)
 		}
 	}
 

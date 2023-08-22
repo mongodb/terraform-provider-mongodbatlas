@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	expanders "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/expanders"
+	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
 
 const (
@@ -107,7 +107,7 @@ func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, 
 }
 
 func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClientInResource(req.ProviderData)
+	client, err := ConfigureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
@@ -378,7 +378,7 @@ func (r *ProjectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
@@ -425,7 +425,7 @@ func (r *ProjectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	atlasLimits = filterUserDefinedLimits(atlasLimits, limits)
-	projectStateNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectStateNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectStateNew, &projectState)
 
 	// save read data into Terraform state
@@ -496,7 +496,7 @@ func (r *ProjectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	var planLimits []tfLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	atlasLimits = filterUserDefinedLimits(atlasLimits, planLimits)
-	projectPlanNew := toTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectPlanNew := newTFProjectResourceModel(ctx, projectRes, atlasTeams, atlasProjectSettings, atlasLimits)
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// save updated data into Terraform state
@@ -568,7 +568,7 @@ func getProjectPropsFromAPI(ctx context.Context, conn *matlas.Client, connV2 *ad
 	return teams, limits, projectSettings, nil
 }
 
-func toTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
+func newTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
 	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) *tfProjectRSModel {
 	projectPlan := tfProjectRSModel{
 		ID:                        types.StringValue(projectRes.ID),
@@ -577,8 +577,8 @@ func toTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
 		ClusterCount:              types.Int64Value(int64(projectRes.ClusterCount)),
 		Created:                   types.StringValue(projectRes.Created),
 		WithDefaultAlertsSettings: types.BoolPointerValue(projectRes.WithDefaultAlertsSettings),
-		Teams:                     toTFTeamsResourceModel(ctx, teams),
-		Limits:                    toTFLimitsResourceModel(ctx, limits),
+		Teams:                     newTFTeamsResourceModel(ctx, teams),
+		Limits:                    newTFLimitsResourceModel(ctx, limits),
 	}
 
 	if projectSettings != nil {
@@ -593,7 +593,7 @@ func toTFProjectResourceModel(ctx context.Context, projectRes *matlas.Project,
 	return &projectPlan
 }
 
-func toTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) types.Set {
+func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) types.Set {
 	limits := make([]tfLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {
@@ -610,7 +610,7 @@ func toTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.D
 	return s
 }
 
-func toTFTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) types.Set {
+func newTFTeamsResourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) types.Set {
 	teams := make([]tfTeamModel, len(atlasTeams.Results))
 
 	for i, atlasTeam := range atlasTeams.Results {
@@ -632,7 +632,7 @@ func toAtlasProjectTeams(ctx context.Context, teams []tfTeamModel) []*matlas.Pro
 	for i, team := range teams {
 		res[i] = &matlas.ProjectTeam{
 			TeamID:    team.TeamID.ValueString(),
-			RoleNames: expanders.TypesSetToString(ctx, team.RoleNames),
+			RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 		}
 	}
 	return res
@@ -764,7 +764,7 @@ func updateProjectTeams(ctx context.Context, conn *matlas.Client, projectState, 
 
 		_, _, err := conn.Teams.UpdateTeamRoles(ctx, projectID, teamID,
 			&matlas.TeamUpdateRoles{
-				RoleNames: expanders.TypesSetToString(ctx, team.RoleNames),
+				RoleNames: conversion.TypesSetToString(ctx, team.RoleNames),
 			},
 		)
 		if err != nil {
@@ -883,8 +883,8 @@ func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID
 func getChangesInTeamsSet(planTeams, stateTeams []tfTeamModel) (newElements, changedElements, removedElements []tfTeamModel) {
 	var removedTeams, newTeams, changedTeams []tfTeamModel
 
-	planTeamsMap := toTfTeamModelMap(planTeams)
-	stateTeamsMap := toTfTeamModelMap(stateTeams)
+	planTeamsMap := newTfTeamModelMap(planTeams)
+	stateTeamsMap := newTfTeamModelMap(stateTeams)
 
 	for teamID, stateTeam := range stateTeamsMap {
 		if plannedTeam, exists := planTeamsMap[teamID]; exists {
@@ -904,7 +904,7 @@ func getChangesInTeamsSet(planTeams, stateTeams []tfTeamModel) (newElements, cha
 	return newTeams, changedTeams, removedTeams
 }
 
-func toTfTeamModelMap(teams []tfTeamModel) map[types.String]tfTeamModel {
+func newTfTeamModelMap(teams []tfTeamModel) map[types.String]tfTeamModel {
 	teamsMap := make(map[types.String]tfTeamModel)
 	for _, team := range teams {
 		teamsMap[team.TeamID] = team
@@ -915,8 +915,8 @@ func toTfTeamModelMap(teams []tfTeamModel) map[types.String]tfTeamModel {
 func getChangesInLimitsSet(planLimits, stateLimits []tfLimitModel) (newElements, changedElements, removedElements []tfLimitModel) {
 	var removedLimits, newLimits, changedLimits []tfLimitModel
 
-	planLimitsMap := toTfLimitModelMap(planLimits)
-	stateTeamsMap := toTfLimitModelMap(stateLimits)
+	planLimitsMap := newTfLimitModelMap(planLimits)
+	stateTeamsMap := newTfLimitModelMap(stateLimits)
 
 	for name, stateLimit := range stateTeamsMap {
 		if plannedTeam, exists := planLimitsMap[name]; exists {
@@ -936,7 +936,7 @@ func getChangesInLimitsSet(planLimits, stateLimits []tfLimitModel) (newElements,
 	return newLimits, changedLimits, removedLimits
 }
 
-func toTfLimitModelMap(limits []tfLimitModel) map[types.String]tfLimitModel {
+func newTfLimitModelMap(limits []tfLimitModel) map[types.String]tfLimitModel {
 	limitsMap := make(map[types.String]tfLimitModel)
 	for _, limit := range limits {
 		limitsMap[limit.Name] = limit

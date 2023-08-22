@@ -193,7 +193,7 @@ func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		return
 	}
 
-	projectState = toTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+	projectState = newTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectState)...)
 	if resp.Diagnostics.HasError() {
@@ -201,7 +201,7 @@ func (d *ProjectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	}
 }
 
-func toTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
+func newTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
 	teams *matlas.TeamsAssigned, projectSettings *matlas.ProjectSettings, limits []admin.DataFederationLimit) tfProjectDSModel {
 	return tfProjectDSModel{
 		ID:           types.StringValue(project.ID),
@@ -216,12 +216,12 @@ func toTFProjectDataSourceModel(ctx context.Context, project *matlas.Project,
 		IsPerformanceAdvisorEnabled:                 types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
 		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		Teams:                                       toTFTeamsDataSourceModel(ctx, teams),
-		Limits:                                      toTFLimitsDataSourceModel(ctx, limits),
+		Teams:                                       newTFTeamsDataSourceModel(ctx, teams),
+		Limits:                                      newTFLimitsDataSourceModel(ctx, limits),
 	}
 }
 
-func toTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []*tfTeamDSModel {
+func newTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssigned) []*tfTeamDSModel {
 	if atlasTeams.TotalCount == 0 {
 		return nil
 	}
@@ -238,7 +238,7 @@ func toTFTeamsDataSourceModel(ctx context.Context, atlasTeams *matlas.TeamsAssig
 	return teams
 }
 
-func toTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*tfLimitModel {
+func newTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admin.DataFederationLimit) []*tfLimitModel {
 	limits := make([]*tfLimitModel, len(dataFederationLimits))
 
 	for i, dataFederationLimit := range dataFederationLimits {

@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -367,6 +368,11 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	return []func() datasource.DataSource{
 		NewProjectDS,
 		NewProjectsDS,
+		NewDatabaseUserDS,
+		NewDatabaseUsersDS,
+		NewAlertConfigurationDS,
+		NewAlertConfigurationsDS,
+		NewProjectIPAccessListDS,
 	}
 }
 
@@ -374,6 +380,8 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		NewProjectRS,
 		NewEncryptionAtRestRS,
+		NewDatabaseUserRS,
+		NewAlertConfigurationRS,
 	}
 }
 
@@ -410,13 +418,15 @@ func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.
 	return muxServer.ProviderServer
 }
 
-func ConfigureClientInResource(providerData any) (*MongoDBClient, error) {
+func ConfigureClient(providerData any) (*MongoDBClient, error) {
 	if providerData == nil {
 		return nil, nil
 	}
+
 	client, ok := providerData.(*MongoDBClient)
 	if !ok {
 		return nil, fmt.Errorf(errorConfigure, providerData)
 	}
+
 	return client, nil
 }
