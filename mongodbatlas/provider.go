@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"log"
@@ -41,7 +42,7 @@ const (
 	endPointSTSDefault                    = "https://sts.amazonaws.com"
 	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
-	AttrNotSetError                       = "attribute %s must be set"
+	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 	ProviderConfigError                   = "error in configuring the provider."
 	AWS                                   = "AWS"
 	AZURE                                 = "AZURE"
@@ -276,7 +277,9 @@ func addBetaFeatures(provider *schema.Provider) {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	if err := setDefaultsAndValidations(d); err != nil {
+	assumeRoleValue, ok := d.GetOk("assume_role")
+	awsRoleDefined := ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil
+	if err := setDefaultsAndValidations(d, awsRoleDefined); err != nil {
 		return nil, diag.FromErr(err)
 	}
 
@@ -287,8 +290,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 
-	if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
-		config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
+	if awsRoleDefined {
+		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
 		secret := d.Get("secret_name").(string)
 		region := d.Get("region").(string)
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -309,7 +312,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	return client, nil
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData) error {
+func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) error {
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
@@ -330,12 +333,19 @@ func setDefaultsAndValidations(d *schema.ResourceData) error {
 	}); err != nil {
 		return err
 	}
+	if d.Get("public_key").(string) == "" && !awsRoleDefined {
+		return errors.New(MissingAuthAttrError)
+	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
 		"MONGODB_ATLAS_PRIVATE_KEY",
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
 		return err
+	}
+
+	if d.Get("private_key").(string) == "" && !awsRoleDefined {
+		return errors.New(MissingAuthAttrError)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
@@ -778,16 +788,16 @@ var validAssumeRoleSourceIdentity = validation.All(
 
 // validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
 // and is within a minimum of 15 minutes and maximum of 12 hours
-func validAssumeRoleDuration(v interface{}, k string) (ws []string, errors []error) {
+func validAssumeRoleDuration(v interface{}, k string) (ws []string, errorResults []error) {
 	duration, err := time.ParseDuration(v.(string))
 
 	if err != nil {
-		errors = append(errors, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
+		errorResults = append(errorResults, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
 		return
 	}
 
 	if duration.Minutes() < 15 || duration.Hours() > 12 {
-		errors = append(errors, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
+		errorResults = append(errorResults, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
 	}
 
 	return

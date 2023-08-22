@@ -208,7 +208,11 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	data = setDefaultValuesWithValidations(&data, resp)
+	var assumeRoles []tfAssumeRoleModel
+	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
+	awsRoleDefined := len(assumeRoles) > 0
+
+	data = setDefaultValuesWithValidations(&data, awsRoleDefined, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -220,10 +224,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
 	}
 
-	var assumeRoles []tfAssumeRoleModel
-	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
-
-	if len(assumeRoles) > 0 {
+	if awsRoleDefined {
 		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
 		region := data.Region.ValueString()
@@ -288,7 +289,7 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 
 const MongodbGovCloudURL = "https://cloud.mongodbgov.com"
 
-func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
+func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, awsRoleDefined bool, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
 		data.BaseURL = types.StringValue(MongodbGovCloudURL)
 	}
@@ -304,6 +305,9 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *pr
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
+		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
+			resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
+		}
 	}
 
 	if data.PrivateKey.ValueString() == "" {
@@ -311,6 +315,9 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, resp *pr
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
+		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
+			resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
+		}
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {
