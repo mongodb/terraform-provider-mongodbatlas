@@ -371,6 +371,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		NewDatabaseUsersDS,
 		NewAlertConfigurationDS,
 		NewAlertConfigurationsDS,
+		NewProjectIPAccessListDS,
 	}
 }
 
