@@ -288,18 +288,17 @@ Examples:
 
 ## Discovering New API features
 
-Most of the new features of the SDK using https://github.com/mongodb/atlas-sdk-go
-This SDK updated automatically tracking all Atlas Production releases.
-Developers can 
+Most of the new features of the provider are using [atlas-sdk](https://github.com/mongodb/atlas-sdk-go)
+SDK is updated automatically, tracking all new Atlas features.
 
 ### Updating Atlas SDK 
 
 To update Atlas SDK run:
 
-```
+```bash
 make update-atlas-sdk
 ```
 
-> NOTE: Command can make import changes to +500 files. Please make sure that you perform update on main branch without any uncommited changes.
-
 > NOTE: Update mechanism is only needed for major releases. Any other releases will be supported by dependabot.
+
+> NOTE: Command can make import changes to +500 files. Please make sure that you perform update on main branch without any uncommited changes.
