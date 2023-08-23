@@ -25,6 +25,7 @@ import (
 const (
 	errorAccessListCreate         = "error creating Project IP Access List information: %s"
 	errorAccessListRead           = "error getting Project IP Access List information: %s"
+	errorAccessListDelete         = "error deleting Project IP Access List information: %s"
 	projectIPAccessListTimeout    = 45 * time.Minute
 	projectIPAccessListMinTimeout = 2 * time.Second
 	projectIPAccessListDelay      = 4 * time.Second
@@ -255,9 +256,9 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	entry := projectIPAccessListModelState.IPAddress.ValueString()
-	if projectIPAccessListModelState.CIDRBlock.ValueString() != "" {
-		entry = projectIPAccessListModelState.CIDRBlock.ValueString()
+	entry := projectIPAccessListModelState.CIDRBlock.ValueString()
+	if projectIPAccessListModelState.IPAddress.ValueString() != "" {
+		entry = projectIPAccessListModelState.IPAddress.ValueString()
 	} else if projectIPAccessListModelState.AWSSecurityGroup.ValueString() != "" {
 		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
 	}
@@ -314,9 +315,9 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	entry := projectIPAccessListModelState.IPAddress.ValueString()
-	if projectIPAccessListModelState.CIDRBlock.ValueString() != "" {
-		entry = projectIPAccessListModelState.CIDRBlock.ValueString()
+	entry := projectIPAccessListModelState.CIDRBlock.ValueString()
+	if projectIPAccessListModelState.IPAddress.ValueString() != "" {
+		entry = projectIPAccessListModelState.IPAddress.ValueString()
 	} else if projectIPAccessListModelState.AWSSecurityGroup.ValueString() != "" {
 		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
 	}
@@ -327,6 +328,36 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	_, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
 	if err != nil {
 		resp.Diagnostics.AddError("error during resource deletion", err.Error())
+	}
+
+	err = retry.RetryContext(ctx, projectIPAccessListDelay, func() *retry.RetryError {
+		httpResponse, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
+		if err != nil {
+			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
+				return retry.RetryableError(err)
+			}
+
+			return retry.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
+		}
+
+		entry, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, projectID, entry)
+		if err != nil {
+			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return retry.RetryableError(err)
+		}
+
+		if entry != nil {
+			return retry.RetryableError(fmt.Errorf(errorAccessListDelete, "Access list still exists"))
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(errorAccessListDelete, err.Error())
 	}
 }
 
