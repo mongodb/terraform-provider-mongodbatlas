@@ -209,6 +209,9 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 				"team_name": schema.StringAttribute{
 					Computed: true,
 				},
+				"notifier_id": schema.StringAttribute{
+					Computed: true,
+				},
 				"type_name": schema.StringAttribute{
 					Computed: true,
 				},
@@ -440,6 +443,10 @@ func convertNotificationToCtyValues(notification *matlas.Notification) map[strin
 
 	if notification.TeamName != "" {
 		values["team_name"] = cty.StringVal(notification.TeamName)
+	}
+
+	if notification.NotifierID != "" {
+		values["notifier_id"] = cty.StringVal(notification.NotifierID)
 	}
 
 	if notification.TypeName != "" {

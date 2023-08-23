@@ -14,6 +14,8 @@ chmod +x ./import-alerts.sh
 terraform apply
 ```
 
+**NOTE**: Third-party notifications will not contain their respective credentials as these are sensitive attributes. If you wish to perform updates on these notifications, make sure to provide the corresponding `notifier_id` attribute so that credentials can be obtained successfuly.
+
 ## Contingency Plans
 If unhappy with the resource file or imports, here are some things that can be done:
 

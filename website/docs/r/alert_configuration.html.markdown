@@ -230,6 +230,7 @@ List of notifications to send when an alert condition is detected.
     - `WEBHOOK`
     - `MICROSOFT_TEAMS`
 
+* `notifier_id` - The notifier id is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials. **NOTE**: If attribute is defined to perform an update, keep in mind that on every successful update the value of the id is also modified and returned in the state. To keep your plan consistent the attribute value must be replaced or removed.
 * `username` - Name of the Atlas user to which to send notifications. Only a user in the project that owns the alert configuration is allowed here. Required for the `USER` notifications type.
 * `victor_ops_api_key` - VictorOps API key. Required for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
 * `victor_ops_routing_key` - VictorOps routing key. Optional for the `VICTOR_OPS` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the key.
@@ -266,5 +267,7 @@ Alert Configuration can be imported using the `project_id-alert_configuration_id
 ```
 $ terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-5d0f1f74cf09a29120e1fscg
 ```
+
+**NOTE**: Third-party notifications will not contain their respective credentials as these are sensitive attributes. If you wish to perform updates on these notifications, make sure to provide the corresponding `notifier_id` attribute so that credentials can be obtained successfuly.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/alert-configurations/)

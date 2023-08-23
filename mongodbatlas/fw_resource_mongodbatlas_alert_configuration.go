@@ -97,6 +97,7 @@ type tfNotificationModel struct {
 	OpsGenieAPIKey           types.String `tfsdk:"ops_genie_api_key"`
 	TeamID                   types.String `tfsdk:"team_id"`
 	TeamName                 types.String `tfsdk:"team_name"`
+	NotifierID               types.String `tfsdk:"notifier_id"`
 	TypeName                 types.String `tfsdk:"type_name"`
 	ChannelName              types.String `tfsdk:"channel_name"`
 	VictorOpsAPIKey          types.String `tfsdk:"victor_ops_api_key"`
@@ -324,6 +325,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+						},
+						"notifier_id": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
 						},
 						"type_name": schema.StringAttribute{
 							Optional: true,
@@ -583,6 +588,7 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]matlas.No
 			ServiceKey:               value.ServiceKey.ValueString(),
 			SMSEnabled:               value.SMSEnabled.ValueBoolPointer(),
 			TeamID:                   value.TeamID.ValueString(),
+			NotifierID:               value.NotifierID.ValueString(),
 			TypeName:                 value.TypeName.ValueString(),
 			Username:                 value.Username.ValueString(),
 			VictorOpsAPIKey:          value.VictorOpsAPIKey.ValueString(),
@@ -673,6 +679,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 				TeamID:         conversion.StringNullIfEmpty(value.TeamID),
 				TypeName:       conversion.StringNullIfEmpty(value.TypeName),
 				Username:       conversion.StringNullIfEmpty(value.Username),
+				NotifierID:     types.StringValue(value.NotifierID),
 				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
 				SMSEnabled:     types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled),
 			}
@@ -728,6 +735,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 			newState.Username = conversion.StringNullIfEmpty(value.Username)
 		}
 
+		newState.NotifierID = types.StringValue(value.NotifierID)
 		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
 		newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
