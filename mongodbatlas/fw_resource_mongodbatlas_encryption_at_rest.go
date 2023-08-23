@@ -12,7 +12,6 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -21,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
@@ -48,11 +46,11 @@ type EncryptionAtRestRS struct {
 }
 
 type tfEncryptionAtRestRSModel struct {
-	ID                   types.String `tfsdk:"id"`
-	ProjectID            types.String `tfsdk:"project_id"`
-	AwsKmsConfig         types.List   `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  types.List   `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig types.List   `tfsdk:"google_cloud_kms_config"`
+	ID                   types.String                 `tfsdk:"id"`
+	ProjectID            types.String                 `tfsdk:"project_id"`
+	AwsKmsConfig         []tfAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig  []tfAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig []tfGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
 }
 
 type tfAwsKmsConfigModel struct {
@@ -79,31 +77,6 @@ type tfGcpKmsConfigModel struct {
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
 	Enabled              types.Bool   `tfsdk:"enabled"`
 }
-
-var tfAwsKmsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":                types.BoolType,
-	"access_key_id":          types.StringType,
-	"secret_access_key":      types.StringType,
-	"customer_master_key_id": types.StringType,
-	"region":                 types.StringType,
-	"role_id":                types.StringType,
-}}
-var tfAzureKeyVaultObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":             types.BoolType,
-	"client_id":           types.StringType,
-	"azure_environment":   types.StringType,
-	"subscription_id":     types.StringType,
-	"resource_group_name": types.StringType,
-	"key_vault_name":      types.StringType,
-	"key_identifier":      types.StringType,
-	"secret":              types.StringType,
-	"tenant_id":           types.StringType,
-}}
-var tfGcpKmsObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":                 types.BoolType,
-	"service_account_key":     types.StringType,
-	"key_version_resource_id": types.StringType,
-}}
 
 func (r *EncryptionAtRestRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, encryptionAtRestResourceName)
@@ -250,17 +223,10 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
-		GroupID: projectID,
-	}
-
-	if !encryptionAtRestPlan.AwsKmsConfig.IsNull() {
-		encryptionAtRestReq.AwsKms = *newAtlasAwsKms(ctx, encryptionAtRestPlan.AwsKmsConfig)
-	}
-	if !encryptionAtRestPlan.AzureKeyVaultConfig.IsNull() {
-		encryptionAtRestReq.AzureKeyVault = *newAtlasAzureKeyVault(ctx, encryptionAtRestPlan.AzureKeyVaultConfig)
-	}
-	if !encryptionAtRestPlan.GoogleCloudKmsConfig.IsNull() {
-		encryptionAtRestReq.GoogleCloudKms = *newAtlasGcpKms(ctx, encryptionAtRestPlan.GoogleCloudKmsConfig)
+		GroupID:        projectID,
+		AwsKms:         *newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig),
+		AzureKeyVault:  *newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig),
+		GoogleCloudKms: *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig),
 	}
 
 	for i := 0; i < 5; i++ {
@@ -294,7 +260,7 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, encryptionAtRestPlan)
 	resetDefaultsFromConfig(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
@@ -331,7 +297,7 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	encryptionAtRestStateNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, &encryptionAtRestState)
 	if !isImport {
 		resetDefaultsFromConfig(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
 	}
@@ -376,13 +342,13 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
-		atlasEncryptionAtRest.AwsKms = *newAtlasAwsKms(ctx, encryptionAtRestPlan.AwsKmsConfig)
+		atlasEncryptionAtRest.AwsKms = *newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
 	}
 	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
-		atlasEncryptionAtRest.AzureKeyVault = *newAtlasAzureKeyVault(ctx, encryptionAtRestPlan.AzureKeyVaultConfig)
+		atlasEncryptionAtRest.AzureKeyVault = *newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
 	}
 	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
-		atlasEncryptionAtRest.GoogleCloudKms = *newAtlasGcpKms(ctx, encryptionAtRestPlan.GoogleCloudKmsConfig)
+		atlasEncryptionAtRest.GoogleCloudKms = *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
 	atlasEncryptionAtRest.GroupID = projectID
@@ -404,7 +370,7 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	encryptionAtRestStateNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp)
+	encryptionAtRestStateNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, encryptionAtRestPlan)
 	resetDefaultsFromConfig(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state
@@ -434,15 +400,15 @@ func (r *EncryptionAtRestRS) ImportState(ctx context.Context, req resource.Impor
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState basetypes.ListValue) bool {
+func hasGcpKmsConfigChanged(gcpKmsConfigsPlan, gcpKmsConfigsState []tfGcpKmsConfigModel) bool {
 	return !reflect.DeepEqual(gcpKmsConfigsPlan, gcpKmsConfigsState)
 }
 
-func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigState basetypes.ListValue) bool {
+func hasAzureKeyVaultConfigChanged(azureKeyVaultConfigPlan, azureKeyVaultConfigState []tfAzureKeyVaultConfigModel) bool {
 	return !reflect.DeepEqual(azureKeyVaultConfigPlan, azureKeyVaultConfigState)
 }
 
-func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState basetypes.ListValue) bool {
+func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []tfAwsKmsConfigModel) bool {
 	return !reflect.DeepEqual(awsKmsConfigPlan, awsKmsConfigState)
 }
 
@@ -453,184 +419,160 @@ func resetDefaultsFromConfig(ctx context.Context, encryptionAtRestRSCurrent, enc
 }
 
 func handleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
-	var gcpConfigsNew []tfGcpKmsConfigModel
-	var gcpConfigsTemp []tfGcpKmsConfigModel
-
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
-	if earRSCurrent.GoogleCloudKmsConfig.IsNull() {
-		gcpConfigsNew = make([]tfGcpKmsConfigModel, 0)
-		earRSNew.GoogleCloudKmsConfig, _ = types.ListValueFrom(ctx, tfGcpKmsObjectType, gcpConfigsNew)
+	if earRSCurrent.GoogleCloudKmsConfig == nil {
+		earRSNew.GoogleCloudKmsConfig = []tfGcpKmsConfigModel{}
 		return
 	}
 
 	// handling sensitive values that are not returned in the API response, so we sync them from the config
 	// that user provided. encryptionAtRestRSConfig is nil during Read(), so we use the current plan
-	earRSNew.GoogleCloudKmsConfig.ElementsAs(ctx, &gcpConfigsNew, false)
-
-	if earRSConfig != nil {
-		earRSConfig.GoogleCloudKmsConfig.ElementsAs(ctx, &gcpConfigsTemp, false)
+	if earRSConfig != nil && len(earRSConfig.GoogleCloudKmsConfig) > 0 {
+		earRSNew.GoogleCloudKmsConfig[0].ServiceAccountKey = earRSConfig.GoogleCloudKmsConfig[0].ServiceAccountKey
 	} else {
-		earRSCurrent.GoogleCloudKmsConfig.ElementsAs(ctx, &gcpConfigsTemp, false)
+		earRSNew.GoogleCloudKmsConfig[0].ServiceAccountKey = earRSCurrent.GoogleCloudKmsConfig[0].ServiceAccountKey
 	}
-	gcpConfigsNew[0].ServiceAccountKey = gcpConfigsTemp[0].ServiceAccountKey
-
-	earRSNew.GoogleCloudKmsConfig, _ = types.ListValueFrom(ctx, tfGcpKmsObjectType, gcpConfigsNew)
 }
 
 func handleAwsKmsConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
-	var awsKmsConfigsNew []tfAwsKmsConfigModel
-	var awsKmsConfigsTemp []tfAwsKmsConfigModel
-
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
-	if earRSCurrent.AwsKmsConfig.IsNull() {
-		awsKmsConfigsNew = make([]tfAwsKmsConfigModel, 0)
-		earRSNew.AwsKmsConfig, _ = types.ListValueFrom(ctx, tfAwsKmsObjectType, awsKmsConfigsNew)
+	if earRSCurrent.AwsKmsConfig == nil {
+		earRSNew.AwsKmsConfig = []tfAwsKmsConfigModel{}
 		return
 	}
 
 	// handling sensitive values that are not returned in the API response, so we sync them from the config
 	// that user provided. encryptionAtRestRSConfig is nil during Read(), so we use the current plan
-	earRSNew.AwsKmsConfig.ElementsAs(ctx, &awsKmsConfigsNew, false)
-
-	if earRSConfig != nil {
-		earRSConfig.AwsKmsConfig.ElementsAs(ctx, &awsKmsConfigsTemp, false)
+	if earRSConfig != nil && len(earRSConfig.AwsKmsConfig) > 0 {
+		earRSNew.AwsKmsConfig[0].Region = earRSConfig.AwsKmsConfig[0].Region
 	} else {
-		earRSCurrent.AwsKmsConfig.ElementsAs(ctx, &awsKmsConfigsTemp, false)
+		earRSNew.AwsKmsConfig[0].Region = earRSCurrent.AwsKmsConfig[0].Region
 	}
-	awsKmsConfigsNew[0].Region = awsKmsConfigsTemp[0].Region
 
-	earRSNew.AwsKmsConfig, _ = types.ListValueFrom(ctx, tfAwsKmsObjectType, awsKmsConfigsNew)
 }
 
 func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
-	var azConfigsNew []tfAzureKeyVaultConfigModel
-	var azConfigsTemp []tfAzureKeyVaultConfigModel
-
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
-	if earRSCurrent.AzureKeyVaultConfig.IsNull() {
-		azConfigsNew = make([]tfAzureKeyVaultConfigModel, 0)
-		earRSNew.AzureKeyVaultConfig, _ = types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, azConfigsNew)
+	if earRSCurrent.AzureKeyVaultConfig == nil {
+		earRSNew.AzureKeyVaultConfig = []tfAzureKeyVaultConfigModel{}
 		return
 	}
 
 	// handling sensitive values that are not returned in the API response, so we sync them from the config
 	// that user provided. encryptionAtRestRSConfig is nil during Read(), so we use the current plan
-	earRSNew.AzureKeyVaultConfig.ElementsAs(ctx, &azConfigsNew, false)
-
-	if earRSConfig != nil {
-		earRSConfig.AzureKeyVaultConfig.ElementsAs(ctx, &azConfigsTemp, false)
+	if earRSConfig != nil && len(earRSConfig.AzureKeyVaultConfig) > 0 {
+		earRSNew.AzureKeyVaultConfig[0].Secret = earRSConfig.AzureKeyVaultConfig[0].Secret
 	} else {
-		earRSCurrent.AzureKeyVaultConfig.ElementsAs(ctx, &azConfigsTemp, false)
+		earRSNew.AzureKeyVaultConfig[0].Secret = earRSCurrent.AzureKeyVaultConfig[0].Secret
 	}
-	azConfigsNew[0].Secret = azConfigsTemp[0].Secret
-
-	earRSNew.AzureKeyVaultConfig, _ = types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, azConfigsNew)
 }
 
-func newTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *matlas.EncryptionAtRest) *tfEncryptionAtRestRSModel {
+func newTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encryptionResp *matlas.EncryptionAtRest, plan *tfEncryptionAtRestRSModel) *tfEncryptionAtRestRSModel {
 	encryptionAtRest := tfEncryptionAtRestRSModel{
 		ID:                   types.StringValue(projectID),
 		ProjectID:            types.StringValue(projectID),
-		AwsKmsConfig:         newTFAwsKmsConfig(ctx, &encryptionResp.AwsKms),
-		AzureKeyVaultConfig:  newTFAzureKeyVaultConfig(ctx, &encryptionResp.AzureKeyVault),
-		GoogleCloudKmsConfig: newTFGcpKmsConfig(ctx, &encryptionResp.GoogleCloudKms),
+		AwsKmsConfig:         newTFAwsKmsConfig(ctx, &encryptionResp.AwsKms, plan.AwsKmsConfig),
+		AzureKeyVaultConfig:  newTFAzureKeyVaultConfig(ctx, &encryptionResp.AzureKeyVault, plan.AzureKeyVaultConfig),
+		GoogleCloudKmsConfig: newTFGcpKmsConfig(ctx, &encryptionResp.GoogleCloudKms, plan.GoogleCloudKmsConfig),
 	}
 	return &encryptionAtRest
 }
 
-func newTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms) types.List {
-	tfAwsKmsConfigs := make([]tfAwsKmsConfigModel, 1)
-
-	if awsKms != nil {
-		tfAwsKmsConfigs[0].Enabled = types.BoolPointerValue(awsKms.Enabled)
-		tfAwsKmsConfigs[0].CustomerMasterKeyID = types.StringValue(awsKms.CustomerMasterKeyID)
-		tfAwsKmsConfigs[0].Region = types.StringValue(awsKms.Region)
-		tfAwsKmsConfigs[0].AccessKeyID = conversion.StringNullIfEmpty(awsKms.AccessKeyID)
-		tfAwsKmsConfigs[0].SecretAccessKey = conversion.StringNullIfEmpty(awsKms.SecretAccessKey)
-		tfAwsKmsConfigs[0].RoleID = conversion.StringNullIfEmpty(awsKms.RoleID)
+func newTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms, currStateSlice []tfAwsKmsConfigModel) []tfAwsKmsConfigModel {
+	if awsKms == nil {
+		return []tfAwsKmsConfigModel{}
 	}
+	newState := tfAwsKmsConfigModel{}
 
-	list, _ := types.ListValueFrom(ctx, tfAwsKmsObjectType, tfAwsKmsConfigs)
-	return list
+	newState.Enabled = types.BoolPointerValue(awsKms.Enabled)
+	newState.CustomerMasterKeyID = types.StringValue(awsKms.CustomerMasterKeyID)
+	newState.Region = types.StringValue(awsKms.Region)
+	newState.AccessKeyID = conversion.StringNullIfEmpty(awsKms.AccessKeyID)
+	newState.SecretAccessKey = conversion.StringNullIfEmpty(awsKms.SecretAccessKey)
+	newState.RoleID = conversion.StringNullIfEmpty(awsKms.RoleID)
+
+	return []tfAwsKmsConfigModel{newState}
+
 }
 
-func newTFAzureKeyVaultConfig(ctx context.Context, az *matlas.AzureKeyVault) types.List {
-	tfAzKeyVaultConfigs := make([]tfAzureKeyVaultConfigModel, 1)
+func newTFAzureKeyVaultConfig(ctx context.Context, az *matlas.AzureKeyVault, currStateSlice []tfAzureKeyVaultConfigModel) []tfAzureKeyVaultConfigModel {
+	if az == nil {
+		return []tfAzureKeyVaultConfigModel{}
+	}
+	newState := tfAzureKeyVaultConfigModel{}
 
-	tfAzKeyVaultConfigs[0].Enabled = types.BoolPointerValue(az.Enabled)
-	tfAzKeyVaultConfigs[0].ClientID = types.StringValue(az.ClientID)
-	tfAzKeyVaultConfigs[0].AzureEnvironment = types.StringValue(az.AzureEnvironment)
-	tfAzKeyVaultConfigs[0].SubscriptionID = types.StringValue(az.SubscriptionID)
-	tfAzKeyVaultConfigs[0].ResourceGroupName = types.StringValue(az.ResourceGroupName)
-	tfAzKeyVaultConfigs[0].KeyVaultName = types.StringValue(az.KeyVaultName)
-	tfAzKeyVaultConfigs[0].KeyIdentifier = types.StringValue(az.KeyIdentifier)
-	tfAzKeyVaultConfigs[0].TenantID = types.StringValue(az.TenantID)
-	tfAzKeyVaultConfigs[0].Secret = conversion.StringNullIfEmpty(az.Secret)
+	newState.Enabled = types.BoolPointerValue(az.Enabled)
+	newState.ClientID = types.StringValue(az.ClientID)
+	newState.AzureEnvironment = types.StringValue(az.AzureEnvironment)
+	newState.SubscriptionID = types.StringValue(az.SubscriptionID)
+	newState.ResourceGroupName = types.StringValue(az.ResourceGroupName)
+	newState.KeyVaultName = types.StringValue(az.KeyVaultName)
+	newState.KeyIdentifier = types.StringValue(az.KeyIdentifier)
+	newState.TenantID = types.StringValue(az.TenantID)
+	newState.Secret = conversion.StringNullIfEmpty(az.Secret)
 
-	list, _ := types.ListValueFrom(ctx, tfAzureKeyVaultObjectType, tfAzKeyVaultConfigs)
-	return list
+	return []tfAzureKeyVaultConfigModel{newState}
 }
 
-func newTFGcpKmsConfig(ctx context.Context, gcpKms *matlas.GoogleCloudKms) types.List {
-	tfGcpKmsConfigs := make([]tfGcpKmsConfigModel, 1)
+func newTFGcpKmsConfig(ctx context.Context, gcpKms *matlas.GoogleCloudKms, currStateSlice []tfGcpKmsConfigModel) []tfGcpKmsConfigModel {
+	if gcpKms == nil {
+		return []tfGcpKmsConfigModel{}
+	}
+	newState := tfGcpKmsConfigModel{}
 
-	tfGcpKmsConfigs[0].Enabled = types.BoolPointerValue(gcpKms.Enabled)
-	tfGcpKmsConfigs[0].KeyVersionResourceID = types.StringValue(gcpKms.KeyVersionResourceID)
-	tfGcpKmsConfigs[0].ServiceAccountKey = conversion.StringNullIfEmpty(gcpKms.ServiceAccountKey)
+	newState.Enabled = types.BoolPointerValue(gcpKms.Enabled)
+	newState.KeyVersionResourceID = types.StringValue(gcpKms.KeyVersionResourceID)
+	newState.ServiceAccountKey = conversion.StringNullIfEmpty(gcpKms.ServiceAccountKey)
 
-	list, _ := types.ListValueFrom(ctx, tfGcpKmsObjectType, tfGcpKmsConfigs)
-	return list
+	return []tfGcpKmsConfigModel{newState}
 }
 
-func newAtlasAwsKms(ctx context.Context, tfAwsKmsConfigList basetypes.ListValue) *matlas.AwsKms {
-	if len(tfAwsKmsConfigList.Elements()) == 0 {
+func newAtlasAwsKms(tfAwsKmsConfigSlice []tfAwsKmsConfigModel) *matlas.AwsKms {
+	if tfAwsKmsConfigSlice == nil || len(tfAwsKmsConfigSlice) < 1 {
 		return &matlas.AwsKms{}
 	}
-	var awsKmsConfigs []tfAwsKmsConfigModel
-	tfAwsKmsConfigList.ElementsAs(ctx, &awsKmsConfigs, false)
+	v := tfAwsKmsConfigSlice[0]
 
-	awsRegion, _ := valRegion(awsKmsConfigs[0].Region.ValueString())
+	awsRegion, _ := valRegion(v.Region.ValueString())
 
 	return &matlas.AwsKms{
-		Enabled:             awsKmsConfigs[0].Enabled.ValueBoolPointer(),
-		AccessKeyID:         awsKmsConfigs[0].AccessKeyID.ValueString(),
-		SecretAccessKey:     awsKmsConfigs[0].SecretAccessKey.ValueString(),
-		CustomerMasterKeyID: awsKmsConfigs[0].CustomerMasterKeyID.ValueString(),
+		Enabled:             v.Enabled.ValueBoolPointer(),
+		AccessKeyID:         v.AccessKeyID.ValueString(),
+		SecretAccessKey:     v.SecretAccessKey.ValueString(),
+		CustomerMasterKeyID: v.CustomerMasterKeyID.ValueString(),
 		Region:              awsRegion,
-		RoleID:              awsKmsConfigs[0].RoleID.ValueString(),
+		RoleID:              v.RoleID.ValueString(),
 	}
 }
 
-func newAtlasGcpKms(ctx context.Context, tfGcpKmsConfigList basetypes.ListValue) *matlas.GoogleCloudKms {
-	if len(tfGcpKmsConfigList.Elements()) == 0 {
+func newAtlasGcpKms(tfGcpKmsConfigSlice []tfGcpKmsConfigModel) *matlas.GoogleCloudKms {
+	if tfGcpKmsConfigSlice == nil || len(tfGcpKmsConfigSlice) < 1 {
 		return &matlas.GoogleCloudKms{}
 	}
-	var gcpKmsConfigs []tfGcpKmsConfigModel
-	tfGcpKmsConfigList.ElementsAs(ctx, &gcpKmsConfigs, false)
+	v := tfGcpKmsConfigSlice[0]
 
 	return &matlas.GoogleCloudKms{
-		Enabled:              gcpKmsConfigs[0].Enabled.ValueBoolPointer(),
-		ServiceAccountKey:    gcpKmsConfigs[0].ServiceAccountKey.ValueString(),
-		KeyVersionResourceID: gcpKmsConfigs[0].KeyVersionResourceID.ValueString(),
+		Enabled:              v.Enabled.ValueBoolPointer(),
+		ServiceAccountKey:    v.ServiceAccountKey.ValueString(),
+		KeyVersionResourceID: v.KeyVersionResourceID.ValueString(),
 	}
 }
 
-func newAtlasAzureKeyVault(ctx context.Context, tfAzureKeyVaultList basetypes.ListValue) *matlas.AzureKeyVault {
-	if len(tfAzureKeyVaultList.Elements()) == 0 {
+func newAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []tfAzureKeyVaultConfigModel) *matlas.AzureKeyVault {
+	if tfAzKeyVaultConfigSlice == nil || len(tfAzKeyVaultConfigSlice) < 1 {
 		return &matlas.AzureKeyVault{}
 	}
-	var azureKeyVaultConfigs []tfAzureKeyVaultConfigModel
-	tfAzureKeyVaultList.ElementsAs(ctx, &azureKeyVaultConfigs, false)
+	v := tfAzKeyVaultConfigSlice[0]
 
 	return &matlas.AzureKeyVault{
-		Enabled:           azureKeyVaultConfigs[0].Enabled.ValueBoolPointer(),
-		ClientID:          azureKeyVaultConfigs[0].ClientID.ValueString(),
-		AzureEnvironment:  azureKeyVaultConfigs[0].AzureEnvironment.ValueString(),
-		SubscriptionID:    azureKeyVaultConfigs[0].SubscriptionID.ValueString(),
-		ResourceGroupName: azureKeyVaultConfigs[0].ResourceGroupName.ValueString(),
-		KeyVaultName:      azureKeyVaultConfigs[0].KeyVaultName.ValueString(),
-		KeyIdentifier:     azureKeyVaultConfigs[0].KeyIdentifier.ValueString(),
-		Secret:            azureKeyVaultConfigs[0].Secret.ValueString(),
-		TenantID:          azureKeyVaultConfigs[0].TenantID.ValueString(),
+		Enabled:           v.Enabled.ValueBoolPointer(),
+		ClientID:          v.ClientID.ValueString(),
+		AzureEnvironment:  v.AzureEnvironment.ValueString(),
+		SubscriptionID:    v.SubscriptionID.ValueString(),
+		ResourceGroupName: v.ResourceGroupName.ValueString(),
+		KeyVaultName:      v.KeyVaultName.ValueString(),
+		KeyIdentifier:     v.KeyIdentifier.ValueString(),
+		Secret:            v.Secret.ValueString(),
+		TenantID:          v.TenantID.ValueString(),
 	}
 }
