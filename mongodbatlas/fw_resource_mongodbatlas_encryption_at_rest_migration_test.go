@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccAdvRS_Migration_EncryptionAtRest_basicAWS(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -25,7 +26,7 @@ func TestAccAdvRS_Migration_EncryptionAtRest_basicAWS(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -60,8 +61,8 @@ func TestAccAdvRS_Migration_EncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccAdvRS_Migration_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
-	// SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
-	// SkipTestExtCred(t)
+	SkipTest(t)
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -122,6 +123,7 @@ func TestAccAdvRS_Migration_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 }
 
 func TestAccAdvRS_Migration_EncryptionAtRest_basicAzure(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -139,7 +141,7 @@ func TestAccAdvRS_Migration_EncryptionAtRest_basicAzure(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -175,6 +177,7 @@ func TestAccAdvRS_Migration_EncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccAdvRS_Migration_EncryptionAtRest_basicGCP(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -186,7 +189,7 @@ func TestAccAdvRS_Migration_EncryptionAtRest_basicGCP(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{

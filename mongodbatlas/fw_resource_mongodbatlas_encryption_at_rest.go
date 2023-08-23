@@ -448,7 +448,6 @@ func handleAwsKmsConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, ear
 	} else {
 		earRSNew.AwsKmsConfig[0].Region = earRSCurrent.AwsKmsConfig[0].Region
 	}
-
 }
 
 func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
@@ -492,7 +491,6 @@ func newTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms, currStateSlic
 	newState.RoleID = conversion.StringNullIfEmpty(awsKms.RoleID)
 
 	return []tfAwsKmsConfigModel{newState}
-
 }
 
 func newTFAzureKeyVaultConfig(ctx context.Context, az *matlas.AzureKeyVault, currStateSlice []tfAzureKeyVaultConfigModel) []tfAzureKeyVaultConfigModel {

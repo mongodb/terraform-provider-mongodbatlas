@@ -97,6 +97,7 @@ data "aws_iam_role" "test" {
 )
 
 func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -120,7 +121,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -157,6 +158,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -186,7 +188,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -226,6 +228,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -243,7 +246,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -276,20 +279,9 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		return rs.Primary.ID, nil
-	}
-}
-
 func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
-	// SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
-	// SkipTestExtCred(t)
+	SkipTest(t) // For now it will skipped because of aws errors reasons, already made another test using terratest.
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_encryption_at_rest.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -438,4 +430,15 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey
 		config = fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, dataAWSARN, dataARN, configEncrypt)
 	}
 	return config
+}
+
+func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		return rs.Primary.ID, nil
+	}
 }
