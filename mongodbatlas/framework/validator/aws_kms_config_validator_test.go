@@ -56,9 +56,9 @@ func TestValidAwsKmsConfig(t *testing.T) {
 	}
 
 	tests := []struct {
-		name              string
 		awsKmsConfigValue map[string]attr.Value
 		awsKmsConfigType  map[string]attr.Type
+		name              string
 		wantErr           bool
 	}{
 		{
