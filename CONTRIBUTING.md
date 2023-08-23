@@ -266,7 +266,6 @@ To do this you can:
 
 - In our documentation, when a resource field allows a maximum of only one item, we do not format that field as an array. Instead, we create a subsection specifically for this field. Within this new subsection, we enumerate all the attributes of the field. Let's illustrate this with an example: [cloud_backup_schedule.html.markdown](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/r/cloud_backup_schedule.html.markdown?plain=1#L207)
 
-
 ## PR Title Format
 We use [*Conventional Commits*](https://www.conventionalcommits.org/):
 - `fix: description of the PR`: a commit of the type fix patches a bug in your codebase (this correlates with PATCH in Semantic Versioning).
@@ -286,3 +285,20 @@ Examples:
   - `fix!: description of the ticket`
   - If the PR has `BREAKING CHANGE`: in its description is a breaking change
 - `remove!: description of the PR`: The commit removes a feature from the product. Typically features are deprecated first for a period of time before being removed. Removing a feature is a breaking change (correlating with MAJOR in Semantic Versioning).
+
+## Discovering New API features
+
+Most of the new features of the provider are using [atlas-sdk](https://github.com/mongodb/atlas-sdk-go)
+SDK is updated automatically, tracking all new Atlas features.
+
+### Updating Atlas SDK 
+
+To update Atlas SDK run:
+
+```bash
+make update-atlas-sdk
+```
+
+> NOTE: Update mechanism is only needed for major releases. Any other releases will be supported by dependabot.
+
+> NOTE: Command can make import changes to +500 files. Please make sure that you perform update on main branch without any uncommited changes.
