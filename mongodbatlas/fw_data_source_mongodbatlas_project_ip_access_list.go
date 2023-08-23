@@ -45,15 +45,6 @@ func (d *ProjectIPAccessListDS) Configure(ctx context.Context, req datasource.Co
 	d.client = client
 }
 
-type tfProjectIPAccessListDSModel struct {
-	ID               types.String `tfsdk:"id"`
-	ProjectID        types.String `tfsdk:"project_id"`
-	CIDRBlock        types.String `tfsdk:"cidr_block"`
-	IPAddress        types.String `tfsdk:"ip_address"`
-	AWSSecurityGroup types.String `tfsdk:"aws_security_group"`
-	Comment          types.String `tfsdk:"comment"`
-}
-
 func (d *ProjectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -103,7 +94,7 @@ func (d *ProjectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 }
 
 func (d *ProjectIPAccessListDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var databaseDSUserConfig *tfProjectIPAccessListDSModel
+	var databaseDSUserConfig *tfProjectIPAccessListModel
 	var err error
 	resp.Diagnostics.Append(req.Config.Get(ctx, &databaseDSUserConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -142,8 +133,8 @@ func (d *ProjectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 	}
 }
 
-func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.ProjectIPAccessList) (*tfProjectIPAccessListDSModel, diag.Diagnostics) {
-	databaseUserModel := &tfProjectIPAccessListDSModel{
+func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.ProjectIPAccessList) (*tfProjectIPAccessListModel, diag.Diagnostics) {
+	databaseUserModel := &tfProjectIPAccessListModel{
 		ProjectID:        types.StringValue(accessList.GroupID),
 		Comment:          types.StringValue(accessList.Comment),
 		CIDRBlock:        types.StringValue(accessList.CIDRBlock),

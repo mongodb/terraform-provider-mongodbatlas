@@ -234,11 +234,14 @@ func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
-
-		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
+		projectID, entry, err := splitProjectIPAccessListImportID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
+			return fmt.Errorf("the resource id (%s) does not have the correct format", rs.Primary.ID)
+		}
+
+		_, _, err = conn.ProjectIPAccessList.Get(context.Background(), projectID, entry)
+		if err != nil {
+			return fmt.Errorf("project ip access list entry (%s) does not exist", entry)
 		}
 
 		return nil
