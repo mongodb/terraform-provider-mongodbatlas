@@ -130,3 +130,8 @@ link-git-hooks: ## Install git hooks
 	@echo "==> Installing all git hooks..."
 	find .git/hooks -type l -exec rm {} \;
 	find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
+
+.PHONY: update-atlas-sdk
+update-atlas-sdk: ## Update the atlas-sdk dependency
+	go install github.com/icholy/gomajor@latest
+	gomajor get go.mongodb.org/atlas-sdk/v20230201001@latest
