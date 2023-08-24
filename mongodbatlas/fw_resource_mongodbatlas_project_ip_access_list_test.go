@@ -96,13 +96,13 @@ func TestAccProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 func TestAccProjectRSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	SkipTestExtCred(t)
 	resourceName := "mongodbatlas_project_ip_access_list.test"
-	vpcID := "vpc-0355c13f3d8af46c1"
-	vpcCIDRBlock := "10.2.10.0/24"
-	awsAccountID := "358363220050"
-	awsRegion := "EU_WEST_1"
+	vpcID := os.Getenv("AWS_VPC_ID")
+	vpcCIDRBlock := os.Getenv("AWS_VPC_CIDR_BLOCK")
+	awsAccountID := os.Getenv("AWS_ACCOUNT_ID")
+	awsRegion := os.Getenv("AWS_REGION")
 	providerName := "AWS"
 
-	projectID := "64b8d3219c4cdc3f9108e318"
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	awsSGroup := "sg-0026348ec11780bd1"
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 
