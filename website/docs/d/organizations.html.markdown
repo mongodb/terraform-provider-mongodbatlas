@@ -37,4 +37,4 @@ data "mongodbatlas_organizations" "test" {
 * `id` - Unique 24-hexadecimal digit string that identifies the organization.
 * `is_deleted` - Flag that indicates whether this organization has been deleted.
   
-See [MongoDB Atlas API - Organizations](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/listOrganizations)  Documentation for more information.
+See [MongoDB Atlas API - Organizations](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/listOrganizations)  Documentation for more information.

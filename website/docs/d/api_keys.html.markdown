@@ -53,4 +53,4 @@ The following are valid roles:
   * `ORG_READ_ONLY`
   * `ORG_MEMBER`
   
-See [MongoDB Atlas API - API Keys](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/returnAllOrganizationApiKeys) - Documentation for more information.
+See [MongoDB Atlas API - Return All Organization API Keys](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/listApiKeys) - Documentation for more information.

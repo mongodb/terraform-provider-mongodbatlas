@@ -121,4 +121,4 @@ In addition to all arguments above, the following attributes are exported:
   * `project_id` - Unique 24-hexadecimal character string that identifies the project.
   * `policyItemId` - Unique 24-hexadecimal character string that identifies a policy item.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Lake-Pipelines) Documentation for more information.

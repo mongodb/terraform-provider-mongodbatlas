@@ -45,4 +45,4 @@ In addition to all arguments above, the following attributes are exported:
 * `finish_time` - Date and time when MongoDB Cloud completed writing this snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `scheduled_time` - 	Date and time when MongoDB Cloud will take the snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shared-Tier-Snapshots/operation/listSharedClusterBackups/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/listShardedClusterBackups)

@@ -66,4 +66,4 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Unique identifier used by Terraform for internal management and can be used to import.
 * `comment` - Comment to add to the access list entry.
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Programmatic-API-Keys/operation/getApiKeyAccessList)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/getApiKeyAccessList)

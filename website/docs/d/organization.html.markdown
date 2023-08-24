@@ -33,4 +33,4 @@ In addition to all arguments above, the following attributes are exported:
 * `is_deleted` - Flag that indicates whether this organization has been deleted.
 
   
-See [MongoDB Atlas API - Organization](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/getOrganization) Documentation for more information.
+See [MongoDB Atlas API - Organization](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/getOrganization) Documentation for more information.

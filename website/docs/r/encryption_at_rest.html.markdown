@@ -22,7 +22,7 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 ~> **IMPORTANT** Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default.
 
-~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management
+~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -151,4 +151,4 @@ Encryption at Rest Settings can be imported using project ID, in the format `pro
 $ terraform import mongodbatlas_encryption_at_rest.example 1112222b3bf99403840e8934
 ```
 
-For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Encryption-at-Rest-using-Customer-Key-Management)
+For more information see: [MongoDB Atlas API Reference for Encryption at Rest using Customer Key Management.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management)

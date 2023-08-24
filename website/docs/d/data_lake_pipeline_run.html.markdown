@@ -78,4 +78,4 @@ In addition to all arguments above, the following attributes are exported:
   * `bytes_exported` - Total data size in bytes exported for this pipeline run.
   * `num_docs` - Number of docs ingested for a this pipeline run.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines/operation/getPipelineRun) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Lake-Pipelines/operation/getPipelineRun) Documentation for more information.

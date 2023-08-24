@@ -99,4 +99,4 @@ Additional values based on Type
   * `scheme` - Your Prometheus protocol scheme configured for requests.
   * `enabled` - Whether your cluster has Prometheus enabled.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.

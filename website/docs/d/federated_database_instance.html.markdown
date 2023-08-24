@@ -109,4 +109,4 @@ In addition to all arguments above, the following attributes are exported:
 * `region` - Name of the region to which the Federanted Instnace routes client connections for data processing. 
 
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Federation) Documentation for more information.
