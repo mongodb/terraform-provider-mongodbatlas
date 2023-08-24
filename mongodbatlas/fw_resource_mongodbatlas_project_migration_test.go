@@ -312,7 +312,7 @@ func TestAccProjectRSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 }
 
 func TestAccProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *testing.T) {
-	resourceName := "mongodbatlas_project_ip_access_list.test_%d"
+	resourceName := "mongodbatlas_project_ip_access_list.test_1"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	const ipWhiteListCount = 20
