@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	errorAccessListCreate         = "error creating Project IP Access List information: %s"
-	errorAccessListRead           = "error getting Project IP Access List information: %s"
-	errorAccessListDelete         = "error deleting Project IP Access List information: %s"
-	projectIPAccessListTimeout    = 45 * time.Minute
-	projectIPAccessListMinTimeout = 2 * time.Second
-	projectIPAccessListDelay      = 4 * time.Second
-	projectIPAccessListRetry      = 2 * time.Minute
+	errorAccessListCreate          = "error creating Project IP Access List information: %s"
+	errorAccessListRead            = "error getting Project IP Access List information: %s"
+	errorAccessListDelete          = "error deleting Project IP Access List information: %s"
+	projectIPAccessListTimeout     = 45 * time.Minute
+	projectIPAccessListRetryDelete = 5 * time.Minute
+	projectIPAccessListMinTimeout  = 2 * time.Second
+	projectIPAccessListDelay       = 4 * time.Second
+	projectIPAccessListRetry       = 2 * time.Minute
 )
 
 type tfProjectIPAccessListModel struct {
@@ -185,6 +186,9 @@ func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 				if strings.Contains(err.Error(), "500") {
 					return nil, "pending", nil
 				}
+				if strings.Contains(err.Error(), "404") {
+					return nil, "pending", nil
+				}
 				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
 			}
 			if !exists {
@@ -201,7 +205,7 @@ func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 	// Wait, catching any errors
 	accessList, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("error while waitting for resource creation", err.Error())
+		resp.Diagnostics.AddError("error while waiting for resource creation", err.Error())
 		return
 	}
 
@@ -304,7 +308,9 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return nil
 	})
 
-	resp.Diagnostics.AddError("error during the read operation", err.Error())
+	if err != nil {
+		resp.Diagnostics.AddError("error during the read operation", err.Error())
+	}
 }
 
 func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -325,18 +331,18 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	conn := r.client.Atlas
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
 
-	_, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
-	if err != nil {
-		resp.Diagnostics.AddError("error during resource deletion", err.Error())
-	}
-
-	err = retry.RetryContext(ctx, projectIPAccessListDelay, func() *retry.RetryError {
+	_ = retry.RetryContext(ctx, projectIPAccessListRetryDelete, func() *retry.RetryError {
 		httpResponse, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
 		if err != nil {
 			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
 				return retry.RetryableError(err)
 			}
 
+			if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			resp.Diagnostics.AddError("error deleting the entry", fmt.Sprintf(errorAccessListDelete, err.Error()))
 			return retry.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
 		}
 
@@ -355,10 +361,6 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 
 		return nil
 	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(errorAccessListDelete, err.Error())
-	}
 }
 
 func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
