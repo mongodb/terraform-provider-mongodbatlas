@@ -274,9 +274,12 @@ func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName s
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := decodeStateID(rs.Primary.ID)
+		projectID, entry, err := splitProjectIPAccessListImportID(rs.Primary.ID)
+		if err != nil {
+			return "", fmt.Errorf("the resource id (%s) does not have the correct format", rs.Primary.ID)
+		}
 
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
+		return fmt.Sprintf("%s-%s", projectID, entry), nil
 	}
 }
 
