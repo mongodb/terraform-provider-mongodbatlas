@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -29,7 +31,6 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -798,4 +799,18 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 
 func pointer[T any](x T) *T {
 	return &x
+}
+
+func intPointer(v int) *int {
+	if v != 0 {
+		return &v
+	}
+	return nil
+}
+
+func strPointer(v string) *string {
+	if v != "" {
+		return &v
+	}
+	return nil
 }

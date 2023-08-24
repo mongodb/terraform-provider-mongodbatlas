@@ -339,7 +339,7 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 
 	// _, _, err := conn.DataFederation.Create(ctx, projectID, requestBody)
 	if _, _, err := connV2.DataFederationApi.CreateFederatedDatabase(ctx, projectID, &admin.DataLakeTenant{
-		Name:                pointy.String(name),
+		Name:                strPointer(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
@@ -545,14 +545,14 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 	for i, storeFromConf := range storesFromConf {
 		storeFromConfMap := storeFromConf.(map[string]interface{})
 		stores[i] = admin.DataLakeStoreSettings{
-			Name:     pointer(storeFromConfMap["name"].(string)),
+			Name:     strPointer(storeFromConfMap["name"].(string)),
 			Provider: storeFromConfMap["provider"].(string),
-			Region:   pointer(storeFromConfMap["region"].(string)),
-			// ProjectID:                pointer(storeFromConfMap["project_id"].(string)),
-			Bucket:                   pointer(storeFromConfMap["bucket"].(string)),
-			ClusterName:              pointer(storeFromConfMap["cluster_name"].(string)),
-			Prefix:                   pointer(storeFromConfMap["prefix"].(string)),
-			Delimiter:                pointer(storeFromConfMap["delimiter"].(string)),
+			Region:   strPointer(storeFromConfMap["region"].(string)),
+			//  ProjectID:                pointer(storeFromConfMap["project_id"].(string)),
+			Bucket:                   strPointer(storeFromConfMap["bucket"].(string)),
+			ClusterName:              strPointer(storeFromConfMap["cluster_name"].(string)),
+			Prefix:                   strPointer(storeFromConfMap["prefix"].(string)),
+			Delimiter:                strPointer(storeFromConfMap["delimiter"].(string)),
 			IncludeTags:              pointer(storeFromConfMap["include_tags"].(bool)),
 			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]interface{})),
 			ReadPreference:           newReadPreference(storeFromConfMap),
@@ -582,8 +582,8 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 	}
 	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]interface{})
 	return &admin.DataLakeAtlasStoreReadPreference{
-		Mode:                pointer(readPreferenceFromConfMap["mode"].(string)),
-		MaxStalenessSeconds: pointy.Int(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
+		Mode:                strPointer(readPreferenceFromConfMap["mode"].(string)),
+		MaxStalenessSeconds: intPointer(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
 		// TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
 }
@@ -617,13 +617,9 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 		storageDBFromConfMap := storageDBFromConf.(map[string]interface{})
 
 		dbs[i] = admin.DataLakeDatabaseInstance{
-			Name: pointy.String(storageDBFromConfMap["name"].(string)),
-			// MaxWildcardCollections: pointy.Int(storageDBFromConfMap["max_wildcard_collections"].(int)),
-			Collections: newDataFederationCollections(storageDBFromConfMap),
-		}
-		maxWildcardCollections := storageDBFromConfMap["max_wildcard_collections"]
-		if maxWildcardCollections != nil {
-			dbs[i].MaxWildcardCollections = pointy.Int(maxWildcardCollections.(int))
+			Name:                   strPointer(storageDBFromConfMap["name"].(string)),
+			MaxWildcardCollections: intPointer(storageDBFromConfMap["max_wildcard_collections"].(int)),
+			Collections:            newDataFederationCollections(storageDBFromConfMap),
 		}
 	}
 
@@ -639,7 +635,7 @@ func newDataFederationCollections(storageDBFromConfMap map[string]interface{}) [
 	collections := make([]admin.DataLakeDatabaseCollection, len(collectionsFromConf))
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
-			Name:        pointy.String(collectionFromConf.(map[string]interface{})["name"].(string)),
+			Name:        strPointer(collectionFromConf.(map[string]interface{})["name"].(string)),
 			DataSources: newDataFederationDataSource(collectionFromConf.(map[string]interface{})),
 		}
 	}
@@ -657,13 +653,13 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 		dataSourceFromConfMap := dataSourceFromConf.(map[string]interface{})
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
 			AllowInsecure:       pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
-			Database:            pointer(dataSourceFromConfMap["database"].(string)),
-			Collection:          pointer(dataSourceFromConfMap["collection"].(string)),
-			CollectionRegex:     pointer(dataSourceFromConfMap["collection_regex"].(string)),
-			DefaultFormat:       pointer(dataSourceFromConfMap["default_format"].(string)),
-			Path:                pointer(dataSourceFromConfMap["path"].(string)),
-			ProvenanceFieldName: pointer(dataSourceFromConfMap["provenance_field_name"].(string)),
-			StoreName:           pointer(dataSourceFromConfMap["store_name"].(string)),
+			Database:            strPointer(dataSourceFromConfMap["database"].(string)),
+			Collection:          strPointer(dataSourceFromConfMap["collection"].(string)),
+			CollectionRegex:     strPointer(dataSourceFromConfMap["collection_regex"].(string)),
+			DefaultFormat:       strPointer(dataSourceFromConfMap["default_format"].(string)),
+			Path:                strPointer(dataSourceFromConfMap["path"].(string)),
+			ProvenanceFieldName: strPointer(dataSourceFromConfMap["provenance_field_name"].(string)),
+			StoreName:           strPointer(dataSourceFromConfMap["store_name"].(string)),
 			Urls:                newUrls(dataSourceFromConfMap["urls"].([]interface{})),
 		}
 	}
