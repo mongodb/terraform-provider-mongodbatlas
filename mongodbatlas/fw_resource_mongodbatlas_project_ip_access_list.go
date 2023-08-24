@@ -331,7 +331,7 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	conn := r.client.Atlas
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
 
-	_ = retry.RetryContext(ctx, projectIPAccessListRetryDelete, func() *retry.RetryError {
+	err := retry.RetryContext(ctx, projectIPAccessListRetryDelete, func() *retry.RetryError {
 		httpResponse, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
 		if err != nil {
 			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
@@ -361,6 +361,10 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 
 		return nil
 	})
+
+	if err != nil {
+		resp.Diagnostics.AddError("error during the read operation", err.Error())
+	}
 }
 
 func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
