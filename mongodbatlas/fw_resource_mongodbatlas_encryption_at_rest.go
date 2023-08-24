@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
@@ -223,14 +222,22 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
 	encryptionAtRestReq := &matlas.EncryptionAtRest{
-		GroupID:        projectID,
-		AwsKms:         *newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig),
-		AzureKeyVault:  *newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig),
-		GoogleCloudKms: *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig),
+		GroupID: projectID,
+	}
+	if encryptionAtRestPlan.AwsKmsConfig != nil {
+		encryptionAtRestReq.AwsKms = *newAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
+	}
+	if encryptionAtRestPlan.AzureKeyVaultConfig != nil {
+		encryptionAtRestReq.AzureKeyVault = *newAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
+	}
+	if encryptionAtRestPlan.GoogleCloudKmsConfig != nil {
+		encryptionAtRestReq.GoogleCloudKms = *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
+	var encryptionResp *matlas.EncryptionAtRest
+	var err error
 	for i := 0; i < 5; i++ {
-		_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
+		encryptionResp, _, err = conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
 		if err != nil {
 			if strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") ||
 				strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
@@ -248,20 +255,8 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		break
 	}
 
-	// read
-	encryptionResp, response, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
-	tflog.Debug(ctx, fmt.Sprintf("encryptionResp from api: %v", encryptionResp))
-	if err != nil {
-		if resp != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error when getting encryption at rest resource after create", fmt.Sprintf(errorReadEncryptionAtRest, err.Error()))
-		return
-	}
-
 	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, encryptionAtRestPlan)
-	resetDefaultsFromConfig(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
+	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
 	diags := resp.State.Set(ctx, encryptionAtRestPlanNew)
@@ -291,7 +286,6 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 	conn := r.client.Atlas
 
 	encryptionResp, _, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
-	tflog.Debug(ctx, fmt.Sprintf("encryptionResp from api: %v", encryptionResp))
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting encryption at rest resource during read", fmt.Sprintf(errorReadEncryptionAtRest, err.Error()))
 		return
@@ -299,7 +293,7 @@ func (r *EncryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	encryptionAtRestStateNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, &encryptionAtRestState)
 	if !isImport {
-		resetDefaultsFromConfig(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
+		resetDefaultsFromConfigOrState(ctx, &encryptionAtRestState, encryptionAtRestStateNew, nil)
 	}
 
 	// save read data into Terraform state
@@ -352,26 +346,15 @@ func (r *EncryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	atlasEncryptionAtRest.GroupID = projectID
-	_, _, err = conn.EncryptionsAtRest.Create(ctx, atlasEncryptionAtRest)
+
+	encryptionResp, _, err := conn.EncryptionsAtRest.Create(ctx, atlasEncryptionAtRest)
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
 		return
 	}
 
-	// read
-	encryptionResp, response, err := conn.EncryptionsAtRest.Get(context.Background(), projectID)
-	tflog.Debug(ctx, fmt.Sprintf("encryptionResp from api: %v", encryptionResp))
-	if err != nil {
-		if resp != nil && response.StatusCode == http.StatusNotFound {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error when getting encryption at rest resource after update", fmt.Sprintf(errorReadEncryptionAtRest, err.Error()))
-		return
-	}
-
 	encryptionAtRestStateNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, encryptionAtRestPlan)
-	resetDefaultsFromConfig(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
+	resetDefaultsFromConfigOrState(ctx, encryptionAtRestState, encryptionAtRestStateNew, encryptionAtRestConfig)
 
 	// save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &encryptionAtRestStateNew)...)
@@ -412,7 +395,14 @@ func hasAwsKmsConfigChanged(awsKmsConfigPlan, awsKmsConfigState []tfAwsKmsConfig
 	return !reflect.DeepEqual(awsKmsConfigPlan, awsKmsConfigState)
 }
 
-func resetDefaultsFromConfig(ctx context.Context, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig *tfEncryptionAtRestRSModel) {
+// resetDefaultsFromConfigOrState resets certain values that are not returned by the Atlas APIs from the Config
+// However, during Read() and ImportState() since there is no access to the Config object, we use the State/Plan
+// to achieve the same and encryptionAtRestRSConfig in that case is passed as nil in the calling method.
+//
+// encryptionAtRestRSCurrent - current State/Plan for this resource
+// encryptionAtRestRSNew - final object that will be written in the State once the CRUD operation succeeds
+// encryptionAtRestRSConfig - Config object for this resource
+func resetDefaultsFromConfigOrState(ctx context.Context, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig *tfEncryptionAtRestRSModel) {
 	handleAwsKmsConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 	handleAzureKeyVaultConfigDefaults(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
 	handleGcpKmsConfig(ctx, encryptionAtRestRSCurrent, encryptionAtRestRSNew, encryptionAtRestRSConfig)
