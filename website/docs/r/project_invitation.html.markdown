@@ -55,7 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 * `invitation_id` - Unique 24-hexadecimal digit string that identifies the invitation in Atlas.
 * `inviter_username` - Atlas user who invited `username` to the project.
 
-See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/createProjectInvitation) documentation for more information.
+See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects/operation/createProjectInvitation) documentation for more information.
 
 ## Import
 

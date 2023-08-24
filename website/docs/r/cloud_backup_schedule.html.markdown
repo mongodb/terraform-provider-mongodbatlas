@@ -189,7 +189,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `restore_window_days` - (Optional) Number of days back in time you can restore to with point-in-time accuracy. Must be a positive, non-zero integer.
 * `update_snapshots` - (Optional) Specify true to apply the retention changes in the updated backup policy to snapshots that Atlas took previously. 
   
-  **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/getBackupSchedule).
+  **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
 
 * `policy_item_hourly` - (Optional) Hourly policy item
 * `policy_item_daily` - (Optional) Daily policy item
@@ -239,7 +239,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
 * `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
-* `replication_spec_id` -(Required) Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, consult the replicationSpecs array returned from [Return All Clusters in One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/listClusters).
+* `replication_spec_id` -(Required) Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, consult the replicationSpecs array returned from [Return All Clusters in One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Clusters/operation/listClusters).
 * `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
 ## Attributes Reference

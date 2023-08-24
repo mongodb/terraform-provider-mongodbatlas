@@ -1,6 +1,6 @@
 # Example - MongoDB Atlas Cluster Outage Simulation on a Multi-region Cluster
 
-This project aims to provide an example of using [MongoDB Atlas Cluster Outage Simulation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cluster-Outage-Simulation).
+This project aims to provide an example of using [MongoDB Atlas Cluster Outage Simulation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cluster-Outage-Simulation).
 
 
 ## Dependencies

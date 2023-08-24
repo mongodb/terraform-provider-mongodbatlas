@@ -73,4 +73,4 @@ data "mongodbatlas_data_lake_pipeline_runs" "test" {
   * `bytes_exported` - Total data size in bytes exported for this pipeline run.
   * `num_docs` - Number of docs ingested for a this pipeline run.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Lake-Pipelines/operation/listPipelineRuns) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines/operation/listPipelineRuns) Documentation for more information.

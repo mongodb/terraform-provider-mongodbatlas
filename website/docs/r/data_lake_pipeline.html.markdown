@@ -125,4 +125,4 @@ Data Lake Pipeline can be imported using project ID, name of the data lake and n
 $ terraform import mongodbatlas_data_lake_pipeline.example 1112222b3bf99403840e8934--test-data-lake-pipeline-test
 ```
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Lake-Pipelines) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Lake-Pipelines) Documentation for more information.

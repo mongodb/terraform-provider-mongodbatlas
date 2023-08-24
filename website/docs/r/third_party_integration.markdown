@@ -99,4 +99,4 @@ Third-Party Integration Settings can be imported using project ID and the integr
 $ terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-OPS_GENIE
 ```
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) Documentation for more information.

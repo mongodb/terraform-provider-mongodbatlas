@@ -43,4 +43,4 @@ In addition to the arguments, this data source exports the following attributes:
 * `inviter_username` - Atlas user who invited `username` to the project.
 * `roles` - Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Refer to the [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) for information on valid roles.
 
-See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/createProjectInvitation) documentation for more information.
+See the [MongoDB Atlas Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects/operation/createProjectInvitation) documentation for more information.
