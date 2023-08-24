@@ -304,12 +304,12 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 }
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	dataFederationInstance, _, err := conn.DataFederation.Get(ctx, projectID, name)
+	dataFederationInstance, _, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err))
 	}
@@ -352,7 +352,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
-		"name":       dataFederationInstance.Name,
+		"name":       *dataFederationInstance.Name,
 	}))
 
 	return nil

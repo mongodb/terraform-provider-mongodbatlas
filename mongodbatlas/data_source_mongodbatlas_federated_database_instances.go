@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
@@ -110,11 +110,11 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := conn.DataFederation.List(ctx, projectID)
+	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListFederatedDatabases(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}
@@ -130,7 +130,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 	return nil
 }
 
-func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []*matlas.DataFederationInstance) []map[string]interface{} {
+func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []admin.DataLakeTenant) []map[string]interface{} {
 	var federatedDatabaseInstancesMap []map[string]interface{}
 
 	if len(federatedDatabaseInstances) > 0 {
