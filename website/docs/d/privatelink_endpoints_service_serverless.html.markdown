@@ -101,4 +101,4 @@ Each object in the `results` array represents an online archive with the followi
 * `private_endpoint_ip_address` - IPv4 address of the private endpoint in your Azure VNet that someone added to this private endpoint service.
 * `status` - Human-readable label that indicates the current operating status of the private endpoint. Values include: RESERVATION_REQUESTED, RESERVED, INITIATING, AVAILABLE, FAILED, DELETING.
 
-For more information see: [MongoDB Atlas API - Serverless Private Endpoints](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Private-Endpoints/operation/createOnePrivateEndpointForOneServerlessInstance/).
+For more information see: [MongoDB Atlas API - Serverless Private Endpoints](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Private-Endpoints/operation/createServerlessPrivateEndpoint).
