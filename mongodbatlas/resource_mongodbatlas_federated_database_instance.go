@@ -583,7 +583,7 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]interface{})
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                pointer(readPreferenceFromConfMap["mode"].(string)),
-		MaxStalenessSeconds: pointer(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
+		MaxStalenessSeconds: pointy.Int(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
 		// TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
 }
@@ -615,10 +615,15 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 	dbs := make([]admin.DataLakeDatabaseInstance, len(storageDBsFromConf))
 	for i, storageDBFromConf := range storageDBsFromConf {
 		storageDBFromConfMap := storageDBFromConf.(map[string]interface{})
+
 		dbs[i] = admin.DataLakeDatabaseInstance{
-			Name:                   pointy.String(storageDBFromConfMap["name"].(string)),
-			MaxWildcardCollections: pointy.Int(storageDBFromConfMap["max_wildcard_collections"].(int)),
-			Collections:            newDataFederationCollections(storageDBFromConfMap),
+			Name: pointy.String(storageDBFromConfMap["name"].(string)),
+			// MaxWildcardCollections: pointy.Int(storageDBFromConfMap["max_wildcard_collections"].(int)),
+			Collections: newDataFederationCollections(storageDBFromConfMap),
+		}
+		maxWildcardCollections := storageDBFromConfMap["max_wildcard_collections"]
+		if maxWildcardCollections != nil {
+			dbs[i].MaxWildcardCollections = pointy.Int(maxWildcardCollections.(int))
 		}
 	}
 
