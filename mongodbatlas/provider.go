@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"log"
@@ -41,7 +42,7 @@ const (
 	endPointSTSDefault                    = "https://sts.amazonaws.com"
 	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
-	AttrNotSetError                       = "attribute %s must be set"
+	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 	ProviderConfigError                   = "error in configuring the provider."
 	AWS                                   = "AWS"
 	AZURE                                 = "AZURE"
@@ -147,8 +148,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_team":                              dataSourceMongoDBAtlasTeam(),
 		"mongodbatlas_teams":                             dataSourceMongoDBAtlasTeam(),
 		"mongodbatlas_global_cluster_config":             dataSourceMongoDBAtlasGlobalCluster(),
-		"mongodbatlas_alert_configuration":               dataSourceMongoDBAtlasAlertConfiguration(),
-		"mongodbatlas_alert_configurations":              dataSourceMongoDBAtlasAlertConfigurations(),
 		"mongodbatlas_x509_authentication_database_user": dataSourceMongoDBAtlasX509AuthDBUser(),
 		"mongodbatlas_private_endpoint_regional_mode":    dataSourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(),
@@ -162,7 +161,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_backup_schedule":                                        dataSourceMongoDBAtlasCloudBackupSchedule(),
 		"mongodbatlas_third_party_integrations":                                     dataSourceMongoDBAtlasThirdPartyIntegrations(),
 		"mongodbatlas_third_party_integration":                                      dataSourceMongoDBAtlasThirdPartyIntegration(),
-		"mongodbatlas_project_ip_access_list":                                       dataSourceMongoDBAtlasProjectIPAccessList(),
 		"mongodbatlas_cloud_provider_access":                                        dataSourceMongoDBAtlasCloudProviderAccessList(),
 		"mongodbatlas_cloud_provider_access_setup":                                  dataSourceMongoDBAtlasCloudProviderAccessSetup(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                         dataSourceMongoDBAtlasCustomDNSConfigurationAWS(),
@@ -217,23 +215,22 @@ func getDataSourcesMap() map[string]*schema.Resource {
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_advanced_cluster":                                            resourceMongoDBAtlasAdvancedCluster(),
-		"mongodbatlas_api_key":                                                     resourceMongoDBAtlasAPIKey(),
-		"mongodbatlas_access_list_api_key":                                         resourceMongoDBAtlasAccessListAPIKey(),
-		"mongodbatlas_project_api_key":                                             resourceMongoDBAtlasProjectAPIKey(),
-		"mongodbatlas_custom_db_role":                                              resourceMongoDBAtlasCustomDBRole(),
-		"mongodbatlas_cluster":                                                     resourceMongoDBAtlasCluster(),
-		"mongodbatlas_network_container":                                           resourceMongoDBAtlasNetworkContainer(),
-		"mongodbatlas_network_peering":                                             resourceMongoDBAtlasNetworkPeering(),
-		"mongodbatlas_encryption_at_rest":                                          resourceMongoDBAtlasEncryptionAtRest(),
-		"mongodbatlas_maintenance_window":                                          resourceMongoDBAtlasMaintenanceWindow(),
-		"mongodbatlas_auditing":                                                    resourceMongoDBAtlasAuditing(),
-		"mongodbatlas_team":                                                        resourceMongoDBAtlasTeam(),
-		"mongodbatlas_teams":                                                       resourceMongoDBAtlasTeam(),
-		"mongodbatlas_global_cluster_config":                                       resourceMongoDBAtlasGlobalCluster(),
-		"mongodbatlas_alert_configuration":                                         resourceMongoDBAtlasAlertConfiguration(),
-		"mongodbatlas_x509_authentication_database_user":                           resourceMongoDBAtlasX509AuthDBUser(),
-		"mongodbatlas_private_endpoint_regional_mode":                              resourceMongoDBAtlasPrivateEndpointRegionalMode(),
+		"mongodbatlas_advanced_cluster":                  resourceMongoDBAtlasAdvancedCluster(),
+		"mongodbatlas_api_key":                           resourceMongoDBAtlasAPIKey(),
+		"mongodbatlas_access_list_api_key":               resourceMongoDBAtlasAccessListAPIKey(),
+		"mongodbatlas_project_api_key":                   resourceMongoDBAtlasProjectAPIKey(),
+		"mongodbatlas_custom_db_role":                    resourceMongoDBAtlasCustomDBRole(),
+		"mongodbatlas_cluster":                           resourceMongoDBAtlasCluster(),
+		"mongodbatlas_network_container":                 resourceMongoDBAtlasNetworkContainer(),
+		"mongodbatlas_network_peering":                   resourceMongoDBAtlasNetworkPeering(),
+		"mongodbatlas_encryption_at_rest":                resourceMongoDBAtlasEncryptionAtRest(),
+		"mongodbatlas_maintenance_window":                resourceMongoDBAtlasMaintenanceWindow(),
+		"mongodbatlas_auditing":                          resourceMongoDBAtlasAuditing(),
+		"mongodbatlas_team":                              resourceMongoDBAtlasTeam(),
+		"mongodbatlas_teams":                             resourceMongoDBAtlasTeam(),
+		"mongodbatlas_global_cluster_config":             resourceMongoDBAtlasGlobalCluster(),
+		"mongodbatlas_x509_authentication_database_user": resourceMongoDBAtlasX509AuthDBUser(),
+		"mongodbatlas_private_endpoint_regional_mode":    resourceMongoDBAtlasPrivateEndpointRegionalMode(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": resourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(),
 		"mongodbatlas_privatelink_endpoint":                                        resourceMongoDBAtlasPrivateLinkEndpoint(),
 		"mongodbatlas_privatelink_endpoint_serverless":                             resourceMongoDBAtlasPrivateLinkEndpointServerless(),
@@ -280,7 +277,9 @@ func addBetaFeatures(provider *schema.Provider) {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	if err := setDefaultsAndValidations(d); err != nil {
+	assumeRoleValue, ok := d.GetOk("assume_role")
+	awsRoleDefined := ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil
+	if err := setDefaultsAndValidations(d, awsRoleDefined); err != nil {
 		return nil, diag.FromErr(err)
 	}
 
@@ -291,8 +290,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 
-	if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
-		config.AssumeRole = expandAssumeRole(v.([]interface{})[0].(map[string]interface{}))
+	if awsRoleDefined {
+		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
 		secret := d.Get("secret_name").(string)
 		region := d.Get("region").(string)
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -313,7 +312,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	return client, nil
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData) error {
+func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) error {
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
@@ -334,8 +333,8 @@ func setDefaultsAndValidations(d *schema.ResourceData) error {
 	}); err != nil {
 		return err
 	}
-	if d.Get("public_key").(string) == "" {
-		return fmt.Errorf(AttrNotSetError, "public_key")
+	if d.Get("public_key").(string) == "" && !awsRoleDefined {
+		return errors.New(MissingAuthAttrError)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
@@ -345,8 +344,8 @@ func setDefaultsAndValidations(d *schema.ResourceData) error {
 		return err
 	}
 
-	if d.Get("private_key").(string) == "" {
-		return fmt.Errorf(AttrNotSetError, "private_key")
+	if d.Get("private_key").(string) == "" && !awsRoleDefined {
+		return errors.New(MissingAuthAttrError)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
@@ -789,16 +788,16 @@ var validAssumeRoleSourceIdentity = validation.All(
 
 // validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
 // and is within a minimum of 15 minutes and maximum of 12 hours
-func validAssumeRoleDuration(v interface{}, k string) (ws []string, errors []error) {
+func validAssumeRoleDuration(v interface{}, k string) (ws []string, errorResults []error) {
 	duration, err := time.ParseDuration(v.(string))
 
 	if err != nil {
-		errors = append(errors, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
+		errorResults = append(errorResults, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
 		return
 	}
 
 	if duration.Minutes() < 15 || duration.Hours() > 12 {
-		errors = append(errors, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
+		errorResults = append(errorResults, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
 	}
 
 	return

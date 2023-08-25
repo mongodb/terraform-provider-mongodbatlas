@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -35,6 +37,47 @@ func TestAccConfigDSAlertConfigurations_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigDSAlertConfigurations_withOutputTypes(t *testing.T) {
+	var (
+		dataSourceName = "data.mongodbatlas_alert_configurations.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDSMongoDBAtlasAlertConfigurationsOutputType(orgID, projectName, []string{"resource_hcl", "resource_import"}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationsCount(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.output.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSAlertConfigurations_invalidOutputTypeValue(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDSMongoDBAtlasAlertConfigurationsOutputType(orgID, projectName, []string{"resource_hcl", "invalid_type"}),
+				ExpectError: regexp.MustCompile("value must be one of:"),
+			},
+		},
+	})
+}
+
 func testAccDSMongoDBAtlasAlertConfigurations(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -49,6 +92,19 @@ func testAccDSMongoDBAtlasAlertConfigurations(orgID, projectName string) string 
 			}
 		}
 	`, orgID, projectName)
+}
+
+func testAccDSMongoDBAtlasAlertConfigurationsOutputType(orgID, projectName string, outputTypes []string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		data "mongodbatlas_alert_configurations" "test" {
+			project_id = mongodbatlas_project.test.id
+			output_type = %[3]s
+		}
+	`, orgID, projectName, strings.ReplaceAll(fmt.Sprintf("%+q", outputTypes), " ", ","))
 }
 
 func testAccCheckMongoDBAtlasAlertConfigurationsCount(resourceName string) resource.TestCheckFunc {

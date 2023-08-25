@@ -59,6 +59,11 @@ func testAccMongoDBAtlasDatabaseUsersDataSourceConfig(orgID, projectName, roleNa
 				role_name     = %[3]q
 				database_name = "admin"
 			}
+
+			labels {
+				key   = "key 1"
+				value = "value 1"
+			}
 		}
 
 		resource "mongodbatlas_database_user" "db_user_1" {

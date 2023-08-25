@@ -191,7 +191,7 @@ func populateProjectsDataSourceModel(ctx context.Context, conn *matlas.Client, c
 		if err != nil {
 			return fmt.Errorf("error while getting project properties for project %s: %v", project.ID, err.Error())
 		}
-		projectModel := toTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
+		projectModel := newTFProjectDataSourceModel(ctx, project, atlasTeams, atlasProjectSettings, atlasLimits)
 		results[i] = &projectModel
 	}
 

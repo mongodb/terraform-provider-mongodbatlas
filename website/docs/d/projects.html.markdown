@@ -31,11 +31,6 @@ resource "mongodbatlas_project" "test" {
     team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
     role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
   }
-  
-  api_keys {
-    api_key_id = "61003b299dda8d54a9d7d10c"
-    role_names = ["GROUP_READ_ONLY"]
-  }
 
   limits {
     name = "atlas.project.deployment.clusters"
@@ -68,8 +63,6 @@ data "mongodbatlas_projects" "test" {
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `teams.#.team_id` - The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
 * `teams.#.role_names` - Each string in the array represents a project role assigned to the team. Every user associated with the team inherits these roles. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
-* `api_keys.#.api_key_id` - The unique identifier of the Organization Programmatic API key assigned to the Project. 
-* `api_keys.#.role_names` -  List of roles that the Organization Programmatic API key has been assigned. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
 * `limits.#.name` - Human-readable label that identifies this project limit.
 * `limits.#.value` - Amount the limit is set to.
 * `limits.#.current_usage` - Amount that indicates the current usage of the limit.
