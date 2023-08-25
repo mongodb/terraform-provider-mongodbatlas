@@ -8,12 +8,13 @@ import (
 	"net/http"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20230201005/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (

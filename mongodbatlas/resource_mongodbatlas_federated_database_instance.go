@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	"go.mongodb.org/atlas-sdk/v20230201005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -790,12 +790,12 @@ func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[str
 			"delimiter":                  stores[i].Delimiter,
 			"include_tags":               stores[i].IncludeTags,
 			"additional_storage_classes": stores[i].AdditionalStorageClasses,
-			"cluster_id":                 stores[i].ClusterId,
-			"allow_insecure":             stores[i].AllowInsecure,
-			"public":                     stores[i].Public,
-			"default_format":             stores[i].DefaultFormat,
-			"urls":                       stores[i].Urls,
-			"read_preference":            newReadPreferenceField(stores[i].ReadPreference),
+			// "cluster_id":                 stores[i].ClusterId,
+			"allow_insecure":  stores[i].AllowInsecure,
+			"public":          stores[i].Public,
+			"default_format":  stores[i].DefaultFormat,
+			"urls":            stores[i].Urls,
+			"read_preference": newReadPreferenceField(stores[i].ReadPreference),
 		})
 	}
 

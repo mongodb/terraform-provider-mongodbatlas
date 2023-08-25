@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	atlasSDK "go.mongodb.org/atlas-sdk/v20230201005/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	atlasSDK "go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
 
 // This datasource does not have a resource: we tested it manually

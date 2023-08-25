@@ -6,15 +6,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
-	"github.com/mongodb-forks/digest"
-	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-	"github.com/spf13/cast"
-	atlasSDK "go.mongodb.org/atlas-sdk/v20230201002/admin"
+	atlasSDK "go.mongodb.org/atlas-sdk/v20230201005/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
+	"github.com/mongodb-forks/digest"
+	"github.com/spf13/cast"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const ToolName = "terraform-provider-mongodbatlas"
