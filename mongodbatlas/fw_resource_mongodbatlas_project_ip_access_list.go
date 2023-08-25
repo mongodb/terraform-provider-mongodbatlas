@@ -373,8 +373,6 @@ func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 		"entry":      entry,
 		"project_id": projectID,
 	}))...)
-
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projectID, entry string) (*matlas.ProjectIPAccessList, bool, error) {
