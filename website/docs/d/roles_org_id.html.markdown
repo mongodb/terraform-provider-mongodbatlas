@@ -32,4 +32,4 @@ In addition to all arguments above, the following attributes are exported:
 
 * `org_id` - The ID of the organization you want to retrieve associated to an API Key.
   
-See [MongoDB Atlas API - Role Org ID](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Root/operation/getSystemStatus) -  Documentation for more information.
+See [MongoDB Atlas API - Role Org ID](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Root/operation/getSystemStatus) Documentation for more information.
