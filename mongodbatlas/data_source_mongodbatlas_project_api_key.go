@@ -92,7 +92,7 @@ func dataSourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Reso
 			return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 		}
 
-		if projectAssignments, err := newProjectAssignment(ctx, conn, projectID, apiKeyID); err == nil {
+		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
 			if err := d.Set("project_assignment", projectAssignments); err != nil {
 				return diag.Errorf(errorProjectSetting, `project_assignment`, projectID, err)
 			}
