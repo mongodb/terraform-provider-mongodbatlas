@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	errorAccessListCreate         = "error creating Project IP Access List information: %s"
-	errorAccessListRead           = "error getting Project IP Access List information: %s"
-	errorAccessListDelete         = "error deleting Project IP Access List information: %s"
-	projectIPAccessListTimeout    = 45 * time.Minute
-	projectIPAccessListMinTimeout = 2 * time.Second
-	projectIPAccessListDelay      = 4 * time.Second
-	projectIPAccessListRetry      = 2 * time.Minute
+	errorAccessListCreate          = "error creating Project IP Access List information: %s"
+	errorAccessListRead            = "error getting Project IP Access List information: %s"
+	errorAccessListDelete          = "error deleting Project IP Access List information: %s"
+	projectIPAccessListTimeout     = 45 * time.Minute
+	projectIPAccessListTimeoutRead = 2 * time.Minute
+	projectIPAccessListMinTimeout  = 2 * time.Second
+	projectIPAccessListDelay       = 4 * time.Second
+	projectIPAccessListRetry       = 2 * time.Minute
 )
 
 type tfProjectIPAccessListModel struct {
@@ -270,7 +271,7 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		}
 	}
 
-	timeout, diags := projectIPAccessListModelState.Timeouts.Read(ctx, projectIPAccessListTimeout)
+	timeout, diags := projectIPAccessListModelState.Timeouts.Read(ctx, projectIPAccessListTimeoutRead)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
