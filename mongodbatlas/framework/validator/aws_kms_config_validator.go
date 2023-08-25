@@ -34,10 +34,13 @@ func (v awsKmsConfigValidator) ValidateObject(ctx context.Context, req validator
 	ak, akOk := attrMap["access_key_id"]
 	sa, saOk := attrMap["secret_access_key"]
 	r, rOk := attrMap["role_id"]
+	accessKeyDefined := akOk && !ak.IsNull()
+	secretAccessKeyDefined := saOk && !sa.IsNull()
+	roleIDDefined := rOk && !r.IsNull()
 
-	if (accessKeyDefined && secretAccessKeyDefined && roleIdDefined) ||
-		((akOk && !ak.IsNull()) && (rOk && !r.IsNull())) ||
-		((saOk && !sa.IsNull()) && (rOk && !r.IsNull())) {
+	if (accessKeyDefined && secretAccessKeyDefined && roleIDDefined) ||
+		(accessKeyDefined && roleIDDefined) ||
+		(secretAccessKeyDefined && roleIDDefined) {
 		response.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
 			req.Path,
 			v.Description(ctx),
