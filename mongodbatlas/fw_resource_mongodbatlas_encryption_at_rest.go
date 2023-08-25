@@ -463,7 +463,7 @@ func newTFEncryptionAtRestRSModel(ctx context.Context, projectID string, encrypt
 		AwsKmsConfig:         newTFAwsKmsConfig(ctx, &encryptionResp.AwsKms, plan.AwsKmsConfig),
 		AzureKeyVaultConfig:  newTFAzureKeyVaultConfig(ctx, &encryptionResp.AzureKeyVault, plan.AzureKeyVaultConfig),
 		GoogleCloudKmsConfig: newTFGcpKmsConfig(ctx, &encryptionResp.GoogleCloudKms, plan.GoogleCloudKmsConfig),
-	} 
+	}
 }
 
 func newTFAwsKmsConfig(ctx context.Context, awsKms *matlas.AwsKms, currStateSlice []tfAwsKmsConfigModel) []tfAwsKmsConfigModel {
