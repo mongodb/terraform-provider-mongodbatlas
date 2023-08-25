@@ -254,12 +254,21 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	projectID, entry, err := splitProjectIPAccessListImportID(projectIPAccessListModelState.ID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("the provided resource ID is not correct", err.Error())
+	entry := projectIPAccessListModelState.CIDRBlock.ValueString()
+	if projectIPAccessListModelState.IPAddress.ValueString() != "" {
+		entry = projectIPAccessListModelState.IPAddress.ValueString()
+	} else if projectIPAccessListModelState.AWSSecurityGroup.ValueString() != "" {
+		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
 	}
-	if projectID == "" || entry == "" {
-		resp.Diagnostics.AddError("error during the reading operation", "the provided resource ID is not correct")
+
+	projectID := projectIPAccessListModelState.ProjectID.ValueString()
+	// Use the ID only with the IMPORT operation
+	var err error
+	if entry == "" && projectIPAccessListModelState.ID.ValueString() != "" {
+		projectID, entry, err = splitProjectIPAccessListImportID(projectIPAccessListModelState.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("the provided ID is not correct", err.Error())
+		}
 	}
 
 	timeout, diags := projectIPAccessListModelState.Timeouts.Read(ctx, projectIPAccessListTimeoutRead)
