@@ -17,4 +17,4 @@ description: |-
 {{ .SchemaMarkdown | trimspace }}
 
 # Import 
-{{ tffile (printf .ImportFile )}}
+{{ tffile (printf "examples/Atlas_Database_Users/import.sh" )}}
