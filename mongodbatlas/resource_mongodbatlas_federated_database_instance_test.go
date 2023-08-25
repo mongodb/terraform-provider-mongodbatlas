@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
-	// SkipTestExtCred(t)
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -44,7 +44,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 }
 
 func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
-	// SkipTestExtCred(t)
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

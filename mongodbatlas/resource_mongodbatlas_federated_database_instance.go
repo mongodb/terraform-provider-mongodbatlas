@@ -324,20 +324,11 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 }
 
 func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// conn := meta.(*MongoDBClient).Atlas
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	// requestBody := &matlas.DataFederationInstance{
-	// 	Name:                name,
-	// 	CloudProviderConfig: newCloudProviderConfig(d),
-	// 	DataProcessRegion:   newDataProcessRegion(d),
-	// 	Storage:             newDataFederationStorage(d),
-	// }
-
-	// _, _, err := conn.DataFederation.Create(ctx, projectID, requestBody)
 	if _, _, err := connV2.DataFederationApi.CreateFederatedDatabase(ctx, projectID, &admin.DataLakeTenant{
 		Name:                strPointer(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
@@ -347,9 +338,6 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceCreate, err))
 	}
 
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceCreate, err))
-	// }
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
@@ -364,15 +352,6 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	// dataFederationInstance, resp, err := conn.DataFederation.Get(ctx, projectID, name)
-	// if err != nil {
-	// 	if resp != nil && resp.StatusCode == http.StatusNotFound {
-	// 		d.SetId("")
-	// 		return nil
-	// 	}
-
-	// 	return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceRead, name, err))
-	// }
 	dataFederationInstance, resp, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -418,16 +397,6 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	// requestBody := &matlas.DataFederationInstance{
-	// 	Name:                name,
-	// 	CloudProviderConfig: newCloudProviderConfig(d),
-	// 	DataProcessRegion:   newDataProcessRegion(d),
-	// 	Storage:             newDataFederationStorage(d),
-	// }
-	// _, _, err := conn.DataFederation.Update(ctx, projectID, name, requestBody, nil)
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
-	// }
 	if _, _, err := connV2.DataFederationApi.UpdateFederatedDatabase(ctx, projectID, name, &admin.DataLakeTenant{
 		Name:                pointy.String(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
@@ -447,10 +416,6 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d 
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	// _, err := conn.DataFederation.Delete(ctx, projectID, name)
-	// if err != nil {
-	// 	return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceDelete, name, err))
-	// }
 	if _, _, err := connV2.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, name).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceDelete, name, err))
 	}
@@ -482,7 +447,6 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		}
 	}
 
-	// dataFederationInstance, _, err := conn.DataFederation.Get(ctx, projectID, name)
 	dataFederationInstance, _, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import data federated instance (%s) for project (%s), error: %s", name, projectID, err)
@@ -545,10 +509,10 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 	for i, storeFromConf := range storesFromConf {
 		storeFromConfMap := storeFromConf.(map[string]interface{})
 		stores[i] = admin.DataLakeStoreSettings{
-			Name:     strPointer(storeFromConfMap["name"].(string)),
-			Provider: storeFromConfMap["provider"].(string),
-			Region:   strPointer(storeFromConfMap["region"].(string)),
-			//  ProjectID:                pointer(storeFromConfMap["project_id"].(string)),
+			Name:                     strPointer(storeFromConfMap["name"].(string)),
+			Provider:                 storeFromConfMap["provider"].(string),
+			Region:                   strPointer(storeFromConfMap["region"].(string)),
+			ProjectId:                pointer(storeFromConfMap["project_id"].(string)),
 			Bucket:                   strPointer(storeFromConfMap["bucket"].(string)),
 			ClusterName:              strPointer(storeFromConfMap["cluster_name"].(string)),
 			Prefix:                   strPointer(storeFromConfMap["prefix"].(string)),
@@ -587,24 +551,6 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 		// TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
 }
-
-// func newTagSets(readPreferenceFromConfMap map[string]interface{}) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
-// 	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]interface{})
-// 	if !ok || len(tagSetsFromConf) == 0 {
-// 		return nil
-// 	}
-
-// 	tagSets := make([]*matlas.TagSet, len(tagSetsFromConf))
-// 	for i, tagSetFromConf := range tagSetsFromConf {
-// 		storeFromConfMap := tagSetFromConf.(map[string]interface{})
-// 		tagSets[i] = &matlas.TagSet{
-// 			Name:  storeFromConfMap["name"].(string),
-// 			Value: storeFromConfMap["value"].(string),
-// 		}
-// 	}
-
-// 	return tagSets
-// }
 
 func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseInstance {
 	storageDBsFromConf := d.Get("storage_databases").(*schema.Set).List()
@@ -680,15 +626,6 @@ func newUrls(urlsFromConfig []interface{}) []string {
 	return urls
 }
 
-// func newCloudProviderConfig(d *schema.ResourceData) *matlas.CloudProviderConfig {
-// 	if cloudProvider, ok := d.Get("cloud_provider_config").([]interface{}); ok && len(cloudProvider) == 1 {
-// 		return &matlas.CloudProviderConfig{
-// 			AWSConfig: *newAWSConfig(cloudProvider),
-// 		}
-// 	}
-
-//		return nil
-//	}
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
 	if cloudProvider, ok := d.Get("cloud_provider_config").([]interface{}); ok && len(cloudProvider) == 1 {
 		return &admin.DataLakeCloudProviderConfig{
