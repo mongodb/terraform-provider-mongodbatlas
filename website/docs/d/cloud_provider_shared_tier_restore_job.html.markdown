@@ -44,4 +44,4 @@ In addition to all arguments above, the following attributes are exported:
 * `delivery_type` -	Means by which this resource returns the snapshot to the requesting MongoDB Cloud user. Values: `RESTORE`, `DOWNLOAD`.
 * `expiration_date` -	Date and time when the download link no longer works. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Shared-Tier-Restore-Jobs/operation/getSharedClusterBackupRestoreJob)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Shared-Tier-Restore-Jobs/operation/getSharedClusterBackupRestoreJob)
