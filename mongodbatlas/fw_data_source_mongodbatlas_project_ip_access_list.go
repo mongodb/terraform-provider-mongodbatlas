@@ -158,7 +158,11 @@ func newTFProjectIPAccessListDSModel(ctx context.Context, accessList *matlas.Pro
 		entry = accessList.AwsSecurityGroup
 	}
 
-	id := fmt.Sprintf("%s-%s", accessList.GroupID, entry)
+	id := encodeStateID(map[string]string{
+		"entry":      entry,
+		"project_id": accessList.GroupID,
+	})
+
 	databaseUserModel.ID = types.StringValue(id)
 	return databaseUserModel, nil
 }

@@ -233,14 +233,11 @@ func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) reso
 			return fmt.Errorf("no ID is set")
 		}
 
-		projectID, entry, err := splitProjectIPAccessListImportID(rs.Primary.ID)
-		if err != nil {
-			return fmt.Errorf("the resource id (%s) does not have the correct format", rs.Primary.ID)
-		}
+		ids := decodeStateID(rs.Primary.ID)
 
-		_, _, err = conn.ProjectIPAccessList.Get(context.Background(), projectID, entry)
+		_, _, err := conn.ProjectIPAccessList.Get(context.Background(), ids["project_id"], ids["entry"])
 		if err != nil {
-			return fmt.Errorf("project ip access list entry (%s) does not exist", entry)
+			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
 		}
 
 		return nil
@@ -273,12 +270,9 @@ func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName s
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		projectID, entry, err := splitProjectIPAccessListImportID(rs.Primary.ID)
-		if err != nil {
-			return "", fmt.Errorf("the resource id (%s) does not have the correct format", rs.Primary.ID)
-		}
+		ids := decodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s-%s", projectID, entry), nil
+		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
 	}
 }
 

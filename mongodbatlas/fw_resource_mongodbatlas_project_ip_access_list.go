@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -224,7 +223,11 @@ func newTFProjectIPAccessListModel(projectIPAccessListModel *tfProjectIPAccessLi
 		entry = projectIPAccessList.AwsSecurityGroup
 	}
 
-	id := fmt.Sprintf("%s-%s", projectIPAccessList.GroupID, entry)
+	id := encodeStateID(map[string]string{
+		"entry":      entry,
+		"project_id": projectIPAccessList.GroupID,
+	})
+
 	return &tfProjectIPAccessListModel{
 		ID:               types.StringValue(id),
 		ProjectID:        types.StringValue(projectIPAccessList.GroupID),
@@ -254,12 +257,10 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	projectID, entry, err := splitProjectIPAccessListImportID(projectIPAccessListModelState.ID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("the provided resource ID is not correct", err.Error())
-	}
-	if projectID == "" || entry == "" {
+	decodedIDMap := decodeStateID(projectIPAccessListModelState.ID.ValueString())
+	if len(decodedIDMap) != 2 {
 		resp.Diagnostics.AddError("error during the reading operation", "the provided resource ID is not correct")
+		return
 	}
 
 	timeout, diags := projectIPAccessListModelState.Timeouts.Read(ctx, projectIPAccessListTimeoutRead)
@@ -269,8 +270,8 @@ func (r *ProjectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	conn := r.client.Atlas
-	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		accessList, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, projectID, entry)
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		accessList, httpResponse, err := conn.ProjectIPAccessList.Get(ctx, decodedIDMap["project_id"], decodedIDMap["entry"])
 		if err != nil {
 			// case 404
 			// deleted in the backend case
@@ -359,6 +360,20 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	parts := strings.SplitN(req.ID, "-", 2)
+
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError("import format error", "to import a projectIP Access List, use the format {project_id}-{entry}")
+	}
+
+	projectID := parts[0]
+	entry := parts[1]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), encodeStateID(map[string]string{
+		"entry":      entry,
+		"project_id": projectID,
+	}))...)
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
@@ -386,19 +401,6 @@ func isEntryInProjectAccessList(ctx context.Context, conn *matlas.Client, projec
 	}
 
 	return &out, true, nil
-}
-
-func splitProjectIPAccessListImportID(id string) (projectID, entry string, err error) {
-	parts := strings.SplitN(id, "-", 2)
-	if len(parts) != 2 {
-		err = errors.New("import format error: to import a ProjectIP Access List entry, use the format {project_id}-{ip_address or cidr_block}")
-		return
-	}
-
-	projectID = parts[0]
-	entry = parts[1]
-
-	return
 }
 
 // Update is not supported
