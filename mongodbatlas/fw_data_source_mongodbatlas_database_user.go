@@ -27,6 +27,7 @@ type tfDatabaseUserDSModel struct {
 	Username         types.String   `tfsdk:"username"`
 	Password         types.String   `tfsdk:"password"`
 	X509Type         types.String   `tfsdk:"x509_type"`
+	OIDCAuthType     types.String   `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String   `tfsdk:"aws_iam_type"`
 	Roles            []tfRoleModel  `tfsdk:"roles"`
@@ -42,13 +43,9 @@ func (d *DatabaseUserDS) Metadata(ctx context.Context, req datasource.MetadataRe
 }
 
 func (d *DatabaseUserDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*MongoDBClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
+	client, err := ConfigureClient(req.ProviderData)
+	if err != nil {
+		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
 	d.client = client
@@ -87,6 +84,11 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 				Computed:            true,
 				MarkdownDescription: description.X509Type,
 				Description:         description.X509Type,
+			},
+			"oidc_auth_type": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: description.OIDC,
+				Description:         description.OIDC,
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Computed:            true,

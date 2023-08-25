@@ -33,13 +33,9 @@ func (d *DatabaseUsersDS) Metadata(ctx context.Context, req datasource.MetadataR
 }
 
 func (d *DatabaseUsersDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*MongoDBClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
+	client, err := ConfigureClient(req.ProviderData)
+	if err != nil {
+		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
 	d.client = client

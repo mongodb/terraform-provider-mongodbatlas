@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -35,6 +37,7 @@ type tfDatabaseUserModel struct {
 	Username         types.String `tfsdk:"username"`
 	Password         types.String `tfsdk:"password"`
 	X509Type         types.String `tfsdk:"x509_type"`
+	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
 	Roles            types.Set    `tfsdk:"roles"`
@@ -133,6 +136,16 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				MarkdownDescription: description.X509Type,
 				Description:         description.X509Type,
 			},
+			"oidc_auth_type": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("NONE"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("NONE", "IDP_GROUP"),
+				},
+				MarkdownDescription: description.OIDC,
+				Description:         description.OIDC,
+			},
 			"ldap_auth_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -156,6 +169,9 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 		},
 		Blocks: map[string]schema.Block{
 			"roles": schema.SetNestedBlock{
+				Validators: []validator.Set{
+					setvalidator.IsRequired(),
+				},
 				MarkdownDescription: description.Roles,
 				Description:         description.Roles,
 				NestedObject: schema.NestedBlockObject{
@@ -236,7 +252,7 @@ func (r *DatabaseUserRS) Metadata(ctx context.Context, req resource.MetadataRequ
 }
 
 func (r *DatabaseUserRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClientInResource(req.ProviderData)
+	client, err := ConfigureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
@@ -245,28 +261,28 @@ func (r *DatabaseUserRS) Configure(ctx context.Context, req resource.ConfigureRe
 }
 
 func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var databaseUserModel *tfDatabaseUserModel
+	var databaseUserPlan *tfDatabaseUserModel
 
-	diags := req.Plan.Get(ctx, &databaseUserModel)
+	diags := req.Plan.Get(ctx, &databaseUserPlan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dbUserReq, d := newMongoDBDatabaseUser(ctx, databaseUserModel)
+	dbUserReq, d := newMongoDBDatabaseUser(ctx, databaseUserPlan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserModel.ProjectID.ValueString(), dbUserReq)
+	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
+	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserPlan, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -300,8 +316,15 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
+	dbUser, httpResponse, err := conn.DatabaseUsers.Get(ctx, authDatabaseName, projectID, username)
 	if err != nil {
+		// case 404
+		// deleted in the backend case
+		if httpResponse != nil && httpResponse.StatusCode == http.StatusNotFound {
+			resp.State.RemoveResource(ctx)
+			resp.Diagnostics.AddError("resource not found", err.Error())
+			return
+		}
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return
 	}
@@ -319,28 +342,28 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var databaseUserModel *tfDatabaseUserModel
+	var databaseUserPlan *tfDatabaseUserModel
 
-	diags := req.Plan.Get(ctx, &databaseUserModel)
+	diags := req.Plan.Get(ctx, &databaseUserPlan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dbUserReq, d := newMongoDBDatabaseUser(ctx, databaseUserModel)
+	dbUserReq, d := newMongoDBDatabaseUser(ctx, databaseUserPlan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Update(ctx, databaseUserModel.ProjectID.ValueString(), databaseUserModel.Username.ValueString(), dbUserReq)
+	dbUser, _, err := conn.DatabaseUsers.Update(ctx, databaseUserPlan.ProjectID.ValueString(), databaseUserPlan.Username.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserModel, dbUser)
+	dbUserModel, diagnostic := newTFDatabaseUserModel(ctx, databaseUserPlan, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -398,6 +421,7 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 		Password:     dbUserModel.Password.ValueString(),
 		X509Type:     dbUserModel.X509Type.ValueString(),
 		AWSIAMType:   dbUserModel.AWSIAMType.ValueString(),
+		OIDCAuthType: dbUserModel.OIDCAuthType.ValueString(),
 		LDAPAuthType: dbUserModel.LDAPAuthType.ValueString(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
 		Roles:        newMongoDBAtlasRoles(rolesModel),
@@ -431,6 +455,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 		X509Type:         types.StringValue(dbUser.X509Type),
 		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
 		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
+		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
 		Roles:            rolesSet,
 		Labels:           labelsSet,
 		Scopes:           scopesSet,
@@ -438,7 +463,7 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 
 	if model != nil && model.Password.ValueString() != "" {
 		// The Password is not retuned from the endpoint so we use the one provided in the model
-		databaseUserModel.Password = types.StringValue(model.Password.ValueString())
+		databaseUserModel.Password = model.Password
 	}
 
 	return databaseUserModel, nil
