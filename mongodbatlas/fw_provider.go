@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -379,6 +380,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewProjectRS,
+		NewEncryptionAtRestRS,
 		NewDatabaseUserRS,
 		NewAlertConfigurationRS,
 	}
