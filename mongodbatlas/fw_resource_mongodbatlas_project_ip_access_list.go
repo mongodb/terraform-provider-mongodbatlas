@@ -23,14 +23,13 @@ import (
 )
 
 const (
-	errorAccessListCreate          = "error creating Project IP Access List information: %s"
-	errorAccessListRead            = "error getting Project IP Access List information: %s"
-	errorAccessListDelete          = "error deleting Project IP Access List information: %s"
-	projectIPAccessListTimeout     = 45 * time.Minute
-	projectIPAccessListRetryDelete = 5 * time.Minute
-	projectIPAccessListMinTimeout  = 2 * time.Second
-	projectIPAccessListDelay       = 4 * time.Second
-	projectIPAccessListRetry       = 2 * time.Minute
+	errorAccessListCreate         = "error creating Project IP Access List information: %s"
+	errorAccessListRead           = "error getting Project IP Access List information: %s"
+	errorAccessListDelete         = "error deleting Project IP Access List information: %s"
+	projectIPAccessListTimeout    = 45 * time.Minute
+	projectIPAccessListMinTimeout = 2 * time.Second
+	projectIPAccessListDelay      = 4 * time.Second
+	projectIPAccessListRetry      = 2 * time.Minute
 )
 
 type tfProjectIPAccessListModel struct {
@@ -131,7 +130,7 @@ func (r *ProjectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaR
 		},
 		Blocks: map[string]schema.Block{
 			"timeouts": timeouts.Block(ctx, timeouts.Opts{
-				Create: true,
+				Delete: true,
 				Read:   true,
 			}),
 		},
@@ -149,12 +148,6 @@ func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 
 	if projectIPAccessListModel.CIDRBlock.IsNull() && projectIPAccessListModel.IPAddress.IsNull() && projectIPAccessListModel.AWSSecurityGroup.IsNull() {
 		resp.Diagnostics.AddError("validation error", "cidr_block, ip_address or aws_security_group needs to contain a value")
-		return
-	}
-
-	createTimeout, diags := projectIPAccessListModel.Timeouts.Create(ctx, projectIPAccessListTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -197,7 +190,7 @@ func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 
 			return entry, "created", nil
 		},
-		Timeout:    createTimeout,
+		Timeout:    projectIPAccessListTimeout,
 		Delay:      projectIPAccessListDelay,
 		MinTimeout: projectIPAccessListMinTimeout,
 	}
@@ -331,7 +324,13 @@ func (r *ProjectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	conn := r.client.Atlas
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
 
-	err := retry.RetryContext(ctx, projectIPAccessListRetryDelete, func() *retry.RetryError {
+	timeout, diags := projectIPAccessListModelState.Timeouts.Delete(ctx, projectIPAccessListTimeout)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		httpResponse, err := conn.ProjectIPAccessList.Delete(ctx, projectID, entry)
 		if err != nil {
 			if httpResponse != nil && httpResponse.StatusCode == http.StatusInternalServerError {
