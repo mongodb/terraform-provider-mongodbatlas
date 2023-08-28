@@ -132,7 +132,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.
 
-* `field_name` - Name of the field in the target object to match on.
+* `field_name` - (Required) Name of the field in the target object to match on.
 
 | Host alerts         | Replica set alerts  |  Sharded cluster alerts |
 |:----------           |:-------------       |:------                 |
@@ -144,13 +144,9 @@ Rules to apply when matching an object against this alert configuration. Only en
 
 
 
-  All other types of alerts do not support matchers.
+All other types of alerts do not support matchers.
 
-* `operator` - If omitted, the configuration is disabled.
-* `value` - If omitted, the configuration is disabled.
-
-
-* `operator` - The operator to test the field’s value.
+* `operator` - (Required) The operator to test the field’s value.
   Accepted values are:
     - `EQUALS`
     - `NOT_EQUALS`
@@ -160,7 +156,7 @@ Rules to apply when matching an object against this alert configuration. Only en
     - `ENDS_WITH`
     - `REGEX`
 
-* `value` - Value to test with the specified operator. If `field_name` is set to TYPE_NAME, you can match on the following values:
+* `value` - (Required) Value to test with the specified operator. If `field_name` is set to TYPE_NAME, you can match on the following values:
     - `PRIMARY`
     - `SECONDARY`
     - `STANDALONE`
@@ -170,7 +166,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 ### Metric Threshold Config (`metric_threshold_config`)
 The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`
 
-* `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
+* `metric_name` - (Required) Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
 * `operator` - Operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
