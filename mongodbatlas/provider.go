@@ -237,7 +237,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service_adl":                            resourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     resourceMongoDBAtlasPrivateLinkEndpointServiceServerless(),
 		"mongodbatlas_third_party_integration":                                     resourceMongoDBAtlasThirdPartyIntegration(),
-		"mongodbatlas_project_ip_access_list":                                      resourceMongoDBAtlasProjectIPAccessList(),
 		"mongodbatlas_cloud_provider_access":                                       resourceMongoDBAtlasCloudProviderAccess(),
 		"mongodbatlas_online_archive":                                              resourceMongoDBAtlasOnlineArchive(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        resourceMongoDBAtlasCustomDNSConfiguration(),
