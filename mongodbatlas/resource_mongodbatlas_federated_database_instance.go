@@ -556,7 +556,6 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 		Mode:                stringPtr(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: intPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
 	}
-
 }
 
 func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseInstance {
