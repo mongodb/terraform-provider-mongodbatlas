@@ -21,7 +21,6 @@ resource "mongodbatlas_project_api_key" "test" {
   description   = "Description of the API key"
   project_id    = "32b6e34b3d91647abb20e7b8"
   role_names = ["GROUP_READ_ONLY"]
-  }
 }
 
 data "mongodbatlas_project_api_keys" "test" {

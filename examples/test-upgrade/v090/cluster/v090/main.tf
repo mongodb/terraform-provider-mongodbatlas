@@ -9,7 +9,7 @@ resource "mongodbatlas_cluster" "test" {
   disk_size_gb                 = 100
   num_shards                   = 1
   replication_factor           = 3
-  cloud_backup                 = true
+  provider_backup_enabled      = true
   pit_enabled                  = true
   auto_scaling_disk_gb_enabled = true
   mongo_db_major_version       = var.mongodb_major_version
