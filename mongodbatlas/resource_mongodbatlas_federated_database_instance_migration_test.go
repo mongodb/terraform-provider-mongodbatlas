@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccFederatedDatabaseInstance_SDKMigraitonTest_basic(t *testing.T) {
-	SkipTestExtCred(t)
+func TestAccFederatedDatabaseInstance_MigraitonTest_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -56,7 +55,7 @@ func TestAccFederatedDatabaseInstance_SDKMigraitonTest_basic(t *testing.T) {
 	})
 }
 
-func TestAccFederatedDatabaseInstance_SDKMigration_S3bucket(t *testing.T) {
+func TestAccFederatedDatabaseInstance_Migration_S3bucket(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
@@ -117,8 +116,7 @@ func TestAccFederatedDatabaseInstance_SDKMigration_S3bucket(t *testing.T) {
 	})
 }
 
-func TestAccFederatedDatabaseInstance_SDKMigration_atlasCluster(t *testing.T) {
-	SkipTestExtCred(t)
+func TestAccFederatedDatabaseInstance_Migration_atlasCluster(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

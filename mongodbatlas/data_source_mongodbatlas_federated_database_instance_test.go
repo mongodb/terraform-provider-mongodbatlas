@@ -7,14 +7,14 @@ import (
 	"os"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
-	SkipTestExtCred(t)
 	var (
 		resourceName      = "data.mongodbatlas_federated_database_instance.test"
 		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
