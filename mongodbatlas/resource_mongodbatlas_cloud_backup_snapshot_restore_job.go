@@ -38,74 +38,11 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"delivery_type": {
-				Type:          schema.TypeMap,
-				Optional:      true,
-				ForceNew:      true,
-				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "delivery_type_config"),
-				ConflictsWith: []string{"delivery_type_config"},
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(map[string]interface{})
-
-					_, automated := v["automated"]
-					_, download := v["download"]
-					_, pointInTime := v["point_in_time"]
-
-					if (v["automated"] == "true" && v["download"] == "true" && v["point_in_time"] == "true") ||
-						(v["automated"] == "false" && v["download"] == "false" && v["point_in_time"] == "false") ||
-						(!automated && !download && !pointInTime) {
-						errs = append(errs, fmt.Errorf("%q you can only submit one type of restore job: automated, download or point_in_time", key))
-					}
-					if v["automated"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) {
-						if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
-							errs = append(errs, fmt.Errorf("%q target_cluster_name must be set", key))
-						}
-						if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
-							errs = append(errs, fmt.Errorf("%q target_project_id must be set", key))
-						}
-					}
-					if v["download"] == "true" && (v["automated"] == "false" || v["automated"] == "" || !automated) &&
-						(v["point_in_time"] == "false" || v["point_in_time"] == "" || !pointInTime) {
-						if targetClusterName, ok := v["target_cluster_name"]; ok || targetClusterName == "" {
-							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_cluster_name when you are using download delivery type", key))
-						}
-						if targetGroupID, ok := v["target_project_id"]; ok || targetGroupID == "" {
-							errs = append(errs, fmt.Errorf("%q it's not necessary implement target_project_id when you are using download delivery type", key))
-						}
-					}
-					if v["point_in_time"] == "true" && (v["download"] == "false" || v["download"] == "" || !download) &&
-						(v["automated"] == "false" || v["automated"] == "" || !automated) {
-						_, oplogTS := v["oplog_ts"]
-						_, pointTimeUTC := v["point_in_time_utc_seconds"]
-						_, oplogInc := v["oplog_inc"]
-						if targetClusterName, ok := v["target_cluster_name"]; !ok || targetClusterName == "" {
-							errs = append(errs, fmt.Errorf("%q target_cluster_name must be set", key))
-						}
-						if targetGroupID, ok := v["target_project_id"]; !ok || targetGroupID == "" {
-							errs = append(errs, fmt.Errorf("%q target_project_id must be set", key))
-						}
-						if !pointTimeUTC && !oplogTS && !oplogInc {
-							errs = append(errs, fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key))
-						}
-						if (oplogTS && !oplogInc) || (!oplogTS && oplogInc) {
-							errs = append(errs, fmt.Errorf("%q if oplog_ts or oplog_inc is provided, oplog_inc and oplog_ts must be set", key))
-						}
-						if pointTimeUTC && (oplogTS || oplogInc) {
-							errs = append(errs, fmt.Errorf("%q you can't use both point_in_time_utc_seconds and oplog_ts or oplog_inc", key))
-						}
-					}
-					return
-				},
-			},
 			"delivery_type_config": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"delivery_type"},
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"download": {
@@ -206,27 +143,6 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 
 	snapshotReq := buildRequestSnapshotReq(d)
 
-	if _, ok := d.GetOk("delivery_type"); ok {
-		deliveryType := "automated"
-		if aut, _ := d.Get("delivery_type.download").(string); aut != "true" {
-			deliveryType = "download"
-		}
-
-		if aut, _ := d.Get("delivery_type.point_in_time").(string); aut == "true" {
-			deliveryType = "pointInTime"
-		}
-
-		snapshotReq = &matlas.CloudProviderSnapshotRestoreJob{
-			SnapshotID:            getEncodedID(d.Get("snapshot_id").(string), "snapshot_id"),
-			DeliveryType:          deliveryType,
-			TargetClusterName:     d.Get("delivery_type.target_cluster_name").(string),
-			TargetGroupID:         d.Get("delivery_type.target_project_id").(string),
-			OplogTs:               cast.ToInt64(d.Get("delivery_type.oplog_ts")),
-			OplogInc:              cast.ToInt64(d.Get("delivery_type.oplog_inc")),
-			PointInTimeUTCSeconds: cast.ToInt64(d.Get("delivery_type.point_in_time_utc_seconds")),
-		}
-	}
-
 	cloudProviderSnapshotRestoreJob, _, err := conn.CloudProviderSnapshotRestoreJobs.Create(ctx, requestParameters, snapshotReq)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error restore a snapshot: %s", err))
@@ -310,11 +226,6 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context
 	shouldDelete := true
 
 	// Validate because automated restore can not be cancelled
-	if aut, _ := d.Get("delivery_type.automated").(string); aut == "true" {
-		log.Print("Automated restore cannot be cancelled")
-		shouldDelete = false
-	}
-
 	if aut, _ := d.Get("delivery_type_config.0.automated").(bool); aut {
 		log.Print("Automated restore cannot be cancelled")
 		shouldDelete = false
@@ -377,12 +288,6 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Co
 		deliveryTypeConfig["automated"] = true
 		deliveryTypeConfig["target_cluster_name"] = u.TargetClusterName
 		deliveryTypeConfig["target_project_id"] = u.TargetGroupID
-	}
-
-	if _, ok := d.GetOk("delivery_type"); ok {
-		if err := d.Set("delivery_type", deliveryType); err != nil {
-			log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
-		}
 	}
 
 	if err := d.Set("delivery_type_config", []interface{}{deliveryTypeConfig}); err != nil {
