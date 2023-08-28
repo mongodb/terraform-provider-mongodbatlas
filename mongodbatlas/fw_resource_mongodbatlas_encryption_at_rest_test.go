@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mwielbut/pointy"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -81,7 +81,7 @@ EOF
 resource "mongodbatlas_encryption_at_rest" "test" {
 	project_id = "%s"
 
-	aws_kms {
+	aws_kms_config {
 		enabled                = %t
 		customer_master_key_id = "%s"
 		region                 = "%s"
@@ -108,6 +108,7 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
 			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
 			Region:              os.Getenv("AWS_REGION"),
+			RoleID:              os.Getenv("AWS_ROLE_ID"),
 		}
 
 		awsKmsUpdated = matlas.AwsKms{
@@ -116,10 +117,11 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY_UPDATED"),
 			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID_UPDATED"),
 			Region:              os.Getenv("AWS_REGION_UPDATED"),
+			RoleID:              os.Getenv("AWS_ROLE_ID"),
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -129,6 +131,9 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.Region),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.RoleID),
 				),
 			},
 			{
@@ -136,7 +141,17 @@ func TestAccAdvRSEncryptionAtRest_basicAWS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKmsUpdated.Region),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKmsUpdated.RoleID),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"google_cloud_kms_config", "azure_key_vault_config"},
 			},
 		},
 	})
@@ -173,7 +188,7 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -183,6 +198,10 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVault.AzureEnvironment),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVault.ResourceGroupName),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVault.KeyVaultName),
 				),
 			},
 			{
@@ -190,7 +209,19 @@ func TestAccAdvRSEncryptionAtRest_basicAzure(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", azureKeyVaultUpdated.AzureEnvironment),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", azureKeyVaultUpdated.ResourceGroupName),
+					resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", azureKeyVaultUpdated.KeyVaultName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// "azure_key_vault_config.0.secret" is a sensitive value not returned by the API
+				ImportStateVerifyIgnore: []string{"google_cloud_kms_config", "aws_kms_config", "azure_key_vault_config.0.secret"},
 			},
 		},
 	})
@@ -215,7 +246,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 		}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
@@ -225,6 +256,7 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
 				),
 			},
 			{
@@ -232,7 +264,16 @@ func TestAccAdvRSEncryptionAtRest_basicGCP(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// "google_cloud_kms_config.0.service_account_key" is a sensitive value not returned by the API
+				ImportStateVerifyIgnore: []string{"aws_kms_config", "azure_key_vault_config", "google_cloud_kms_config.0.service_account_key"},
 			},
 		},
 	})
@@ -257,7 +298,13 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck: func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"aws": {
+				VersionConstraint: "5.1.0",
+				Source:            "hashicorp/aws",
+			},
+		},
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
@@ -271,13 +318,20 @@ func TestAccAdvRSEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"google_cloud_kms_config", "azure_key_vault_config"},
+			},
 		},
 	})
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -297,7 +351,7 @@ func testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName string) resourc
 }
 
 func testAccCheckMongoDBAtlasEncryptionAtRestDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_encryption_at_rest" {
@@ -324,13 +378,12 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID string, aws *matl
 
 		  aws_kms_config {
 				enabled                = %t
-				access_key_id          = "%s"
-				secret_access_key      = "%s"
 				customer_master_key_id = "%s"
 				region                 = "%s"
+				role_id              = "%s"
 			}
 		}
-	`, projectID, *aws.Enabled, aws.AccessKeyID, aws.SecretAccessKey, aws.CustomerMasterKeyID, aws.Region)
+	`, projectID, *aws.Enabled, aws.CustomerMasterKeyID, aws.Region, aws.RoleID)
 }
 
 func testAccMongoDBAtlasEncryptionAtRestConfigAzureKeyVault(projectID string, azure *matlas.AzureKeyVault) string {
@@ -377,4 +430,15 @@ func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(region, awsAccesKey
 		config = fmt.Sprintf(initialConfigEncryptionRestRoleAWS, region, awsAccesKey, awsSecretKey, projectID, policyName, awsRoleName, dataAWSARN, dataARN, configEncrypt)
 	}
 	return config
+}
+
+func testAccCheckMongoDBAtlasEncryptionAtRestImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		return rs.Primary.ID, nil
+	}
 }

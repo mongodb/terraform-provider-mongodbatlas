@@ -228,3 +228,141 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 		},
 	})
 }
+
+func TestAccProjectRSProjectIPAccesslist_Migration_SettingIPAddress(t *testing.T) {
+	resourceName := "mongodbatlas_project_ip_access_list.test"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
+	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccProjectRSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T) {
+	resourceName := "mongodbatlas_project_ip_access_list.test"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
+	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
+	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "cidr_block"),
+					resource.TestCheckResourceAttrSet(resourceName, "comment"),
+					resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingCIDRBlock(orgID, projectName, cidrBlock, comment),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *testing.T) {
+	resourceName := "mongodbatlas_project_ip_access_list.test_1"
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
+	const ipWhiteListCount = 20
+	accessList := make([]map[string]string, 0)
+
+	for i := 0; i < ipWhiteListCount; i++ {
+		entry := make(map[string]string)
+		entryName := ""
+		ipAddr := ""
+
+		if i%2 == 0 {
+			entryName = "cidr_block"
+			entry["cidr_block"] = fmt.Sprintf("%d.2.3.%d/32", i, acctest.RandIntRange(0, 255))
+			ipAddr = entry["cidr_block"]
+		} else {
+			entryName = "ip_address"
+			entry["ip_address"] = fmt.Sprintf("%d.2.3.%d", i, acctest.RandIntRange(0, 255))
+			ipAddr = entry["ip_address"]
+		}
+		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
+
+		accessList = append(accessList, entry)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasProjectIPAccessListConfigSettingMultiple(projectName, orgID, accessList, false),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
+			},
+		},
+	})
+}

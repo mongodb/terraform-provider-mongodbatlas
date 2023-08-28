@@ -317,6 +317,39 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	})
 }
 
+// used for testing notification that does not define interval_min attribute
+func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
+	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		serviceKey   = os.Getenv("PAGER_DUTY_SERVICE_KEY")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(projectID, serviceKey, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"notification.0.service_key"}, // service key is not returned by api in import operation
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	SkipTest(t)        // Will force skip if enabled

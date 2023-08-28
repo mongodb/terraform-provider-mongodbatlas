@@ -291,6 +291,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						},
 						"interval_min": schema.Int64Attribute{
 							Optional: true,
+							Computed: true,
+							PlanModifiers: []planmodifier.Int64{
+								int64planmodifier.UseStateForUnknown(),
+							},
 						},
 						"mobile_number": schema.StringAttribute{
 							Optional: true,
@@ -709,9 +713,6 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 		if !currState.EmailAddress.IsNull() {
 			newState.EmailAddress = conversion.StringNullIfEmpty(value.EmailAddress)
 		}
-		if !currState.IntervalMin.IsNull() {
-			newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
-		}
 		if !currState.MobileNumber.IsNull() {
 			newState.MobileNumber = conversion.StringNullIfEmpty(value.MobileNumber)
 		}
@@ -728,6 +729,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 			newState.Username = conversion.StringNullIfEmpty(value.Username)
 		}
 
+		newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
 		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
 		newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
