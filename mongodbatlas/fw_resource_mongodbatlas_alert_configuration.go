@@ -166,13 +166,13 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"field_name": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"operator": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"value": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -184,7 +184,7 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"metric_name": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"operator": schema.StringAttribute{
 							Optional: true,
@@ -330,7 +330,7 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							},
 						},
 						"type_name": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("EMAIL", "SMS", pagerDuty, "SLACK",
 									"DATADOG", opsGenie, victorOps,
