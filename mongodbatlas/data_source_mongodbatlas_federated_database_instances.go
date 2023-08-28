@@ -140,9 +140,9 @@ func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string,
 		for i := range federatedDatabaseInstances {
 			federatedDatabaseInstancesMap[i] = map[string]interface{}{
 				"project_id":            projectID,
-				"name":                  federatedDatabaseInstances[i].Name,
-				"state":                 federatedDatabaseInstances[i].State,
-				"hostnames":             federatedDatabaseInstances[i].Hostnames,
+				"name":                  federatedDatabaseInstances[i].GetName(),
+				"state":                 federatedDatabaseInstances[i].GetState(),
+				"hostnames":             federatedDatabaseInstances[i].GetHostnames(),
 				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
 				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
 				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),

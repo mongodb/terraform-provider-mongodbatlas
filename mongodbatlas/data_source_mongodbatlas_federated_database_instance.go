@@ -222,10 +222,6 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"cluster_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
 				"project_id": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -352,7 +348,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
-		"name":       *dataFederationInstance.Name,
+		"name":       dataFederationInstance.GetName(),
 	}))
 
 	return nil
