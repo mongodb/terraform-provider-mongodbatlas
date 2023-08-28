@@ -514,11 +514,10 @@ func expandAlertConfigurationMatchers(d *schema.ResourceData) []matlas.Matcher {
 
 	if m, ok := d.GetOk("matcher"); ok {
 		for _, value := range m.([]interface{}) {
-			if value == nil {
+			v, ok := value.(map[string]interface{})
+			if !ok {
 				break
 			}
-
-			v := value.(map[string]interface{})
 			matchers = append(matchers, matlas.Matcher{
 				FieldName: v["field_name"].(string),
 				Operator:  v["operator"].(string),
@@ -612,12 +611,10 @@ func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Thr
 		vL := value.([]interface{})
 
 		if len(vL) > 0 {
-			if vL[0] == nil {
+			v, ok := vL[0].(map[string]interface{})
+			if !ok {
 				return nil
 			}
-
-			v := vL[0].(map[string]interface{})
-
 			return &matlas.Threshold{
 				Operator:  cast.ToString(v["operator"]),
 				Units:     cast.ToString(v["units"]),
