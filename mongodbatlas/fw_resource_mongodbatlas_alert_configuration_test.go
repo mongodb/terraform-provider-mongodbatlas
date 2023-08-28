@@ -63,6 +63,31 @@ func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) 
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_alert_configuration.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		alert        = &matlas.AlertConfiguration{}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheckBasic(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMatcherMetricThresholdConfig(orgID, projectName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
 func TestAccConfigRSAlertConfiguration_Notifications(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
@@ -850,6 +875,50 @@ resource "mongodbatlas_alert_configuration" "test" {
     units       = "HOURS"
   }
 
+}
+	`, orgID, projectName, enabled)
+}
+
+func testAccMongoDBAtlasAlertConfigurationConfigEmptyMatcherMetricThresholdConfig(orgID, projectName string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
+
+resource "mongodbatlas_alert_configuration" "test" {
+  project_id = mongodbatlas_project.test.id
+  event_type = "CLUSTER_MONGOS_IS_MISSING"
+  enabled    = "%[3]t"
+
+  notification {
+    type_name     = "GROUP"
+    interval_min  = 60
+    delay_min     = 0
+    sms_enabled   = true
+    email_enabled = false
+	roles         = ["GROUP_OWNER"]
+  }
+
+  matcher {
+    field_name = ""
+    operator   = null
+    value      = ""
+  }
+
+  metric_threshold_config {
+    metric_name = ""
+    operator    = null
+    threshold   = null
+    units       = null
+    mode        = ""
+  }
+
+  threshold_config {
+    operator  = null
+    threshold = null
+    units     = null
+  }
 }
 	`, orgID, projectName, enabled)
 }
