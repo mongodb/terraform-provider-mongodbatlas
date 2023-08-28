@@ -31,7 +31,7 @@
                   "project": {
                       "id": "19383"
                   },
-                  "summary": "HELP: Issue N.'"${ISSUE_NUMBER}"'",
+                  "summary": "HELP: GitHub Issue n. '"${ISSUE_NUMBER}"'",
                   "issuetype": {
                       "id": "3"
                   },
