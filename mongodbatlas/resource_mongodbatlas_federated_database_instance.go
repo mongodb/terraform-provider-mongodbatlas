@@ -294,6 +294,22 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
+							"tags": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"name": {
+											Type:     schema.TypeString,
+											Optional: true,
+										},
+										"value": {
+											Type:     schema.TypeString,
+											Optional: true,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -503,7 +519,7 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 			Name:                     stringPtr(storeFromConfMap["name"].(string)),
 			Provider:                 storeFromConfMap["provider"].(string),
 			Region:                   stringPtr(storeFromConfMap["region"].(string)),
-			ProjectId:                pointer(storeFromConfMap["project_id"].(string)),
+			ProjectId:                stringPtr(storeFromConfMap["project_id"].(string)),
 			Bucket:                   stringPtr(storeFromConfMap["bucket"].(string)),
 			ClusterName:              stringPtr(storeFromConfMap["cluster_name"].(string)),
 			Prefix:                   stringPtr(storeFromConfMap["prefix"].(string)),
