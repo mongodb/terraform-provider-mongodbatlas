@@ -209,7 +209,7 @@ List of notifications to send when an alert condition is detected.
 * `sms_enabled` - Flag indicating if text message notifications should be sent to this user's mobile phone. This flag is only valid if `type_name` is set to `ORG`, `GROUP`, or `USER`.
 * `team_id` - Unique identifier of a team.
 * `team_name` - Label for the team that receives this notification.
-* `type_name` - Type of alert notification.
+* `type_name` - (Required) Type of alert notification.
   Accepted values are:
     - `DATADOG`
     - `EMAIL`
