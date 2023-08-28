@@ -140,6 +140,11 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 											Type:     schema.TypeString,
 											Optional: true,
 										},
+										"dataset_name": {
+											Type:     schema.TypeString,
+											Optional: true,
+											Computed: true,
+										},
 										"default_format": {
 											Type:     schema.TypeString,
 											Optional: true,
@@ -299,18 +304,26 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"tags": {
+							"tag_sets": {
 								Type:     schema.TypeList,
-								Computed: true,
+								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"name": {
-											Type:     schema.TypeString,
-											Optional: true,
-										},
-										"value": {
-											Type:     schema.TypeString,
-											Optional: true,
+										"tags": {
+											Type:     schema.TypeList,
+											Required: true,
+											Elem: &schema.Resource{
+												Schema: map[string]*schema.Schema{
+													"name": {
+														Type:     schema.TypeString,
+														Optional: true,
+													},
+													"value": {
+														Type:     schema.TypeString,
+														Optional: true,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -548,8 +561,36 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                strPointer(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: intPointer(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
-		// TagSets:             newTagSets(readPreferenceFromConfMap),
+		TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
+
+}
+
+func newTagSets(readPreferenceFromConfMap map[string]interface{}) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
+	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
+
+	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]interface{})
+	if !ok || len(tagSetsFromConf) == 0 {
+		return nil
+	}
+
+	for ts := 0; ts < len(tagSetsFromConf); ts++ {
+		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]interface{})
+		tagsFromConfigMap := tagSetFromConfMap["tags"].([]interface{})
+		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
+
+		for t := 0; t < len(tagsFromConfigMap); t++ {
+			tagFromConfMap := tagsFromConfigMap[t].(map[string]interface{})
+
+			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
+				Name:  strPointer(tagFromConfMap["name"].(string)),
+				Value: strPointer(tagFromConfMap["value"].(string)),
+			})
+		}
+
+		res = append(res, atlastags)
+	}
+	return res
 }
 
 func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseInstance {
@@ -606,6 +647,7 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 			Path:                strPointer(dataSourceFromConfMap["path"].(string)),
 			ProvenanceFieldName: strPointer(dataSourceFromConfMap["provenance_field_name"].(string)),
 			StoreName:           strPointer(dataSourceFromConfMap["store_name"].(string)),
+			DatasetName:         strPointer(dataSourceFromConfMap["dataset_name"].(string)),
 			Urls:                newUrls(dataSourceFromConfMap["urls"].([]interface{})),
 		}
 	}
@@ -768,6 +810,7 @@ func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseD
 			"path":                  AtlasDataSource.Path,
 			"provenance_field_name": AtlasDataSource.ProvenanceFieldName,
 			"store_name":            AtlasDataSource.StoreName,
+			"dataset_name":          AtlasDataSource.DatasetName,
 			"urls":                  AtlasDataSource.Urls,
 		}
 	}
@@ -811,9 +854,34 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 		{
 			"mode":                  atlasReadPreference.Mode,
 			"max_staleness_seconds": atlasReadPreference.MaxStalenessSeconds,
-			"tags":                  atlasReadPreference.TagSets,
+			"tag_sets":              newTFTagSets(atlasReadPreference.TagSets),
 		},
 	}
+}
+
+func newTFTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+	tfTagSets := make([]map[string]interface{}, 0)
+
+	for i := range tagSets {
+		tfTagSets = append(tfTagSets, map[string]interface{}{
+			"tags": newTfTags(tagSets[i]),
+		})
+	}
+
+	return tfTagSets
+}
+
+func newTfTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+	tfTags := make([]map[string]interface{}, 0)
+
+	for i := range tags {
+		tfTags = append(tfTags, map[string]interface{}{
+			"name":  tags[i].Name,
+			"value": tags[i].Value,
+		})
+	}
+
+	return tfTags
 }
 
 func splitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket string, err error) {
