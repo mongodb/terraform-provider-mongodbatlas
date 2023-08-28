@@ -162,26 +162,6 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
 		  }
 		}
 	  
