@@ -966,7 +966,7 @@ func TestAccClusterRSCluster_importBasic(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled", "retain_backups_enabled"},
+				ImportStateVerifyIgnore: []string{"cloud_backup", "retain_backups_enabled"},
 			},
 		},
 	})
@@ -1229,7 +1229,7 @@ func TestAccClusterRSCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 				ImportStateIdFunc:       testAccCheckMongoDBAtlasClusterImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"cloud_backup", "provider_backup_enabled"},
+				ImportStateVerifyIgnore: []string{"cloud_backup", "backup_enabled"},
 			},
 		},
 	})
@@ -1691,7 +1691,7 @@ func testAccMongoDBAtlasClusterConfigMultiRegion(orgID, projectName, name, backu
 			name                    = %[3]q
 			disk_size_gb            = 100
 			num_shards              = 1
-			provider_backup_enabled = %[4]s
+			cloud_backup            = %[4]s
 			cluster_type            = "REPLICASET"
 
 			// Provider Settings "block"
@@ -1719,8 +1719,7 @@ func testAccMongoDBAtlasClusterConfigGlobal(resourceName, orgID, projectName, na
 			name                    = %[4]q
 			disk_size_gb            = 80
 			num_shards              = 1
-			backup_enabled          = %[5]s
-			provider_backup_enabled = true
+			cloud_backup            = %[5]s
 			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
@@ -1875,8 +1874,8 @@ func testAccMongoDBAtlasClusterConfigWithPrivateEndpointLink(awsAccessKey, awsSe
 		  provider_name               = "AWS"
 		  provider_region_name        = "${upper(replace("%[5]s", "-", "_"))}"
 		  provider_instance_size_name = "M10"
-		  provider_backup_enabled     = true // enable cloud provider snapshots
-		  depends_on = ["mongodbatlas_privatelink_endpoint_service.test"]
+		  cloud_backup                = true // enable cloud provider snapshots
+		  depends_on                  = ["mongodbatlas_privatelink_endpoint_service.test"]
 		}
 	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName)
 }
@@ -2205,11 +2204,11 @@ func testAccMongoDBAtlasClusterConfigRegions(
 		org_id = %[1]q
 	}
 	resource "mongodbatlas_cluster" "test" {
-		project_id                              = mongodbatlas_project.cluster_project.id
-		name                                    = "%[3]s"
-		disk_size_gb            = 400
+	  project_id              = mongodbatlas_project.cluster_project.id
+	  name                    = "%[3]s"
+	  disk_size_gb            = 400
 	  num_shards              = 3
-	  provider_backup_enabled = true
+	  cloud_backup            = true
 	  cluster_type            = "GEOSHARDED"
 	  // Provider Settings "block"
 	  provider_name               = "AWS"

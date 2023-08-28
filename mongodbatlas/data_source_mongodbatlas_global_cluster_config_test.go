@@ -38,7 +38,7 @@ func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name string) string {
 		project_id              = "%s"
 		name                    = "%s"
 		disk_size_gb            = 80
-		provider_backup_enabled = false
+		cloud_backup            = false
 		cluster_type            = "GEOSHARDED"
 
 		// Provider Settings "block"

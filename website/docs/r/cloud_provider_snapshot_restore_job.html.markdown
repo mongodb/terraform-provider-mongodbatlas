@@ -94,7 +94,6 @@ description: |-
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
 * `snapshot_id` - (Required) Unique identifier of the snapshot to restore.
-* `delivery_type` - (Required) Type of restore job to create. Possible values are: **download** or **automated**, only one must be set it in ``true``.
 
 ### Download
 Atlas provides a URL to download a .tar.gz of the snapshot with snapshotId. 

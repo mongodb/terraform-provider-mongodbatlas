@@ -76,7 +76,6 @@ resource "mongodbatlas_project_api_key" "api_1" {
 
 * `project_id` -Unique 24-hexadecimal digit string that identifies your project.
 * `description` - Description of this Project API key.
-* `role_names` -  List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned. **DEPRECATED** Use `project_assignment` instead.
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 

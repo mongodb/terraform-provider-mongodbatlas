@@ -46,14 +46,6 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"bi_connector": {
-							Type:       schema.TypeMap,
-							Computed:   true,
-							Deprecated: "use bi_connector_config instead",
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
 						"bi_connector_config": {
 							Type:     schema.TypeList,
 							Computed: true,
