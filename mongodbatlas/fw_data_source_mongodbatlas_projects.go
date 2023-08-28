@@ -18,11 +18,15 @@ var _ datasource.DataSource = &ProjectsDS{}
 var _ datasource.DataSourceWithConfigure = &ProjectsDS{}
 
 func NewProjectsDS() datasource.DataSource {
-	return &ProjectsDS{}
+	return &ProjectsDS{
+		DSCommon: DSCommon{
+			dataSourceName: projectsDataSourceName,
+		},
+	}
 }
 
 type ProjectsDS struct {
-	client *MongoDBClient
+	DSCommon
 }
 
 type tfProjectsDSModel struct {
@@ -31,24 +35,6 @@ type tfProjectsDSModel struct {
 	PageNum      types.Int64         `tfsdk:"page_num"`
 	ItemsPerPage types.Int64         `tfsdk:"items_per_page"`
 	TotalCount   types.Int64         `tfsdk:"total_count"`
-}
-
-func (d *ProjectsDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_projects"
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectsDataSourceName)
-}
-
-func (d *ProjectsDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*MongoDBClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
-		return
-	}
-	d.client = client
 }
 
 func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

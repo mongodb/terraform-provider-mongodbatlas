@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"bytes"
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,29 +20,19 @@ const (
 )
 
 type ProjectIPAccessListDS struct {
-	client *MongoDBClient
+	DSCommon
 }
 
 func NewProjectIPAccessListDS() datasource.DataSource {
-	return &ProjectIPAccessListDS{}
+	return &ProjectIPAccessListDS{
+		DSCommon: DSCommon{
+			dataSourceName: projectIPAccessList,
+		},
+	}
 }
 
 var _ datasource.DataSource = &ProjectIPAccessListDS{}
 var _ datasource.DataSourceWithConfigure = &ProjectIPAccessListDS{}
-
-func (d *ProjectIPAccessListDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectIPAccessList)
-}
-
-func (d *ProjectIPAccessListDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-
-	d.client = client
-}
 
 type tfProjectIPAccessListDSModel struct {
 	ID               types.String `tfsdk:"id"`

@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -17,28 +16,19 @@ const (
 )
 
 type DatabaseUsersDS struct {
-	client *MongoDBClient
+	DSCommon
 }
 
 func NewDatabaseUsersDS() datasource.DataSource {
-	return &DatabaseUsersDS{}
+	return &DatabaseUsersDS{
+		DSCommon: DSCommon{
+			dataSourceName: databaseUsersDSName,
+		},
+	}
 }
 
 var _ datasource.DataSource = &DatabaseUsersDS{}
 var _ datasource.DataSourceWithConfigure = &DatabaseUsersDS{}
-
-func (d *DatabaseUsersDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, databaseUsersDSName)
-}
-
-func (d *DatabaseUsersDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	d.client = client
-}
 
 type tfDatabaseUsersDSModel struct {
 	ID        types.String             `tfsdk:"id"`

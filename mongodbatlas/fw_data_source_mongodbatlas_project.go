@@ -19,11 +19,15 @@ var _ datasource.DataSource = &ProjectDS{}
 var _ datasource.DataSourceWithConfigure = &ProjectDS{}
 
 func NewProjectDS() datasource.DataSource {
-	return &ProjectDS{}
+	return &ProjectDS{
+		DSCommon: DSCommon{
+			dataSourceName: projectResourceName,
+		},
+	}
 }
 
 type ProjectDS struct {
-	client *MongoDBClient
+	DSCommon
 }
 
 type tfProjectDSModel struct {
@@ -47,23 +51,6 @@ type tfProjectDSModel struct {
 type tfTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
-}
-
-func (d *ProjectDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectResourceName)
-}
-
-func (d *ProjectDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*MongoDBClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(errorConfigureSummary, fmt.Sprintf(errorConfigure, req.ProviderData))
-		return
-	}
-	d.client = client
 }
 
 func (d *ProjectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

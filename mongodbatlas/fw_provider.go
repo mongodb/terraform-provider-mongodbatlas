@@ -2,7 +2,6 @@ package mongodbatlas
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"regexp"
 	"time"
@@ -418,17 +417,4 @@ func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.
 		log.Fatal(err)
 	}
 	return muxServer.ProviderServer
-}
-
-func ConfigureClient(providerData any) (*MongoDBClient, error) {
-	if providerData == nil {
-		return nil, nil
-	}
-
-	client, ok := providerData.(*MongoDBClient)
-	if !ok {
-		return nil, fmt.Errorf(errorConfigure, providerData)
-	}
-
-	return client, nil
 }
