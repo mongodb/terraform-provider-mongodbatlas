@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mwielbut/pointy"
 )
 
 const (
@@ -140,11 +139,6 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 											Type:     schema.TypeString,
 											Optional: true,
 										},
-										"dataset_name": {
-											Type:     schema.TypeString,
-											Optional: true,
-											Computed: true,
-										},
 										"default_format": {
 											Type:     schema.TypeString,
 											Optional: true,
@@ -246,10 +240,6 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
-				"cluster_id": {
-					Type:     schema.TypeString,
-					Optional: true,
-				},
 				"project_id": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -304,30 +294,6 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"tag_sets": {
-								Type:     schema.TypeList,
-								Optional: true,
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										"tags": {
-											Type:     schema.TypeList,
-											Required: true,
-											Elem: &schema.Resource{
-												Schema: map[string]*schema.Schema{
-													"name": {
-														Type:     schema.TypeString,
-														Optional: true,
-													},
-													"value": {
-														Type:     schema.TypeString,
-														Optional: true,
-													},
-												},
-											},
-										},
-									},
-								},
-							},
 						},
 					},
 				},
@@ -343,7 +309,7 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 	name := d.Get("name").(string)
 
 	if _, _, err := connV2.DataFederationApi.CreateFederatedDatabase(ctx, projectID, &admin.DataLakeTenant{
-		Name:                strPointer(name),
+		Name:                stringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
@@ -375,23 +341,27 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceRead, name, err))
 	}
 
-	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
-		if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
-			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err))
+	if val, ok := dataFederationInstance.GetCloudProviderConfigOk(); ok {
+		if cloudProviderField := flattenCloudProviderConfig(d, val); cloudProviderField != nil {
+			if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
+				return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err))
+			}
 		}
 	}
 
-	if dataProcessRegionField := flattenDataProcessRegion(dataFederationInstance.DataProcessRegion); dataProcessRegionField != nil {
-		if err := d.Set("data_process_region", dataProcessRegionField); err != nil {
-			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "data_process_region", name, err))
+	if val, ok := dataFederationInstance.GetDataProcessRegionOk(); ok {
+		if dataProcessRegionField := flattenDataProcessRegion(val); dataProcessRegionField != nil {
+			if err := d.Set("data_process_region", dataProcessRegionField); err != nil {
+				return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "data_process_region", name, err))
+			}
 		}
 	}
 
-	if err := d.Set("state", dataFederationInstance.State); err != nil {
+	if err := d.Set("state", dataFederationInstance.GetState()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "state", name, err))
 	}
 
-	if err := d.Set("hostnames", dataFederationInstance.Hostnames); err != nil {
+	if err := d.Set("hostnames", dataFederationInstance.GetHostnames()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
 	}
 
@@ -411,7 +381,7 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 	name := ids["name"]
 
 	if _, _, err := connV2.DataFederationApi.UpdateFederatedDatabase(ctx, projectID, name, &admin.DataLakeTenant{
-		Name:                pointy.String(name),
+		Name:                stringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
@@ -469,31 +439,39 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 		return nil, fmt.Errorf("error setting `project_id` for data federated instance (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("name", dataFederationInstance.Name); err != nil {
+	if err := d.Set("name", dataFederationInstance.GetName()); err != nil {
 		return nil, fmt.Errorf("error setting `name` for data federated instance (%s): %s", d.Id(), err)
 	}
 
-	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
-		if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
-			return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err)
+	if val, ok := dataFederationInstance.GetCloudProviderConfigOk(); ok {
+		if cloudProviderField := flattenCloudProviderConfig(d, val); cloudProviderField != nil {
+			if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
+				return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err)
+			}
 		}
 	}
 
-	if storageDatabaseField := flattenDataFederationDatabase(dataFederationInstance.Storage.Databases); storageDatabaseField != nil {
-		if err := d.Set("storage_databases", storageDatabaseField); err != nil {
-			return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_databases", name, err)
+	if storage, ok := dataFederationInstance.GetStorageOk(); ok {
+		if databases, ok := storage.GetDatabasesOk(); ok {
+			if storageDatabaseField := flattenDataFederationDatabase(databases); storageDatabaseField != nil {
+				if err := d.Set("storage_databases", storageDatabaseField); err != nil {
+					return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_databases", name, err)
+				}
+			}
+		}
+
+		if stores, ok := storage.GetStoresOk(); ok {
+			if err := d.Set("storage_stores", flattenDataFederationStores(stores)); err != nil {
+				return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err)
+			}
 		}
 	}
 
-	if err := d.Set("storage_stores", flattenDataFederationStores(dataFederationInstance.Storage.Stores)); err != nil {
-		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "storage_stores", name, err)
-	}
-
-	if err := d.Set("state", dataFederationInstance.State); err != nil {
+	if err := d.Set("state", dataFederationInstance.GetState()); err != nil {
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "state", name, err)
 	}
 
-	if err := d.Set("hostnames", dataFederationInstance.Hostnames); err != nil {
+	if err := d.Set("hostnames", dataFederationInstance.GetHostnames()); err != nil {
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err)
 	}
 
@@ -522,14 +500,14 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 	for i, storeFromConf := range storesFromConf {
 		storeFromConfMap := storeFromConf.(map[string]interface{})
 		stores[i] = admin.DataLakeStoreSettings{
-			Name:                     strPointer(storeFromConfMap["name"].(string)),
+			Name:                     stringPtr(storeFromConfMap["name"].(string)),
 			Provider:                 storeFromConfMap["provider"].(string),
-			Region:                   strPointer(storeFromConfMap["region"].(string)),
+			Region:                   stringPtr(storeFromConfMap["region"].(string)),
 			ProjectId:                pointer(storeFromConfMap["project_id"].(string)),
-			Bucket:                   strPointer(storeFromConfMap["bucket"].(string)),
-			ClusterName:              strPointer(storeFromConfMap["cluster_name"].(string)),
-			Prefix:                   strPointer(storeFromConfMap["prefix"].(string)),
-			Delimiter:                strPointer(storeFromConfMap["delimiter"].(string)),
+			Bucket:                   stringPtr(storeFromConfMap["bucket"].(string)),
+			ClusterName:              stringPtr(storeFromConfMap["cluster_name"].(string)),
+			Prefix:                   stringPtr(storeFromConfMap["prefix"].(string)),
+			Delimiter:                stringPtr(storeFromConfMap["delimiter"].(string)),
 			IncludeTags:              pointer(storeFromConfMap["include_tags"].(bool)),
 			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]interface{})),
 			ReadPreference:           newReadPreference(storeFromConfMap),
@@ -559,38 +537,10 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 	}
 	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]interface{})
 	return &admin.DataLakeAtlasStoreReadPreference{
-		Mode:                strPointer(readPreferenceFromConfMap["mode"].(string)),
-		MaxStalenessSeconds: intPointer(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
-		TagSets:             newTagSets(readPreferenceFromConfMap),
+		Mode:                stringPtr(readPreferenceFromConfMap["mode"].(string)),
+		MaxStalenessSeconds: intPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
 	}
 
-}
-
-func newTagSets(readPreferenceFromConfMap map[string]interface{}) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
-	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
-
-	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]interface{})
-	if !ok || len(tagSetsFromConf) == 0 {
-		return nil
-	}
-
-	for ts := 0; ts < len(tagSetsFromConf); ts++ {
-		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]interface{})
-		tagsFromConfigMap := tagSetFromConfMap["tags"].([]interface{})
-		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
-
-		for t := 0; t < len(tagsFromConfigMap); t++ {
-			tagFromConfMap := tagsFromConfigMap[t].(map[string]interface{})
-
-			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
-				Name:  strPointer(tagFromConfMap["name"].(string)),
-				Value: strPointer(tagFromConfMap["value"].(string)),
-			})
-		}
-
-		res = append(res, atlastags)
-	}
-	return res
 }
 
 func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseInstance {
@@ -604,8 +554,8 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 		storageDBFromConfMap := storageDBFromConf.(map[string]interface{})
 
 		dbs[i] = admin.DataLakeDatabaseInstance{
-			Name:                   strPointer(storageDBFromConfMap["name"].(string)),
-			MaxWildcardCollections: intPointer(storageDBFromConfMap["max_wildcard_collections"].(int)),
+			Name:                   stringPtr(storageDBFromConfMap["name"].(string)),
+			MaxWildcardCollections: intPtr(storageDBFromConfMap["max_wildcard_collections"].(int)),
 			Collections:            newDataFederationCollections(storageDBFromConfMap),
 		}
 	}
@@ -622,7 +572,7 @@ func newDataFederationCollections(storageDBFromConfMap map[string]interface{}) [
 	collections := make([]admin.DataLakeDatabaseCollection, len(collectionsFromConf))
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
-			Name:        strPointer(collectionFromConf.(map[string]interface{})["name"].(string)),
+			Name:        stringPtr(collectionFromConf.(map[string]interface{})["name"].(string)),
 			DataSources: newDataFederationDataSource(collectionFromConf.(map[string]interface{})),
 		}
 	}
@@ -638,16 +588,16 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 	dataSources := make([]admin.DataLakeDatabaseDataSourceSettings, len(dataSourcesFromConf))
 	for i, dataSourceFromConf := range dataSourcesFromConf {
 		dataSourceFromConfMap := dataSourceFromConf.(map[string]interface{})
+
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
 			AllowInsecure:       pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
-			Database:            strPointer(dataSourceFromConfMap["database"].(string)),
-			Collection:          strPointer(dataSourceFromConfMap["collection"].(string)),
-			CollectionRegex:     strPointer(dataSourceFromConfMap["collection_regex"].(string)),
-			DefaultFormat:       strPointer(dataSourceFromConfMap["default_format"].(string)),
-			Path:                strPointer(dataSourceFromConfMap["path"].(string)),
-			ProvenanceFieldName: strPointer(dataSourceFromConfMap["provenance_field_name"].(string)),
-			StoreName:           strPointer(dataSourceFromConfMap["store_name"].(string)),
-			DatasetName:         strPointer(dataSourceFromConfMap["dataset_name"].(string)),
+			Database:            stringPtr(dataSourceFromConfMap["database"].(string)),
+			Collection:          stringPtr(dataSourceFromConfMap["collection"].(string)),
+			CollectionRegex:     stringPtr(dataSourceFromConfMap["collection_regex"].(string)),
+			DefaultFormat:       stringPtr(dataSourceFromConfMap["default_format"].(string)),
+			Path:                stringPtr(dataSourceFromConfMap["path"].(string)),
+			ProvenanceFieldName: stringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
+			StoreName:           stringPtr(dataSourceFromConfMap["store_name"].(string)),
 			Urls:                newUrls(dataSourceFromConfMap["urls"].([]interface{})),
 		}
 	}
@@ -670,9 +620,7 @@ func newUrls(urlsFromConfig []interface{}) []string {
 
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
 	if cloudProvider, ok := d.Get("cloud_provider_config").([]interface{}); ok && len(cloudProvider) == 1 {
-		return &admin.DataLakeCloudProviderConfig{
-			Aws: *newAWSConfig(cloudProvider),
-		}
+		return admin.NewDataLakeCloudProviderConfig(*newAWSConfig(cloudProvider))
 	}
 
 	return nil
@@ -680,17 +628,11 @@ func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProvider
 
 func newAWSConfig(cloudProvider []interface{}) *admin.DataLakeAWSCloudProviderConfig {
 	if aws, ok := cloudProvider[0].(map[string]interface{})["aws"].([]interface{}); ok && len(aws) == 1 {
-		return newAwsCloudProviderConfig(aws[0].(map[string]interface{}))
+		awsSchema := aws[0].(map[string]interface{})
+		return admin.NewDataLakeAWSCloudProviderConfig(awsSchema["role_id"].(string), awsSchema["test_s3_bucket"].(string))
 	}
 
 	return nil
-}
-
-func newAwsCloudProviderConfig(awsSchema map[string]interface{}) *admin.DataLakeAWSCloudProviderConfig {
-	return &admin.DataLakeAWSCloudProviderConfig{
-		RoleId:       awsSchema["role_id"].(string),
-		TestS3Bucket: awsSchema["test_s3_bucket"].(string),
-	}
 }
 
 func newDataProcessRegion(d *schema.ResourceData) *admin.DataLakeDataProcessRegion {
@@ -709,12 +651,14 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 		return nil
 	}
 
+	aws := cloudProviderConfig.GetAws()
+
 	awsOut := []map[string]interface{}{
 		{
-			"role_id":              cloudProviderConfig.Aws.RoleId,
-			"iam_assumed_role_arn": cloudProviderConfig.Aws.IamAssumedRoleARN,
-			"iam_user_arn":         cloudProviderConfig.Aws.IamUserARN,
-			"external_id":          cloudProviderConfig.Aws.ExternalId,
+			"role_id":              aws.GetRoleId(),
+			"iam_assumed_role_arn": aws.GetIamAssumedRoleARN(),
+			"iam_user_arn":         aws.GetIamUserARN(),
+			"external_id":          aws.GetExternalId(),
 		},
 	}
 
@@ -748,8 +692,8 @@ func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []
 
 	return []map[string]interface{}{
 		{
-			"cloud_provider": processRegion.CloudProvider,
-			"region":         processRegion.Region,
+			"cloud_provider": processRegion.GetCloudProvider(),
+			"region":         processRegion.GetRegion(),
 		},
 	}
 }
@@ -759,8 +703,8 @@ func flattenDataFederationDatabase(atlasDatabases []admin.DataLakeDatabaseInstan
 
 	for i, atlasDatabase := range atlasDatabases {
 		dbs[i] = map[string]interface{}{
-			"name":                     atlasDatabase.Name,
-			"max_wildcard_collections": atlasDatabase.MaxWildcardCollections,
+			"name":                     atlasDatabase.GetName(),
+			"max_wildcard_collections": atlasDatabase.GetMaxWildcardCollections(),
 			"collections":              flattenDataFederationCollections(atlasDatabase.Collections),
 			"views":                    flattenDataFederationDatabaseViews(atlasDatabase.Views),
 		}
@@ -774,9 +718,9 @@ func flattenDataFederationDatabaseViews(atlasViews []admin.DataLakeApiBase) []ma
 
 	for i, atlasView := range atlasViews {
 		views[i] = map[string]interface{}{
-			"name":     atlasView.Name,
-			"source":   atlasView.Source,
-			"pipeline": atlasView.Pipeline,
+			"name":     atlasView.GetName(),
+			"source":   atlasView.GetSource(),
+			"pipeline": atlasView.GetPipeline(),
 		}
 	}
 
@@ -788,7 +732,7 @@ func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseC
 
 	for i, atlasCollection := range atlasCollections {
 		colls[i] = map[string]interface{}{
-			"name":         atlasCollection.Name,
+			"name":         atlasCollection.GetName(),
 			"data_sources": flattenDataFederationDataSources(atlasCollection.DataSources),
 		}
 	}
@@ -801,17 +745,16 @@ func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseD
 
 	for i, AtlasDataSource := range atlasDataSources {
 		out[i] = map[string]interface{}{
-			"allow_insecure":        AtlasDataSource.AllowInsecure,
-			"collection":            AtlasDataSource.Collection,
-			"collection_regex":      AtlasDataSource.CollectionRegex,
-			"database":              AtlasDataSource.Database,
-			"database_regex":        AtlasDataSource.DatabaseRegex,
-			"default_format":        AtlasDataSource.DefaultFormat,
-			"path":                  AtlasDataSource.Path,
-			"provenance_field_name": AtlasDataSource.ProvenanceFieldName,
-			"store_name":            AtlasDataSource.StoreName,
-			"dataset_name":          AtlasDataSource.DatasetName,
-			"urls":                  AtlasDataSource.Urls,
+			"allow_insecure":        AtlasDataSource.GetAllowInsecure(),
+			"collection":            AtlasDataSource.GetCollection(),
+			"collection_regex":      AtlasDataSource.GetCollectionRegex(),
+			"database":              AtlasDataSource.GetDatabase(),
+			"database_regex":        AtlasDataSource.GetDatabaseRegex(),
+			"default_format":        AtlasDataSource.GetDefaultFormat(),
+			"path":                  AtlasDataSource.GetPath(),
+			"provenance_field_name": AtlasDataSource.GetProvenanceFieldName(),
+			"store_name":            AtlasDataSource.GetStoreName(),
+			"urls":                  AtlasDataSource.GetUrls(),
 		}
 	}
 
@@ -823,22 +766,21 @@ func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[str
 
 	for i := range stores {
 		store = append(store, map[string]interface{}{
-			"name":                       stores[i].Name,
-			"provider":                   stores[i].Provider,
-			"region":                     stores[i].Region,
-			"project_id":                 stores[i].ProjectId,
-			"bucket":                     stores[i].Bucket,
-			"cluster_name":               stores[i].ClusterName,
-			"prefix":                     stores[i].Prefix,
-			"delimiter":                  stores[i].Delimiter,
-			"include_tags":               stores[i].IncludeTags,
-			"additional_storage_classes": stores[i].AdditionalStorageClasses,
-			// "cluster_id":                 stores[i].ClusterId,
-			"allow_insecure":  stores[i].AllowInsecure,
-			"public":          stores[i].Public,
-			"default_format":  stores[i].DefaultFormat,
-			"urls":            stores[i].Urls,
-			"read_preference": newReadPreferenceField(stores[i].ReadPreference),
+			"name":                       stores[i].GetName(),
+			"provider":                   stores[i].GetProvider(),
+			"region":                     stores[i].GetRegion(),
+			"project_id":                 stores[i].GetProjectId(),
+			"bucket":                     stores[i].GetBucket(),
+			"cluster_name":               stores[i].GetClusterName(),
+			"prefix":                     stores[i].GetPrefix(),
+			"delimiter":                  stores[i].GetDelimiter(),
+			"include_tags":               stores[i].GetIncludeTags(),
+			"additional_storage_classes": stores[i].GetAdditionalStorageClasses(),
+			"allow_insecure":             stores[i].GetAllowInsecure(),
+			"public":                     stores[i].Public,
+			"default_format":             stores[i].GetDefaultFormat(),
+			"urls":                       stores[i].GetUrls(),
+			"read_preference":            newReadPreferenceField(stores[i].ReadPreference),
 		})
 	}
 
@@ -852,36 +794,10 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 
 	return []map[string]interface{}{
 		{
-			"mode":                  atlasReadPreference.Mode,
-			"max_staleness_seconds": atlasReadPreference.MaxStalenessSeconds,
-			"tag_sets":              newTFTagSets(atlasReadPreference.TagSets),
+			"mode":                  atlasReadPreference.GetMode(),
+			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
 		},
 	}
-}
-
-func newTFTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
-	tfTagSets := make([]map[string]interface{}, 0)
-
-	for i := range tagSets {
-		tfTagSets = append(tfTagSets, map[string]interface{}{
-			"tags": newTfTags(tagSets[i]),
-		})
-	}
-
-	return tfTagSets
-}
-
-func newTfTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
-	tfTags := make([]map[string]interface{}, 0)
-
-	for i := range tags {
-		tfTags = append(tfTags, map[string]interface{}{
-			"name":  tags[i].Name,
-			"value": tags[i].Value,
-		})
-	}
-
-	return tfTags
 }
 
 func splitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket string, err error) {

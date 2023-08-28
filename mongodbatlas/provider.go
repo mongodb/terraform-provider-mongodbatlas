@@ -801,14 +801,14 @@ func pointer[T any](x T) *T {
 	return &x
 }
 
-func intPointer(v int) *int {
+func intPtr(v int) *int {
 	if v != 0 {
 		return &v
 	}
 	return nil
 }
 
-func strPointer(v string) *string {
+func stringPtr(v string) *string {
 	if v != "" {
 		return &v
 	}
