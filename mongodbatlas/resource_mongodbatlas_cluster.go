@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -1060,21 +1059,6 @@ func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	}
 
 	return &biConnector, nil
-}
-
-// Deprecated: will be deleted later
-func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} {
-	biConnectorMap := make(map[string]interface{})
-
-	if biConnector.Enabled != nil {
-		biConnectorMap["enabled"] = strconv.FormatBool(*biConnector.Enabled)
-	}
-
-	if biConnector.ReadPreference != "" {
-		biConnectorMap["read_preference"] = biConnector.ReadPreference
-	}
-
-	return biConnectorMap
 }
 
 func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []interface{} {
