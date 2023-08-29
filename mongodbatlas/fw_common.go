@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// common struct for all framework resources. Implements the following plugin-framework defined functions:
+// RSCommon is used as an embedded struct for all framework resources. Implements the following plugin-framework defined functions:
 // - Metadata
 // - Configure
 // client is left empty and populated by the framework when envoking Configure method.
@@ -23,7 +23,7 @@ func (r *RSCommon) Metadata(ctx context.Context, req resource.MetadataRequest, r
 }
 
 func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
+	client, err := configureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
@@ -31,7 +31,7 @@ func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest,
 	r.client = client
 }
 
-// common struct for all framework data sources. Implements the following plugin-framework defined functions:
+// DSCommon is used as an embedded struct for all framework data sources. Implements the following plugin-framework defined functions:
 // - Metadata
 // - Configure
 // client is left empty and populated by the framework when envoking Configure method.
@@ -46,7 +46,7 @@ func (d *DSCommon) Metadata(ctx context.Context, req datasource.MetadataRequest,
 }
 
 func (d *DSCommon) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
+	client, err := configureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
@@ -54,15 +54,14 @@ func (d *DSCommon) Configure(ctx context.Context, req datasource.ConfigureReques
 	d.client = client
 }
 
-func ConfigureClient(providerData any) (*MongoDBClient, error) {
+func configureClient(providerData any) (*MongoDBClient, error) {
 	if providerData == nil {
 		return nil, nil
 	}
 
-	client, ok := providerData.(*MongoDBClient)
-	if !ok {
-		return nil, fmt.Errorf(errorConfigure, providerData)
+	if client, ok := providerData.(*MongoDBClient); ok {
+		return client, nil
 	}
 
-	return client, nil
+	return nil, fmt.Errorf(errorConfigure, providerData)
 }
