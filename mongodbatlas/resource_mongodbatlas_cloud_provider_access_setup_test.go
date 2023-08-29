@@ -39,6 +39,40 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
 	)
 }
 
+func TestAccConfigRSCloudProviderAccessSetupAWS_importBasic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_provider_access_setup.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		targetRole   = matlas.CloudProviderAccessRole{}
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasCloudProviderAccessSetupAWS(orgID, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					// same as regular cloud provider because we are just checking in the api
+					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_config.0.atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_config.0.atlas_aws_account_arn"),
+				),
+			},
+			{
+				ResourceName: resourceName,
+				// ID remains the same project-id, provider-name and id for consistency
+				ImportStateIdFunc: testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	},
+	)
+}
+
 func TestAccConfigRSCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	var (
 		resourceName       = "mongodbatlas_cloud_provider_access_setup.test"
