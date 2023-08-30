@@ -121,7 +121,6 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 						"labels": schema.SetNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: description.Labels,
-							Description:         description.Labels,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"key": schema.StringAttribute{
@@ -138,7 +137,6 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 						"scopes": schema.SetNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: description.Scopes,
-							Description:         description.Scopes,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"name": schema.StringAttribute{
