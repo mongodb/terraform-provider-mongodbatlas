@@ -114,7 +114,7 @@ func testAccMongoDBAtlasPrivateLinkEndpointServiceADLConfig(projectID, endpointI
 
 func testAccCheckMongoDBAtlasPrivateLinkEndpointServiceADLExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(mongodbatlas.MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*mongodbatlas.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
