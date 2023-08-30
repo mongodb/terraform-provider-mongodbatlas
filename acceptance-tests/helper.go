@@ -33,9 +33,10 @@ var testAccProviderSdkV2 *schema.Provider
 var testMongoDBClient interface{}
 
 func init() {
+	testAccProviderSdkV2 = mongodbatlas.NewSdkV2Provider()
 	testAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return mongodbatlas.MuxedProviderFactory()(), nil
+			return mongodbatlas.MuxedProviderFactoryWithProvider(testAccProviderSdkV2)(), nil
 		},
 	}
 

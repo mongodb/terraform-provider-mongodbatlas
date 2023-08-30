@@ -392,12 +392,12 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	return muxedProviderFactory(NewSdkV2Provider())
+	return MuxedProviderFactoryWithProvider(NewSdkV2Provider())
 }
 
-// muxedProviderFactory creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
+// MuxedProviderFactoryWithProvider creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
 // Used in testing where existing sdk v2 provider has to be used.
-func muxedProviderFactory(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
+func MuxedProviderFactoryWithProvider(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
 	fwProvider := NewFrameworkProvider()
 
 	ctx := context.Background()
