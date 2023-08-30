@@ -49,7 +49,7 @@ func TestAccConfigDSAtlasUsers_ByProjectID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
@@ -80,7 +80,7 @@ func TestAccConfigDSAtlasUsers_ByTeamID(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckAtlasUsername(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
@@ -114,7 +114,7 @@ func TestAccConfigDSAtlasUsers_UsingPagination(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckAtlasUsername(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasTeamDestroy,
 		Steps: []resource.TestStep{
@@ -191,7 +191,7 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:                 func() { testAccPreCheck(t) },
+				PreCheck:                 func() { testAccPreCheckBasic(t) },
 				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Steps: []resource.TestStep{
 					{
