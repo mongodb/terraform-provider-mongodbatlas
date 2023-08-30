@@ -27,5 +27,5 @@ data "mongodbatlas_database_user" "user3" {
 }
 
 output "user3" {
-  value = mongodbatlas_database_user.user3.username
+  value = data.mongodbatlas_database_user.user3.username
 }
