@@ -9,11 +9,10 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -515,8 +514,10 @@ func expandAlertConfigurationMatchers(d *schema.ResourceData) []matlas.Matcher {
 
 	if m, ok := d.GetOk("matcher"); ok {
 		for _, value := range m.([]interface{}) {
-			v := value.(map[string]interface{})
-
+			v, ok := value.(map[string]interface{})
+			if !ok {
+				break
+			}
 			matchers = append(matchers, matlas.Matcher{
 				FieldName: v["field_name"].(string),
 				Operator:  v["operator"].(string),
@@ -610,8 +611,10 @@ func expandAlertConfigurationThresholdConfig(d *schema.ResourceData) *matlas.Thr
 		vL := value.([]interface{})
 
 		if len(vL) > 0 {
-			v := vL[0].(map[string]interface{})
-
+			v, ok := vL[0].(map[string]interface{})
+			if !ok {
+				return nil
+			}
 			return &matlas.Threshold{
 				Operator:  cast.ToString(v["operator"]),
 				Units:     cast.ToString(v["units"]),

@@ -128,7 +128,7 @@ func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID s
 			"role_names":  flattenProjectAPIKeyRoles(projectID, apiKey.Roles),
 		}
 
-		projectAssignment, err := newProjectAssignment(ctx, conn, projectID, apiKey.ID)
+		projectAssignment, err := newProjectAssignment(ctx, conn, apiKey.ID)
 		if err != nil {
 			return nil, err
 		}
