@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20230201005/admin"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -239,6 +239,10 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 				"cluster_name": {
 					Type:     schema.TypeString,
 					Optional: true,
+				},
+				"cluster_id": {
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 				"project_id": {
 					Type:     schema.TypeString,

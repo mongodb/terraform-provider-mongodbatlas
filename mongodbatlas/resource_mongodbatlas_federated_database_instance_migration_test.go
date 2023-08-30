@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
 func TestAccFederatedDatabaseInstance_MigraitonTest_basic(t *testing.T) {
@@ -39,7 +41,7 @@ func TestAccFederatedDatabaseInstance_MigraitonTest_basic(t *testing.T) {
 				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -100,7 +102,7 @@ func TestAccFederatedDatabaseInstance_Migration_S3bucket(t *testing.T) {
 				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,
@@ -146,7 +148,7 @@ func TestAccFederatedDatabaseInstance_Migration_atlasCluster(t *testing.T) {
 				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName, orgID, name),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PostApplyPreRefresh: []plancheck.PlanCheck{
-						DebugPlan(),
+						testutils.DebugPlan(),
 					},
 				},
 				PlanOnly: true,

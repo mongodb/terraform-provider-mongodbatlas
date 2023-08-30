@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	atlasSDK "go.mongodb.org/atlas-sdk/v20230201005/admin"
+	atlasSDK "go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
