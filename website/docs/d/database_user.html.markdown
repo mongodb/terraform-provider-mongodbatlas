@@ -54,7 +54,11 @@ data "mongodbatlas_database_users" "allUsers" {
 }
 
 output "user1" {
-  value = mongodbatlas_database_user.user1.username
+  value = data.mongodbatlas_database_user.user1.username
+}
+
+output "allUsers" {
+  value = data.mongodbatlas_database_users.allUsers.results
 }
 ```
 

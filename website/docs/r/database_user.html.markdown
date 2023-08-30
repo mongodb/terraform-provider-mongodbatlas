@@ -63,7 +63,11 @@ data "mongodbatlas_database_users" "allUsers" {
 }
 
 output "user1" {
-  value = mongodbatlas_database_user.user1.username
+  value = data.mongodbatlas_database_user.user1.username
+}
+
+output "allUsers" {
+  value = data.mongodbatlas_database_users.allUsers.results
 }
 ```
 
@@ -97,7 +101,7 @@ data "mongodbatlas_database_user" "user2" {
 }
 
 output "user2" {
-  value = mongodbatlas_database_user.user2.username
+  value = data.mongodbatlas_database_user.user2.username
 }
 ```
 
@@ -132,7 +136,7 @@ data "mongodbatlas_database_user" "user3" {
 }
 
 output "user3" {
-  value = mongodbatlas_database_user.user3.username
+  value = data.mongodbatlas_database_user.user3.username
 }
 ```
 
