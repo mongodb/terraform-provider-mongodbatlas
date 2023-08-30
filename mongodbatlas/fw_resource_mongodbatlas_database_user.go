@@ -263,7 +263,7 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Use the ID only with the IMPORT operation
 	if databaseUserState.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
-		projectID, username, authDatabaseName, err = splitDatabaseUserImportID(databaseUserState.ID.ValueString())
+		projectID, username, authDatabaseName, err = SplitDatabaseUserImportID(databaseUserState.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
 			return
@@ -522,7 +522,7 @@ func newMongoDBAtlasScopes(scopes []*tfScopeModel) []matlas.Scope {
 	return out
 }
 
-func splitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
+func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([$a-z]{1,15})$`)
 	parts := re.FindStringSubmatch(id)
 

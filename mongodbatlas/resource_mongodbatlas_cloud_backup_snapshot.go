@@ -302,7 +302,7 @@ func resourceCloudBackupSnapshotRefreshFunc(ctx context.Context, requestParamete
 func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
-	requestParameters, err := splitSnapshotImportID(d.Id())
+	requestParameters, err := SplitSnapshotImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *
 	return []*schema.ResourceData{d}, nil
 }
 
-func splitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
+func SplitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
 
 	parts := re.FindStringSubmatch(id)
