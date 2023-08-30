@@ -308,6 +308,7 @@ make update-atlas-sdk
 
 1. If the SDK update doesn’t cause any compilation issues create a new SDK update PR
    1. Review [API Changelog](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/changelog) for any deprecated fields and breaking changes.
-2. If you notice any changes that are breaking compilation and cannot be gracefully fixes Consider using the previous major version of the SDK (including the old client) for the affected resource
+2. For SDK updates introducing compilation issues without graceful workaround
+   1. Use the previous major version of the SDK (including the old client) for the affected resource
    1. Create an issue to identify the root cause and mitigation paths based on changelog information  
    2. If applicable: Make required notice/update to the end users based on the plan.
