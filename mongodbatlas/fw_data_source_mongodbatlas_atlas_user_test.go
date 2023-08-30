@@ -18,7 +18,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 		userID         = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		user           = fetchUser(userID, t)
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckBasicOwnerID(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -39,7 +39,7 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 		username       = os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV")
 		user           = fetchUserByUsername(username, t)
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched user during execution
 		PreCheck:                 func() { testAccPreCheckBasic(t); testAccPreCheckAtlasUsername(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
