@@ -153,12 +153,13 @@ Physical location of the region.
 * `analytics_nodes` - Indicates the number of analytics nodes for Atlas to deploy to the region. Analytics nodes are useful for handling analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only, and can never become the primary.
 
 ### Labels
-Key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.
-Note: the key `Infrastructure Tool`, is used for internal purposes to track aggregate usage.
+Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
+* `key` - The key that you want to write.
+* `value` - The value that you want to write.
 
-* `key` - The key that was set.
-* `value` - The value that represents the key.
+-> **NOTE:** MongoDB Atlas doesn't display your labels.
+-> **NOTE:** Cluster labels are not the same as [resource TAGs](https://www.mongodb.com/docs/atlas/tags/). We plan to add [resource TAGs](https://www.mongodb.com/docs/atlas/tags/) support in a future release.
 
 
 ### Plugin
