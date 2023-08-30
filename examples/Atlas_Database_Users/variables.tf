@@ -31,3 +31,9 @@ variable "region" {
   description = "MongoDB Atlas Cluster Region"
   type        = string
 }
+variable "aws_iam_role_arn" {
+  description = "AWS IAM Role ARN of the aws role to use for the database user"
+  type        = string
+}
+
+

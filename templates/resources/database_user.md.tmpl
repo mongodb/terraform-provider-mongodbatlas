@@ -12,7 +12,15 @@ description: |-
 
 ## Example Usages
 
-{{ tffile (printf "examples/Atlas_Database_Users/database_user.tf")}}
+### Database user with access to multiple Atlas Clusters
+{{ tffile (printf "examples/atlas_database_users/database_user.tf")}}
+
+### Database user with access to an Atlas Datalake instance
+{{ tffile (printf "examples/atlas_database_users/database_user_datalake.tf")}}
+
+### Database user with AWS Role
+{{ tffile (printf "examples/atlas_database_users/database_user_aws.tf")}}
+
 
 {{ .SchemaMarkdown | trimspace }}
 

@@ -57,69 +57,56 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 			"id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: description.ID,
-				Description:         description.ID,
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: description.ProjectID,
-				Description:         description.ProjectID,
 			},
 			"auth_database_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: description.ProjectID,
-				Description:         description.ProjectID,
 			},
 			"username": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: description.Username,
-				Description:         description.Username,
 			},
 			"password": schema.StringAttribute{
 				Computed:            true,
 				Sensitive:           true,
 				MarkdownDescription: description.Password,
-				Description:         description.Password,
 			},
 			"x509_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: description.X509Type,
-				Description:         description.X509Type,
 			},
 			"oidc_auth_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: description.OIDC,
-				Description:         description.OIDC,
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: description.LDAPAuthYype,
-				Description:         description.LDAPAuthYype,
 			},
 			"aws_iam_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: description.AWSIAMType,
-				Description:         description.AWSIAMType,
 			},
 			"roles": schema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: description.Roles,
-				Description:         description.Roles,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.CollectionName,
-							Description:         description.CollectionName,
 						},
 						"database_name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.DatabaseName,
-							Description:         description.DatabaseName,
 						},
 						"role_name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.RoleName,
-							Description:         description.RoleName,
 						},
 					},
 				},
@@ -133,12 +120,10 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 						"key": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.Key,
-							Description:         description.Key,
 						},
 						"value": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.Value,
-							Description:         description.Value,
 						},
 					},
 				},
@@ -152,19 +137,16 @@ func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 						"name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.Name,
-							Description:         description.Name,
 						},
 						"type": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: description.Type,
-							Description:         description.Type,
 						},
 					},
 				},
 			},
 		},
 		MarkdownDescription: description.DatabaseUserDS,
-		Description:         description.DatabaseUserDS,
 	}
 }
 
