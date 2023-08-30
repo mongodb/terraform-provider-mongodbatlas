@@ -32,7 +32,6 @@ func dataSourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 			},
 			"on_demand_policy_item": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
