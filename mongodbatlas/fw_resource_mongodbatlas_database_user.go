@@ -202,9 +202,6 @@ func NewDatabaseUserRS() resource.Resource {
 	return &DatabaseUserRS{}
 }
 
-func NewDatabaseUserRSWithClient(c *MongoDBClient) resource.Resource {
-	return &DatabaseUserRS{client: c}
-}
 func (r *DatabaseUserRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, databaseUserResourceName)
 }
