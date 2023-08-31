@@ -122,6 +122,10 @@ func schemaFederatedDatabaseInstanceDatabasesDataSource() *schema.Schema {
 											Type:     schema.TypeString,
 											Computed: true,
 										},
+										"dataset_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
 										"default_format": {
 											Type:     schema.TypeString,
 											Computed: true,
@@ -225,7 +229,8 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 				"cluster_id": {
 					Type:       schema.TypeString,
 					Computed:   true,
-					Deprecated: fmt.Sprintf(DeprecationByDateMessageParameter, "September 2024")},
+					Deprecated: fmt.Sprintf(DeprecationByDateMessageParameter, "September 2024"),
+				},
 				"project_id": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -279,18 +284,26 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 								Type:     schema.TypeInt,
 								Computed: true,
 							},
-							"tags": {
+							"tag_sets": {
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"name": {
-											Type:     schema.TypeString,
-											Computed: true,
-										},
-										"value": {
-											Type:     schema.TypeString,
-											Computed: true,
+										"tags": {
+											Type:     schema.TypeList,
+											Required: true,
+											Elem: &schema.Resource{
+												Schema: map[string]*schema.Schema{
+													"name": {
+														Type:     schema.TypeString,
+														Optional: true,
+													},
+													"value": {
+														Type:     schema.TypeString,
+														Optional: true,
+													},
+												},
+											},
 										},
 									},
 								},

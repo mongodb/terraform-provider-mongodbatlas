@@ -88,9 +88,10 @@ In addition to all arguments above, the following attributes are exported:
   * `storage_stores.#.read_preference` - MongoDB Cloud cluster read preference, which describes how to route read requests to the cluster.
     * `storage_stores.#.read_preference.maxStalenessSeconds` - Maximum replication lag, or staleness, for reads from secondaries.
     * `storage_stores.#.read_preference.mode` - Read preference mode that specifies to which replica set member to route the read requests.
-    * `storage_stores.#.read_preference.tagSets` - List that contains tag sets or tag specification documents.
-      * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
-      * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
+    * `storage_stores.#.read_preference.tag_sets` - List that contains tag sets or tag specification documents.
+      * `storage_stores.#.read_preference.tags` - List of all tags within a tag set
+        * `storage_stores.#.read_preference.tags.name` - Human-readable label of the tag.
+        * `storage_stores.#.read_preference.tags.value` - Value of the tag.
 
 ### `cloud_provider_config` - Cloud provider linked to this data federated instance.
 #### `aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.

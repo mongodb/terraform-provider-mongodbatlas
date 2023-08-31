@@ -85,6 +85,22 @@ resource "mongodbatlas_federated_database_instance" "test" {
     provider     = "atlas"
     read_preference {
       mode = "secondary"
+      tag_sets {
+        tags {
+          name  = "environment"
+          value = "development"
+        }
+        tags {
+          name  = "application"
+          value = "app"
+        }
+      }
+      tag_sets {
+        tags {
+          name  = "environment1"
+          value = "development1"
+        }
+      }
     }
   }
 
