@@ -241,8 +241,9 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 					Optional: true,
 				},
 				"cluster_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Type:       schema.TypeString,
+					Optional:   true,
+					Deprecated: GenericDeprecationMessageParameter,
 				},
 				"project_id": {
 					Type:     schema.TypeString,

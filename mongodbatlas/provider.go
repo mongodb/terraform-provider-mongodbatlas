@@ -42,6 +42,7 @@ const (
 	endPointSTSDefault                    = "https://sts.amazonaws.com"
 	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
+	GenericDeprecationMessageParameter    = "this parameter will be deprecated soon"
 	AWS                                   = "AWS"
 	AZURE                                 = "AZURE"
 	GCP                                   = "GCP"
