@@ -28,6 +28,7 @@ type Config struct {
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
+	Debug        bool
 }
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -61,7 +62,7 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 		return nil, diag.FromErr(err)
 	}
 
-	sdkV2Client, err := c.newSDKV2Client(client)
+	sdkV2Client, err := c.newSDKV2Client(client, c.Debug)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
@@ -75,12 +76,12 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, diag.Diagnostics) 
 	return clients, nil
 }
 
-func (c *Config) newSDKV2Client(client *http.Client) (*atlasSDK.APIClient, error) {
+func (c *Config) newSDKV2Client(client *http.Client, debug bool) (*atlasSDK.APIClient, error) {
 	opts := []atlasSDK.ClientModifier{
 		atlasSDK.UseHTTPClient(client),
 		atlasSDK.UseUserAgent(userAgent),
 		atlasSDK.UseBaseURL(c.BaseURL),
-		atlasSDK.UseDebug(false)}
+		atlasSDK.UseDebug(debug)}
 
 	// Initialize the MongoDB Versioned Atlas Client.
 	sdkv2, err := atlasSDK.NewClient(opts...)

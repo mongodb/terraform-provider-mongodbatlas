@@ -139,6 +139,11 @@ func Provider() *schema.Provider {
 				}, ""),
 				Optional: true,
 			},
+			"debug": {
+				Type: schema.TypeBool,
+				Default: false,
+				Optional: true,
+			},
 		},
 		DataSourcesMap:       getDataSourcesMap(),
 		ResourcesMap:         getResourcesMap(),
@@ -323,6 +328,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		PrivateKey:   d.Get("private_key").(string),
 		BaseURL:      baseURL,
 		RealmBaseURL: d.Get("realm_base_url").(string),
+		Debug: d.Get("debug").(bool),
 	}
 
 	if v, ok := d.GetOk("assume_role"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
