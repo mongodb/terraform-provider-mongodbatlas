@@ -272,7 +272,10 @@ func testAccMongoDBAtlasProjectAPIKeyConfigBasic(orgID, projectName, description
 		resource "mongodbatlas_project_api_key" "test" {
 			project_id     = mongodbatlas_project.test.id
 			description  = %[3]q
-			role_names  = [%[4]q]
+			project_assignment  {
+				project_id = mongodbatlas_project.test.id
+				role_names = [%[4]q]
+			}
 		}
 	`, orgID, projectName, description, roleNames)
 }

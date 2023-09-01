@@ -54,7 +54,7 @@ func TestAccConfigDSCloudProviderAccessSetup_aws_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
-					resource.TestCheckResourceAttrSet(dsName, "aws.atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(dsName, "aws_config.0.atlas_assumed_role_external_id"),
 				),
 			},
 		},

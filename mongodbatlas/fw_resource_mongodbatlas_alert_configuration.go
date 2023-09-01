@@ -36,15 +36,19 @@ const (
 	encodedIDKeyProjectID          = "project_id"
 )
 
-var _ resource.Resource = &AlertConfigurationRS{}
+var _ resource.ResourceWithConfigure = &AlertConfigurationRS{}
 var _ resource.ResourceWithImportState = &AlertConfigurationRS{}
 
 func NewAlertConfigurationRS() resource.Resource {
-	return &AlertConfigurationRS{}
+	return &AlertConfigurationRS{
+		RSCommon: RSCommon{
+			resourceName: alertConfigurationResourceName,
+		},
+	}
 }
 
 type AlertConfigurationRS struct {
-	client *MongoDBClient
+	RSCommon
 }
 
 type tfAlertConfigurationRSModel struct {
@@ -107,19 +111,6 @@ type tfNotificationModel struct {
 	EmailEnabled             types.Bool   `tfsdk:"email_enabled"`
 }
 
-func (r *AlertConfigurationRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, alertConfigurationResourceName)
-}
-
-func (r *AlertConfigurationRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	r.client = client
-}
-
 func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -166,13 +157,13 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"field_name": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"operator": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"value": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -184,7 +175,7 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"metric_name": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"operator": schema.StringAttribute{
 							Optional: true,
@@ -330,7 +321,7 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							},
 						},
 						"type_name": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 							Validators: []validator.String{
 								stringvalidator.OneOf("EMAIL", "SMS", pagerDuty, "SLACK",
 									"DATADOG", opsGenie, victorOps,

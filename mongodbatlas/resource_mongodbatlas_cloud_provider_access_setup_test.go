@@ -29,8 +29,6 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud resource
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
-					resource.TestCheckResourceAttrSet(resourceName, "aws.atlas_assumed_role_external_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "aws.atlas_aws_account_arn"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_assumed_role_external_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_config.0.atlas_aws_account_arn"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "created_date"),
@@ -59,8 +57,8 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_importBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud provider because we are just checking in the api
 					testAccCheckMongoDBAtlasProviderAccessExists(resourceName, &targetRole),
-					resource.TestCheckResourceAttrSet(resourceName, "aws.atlas_assumed_role_external_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "aws.atlas_aws_account_arn"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_config.0.atlas_assumed_role_external_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "aws_config.0.atlas_aws_account_arn"),
 				),
 			},
 			{

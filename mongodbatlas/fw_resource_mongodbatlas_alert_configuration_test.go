@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -59,8 +58,6 @@ func TestAccConfigRSAlertConfiguration_EmptyMetricThresholdConfig(t *testing.T) 
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName, true),
-				// metric threshold is not created so state is inconsistent with plan
-				ExpectError: regexp.MustCompile("Error: Provider produced inconsistent result after apply"),
 			},
 		},
 	})
@@ -846,9 +843,6 @@ resource "mongodbatlas_alert_configuration" "test" {
     email_enabled = false
 	roles         = ["GROUP_OWNER"]
   }
-
-
-  metric_threshold_config {}
 
   threshold_config {
     operator    = "LESS_THAN"

@@ -39,13 +39,12 @@ var (
 )
 
 const (
-	endPointSTSDefault                    = "https://sts.amazonaws.com"
-	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
-	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
-	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
-	ProviderConfigError                   = "error in configuring the provider."
-	AWS                                   = "AWS"
-	AZURE                                 = "AZURE"
+	endPointSTSDefault   = "https://sts.amazonaws.com"
+	DeprecationMessage   = "this resource is deprecated and will be removed in %s, please transition to %s"
+	MissingAuthAttrError = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	ProviderConfigError  = "error in configuring the provider."
+	AWS                  = "AWS"
+	AZURE                = "AZURE"
 	GCP
 )
 
@@ -703,19 +702,10 @@ func assumeRoleSchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"duration": {
-					Type:          schema.TypeString,
-					Optional:      true,
-					Description:   "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
-					ValidateFunc:  validAssumeRoleDuration,
-					ConflictsWith: []string{"assume_role.0.duration_seconds"},
-				},
-				"duration_seconds": {
-					Type:          schema.TypeInt,
-					Optional:      true,
-					Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "assume_role.duration"),
-					Description:   "The duration, in seconds, of the role session.",
-					ValidateFunc:  validation.IntBetween(900, 43200),
-					ConflictsWith: []string{"assume_role.0.duration"},
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
+					ValidateFunc: validAssumeRoleDuration,
 				},
 				"external_id": {
 					Type:        schema.TypeString,
@@ -823,8 +813,6 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	if v, ok := tfMap["duration"].(string); ok && v != "" {
 		duration, _ := time.ParseDuration(v)
 		assumeRole.Duration = duration
-	} else if v, ok := tfMap["duration_seconds"].(int); ok && v != 0 {
-		assumeRole.Duration = time.Duration(v) * time.Second
 	}
 
 	if v, ok := tfMap["external_id"].(string); ok && v != "" {

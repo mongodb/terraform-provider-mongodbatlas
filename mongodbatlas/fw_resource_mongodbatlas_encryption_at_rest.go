@@ -33,15 +33,19 @@ const (
 	errorUpdateEncryptionAtRest  = "error updating Encryption At Rest: %s"
 )
 
-var _ resource.Resource = &EncryptionAtRestRS{}
+var _ resource.ResourceWithConfigure = &EncryptionAtRestRS{}
 var _ resource.ResourceWithImportState = &EncryptionAtRestRS{}
 
 func NewEncryptionAtRestRS() resource.Resource {
-	return &EncryptionAtRestRS{}
+	return &EncryptionAtRestRS{
+		RSCommon: RSCommon{
+			resourceName: encryptionAtRestResourceName,
+		},
+	}
 }
 
 type EncryptionAtRestRS struct {
-	client *MongoDBClient
+	RSCommon
 }
 
 type tfEncryptionAtRestRSModel struct {
@@ -75,19 +79,6 @@ type tfGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
 	Enabled              types.Bool   `tfsdk:"enabled"`
-}
-
-func (r *EncryptionAtRestRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, encryptionAtRestResourceName)
-}
-
-func (r *EncryptionAtRestRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	r.client = client
 }
 
 func (r *EncryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

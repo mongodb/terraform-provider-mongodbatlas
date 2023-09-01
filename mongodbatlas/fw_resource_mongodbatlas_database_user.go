@@ -26,8 +26,20 @@ const (
 	databaseUserResourceName = "database_user"
 )
 
-var _ resource.Resource = &DatabaseUserRS{}
+var _ resource.ResourceWithConfigure = &DatabaseUserRS{}
 var _ resource.ResourceWithImportState = &DatabaseUserRS{}
+
+type DatabaseUserRS struct {
+	RSCommon
+}
+
+func NewDatabaseUserRS() resource.Resource {
+	return &DatabaseUserRS{
+		RSCommon: RSCommon{
+			resourceName: databaseUserResourceName,
+		},
+	}
+}
 
 type tfDatabaseUserModel struct {
 	ID               types.String `tfsdk:"id"`
@@ -58,10 +70,6 @@ type tfLabelModel struct {
 type tfScopeModel struct {
 	Name types.String `tfsdk:"name"`
 	Type types.String `tfsdk:"type"`
-}
-
-type DatabaseUserRS struct {
-	client *MongoDBClient
 }
 
 var RoleObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -196,23 +204,6 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 		},
 	}
-}
-
-func NewDatabaseUserRS() resource.Resource {
-	return &DatabaseUserRS{}
-}
-
-func (r *DatabaseUserRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, databaseUserResourceName)
-}
-
-func (r *DatabaseUserRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	r.client = client
 }
 
 func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

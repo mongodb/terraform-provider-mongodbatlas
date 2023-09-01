@@ -289,7 +289,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled, isCu
 			name                    = "%s"
 			disk_size_gb            = 80
 			backup_enabled          = "%s"
-			provider_backup_enabled = true
+			cloud_backup            = true
 			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
@@ -345,7 +345,7 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 			project_id              = "%s"
 			name                    = "%s"
 			disk_size_gb            = 80
-			provider_backup_enabled = %s
+			cloud_backup            = %s
 			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
