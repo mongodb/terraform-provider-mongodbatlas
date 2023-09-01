@@ -42,9 +42,8 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 		Attributes: map[string]schema.Attribute{
 			// https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
 			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework
-				DeprecationMessage:  "Please use each project's id attribute instead",
-				MarkdownDescription: "Please use each project's id attribute instead",
-				Computed:            true,
+				DeprecationMessage: "Please use each project's id attribute instead",
+				Computed:           true,
 			},
 			"page_num": schema.Int64Attribute{
 				Optional: true,

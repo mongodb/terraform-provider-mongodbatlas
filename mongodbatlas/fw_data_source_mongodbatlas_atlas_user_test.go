@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
 
@@ -62,7 +63,7 @@ func dataSourceChecksForUser(dataSourceName string, user *admin.CloudAppUser) []
 		resource.TestCheckResourceAttr(dataSourceName, "last_name", user.LastName),
 		resource.TestCheckResourceAttr(dataSourceName, "mobile_number", user.MobileNumber),
 		resource.TestCheckResourceAttr(dataSourceName, "country", user.Country),
-		resource.TestCheckResourceAttr(dataSourceName, "created_at", *TimePtrToStringPtr(user.CreatedAt)),
+		resource.TestCheckResourceAttr(dataSourceName, "created_at", *util.TimePtrToStringPtr(user.CreatedAt)),
 		resource.TestCheckResourceAttr(dataSourceName, "roles.#", fmt.Sprintf("%d", len(user.Roles))),
 		resource.TestCheckResourceAttr(dataSourceName, "team_ids.#", fmt.Sprintf("%d", len(user.TeamIds))),
 		resource.TestCheckResourceAttr(dataSourceName, "links.#", fmt.Sprintf("%d", len(user.Links))),

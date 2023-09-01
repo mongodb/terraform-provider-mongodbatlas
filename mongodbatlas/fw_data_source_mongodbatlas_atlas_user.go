@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
 
@@ -50,33 +50,23 @@ type tfAtlasUserRoleModel struct {
 }
 
 func NewAtlasUserDS() datasource.DataSource {
-	return &AtlasUserDS{}
+	return &AtlasUserDS{
+		DSCommon: DSCommon{
+			dataSourceName: AtlasUserDataSourceName,
+		},
+	}
 }
 
 type AtlasUserDS struct {
-	client *MongoDBClient
-}
-
-func (d *AtlasUserDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, AtlasUserDataSourceName)
-}
-
-func (d *AtlasUserDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	d.client = client
+	DSCommon
 }
 
 func (d *AtlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework
-				DeprecationMessage:  "Please use user_id id attribute instead",
-				MarkdownDescription: "Please use user_id id attribute instead",
-				Computed:            true,
+			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework: https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
+				DeprecationMessage: "Please use user_id id attribute instead",
+				Computed:           true,
 			},
 			"user_id": schema.StringAttribute{
 				Optional: true,
@@ -192,10 +182,10 @@ func newTFAtlasUserDSModel(user *admin.CloudAppUser) tfAtlasUserDSModel {
 		UserID:       types.StringPointerValue(user.Id),
 		Username:     types.StringValue(user.Username),
 		Country:      types.StringValue(user.Country),
-		CreatedAt:    types.StringPointerValue(TimePtrToStringPtr(user.CreatedAt)),
+		CreatedAt:    types.StringPointerValue(util.TimePtrToStringPtr(user.CreatedAt)),
 		EmailAddress: types.StringValue(user.EmailAddress),
 		FirstName:    types.StringValue(user.FirstName),
-		LastAuth:     types.StringPointerValue(TimePtrToStringPtr(user.LastAuth)),
+		LastAuth:     types.StringPointerValue(util.TimePtrToStringPtr(user.LastAuth)),
 		LastName:     types.StringValue(user.LastName),
 		MobileNumber: types.StringValue(user.MobileNumber),
 		TeamIDs:      user.TeamIds,
@@ -233,22 +223,4 @@ func newTFRolesList(roles []admin.CloudAccessRoleAssignment) []tfAtlasUserRoleMo
 		resRoles[i] = resRole
 	}
 	return resRoles
-}
-
-// utility functions that can be places in sdk
-func TimePtrToStringPtr(t *time.Time) *string {
-	if t == nil {
-		return nil
-	}
-	res := t.String()
-	return &res
-}
-
-func int64PtrToIntPtr(i64 *int64) *int {
-	if i64 == nil {
-		return nil
-	}
-
-	i := int(*i64)
-	return &i
 }

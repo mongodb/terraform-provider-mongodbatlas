@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
 
@@ -25,11 +26,15 @@ var _ datasource.DataSource = &AtlasUsersDS{}
 var _ datasource.DataSourceWithConfigure = &AtlasUsersDS{}
 
 func NewAtlasUsersDS() datasource.DataSource {
-	return &AtlasUsersDS{}
+	return &AtlasUsersDS{
+		DSCommon: DSCommon{
+			dataSourceName: AtlasUsersDataSourceName,
+		},
+	}
 }
 
 type AtlasUsersDS struct {
-	client *MongoDBClient
+	DSCommon
 }
 
 type tfAtlasUsersDSModel struct {
@@ -43,26 +48,12 @@ type tfAtlasUsersDSModel struct {
 	TotalCount   types.Int64          `tfsdk:"total_count"`
 }
 
-func (d *AtlasUsersDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, AtlasUsersDataSourceName)
-}
-
-func (d *AtlasUsersDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	d.client = client
-}
-
 func (d *AtlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework
-				DeprecationMessage:  "Please use each user's id attribute instead",
-				MarkdownDescription: "Please use each user's id attribute instead",
-				Computed:            true,
+			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework: https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
+				DeprecationMessage: "Please use each user's id attribute instead",
+				Computed:           true,
 			},
 			"org_id": schema.StringAttribute{
 				Optional: true,
@@ -192,8 +183,8 @@ func (d *AtlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		projectID := atlasUsersConfig.ProjectID.ValueString()
 		apiResp, _, err := connV2.ProjectsApi.ListProjectUsersWithParams(ctx, &admin.ListProjectUsersApiParams{
 			GroupId:      projectID,
-			PageNum:      int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
-			ItemsPerPage: int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
+			PageNum:      util.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
+			ItemsPerPage: util.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
 		}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "project", projectID, err.Error()))
@@ -206,8 +197,8 @@ func (d *AtlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		apiResp, _, err := connV2.TeamsApi.ListTeamUsersWithParams(ctx, &admin.ListTeamUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			TeamId:       teamID,
-			PageNum:      int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
-			ItemsPerPage: int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
+			PageNum:      util.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
+			ItemsPerPage: util.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
 		}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "team", teamID, err.Error()))
@@ -219,8 +210,8 @@ func (d *AtlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		orgID := atlasUsersConfig.OrgID.ValueString()
 		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin.ListOrganizationUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
-			PageNum:      int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
-			ItemsPerPage: int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
+			PageNum:      util.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
+			ItemsPerPage: util.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
 		}).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting users from Atlas", fmt.Sprintf(errorUsersRead, "org", orgID, err.Error()))
