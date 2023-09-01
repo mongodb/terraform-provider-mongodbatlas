@@ -35,6 +35,17 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				),
 			},
 			{
+				ProviderFactories: testAccProviderFactories,
+				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(name, projectName, orgID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "1"),
+				),
+			},
+			{
 				ResourceName:      resourceName,
 				ProviderFactories: testAccProviderFactories,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resourceName),
@@ -477,6 +488,65 @@ resource "mongodbatlas_federated_database_instance" "test" {
 			tags {
 				name = "application1"
 				value = "app-1"
+			}
+		}
+	}
+   }
+}
+	`, federatedInstanceName, projectName, orgID)
+}
+
+func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
+	return fmt.Sprintf(`
+
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[3]q
+	}
+
+resource "mongodbatlas_federated_database_instance" "test" {
+   project_id         = mongodbatlas_project.test.id
+   name = %[1]q
+
+   storage_databases {
+	name = "VirtualDatabase0"
+	collections {
+			name = "VirtualCollection0"
+			data_sources {
+					collection = "listingsAndReviews"
+					database = "sample_airbnb"
+					store_name =  "ClusterTest"
+			}
+	}
+   }
+
+   storage_stores {
+	name = "ClusterTest"
+	cluster_name = "ClusterTest"
+	project_id = mongodbatlas_project.test.id
+	provider = "atlas"
+	read_preference {
+		mode = "secondary"
+		tag_sets {
+			tags {
+				name = "environment"
+				value = "development"
+			}
+		}
+	}
+   }
+
+   storage_stores {
+	name = "dataStore0"
+	cluster_name = "ClusterTest"
+	project_id = mongodbatlas_project.test.id
+	provider = "atlas"
+	read_preference {
+		mode = "secondary"
+		tag_sets {
+			tags {
+				name = "environment"
+				value = "development"
 			}
 		}
 	}

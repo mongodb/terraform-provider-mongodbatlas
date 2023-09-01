@@ -409,11 +409,18 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	if _, _, err := connV2.DataFederationApi.UpdateFederatedDatabase(ctx, projectID, name, &admin.DataLakeTenant{
+	dataLakeTenant := &admin.DataLakeTenant{
 		Name:                stringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
 		Storage:             newDataFederationStorage(d),
+	}
+
+	if _, _, err := connV2.DataFederationApi.UpdateFederatedDatabaseWithParams(ctx, &admin.UpdateFederatedDatabaseApiParams{
+		GroupId:            projectID,
+		TenantName:         name,
+		SkipRoleValidation: admin.PtrBool(false),
+		DataLakeTenant:     dataLakeTenant,
 	}).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
 	}
