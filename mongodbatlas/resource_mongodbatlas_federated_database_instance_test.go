@@ -29,6 +29,9 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
 				),
 			},
 			{
@@ -102,6 +105,9 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
 				),
 			},
 		},
@@ -162,6 +168,26 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
+			tag_sets {
+				tags {
+					name = "environment"
+					value = "development"
+				}
+				tags {
+					name = "application"
+					value = "app"
+				}
+			}
+			tag_sets {
+				tags {
+					name = "environment1"
+					value = "development1"
+				}
+				tags {
+					name = "application1"
+					value = "app-1"
+				}
+			}
 		  }
 		}
 	  
@@ -172,6 +198,26 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
+			tag_sets {
+				tags {
+					name = "environment"
+					value = "development"
+				}
+				tags {
+					name = "application"
+					value = "app"
+				}
+			}
+			tag_sets {
+				tags {
+					name = "environment1"
+					value = "development1"
+				}
+				tags {
+					name = "application1"
+					value = "app-1"
+				}
+			}
 		  }
 		}
 	  }
@@ -205,7 +251,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resource
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	connV2 := testAccProvider.Meta().(*MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_database_instance" {
@@ -213,7 +259,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := conn.DataFederation.Get(context.Background(), ids["project_id"], ids["name"])
+		_, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
 		}
@@ -383,6 +429,26 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	provider = "atlas"
 	read_preference {
 		mode = "secondary"
+		tag_sets {
+			tags {
+				name = "environment"
+				value = "development"
+			}
+			tags {
+				name = "application"
+				value = "app"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment1"
+				value = "development1"
+			}
+			tags {
+				name = "application1"
+				value = "app-1"
+			}
+		}
 	}
    }
 
@@ -393,6 +459,26 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	provider = "atlas"
 	read_preference {
 		mode = "secondary"
+		tag_sets {
+			tags {
+				name = "environment"
+				value = "development"
+			}
+			tags {
+				name = "application"
+				value = "app"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment1"
+				value = "development1"
+			}
+			tags {
+				name = "application1"
+				value = "app-1"
+			}
+		}
 	}
    }
 }

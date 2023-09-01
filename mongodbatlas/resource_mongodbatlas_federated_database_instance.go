@@ -299,18 +299,26 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 								Type:     schema.TypeInt,
 								Optional: true,
 							},
-							"tags": {
+							"tag_sets": {
 								Type:     schema.TypeList,
-								Computed: true,
+								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"name": {
-											Type:     schema.TypeString,
-											Optional: true,
-										},
-										"value": {
-											Type:     schema.TypeString,
-											Optional: true,
+										"tags": {
+											Type:     schema.TypeList,
+											Required: true,
+											Elem: &schema.Resource{
+												Schema: map[string]*schema.Schema{
+													"name": {
+														Type:     schema.TypeString,
+														Optional: true,
+													},
+													"value": {
+														Type:     schema.TypeString,
+														Optional: true,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -560,7 +568,35 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                stringPtr(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: intPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
+		TagSets:             newTagSets(readPreferenceFromConfMap),
 	}
+}
+
+func newTagSets(readPreferenceFromConfMap map[string]interface{}) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
+	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
+
+	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]interface{})
+	if !ok || len(tagSetsFromConf) == 0 {
+		return nil
+	}
+
+	for ts := 0; ts < len(tagSetsFromConf); ts++ {
+		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]interface{})
+		tagsFromConfigMap := tagSetFromConfMap["tags"].([]interface{})
+		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
+
+		for t := 0; t < len(tagsFromConfigMap); t++ {
+			tagFromConfMap := tagsFromConfigMap[t].(map[string]interface{})
+
+			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
+				Name:  stringPtr(tagFromConfMap["name"].(string)),
+				Value: stringPtr(tagFromConfMap["value"].(string)),
+			})
+		}
+
+		res = append(res, atlastags)
+	}
+	return res
 }
 
 func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseInstance {
@@ -816,8 +852,34 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 		{
 			"mode":                  atlasReadPreference.GetMode(),
 			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
+			"tag_sets":              flattenTagSets(atlasReadPreference.TagSets),
 		},
 	}
+}
+
+func flattenTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+	tfTagSets := make([]map[string]interface{}, 0)
+
+	for i := range tagSets {
+		tfTagSets = append(tfTagSets, map[string]interface{}{
+			"tags": flattenTags(tagSets[i]),
+		})
+	}
+
+	return tfTagSets
+}
+
+func flattenTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+	tfTags := make([]map[string]interface{}, 0)
+
+	for i := range tags {
+		tfTags = append(tfTags, map[string]interface{}{
+			"name":  tags[i].Name,
+			"value": tags[i].Value,
+		})
+	}
+
+	return tfTags
 }
 
 func splitDataFederatedInstanceImportID(id string) (projectID, name, s3Bucket string, err error) {
