@@ -38,14 +38,6 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
 				ForceNew:     true,
 			},
-			"aws": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "aws_config"),
-			},
 			"aws_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -200,10 +192,6 @@ func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interfac
 	if role.ProviderName == "AWS" {
 		out := map[string]interface{}{
 			"provider_name": role.ProviderName,
-			"aws": map[string]interface{}{ // Deprecated, will be deleted later
-				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
-				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
-			},
 			"aws_config": []interface{}{map[string]interface{}{
 				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
@@ -221,7 +209,6 @@ func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interfac
 			"service_principal_id": role.AzureServicePrincipalID,
 			"tenant_id":            role.AzureTenantID,
 		}},
-		"aws":               map[string]interface{}{},
 		"aws_config":        []interface{}{map[string]interface{}{}},
 		"created_date":      role.CreatedDate,
 		"last_updated_date": role.LastUpdatedDate,

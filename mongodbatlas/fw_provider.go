@@ -6,11 +6,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -58,7 +56,6 @@ type tfAssumeRoleModel struct {
 	RoleARN           types.String `tfsdk:"role_arn"`
 	SessionName       types.String `tfsdk:"session_name"`
 	SourceIdentity    types.String `tfsdk:"source_identity"`
-	DurationSeconds   types.Int64  `tfsdk:"duration_seconds"`
 }
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -130,20 +127,6 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 				Description: "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
 				Validators: []validator.String{
 					cstmvalidator.ValidDurationBetween(15, 12*60),
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("duration_seconds"),
-					}...),
-				},
-			},
-			"duration_seconds": schema.Int64Attribute{
-				Optional:           true,
-				DeprecationMessage: "Use assume_role.duration instead",
-				Description:        "The duration, in seconds, of the role session.",
-				Validators: []validator.Int64{
-					int64validator.Between(900, 43200),
-					int64validator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("duration"),
-					}...),
 				},
 			},
 			"external_id": schema.StringAttribute{
@@ -261,8 +244,6 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 	if !tfAssumeRoleModel.Duration.IsNull() {
 		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())
 		assumeRole.Duration = duration
-	} else if !tfAssumeRoleModel.DurationSeconds.IsNull() {
-		assumeRole.Duration = time.Duration(tfAssumeRoleModel.DurationSeconds.ValueInt64()) * time.Second
 	}
 
 	assumeRole.ExternalID = tfAssumeRoleModel.ExternalID.ValueString()
