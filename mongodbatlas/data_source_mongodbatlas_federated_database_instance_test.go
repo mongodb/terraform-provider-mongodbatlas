@@ -16,13 +16,11 @@ import (
 
 func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
-		resourceName = "data.mongodbatlas_federated_database_instance.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		name         = acctest.RandomWithPrefix("test-acc")
-		//   federatedInstance = matlas.DataFederationInstance{}
+		resourceName      = "data.mongodbatlas_federated_database_instance.test"
+		orgID             = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName       = acctest.RandomWithPrefix("test-acc")
+		name              = acctest.RandomWithPrefix("test-acc")
 		federatedInstance = admin.DataLakeTenant{}
-		instanceName      = ""
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,13 +37,13 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 				ProviderFactories: testAccProviderFactories,
 				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance, &instanceName),
-					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name, instanceName),
+					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
+					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					// resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					// resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					// resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
 				),
 			},
 		},
@@ -64,7 +62,6 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 		testS3Bucket      = os.Getenv("AWS_S3_BUCKET")
 		region            = "VIRGINIA_USA"
 		federatedInstance = admin.DataLakeTenant{}
-		instanceName      = ""
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -81,8 +78,8 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 				ProviderFactories: testAccProviderFactories,
 				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance, &instanceName),
-					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name, instanceName),
+					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
+					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 				),
@@ -91,7 +88,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant, instanceName *string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		connV2 := testAccProvider.Meta().(*MongoDBClient).AtlasV2
 
@@ -108,7 +105,6 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 
 		if dataLakeResp, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
 			*dataFederatedInstance = *dataLakeResp
-			*instanceName = dataLakeResp.GetName()
 			return nil
 		}
 
@@ -116,34 +112,10 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 	}
 }
 
-// func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *matlas.DataFederationInstance) resource.TestCheckFunc {
-// 	return func(s *terraform.State) error {
-// 		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
-
-// 		rs, ok := s.RootModule().Resources[resourceName]
-// 		if !ok {
-// 			return fmt.Errorf("not found: %s", resourceName)
-// 		}
-
-// 		if rs.Primary.Attributes["project_id"] == "" {
-// 			return fmt.Errorf("no ID is set")
-// 		}
-
-// 		ids := decodeStateID(rs.Primary.ID)
-
-// 		if dataLakeResp, _, err := conn.DataFederation.Get(context.Background(), ids["project_id"], ids["name"]); err == nil {
-// 			dataFederatedInstance = dataLakeResp
-// 			return nil
-// 		}
-
-//			return fmt.Errorf("federated database instance (%s) does not exist", ids["project_id"])
-//		}
-//	}
-func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *admin.DataLakeTenant, name string, insatnceName string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.GetName(), name)
 		if dataFederatedInstance.GetName() != name {
-			// if insatnceName != name {
 			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.GetName())
 		}
 

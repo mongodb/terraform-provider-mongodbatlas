@@ -260,7 +260,6 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State
 
 		ids := decodeStateID(rs.Primary.ID)
 
-		// _, _, err := conn.DataFederation.Get(context.Background(), ids["project_id"], ids["name"])
 		_, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
