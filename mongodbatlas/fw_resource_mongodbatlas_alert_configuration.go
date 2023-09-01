@@ -36,15 +36,19 @@ const (
 	encodedIDKeyProjectID          = "project_id"
 )
 
-var _ resource.Resource = &AlertConfigurationRS{}
+var _ resource.ResourceWithConfigure = &AlertConfigurationRS{}
 var _ resource.ResourceWithImportState = &AlertConfigurationRS{}
 
 func NewAlertConfigurationRS() resource.Resource {
-	return &AlertConfigurationRS{}
+	return &AlertConfigurationRS{
+		RSCommon: RSCommon{
+			resourceName: alertConfigurationResourceName,
+		},
+	}
 }
 
 type AlertConfigurationRS struct {
-	client *MongoDBClient
+	RSCommon
 }
 
 type tfAlertConfigurationRSModel struct {
@@ -105,19 +109,6 @@ type tfNotificationModel struct {
 	DelayMin                 types.Int64  `tfsdk:"delay_min"`
 	SMSEnabled               types.Bool   `tfsdk:"sms_enabled"`
 	EmailEnabled             types.Bool   `tfsdk:"email_enabled"`
-}
-
-func (r *AlertConfigurationRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, alertConfigurationResourceName)
-}
-
-func (r *AlertConfigurationRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	r.client = client
 }
 
 func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

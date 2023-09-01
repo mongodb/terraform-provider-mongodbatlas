@@ -12,11 +12,15 @@ import (
 )
 
 type DatabaseUserDS struct {
-	client *MongoDBClient
+	DSCommon
 }
 
 func NewDatabaseUserDS() datasource.DataSource {
-	return &DatabaseUserDS{}
+	return &DatabaseUserDS{
+		DSCommon: DSCommon{
+			dataSourceName: databaseUserResourceName,
+		},
+	}
 }
 
 type tfDatabaseUserDSModel struct {
@@ -36,19 +40,6 @@ type tfDatabaseUserDSModel struct {
 
 var _ datasource.DataSource = &DatabaseUserDS{}
 var _ datasource.DataSourceWithConfigure = &DatabaseUserDS{}
-
-func (d *DatabaseUserDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, databaseUserResourceName)
-}
-
-func (d *DatabaseUserDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	d.client = client
-}
 
 func (d *DatabaseUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{

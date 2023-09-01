@@ -34,24 +34,15 @@ type tfListOptionsModel struct {
 }
 
 func NewAlertConfigurationsDS() datasource.DataSource {
-	return &AlertConfigurationsDS{}
+	return &AlertConfigurationsDS{
+		DSCommon: DSCommon{
+			dataSourceName: alertConfigurationsDataSourceName,
+		},
+	}
 }
 
 type AlertConfigurationsDS struct {
-	client *MongoDBClient
-}
-
-func (d *AlertConfigurationsDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, alertConfigurationsDataSourceName)
-}
-
-func (d *AlertConfigurationsDS) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	d.client = client
+	DSCommon
 }
 
 func (d *AlertConfigurationsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

@@ -42,15 +42,19 @@ const (
 	projectDependentsStateRetry    = "RETRY"
 )
 
-var _ resource.Resource = &ProjectRS{}
+var _ resource.ResourceWithConfigure = &ProjectRS{}
 var _ resource.ResourceWithImportState = &ProjectRS{}
 
 func NewProjectRS() resource.Resource {
-	return &ProjectRS{}
+	return &ProjectRS{
+		RSCommon: RSCommon{
+			resourceName: projectResourceName,
+		},
+	}
 }
 
 type ProjectRS struct {
-	client *MongoDBClient
+	RSCommon
 }
 
 type tfProjectRSModel struct {
@@ -100,19 +104,6 @@ var tfLimitObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 // Resources that need to be cleaned up before a project can be deleted
 type AtlastProjectDependents struct {
 	AdvancedClusters *matlas.AdvancedClustersResponse
-}
-
-func (r *ProjectRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectResourceName)
-}
-
-func (r *ProjectRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	r.client = client
 }
 
 func (r *ProjectRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

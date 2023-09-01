@@ -43,29 +43,19 @@ type tfProjectIPAccessListModel struct {
 }
 
 type ProjectIPAccessListRS struct {
-	client *MongoDBClient
+	RSCommon
 }
 
 func NewProjectIPAccessListRS() resource.Resource {
-	return &ProjectIPAccessListRS{}
-}
-
-var _ resource.Resource = &ProjectIPAccessListRS{}
-var _ resource.ResourceWithImportState = &ProjectIPAccessListRS{}
-
-func (r *ProjectIPAccessListRS) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, projectIPAccessList)
-}
-
-func (r *ProjectIPAccessListRS) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := ConfigureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
+	return &ProjectIPAccessListRS{
+		RSCommon: RSCommon{
+			resourceName: projectIPAccessList,
+		},
 	}
-
-	r.client = client
 }
+
+var _ resource.ResourceWithConfigure = &ProjectIPAccessListRS{}
+var _ resource.ResourceWithImportState = &ProjectIPAccessListRS{}
 
 func (r *ProjectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
