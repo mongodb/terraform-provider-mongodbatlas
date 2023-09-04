@@ -139,6 +139,10 @@ func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
 											Type:     schema.TypeString,
 											Optional: true,
 										},
+										"dataset_name": {
+											Type:     schema.TypeString,
+											Optional: true,
+										},
 										"default_format": {
 											Type:     schema.TypeString,
 											Optional: true,
@@ -618,6 +622,7 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 			Path:                stringPtr(dataSourceFromConfMap["path"].(string)),
 			ProvenanceFieldName: stringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
 			StoreName:           stringPtr(dataSourceFromConfMap["store_name"].(string)),
+			DatasetName:         stringPtr(dataSourceFromConfMap["dataset_name"].(string)),
 			Urls:                newUrls(dataSourceFromConfMap["urls"].([]interface{})),
 		}
 	}
@@ -774,6 +779,7 @@ func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseD
 			"path":                  AtlasDataSource.GetPath(),
 			"provenance_field_name": AtlasDataSource.GetProvenanceFieldName(),
 			"store_name":            AtlasDataSource.GetStoreName(),
+			"dataset_name":          AtlasDataSource.GetDatasetName(),
 			"urls":                  AtlasDataSource.GetUrls(),
 		}
 	}
