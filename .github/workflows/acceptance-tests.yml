@@ -25,6 +25,7 @@ jobs:
       generic: ${{ steps.filter.outputs.generic }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
+      federation: ${{ steps.filter.outputs.federation }}
       backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
       project: ${{ steps.filter.outputs.project }}
       serverless: ${{ steps.filter.outputs.serverless }}
@@ -69,6 +70,8 @@ jobs:
             - 'mongodbatlas/**_network**.go'  
             - 'mongodbatlas/**_privatelink**.go' 
             - 'mongodbatlas/**_private_endpoint**.go'
+          federation:
+            - 'mongodbatlas/**_federated_database_instance**.go'
           config:
             - 'mongodbatlas/data_source_mongodbatlas_accesslist_api_key*.go'
             - 'mongodbatlas/data_source_mongodbatlas_alert_configuration*.go'
@@ -366,6 +369,33 @@ jobs:
           CI: true
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
+
+  federation:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.federation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-federation' || inputs.parent-event-name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          CI: true
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          TEST_REGEX: "^TestAccFederatedDatabaseInstance"
+        run: make testacc
+      
   config:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
