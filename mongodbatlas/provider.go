@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
@@ -475,6 +476,76 @@ func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsS
 	return config, nil
 }
 
+func configureConfigCredentialsSTS(config config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
+	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
+	if err != nil {
+		log.Printf("GetSTSRegionalEndpoint error: %s", err)
+		return config, err
+	}
+
+	defaultResolver := endpoints.DefaultResolver()
+	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+		if service == endpoints.StsServiceID {
+			if endpoint == "" {
+				return endpoints.ResolvedEndpoint{
+					URL:           endPointSTSDefault,
+					SigningRegion: region,
+				}, nil
+			}
+			return endpoints.ResolvedEndpoint{
+				URL:           endpoint,
+				SigningRegion: region,
+			}, nil
+		}
+
+		return defaultResolver.EndpointFor(service, region, optFns...)
+	}
+
+	cfg := aws.Config{
+		Region:              aws.String(region),
+		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+		STSRegionalEndpoint: ep,
+		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+	}
+
+	sess := session.Must(session.NewSession(&cfg))
+
+	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
+
+	_, err = sess.Config.Credentials.Get()
+	if err != nil {
+		log.Printf("Session get credentials error: %s", err)
+		return config, err
+	}
+	_, err = creds.Get()
+	if err != nil {
+		log.Printf("STS get credentials error: %s", err)
+		return config, err
+	}
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	if err != nil {
+		log.Printf("Get Secrets error: %s", err)
+		return config, err
+	}
+
+	var secretData SecretData
+	err = json.Unmarshal([]byte(secretString), &secretData)
+	if err != nil {
+		return config, err
+	}
+	if secretData.PrivateKey == "" {
+		return config, fmt.Errorf("secret missing value for credential PrivateKey")
+	}
+
+	if secretData.PublicKey == "" {
+		return config, fmt.Errorf("secret missing value for credential PublicKey")
+	}
+
+	config.PublicKey = secretData.PublicKey
+	config.PrivateKey = secretData.PrivateKey
+	return config, nil
+}
+
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
 	svc := secretsmanager.New(sess, creds)
 	input := &secretsmanager.GetSecretValueInput{
@@ -801,24 +872,57 @@ func validAssumeRoleDuration(v interface{}, k string) (ws []string, errorResults
 	return
 }
 
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
-
 func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	if tfMap == nil {
 		return nil
 	}
 
 	assumeRole := AssumeRole{}
+
+	if v, ok := tfMap["duration"].(string); ok && v != "" {
+		duration, _ := time.ParseDuration(v)
+		assumeRole.Duration = duration
+	} else if v, ok := tfMap["duration_seconds"].(int); ok && v != 0 {
+		assumeRole.Duration = time.Duration(v) * time.Second
+	}
+
+	if v, ok := tfMap["external_id"].(string); ok && v != "" {
+		assumeRole.ExternalID = v
+	}
+
+	if v, ok := tfMap["policy"].(string); ok && v != "" {
+		assumeRole.Policy = v
+	}
+
+	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
+		assumeRole.PolicyARNs = expandStringList(v.List())
+	}
+
+	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
+		assumeRole.RoleARN = v
+	}
+
+	if v, ok := tfMap["session_name"].(string); ok && v != "" {
+		assumeRole.SessionName = v
+	}
+
+	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
+		assumeRole.SourceIdentity = v
+	}
+
+	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
+		assumeRole.TransitiveTagKeys = expandStringList(v.List())
+	}
+
+	return &assumeRole
+}
+
+func expandConfigAssumeRole(tfMap map[string]interface{}) *config.AssumeRole {
+	if tfMap == nil {
+		return nil
+	}
+
+	assumeRole := config.AssumeRole{}
 
 	if v, ok := tfMap["duration"].(string); ok && v != "" {
 		duration, _ := time.ParseDuration(v)

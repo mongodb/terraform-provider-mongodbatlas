@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
@@ -50,7 +51,7 @@ func NewProjectRS() resource.Resource {
 }
 
 type ProjectRS struct {
-	client *MongoDBClient
+	client *config.MongoDBClient
 }
 
 type tfProjectRSModel struct {

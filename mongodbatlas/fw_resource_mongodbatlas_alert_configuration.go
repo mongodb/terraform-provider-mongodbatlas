@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -44,7 +45,7 @@ func NewAlertConfigurationRS() resource.Resource {
 }
 
 type AlertConfigurationRS struct {
-	client *MongoDBClient
+	client *config.MongoDBClient
 }
 
 type tfAlertConfigurationRSModel struct {

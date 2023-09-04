@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -43,7 +44,7 @@ type tfProjectIPAccessListModel struct {
 }
 
 type ProjectIPAccessListRS struct {
-	client *MongoDBClient
+	client *config.MongoDBClient
 }
 
 func NewProjectIPAccessListRS() resource.Resource {

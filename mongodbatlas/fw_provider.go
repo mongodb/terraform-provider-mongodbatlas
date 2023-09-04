@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -14,14 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
-	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
@@ -218,7 +213,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	config := Config{
+	config := config.Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
@@ -234,7 +229,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		config, err = configureConfigCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return
@@ -256,8 +251,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 }
 
 // parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
-func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *AssumeRole {
-	assumeRole := AssumeRole{}
+func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *config.AssumeRole {
+	assumeRole := config.AssumeRole{}
 
 	if !tfAssumeRoleModel.Duration.IsNull() {
 		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())
@@ -391,41 +386,12 @@ func NewFrameworkProvider() provider.Provider {
 	return &MongodbtlasProvider{}
 }
 
-func MuxedProviderFactory() func() tfprotov6.ProviderServer {
-	return MuxedProviderFactoryWithProvider(NewSdkV2Provider())
-}
-
-// MuxedProviderFactoryWithProvider creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
-// Used in testing where existing sdk v2 provider has to be used.
-func MuxedProviderFactoryWithProvider(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
-	fwProvider := NewFrameworkProvider()
-
-	ctx := context.Background()
-	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkV2Provider.GRPCProvider)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	providers := []func() tfprotov6.ProviderServer{
-		func() tfprotov6.ProviderServer {
-			return upgradedSdkProvider
-		},
-		providerserver.NewProtocol6(fwProvider),
-	}
-
-	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return muxServer.ProviderServer
-}
-
-func ConfigureClient(providerData any) (*MongoDBClient, error) {
+func ConfigureClient(providerData any) (*config.MongoDBClient, error) {
 	if providerData == nil {
 		return nil, nil
 	}
 
-	client, ok := providerData.(*MongoDBClient)
+	client, ok := providerData.(*config.MongoDBClient)
 	if !ok {
 		return nil, fmt.Errorf(errorConfigure, providerData)
 	}

@@ -8,11 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 type DatabaseUserDS struct {
-	client *MongoDBClient
+	client *config.MongoDBClient
 }
 
 func NewDatabaseUserDS() datasource.DataSource {

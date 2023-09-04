@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -38,7 +39,7 @@ func NewAlertConfigurationsDS() datasource.DataSource {
 }
 
 type AlertConfigurationsDS struct {
-	client *MongoDBClient
+	client *config.MongoDBClient
 }
 
 func (d *AlertConfigurationsDS) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
