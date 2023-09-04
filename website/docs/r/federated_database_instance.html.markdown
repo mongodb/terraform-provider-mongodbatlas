@@ -150,9 +150,10 @@ In addition to all arguments above, the following attributes are exported:
   * `storage_stores.#.read_preference` - MongoDB Cloud cluster read preference, which describes how to route read requests to the cluster.
     * `storage_stores.#.read_preference.maxStalenessSeconds` - Maximum replication lag, or staleness, for reads from secondaries.
     * `storage_stores.#.read_preference.mode` - Read preference mode that specifies to which replica set member to route the read requests.
-    * `storage_stores.#.read_preference.tagSets` - List that contains tag sets or tag specification documents.
-      * `storage_stores.#.read_preference.tagSets.name` - Human-readable label of the tag.
-      * `storage_stores.#.read_preference.tagSets.value` - Value of the tag.
+    * `storage_stores.#.read_preference.tag_sets` - List that contains tag sets or tag specification documents.
+      * `storage_stores.#.read_preference.tags` - List of all tags within a tag set
+        * `storage_stores.#.read_preference.tags.name` - Human-readable label of the tag.
+        * `storage_stores.#.read_preference.tags.value` - Value of the tag.
 
 ### `aws` - Name of the cloud service that hosts the data lake's data stores.
 * `iam_assumed_role_arn` - Amazon Resource Name (ARN) of the IAM Role that the Federated Database Instance assumes when accessing S3 Bucket data stores. The IAM Role must support the following actions against each S3 bucket:

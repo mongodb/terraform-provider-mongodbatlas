@@ -283,18 +283,26 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 								Type:     schema.TypeInt,
 								Computed: true,
 							},
-							"tags": {
+							"tag_sets": {
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"name": {
-											Type:     schema.TypeString,
+										"tags": {
+											Type:     schema.TypeList,
 											Computed: true,
-										},
-										"value": {
-											Type:     schema.TypeString,
-											Computed: true,
+											Elem: &schema.Resource{
+												Schema: map[string]*schema.Schema{
+													"name": {
+														Type:     schema.TypeString,
+														Computed: true,
+													},
+													"value": {
+														Type:     schema.TypeString,
+														Computed: true,
+													},
+												},
+											},
 										},
 									},
 								},
