@@ -10,31 +10,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20230201002/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
+	SkipIfTFAccNotDefined(t)
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		users          = fetchOrgUsers(orgID, t)
 	)
+	checks := []resource.TestCheckFunc{testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName)} // check that org has at least one user
+	checks = append(checks, dataSourceChecksForUsers(dataSourceName, orgID, users)...)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched users during execution
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByOrgID(orgID),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName), // check that org has at least one user
-					resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
-					resource.TestCheckResourceAttrSet(dataSourceName, "total_count"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.user_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.username"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.email_address"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.first_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.last_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "results.0.created_at"),
-				),
+				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
 	})
@@ -202,6 +197,33 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 			})
 		})
 	}
+}
+
+func fetchOrgUsers(orgID string, t *testing.T) *admin.PaginatedAppUser {
+	connV2 := testMongoDBClient.(*MongoDBClient).AtlasV2
+	users, _, err := connV2.OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
+	if err != nil {
+		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
+	}
+	return users
+}
+
+func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin.PaginatedAppUser) []resource.TestCheckFunc {
+	var totalCountValue int
+	if users.TotalCount != nil {
+		totalCountValue = *users.TotalCount
+	} else {
+		totalCountValue = 0
+	}
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
+		resource.TestCheckResourceAttr(dataSourceName, "total_count", fmt.Sprintf("%d", totalCountValue)),
+	}
+	for i := range users.Results {
+		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &users.Results[i])...)
+	}
+
+	return checks
 }
 
 func testAccDSMongoDBAtlasUsersByOrgID(orgID string) string {

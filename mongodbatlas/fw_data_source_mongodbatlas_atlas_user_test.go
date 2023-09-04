@@ -26,7 +26,7 @@ func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {
 			{
 				Config: testAccDSMongoDBAtlasUserByUserID(userID),
 				Check: resource.ComposeTestCheckFunc(
-					dataSourceChecksForUser(dataSourceName, user)...,
+					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
 		},
@@ -47,26 +47,26 @@ func TestAccConfigDSAtlasUser_ByUsername(t *testing.T) {
 			{
 				Config: testAccDSMongoDBAtlasUserByUsername(username),
 				Check: resource.ComposeTestCheckFunc(
-					dataSourceChecksForUser(dataSourceName, user)...,
+					dataSourceChecksForUser(dataSourceName, "", user)...,
 				),
 			},
 		},
 	})
 }
 
-func dataSourceChecksForUser(dataSourceName string, user *admin.CloudAppUser) []resource.TestCheckFunc {
+func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin.CloudAppUser) []resource.TestCheckFunc {
 	return []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(dataSourceName, "username", user.Username),
-		resource.TestCheckResourceAttr(dataSourceName, "user_id", *user.Id),
-		resource.TestCheckResourceAttr(dataSourceName, "email_address", user.EmailAddress),
-		resource.TestCheckResourceAttr(dataSourceName, "first_name", user.FirstName),
-		resource.TestCheckResourceAttr(dataSourceName, "last_name", user.LastName),
-		resource.TestCheckResourceAttr(dataSourceName, "mobile_number", user.MobileNumber),
-		resource.TestCheckResourceAttr(dataSourceName, "country", user.Country),
-		resource.TestCheckResourceAttr(dataSourceName, "created_at", *util.TimePtrToStringPtr(user.CreatedAt)),
-		resource.TestCheckResourceAttr(dataSourceName, "roles.#", fmt.Sprintf("%d", len(user.Roles))),
-		resource.TestCheckResourceAttr(dataSourceName, "team_ids.#", fmt.Sprintf("%d", len(user.TeamIds))),
-		resource.TestCheckResourceAttr(dataSourceName, "links.#", fmt.Sprintf("%d", len(user.Links))),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%susername", attrPrefix), user.Username),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%suser_id", attrPrefix), *user.Id),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%semail_address", attrPrefix), user.EmailAddress),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%sfirst_name", attrPrefix), user.FirstName),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slast_name", attrPrefix), user.LastName),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%smobile_number", attrPrefix), user.MobileNumber),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%scountry", attrPrefix), user.Country),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%screated_at", attrPrefix), *util.TimePtrToStringPtr(user.CreatedAt)),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), fmt.Sprintf("%d", len(user.Roles))),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), fmt.Sprintf("%d", len(user.TeamIds))),
+		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slinks.#", attrPrefix), fmt.Sprintf("%d", len(user.Links))),
 	}
 }
 
