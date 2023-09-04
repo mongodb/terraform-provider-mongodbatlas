@@ -18,7 +18,10 @@ description: |-
 resource "mongodbatlas_project_api_key" "test" {
   description   = "Description of your API key"
   project_id    = "64259ee860c43338194b0f8e"
-  role_names    = ["GROUP_OWNER"]
+  project_assignment {
+    project_id = "64259ee860c43338194b0f8e"
+    role_names = ["GROUP_OWNER"]
+  }
 }
 ```
 
