@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 )
 
@@ -41,7 +42,7 @@ func NewEncryptionAtRestRS() resource.Resource {
 }
 
 type EncryptionAtRestRS struct {
-	client *MongoDBClient
+	client *config.MongoDBClient
 }
 
 type tfEncryptionAtRestRSModel struct {
