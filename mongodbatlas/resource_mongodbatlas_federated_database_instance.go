@@ -859,10 +859,7 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 		{
 			"mode":                  atlasReadPreference.GetMode(),
 			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
-<<<<<<< HEAD
 			"tag_sets":              flattenTagSets(atlasReadPreference.TagSets),
-=======
->>>>>>> master
 		},
 	}
 }
