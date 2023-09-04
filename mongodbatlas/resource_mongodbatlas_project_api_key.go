@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {

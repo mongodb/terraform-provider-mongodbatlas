@@ -42,6 +42,7 @@ const (
 	endPointSTSDefault                    = "https://sts.amazonaws.com"
 	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
+	DeprecationByDateMessageParameter     = "this parameter is deprecated and will be removed by %s"
 	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 	AWS                                   = "AWS"
 	AZURE                                 = "AZURE"
@@ -848,4 +849,18 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 
 func pointer[T any](x T) *T {
 	return &x
+}
+
+func intPtr(v int) *int {
+	if v != 0 {
+		return &v
+	}
+	return nil
+}
+
+func stringPtr(v string) *string {
+	if v != "" {
+		return &v
+	}
+	return nil
 }
