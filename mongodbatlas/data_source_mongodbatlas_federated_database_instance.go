@@ -122,6 +122,10 @@ func schemaFederatedDatabaseInstanceDatabasesDataSource() *schema.Schema {
 											Type:     schema.TypeString,
 											Computed: true,
 										},
+										"dataset_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
 										"default_format": {
 											Type:     schema.TypeString,
 											Computed: true,
