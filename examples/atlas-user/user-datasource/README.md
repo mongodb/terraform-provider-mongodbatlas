@@ -1,14 +1,14 @@
 # Example - MongoDB Atlas User Data Source
 
-This project aims to provide a very straight-forward example for using the Atlas User Data Source.
+This project provides a straight-forward example for using the Atlas User Data Source.
 
 Variables Required to be set:
-- `public_key`: Atlas public key
-- `private_key`: Atlas  private key
-- `user_id`: User ID of the Atlas User that will be fetched
-- `username`: Username of the Atlas User that will be fetched
+- `public_key`: Atlas Programmatic API public key
+- `private_key`: Atlas Programmatic API private key
+- `user_id`: User ID of the Atlas User to return
+- `username`: Username of the Atlas User to return
 
 
-Example shows the two possible way the data source can be used, either providing the `user_id` or `username` attribute.
+This example shows the two ways that you can use the data source, either providing the `user_id` or `username` attribute.
 
-For additional documentation, you can reference to [MongoDB Atlas API - Get User By ID](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/MongoDB-Cloud-Users/operation/getUser) and [MongoDB Atlas API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/MongoDB-Cloud-Users/operation/getUserByUsername) respectively.
+For additional documentation, see [MongoDB Atlas API - Get User By ID](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/getUser) and [MongoDB Atlas API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/getUserByUsername) respectively.
