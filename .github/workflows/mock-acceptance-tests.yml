@@ -23,7 +23,7 @@ jobs:
       - name: Install Imposter
         run: curl -L https://raw.githubusercontent.com/gatehill/imposter-cli/main/install/install_imposter.sh | bash -
       - name: Run Mock Server
-        run: cd mock && imposter up -p 8080
+        run: cd mock && imposter up -p 8080 --enable-file-cache=false &
       - name: Acceptance Tests
         env:
           TF_LOG: ${{ vars.LOG_LEVEL }}
