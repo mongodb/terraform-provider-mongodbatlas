@@ -280,6 +280,7 @@ We use [*Conventional Commits*](https://www.conventionalcommits.org/):
 - `style: description of the PR`: The commit updates or reformats the style of the source code, but does not otherwise change the product implementation (this correlates with Minor in Semantic Versioning).
 - `feat: description of the PR`: a commit of the type feat introduces a new feature to the codebase (this correlates with MINOR in Semantic Versioning).
 - `deprecate: description of the PR`: The commit deprecates existing functionality, but does not remove it from the product (this correlates with MINOR in Semantic Versioning).
+- `poc: description of the PR`: a PR of type poc (Proof of concept) illustrates a feature that should not be merged into the branch.
 - `BREAKING CHANGE`: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
 Examples:
   - `fix!: description of the ticket`

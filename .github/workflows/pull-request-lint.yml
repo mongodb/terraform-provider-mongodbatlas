@@ -34,6 +34,7 @@ jobs:
             ci
             revert
             style
+            poc
           requireScope: false
       - uses: marocchino/sticky-pull-request-comment@v2
         # When the previous steps fails, the workflow would stop. By adding this
