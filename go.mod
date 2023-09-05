@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.17.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.28.0
-	github.com/hashicorp/terraform-plugin-testing v1.4.0
+	github.com/hashicorp/terraform-plugin-testing v1.5.1
 	github.com/mongodb-forks/digest v1.0.5
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
@@ -18,7 +18,7 @@ require (
 	go.mongodb.org/atlas v0.33.0
 	go.mongodb.org/atlas-sdk/v20230201006 v20230201006.0.0
 	go.mongodb.org/realm v0.1.0
-	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a
+	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
 )
 
 require (
@@ -107,7 +107,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
