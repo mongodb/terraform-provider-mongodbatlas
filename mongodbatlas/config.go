@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
@@ -29,6 +30,17 @@ type Config struct {
 	RealmBaseURL string
 }
 
+type AssumeRole struct {
+	Tags              map[string]string
+	RoleARN           string
+	ExternalID        string
+	Policy            string
+	SessionName       string
+	SourceIdentity    string
+	PolicyARNs        []string
+	TransitiveTagKeys []string
+	Duration          time.Duration
+}
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
 	Atlas   *matlasClient.Client
