@@ -223,7 +223,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	_, err := config.NewClient(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -233,8 +233,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	resp.DataSourceData = config
+	resp.ResourceData = config
 }
 
 // parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config

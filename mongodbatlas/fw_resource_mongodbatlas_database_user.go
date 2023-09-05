@@ -221,8 +221,7 @@ func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq)
+	dbUser, err := r.config.CreateDatabaseUser(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return

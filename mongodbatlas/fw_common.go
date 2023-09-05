@@ -15,7 +15,7 @@ import (
 // client is left empty and populated by the framework when envoking Configure method.
 // resourceName must be defined when creating an instance of a resource.
 type RSCommon struct {
-	client       *conf.MongoDBClient
+	config       *conf.Config
 	resourceName string
 }
 
@@ -24,12 +24,12 @@ func (r *RSCommon) Metadata(ctx context.Context, req resource.MetadataRequest, r
 }
 
 func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	client, err := configureClient(req.ProviderData)
+	c, err := configureClient(req.ProviderData)
 	if err != nil {
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
-	r.client = client
+	r.config = c
 }
 
 // DSCommon is used as an embedded struct for all framework data sources. Implements the following plugin-framework defined functions:
@@ -38,7 +38,7 @@ func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest,
 // client is left empty and populated by the framework when envoking Configure method.
 // dataSourceName must be defined when creating an instance of a data source.
 type DSCommon struct {
-	client         *conf.MongoDBClient
+	config         *conf.Config
 	dataSourceName string
 }
 
@@ -52,16 +52,16 @@ func (d *DSCommon) Configure(ctx context.Context, req datasource.ConfigureReques
 		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
 		return
 	}
-	d.client = client
+	d.config = client
 }
 
-func configureClient(providerData any) (*conf.MongoDBClient, error) {
+func configureClient(providerData any) (*conf.Config, error) {
 	if providerData == nil {
 		return nil, nil
 	}
 
-	if client, ok := providerData.(*conf.MongoDBClient); ok {
-		return client, nil
+	if c, ok := providerData.(*conf.Config); ok {
+		return c, nil
 	}
 
 	return nil, fmt.Errorf(errorConfigure, providerData)

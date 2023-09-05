@@ -76,6 +76,7 @@ tools:  ## Install dev tools
 	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/terraform-linters/tflint@v0.46.1
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
+	go install go.uber.org/mock/mockgen@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 

@@ -28,6 +28,7 @@ type Config struct {
 	PrivateKey   string
 	BaseURL      string
 	RealmBaseURL string
+	Client       *MongoDBClient
 }
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -84,6 +85,7 @@ func (c *Config) NewClient(ctx context.Context) (interface{}, error) {
 		Config:  c,
 	}
 
+	c.Client = clients
 	return clients, nil
 }
 
