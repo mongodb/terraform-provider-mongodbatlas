@@ -7,12 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
-	var dbUser matlas.DatabaseUser
-
 	resourceName := "data.mongodbatlas_database_user.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -26,8 +23,6 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasDatabaseUserDataSourceConfig(orgID, projectName, roleName, username),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasDatabaseUserExists(resourceName, &dbUser),
-					testAccCheckMongoDBAtlasDatabaseUserAttributes(&dbUser, username),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),

@@ -1,0 +1,15 @@
+{
+    "awsIAMType": "NONE",
+    "groupId": "64f59c4f8db4346b7322b6df",
+    "databaseName": "admin",
+    "ldapAuthType": "NONE",
+    "oidcAuthType": "NONE",
+    "roles": [
+      {
+        "roleName": "atlasAdmin",
+        "databaseName": "admin"
+      }
+    ],
+    "username": "test",
+    "x509Type": "NONE"
+  }

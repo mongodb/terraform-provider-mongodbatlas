@@ -1,0 +1,34 @@
+name: 'Mock Acceptance Tests'
+
+on:
+  workflow_dispatch: {} # workflow can be run manually
+  workflow_call: # workflow runs after code-health
+    inputs:
+      parent-event-name:
+        required: true
+        type: string
+  pull_request: # you can run a specic job in your PR using GitHub labels
+    types: [ labeled ]
+
+jobs:  
+  mock_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Install Imposter
+        run: curl -L https://raw.githubusercontent.com/gatehill/imposter-cli/main/install/install_imposter.sh | bash -
+      - name: Run Mock Server
+        run: imposter up -p 8080 --mount-dir /mock
+      - name: Acceptance Tests
+        env:
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          MONGODB_ATLAS_BASE_URL: http://localhost:8080/
+          PARALLEL_GO_TEST: 20
+          TEST_REGEX: "^TestDatabaseUserUnitTest_basic"
+        run: make testacc

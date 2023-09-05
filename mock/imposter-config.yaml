@@ -1,0 +1,24 @@
+plugin: openapi
+specFile: https://mciuploads.s3.amazonaws.com/mms/a0f4dcd8e8c60230256bfe732d8087d6d1442e27/23_09_05_15_36_15/openapi-v1.yaml
+
+validation:
+  request: true
+  levels:
+    validation.request.body.missing: ERROR
+
+resources:
+  - path: "/api/atlas/v1.0/groups/64f59c4f8db4346b7322b6df/databaseUsers/admin/test"
+    method: get
+    response:
+      statusCode: 200
+      file: databaseUsers.json
+  - path: "/api/atlas/v1.0/groups/64f59c4f8db4346b7322b6df/databaseUsers"
+    method: post
+    response:
+      statusCode: 200
+      file: databaseUsers.json
+  - path: "/api/atlas/v1.0/groups/64f59c4f8db4346b7322b6df/databaseUsers/admin/test"
+    method: patch
+    response:
+      statusCode: 200
+      file: databaseUsers.json
