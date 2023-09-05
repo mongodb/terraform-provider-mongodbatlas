@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -174,9 +175,10 @@ func TestAccProjectDSProject_limits(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasProjectDSUsingRS(testAccMongoDBAtlasProjectConfigWithLimits(projectName, orgID, []*projectLimit{})),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "name"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "org_id"),
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_project.test", "limits.0.name"),
+					testutils.CheckStateMatchesGoldenFile(
+						"data.mongodbatlas_project.test",
+						"../test/data/state-golden-files/project-ds/project-ds-limits.json",
+						[]string{".primary.attributes.org_id", ".primary.attributes.created", ".primary.attributes.name"}),
 				),
 			},
 		},
