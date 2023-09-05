@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -66,7 +67,7 @@ func resourceMongoDBAtlasOrgInvitation() *schema.Resource {
 
 func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
@@ -79,7 +80,7 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 			// deleted in the backend case
 
 			if strings.Contains(err.Error(), "404") {
-				accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), username, orgID)
+				accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*conf.MongoDBClient), username, orgID)
 				if accepted {
 					d.SetId("")
 					return nil
@@ -133,7 +134,7 @@ func resourceMongoDBAtlasOrgInvitationRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
 	invitationReq := &matlas.Invitation{
@@ -142,7 +143,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 		Username: d.Get("username").(string),
 	}
 
-	accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), invitationReq.Username, orgID)
+	accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*conf.MongoDBClient), invitationReq.Username, orgID)
 	if accepted {
 		d.SetId(encodeStateID(map[string]string{
 			"username":      invitationReq.Username,
@@ -165,7 +166,7 @@ func resourceMongoDBAtlasOrgInvitationCreate(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
@@ -177,7 +178,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 		// deleted in the backend case
 
 		if strings.Contains(err.Error(), "404") {
-			accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*MongoDBClient), username, orgID)
+			accepted, _ := validateOrgInvitationAlreadyAccepted(ctx, meta.(*conf.MongoDBClient), username, orgID)
 			if accepted {
 				d.SetId("")
 				return nil
@@ -194,7 +195,7 @@ func resourceMongoDBAtlasOrgInvitationDelete(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	username := ids["username"]
@@ -213,7 +214,7 @@ func resourceMongoDBAtlasOrgInvitationUpdate(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasOrgInvitationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	orgID, username, err := splitOrgInvitationImportID(d.Id())
 	if err != nil {
 		return nil, err
@@ -264,7 +265,7 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 	return
 }
 
-func validateOrgInvitationAlreadyAccepted(ctx context.Context, conn *MongoDBClient, username, orgID string) (bool, error) {
+func validateOrgInvitationAlreadyAccepted(ctx context.Context, conn *conf.MongoDBClient, username, orgID string) (bool, error) {
 	user, _, err := conn.Atlas.AtlasUsers.GetByName(ctx, username)
 	if err != nil {
 		return false, err

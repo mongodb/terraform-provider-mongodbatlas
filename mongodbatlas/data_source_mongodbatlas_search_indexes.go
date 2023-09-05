@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -54,7 +55,7 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 
 func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	projectID, projectIDOK := d.GetOk("project_id")
 	clusterName, clusterNameOk := d.GetOk("cluster_name")

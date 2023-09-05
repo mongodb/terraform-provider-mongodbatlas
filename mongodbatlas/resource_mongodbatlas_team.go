@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -60,7 +61,7 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 }
 
 func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
 	// Creating the team
@@ -82,7 +83,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -126,7 +127,7 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -216,7 +217,7 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
@@ -248,7 +249,7 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -277,6 +278,49 @@ func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.Resource
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func expandAssumeRole(tfMap map[string]interface{}) *conf.AssumeRole {
+	if tfMap == nil {
+		return nil
+	}
+
+	assumeRole := conf.AssumeRole{}
+
+	if v, ok := tfMap["duration"].(string); ok && v != "" {
+		duration, _ := time.ParseDuration(v)
+		assumeRole.Duration = duration
+	}
+
+	if v, ok := tfMap["external_id"].(string); ok && v != "" {
+		assumeRole.ExternalID = v
+	}
+
+	if v, ok := tfMap["policy"].(string); ok && v != "" {
+		assumeRole.Policy = v
+	}
+
+	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
+		assumeRole.PolicyARNs = expandStringList(v.List())
+	}
+
+	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
+		assumeRole.RoleARN = v
+	}
+
+	if v, ok := tfMap["session_name"].(string); ok && v != "" {
+		assumeRole.SessionName = v
+	}
+
+	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
+		assumeRole.SourceIdentity = v
+	}
+
+	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
+		assumeRole.TransitiveTagKeys = expandStringList(v.List())
+	}
+
+	return &assumeRole
 }
 
 func expandStringListFromSetSchema(list *schema.Set) []string {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	"github.com/mwielbut/pointy"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -56,7 +57,7 @@ func resourceMongoDBAtlasAuditing() *schema.Resource {
 }
 
 func resourceMongoDBAtlasAuditingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
 	auditingReq := &matlas.Auditing{}
@@ -84,7 +85,7 @@ func resourceMongoDBAtlasAuditingCreate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	auditing, resp, err := conn.Auditing.Get(context.Background(), d.Id())
 	if err != nil {
@@ -117,7 +118,7 @@ func resourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceDat
 
 func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	auditingReq := &matlas.Auditing{}
 
@@ -143,7 +144,7 @@ func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceD
 
 func resourceMongoDBAtlasAuditingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	auditingReq := &matlas.Auditing{}
 

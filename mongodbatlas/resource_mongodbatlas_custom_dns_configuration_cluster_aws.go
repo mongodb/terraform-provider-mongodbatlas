@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -43,7 +44,7 @@ func resourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	orgID := d.Get("project_id").(string)
 
 	// Creating(Updating) the Custom DNS Configuration for Atlas Clusters on AWS
@@ -61,7 +62,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *sc
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	dnsResp, resp, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
 	if err != nil {
@@ -85,7 +86,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *sche
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	if d.HasChange("enabled") {
 		_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
@@ -100,7 +101,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *sc
 }
 
 func resourceMongoDBAtlasCustomDNSConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{
 		Enabled: false,

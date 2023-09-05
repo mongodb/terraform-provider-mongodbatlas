@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -57,7 +58,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADL() *schema.Resource {
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADLUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
@@ -81,7 +82,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLUpdate(ctx context.Context
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADLCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	privateLinkRequest := &matlas.PrivateLinkEndpointDataLake{
@@ -106,7 +107,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLCreate(ctx context.Context
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
@@ -144,7 +145,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLRead(ctx context.Context, 
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADLDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
@@ -158,7 +159,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServiceADLDelete(ctx context.Context
 }
 
 func resourceMongoDBAtlasPrivateLinkEndpointServiceADLImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 2)
 	if len(parts) != 2 {

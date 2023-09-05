@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -77,7 +78,7 @@ func TestAccFedRSFederatedSettingsIdentityProvider_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasFederatedSettingsIdentityProviderExists(resourceName string,
 	federatedSettingsIdentityProvider *matlas.FederatedSettingsIdentityProvider, idpID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*conf.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

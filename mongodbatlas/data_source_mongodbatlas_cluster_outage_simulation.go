@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 )
 
 func dataSourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
@@ -57,7 +58,7 @@ func dataSourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasClusterOutageSimulationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	clusterName, clusterNameOk := d.GetOk("cluster_name")

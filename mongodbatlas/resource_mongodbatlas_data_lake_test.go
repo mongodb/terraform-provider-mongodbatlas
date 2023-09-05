@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -99,7 +100,7 @@ func testAccCheckMongoDBAtlasDataLakeImportStateIDFunc(resourceName, s3Bucket st
 
 func testAccCheckMongoDBAtlasDataLakeExists(resourceName string, dataLake *matlas.DataLake) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*conf.MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,7 +134,7 @@ func testAccCheckMongoDBAtlasDataLakeAttributes(dataLake *matlas.DataLake, name 
 }
 
 func testAccCheckMongoDBAtlasDataLakeDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*conf.MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_data_lake" {

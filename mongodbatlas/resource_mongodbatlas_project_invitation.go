@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -61,7 +62,7 @@ func resourceMongoDBAtlasProjectInvitation() *schema.Resource {
 
 func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -118,7 +119,7 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 
 func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	invitationReq := &matlas.Invitation{
@@ -141,7 +142,7 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 }
 
 func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -156,7 +157,7 @@ func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.
 }
 
 func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	username := ids["username"]
@@ -175,7 +176,7 @@ func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.
 }
 
 func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	projectID, username, err := splitProjectInvitationImportID(d.Id())
 	if err != nil {
 		return nil, err

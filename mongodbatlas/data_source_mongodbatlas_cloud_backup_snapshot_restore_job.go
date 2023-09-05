@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -92,7 +93,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
 		JobID:       getEncodedID(d.Get("job_id").(string), "snapshot_restore_job_id"),

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 )
 
 func dataSourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
@@ -53,7 +54,7 @@ func dataSourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
 
 func dataSourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)

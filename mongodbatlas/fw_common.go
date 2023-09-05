@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 )
 
 // RSCommon is used as an embedded struct for all framework resources. Implements the following plugin-framework defined functions:
@@ -14,7 +15,7 @@ import (
 // client is left empty and populated by the framework when envoking Configure method.
 // resourceName must be defined when creating an instance of a resource.
 type RSCommon struct {
-	client       *MongoDBClient
+	client       *conf.MongoDBClient
 	resourceName string
 }
 
@@ -37,7 +38,7 @@ func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest,
 // client is left empty and populated by the framework when envoking Configure method.
 // dataSourceName must be defined when creating an instance of a data source.
 type DSCommon struct {
-	client         *MongoDBClient
+	client         *conf.MongoDBClient
 	dataSourceName string
 }
 
@@ -54,12 +55,12 @@ func (d *DSCommon) Configure(ctx context.Context, req datasource.ConfigureReques
 	d.client = client
 }
 
-func configureClient(providerData any) (*MongoDBClient, error) {
+func configureClient(providerData any) (*conf.MongoDBClient, error) {
 	if providerData == nil {
 		return nil, nil
 	}
 
-	if client, ok := providerData.(*MongoDBClient); ok {
+	if client, ok := providerData.(*conf.MongoDBClient); ok {
 		return client, nil
 	}
 

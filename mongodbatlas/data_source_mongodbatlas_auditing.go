@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 )
 
 func dataSourceMongoDBAtlasAuditing() *schema.Resource {
@@ -37,7 +38,7 @@ func dataSourceMongoDBAtlasAuditing() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
 	auditing, _, err := conn.Auditing.Get(ctx, projectID)

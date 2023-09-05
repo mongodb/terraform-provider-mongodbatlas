@@ -1,10 +1,11 @@
-package mongodbatlas
+package config
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
@@ -34,6 +35,18 @@ type MongoDBClient struct {
 	Atlas   *matlasClient.Client
 	AtlasV2 *atlasSDK.APIClient
 	Config  *Config
+}
+
+type AssumeRole struct {
+	Tags              map[string]string
+	RoleARN           string
+	ExternalID        string
+	Policy            string
+	SessionName       string
+	SourceIdentity    string
+	PolicyARNs        []string
+	TransitiveTagKeys []string
+	Duration          time.Duration
 }
 
 // NewClient func...

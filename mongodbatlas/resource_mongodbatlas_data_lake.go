@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	"github.com/spf13/cast"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
@@ -221,7 +222,7 @@ func schemaDataLakesStores() *schema.Schema {
 
 func resourceMongoDBAtlasDataLakeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
@@ -251,7 +252,7 @@ func resourceMongoDBAtlasDataLakeCreate(ctx context.Context, d *schema.ResourceD
 
 func resourceMongoDBAtlasDataLakeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
@@ -313,7 +314,7 @@ func resourceMongoDBAtlasDataLakeRead(ctx context.Context, d *schema.ResourceDat
 
 func resourceMongoDBAtlasDataLakeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
@@ -347,7 +348,7 @@ func resourceMongoDBAtlasDataLakeUpdate(ctx context.Context, d *schema.ResourceD
 
 func resourceMongoDBAtlasDataLakeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
@@ -361,7 +362,7 @@ func resourceMongoDBAtlasDataLakeDelete(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceMongoDBAtlasDataLakeImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	conn := meta.(*conf.MongoDBClient).Atlas
 
 	projectID, name, s3Bucket, err := splitDataLakeImportID(d.Id())
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 )
 
 func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
@@ -131,7 +132,7 @@ func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*conf.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}

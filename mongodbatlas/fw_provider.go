@@ -19,14 +19,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (
 	errorConfigureSummary = "Unexpected Resource Configure Type"
-	errorConfigure        = "expected *MongoDBClient, got: %T. Please report this issue to the provider developers"
+	errorConfigure        = "expected *conf.MongoDBClient, got: %T. Please report this issue to the provider developers"
 )
 
 type MongodbtlasProvider struct{}
@@ -200,7 +200,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	config := Config{
+	config := conf.Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
@@ -238,8 +238,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 }
 
 // parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
-func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *AssumeRole {
-	assumeRole := AssumeRole{}
+func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *conf.AssumeRole {
+	assumeRole := conf.AssumeRole{}
 
 	if !tfAssumeRoleModel.Duration.IsNull() {
 		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())

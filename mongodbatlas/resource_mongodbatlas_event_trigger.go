@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	conf "github.com/mongodb/terraform-provider-mongodbatlas/config"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"go.mongodb.org/realm/realm"
@@ -210,7 +211,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 }
 
 func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*conf.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -312,7 +313,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*conf.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -403,7 +404,7 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*conf.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -457,7 +458,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get the client connection.
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*conf.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -518,7 +519,7 @@ func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interf
 }
 
 func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*conf.MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return nil, err
 	}
