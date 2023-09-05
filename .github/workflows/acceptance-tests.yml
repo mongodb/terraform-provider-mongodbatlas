@@ -27,7 +27,7 @@ jobs:
       - name: Run Mock Server
         run: |
           export TMPDIR=/home/runner/work/terraform-provider-mongodbatlas
-          cd mock && imposter up -p 8080 --enable-file-cache false
+          cd mock && imposter up -p 8080 --enable-file-cache=false
       - name: Acceptance Tests
         env:
           TF_LOG: ${{ vars.LOG_LEVEL }}
