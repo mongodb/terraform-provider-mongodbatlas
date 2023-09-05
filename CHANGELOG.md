@@ -46,7 +46,7 @@
 - Migrate to new Atlas SDK - `mongodbatlas_federated_database_instance` resource [\#1415](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1415) ([maastha](https://github.com/maastha))
 - Update broken links to the Atlas Admin API docs [\#1413](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1413) ([zach-carr](https://github.com/zach-carr))
 - Self document make [\#1407](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1407) ([wtrocki](https://github.com/wtrocki))
-- fix: add instructions for updates of the Atlas SDK [\#1406](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1406) ([wtrocki](https://github.com/wtrocki))
+- Add instructions for updates of the Atlas SDK [\#1406](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1406) ([wtrocki](https://github.com/wtrocki))
 - Bump github.com/mongodb-forks/digest from 1.0.4 to 1.0.5 [\#1405](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1405) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump github.com/aws/aws-sdk-go from 1.44.324 to 1.44.329 [\#1404](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1404) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump golangci/golangci-lint-action from 3.6.0 to 3.7.0 [\#1393](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1393) ([dependabot[bot]](https://github.com/apps/dependabot))
