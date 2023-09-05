@@ -26,11 +26,9 @@ type frameworkTestProvider struct {
 	MockClient *config.MongoDBClient
 }
 
-var fwProviders map[string]*frameworkTestProvider
-
-// MuxedProviderFactoryWithProvider creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
+// UnitTestMuxedProviderFactoryWithProvider creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
 // Used in testing where existing sdk v2 provider has to be used.
-func MuxedProviderFactoryWithProvider() func() tfprotov6.ProviderServer {
+func UnitTestMuxedProviderFactoryWithProvider() func() tfprotov6.ProviderServer {
 	ctx := context.Background()
 
 	// Unit Tests
@@ -49,7 +47,6 @@ func MuxedProviderFactoryWithProvider() func() tfprotov6.ProviderServer {
 func (p *frameworkTestProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	resp.DataSourceData = p.MockClient
 	resp.ResourceData = p.MockClient
-	return
 }
 
 func (p *frameworkTestProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -78,7 +75,7 @@ func NewFrameworkTestProvider() provider.Provider {
 func NewUnitTestProtoV6ProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return MuxedProviderFactoryWithProvider()(), nil
+			return UnitTestMuxedProviderFactoryWithProvider()(), nil
 		},
 	}
 }

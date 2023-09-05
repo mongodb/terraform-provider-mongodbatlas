@@ -282,7 +282,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return nil, diag.FromErr(err)
 	}
 
-	config := Config{
+	configProvider := Config{
 		PublicKey:    d.Get("public_key").(string),
 		PrivateKey:   d.Get("private_key").(string),
 		BaseURL:      d.Get("base_url").(string),
@@ -290,7 +290,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	if awsRoleDefined {
-		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
+		configProvider.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
 		secret := d.Get("secret_name").(string)
 		region := d.Get("region").(string)
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -298,13 +298,13 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		awsSessionToken := d.Get("aws_session_token").(string)
 		endpoint := d.Get("sts_endpoint").(string)
 		var err error
-		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		configProvider, err = configureCredentialsSTS(configProvider, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	client, err := configProvider.NewClient(ctx)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
@@ -406,11 +406,11 @@ func MultiEnvDefaultFunc(ks []string, def interface{}) interface{} {
 	return def
 }
 
-func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
+func configureCredentialsSTS(configProvider Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 
 	defaultResolver := endpoints.DefaultResolver()
@@ -440,47 +440,47 @@ func configureCredentialsSTS(config Config, secret, region, awsAccessKeyID, awsS
 
 	sess := session.Must(session.NewSession(&cfg))
 
-	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
+	creds := stscreds.NewCredentials(sess, configProvider.AssumeRole.RoleARN)
 
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
 		log.Printf("Session get credentials error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 	_, err = creds.Get()
 	if err != nil {
 		log.Printf("STS get credentials error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return config, err
+		return configProvider, err
 	}
 	if secretData.PrivateKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PrivateKey")
+		return configProvider, fmt.Errorf("secret missing value for credential PrivateKey")
 	}
 
 	if secretData.PublicKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PublicKey")
+		return configProvider, fmt.Errorf("secret missing value for credential PublicKey")
 	}
 
-	config.PublicKey = secretData.PublicKey
-	config.PrivateKey = secretData.PrivateKey
-	return config, nil
+	configProvider.PublicKey = secretData.PublicKey
+	configProvider.PrivateKey = secretData.PrivateKey
+	return configProvider, nil
 }
 
-func configureConfigCredentialsSTS(config config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
+func configureConfigCredentialsSTS(configProvider config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
 	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
 	if err != nil {
 		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 
 	defaultResolver := endpoints.DefaultResolver()
@@ -510,40 +510,40 @@ func configureConfigCredentialsSTS(config config.Config, secret, region, awsAcce
 
 	sess := session.Must(session.NewSession(&cfg))
 
-	creds := stscreds.NewCredentials(sess, config.AssumeRole.RoleARN)
+	creds := stscreds.NewCredentials(sess, configProvider.AssumeRole.RoleARN)
 
 	_, err = sess.Config.Credentials.Get()
 	if err != nil {
 		log.Printf("Session get credentials error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 	_, err = creds.Get()
 	if err != nil {
 		log.Printf("STS get credentials error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
 	if err != nil {
 		log.Printf("Get Secrets error: %s", err)
-		return config, err
+		return configProvider, err
 	}
 
 	var secretData SecretData
 	err = json.Unmarshal([]byte(secretString), &secretData)
 	if err != nil {
-		return config, err
+		return configProvider, err
 	}
 	if secretData.PrivateKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PrivateKey")
+		return configProvider, fmt.Errorf("secret missing value for credential PrivateKey")
 	}
 
 	if secretData.PublicKey == "" {
-		return config, fmt.Errorf("secret missing value for credential PublicKey")
+		return configProvider, fmt.Errorf("secret missing value for credential PublicKey")
 	}
 
-	config.PublicKey = secretData.PublicKey
-	config.PrivateKey = secretData.PrivateKey
-	return config, nil
+	configProvider.PublicKey = secretData.PublicKey
+	configProvider.PrivateKey = secretData.PrivateKey
+	return configProvider, nil
 }
 
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
@@ -878,51 +878,6 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 	}
 
 	assumeRole := AssumeRole{}
-
-	if v, ok := tfMap["duration"].(string); ok && v != "" {
-		duration, _ := time.ParseDuration(v)
-		assumeRole.Duration = duration
-	} else if v, ok := tfMap["duration_seconds"].(int); ok && v != 0 {
-		assumeRole.Duration = time.Duration(v) * time.Second
-	}
-
-	if v, ok := tfMap["external_id"].(string); ok && v != "" {
-		assumeRole.ExternalID = v
-	}
-
-	if v, ok := tfMap["policy"].(string); ok && v != "" {
-		assumeRole.Policy = v
-	}
-
-	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.PolicyARNs = expandStringList(v.List())
-	}
-
-	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
-		assumeRole.RoleARN = v
-	}
-
-	if v, ok := tfMap["session_name"].(string); ok && v != "" {
-		assumeRole.SessionName = v
-	}
-
-	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
-		assumeRole.SourceIdentity = v
-	}
-
-	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.TransitiveTagKeys = expandStringList(v.List())
-	}
-
-	return &assumeRole
-}
-
-func expandConfigAssumeRole(tfMap map[string]interface{}) *config.AssumeRole {
-	if tfMap == nil {
-		return nil
-	}
-
-	assumeRole := config.AssumeRole{}
 
 	if v, ok := tfMap["duration"].(string); ok && v != "" {
 		duration, _ := time.ParseDuration(v)

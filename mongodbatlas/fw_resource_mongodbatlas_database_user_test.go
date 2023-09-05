@@ -1,7 +1,6 @@
 package mongodbatlas
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -23,7 +22,7 @@ func TestConfigRSDatabaseUser_basic(t *testing.T) {
 }
 
 func testAccMongoDBAtlasDatabaseUserConfig() string {
-	return fmt.Sprintf(`
+	return `
 		resource "mongodbatlas_database_user" "basic_ds" {
 			username           = "test"
 			project_id         = "test"
@@ -34,5 +33,5 @@ func testAccMongoDBAtlasDatabaseUserConfig() string {
 				database_name = "admin"
 			}
 		}
-	`)
+	`
 }

@@ -6,9 +6,9 @@ import (
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-type MockDatabaseUsersServiceOp struct{}
+type DatabaseUsersServiceOp struct{}
 
-func (s *MockDatabaseUsersServiceOp) Get(ctx context.Context, databaseName, groupID, username string) (*matlas.DatabaseUser, *matlas.Response, error) {
+func (s *DatabaseUsersServiceOp) Get(ctx context.Context, databaseName, groupID, username string) (*matlas.DatabaseUser, *matlas.Response, error) {
 	return &matlas.DatabaseUser{
 		GroupID:      groupID,
 		Username:     username,
@@ -26,11 +26,11 @@ func (s *MockDatabaseUsersServiceOp) Get(ctx context.Context, databaseName, grou
 	}, nil, nil
 }
 
-func (s *MockDatabaseUsersServiceOp) List(ctx context.Context, groupID string, listOptions *matlas.ListOptions) ([]matlas.DatabaseUser, *matlas.Response, error) {
+func (s *DatabaseUsersServiceOp) List(ctx context.Context, groupID string, listOptions *matlas.ListOptions) ([]matlas.DatabaseUser, *matlas.Response, error) {
 	return nil, nil, nil
 }
 
-func (s *MockDatabaseUsersServiceOp) Create(ctx context.Context, groupID string, createRequest *matlas.DatabaseUser) (*matlas.DatabaseUser, *matlas.Response, error) {
+func (s *DatabaseUsersServiceOp) Create(ctx context.Context, groupID string, createRequest *matlas.DatabaseUser) (*matlas.DatabaseUser, *matlas.Response, error) {
 	return &matlas.DatabaseUser{
 		GroupID:      groupID,
 		Username:     createRequest.Username,
@@ -48,7 +48,7 @@ func (s *MockDatabaseUsersServiceOp) Create(ctx context.Context, groupID string,
 	}, nil, nil
 }
 
-func (s *MockDatabaseUsersServiceOp) Update(ctx context.Context, groupID, username string, updateRequest *matlas.DatabaseUser) (*matlas.DatabaseUser, *matlas.Response, error) {
+func (s *DatabaseUsersServiceOp) Update(ctx context.Context, groupID, username string, updateRequest *matlas.DatabaseUser) (*matlas.DatabaseUser, *matlas.Response, error) {
 	return &matlas.DatabaseUser{
 		GroupID:      groupID,
 		Username:     updateRequest.Username,
@@ -66,6 +66,6 @@ func (s *MockDatabaseUsersServiceOp) Update(ctx context.Context, groupID, userna
 	}, nil, nil
 }
 
-func (s *MockDatabaseUsersServiceOp) Delete(ctx context.Context, databaseName, groupID, username string) (*matlas.Response, error) {
+func (s *DatabaseUsersServiceOp) Delete(ctx context.Context, databaseName, groupID, username string) (*matlas.Response, error) {
 	return nil, nil
 }

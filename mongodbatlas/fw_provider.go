@@ -3,6 +3,7 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -13,11 +14,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
+	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	"github.com/mongodb/terraform-provider-mongodbatlas/config"
 
+	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -213,7 +219,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	config := config.Config{
+	configProvider := config.Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
 		BaseURL:      data.BaseURL.ValueString(),
@@ -221,7 +227,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	if awsRoleDefined {
-		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
+		configProvider.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
 		region := data.Region.ValueString()
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
@@ -229,14 +235,14 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		awsSessionToken := data.AwsSessionToken.ValueString()
 		endpoint := data.StsEndpoint.ValueString()
 		var err error
-		config, err = configureConfigCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+		configProvider, err = configureConfigCredentialsSTS(configProvider, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
 			return
 		}
 	}
 
-	client, err := config.NewClient(ctx)
+	client, err := configProvider.NewClient(ctx)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -397,4 +403,33 @@ func ConfigureClient(providerData any) (*config.MongoDBClient, error) {
 	}
 
 	return client, nil
+}
+
+func MuxedProviderFactory() func() tfprotov6.ProviderServer {
+	return MuxedProviderFactoryWithProvider(NewSdkV2Provider())
+}
+
+// // MuxedProviderFactoryWithProvider creates mux provider using existing sdk v2 provider passed as parameter and creating new instance of framework provider.
+// // Used in testing where existing sdk v2 provider has to be used.
+func MuxedProviderFactoryWithProvider(sdkV2Provider *sdkv2schema.Provider) func() tfprotov6.ProviderServer {
+	fwProvider := NewFrameworkProvider()
+
+	ctx := context.Background()
+	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkV2Provider.GRPCProvider)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	providers := []func() tfprotov6.ProviderServer{
+		func() tfprotov6.ProviderServer {
+			return upgradedSdkProvider
+		},
+		providerserver.NewProtocol6(fwProvider),
+	}
+
+	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return muxServer.ProviderServer
 }

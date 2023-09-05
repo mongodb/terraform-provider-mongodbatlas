@@ -41,6 +41,7 @@ type AssumeRole struct {
 	TransitiveTagKeys []string
 	Duration          time.Duration
 }
+
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
 	Atlas   *matlasClient.Client
