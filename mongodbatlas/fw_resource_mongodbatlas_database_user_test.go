@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestConfigRSDatabaseUser_basic(t *testing.T) {
+func TestDatabaseUser_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: NewUnitTestProtoV6ProviderFactories(),
 		Steps: []resource.TestStep{
