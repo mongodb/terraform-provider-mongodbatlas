@@ -116,7 +116,7 @@ resource "mongodbatlas_database_user" "test" {
   }
 }
 ```
-Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more see https://www.mongodb.com/docs/atlas/security-oidc/  
+Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 
 ## Argument Reference
