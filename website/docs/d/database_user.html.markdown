@@ -49,7 +49,7 @@ data "mongodbatlas_database_user" "test" {
 }
 ```
 
-Example of usage with a OIDC federated authentication user
+**Example of usage with a OIDC federated authentication user**
 
 ```
 resource "mongodbatlas_database_user" "test" {
@@ -70,6 +70,7 @@ data "mongodbatlas_database_user" "test" {
   auth_database_name = "admin"
 }
 ```
+Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more see https://www.mongodb.com/docs/atlas/security-oidc/  
 
 ## Argument Reference
 
