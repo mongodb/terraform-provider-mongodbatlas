@@ -19,7 +19,7 @@
 - Fixes null pointer error in `mongodbatlas_alert_configuration` [\#1419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1419) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Updates `mongodbatlas_event_trigger` resource to force replacement when app id changes [\#1387](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1387) ([maastha](https://github.com/maastha))
 - Updates deprecation message to 1.12.0 [\#1381](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1381) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Null pointer error in `mongodbatlas_project` data source [\#1377](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1377) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Fixes null pointer error in `mongodbatlas_project` data source [\#1377](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1377) ([andreaangiolillo](https://github.com/andreaangiolillo))
 
 
 **Closed Issues**
