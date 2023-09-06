@@ -5,7 +5,7 @@
 
 **Enhancements**
 
-- Atlas OIDC Database User support to `mongodbatlas_database_user` [\#1382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1382) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Adds Atlas OIDC Database User support to `mongodbatlas_database_user` [\#1382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1382) ([andreaangiolillo](https://github.com/andreaangiolillo))
   - Note: This feautre is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more see https://www.mongodb.com/docs/atlas/security-oidc/  
 - Adds Atlas `datasetNames` support in `mongodbatlas_federated_database_instance` [\#1439](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1439) ([maastha](https://github.com/maastha))
 - Improves `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` documentation to highlight that `provider_volume_type=STANDARD` is not available for NVMe clusters [\#1430](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1430) ([andreaangiolillo](https://github.com/andreaangiolillo))
