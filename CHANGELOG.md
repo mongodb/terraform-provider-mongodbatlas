@@ -14,7 +14,7 @@
 
 **Bug Fixes**
 
-- Update `tag_sets` to `storage_stores.read_preference` in `mongodbatlas_federated_database_instance` [\#1440](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1440) ([maastha](https://github.com/maastha))
+- Updates `tag_sets` to `storage_stores.read_preference` in `mongodbatlas_federated_database_instance` [\#1440](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1440) ([maastha](https://github.com/maastha))
 - Update cluster documentaion about labels field [\#1425](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1425) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Null pointer in `mongodbatlas_alert_configuration` [\#1419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1419) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Update `mongodbatlas_event_trigger` resource to force replacement when app id changes [\#1387](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1387) ([maastha](https://github.com/maastha))
