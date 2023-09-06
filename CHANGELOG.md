@@ -5,7 +5,7 @@
 
 **Enhancements**
 
-- Atlas `datasetNames` support in `mongodbatlas_federated_database_instance` [\#1439](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1439) ([maastha](https://github.com/maastha))
+- Adds Atlas `datasetNames` support in `mongodbatlas_federated_database_instance` [\#1439](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1439) ([maastha](https://github.com/maastha))
 - New example for `mongodbatlas_cloud_backup_schedule` to create policies for multiple clusters [\#1403](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1403) ([maastha](https://github.com/maastha))
 - Atlas OIDC Database User support to `mongodbatlas_database_user` [\#1382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1382) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Improve `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` documentation to highlight that `provider_volume_type=STANDARD` is not available for NVMW clusters [\#1430](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1430) ([andreaangiolillo](https://github.com/andreaangiolillo))
