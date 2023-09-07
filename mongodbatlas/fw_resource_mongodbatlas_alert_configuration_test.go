@@ -73,7 +73,7 @@ func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:      testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{

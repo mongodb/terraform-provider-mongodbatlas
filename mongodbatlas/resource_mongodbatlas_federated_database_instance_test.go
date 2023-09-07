@@ -21,31 +21,8 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
-		PreCheck:     func() { testAccPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
-			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
-				),
-			},
-			{
-				ProtoV6ProviderFactories: testAccProviderV6Factories,
-				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
-				),
-			},
 			{
 				ProtoV6ProviderFactories: testAccProviderV6Factories,
 				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstSteps(name, projectName, orgID),
@@ -77,7 +54,6 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 }
 
 func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
-	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -90,7 +66,6 @@ func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
 		PreCheck:     func() { testAccPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -128,7 +103,6 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
 		PreCheck:     func() { testAccPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -327,7 +301,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceImportStateIDFunc(resource
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+	connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_database_instance" {
@@ -335,7 +309,6 @@ func testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy(s *terraform.State
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-		_, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
 		_, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
@@ -506,99 +479,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	provider = "atlas"
 	read_preference {
 		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
-			}
-			tags {
-				name = "application"
-				value = "app"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app-1"
-			}
-		}
-	}
-   }
-
-   storage_stores {
-	name = "dataStore0"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
-			}
-			tags {
-				name = "application"
-				value = "app"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app-1"
-			}
-		}
-	}
-   }
-}
-	`, federatedInstanceName, projectName, orgID)
-}
-
-func testAccMongoDBAtlasFederatedDatabaseInstanceConfigFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
-	return fmt.Sprintf(`
-
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[3]q
-	}
-
-resource "mongodbatlas_federated_database_instance" "test" {
-   project_id         = mongodbatlas_project.test.id
-   name = %[1]q
-
-   storage_databases {
-	name = "VirtualDatabase0"
-	collections {
-			name = "VirtualCollection0"
-			data_sources {
-					collection = "listingsAndReviews"
-					database = "sample_airbnb"
-					store_name =  "ClusterTest"
-			}
-	}
-   }
-
-   storage_stores {
-	name = "ClusterTest"
-	cluster_name = "ClusterTest"
-	project_id = mongodbatlas_project.test.id
-	provider = "atlas"
-	read_preference {
-		mode = "secondary"
-		tag_sets {
-			tags {
-				name = "environment"
-				value = "development"
-			}
-		}
 		tag_sets {
 			tags {
 				name = "environment"
