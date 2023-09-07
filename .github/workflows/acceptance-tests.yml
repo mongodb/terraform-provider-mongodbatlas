@@ -59,13 +59,9 @@ jobs:
           project:
             - 'mongodbatlas/data_source_mongodbatlas_project_invitation*.go'
             - 'mongodbatlas/fw_data_source_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/data_source_mongodbatlas_project.go'
-            - 'mongodbatlas/data_source_mongodbatlas_projects.go'
             - 'mongodbatlas/resource_mongodbatlas_access_list_api_key*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_invitation*.go'
             - 'mongodbatlas/fw_resource_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/resource_mongodbatlas_project.go'
-            - 'mongodbatlas/resource_mongodbatlas_project_test.go'
           serverless:
             - 'mongodbatlas/**_serverless**.go' 
           network:

@@ -7,10 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 )
 
 func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
@@ -40,9 +40,6 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
@@ -92,7 +89,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 
 func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
+		connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -113,23 +110,15 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 	}
 }
 
-
 func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.GetName(), name)
 		if dataFederatedInstance.GetName() != name {
 			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.GetName())
 		}
-
-		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.GetName(), name)
-		if dataFederatedInstance.GetName() != name {
-			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.GetName())
-		}
-
-			return nil
-		}
+		return nil
+	}
 }
-
 
 func testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion string) string {
 	stepConfig := testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstStepS3Bucket(name, testS3Bucket)
@@ -274,26 +263,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 				value = "app1"
 			}
 		}
-		tag_sets {
-			tags {
-				name = "environment0"
-				value = "development0"
-			}
-			tags {
-				name = "application0"
-				value = "app0"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app1"
-			}
-		}
 	}
    }
 }
@@ -362,26 +331,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 				value = "app1"
 			}
 		}
-		tag_sets {
-			tags {
-				name = "environment0"
-				value = "development0"
-			}
-			tags {
-				name = "application0"
-				value = "app0"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app1"
-			}
-		}
 	}
    }
 
@@ -420,16 +369,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 			tags {
 				name = "application0"
 				value = "app0"
-			}
-		}
-		tag_sets {
-			tags {
-				name = "environment1"
-				value = "development1"
-			}
-			tags {
-				name = "application1"
-				value = "app1"
 			}
 		}
 	}

@@ -74,31 +74,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 					},
 				},
 			},
-			"azure_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"atlas_azure_app_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"service_principal_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
 			"created_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"last_updated_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -186,13 +162,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		resourceID = *role.AzureID
 	}
 
-	resourceID := role.RoleID
-	if role.ProviderName == AZURE {
-		resourceID = *role.AzureID
-	}
-
 	d.SetId(encodeStateID(map[string]string{
-		"id":            resourceID,
 		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,

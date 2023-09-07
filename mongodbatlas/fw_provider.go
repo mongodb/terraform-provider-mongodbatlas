@@ -25,6 +25,15 @@ import (
 )
 
 const (
+	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
+	DeprecationByDateMessageParameter     = "this parameter is deprecated and will be removed by %s"
+	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
+	endPointSTSDefault                    = "https://sts.amazonaws.com"
+	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	ProviderConfigError                   = "error in configuring the provider."
+	AWS                                   = "AWS"
+	AZURE                                 = "AZURE"
+	GCP
 	errorConfigureSummary = "Unexpected Resource Configure Type"
 	errorConfigure        = "expected *MongoDBClient, got: %T. Please report this issue to the provider developers"
 )

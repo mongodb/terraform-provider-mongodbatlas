@@ -10,7 +10,6 @@ import (
 )
 
 func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
-func TestAccConfigRSCloudProviderAccessAuthorizationAWS_basic(t *testing.T) {
 	SkipTestExtCred(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -123,34 +122,6 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   }
 }
 	`, projectID, policyName, roleName)
-}
-
-func testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID string) string {
-	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
-		org_id = %[1]q
-	}
-	resource "mongodbatlas_cloud_provider_access_setup" "test" {
-		project_id = mongodbatlas_project.test.id
-		provider_name = "AZURE"
-		azure_config {
-			atlas_azure_app_id = %[3]q
-			service_principal_id = %[4]q
-			tenant_id = %[5]q
-		}
-	 }
-
-   resource "mongodbatlas_cloud_provider_access_authorization" "test" {
-		project_id = mongodbatlas_project.test.id
-    role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
-		azure {
-			atlas_azure_app_id = %[3]q
-			service_principal_id = %[4]q
-			tenant_id = %[5]q
-		}
-	 }
-	`, orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID)
 }
 
 func testAccMongoDBAtlasCloudProviderAccessAuthorizationAzure(orgID, projectName, atlasAzureAppID, servicePrincipalID, tenantID string) string {
