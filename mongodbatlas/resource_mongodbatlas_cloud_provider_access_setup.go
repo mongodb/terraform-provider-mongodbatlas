@@ -74,7 +74,31 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 					},
 				},
 			},
+			"azure_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"atlas_azure_app_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"service_principal_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"created_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"last_updated_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -137,6 +161,18 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		requestParameters.AzureTenantID = pointer(value.(string))
 	}
 
+	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
+		requestParameters.AtlasAzureAppID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.service_principal_id"); ok {
+		requestParameters.AzureServicePrincipalID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.tenant_id"); ok {
+		requestParameters.AzureTenantID = pointer(value.(string))
+	}
+
 	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
@@ -150,7 +186,13 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		resourceID = *role.AzureID
 	}
 
+	resourceID := role.RoleID
+	if role.ProviderName == AZURE {
+		resourceID = *role.AzureID
+	}
+
 	d.SetId(encodeStateID(map[string]string{
+		"id":            resourceID,
 		"id":            resourceID,
 		"project_id":    projectID,
 		"provider_name": role.ProviderName,
@@ -184,6 +226,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}
 
+	d.SetId("")
 	d.SetId("")
 	return nil
 }

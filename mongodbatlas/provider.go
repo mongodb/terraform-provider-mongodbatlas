@@ -18,6 +18,8 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -849,6 +851,20 @@ func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
 
 func pointer[T any](x T) *T {
 	return &x
+}
+
+func intPtr(v int) *int {
+	if v != 0 {
+		return &v
+	}
+	return nil
+}
+
+func stringPtr(v string) *string {
+	if v != "" {
+		return &v
+	}
+	return nil
 }
 
 func intPtr(v int) *int {

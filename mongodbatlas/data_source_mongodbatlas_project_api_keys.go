@@ -95,6 +95,12 @@ func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.Res
 	}
 
 	if err := d.Set("results", results); err != nil {
+	results, err := flattenProjectAPIKeys(ctx, conn, projectID, apiKeys)
+	if err != nil {
+		diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
+	}
+
+	if err := d.Set("results", results); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
 	}
 

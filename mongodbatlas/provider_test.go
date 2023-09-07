@@ -8,6 +8,8 @@ import (
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -65,6 +67,15 @@ func testAccPreCheckBasic(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+}
+
+func testAccPreCheckCloudProviderAccessAzure(tb testing.TB) {
+	testAccPreCheckBasic(tb)
+	if os.Getenv("AZURE_ATLAS_APP_ID") == "" ||
+		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" ||
+		os.Getenv("AZURE_TENANT_ID") == "" {
+		tb.Fatal("`AZURE_ATLAS_APP_ID`, `AZURE_SERVICE_PRINCIPAL_ID`, and `AZURE_TENANT_ID` must be set for acceptance testing")
 	}
 }
 

@@ -9,6 +9,8 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -21,9 +23,11 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 		projectName       = acctest.RandomWithPrefix("test-acc")
 		name              = acctest.RandomWithPrefix("test-acc")
 		federatedInstance = admin.DataLakeTenant{}
+		federatedInstance = admin.DataLakeTenant{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
 		PreCheck:     func() { testAccPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -41,6 +45,9 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
@@ -62,9 +69,11 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 		testS3Bucket      = os.Getenv("AWS_S3_BUCKET")
 		region            = "VIRGINIA_USA"
 		federatedInstance = admin.DataLakeTenant{}
+		federatedInstance = admin.DataLakeTenant{}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
 		PreCheck:     func() { testAccPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -89,6 +98,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 }
 
 func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
@@ -104,6 +114,7 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 		ids := decodeStateID(rs.Primary.ID)
 
 		if dataLakeResp, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
+		if dataLakeResp, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
 			*dataFederatedInstance = *dataLakeResp
 			return nil
 		}
@@ -113,7 +124,11 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 }
 
 func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInstance *admin.DataLakeTenant, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.GetName(), name)
+		if dataFederatedInstance.GetName() != name {
+			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.GetName())
 		log.Printf("[DEBUG] difference dataFederatedInstance.Name: %s , username : %s", dataFederatedInstance.GetName(), name)
 		if dataFederatedInstance.GetName() != name {
 			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.GetName())
@@ -266,6 +281,26 @@ resource "mongodbatlas_federated_database_instance" "test" {
 				value = "app1"
 			}
 		}
+		tag_sets {
+			tags {
+				name = "environment0"
+				value = "development0"
+			}
+			tags {
+				name = "application0"
+				value = "app0"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment1"
+				value = "development1"
+			}
+			tags {
+				name = "application1"
+				value = "app1"
+			}
+		}
 	}
    }
 }
@@ -334,6 +369,26 @@ resource "mongodbatlas_federated_database_instance" "test" {
 				value = "app1"
 			}
 		}
+		tag_sets {
+			tags {
+				name = "environment0"
+				value = "development0"
+			}
+			tags {
+				name = "application0"
+				value = "app0"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment1"
+				value = "development1"
+			}
+			tags {
+				name = "application1"
+				value = "app1"
+			}
+		}
 	}
    }
 
@@ -344,6 +399,26 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	provider = "atlas"
 	read_preference {
 		mode = "secondary"
+		tag_sets {
+			tags {
+				name = "environment0"
+				value = "development0"
+			}
+			tags {
+				name = "application0"
+				value = "app0"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment1"
+				value = "development1"
+			}
+			tags {
+				name = "application1"
+				value = "app1"
+			}
+		}
 		tag_sets {
 			tags {
 				name = "environment0"

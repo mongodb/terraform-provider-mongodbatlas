@@ -10,6 +10,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -388,9 +391,23 @@ func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID str
 		return nil, fmt.Errorf("error getting api key information: %s", err)
 	}
 
+func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID string) ([]map[string]interface{}, error) {
+	apiKeyOrgList, _, err := conn.Root.List(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error getting api key information: %s", err)
+	}
+
+	projectAssignments, err := getAPIProjectAssignments(ctx, conn, apiKeyOrgList, apiKeyID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting api key information: %s", err)
+	}
+
 	var results []map[string]interface{}
 	var atlasRoles []matlas.AtlasRole
 	var atlasRole matlas.AtlasRole
+	if len(projectAssignments) > 0 {
+		results = make([]map[string]interface{}, len(projectAssignments))
+		for k, apiKey := range projectAssignments {
 	if len(projectAssignments) > 0 {
 		results = make([]map[string]interface{}, len(projectAssignments))
 		for k, apiKey := range projectAssignments {
@@ -405,6 +422,7 @@ func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID str
 			}
 		}
 	}
+	return results, nil
 	return results, nil
 }
 

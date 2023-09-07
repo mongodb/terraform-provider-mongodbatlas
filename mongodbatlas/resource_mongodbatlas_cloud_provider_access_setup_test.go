@@ -11,7 +11,13 @@ import (
 )
 
 func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
 	var (
+		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
+		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		targetRole     = matlas.CloudProviderAccessRole{}
 		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
 		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -25,6 +31,7 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccMongoDBAtlasCloudProviderAccessSetupAWS(orgID, projectName),
 				Config: testAccMongoDBAtlasCloudProviderAccessSetupAWS(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud resource
@@ -40,10 +47,13 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_basic(t *testing.T) {
 }
 
 func TestAccConfigRSCloudProviderAccessSetupAWS_importBasic(t *testing.T) {
+func TestAccConfigRSCloudProviderAccessSetupAWS_importBasic(t *testing.T) {
 	var (
+		resourceName = "mongodbatlas_cloud_provider_access_setup.test"
 		resourceName = "mongodbatlas_cloud_provider_access_setup.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
+		targetRole   = matlas.CloudProviderAccessRole{}
 		targetRole   = matlas.CloudProviderAccessRole{}
 	)
 
@@ -53,6 +63,7 @@ func TestAccConfigRSCloudProviderAccessSetupAWS_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasProviderAccessDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccMongoDBAtlasCloudProviderAccessSetupAWS(orgID, projectName),
 				Config: testAccMongoDBAtlasCloudProviderAccessSetupAWS(orgID, projectName),
 				Check: resource.ComposeTestCheckFunc(
 					// same as regular cloud provider because we are just checking in the api
