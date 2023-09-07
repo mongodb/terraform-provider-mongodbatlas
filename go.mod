@@ -14,7 +14,7 @@ require (
 	github.com/mongodb-forks/digest v1.0.5
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
-	github.com/zclconf/go-cty v1.13.3
+	github.com/zclconf/go-cty v1.14.0
 	go.mongodb.org/atlas v0.33.0
 	go.mongodb.org/atlas-sdk/v20230201006 v20230201006.0.0
 	go.mongodb.org/realm v0.1.0
