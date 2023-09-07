@@ -6,7 +6,7 @@
 **Enhancements**
 
 - Adds Atlas OIDC Database User support to `mongodbatlas_database_user` [\#1382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1382) ([andreaangiolillo](https://github.com/andreaangiolillo))
-  - Note: This feautre is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more see https://www.mongodb.com/docs/atlas/security-oidc/  
+  - Note: This feature is only available starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more see https://www.mongodb.com/docs/atlas/security-oidc/  
 - Adds Atlas `datasetNames` support in `mongodbatlas_federated_database_instance` [\#1439](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1439) ([maastha](https://github.com/maastha))
 - Improves `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` documentation to highlight that `provider_volume_type=STANDARD` is not available for NVMe clusters [\#1430](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1430) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Adds a new example for `mongodbatlas_online_archive` [\#1372](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1372) ([rsolovev](https://github.com/rsolovev))
@@ -16,7 +16,7 @@
 **Bug Fixes**
 
 - Updates `tag_sets` to `storage_stores.read_preference` in `mongodbatlas_federated_database_instance` [\#1440](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1440) ([maastha](https://github.com/maastha))
-- Updates cluster documentaion about labels field [\#1425](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1425) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Updates cluster documentation about labels field [\#1425](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1425) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Fixes null pointer error in `mongodbatlas_alert_configuration` [\#1419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1419) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Updates `mongodbatlas_event_trigger` resource to force replacement when app id changes [\#1387](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1387) ([maastha](https://github.com/maastha))
 - Updates deprecation message to 1.12.0 [\#1381](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1381) ([andreaangiolillo](https://github.com/andreaangiolillo))
