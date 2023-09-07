@@ -7,11 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
@@ -45,15 +44,6 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-			"role_names": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				ConflictsWith: []string{"project_assignment"},
-				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "project_assignment"),
-			},
 			"project_assignment": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -72,7 +62,6 @@ func resourceMongoDBAtlasProjectAPIKey() *schema.Resource {
 						},
 					},
 				},
-				ConflictsWith: []string{"role_names"},
 			},
 		},
 	}
@@ -122,18 +111,6 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 				}
 			}
 		}
-	} else {
-		createRequest.Roles = expandStringList(d.Get("role_names").(*schema.Set).List())
-
-		apiKey, resp, err = conn.ProjectAPIKeys.Create(ctx, projectID, createRequest)
-		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				d.SetId("")
-				return nil
-			}
-
-			return diag.FromErr(fmt.Errorf("error create API key: %s", err))
-		}
 	}
 
 	if err := d.Set("public_key", apiKey.PublicKey); err != nil {
@@ -182,19 +159,9 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 		}
 
-		_, roleOk := d.GetOk("role_names")
-		if !roleOk {
-			if err := d.Set("role_names", nil); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
-			}
-			if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
-				if err := d.Set("project_assignment", projectAssignments); err != nil {
-					return diag.Errorf(errorProjectSetting, `created`, projectID, err)
-				}
-			}
-		} else {
-			if err := d.Set("role_names", flattenProjectAPIKeyRoles(projectID, val.Roles)); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `roles`: %s", err))
+		if projectAssignments, err := newProjectAssignment(ctx, conn, apiKeyID); err == nil {
+			if err := d.Set("project_assignment", projectAssignments); err != nil {
+				return diag.Errorf(errorProjectSetting, `created`, projectID, err)
 			}
 		}
 	}
