@@ -8,25 +8,26 @@ require (
 	github.com/gruntwork-io/terratest v0.43.13
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/hcl/v2 v2.18.0
-	github.com/hashicorp/terraform-plugin-log v0.9.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.28.0
 	github.com/hashicorp/terraform-plugin-framework v1.3.4
 	github.com/hashicorp/terraform-plugin-framework-validators v0.10.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-mux v0.11.2
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.28.0
 	github.com/hashicorp/terraform-plugin-testing v1.4.0
 	github.com/mongodb-forks/digest v1.0.5
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
 	github.com/zclconf/go-cty v1.14.0
 	go.mongodb.org/atlas v0.33.0
+	go.mongodb.org/atlas-sdk/v20230201002 v20230201002.0.0
 	go.mongodb.org/atlas-sdk/v20230201006 v20230201006.0.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
 )
+
+require github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
@@ -40,7 +41,6 @@ require (
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
-	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
