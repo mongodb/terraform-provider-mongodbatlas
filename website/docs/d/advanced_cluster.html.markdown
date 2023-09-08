@@ -57,7 +57,8 @@ In addition to all arguments above, the following attributes are exported:
 * `cluster_type` - Type of the cluster that you want to create.
 * `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. 
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
-* `labels` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels).
+* `tags` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
+* `labels` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
@@ -74,7 +75,18 @@ Specifies BI Connector for Atlas configuration.
 * `enabled` - Specifies whether or not BI Connector for Atlas is enabled on the cluster.l
 * `read_preference` - Specifies the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://docs.mongodb.com/manual/core/read-preference/) and [readPreferenceTags](https://docs.mongodb.com/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector Read Preferences Table](https://docs.atlas.mongodb.com/tutorial/create-global-writes-cluster/#bic-read-preferences).
 
+### Tags
+
+ Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+
+* `key` - Constant that defines the set of the tag.
+* `value` - Variable that belongs to the set of the tag.
+
+For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+
 ### labels
+
+**WARNING:** This property is deprecated and will be removed by November 2023, use `tags` attribute instead.
 
 Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
@@ -82,7 +94,6 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `value` - The value that you want to write.
 
 -> **NOTE:** MongoDB Atlas doesn't display your labels.
--> **NOTE:** Cluster labels are not the same as [resource TAGs](https://www.mongodb.com/docs/atlas/tags/). We plan to add [resource TAGs](https://www.mongodb.com/docs/atlas/tags/) support in a future release.
 
 
 ### replication_specs

@@ -53,5 +53,16 @@ Follow this example to [setup private connection to a serverless instance using 
 * `state_name` - Stage of deployment of this serverless instance when the resource made its request.
 * `continuous_backup_enabled` - Flag that indicates whether the serverless instance uses Serverless Continuous Backup.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
+* `tags` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
+
+### Tags
+
+Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+
+* `key` - Constant that defines the set of the tag.
+* `value` - Variable that belongs to the set of the tag.
+
+For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+
 
 For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.

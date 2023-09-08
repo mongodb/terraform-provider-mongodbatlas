@@ -386,7 +386,8 @@ This parameter defaults to false.
 
 * `disk_size_gb` - (Optional) Capacity, in gigabytes, of the host's root volume. Increase this number to add capacity, up to a maximum possible value of 4096 (i.e., 4 TB). This value must be a positive number. You can't set this value with clusters with local [NVMe SSDs](https://docs.atlas.mongodb.com/cluster-tier/#std-label-nvme-storage). The minimum disk size for dedicated clusters is 10 GB for AWS and GCP. If you specify diskSizeGB with a lower disk size, Atlas defaults to the minimum disk size value. If your cluster includes Azure nodes, this value must correspond to an existing Azure disk type (8, 16, 32, 64, 128, 256, 512, 1024, 2048, or 4095)Atlas calculates storage charges differently depending on whether you choose the default value or a custom value. The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require additional storage space beyond this limitation, consider [upgrading your cluster](https://docs.atlas.mongodb.com/scale-cluster/#std-label-scale-cluster-instance) to a higher tier. If your cluster spans cloud service providers, this value defaults to the minimum default of the providers involved.
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-kms-encryption/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For Documentation, see [AWS](https://docs.atlas.mongodb.com/security-aws-kms/), [GCP](https://docs.atlas.mongodb.com/security-kms-encryption/) and [Azure](https://docs.atlas.mongodb.com/security-azure-kms/#std-label-security-azure-kms). Requirements are if `replication_specs.#.region_configs.#.<type>Specs.instance_size` is M10 or greater and `backup_enabled` is false or omitted.   
-* `labels` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels).
+* `tags` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
+* `labels` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `4.0`, `4.2`, `4.4`, or `5.0`. If omitted, Atlas deploys a cluster that runs MongoDB 4.4. If `replication_specs#.region_configs#.<type>Specs.instance_size`: `M0`, `M2` or `M5`, Atlas deploys MongoDB 4.4. Atlas always deploys the cluster with the latest stable release of the specified version.  If you set a value to this parameter and set `version_release_system` `CONTINUOUS`, the resource returns an error. Either clear this parameter or set `version_release_system`: `LTS`.
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - Configuration for cluster regions and the hardware provisioned in them. See [below](#replication_specs)
@@ -462,7 +463,29 @@ Include **desired options** within advanced_configuration:
 * `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
 
 
+### Tags
+
+ ```terraform
+ tags {
+        key   = "Key 1"
+        value = "Value 1"
+  }
+ tags {
+        key   = "Key 2"
+        value = "Value 2"
+  }
+```
+
+ Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+
+* `key` - Constant that defines the set of the tag.
+* `value` - Variable that belongs to the set of the tag.
+
+For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+
 ### labels
+
+**WARNING:** This property is deprecated and will be removed by November 2023, use `tags` attribute instead.
 
  ```terraform
  labels {
@@ -481,7 +504,6 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `value` - The value that you want to write.
 
 -> **NOTE:** MongoDB Atlas doesn't display your labels.
--> **NOTE:** Cluster labels are not the same as [resource TAGs](https://www.mongodb.com/docs/atlas/tags/). We plan to add [resource TAGs](https://www.mongodb.com/docs/atlas/tags/) support in a future release.
 
 
 ### replication_specs

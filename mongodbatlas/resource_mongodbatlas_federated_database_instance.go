@@ -865,24 +865,24 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 		{
 			"mode":                  atlasReadPreference.GetMode(),
 			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
-			"tag_sets":              flattenTagSets(atlasReadPreference.TagSets),
+			"tag_sets":              flattenReadPreferenceTagSets(atlasReadPreference.TagSets),
 		},
 	}
 }
 
-func flattenTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+func flattenReadPreferenceTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
 	tfTagSets := make([]map[string]interface{}, 0)
 
 	for i := range tagSets {
 		tfTagSets = append(tfTagSets, map[string]interface{}{
-			"tags": flattenTags(tagSets[i]),
+			"tags": flattenReadPreferenceTags(tagSets[i]),
 		})
 	}
 
 	return tfTagSets
 }
 
-func flattenTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+func flattenReadPreferenceTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
 	tfTags := make([]map[string]interface{}, 0)
 
 	for i := range tags {

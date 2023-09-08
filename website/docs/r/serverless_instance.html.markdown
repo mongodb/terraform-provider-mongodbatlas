@@ -46,6 +46,28 @@ Follow this example to [setup private connection to a serverless instance using 
   Human-readable label that identifies the physical location of your MongoDB serverless instance. The region you choose can affect network latency for clients accessing your databases.
 * `continuous_backup_enabled` - (Optional) Flag that indicates whether the serverless instance uses [Serverless Continuous Backup](https://www.mongodb.com/docs/atlas/configure-serverless-backup). If this parameter is false or not used, the serverless instance uses [Basic Backup](https://www.mongodb.com/docs/atlas/configure-serverless-backup).  
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
+* `tags` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the serverless instance. See [below](#tags).
+
+
+### Tags
+
+ ```terraform
+ tags {
+        key   = "Key 1"
+        value = "Value 1"
+  }
+ tags {
+        key   = "Key 2"
+        value = "Value 2"
+  }
+```
+
+ Key-value pairs used for tagging and categorizing the serverless instance. Each key and value has a maximum length of 255 characters.
+
+* `key` - Constant that defines the set of the tag.
+* `value` - Variable that belongs to the set of the tag.
+
+For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
 ## Attributes Reference
 

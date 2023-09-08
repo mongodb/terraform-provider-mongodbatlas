@@ -58,8 +58,9 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "November 2023", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -73,6 +74,7 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 					},
 				},
 			},
+			"tags": &dsTagsSchema,
 			"mongo_db_major_version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -225,6 +227,23 @@ func dataSourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 	}
 }
 
+var dsTagsSchema = schema.Schema{
+	Type:     schema.TypeSet,
+	Computed: true,
+	Elem: &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"value": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	},
+}
+
 func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
@@ -270,6 +289,10 @@ func dataSourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Re
 
 	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "labels", clusterName, err))
+	}
+
+	if err := d.Set("tags", flattenTags(&cluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "tags", clusterName, err))
 	}
 
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {

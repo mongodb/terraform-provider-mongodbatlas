@@ -104,6 +104,7 @@ func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[str
 			"state_name":                              serverlessInstances[i].StateName,
 			"termination_protection_enabled":          serverlessInstances[i].TerminationProtectionEnabled,
 			"continuous_backup_enabled":               serverlessInstances[i].ServerlessBackupOptions.ServerlessContinuousBackupEnabled,
+			"tags":                                    flattenTags(serverlessInstances[i].Tags),
 		}
 	}
 

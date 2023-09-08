@@ -101,6 +101,8 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
+* `tags` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
+* `labels` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
 * `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups. **DEPRECATED** Use `cloud_backup` instead.
@@ -156,15 +158,25 @@ Physical location of the region.
 * `read_only_nodes` - Number of read-only nodes for Atlas to deploy to the region. Read-only nodes can never become the primary, but can facilitate local-reads. Specify 0 if you do not want any read-only nodes in the region.
 * `analytics_nodes` - Indicates the number of analytics nodes for Atlas to deploy to the region. Analytics nodes are useful for handling analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only, and can never become the primary.
 
+### Tags
+
+Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+
+* `key` - Constant that defines the set of the tag.
+* `value` - Variable that belongs to the set of the tag.
+
+For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+
 ### Labels
+
+**WARNING:** This property is deprecated and will be removed by November 2023, use `tags` attribute instead.
+
 Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
 
 -> **NOTE:** MongoDB Atlas doesn't display your labels.
--> **NOTE:** Cluster labels are not the same as [resource TAGs](https://www.mongodb.com/docs/atlas/tags/). We plan to add [resource TAGs](https://www.mongodb.com/docs/atlas/tags/) support in a future release.
-
 
 ### Plugin
 Contains a key-value pair that tags that the cluster was created by a Terraform Provider and notes the version.

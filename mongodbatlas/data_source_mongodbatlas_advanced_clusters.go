@@ -66,8 +66,9 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 							Computed: true,
 						},
 						"labels": {
-							Type:     schema.TypeSet,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Computed:   true,
+							Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "November 2023", "tags"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {
@@ -81,6 +82,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 								},
 							},
 						},
+						"tags": &dsTagsSchema,
 						"mongo_db_major_version": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -281,6 +283,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 			"disk_size_gb":                   clusters[i].DiskSizeGB,
 			"encryption_at_rest_provider":    clusters[i].EncryptionAtRestProvider,
 			"labels":                         flattenLabels(clusters[i].Labels),
+			"tags":                           flattenTags(&clusters[i].Tags),
 			"mongo_db_major_version":         clusters[i].MongoDBMajorVersion,
 			"mongo_db_version":               clusters[i].MongoDBVersion,
 			"name":                           clusters[i].Name,
