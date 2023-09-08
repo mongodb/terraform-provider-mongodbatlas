@@ -64,8 +64,8 @@ Follow this example to [setup private connection to a serverless instance using 
 
  Key-value pairs used for tagging and categorizing the serverless instance. Each key and value has a maximum length of 255 characters.
 
-* `key` - Constant that defines the set of the tag.
-* `value` - Variable that belongs to the set of the tag.
+* `key` - (Required) Constant that defines the set of the tag.
+* `value` - (Required) Variable that belongs to the set of the tag.
 
 For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 

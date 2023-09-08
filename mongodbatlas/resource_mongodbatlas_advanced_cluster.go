@@ -348,11 +348,11 @@ var tagsSchema = schema.Schema{
 		Schema: map[string]*schema.Schema{
 			"key": {
 				Type:     schema.TypeString,
-				Optional: true, // TODO verify if truly optional
+				Required: true,
 			},
 			"value": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 		},
 	},

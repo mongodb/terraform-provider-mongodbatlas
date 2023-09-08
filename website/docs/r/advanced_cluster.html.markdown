@@ -478,8 +478,8 @@ Include **desired options** within advanced_configuration:
 
  Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
 
-* `key` - Constant that defines the set of the tag.
-* `value` - Variable that belongs to the set of the tag.
+* `key` - (Required) Constant that defines the set of the tag.
+* `value` - (Required) Variable that belongs to the set of the tag.
 
 For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
