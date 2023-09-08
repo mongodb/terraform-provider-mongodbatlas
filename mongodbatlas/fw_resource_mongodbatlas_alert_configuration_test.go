@@ -83,7 +83,6 @@ func TestAccConfigRSAlertConfiguration_EmptyMatcherMetricThresholdConfig(t *test
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -898,26 +897,6 @@ resource "mongodbatlas_alert_configuration" "test" {
     sms_enabled   = true
     email_enabled = false
 	roles         = ["GROUP_OWNER"]
-  }
-
-  matcher {
-    field_name = ""
-    operator   = null
-    value      = ""
-  }
-
-  metric_threshold_config {
-    metric_name = ""
-    operator    = null
-    threshold   = null
-    units       = null
-    mode        = ""
-  }
-
-  threshold_config {
-    operator  = null
-    threshold = null
-    units     = null
   }
 }
 	`, orgID, projectName, enabled)

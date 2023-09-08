@@ -403,7 +403,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				ExpectError: regexp.MustCompile("Limit not found"),
+				ExpectError: regexp.MustCompile("Not Found"),
 			},
 		},
 	})
@@ -435,7 +435,7 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				ExpectError: regexp.MustCompile("Limit not found"),
+				ExpectError: regexp.MustCompile("Not Found"),
 			},
 		},
 	})

@@ -57,6 +57,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 }
 
 func TestAccFederatedDatabaseInstance_S3bucket(t *testing.T) {
+	SkipTestExtCred(t)
 	var (
 		resourceName = "mongodbatlas_federated_database_instance.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -115,9 +116,6 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
@@ -201,26 +199,6 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 					value = "app-1"
 				}
 			}
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
 		  }
 		}
 	  
@@ -231,26 +209,6 @@ func testAccMongoDBAtlasFederatedDatabaseInstanceAtlasProviderConfig(projectName
 		  provider     = "atlas"
 		  read_preference {
 			mode = "secondary"
-			tag_sets {
-				tags {
-					name = "environment"
-					value = "development"
-				}
-				tags {
-					name = "application"
-					value = "app"
-				}
-			}
-			tag_sets {
-				tags {
-					name = "environment1"
-					value = "development1"
-				}
-				tags {
-					name = "application1"
-					value = "app-1"
-				}
-			}
 			tag_sets {
 				tags {
 					name = "environment"
