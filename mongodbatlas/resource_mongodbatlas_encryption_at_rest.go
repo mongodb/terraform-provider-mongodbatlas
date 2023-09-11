@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
@@ -239,27 +240,41 @@ func resourceMongoDBAtlasEncryptionAtRestCreate(ctx context.Context, d *schema.R
 		encryptionAtRestReq.GoogleCloudKms = expandGCPKmsConfig(gcpC.([]interface{}))
 	}
 
-	for i := 0; i < 5; i++ {
-		_, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"RETRY"},
+		Target:     []string{"COMPLETED", "ERROR"},
+		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, d.Get("project_id").(string), conn, encryptionAtRestReq),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+	// Wait, catching any errors
+	_, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorCreateEncryptionAtRest, err))
+	}
+
+	d.SetId(d.Get("project_id").(string))
+	return resourceMongoDBAtlasEncryptionAtRestRead(ctx, d, meta)
+}
+
+func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, conn *matlas.Client, encryptionAtRestReq *matlas.EncryptionAtRest) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		_, response, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
 		if err != nil {
 			if strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") ||
 				strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
 				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
 				log.Println("retrying ")
-				time.Sleep(10 * time.Second)
-				encryptionAtRestReq.GroupID = d.Get("project_id").(string)
-				continue
+
+				encryptionAtRestReq.GroupID = projectID
+				return response, "RETRY", nil
 			}
+			return response, "ERROR", err
 		}
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorCreateEncryptionAtRest, err))
-		}
-		break
+		return response, "COMPLETED", nil
 	}
-
-	d.SetId(d.Get("project_id").(string))
-
-	return resourceMongoDBAtlasEncryptionAtRestRead(ctx, d, meta)
 }
 
 func resourceMongoDBAtlasEncryptionAtRestRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
