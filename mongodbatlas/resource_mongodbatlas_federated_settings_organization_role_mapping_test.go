@@ -21,9 +21,9 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_basic(t *testing.T) {
 		groupID                                  = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasFederatedSettingsOrganizationRoleMappingConfig(federationSettingsID, orgID, groupID),
@@ -49,9 +49,9 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy,
 		Steps: []resource.TestStep{
 
 			{
@@ -68,7 +68,7 @@ func TestAccFedRSFederatedSettingsOrganizationRoleMapping_importBasic(t *testing
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(resourceName string,
 	federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMapping) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -94,7 +94,7 @@ func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingExists(reso
 }
 
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationRoleMappingDestroy(state *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_federated_settings_org_role_mapping" {

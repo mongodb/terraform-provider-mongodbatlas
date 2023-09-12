@@ -22,9 +22,9 @@ func TestAccClusterRSGlobalCluster_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "false", "false"),
@@ -72,9 +72,9 @@ func TestAccClusterRSGlobalCluster_WithAWSCluster(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, "true"),
@@ -101,9 +101,9 @@ func TestAccClusterRSGlobalCluster_importBasic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterConfig(projectID, name, "false", "false", "false"),
@@ -159,9 +159,9 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
   }`
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasGlobalClusterWithDBConfig(projectID, name, "false", customZone),
@@ -207,7 +207,7 @@ func TestAccClusterRSGlobalCluster_database(t *testing.T) {
 
 func testAccCheckMongoDBAtlasGlobalClusterExists(resourceName string, globalConfig *matlas.GlobalCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -257,7 +257,7 @@ func testAccCheckMongoDBAtlasGlobalClusterAttributes(globalCluster *matlas.Globa
 }
 
 func testAccCheckMongoDBAtlasGlobalClusterDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_global_cluster_config" {
@@ -289,7 +289,7 @@ func testAccMongoDBAtlasGlobalClusterConfig(projectID, name, backupEnabled, isCu
 			name                    = "%s"
 			disk_size_gb            = 80
 			backup_enabled          = "%s"
-			provider_backup_enabled = true
+			cloud_backup            = true
 			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"
@@ -345,7 +345,7 @@ func testAccMongoDBAtlasGlobalClusterWithAWSClusterConfig(projectID, name, backu
 			project_id              = "%s"
 			name                    = "%s"
 			disk_size_gb            = 80
-			provider_backup_enabled = %s
+			cloud_backup            = %s
 			cluster_type            = "GEOSHARDED"
 
 			// Provider Settings "block"

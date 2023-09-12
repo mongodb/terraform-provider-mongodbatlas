@@ -21,8 +21,8 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_basic(t *testing.T) {
 		idpID                             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config:            testAccMongoDBAtlasFederatedSettingsOrganizationConfig(federationSettingsID, orgID, idpID),
@@ -57,8 +57,8 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 
 			{
@@ -75,7 +75,7 @@ func TestAccFedRSFederatedSettingsOrganizationConfig_importBasic(t *testing.T) {
 func testAccCheckMongoDBAtlasFederatedSettingsOrganizationConfigRExists(resourceName string,
 	federatedSettingsIdentityProvider *matlas.FederatedSettingsConnectedOrganization) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

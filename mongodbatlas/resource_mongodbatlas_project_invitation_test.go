@@ -25,9 +25,9 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
@@ -71,9 +71,9 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasProjectInvitationDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectInvitationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasProjectInvitationConfig(orgID, projectName, name, initialRole),
@@ -98,7 +98,7 @@ func TestAccProjectRSProjectInvitation_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasProjectInvitationExists(t *testing.T, resourceName string, invitation *matlas.Invitation) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -156,7 +156,7 @@ func testAccCheckMongoDBAtlasProjectInvitationRoleAttribute(invitation *matlas.I
 }
 
 func testAccCheckMongoDBAtlasProjectInvitationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_invitations" {

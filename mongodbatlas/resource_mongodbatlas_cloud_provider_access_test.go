@@ -22,8 +22,8 @@ func TestAccConfigRSCloudProviderAccessAWS_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderAccessAWS(orgID, projectName),
@@ -53,8 +53,8 @@ func TestAccConfigRSCloudProviderAccess_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudProviderAccessAWS(orgID, projectName),
@@ -89,7 +89,7 @@ func testAccCheckMongoDBAtlasCloudProviderAccessImportStateIDFunc(resourceName s
 }
 
 func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_provider_access" {
 			continue
@@ -125,7 +125,7 @@ func testAccCheckMongoDBAtlasProviderAccessDestroy(s *terraform.State) error {
 
 func testAccCheckMongoDBAtlasProviderAccessExists(resourceName string, targetRole *matlas.CloudProviderAccessRole) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

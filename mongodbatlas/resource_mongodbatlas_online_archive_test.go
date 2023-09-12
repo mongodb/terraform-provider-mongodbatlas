@@ -25,9 +25,9 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
@@ -113,9 +113,9 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// We need this step to pupulate the cluster with Sample Data
@@ -152,7 +152,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

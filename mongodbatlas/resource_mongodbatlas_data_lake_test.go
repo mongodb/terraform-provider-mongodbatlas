@@ -28,9 +28,9 @@ func TestAccBackupRSDataLake_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasDataLakeDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasDataLakeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataLakeConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, dataLakeRegion, false),
@@ -63,9 +63,9 @@ func TestAccBackupRSDataLake_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasDataLakeDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasDataLakeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataLakeConfig(policyName, roleName, projectName, orgID, name, testS3Bucket, "", false),
@@ -99,7 +99,7 @@ func testAccCheckMongoDBAtlasDataLakeImportStateIDFunc(resourceName, s3Bucket st
 
 func testAccCheckMongoDBAtlasDataLakeExists(resourceName string, dataLake *matlas.DataLake) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,7 +133,7 @@ func testAccCheckMongoDBAtlasDataLakeAttributes(dataLake *matlas.DataLake, name 
 }
 
 func testAccCheckMongoDBAtlasDataLakeDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_data_lake" {

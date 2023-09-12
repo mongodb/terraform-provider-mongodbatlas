@@ -20,9 +20,9 @@ func TestAccOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigSingleRegion(projectName, orgID, clusterName),
@@ -48,9 +48,9 @@ func TestAccOutageSimulationCluster_MultiRegion_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterOutageSimulationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(projectName, orgID, clusterName),
@@ -148,7 +148,7 @@ func testAccDataSourceMongoDBAtlasClusterOutageSimulationConfigMultiRegion(proje
 }
 
 func testAccCheckMongoDBAtlasClusterOutageSimulationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cluster_outage_simulation" {

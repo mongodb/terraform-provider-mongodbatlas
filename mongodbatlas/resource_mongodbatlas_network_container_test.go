@@ -29,9 +29,9 @@ func TestAccNetworkRSNetworkContainer_basicAWS(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
@@ -79,9 +79,9 @@ func TestAccNetworkRSNetworkContainer_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainerConfigAzure(projectName, orgID, cidrBlock, providerName),
@@ -121,9 +121,9 @@ func TestAccNetworkRSNetworkContainer_basicGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainerConfigGCP(projectName, orgID, cidrBlock, providerName),
@@ -163,9 +163,9 @@ func TestAccNetworkRSNetworkContainer_WithRegionsGCP(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainerConfigGCPWithRegions(projectName, orgID, cidrBlock, providerName),
@@ -198,9 +198,9 @@ func TestAccNetworkRSNetworkContainer_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasNetworkContainerDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasNetworkContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasNetworkContainerConfigAWS(projectName, orgID, cidrBlock, providerName, "US_EAST_1"),
@@ -229,7 +229,7 @@ func testAccCheckMongoDBAtlasNetworkContainerImportStateIDFunc(resourceName stri
 
 func testAccCheckMongoDBAtlasNetworkContainerExists(resourceName string, container *matlas.Container) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -262,7 +262,7 @@ func testAccCheckMongoDBAtlasNetworkContainerAttributes(container *matlas.Contai
 }
 
 func testAccCheckMongoDBAtlasNetworkContainerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_container" {

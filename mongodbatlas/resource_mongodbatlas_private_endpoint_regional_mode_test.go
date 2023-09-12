@@ -41,9 +41,9 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_conn(t *testing.T) {
 	dependencies := []string{clusterResource, clusterDataSource, endpointResources}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfigWithDependencies(resourceSuffix, projectID, false, dependencies),
@@ -77,9 +77,9 @@ func TestAccNetworkRSPrivateEndpointRegionalMode_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceSuffix, projectID, false),
@@ -146,7 +146,7 @@ func testAccMongoDBAtlasPrivateEndpointRegionalModeConfig(resourceName, projectI
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		fmt.Printf("==========================================================================\n")
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 
@@ -173,7 +173,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeExists(resourceName stri
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(projectID, clusterName, clusterResourceName string) resource.TestCheckFunc {
 	resourceName := strings.Join([]string{"data", "mongodbatlas_cluster", clusterResourceName}, ".")
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 
@@ -210,7 +210,7 @@ func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeClustersUpToDate(project
 }
 
 func testAccCheckMongoDBAtlasPrivateEndpointRegionalModeDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_private_endpoint_regional_mode" {

@@ -20,8 +20,8 @@ func TestAccFedDSFederatedSettings_basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testCheckFederatedSettings(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID),
@@ -48,7 +48,7 @@ func testAccMongoDBAtlasDataSourceFederatedSettingsConfig(orgID string) string {
 
 func testAccCheckMongoDBAtlasFederatedSettingsExists(resourceName string, federatedSettings *matlas.FederatedSettings) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -23,9 +23,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleConfigNoPolicies(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
@@ -150,8 +150,8 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 
 		Steps: []resource.TestStep{
 			{
@@ -181,9 +181,9 @@ func TestAccBackupRSCloudBackupSchedule_onepolicy(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
@@ -248,9 +248,9 @@ func TestAccBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleCopySettingsConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
@@ -297,9 +297,9 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleDefaultConfig(orgID, projectName, clusterName, &matlas.CloudProviderSnapshotBackupPolicy{
@@ -350,9 +350,9 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCloudBackupScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCloudBackupScheduleBasicConfig(orgID, projectName, clusterName, &matlas.PolicyItem{
@@ -393,7 +393,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -418,7 +418,7 @@ func testAccCheckMongoDBAtlasCloudBackupScheduleExists(resourceName string) reso
 }
 
 func testAccCheckMongoDBAtlasCloudBackupScheduleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cloud_backup_schedule" {

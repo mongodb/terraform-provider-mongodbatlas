@@ -23,9 +23,9 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 		datasourceInstancesName = "data.mongodbatlas_serverless_instances.data_serverless"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, instanceName, true),
@@ -63,9 +63,9 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasServerlessInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, instanceName, true),
@@ -82,7 +82,7 @@ func TestAccServerlessInstance_importBasic(t *testing.T) {
 
 func testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName string, serverlessInstance *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -106,7 +106,7 @@ func testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName string, serve
 }
 
 func testAccCheckMongoDBAtlasServerlessInstanceDestroy(state *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type != "mongodbatlas_serverless_instance" {

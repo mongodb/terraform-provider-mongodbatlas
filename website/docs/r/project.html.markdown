@@ -33,11 +33,6 @@ resource "mongodbatlas_project" "test" {
     role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
   }
 
-  api_keys {
-    api_key_id = "61003b299dda8d54a9d7d10c"
-    role_names = ["GROUP_READ_ONLY"]
-  }
-
   limits {
     name = "atlas.project.deployment.clusters"
     value = 26
@@ -83,15 +78,6 @@ Teams attribute is optional
 
 ~> **NOTE:** Project created by API Keys must belong to an existing organization.
 
-### Programmatic API Keys
-api_keys allows one to assign an existing organization programmatic API key to a Project. The api_keys attribute is optional.
-
-* `api_key_id` - (Required) The unique identifier of the Programmatic API key you want to associate with the Project.  The Programmatic API key and Project must share the same parent organization.  Note: this is not the `publicKey` of the Programmatic API key but the `id` of the key. See [Programmatic API Keys](https://docs.atlas.mongodb.com/reference/api/apiKeys/) for more.
-
-**WARNING:** The `api_keys` parameter is deprecated and will be removed in v1.12.0 release from codebase. Use `mongodbatlas_project_api_key`  resource instead. 
-
-* `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.  
- 
 ### Limits
 `limits` allows one to configure a variety of limits to a Project. The limits attribute is optional.
 

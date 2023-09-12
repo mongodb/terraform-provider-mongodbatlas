@@ -181,6 +181,11 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
+## Terraform Version Requirement
+| MongoDB Atlas Provider version  | Required Terraform version |
+| ------------- | ------------- |
+| `1.12.0` and above  | `1.0+`  |
+| below `1.12.0`  | `0.13+` |
 ## Supported OS and Architectures
 As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
 - Darwin / AMD64
