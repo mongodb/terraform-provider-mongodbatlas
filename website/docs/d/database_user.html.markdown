@@ -49,7 +49,7 @@ data "mongodbatlas_database_user" "test" {
 }
 ```
 
-Example of usage with a OIDC federated authentication user
+**Example of usage with a OIDC federated authentication user**
 
 ```
 resource "mongodbatlas_database_user" "test" {
@@ -70,6 +70,7 @@ data "mongodbatlas_database_user" "test" {
   auth_database_name = "admin"
 }
 ```
+Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 ## Argument Reference
 
@@ -111,4 +112,4 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
 
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/database-users-get-single-user/) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/getDatabaseUser) Documentation for more information.

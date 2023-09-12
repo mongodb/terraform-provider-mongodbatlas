@@ -21,6 +21,8 @@ description: |-
 resource "mongodbatlas_project_api_key" "test" {
   description   = "Description of the API key"
   project_id    = "32b6e34b3d91647abb20e7b8"
+  description   = "Description of the API key"
+  project_id    = "32b6e34b3d91647abb20e7b8"
   role_names = ["GROUP_READ_ONLY"]
   }
 }
@@ -43,7 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 * `description` - Description of this Project API key.
 * `public_key` - Public key for this Organization API key.
 * `private_key` - Private key for this Organization API key.
-* `role_names` - Name of the role. This resource returns all the roles the user has in Atlas. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned. **DEPRECATED** Use `project_assignment` instead.
+
 ### project_assignment
 List of Project roles that the Programmatic API key needs to have.
 

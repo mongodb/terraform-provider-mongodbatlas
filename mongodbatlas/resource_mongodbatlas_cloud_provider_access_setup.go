@@ -38,14 +38,6 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{AWS, AZURE}, false),
 				ForceNew:     true,
 			},
-			"aws": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "aws_config"),
-			},
 			"aws_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -145,6 +137,18 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		requestParameters.AzureTenantID = pointer(value.(string))
 	}
 
+	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
+		requestParameters.AtlasAzureAppID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.service_principal_id"); ok {
+		requestParameters.AzureServicePrincipalID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.tenant_id"); ok {
+		requestParameters.AzureTenantID = pointer(value.(string))
+	}
+
 	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
@@ -193,6 +197,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *
 	}
 
 	d.SetId("")
+	d.SetId("")
 	return nil
 }
 
@@ -200,10 +205,6 @@ func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interfac
 	if role.ProviderName == "AWS" {
 		out := map[string]interface{}{
 			"provider_name": role.ProviderName,
-			"aws": map[string]interface{}{ // Deprecated, will be deleted later
-				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
-				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
-			},
 			"aws_config": []interface{}{map[string]interface{}{
 				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
@@ -221,7 +222,6 @@ func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interfac
 			"service_principal_id": role.AzureServicePrincipalID,
 			"tenant_id":            role.AzureTenantID,
 		}},
-		"aws":               map[string]interface{}{},
 		"aws_config":        []interface{}{map[string]interface{}{}},
 		"created_date":      role.CreatedDate,
 		"last_updated_date": role.LastUpdatedDate,

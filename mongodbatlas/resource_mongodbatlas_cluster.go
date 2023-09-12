@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -87,21 +86,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Optional:    true,
 				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
 			},
-			"bi_connector": {
-				Type:          schema.TypeMap,
-				Optional:      true,
-				Deprecated:    fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "bi_connector_config"),
-				ConflictsWith: []string{"bi_connector_config"},
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 			"bi_connector_config": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"bi_connector"},
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -149,17 +138,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Optional: true,
 				Default:  1,
 			},
-			"provider_backup_enabled": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Default:    false,
-				Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "cloud_backup"),
-			},
 			"cloud_backup": {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Default:       false,
-				ConflictsWith: []string{"provider_backup_enabled", "backup_enabled"},
+				ConflictsWith: []string{"backup_enabled"},
 			},
 			"provider_instance_size_name": {
 				Type:     schema.TypeString,
@@ -487,27 +470,6 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		clusterRequest.ProviderBackupEnabled = pointy.Bool(v.(bool))
 	}
 
-	// Deprecated will remove later
-	if v, ok := d.GetOk("provider_backup_enabled"); ok {
-		clusterRequest.ProviderBackupEnabled = pointy.Bool(v.(bool))
-	}
-
-	if _, ok := d.GetOk("bi_connector"); ok {
-		biConnector, err := expandBiConnector(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
-		}
-		clusterRequest.BiConnector = biConnector
-	}
-
-	if _, ok := d.GetOk("bi_connector"); ok {
-		biConnector, err := expandBiConnector(d)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
-		}
-		clusterRequest.BiConnector = biConnector
-	}
-
 	if _, ok := d.GetOk("bi_connector_config"); ok {
 		biConnector, err := expandBiConnectorConfig(d)
 		if err != nil {
@@ -656,12 +618,6 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "backup_enabled", clusterName, err))
 	}
 
-	if _, ok := d.GetOk("provider_backup_enabled"); ok {
-		if err := d.Set("provider_backup_enabled", cluster.ProviderBackupEnabled); err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterSetting, "provider_backup_enabled", clusterName, err))
-		}
-	}
-
 	if _, ok := d.GetOk("cloud_backup"); ok {
 		if err := d.Set("cloud_backup", cluster.ProviderBackupEnabled); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterSetting, "cloud_backup", clusterName, err))
@@ -729,12 +685,6 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 
 	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "termination_protection_enabled", clusterName, err))
-	}
-
-	if _, ok := d.GetOk("bi_connector"); ok {
-		if err = d.Set("bi_connector", flattenBiConnector(cluster.BiConnector)); err != nil {
-			return diag.FromErr(fmt.Errorf(errorClusterSetting, "bi_connector", clusterName, err))
-		}
 	}
 
 	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
@@ -817,10 +767,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	clusterChangeDetect := new(matlas.Cluster)
 	clusterChangeDetect.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
 
-	if d.HasChange("bi_connector") {
-		cluster.BiConnector, _ = expandBiConnector(d)
-	}
-
 	if d.HasChange("name") {
 		cluster.Name, _ = d.Get("name").(string)
 	}
@@ -889,11 +835,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		cluster.DiskSizeGB = pointy.Float64(d.Get("disk_size_gb").(float64))
 	}
 
-	// Deprecated will remove later
-	if d.HasChange("provider_backup_enabled") {
-		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
-	}
-
 	if d.HasChange("cloud_backup") {
 		cluster.ProviderBackupEnabled = pointy.Bool(d.Get("cloud_backup").(bool))
 	}
@@ -933,9 +874,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	// when Provider instance type changes this argument must be passed explicitly in patch request
 	if d.HasChange("provider_instance_size_name") {
-		if _, ok := d.GetOk("provider_backup_enabled"); ok {
-			cluster.ProviderBackupEnabled = pointy.Bool(d.Get("provider_backup_enabled").(bool))
-		}
 		if _, ok := d.GetOk("cloud_backup"); ok {
 			cluster.ProviderBackupEnabled = pointy.Bool(d.Get("cloud_backup").(bool))
 		}
@@ -1113,24 +1051,6 @@ func splitSClusterImportID(id string) (projectID, clusterName *string, err error
 	return
 }
 
-// Deprecated: will be deleted later
-func expandBiConnector(d *schema.ResourceData) (*matlas.BiConnector, error) {
-	var biConnector matlas.BiConnector
-
-	if v, ok := d.GetOk("bi_connector"); ok {
-		biConnMap := v.(map[string]interface{})
-
-		enabled := cast.ToBool(biConnMap["enabled"])
-
-		biConnector = matlas.BiConnector{
-			Enabled:        &enabled,
-			ReadPreference: cast.ToString(biConnMap["read_preference"]),
-		}
-	}
-
-	return &biConnector, nil
-}
-
 func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error) {
 	var biConnector matlas.BiConnector
 
@@ -1149,21 +1069,6 @@ func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	}
 
 	return &biConnector, nil
-}
-
-// Deprecated: will be deleted later
-func flattenBiConnector(biConnector *matlas.BiConnector) map[string]interface{} {
-	biConnectorMap := make(map[string]interface{})
-
-	if biConnector.Enabled != nil {
-		biConnectorMap["enabled"] = strconv.FormatBool(*biConnector.Enabled)
-	}
-
-	if biConnector.ReadPreference != "" {
-		biConnectorMap["read_preference"] = biConnector.ReadPreference
-	}
-
-	return biConnectorMap
 }
 
 func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []interface{} {
@@ -1553,13 +1458,11 @@ func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 	connections := make([]map[string]interface{}, 0)
 
 	connections = append(connections, map[string]interface{}{
-		"standard":             connectionStrings.Standard,
-		"standard_srv":         connectionStrings.StandardSrv,
-		"aws_private_link":     connectionStrings.AwsPrivateLink,
-		"aws_private_link_srv": connectionStrings.AwsPrivateLinkSrv,
-		"private":              connectionStrings.Private,
-		"private_srv":          connectionStrings.PrivateSrv,
-		"private_endpoint":     flattenPrivateEndpoint(connectionStrings.PrivateEndpoint),
+		"standard":         connectionStrings.Standard,
+		"standard_srv":     connectionStrings.StandardSrv,
+		"private":          connectionStrings.Private,
+		"private_srv":      connectionStrings.PrivateSrv,
+		"private_endpoint": flattenPrivateEndpoint(connectionStrings.PrivateEndpoint),
 	})
 
 	return connections
@@ -1622,16 +1525,6 @@ func clusterConnectionStringsSchema() *schema.Schema {
 				"standard_srv": {
 					Type:     schema.TypeString,
 					Computed: true,
-				},
-				"aws_private_link": {
-					Type:       schema.TypeMap,
-					Computed:   true,
-					Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "connection_strings.private_endpoint[n].connection_string"),
-				},
-				"aws_private_link_srv": {
-					Type:       schema.TypeMap,
-					Computed:   true,
-					Deprecated: fmt.Sprintf(DeprecationMessageParameterToResource, "v1.12.0", "connection_strings.private_endpoint[n].srv_connection_string"),
 				},
 				"private": {
 					Type:     schema.TypeString,

@@ -42,7 +42,7 @@ On-demand snapshots happen immediately, unlike scheduled snapshots which occur a
     project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
     cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
     snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-    delivery_type {
+    delivery_type_config {
       download = true
     }
   }

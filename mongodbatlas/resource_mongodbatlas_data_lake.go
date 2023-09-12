@@ -545,3 +545,17 @@ func expandDataLakeDataProcessRegion(d *schema.ResourceData) *matlas.DataProcess
 	}
 	return nil
 }
+
+func counterEmptyValues(values map[string]interface{}) bool {
+	count := 0
+	for i := range values {
+		if val, ok := values[i]; ok {
+			strval, okT := val.(string)
+			if okT && strval == "" || strval == "false" {
+				count++
+			}
+		}
+	}
+
+	return len(values) == count
+}

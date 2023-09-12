@@ -17,9 +17,9 @@ func TestAccClusterDSGlobalCluster_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasGlobalClusterDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasGlobalClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name),
@@ -38,7 +38,7 @@ func testAccDSMongoDBAtlasGlobalClusterConfig(projectID, name string) string {
 		project_id              = "%s"
 		name                    = "%s"
 		disk_size_gb            = 80
-		provider_backup_enabled = false
+		cloud_backup            = false
 		cluster_type            = "GEOSHARDED"
 
 		// Provider Settings "block"

@@ -29,7 +29,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
+  cloud_backup                = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -80,7 +80,7 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 }
 ```
 
-~> **IMPORTANT:**   `policies.#.policy_item.#.id` is obtained when the cluster is created. The example here shows the default order of the default policy when Cloud Backup is enabled (provider_backup_enabled is set to true).  The default policy is viewable in the Terraform State file.
+~> **IMPORTANT:**   `policies.#.policy_item.#.id` is obtained when the cluster is created. The example here shows the default order of the default policy when Cloud Backup is enabled (`cloud_backup` is set to true).  The default policy is viewable in the Terraform State file.
 
 ## Example Usage - Create a Cluster and Modify 3 Default Policies and Remove 1 Default Policy Simultaneously
 
@@ -93,7 +93,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
+  cloud_backup                = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -159,7 +159,7 @@ resource "mongodbatlas_cluster" "my_cluster" {
   provider_name               = "AWS"
   provider_region_name        = "EU_CENTRAL_1"
   provider_instance_size_name = "M10"
-  provider_backup_enabled     = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
+  cloud_backup                = true // must be enabled in order to use cloud_provider_snapshot_backup_policy resource
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -225,11 +225,11 @@ resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
 
 ### Policies
 * `policies` - (Required) Contains a document for each backup policy item in the desired updated backup policy.
-* `policies.#.id` - (Required) Unique identifier of the backup policy that you want to update. policies.#.id is a value obtained via the mongodbatlas_cluster resource. provider_backup_enabled of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.id
+* `policies.#.id` - (Required) Unique identifier of the backup policy that you want to update. policies.#.id is a value obtained via the mongodbatlas_cluster resource. `cloud_backup` of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.id
 
 #### Policy Item
 * `policies.#.policy_item` - (Required) Array of backup policy items.
-* `policies.#.policy_item.#.id` - (Required) Unique identifier of the backup policy item. `policies.#.policy_item.#.id` is a value obtained via the mongodbatlas_cluster resource. provider_backup_enabled of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.policy_item.#.id
+* `policies.#.policy_item.#.id` - (Required) Unique identifier of the backup policy item. `policies.#.policy_item.#.id` is a value obtained via the mongodbatlas_cluster resource. `cloud_backup` of the mongodbatlas_cluster resource must be set to true. See the example above for how to refer to the mongodbatlas_cluster resource for policies.#.policy_item.#.id
 * `policies.#.policy_item.#.frequency_interval` - (Required) Desired frequency of the new backup policy item specified by frequencyType.
 * `policies.#.policy_item.#.frequency_type` - (Required) Frequency associated with the backup policy item. One of the following values: hourly, daily, weekly or monthly.
 * `policies.#.policy_item.#.retention_unit` - (Required) Scope of the backup policy item: days, weeks, or months.

@@ -12,7 +12,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 		datasourceName = "data.mongodbatlas_organizations.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithDS(true),
@@ -31,7 +31,7 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 		datasourceName = "data.mongodbatlas_organizations.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasOrganizationsConfigWithPagination(2, 5),

@@ -7,11 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 )
 
 func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
@@ -34,8 +33,8 @@ func TestAccDataSourceFederatedDatabaseInstance_basic(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(name, projectName, orgID),
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceConfigDataSourceFirstSteps(name, projectName, orgID),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
 					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
@@ -75,8 +74,8 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 						Source:            "hashicorp/aws",
 					},
 				},
-				ProviderFactories: testAccProviderFactories,
-				Config:            testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasFederatedDatabaseInstanceDataSourceConfigS3Bucket(policyName, roleName, projectName, orgID, name, testS3Bucket, region),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName, &federatedInstance),
 					testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(&federatedInstance, name),
@@ -90,7 +89,7 @@ func TestAccDataSourceFederatedDatabaseInstance_S3Bucket(t *testing.T) {
 
 func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceName string, dataFederatedInstance *admin.DataLakeTenant) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connV2 := testAccProvider.Meta().(*MongoDBClient).AtlasV2
+		connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -102,7 +101,6 @@ func testAccCheckMongoDBAtlasFederatedDatabaseDataSourceInstanceExists(resourceN
 		}
 
 		ids := decodeStateID(rs.Primary.ID)
-
 		if dataLakeResp, _, err := connV2.DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
 			*dataFederatedInstance = *dataLakeResp
 			return nil
@@ -118,7 +116,6 @@ func testAccCheckMongoDBAtlasFederatedDabaseInstanceAttributes(dataFederatedInst
 		if dataFederatedInstance.GetName() != name {
 			return fmt.Errorf("bad data federated instance name: %s", dataFederatedInstance.GetName())
 		}
-
 		return nil
 	}
 }
@@ -362,6 +359,16 @@ resource "mongodbatlas_federated_database_instance" "test" {
 			tags {
 				name = "application1"
 				value = "app1"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment0"
+				value = "development0"
+			}
+			tags {
+				name = "application0"
+				value = "app0"
 			}
 		}
 	}

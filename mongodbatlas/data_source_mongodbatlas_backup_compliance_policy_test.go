@@ -15,8 +15,8 @@ func TestAccGenericBackupDSBackupCompliancePolicy_basic(t *testing.T) {
 	projectOwnerID := os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasDataSourceBackupCompliancePolicyConfig(projectName, orgID, projectOwnerID),

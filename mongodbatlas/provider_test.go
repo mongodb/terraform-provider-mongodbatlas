@@ -1,14 +1,15 @@
 package mongodbatlas
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -16,25 +17,35 @@ const (
 	ProviderNameMongoDBAtlas = "mongodbatlas"
 )
 
-var testAccProviders map[string]*schema.Provider
+var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
-var testAccProviderFactories map[string]func() (*schema.Provider, error)
+// only being used in tests obtaining client: .Meta().(*MongoDBClient)
+// this provider instance has to be passed into mux server factory for its configure method to be invoked
+var testAccProviderSdkV2 *schema.Provider
 
-var testAccProvider *schema.Provider
+// testMongoDBClient is used to configure client required for Framework-based acceptance tests
+var testMongoDBClient interface{}
 
 func init() {
-	testAccProvider = Provider()
-	testAccProviders = map[string]*schema.Provider{
-		ProviderNameMongoDBAtlas: testAccProvider,
+	testAccProviderSdkV2 = NewSdkV2Provider()
+
+	testAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
+		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
+			return muxedProviderFactory(testAccProviderSdkV2)(), nil
+		},
 	}
 
-	testAccProviderFactories = map[string]func() (*schema.Provider, error){
-		ProviderNameMongoDBAtlas: func() (*schema.Provider, error) { return testAccProvider, nil },
+	config := Config{
+		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
+		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
+		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
+	testMongoDBClient, _ = config.NewClient(context.Background())
 }
 
-func TestProvider(t *testing.T) {
-	if err := Provider().InternalValidate(); err != nil {
+func TestSdkV2Provider(t *testing.T) {
+	if err := NewSdkV2Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }

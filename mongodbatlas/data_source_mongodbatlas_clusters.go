@@ -46,14 +46,6 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"bi_connector": {
-							Type:       schema.TypeMap,
-							Computed:   true,
-							Deprecated: "use bi_connector_config instead",
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
 						"bi_connector_config": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -408,7 +400,6 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"provider_instance_size_name":                     clusters[i].ProviderSettings.InstanceSizeName,
 			"provider_name":                                   clusters[i].ProviderSettings.ProviderName,
 			"provider_region_name":                            clusters[i].ProviderSettings.RegionName,
-			"bi_connector":                                    flattenBiConnector(clusters[i].BiConnector),
 			"bi_connector_config":                             flattenBiConnectorConfig(clusters[i].BiConnector),
 			"replication_specs":                               flattenReplicationSpecs(clusters[i].ReplicationSpecs),
 			"labels":                                          flattenLabels(clusters[i].Labels),

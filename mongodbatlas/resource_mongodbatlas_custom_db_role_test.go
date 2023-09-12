@@ -23,9 +23,9 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
@@ -127,9 +127,9 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigWithInheritedRoles(orgID, projectName, inheritRole, testRole),
@@ -330,9 +330,9 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName, inheritRole, testRole),
@@ -403,9 +403,9 @@ func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
 
 		t.Run(roleName, func(t *testing.T) {
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:          func() { testAccPreCheckBasic(t) },
-				ProviderFactories: testAccProviderFactories,
-				CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+				PreCheck:                 func() { testAccPreCheckBasic(t) },
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 				Steps: []resource.TestStep{
 					{
 						Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", fmt.Sprintf("test-acc-db_name-%s", acctest.RandString(5))),
@@ -436,9 +436,9 @@ func TestAccConfigRSCustomDBRoles_importBasic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigBasic(orgID, projectName, roleName, "INSERT", databaseName),
@@ -533,9 +533,9 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckBasic(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMongoDBAtlasCustomDBRolesDestroy,
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasCustomDBRolesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMongoDBAtlasCustomDBRolesConfigMultiple(orgID, projectName, inheritRole, testRole),
@@ -587,7 +587,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 
 func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -610,7 +610,7 @@ func testAccCheckMongoDBAtlasCustomDBRolesExists(resourceName string) resource.T
 }
 
 func testAccCheckMongoDBAtlasCustomDBRolesDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*MongoDBClient).Atlas
+	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_custom_db_role" {
