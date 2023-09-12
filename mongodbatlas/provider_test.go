@@ -83,6 +83,13 @@ func testAccPreCheckBasicOwnerID(tb testing.TB) {
 	}
 }
 
+func testAccPreCheckAtlasUsername(tb testing.TB) {
+	testAccPreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_USERNAME_CLOUD_DEV") == "" {
+		tb.Fatal("`MONGODB_ATLAS_USERNAME_CLOUD_DEV` must be set ")
+	}
+}
+
 func testAccPreCheckGov(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
@@ -228,6 +235,14 @@ func testCheckTeamsIds(tb testing.TB) {
 
 func SkipTest(tb testing.TB) {
 	if strings.EqualFold(os.Getenv("SKIP_TEST"), "true") {
+		tb.Skip()
+	}
+}
+
+// SkipIfTFAccNotDefined is added to acceptance tests were you do not want any preparation code executed if the resulting steps will not run.
+// Keep in mind that if TF_ACC is empty, go still runs acceptance tests but terraform-plugin-testing does not execute the resulting steps.
+func SkipIfTFAccNotDefined(tb testing.TB) {
+	if strings.EqualFold(os.Getenv("TF_ACC"), "") {
 		tb.Skip()
 	}
 }

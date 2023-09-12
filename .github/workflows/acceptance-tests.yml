@@ -86,6 +86,7 @@ jobs:
             - 'mongodbatlas/data_source_mongodbatlas_organization*.go'
             - 'mongodbatlas/data_source_mongodbatlas_project_api_key*.go'
             - 'mongodbatlas/data_source_mongodbatlas_team*.go'
+            - 'mongodbatlas/fw_data_source_mongodbatlas_atlas_user*.go'
             - 'mongodbatlas/data_source_mongodbatlas_third_party_integration*.go'
             - 'mongodbatlas/resource_mongodbatlas_api_key*.go'
             - 'mongodbatlas/fw_resource_mongodbatlas_alert_configuration*.go'
@@ -411,6 +412,7 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           MONGODB_ATLAS_USERNAME_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
           AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
