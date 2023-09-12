@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"

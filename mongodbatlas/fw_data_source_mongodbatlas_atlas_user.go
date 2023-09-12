@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 )
 
 const (

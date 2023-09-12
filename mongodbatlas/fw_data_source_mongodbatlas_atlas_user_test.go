@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 )
 
 func TestAccConfigDSAtlasUser_ByUserID(t *testing.T) {

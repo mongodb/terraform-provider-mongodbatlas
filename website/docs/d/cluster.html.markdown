@@ -120,6 +120,7 @@ In addition to all arguments above, the following attributes are exported:
 * `provider_encrypt_ebs_volume` - **(DEPRECATED)** Indicates whether the Amazon EBS encryption is enabled. This feature encrypts the server’s root volume for both data at rest within the volume and data moving between the volume and the instance. By default this attribute is always enabled, per deprecation process showing the real value at `provider_encrypt_ebs_volume_flag` computed attribute. 
 * `provider_region_name` - Indicates Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the Atlas Region name, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 * `provider_volume_type` - Indicates the type of the volume. The possible values are: `STANDARD` and `PROVISIONED`.
+-> **NOTE:** `STANDARD` is not available for NVME clusters.
 * `replication_factor` - (Deprecated) Number of replica set members. Each member keeps a copy of your databases, providing high availability and data redundancy. The possible values are 3, 5, or 7. The default value is 3.
 * `provider_auto_scaling_compute_min_instance_size` - Minimum instance size to which your cluster can automatically scale.
 * `provider_auto_scaling_compute_max_instance_size` - Maximum instance size to which your cluster can automatically scale.
@@ -162,11 +163,13 @@ Physical location of the region.
 * `analytics_nodes` - Indicates the number of analytics nodes for Atlas to deploy to the region. Analytics nodes are useful for handling analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only, and can never become the primary.
 
 ### Labels
-Key-value pairs that tag and categorize the cluster. Each key and value has a maximum length of 255 characters.
-Note: the key `Infrastructure Tool`, is used for internal purposes to track aggregate usage.
+Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
-* `key` - The key that was set.
-* `value` - The value that represents the key.
+* `key` - The key that you want to write.
+* `value` - The value that you want to write.
+
+-> **NOTE:** MongoDB Atlas doesn't display your labels.
+-> **NOTE:** Cluster labels are not the same as [resource TAGs](https://www.mongodb.com/docs/atlas/tags/). We plan to add [resource TAGs](https://www.mongodb.com/docs/atlas/tags/) support in a future release.
 
 ### Plugin
 Contains a key-value pair that tags that the cluster was created by a Terraform Provider and notes the version.

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
@@ -110,11 +111,11 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := conn.DataFederation.List(ctx, projectID)
+	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListFederatedDatabases(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}
@@ -130,7 +131,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 	return nil
 }
 
-func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []*matlas.DataFederationInstance) []map[string]interface{} {
+func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []admin.DataLakeTenant) []map[string]interface{} {
 	var federatedDatabaseInstancesMap []map[string]interface{}
 
 	if len(federatedDatabaseInstances) > 0 {
@@ -139,9 +140,9 @@ func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string,
 		for i := range federatedDatabaseInstances {
 			federatedDatabaseInstancesMap[i] = map[string]interface{}{
 				"project_id":            projectID,
-				"name":                  federatedDatabaseInstances[i].Name,
-				"state":                 federatedDatabaseInstances[i].State,
-				"hostnames":             federatedDatabaseInstances[i].Hostnames,
+				"name":                  federatedDatabaseInstances[i].GetName(),
+				"state":                 federatedDatabaseInstances[i].GetState(),
+				"hostnames":             federatedDatabaseInstances[i].GetHostnames(),
 				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
 				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
 				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.Databases),

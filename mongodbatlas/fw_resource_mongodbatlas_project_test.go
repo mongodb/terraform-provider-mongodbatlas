@@ -9,12 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccProjectRSProject_basic(t *testing.T) {
@@ -404,7 +403,7 @@ func TestAccProjectRSProject_withInvalidLimitName(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				ExpectError: regexp.MustCompile("Limit not found"),
+				ExpectError: regexp.MustCompile("Not Found"),
 			},
 		},
 	})
@@ -436,7 +435,7 @@ func TestAccProjectRSProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 						Value: 1,
 					},
 				}),
-				ExpectError: regexp.MustCompile("Limit not found"),
+				ExpectError: regexp.MustCompile("Not Found"),
 			},
 		},
 	})

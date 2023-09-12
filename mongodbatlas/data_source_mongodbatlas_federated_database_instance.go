@@ -122,6 +122,10 @@ func schemaFederatedDatabaseInstanceDatabasesDataSource() *schema.Schema {
 											Type:     schema.TypeString,
 											Computed: true,
 										},
+										"dataset_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
 										"default_format": {
 											Type:     schema.TypeString,
 											Computed: true,
@@ -223,9 +227,9 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 					Computed: true,
 				},
 				"cluster_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
+					Type:       schema.TypeString,
+					Computed:   true,
+					Deprecated: fmt.Sprintf(DeprecationByDateMessageParameter, "September 2024")},
 				"project_id": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -279,18 +283,26 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 								Type:     schema.TypeInt,
 								Computed: true,
 							},
-							"tags": {
+							"tag_sets": {
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"name": {
-											Type:     schema.TypeString,
+										"tags": {
+											Type:     schema.TypeList,
 											Computed: true,
-										},
-										"value": {
-											Type:     schema.TypeString,
-											Computed: true,
+											Elem: &schema.Resource{
+												Schema: map[string]*schema.Schema{
+													"name": {
+														Type:     schema.TypeString,
+														Computed: true,
+													},
+													"value": {
+														Type:     schema.TypeString,
+														Computed: true,
+													},
+												},
+											},
 										},
 									},
 								},
@@ -304,12 +316,12 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 }
 
 func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	dataFederationInstance, _, err := conn.DataFederation.Get(ctx, projectID, name)
+	dataFederationInstance, _, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err))
 	}
@@ -352,7 +364,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id": projectID,
-		"name":       dataFederationInstance.Name,
+		"name":       dataFederationInstance.GetName(),
 	}))
 
 	return nil

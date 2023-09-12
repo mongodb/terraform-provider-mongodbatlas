@@ -16,15 +16,11 @@
         id: create
         shell: bash
         env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_ASSIGNEE: ${{ secrets.ASSIGNEE_JIRA_TICKET }}
         run: |
-
-          # Use the tr command to remove the special characters from ISSUE_TITLE
-          ISSUE_TITLE_NO_SPECIAL_CHARS=$(echo "$ISSUE_TITLE" | tr -d '!$&*@#"\047\140')
           json_response=$(curl --request POST \
             --url 'https://jira.mongodb.org/rest/api/2/issue' \
             --header 'Authorization: Bearer '"${JIRA_API_TOKEN}" \
@@ -35,7 +31,7 @@
                   "project": {
                       "id": "19383"
                   },
-                  "summary": "HELP: '"${ISSUE_TITLE_NO_SPECIAL_CHARS}"'",
+                  "summary": "HELP: GitHub Issue n. '"${ISSUE_NUMBER}"'",
                   "issuetype": {
                       "id": "3"
                   },

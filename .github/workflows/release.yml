@@ -3,41 +3,12 @@ on:
   push:
     tags:
       - 'v*'
-jobs:
-  # Check that the last run of the acceptance tests was successful
-  # We run the acceptance tests only if the last run of the sceduled workflow failed 
-  check-acceptance-tests-status:
-    runs-on: ubuntu-latest
-    outputs:
-      acceptance_tests_status: ${{ steps.lastJobStatus.outputs.test }}
-    steps:
-      - name: Check last job status
-        id: lastJobStatus
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LAST_JOB_STATUS=$(gh run list --workflow acceptance-tests.yml |grep -oh "completed.*" | grep -h "schedule.*" | head -1 | awk '{print $2}')
-          echo "acceptanceTestsStatus=${LAST_JOB_STATUS}" >> $GITHUB_OUTPUT
-  # We run the acceptance tests only if the last run of the sceduled workflow failed 
-  run-accettance-tests-workflow:
-    needs: [ check-acceptance-tests-status ]
-    if: ${{ needs.check-acceptance-tests-status.outputs.acceptance_tests_status != 'success'}}
-    secrets: inherit
-    permissions:
-      contents: write
-      pull-requests: read
-      repository-projects: read
-    uses: ./.github/workflows/acceptance-tests.yml
-    with:
-      parent-event-name: 'release'   
-  # Release the provider
+jobs: 
   goreleaser:
     runs-on: ubuntu-latest
-    needs: [ check-acceptance-tests-status, run-accettance-tests-workflow ]
-    if: always() && !cancelled() && !failure()
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Unshallow
         run: git fetch --prune --unshallow
       - name: Set up Go

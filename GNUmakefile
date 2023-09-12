@@ -23,8 +23,12 @@ export SHELL := env PATH=$(PATH) /bin/bash
 
 default: build
 
+.PHONY: help
+help:
+	@grep -h -E '^[a-zA-Z_-]+:.*?$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
 .PHONY: build
-build: fmtcheck
+build: fmt fmtcheck
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
 .PHONY: install
@@ -130,3 +134,9 @@ link-git-hooks: ## Install git hooks
 	@echo "==> Installing all git hooks..."
 	find .git/hooks -type l -exec rm {} \;
 	find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
+
+.PHONY: update-atlas-sdk
+update-atlas-sdk: ## Update the atlas-sdk dependency
+	go install github.com/icholy/gomajor@v0.9.5
+	## Fetch the latest major version and update imports.
+	gomajor get go.mongodb.org/atlas-sdk/v20230201001@latest

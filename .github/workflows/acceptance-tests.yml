@@ -25,13 +25,14 @@ jobs:
       generic: ${{ steps.filter.outputs.generic }}
       backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       backup_snapshots: ${{ steps.filter.outputs.backup_snapshots }}
+      federation: ${{ steps.filter.outputs.federation }}
       backup_schedule: ${{ steps.filter.outputs.backup_schedule }}
       project: ${{ steps.filter.outputs.project }}
       serverless: ${{ steps.filter.outputs.serverless }}
       network: ${{ steps.filter.outputs.network }}
       config: ${{ steps.filter.outputs.config }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
     - uses: dorny/paths-filter@v2
       id: filter
@@ -58,19 +59,17 @@ jobs:
           project:
             - 'mongodbatlas/data_source_mongodbatlas_project_invitation*.go'
             - 'mongodbatlas/fw_data_source_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/data_source_mongodbatlas_project.go'
-            - 'mongodbatlas/data_source_mongodbatlas_projects.go'
             - 'mongodbatlas/resource_mongodbatlas_access_list_api_key*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_invitation*.go'
             - 'mongodbatlas/fw_resource_mongodbatlas_project_ip_access_list*.go'
-            - 'mongodbatlas/resource_mongodbatlas_project.go'
-            - 'mongodbatlas/resource_mongodbatlas_project_test.go'
           serverless:
             - 'mongodbatlas/**_serverless**.go' 
           network:
             - 'mongodbatlas/**_network**.go'  
             - 'mongodbatlas/**_privatelink**.go' 
             - 'mongodbatlas/**_private_endpoint**.go'
+          federation:
+            - 'mongodbatlas/**_federated_database_instance**.go'
           config:
             - 'mongodbatlas/data_source_mongodbatlas_accesslist_api_key*.go'
             - 'mongodbatlas/fw_data_source_mongodbatlas_alert_configuration*.go'
@@ -111,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -136,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -161,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -186,7 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -214,7 +213,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -240,7 +239,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -267,7 +266,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -293,7 +292,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -321,7 +320,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -346,7 +345,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -369,13 +368,40 @@ jobs:
           CI: true
           TEST_REGEX: "^TestAccNetwork"
         run: make testacc
+
+  federation:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.federation == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-federation' || inputs.parent-event-name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          CI: true
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          TEST_REGEX: "^TestAccFederatedDatabaseInstance"
+        run: make testacc
+      
   config:
     needs: [ change-detection ]
     if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4
         with:

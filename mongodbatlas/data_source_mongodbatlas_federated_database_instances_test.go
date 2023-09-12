@@ -24,7 +24,7 @@ func TestAccDataSourceFederatedDatabaseInstances_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasFederatedDatabaseInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,6 +148,26 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	provider = "atlas"
 	read_preference {
 		mode = "secondary"
+		tag_sets {
+			tags {
+				name = "environment0"
+				value = "development0"
+			}
+			tags {
+				name = "application0"
+				value = "app0"
+			}
+		}
+		tag_sets {
+			tags {
+				name = "environment1"
+				value = "development1"
+			}
+			tags {
+				name = "application1"
+				value = "app1"
+			}
+		}
 	}
    }
 

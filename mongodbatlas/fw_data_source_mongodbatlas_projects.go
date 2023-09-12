@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-	"go.mongodb.org/atlas-sdk/v20230201002/admin"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 

@@ -137,6 +137,18 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 		requestParameters.AzureTenantID = pointer(value.(string))
 	}
 
+	if value, ok := d.GetOk("azure_config.0.atlas_azure_app_id"); ok {
+		requestParameters.AtlasAzureAppID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.service_principal_id"); ok {
+		requestParameters.AzureServicePrincipalID = pointer(value.(string))
+	}
+
+	if value, ok := d.GetOk("azure_config.0.tenant_id"); ok {
+		requestParameters.AzureTenantID = pointer(value.(string))
+	}
+
 	role, _, err := conn.CloudProviderAccess.CreateRole(ctx, projectID, requestParameters)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
@@ -184,6 +196,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}
 
+	d.SetId("")
 	d.SetId("")
 	return nil
 }
