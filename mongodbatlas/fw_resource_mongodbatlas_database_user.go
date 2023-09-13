@@ -165,6 +165,7 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
 							Optional: true,
+							Default:  stringdefault.StaticString(""),
 							Computed: true,
 						},
 						"database_name": schema.StringAttribute{
