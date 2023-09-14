@@ -68,7 +68,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 						"labels": {
 							Type:       schema.TypeSet,
 							Computed:   true,
-							Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "November 2023", "tags"),
+							Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {

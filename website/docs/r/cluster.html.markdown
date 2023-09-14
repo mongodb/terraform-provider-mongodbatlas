@@ -522,7 +522,7 @@ For additional information you can reference [Resource Tags](https://www.mongodb
 
 ### Labels
 
-**WARNING:** This property is deprecated and will be removed by November 2023, use `tags` attribute instead.
+**WARNING:** This property is deprecated and will be removed by September 2024, use `tags` attribute instead.
 
  ```terraform
  labels {

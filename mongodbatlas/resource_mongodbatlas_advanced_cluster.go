@@ -118,7 +118,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
 				Computed:   true,
-				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "November 2023", "tags"),
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
