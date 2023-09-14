@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -312,6 +313,33 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		resourceName = "mongodbatlas_alert_configuration.test"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIncorrectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id"},
+				ExpectError:             regexp.MustCompile("import format error"),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -526,6 +554,18 @@ func testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName st
 		}
 
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["alert_configuration_id"]), nil
+	}
+}
+
+func testAccCheckMongoDBAtlasAlertConfigurationImportStateIncorrectIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		// incorrect format without project_id and dash
+		return rs.Primary.Attributes["alert_configuration_id"], nil
 	}
 }
 
