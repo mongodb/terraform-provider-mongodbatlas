@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -157,6 +159,53 @@ func testCheckAwsEnv(tb testing.TB) {
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
 		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_CUSTOMER_MASTER_KEY_ID` must be set for acceptance testing")
 	}
+}
+
+func testCheckAwsStsEnv(tb testing.TB) {
+	if os.Getenv("STS_AWS_ACCESS_KEY_ID") == "" ||
+		os.Getenv("STS_AWS_SECRET_ACCESS_KEY") == "" ||
+		os.Getenv("STS_AWS_SESSION_TOKEN") == "" {
+		tb.Fatal("`STS_AWS_ACCESS_KEY_ID`, `STS_AWS_SECRET_ACCESS_KEY`, `STS_AWS_SESSION_TOKEN` must be set for acceptance testing")
+	}
+}
+
+func TestAuthenticateWithAwsStsProvider(t *testing.T) {
+	var (
+		awsAccessKey    = os.Getenv("STS_AWS_ACCESS_KEY_ID")
+		awsSecretKey    = os.Getenv("STS_AWS_SECRET_ACCESS_KEY")
+		awsSessionToken = os.Getenv("STS_AWS_SESSION_TOKEN")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testCheckAwsStsEnv(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testProviderMongoDBAtlasWithAWSAuth(awsAccessKey, awsSecretKey, awsSessionToken),
+				Check:  resource.ComposeTestCheckFunc(
+				// testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+				// resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+				),
+			},
+		},
+	})
+}
+
+func testProviderMongoDBAtlasWithAWSAuth(stsAwsAccessKey, stsAwsSecretKey, stsAwsSessionToken string) string {
+	return fmt.Sprintf(`
+		provider "mongodbatlas" {
+	   		assume_role {
+	   		  role_arn = "arn:aws:iam::358363220050:role/terraform-provider-mongodbatlas-acceptancetests"
+	   		}
+	   		secret_name           = "terraform-provider-mongodbatlas/acceptancetests/atlas-api-keys"
+	   		region                = "eu-north-1"
+	   		aws_access_key_id     = "%[1]s"
+	   		aws_secret_access_key = "%[2]s"
+	   		aws_session_token     = "%[3]s"
+	   		sts_endpoint          = "https://sts.eu-north-1.amazonaws.com/"
+	   	}
+	`, stsAwsAccessKey, stsAwsSecretKey, stsAwsSessionToken)
 }
 
 func TestEncodeDecodeID(t *testing.T) {
