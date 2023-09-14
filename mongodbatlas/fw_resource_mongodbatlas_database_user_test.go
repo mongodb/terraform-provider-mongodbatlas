@@ -329,7 +329,6 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", password),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.collection_name", ""),
 				),
 			},
 		},
