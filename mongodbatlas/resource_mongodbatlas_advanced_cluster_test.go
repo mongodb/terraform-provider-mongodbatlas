@@ -624,20 +624,14 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0.key", "key 1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0.value", "value 1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.1.key", "key 2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.1.value", "value 2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap2),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.0.key", "key 1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.0.value", "value 1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.1.key", "key 2"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.1.value", "value 2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap2),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.0.key", "key 1"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.0.value", "value 1"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.1.key", "key 2"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.1.value", "value 2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap2),
 				),
 			},
 			{
@@ -653,18 +647,30 @@ func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0.key", "key 3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0.value", "value 3"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap3),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.0.key", "key 3"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.0.value", "value 3"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap3),
 					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.0.key", "key 3"),
-					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.0.value", "value 3"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap3),
 				),
 			},
 		},
 	})
+}
+
+var tagsMap1 = map[string]string{
+	"key":   "key 1",
+	"value": "value 1",
+}
+
+var tagsMap2 = map[string]string{
+	"key":   "key 2",
+	"value": "value 2",
+}
+
+var tagsMap3 = map[string]string{
+	"key":   "key 3",
+	"value": "value 3",
 }
 
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
