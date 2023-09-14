@@ -165,8 +165,6 @@ func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
 							Optional: true,
-							Default:  stringdefault.StaticString(""),
-							Computed: true,
 						},
 						"database_name": schema.StringAttribute{
 							Required: true,
@@ -456,9 +454,12 @@ func newTFRolesModel(roles []matlas.Role) []tfRoleModel {
 	out := make([]tfRoleModel, len(roles))
 	for i, v := range roles {
 		out[i] = tfRoleModel{
-			RoleName:       types.StringValue(v.RoleName),
-			DatabaseName:   types.StringValue(v.DatabaseName),
-			CollectionName: types.StringValue(v.CollectionName),
+			RoleName:     types.StringValue(v.RoleName),
+			DatabaseName: types.StringValue(v.DatabaseName),
+		}
+
+		if v.CollectionName != "" {
+			out[i].CollectionName = types.StringValue(v.CollectionName)
 		}
 	}
 
