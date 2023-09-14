@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -220,6 +221,32 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
+	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+	resourceName := "mongodbatlas_project_ip_access_list.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPAccessListImportStateIncorrectIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ExpectError:       regexp.MustCompile("import format error"),
+			},
+		},
+	})
+}
+
 func testAccCheckMongoDBAtlasProjectIPAccessListExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testMongoDBClient.(*MongoDBClient).Atlas
@@ -273,6 +300,20 @@ func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName s
 		ids := decodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
+	}
+}
+
+func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIncorrectIDFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		ids := decodeStateID(rs.Primary.ID)
+
+		// incorrect format without project_id and dash
+		return ids["entry"], nil
 	}
 }
 
