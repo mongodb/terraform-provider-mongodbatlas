@@ -342,8 +342,8 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
   * Cannot be used with clusters with local NVMe SSDs
   * Cannot be used with Azure clusters
 * `encryption_at_rest_provider` - (Optional) Possible values are AWS, GCP, AZURE or NONE.  Only needed if you desire to manage the keys, see [Encryption at Rest using Customer Key Management](https://docs.atlas.mongodb.com/security-aws-kms/) for complete documentation.  You must configure encryption at rest for the Atlas project before enabling it on any cluster in the project. For complete documentation on configuring Encryption at Rest, see Encryption at Rest using Customer Key Management. Requires M10 or greater. and for legacy backups, backup_enabled, to be false or omitted. **Note: Atlas encrypts all cluster storage and snapshot volumes, securing all cluster data on disk: a concept known as encryption at rest, by default**.   
-* `tags` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
-* `labels` - (Optional) Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
+* `tags` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
+* `labels` - (Optional) Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - (Optional) Version of the cluster to deploy. Atlas supports the following MongoDB versions for M10+ clusters: `4.2`, `4.4`, `5.0`, or `6.0`. If omitted, Atlas deploys a cluster that runs MongoDB 5.0. If `provider_instance_size_name`: `M0`, `M2` or `M5`, Atlas deploys MongoDB 5.0. Atlas always deploys the cluster with the latest stable release of the specified version. See [Release Notes](https://www.mongodb.com/docs/upcoming/release-notes/) for latest Current Stable Release.
 * `num_shards` - (Optional) Selects whether the cluster is a replica set or a sharded cluster. If you use the replicationSpecs parameter, you must set num_shards.
 * `pit_enabled` - (Optional) - Flag that indicates if the cluster uses Continuous Cloud Backup. If set to true, cloud_backup must also be set to true.
@@ -513,16 +513,16 @@ Include **desired options** within advanced_configuration:
   }
 ```
 
- Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
 
 * `key` - (Required) Constant that defines the set of the tag.
 * `value` - (Required) Variable that belongs to the set of the tag.
 
-For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 ### Labels
 
-**WARNING:** This property is deprecated and will be removed by September 2024, use `tags` attribute instead.
+**WARNING:** This property is deprecated and will be removed by September 2024, use the `tags` attribute instead.
 
  ```terraform
  labels {

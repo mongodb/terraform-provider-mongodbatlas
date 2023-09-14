@@ -29,7 +29,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 * `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster.
 
 ## Attributes Reference
-* `results` - A list where each represents a Serverless Instance. See [Serverless Instance](#serverless-instance) below for more details.
+* `results` - A list where each result represents a Serverless Instance. To learn more, see [Serverless Instance](#serverless-instance).
 
 ### Serverless Instance
 
@@ -44,16 +44,16 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 * `state_name` - Stage of deployment of this serverless instance when the resource made its request.
 * `continuous_backup_enabled` - Flag that indicates whether the serverless instance uses Serverless Continuous Backup.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
-* `tags` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
+* `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 
 ### Tags
 
-Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
 
 * `key` - Constant that defines the set of the tag.
 * `value` - Variable that belongs to the set of the tag.
 
-For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 
 

@@ -98,8 +98,8 @@ In addition to all arguments above, the following attributes are exported:
     - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
-* `tags` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#tags).
-* `labels` - Configuration for the collection of key-value pairs that tag and categorize the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
+* `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
+* `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **DEPRECATED** Use `tags` instead.
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
 * `provider_backup_enabled` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups. **DEPRECATED** Use `cloud_backup` instead.
@@ -157,16 +157,16 @@ Physical location of the region.
 
 ### Tags
 
-Key-value pairs used for tagging and categorizing the cluster. Each key and value has a maximum length of 255 characters.
+Key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
 
 * `key` - Constant that defines the set of the tag.
 * `value` - Variable that belongs to the set of the tag.
 
-For additional information you can reference [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
+To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 ### Labels
 
-**WARNING:** This property is deprecated and will be removed by September 2024, use `tags` attribute instead.
+**WARNING:** This property is deprecated and will be removed by September 2024, use the `tags` attribute instead.
 
 Key-value pairs that categorize the cluster. Each key and value has a maximum length of 255 characters.  You cannot set the key `Infrastructure Tool`, it is used for internal purposes to track aggregate usage.
 
