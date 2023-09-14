@@ -160,6 +160,7 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	err = populateProjectsDataSourceModel(ctx, conn, connV2, &stateModel, projectsRes)
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &stateModel)...)
