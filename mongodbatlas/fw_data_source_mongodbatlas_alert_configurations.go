@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -121,7 +122,6 @@ func copyAndAdd(m map[string]schema.Attribute, k string, v schema.Attribute) map
 
 func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var alertConfigurationsConfig tfAlertConfigurationsDSModel
-	conn := d.client.Atlas
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationsConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -132,16 +132,28 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 
 	alertConfigurationsConfig.ListOptions = setDefaultValuesInListOptions(alertConfigurationsConfig.ListOptions)
 
+	conn := d.client.Atlas
 	alerts, _, err := conn.AlertConfigurations.List(ctx, projectID, newListOptions(alertConfigurationsConfig.ListOptions))
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
 	}
 
-	alertConfigurationsConfig.Results = newTFAlertConfigurationDSModelList(alerts, projectID, alertConfigurationsConfig.OutputType)
+	connV2 := d.client.AtlasV2
+	params := newListParams(projectID, alertConfigurationsConfig.ListOptions)
+	alertsV2, _, err := connV2.AlertConfigurationsApi.ListAlertConfigurationsWithParams(ctx, params).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
+		return
+	}
+
 	alertConfigurationsConfig.ID = types.StringValue(encodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
+	alertConfigurationsConfig.Results = newTFAlertConfigurationDSModelList(alerts, projectID, alertConfigurationsConfig.OutputType)
+	if *params.IncludeCount {
+		alertConfigurationsConfig.TotalCount = types.Int64Value(int64(*alertsV2.TotalCount))
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &alertConfigurationsConfig)...)
 }
@@ -168,9 +180,11 @@ func newTFAlertConfigurationDSModelList(alerts []matlas.AlertConfiguration, proj
 	return results
 }
 
-const listOptionDefaultPageNum = 0
-const listOptionDefaultItemsPerPage = 100
-const listOptionDefaultIncludeCount = false
+const (
+	listOptionDefaultPageNum      = 0
+	listOptionDefaultItemsPerPage = 100
+	listOptionDefaultIncludeCount = false
+)
 
 func setDefaultValuesInListOptions(listOptionsArr []tfListOptionsModel) []tfListOptionsModel {
 	var result = make([]tfListOptionsModel, len(listOptionsArr))
@@ -213,4 +227,32 @@ func newListOptions(listOptionsArr []tfListOptionsModel) *matlas.ListOptions {
 		}
 	}
 	return result
+}
+
+func newListParams(projectID string, listOptionsArr []tfListOptionsModel) *admin.ListAlertConfigurationsApiParams {
+	var (
+		pageNum      = listOptionDefaultPageNum
+		itemsPerPage = listOptionDefaultItemsPerPage
+		includeCount = listOptionDefaultIncludeCount
+	)
+
+	if len(listOptionsArr) > 0 {
+		listOption := listOptionsArr[0]
+		if !listOption.PageNum.IsNull() {
+			pageNum = int(listOption.PageNum.ValueInt64())
+		}
+		if !listOption.ItemsPerPage.IsNull() {
+			itemsPerPage = int(listOption.ItemsPerPage.ValueInt64())
+		}
+		if !listOption.IncludeCount.IsNull() {
+			includeCount = listOption.IncludeCount.ValueBool()
+		}
+	}
+
+	return &admin.ListAlertConfigurationsApiParams{
+		GroupId:      projectID,
+		PageNum:      &pageNum,
+		ItemsPerPage: &itemsPerPage,
+		IncludeCount: &includeCount,
+	}
 }
