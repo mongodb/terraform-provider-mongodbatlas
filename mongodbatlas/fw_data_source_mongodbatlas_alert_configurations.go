@@ -163,8 +163,8 @@ func newTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 	for i := 0; i < len(alerts); i++ {
 		alert := alerts[i]
 		label := fmt.Sprintf("%s_%d", *alert.EventTypeName, i)
-		resultAlertConfigModel := newTFAlertConfigurationDSModelV2(&alerts[i], projectID)
-		computedOutputs := computeAlertConfigurationOutputV2(&alert, outputConfigurations, label)
+		resultAlertConfigModel := newTFAlertConfigurationDSModel(&alerts[i], projectID)
+		computedOutputs := computeAlertConfigurationOutput(&alert, outputConfigurations, label)
 		resultAlertConfigModel.Output = computedOutputs
 		results[i] = resultAlertConfigModel
 	}
