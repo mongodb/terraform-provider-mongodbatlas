@@ -259,13 +259,6 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	alertID := getEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), encodedIDKeyAlertID)
 	outputs := alertConfigurationConfig.Output
 
-	conn := d.client.Atlas
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, projectID, alertID)
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
-		return
-	}
-
 	connV2 := d.client.AtlasV2
 	alert2, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
 	if err != nil {
@@ -273,11 +266,8 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	resultAlertConfigModelV2 := newTFAlertConfigurationDSModelV2(alert2, projectID)
-	_ = resultAlertConfigModelV2
-
-	resultAlertConfigModel := newTFAlertConfigurationDSModel(alert, projectID)
-	resultAlertConfigModel.Output = computeAlertConfigurationOutputV2(alert2, outputs, alert.EventTypeName)
+	resultAlertConfigModel := newTFAlertConfigurationDSModelV2(alert2, projectID)
+	resultAlertConfigModel.Output = computeAlertConfigurationOutputV2(alert2, outputs, *alert2.EventTypeName)
 
 	// setting initial value for backwards compatibility, but setting the alert_configuration resource id here is not consistent with the resource
 	resultAlertConfigModel.AlertConfigurationID = alertConfigurationConfig.AlertConfigurationID
