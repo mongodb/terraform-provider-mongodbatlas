@@ -1,9 +1,9 @@
-package util_test
+package conversion_test
 
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 )
 
 func TestIsStringPresent(t *testing.T) {
@@ -22,7 +22,7 @@ func TestIsStringPresent(t *testing.T) {
 		{&str, true},
 	}
 	for _, test := range tests {
-		if resp := util.IsStringPresent(test.strPtr); resp != test.expected {
+		if resp := conversion.IsStringPresent(test.strPtr); resp != test.expected {
 			t.Errorf("IsStringPresent(%v) = %v; want %v", test.strPtr, resp, test.expected)
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
 	"go.mongodb.org/atlas-sdk/v20230201006/admin"
@@ -353,8 +354,8 @@ func newTFAlertConfigurationDSModelV2(apiRespConfig *admin.GroupAlertsConfig, pr
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: newTFMetricThresholdConfigModelV2(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
 		ThresholdConfig:       newTFThresholdConfigModelV2(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
+		Notification:          newTFNotificationModelListV2(apiRespConfig.Notifications, []tfNotificationModel{}),
 		// TODO
-		//      Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
 		//      Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
 	}
 }
@@ -595,15 +596,15 @@ func convertNotificationToCtyValues(notification *matlas.Notification) map[strin
 func convertNotificationToCtyValuesV2(notification *admin.AlertsNotificationRootForGroup) map[string]cty.Value {
 	values := map[string]cty.Value{}
 
-	if util.IsStringPresent(notification.ChannelName) {
+	if conversion.IsStringPresent(notification.ChannelName) {
 		values["channel_name"] = cty.StringVal(*notification.ChannelName)
 	}
 
-	if util.IsStringPresent(notification.DatadogRegion) {
+	if conversion.IsStringPresent(notification.DatadogRegion) {
 		values["datadog_region"] = cty.StringVal(*notification.DatadogRegion)
 	}
 
-	if util.IsStringPresent(notification.EmailAddress) {
+	if conversion.IsStringPresent(notification.EmailAddress) {
 		values["email_address"] = cty.StringVal(*notification.EmailAddress)
 	}
 
@@ -611,27 +612,27 @@ func convertNotificationToCtyValuesV2(notification *admin.AlertsNotificationRoot
 		values["interval_min"] = cty.NumberIntVal(int64(*notification.IntervalMin))
 	}
 
-	if util.IsStringPresent(notification.MobileNumber) {
+	if conversion.IsStringPresent(notification.MobileNumber) {
 		values["mobile_number"] = cty.StringVal(*notification.MobileNumber)
 	}
 
-	if util.IsStringPresent(notification.OpsGenieRegion) {
+	if conversion.IsStringPresent(notification.OpsGenieRegion) {
 		values["ops_genie_region"] = cty.StringVal(*notification.OpsGenieRegion)
 	}
 
-	if util.IsStringPresent(notification.TeamId) {
+	if conversion.IsStringPresent(notification.TeamId) {
 		values["team_id"] = cty.StringVal(*notification.TeamId)
 	}
 
-	if util.IsStringPresent(notification.TeamName) {
+	if conversion.IsStringPresent(notification.TeamName) {
 		values["team_name"] = cty.StringVal(*notification.TeamName)
 	}
 
-	if util.IsStringPresent(notification.TypeName) {
+	if conversion.IsStringPresent(notification.TypeName) {
 		values["type_name"] = cty.StringVal(*notification.TypeName)
 	}
 
-	if util.IsStringPresent(notification.Username) {
+	if conversion.IsStringPresent(notification.Username) {
 		values["username"] = cty.StringVal(*notification.Username)
 	}
 

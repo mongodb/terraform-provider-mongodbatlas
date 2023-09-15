@@ -18,11 +18,21 @@ func TypesListToString(ctx context.Context, set types.List) []string {
 	return results
 }
 
+// IsStringPresent returns true if the string is non-empty.
+func IsStringPresent(strPtr *string) bool {
+	return strPtr != nil && len(*strPtr) > 0
+}
+
 // StringNullIfEmpty converts a string value to a Framework String value.
 // An empty string is converted to a null String. Useful for optional attributes.
 func StringNullIfEmpty(v string) types.String {
-	if v == "" {
-		return types.StringNull()
+	return StringPtrNullIfEmpty(&v)
+}
+
+// StringPtrNullIfEmpty is similar to StringNullIfEmpty but can also handle nil string pointers.
+func StringPtrNullIfEmpty(p *string) types.String {
+	if IsStringPresent(p) {
+		return types.StringValue(*p)
 	}
-	return types.StringValue(v)
+	return types.StringNull()
 }

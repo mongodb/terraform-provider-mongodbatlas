@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -726,6 +726,88 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
 		newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
+
+		notifications[i] = newState
+	}
+
+	return notifications
+}
+
+func newTFNotificationModelListV2(matlasSlice []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
+	notifications := make([]tfNotificationModel, len(matlasSlice))
+
+	if len(matlasSlice) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
+		for i := range matlasSlice {
+			value := matlasSlice[i]
+			notifications[i] = tfNotificationModel{
+				TeamName:       conversion.StringPtrNullIfEmpty(value.TeamName),
+				Roles:          value.Roles,
+				ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
+				DatadogRegion:  conversion.StringPtrNullIfEmpty(value.DatadogRegion),
+				DelayMin:       types.Int64Value(int64(*value.DelayMin)),
+				EmailAddress:   conversion.StringPtrNullIfEmpty(value.EmailAddress),
+				IntervalMin:    types.Int64Value(int64(*value.IntervalMin)),
+				MobileNumber:   conversion.StringPtrNullIfEmpty(value.MobileNumber),
+				OpsGenieRegion: conversion.StringPtrNullIfEmpty(value.OpsGenieRegion),
+				TeamID:         conversion.StringPtrNullIfEmpty(value.TeamId),
+				TypeName:       conversion.StringPtrNullIfEmpty(value.TypeName),
+				Username:       conversion.StringPtrNullIfEmpty(value.Username),
+				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
+				SMSEnabled:     types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled),
+			}
+		}
+		return notifications
+	}
+
+	for i := range matlasSlice {
+		value := matlasSlice[i]
+		currState := currStateNotifications[i]
+		newState := tfNotificationModel{
+			TeamName: conversion.StringPtrNullIfEmpty(value.TeamName),
+			Roles:    value.Roles,
+		}
+
+		// sentive attributes do not use value returned from API
+		newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
+		newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
+		newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
+		newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
+		newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
+		newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
+		newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
+		newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
+		newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
+
+		// for optional attributes that are not computed we must check if they were previously defined in state
+		if !currState.ChannelName.IsNull() {
+			newState.ChannelName = conversion.StringPtrNullIfEmpty(value.ChannelName)
+		}
+		if !currState.DatadogRegion.IsNull() {
+			newState.DatadogRegion = conversion.StringPtrNullIfEmpty(value.DatadogRegion)
+		}
+		if !currState.EmailAddress.IsNull() {
+			newState.EmailAddress = conversion.StringPtrNullIfEmpty(value.EmailAddress)
+		}
+		if !currState.MobileNumber.IsNull() {
+			newState.MobileNumber = conversion.StringPtrNullIfEmpty(value.MobileNumber)
+		}
+		if !currState.OpsGenieRegion.IsNull() {
+			newState.OpsGenieRegion = conversion.StringPtrNullIfEmpty(value.OpsGenieRegion)
+		}
+		if !currState.TeamID.IsNull() {
+			newState.TeamID = conversion.StringPtrNullIfEmpty(value.TeamId)
+		}
+		if !currState.TypeName.IsNull() {
+			newState.TypeName = conversion.StringPtrNullIfEmpty(value.TypeName)
+		}
+		if !currState.Username.IsNull() {
+			newState.Username = conversion.StringPtrNullIfEmpty(value.Username)
+		}
+
+		newState.IntervalMin = types.Int64Value(int64(*value.IntervalMin))
+		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
+		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
+		newState.SMSEnabled = types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled)
 
 		notifications[i] = newState
 	}
