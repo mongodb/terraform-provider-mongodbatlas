@@ -8,9 +8,9 @@ import (
 
 func TestIsStringPresent(t *testing.T) {
 	var (
-		empty     = ""
-		one_blank = " "
-		str       = "text"
+		empty    = ""
+		oneBlank = " "
+		str      = "text"
 	)
 	tests := []struct {
 		strPtr   *string
@@ -18,7 +18,7 @@ func TestIsStringPresent(t *testing.T) {
 	}{
 		{nil, false},
 		{&empty, false},
-		{&one_blank, true},
+		{&oneBlank, true},
 		{&str, true},
 	}
 	for _, test := range tests {

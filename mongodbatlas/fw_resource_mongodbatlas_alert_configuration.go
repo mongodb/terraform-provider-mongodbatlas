@@ -968,11 +968,11 @@ func newTFMatcherModelListV2(m []map[string]interface{}, currStateSlice []tfMatc
 	matchers := make([]tfMatcherModel, len(m))
 	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, matcher := range m {
-			field_name, _ := matcher["fieldName"].(string)
+			fieldName, _ := matcher["fieldName"].(string)
 			operator, _ := matcher["operator"].(string)
 			value, _ := matcher["value"].(string)
 			matchers[i] = tfMatcherModel{
-				FieldName: conversion.StringNullIfEmpty(field_name),
+				FieldName: conversion.StringNullIfEmpty(fieldName),
 				Operator:  conversion.StringNullIfEmpty(operator),
 				Value:     conversion.StringNullIfEmpty(value),
 			}
@@ -983,8 +983,8 @@ func newTFMatcherModelListV2(m []map[string]interface{}, currStateSlice []tfMatc
 		currState := currStateSlice[i]
 		newState := tfMatcherModel{}
 		if !currState.FieldName.IsNull() {
-			field_name, _ := matcher["fieldName"].(string)
-			newState.FieldName = conversion.StringNullIfEmpty(field_name)
+			fieldName, _ := matcher["fieldName"].(string)
+			newState.FieldName = conversion.StringNullIfEmpty(fieldName)
 		}
 		if !currState.Operator.IsNull() {
 			operator, _ := matcher["operator"].(string)
