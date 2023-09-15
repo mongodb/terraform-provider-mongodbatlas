@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"go.mongodb.org/atlas-sdk/v20230201006/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const alertConfigurationsDataSourceName = "alert_configurations"
@@ -132,16 +131,9 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 
 	alertConfigurationsConfig.ListOptions = setDefaultValuesInListOptions(alertConfigurationsConfig.ListOptions)
 
-	conn := d.client.Atlas
-	alerts, _, err := conn.AlertConfigurations.List(ctx, projectID, newListOptions(alertConfigurationsConfig.ListOptions))
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
-		return
-	}
-
 	connV2 := d.client.AtlasV2
 	params := newListParams(projectID, alertConfigurationsConfig.ListOptions)
-	alertsV2, _, err := connV2.AlertConfigurationsApi.ListAlertConfigurationsWithParams(ctx, params).Execute()
+	alerts, _, err := connV2.AlertConfigurationsApi.ListAlertConfigurationsWithParams(ctx, params).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
@@ -150,15 +142,15 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 	alertConfigurationsConfig.ID = types.StringValue(encodeStateID(map[string]string{
 		"project_id": projectID,
 	}))
-	alertConfigurationsConfig.Results = newTFAlertConfigurationDSModelList(alerts, projectID, alertConfigurationsConfig.OutputType)
+	alertConfigurationsConfig.Results = newTFAlertConfigurationDSModelList(alerts.Results, projectID, alertConfigurationsConfig.OutputType)
 	if *params.IncludeCount {
-		alertConfigurationsConfig.TotalCount = types.Int64Value(int64(*alertsV2.TotalCount))
+		alertConfigurationsConfig.TotalCount = types.Int64Value(int64(*alerts.TotalCount))
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &alertConfigurationsConfig)...)
 }
 
-func newTFAlertConfigurationDSModelList(alerts []matlas.AlertConfiguration, projectID string, definedOutputs []string) []tfAlertConfigurationDSModel {
+func newTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projectID string, definedOutputs []string) []tfAlertConfigurationDSModel {
 	outputConfigurations := make([]tfAlertConfigurationOutputModel, len(definedOutputs))
 	for i, output := range definedOutputs {
 		outputConfigurations[i] = tfAlertConfigurationOutputModel{
@@ -170,9 +162,9 @@ func newTFAlertConfigurationDSModelList(alerts []matlas.AlertConfiguration, proj
 
 	for i := 0; i < len(alerts); i++ {
 		alert := alerts[i]
-		label := fmt.Sprintf("%s_%d", alert.EventTypeName, i)
-		resultAlertConfigModel := newTFAlertConfigurationDSModel(&alerts[i], projectID)
-		computedOutputs := computeAlertConfigurationOutput(&alert, outputConfigurations, label)
+		label := fmt.Sprintf("%s_%d", *alert.EventTypeName, i)
+		resultAlertConfigModel := newTFAlertConfigurationDSModelV2(&alerts[i], projectID)
+		computedOutputs := computeAlertConfigurationOutputV2(&alert, outputConfigurations, label)
 		resultAlertConfigModel.Output = computedOutputs
 		results[i] = resultAlertConfigModel
 	}
@@ -202,28 +194,6 @@ func setDefaultValuesInListOptions(listOptionsArr []tfListOptionsModel) []tfList
 		}
 		if !v.IncludeCount.IsNull() {
 			result[i].IncludeCount = v.IncludeCount
-		}
-	}
-	return result
-}
-
-func newListOptions(listOptionsArr []tfListOptionsModel) *matlas.ListOptions {
-	result := &matlas.ListOptions{
-		PageNum:      listOptionDefaultPageNum,
-		ItemsPerPage: listOptionDefaultItemsPerPage,
-		IncludeCount: listOptionDefaultIncludeCount,
-	}
-
-	if len(listOptionsArr) > 0 {
-		listOption := listOptionsArr[0]
-		if !listOption.PageNum.IsNull() {
-			result.PageNum = int(listOption.PageNum.ValueInt64())
-		}
-		if !listOption.ItemsPerPage.IsNull() {
-			result.ItemsPerPage = int(listOption.ItemsPerPage.ValueInt64())
-		}
-		if !listOption.IncludeCount.IsNull() {
-			result.IncludeCount = listOption.IncludeCount.ValueBool()
 		}
 	}
 	return result
