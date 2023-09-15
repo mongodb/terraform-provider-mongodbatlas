@@ -733,12 +733,12 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 	return notifications
 }
 
-func newTFNotificationModelListV2(matlasSlice []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
-	notifications := make([]tfNotificationModel, len(matlasSlice))
+func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
+	notifications := make([]tfNotificationModel, len(n))
 
-	if len(matlasSlice) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
-		for i := range matlasSlice {
-			value := matlasSlice[i]
+	if len(n) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
+		for i := range n {
+			value := n[i]
 			notifications[i] = tfNotificationModel{
 				TeamName:       conversion.StringPtrNullIfEmpty(value.TeamName),
 				Roles:          value.Roles,
@@ -759,8 +759,8 @@ func newTFNotificationModelListV2(matlasSlice []admin.AlertsNotificationRootForG
 		return notifications
 	}
 
-	for i := range matlasSlice {
-		value := matlasSlice[i]
+	for i := range n {
+		value := n[i]
 		currState := currStateNotifications[i]
 		newState := tfNotificationModel{
 			TeamName: conversion.StringPtrNullIfEmpty(value.TeamName),
@@ -848,36 +848,36 @@ func newTFMetricThresholdConfigModel(matlasMetricThreshold *matlas.MetricThresho
 	return []tfMetricThresholdConfigModel{newState}
 }
 
-func newTFMetricThresholdConfigModelV2(matlasMetricThreshold *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
-	if matlasMetricThreshold == nil {
+func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
+	if t == nil {
 		return []tfMetricThresholdConfigModel{}
 	}
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
 		return []tfMetricThresholdConfigModel{
 			{
-				MetricName: conversion.StringNullIfEmpty(*matlasMetricThreshold.MetricName),
-				Operator:   conversion.StringNullIfEmpty(*matlasMetricThreshold.Operator),
-				Threshold:  types.Float64Value(*matlasMetricThreshold.Threshold),
-				Units:      conversion.StringNullIfEmpty(*matlasMetricThreshold.Units),
-				Mode:       conversion.StringNullIfEmpty(*matlasMetricThreshold.Mode),
+				MetricName: conversion.StringNullIfEmpty(*t.MetricName),
+				Operator:   conversion.StringNullIfEmpty(*t.Operator),
+				Threshold:  types.Float64Value(*t.Threshold),
+				Units:      conversion.StringNullIfEmpty(*t.Units),
+				Mode:       conversion.StringNullIfEmpty(*t.Mode),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := tfMetricThresholdConfigModel{}
 	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringNullIfEmpty(*matlasMetricThreshold.MetricName)
+		newState.MetricName = conversion.StringNullIfEmpty(*t.MetricName)
 	}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(*matlasMetricThreshold.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(*matlasMetricThreshold.Units)
+		newState.Units = conversion.StringNullIfEmpty(*t.Units)
 	}
 	if !currState.Mode.IsNull() {
-		newState.Mode = conversion.StringNullIfEmpty(*matlasMetricThreshold.Mode)
+		newState.Mode = conversion.StringNullIfEmpty(*t.Mode)
 	}
-	newState.Threshold = types.Float64Value(*matlasMetricThreshold.Threshold)
+	newState.Threshold = types.Float64Value(*t.Threshold)
 	return []tfMetricThresholdConfigModel{newState}
 }
 
@@ -908,29 +908,29 @@ func newTFThresholdConfigModel(atlasThreshold *matlas.Threshold, currStateSlice 
 	return []tfThresholdConfigModel{newState}
 }
 
-func newTFThresholdConfigModelV2(atlasThreshold *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
-	if atlasThreshold == nil {
+func newTFThresholdConfigModelV2(t *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
+	if t == nil {
 		return []tfThresholdConfigModel{}
 	}
 
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
 		return []tfThresholdConfigModel{
 			{
-				Operator:  conversion.StringNullIfEmpty(*atlasThreshold.Operator),
-				Threshold: types.Float64Value(float64(*atlasThreshold.Threshold)), // int in new SDK but keeping float64 for backward compatibility
-				Units:     conversion.StringNullIfEmpty(*atlasThreshold.Units),
+				Operator:  conversion.StringNullIfEmpty(*t.Operator),
+				Threshold: types.Float64Value(float64(*t.Threshold)), // int in new SDK but keeping float64 for backward compatibility
+				Units:     conversion.StringNullIfEmpty(*t.Units),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := tfThresholdConfigModel{}
 	if !currState.Operator.IsNull() {
-		newState.Operator = conversion.StringNullIfEmpty(*atlasThreshold.Operator)
+		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
 	}
 	if !currState.Units.IsNull() {
-		newState.Units = conversion.StringNullIfEmpty(*atlasThreshold.Units)
+		newState.Units = conversion.StringNullIfEmpty(*t.Units)
 	}
-	newState.Threshold = types.Float64Value(float64(*atlasThreshold.Threshold))
+	newState.Threshold = types.Float64Value(float64(*t.Threshold))
 
 	return []tfThresholdConfigModel{newState}
 }
@@ -964,10 +964,10 @@ func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatc
 	return matchers
 }
 
-func newTFMatcherModelListV2(matlasSlice []map[string]interface{}, currStateSlice []tfMatcherModel) []tfMatcherModel {
-	matchers := make([]tfMatcherModel, len(matlasSlice))
-	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
-		for i, matcher := range matlasSlice {
+func newTFMatcherModelListV2(m []map[string]interface{}, currStateSlice []tfMatcherModel) []tfMatcherModel {
+	matchers := make([]tfMatcherModel, len(m))
+	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
+		for i, matcher := range m {
 			field_name, _ := matcher["fieldName"].(string)
 			operator, _ := matcher["operator"].(string)
 			value, _ := matcher["value"].(string)
@@ -979,7 +979,7 @@ func newTFMatcherModelListV2(matlasSlice []map[string]interface{}, currStateSlic
 		}
 		return matchers
 	}
-	for i, matcher := range matlasSlice {
+	for i, matcher := range m {
 		currState := currStateSlice[i]
 		newState := tfMatcherModel{}
 		if !currState.FieldName.IsNull() {
