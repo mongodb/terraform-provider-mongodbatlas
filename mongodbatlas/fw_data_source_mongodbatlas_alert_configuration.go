@@ -352,8 +352,8 @@ func newTFAlertConfigurationDSModelV2(apiRespConfig *admin.GroupAlertsConfig, pr
 		Updated:               types.StringValue(util.TimeToString(*apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
 		MetricThresholdConfig: newTFMetricThresholdConfigModelV2(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
+		ThresholdConfig:       newTFThresholdConfigModelV2(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
 		// TODO
-		//      ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
 		//      Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
 		//      Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
 	}

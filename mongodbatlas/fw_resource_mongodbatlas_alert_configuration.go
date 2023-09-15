@@ -826,6 +826,33 @@ func newTFThresholdConfigModel(atlasThreshold *matlas.Threshold, currStateSlice 
 	return []tfThresholdConfigModel{newState}
 }
 
+func newTFThresholdConfigModelV2(atlasThreshold *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
+	if atlasThreshold == nil {
+		return []tfThresholdConfigModel{}
+	}
+
+	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
+		return []tfThresholdConfigModel{
+			{
+				Operator:  conversion.StringNullIfEmpty(*atlasThreshold.Operator),
+				Threshold: types.Float64Value(float64(*atlasThreshold.Threshold)), // int in new SDK but keeping float64 for backward compatibility
+				Units:     conversion.StringNullIfEmpty(*atlasThreshold.Units),
+			},
+		}
+	}
+	currState := currStateSlice[0]
+	newState := tfThresholdConfigModel{}
+	if !currState.Operator.IsNull() {
+		newState.Operator = conversion.StringNullIfEmpty(*atlasThreshold.Operator)
+	}
+	if !currState.Units.IsNull() {
+		newState.Units = conversion.StringNullIfEmpty(*atlasThreshold.Units)
+	}
+	newState.Threshold = types.Float64Value(float64(*atlasThreshold.Threshold))
+
+	return []tfThresholdConfigModel{newState}
+}
+
 func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel) []tfMatcherModel {
 	matchers := make([]tfMatcherModel, len(matlasSlice))
 	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
