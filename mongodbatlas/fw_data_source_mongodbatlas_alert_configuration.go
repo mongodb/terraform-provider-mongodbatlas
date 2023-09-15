@@ -355,8 +355,7 @@ func newTFAlertConfigurationDSModelV2(apiRespConfig *admin.GroupAlertsConfig, pr
 		MetricThresholdConfig: newTFMetricThresholdConfigModelV2(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
 		ThresholdConfig:       newTFThresholdConfigModelV2(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
 		Notification:          newTFNotificationModelListV2(apiRespConfig.Notifications, []tfNotificationModel{}),
-		// TODO
-		//      Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
+		Matcher:               newTFMatcherModelListV2(apiRespConfig.Matchers, []tfMatcherModel{}),
 	}
 }
 

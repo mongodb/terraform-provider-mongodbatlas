@@ -963,3 +963,38 @@ func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatc
 	}
 	return matchers
 }
+
+func newTFMatcherModelListV2(matlasSlice []map[string]interface{}, currStateSlice []tfMatcherModel) []tfMatcherModel {
+	matchers := make([]tfMatcherModel, len(matlasSlice))
+	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
+		for i, matcher := range matlasSlice {
+			field_name, _ := matcher["fieldName"].(string)
+			operator, _ := matcher["operator"].(string)
+			value, _ := matcher["value"].(string)
+			matchers[i] = tfMatcherModel{
+				FieldName: conversion.StringNullIfEmpty(field_name),
+				Operator:  conversion.StringNullIfEmpty(operator),
+				Value:     conversion.StringNullIfEmpty(value),
+			}
+		}
+		return matchers
+	}
+	for i, matcher := range matlasSlice {
+		currState := currStateSlice[i]
+		newState := tfMatcherModel{}
+		if !currState.FieldName.IsNull() {
+			field_name, _ := matcher["fieldName"].(string)
+			newState.FieldName = conversion.StringNullIfEmpty(field_name)
+		}
+		if !currState.Operator.IsNull() {
+			operator, _ := matcher["operator"].(string)
+			newState.Operator = conversion.StringNullIfEmpty(operator)
+		}
+		if !currState.Value.IsNull() {
+			value, _ := matcher["value"].(string)
+			newState.Value = conversion.StringNullIfEmpty(value)
+		}
+		matchers[i] = newState
+	}
+	return matchers
+}
