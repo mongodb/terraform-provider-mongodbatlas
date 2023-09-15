@@ -237,11 +237,10 @@ func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
 				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPAccessListImportStateIncorrectIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-				ExpectError:       regexp.MustCompile("import format error"),
+				ResourceName:  resourceName,
+				ImportState:   true,
+				ImportStateId: "incorrect_id_without_project_id_and_dash",
+				ExpectError:   regexp.MustCompile("import format error"),
 			},
 		},
 	})
@@ -300,20 +299,6 @@ func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName s
 		ids := decodeStateID(rs.Primary.ID)
 
 		return fmt.Sprintf("%s-%s", ids["project_id"], ids["entry"]), nil
-	}
-}
-
-func testAccCheckMongoDBAtlasProjectIPAccessListImportStateIncorrectIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		ids := decodeStateID(rs.Primary.ID)
-
-		// incorrect format without project_id and dash
-		return ids["entry"], nil
 	}
 }
 

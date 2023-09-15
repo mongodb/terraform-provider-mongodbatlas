@@ -329,12 +329,10 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccCheckMongoDBAtlasAlertConfigurationImportStateIncorrectIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id"},
-				ExpectError:             regexp.MustCompile("import format error"),
+				ResourceName:  resourceName,
+				ImportState:   true,
+				ImportStateId: "incorrect_id_without_project_id_and_dash",
+				ExpectError:   regexp.MustCompile("import format error"),
 			},
 		},
 	})
@@ -554,18 +552,6 @@ func testAccCheckMongoDBAtlasAlertConfigurationImportStateIDFunc(resourceName st
 		}
 
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["alert_configuration_id"]), nil
-	}
-}
-
-func testAccCheckMongoDBAtlasAlertConfigurationImportStateIncorrectIDFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("not found: %s", resourceName)
-		}
-
-		// incorrect format without project_id and dash
-		return rs.Primary.Attributes["alert_configuration_id"], nil
 	}
 }
 
