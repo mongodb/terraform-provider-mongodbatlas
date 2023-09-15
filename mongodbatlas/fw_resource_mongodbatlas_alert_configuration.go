@@ -534,7 +534,8 @@ func (r *AlertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	parts := strings.SplitN(req.ID, "-", 2)
 
 	if len(parts) != 2 {
-		resp.Diagnostics.AddError("import format error: to import a cluster, use the format {project_id}-{id}", "")
+		resp.Diagnostics.AddError("import format error", "to import an alert configuration, use the format {project_id}-{alert_configuration_id}")
+		return
 	}
 
 	projectID := parts[0]

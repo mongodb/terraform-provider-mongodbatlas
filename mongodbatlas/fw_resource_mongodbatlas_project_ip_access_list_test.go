@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -215,6 +216,31 @@ func TestAccProjectRSProjectIPAccessList_importBasic(t *testing.T) {
 				ImportStateIdFunc: testAccCheckMongoDBAtlasProjectIPAccessListImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccProjectRSProjectIPAccessList_importIncorrectId(t *testing.T) {
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acctest.RandomWithPrefix("test-acc")
+	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
+	comment := fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+	resourceName := "mongodbatlas_project_ip_access_list.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasProjectIPAccessListConfigSettingIPAddress(orgID, projectName, ipAddress, comment),
+			},
+			{
+				ResourceName:  resourceName,
+				ImportState:   true,
+				ImportStateId: "incorrect_id_without_project_id_and_dash",
+				ExpectError:   regexp.MustCompile("import format error"),
 			},
 		},
 	})

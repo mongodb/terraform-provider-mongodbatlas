@@ -354,6 +354,7 @@ func (r *ProjectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError("import format error", "to import a projectIP Access List, use the format {project_id}-{entry}")
+		return
 	}
 
 	projectID := parts[0]

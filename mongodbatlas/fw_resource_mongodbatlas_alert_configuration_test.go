@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -307,6 +308,31 @@ func TestAccConfigRSAlertConfiguration_importBasic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"project_id"},
+			},
+		},
+	})
+}
+
+func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		resourceName = "mongodbatlas_alert_configuration.test"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true),
+			},
+			{
+				ResourceName:  resourceName,
+				ImportState:   true,
+				ImportStateId: "incorrect_id_without_project_id_and_dash",
+				ExpectError:   regexp.MustCompile("import format error"),
 			},
 		},
 	})
