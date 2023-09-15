@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -762,6 +763,39 @@ func newTFMetricThresholdConfigModel(matlasMetricThreshold *matlas.MetricThresho
 		newState.Mode = conversion.StringNullIfEmpty(matlasMetricThreshold.Mode)
 	}
 	newState.Threshold = types.Float64Value(matlasMetricThreshold.Threshold)
+	return []tfMetricThresholdConfigModel{newState}
+}
+
+func newTFMetricThresholdConfigModelV2(matlasMetricThreshold *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
+	if matlasMetricThreshold == nil {
+		return []tfMetricThresholdConfigModel{}
+	}
+	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
+		return []tfMetricThresholdConfigModel{
+			{
+				MetricName: conversion.StringNullIfEmpty(*matlasMetricThreshold.MetricName),
+				Operator:   conversion.StringNullIfEmpty(*matlasMetricThreshold.Operator),
+				Threshold:  types.Float64Value(*matlasMetricThreshold.Threshold),
+				Units:      conversion.StringNullIfEmpty(*matlasMetricThreshold.Units),
+				Mode:       conversion.StringNullIfEmpty(*matlasMetricThreshold.Mode),
+			},
+		}
+	}
+	currState := currStateSlice[0]
+	newState := tfMetricThresholdConfigModel{}
+	if !currState.MetricName.IsNull() {
+		newState.MetricName = conversion.StringNullIfEmpty(*matlasMetricThreshold.MetricName)
+	}
+	if !currState.Operator.IsNull() {
+		newState.Operator = conversion.StringNullIfEmpty(*matlasMetricThreshold.Operator)
+	}
+	if !currState.Units.IsNull() {
+		newState.Units = conversion.StringNullIfEmpty(*matlasMetricThreshold.Units)
+	}
+	if !currState.Mode.IsNull() {
+		newState.Mode = conversion.StringNullIfEmpty(*matlasMetricThreshold.Mode)
+	}
+	newState.Threshold = types.Float64Value(*matlasMetricThreshold.Threshold)
 	return []tfMetricThresholdConfigModel{newState}
 }
 

@@ -272,6 +272,9 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
+	resultAlertConfigModelV2 := newTFAlertConfigurationDSModelV2(alert2, projectID)
+	_ = resultAlertConfigModelV2
+
 	resultAlertConfigModel := newTFAlertConfigurationDSModel(alert, projectID)
 	resultAlertConfigModel.Output = computeAlertConfigurationOutputV2(alert2, outputs, alert.EventTypeName)
 
@@ -333,6 +336,26 @@ func newTFAlertConfigurationDSModel(apiRespConfig *matlas.AlertConfiguration, pr
 		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
 		Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
 		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
+	}
+}
+
+func newTFAlertConfigurationDSModelV2(apiRespConfig *admin.GroupAlertsConfig, projectID string) tfAlertConfigurationDSModel {
+	return tfAlertConfigurationDSModel{
+		ID: types.StringValue(encodeStateID(map[string]string{
+			encodedIDKeyAlertID:   *apiRespConfig.Id,
+			encodedIDKeyProjectID: projectID,
+		})),
+		ProjectID:             types.StringValue(projectID),
+		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
+		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
+		Created:               types.StringValue(util.TimeToString(*apiRespConfig.Created)),
+		Updated:               types.StringValue(util.TimeToString(*apiRespConfig.Updated)),
+		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
+		MetricThresholdConfig: newTFMetricThresholdConfigModelV2(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
+		// TODO
+		//      ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
+		//      Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
+		//      Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
 	}
 }
 
