@@ -27,3 +27,8 @@ func Int64PtrToIntPtr(i64 *int64) *int {
 	i := int(*i64)
 	return &i
 }
+
+// IsStringPresent returns true if the string is non-empty.
+func IsStringPresent(strPtr *string) bool {
+	return strPtr != nil && len(*strPtr) > 0
+}

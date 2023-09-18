@@ -28,3 +28,25 @@ func TestTimeToStringWithNanos(t *testing.T) {
 		t.Errorf("TimeToString(%v) = %v; want %v", inputTime, result, expectedOutput)
 	}
 }
+
+func TestIsStringPresent(t *testing.T) {
+	var (
+		empty    = ""
+		oneBlank = " "
+		str      = "text"
+	)
+	tests := []struct {
+		strPtr   *string
+		expected bool
+	}{
+		{nil, false},
+		{&empty, false},
+		{&oneBlank, true},
+		{&str, true},
+	}
+	for _, test := range tests {
+		if resp := util.IsStringPresent(test.strPtr); resp != test.expected {
+			t.Errorf("IsStringPresent(%v) = %v; want %v", test.strPtr, resp, test.expected)
+		}
+	}
+}

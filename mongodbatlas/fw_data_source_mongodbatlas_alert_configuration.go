@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
 	"go.mongodb.org/atlas-sdk/v20230201006/admin"
@@ -389,15 +388,15 @@ func convertThresholdToCtyValues(threshold *admin.GreaterThanRawThreshold) map[s
 func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootForGroup) map[string]cty.Value {
 	values := map[string]cty.Value{}
 
-	if conversion.IsStringPresent(notification.ChannelName) {
+	if util.IsStringPresent(notification.ChannelName) {
 		values["channel_name"] = cty.StringVal(*notification.ChannelName)
 	}
 
-	if conversion.IsStringPresent(notification.DatadogRegion) {
+	if util.IsStringPresent(notification.DatadogRegion) {
 		values["datadog_region"] = cty.StringVal(*notification.DatadogRegion)
 	}
 
-	if conversion.IsStringPresent(notification.EmailAddress) {
+	if util.IsStringPresent(notification.EmailAddress) {
 		values["email_address"] = cty.StringVal(*notification.EmailAddress)
 	}
 
@@ -405,27 +404,27 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 		values["interval_min"] = cty.NumberIntVal(int64(*notification.IntervalMin))
 	}
 
-	if conversion.IsStringPresent(notification.MobileNumber) {
+	if util.IsStringPresent(notification.MobileNumber) {
 		values["mobile_number"] = cty.StringVal(*notification.MobileNumber)
 	}
 
-	if conversion.IsStringPresent(notification.OpsGenieRegion) {
+	if util.IsStringPresent(notification.OpsGenieRegion) {
 		values["ops_genie_region"] = cty.StringVal(*notification.OpsGenieRegion)
 	}
 
-	if conversion.IsStringPresent(notification.TeamId) {
+	if util.IsStringPresent(notification.TeamId) {
 		values["team_id"] = cty.StringVal(*notification.TeamId)
 	}
 
-	if conversion.IsStringPresent(notification.TeamName) {
+	if util.IsStringPresent(notification.TeamName) {
 		values["team_name"] = cty.StringVal(*notification.TeamName)
 	}
 
-	if conversion.IsStringPresent(notification.TypeName) {
+	if util.IsStringPresent(notification.TypeName) {
 		values["type_name"] = cty.StringVal(*notification.TypeName)
 	}
 
-	if conversion.IsStringPresent(notification.Username) {
+	if util.IsStringPresent(notification.Username) {
 		values["username"] = cty.StringVal(*notification.Username)
 	}
 
