@@ -454,14 +454,16 @@ func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *
 }
 
 func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client, d *schema.ResourceData, projectID, clusterName string) error {
+	policy := matlas.Policy{}
 	// Get policies items
 	resp, _, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
 		log.Printf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
+	} else if len(resp.Policies) == 1 {
+		policy.ID = resp.Policies[0].ID
 	}
 
 	req := &matlas.CloudProviderSnapshotBackupPolicy{}
-	policy := matlas.Policy{}
 	policyItem := matlas.PolicyItem{}
 	var policiesItem []matlas.PolicyItem
 	export := matlas.Export{}
@@ -533,10 +535,6 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 
 	if d.HasChange("use_org_and_group_names_in_export_prefix") {
 		req.UseOrgAndGroupNamesInExportPrefix = pointy.Bool(d.Get("use_org_and_group_names_in_export_prefix").(bool))
-	}
-
-	if len(resp.Policies) == 1 {
-		policy.ID = resp.Policies[0].ID
 	}
 
 	policy.PolicyItems = policiesItem
