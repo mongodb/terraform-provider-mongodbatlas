@@ -10,8 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20230201006/admin"
 )
 
 var _ datasource.DataSource = &AlertConfigurationDS{}
@@ -244,7 +245,6 @@ func (d *AlertConfigurationDS) Schema(ctx context.Context, req datasource.Schema
 
 func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var alertConfigurationConfig tfAlertConfigurationDSModel
-	conn := d.client.Atlas
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &alertConfigurationConfig)...)
 	if resp.Diagnostics.HasError() {
@@ -257,15 +257,15 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	alertID := getEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), encodedIDKeyAlertID)
 	outputs := alertConfigurationConfig.Output
 
-	alert, _, err := conn.AlertConfigurations.GetAnAlertConfig(ctx, projectID, alertID)
+	connV2 := d.client.AtlasV2
+	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
 	}
 
 	resultAlertConfigModel := newTFAlertConfigurationDSModel(alert, projectID)
-	computedOutputs := computeAlertConfigurationOutput(alert, outputs, alert.EventTypeName)
-	resultAlertConfigModel.Output = computedOutputs
+	resultAlertConfigModel.Output = computeAlertConfigurationOutput(alert, outputs, *alert.EventTypeName)
 
 	// setting initial value for backwards compatibility, but setting the alert_configuration resource id here is not consistent with the resource
 	resultAlertConfigModel.AlertConfigurationID = alertConfigurationConfig.AlertConfigurationID
@@ -273,7 +273,7 @@ func (d *AlertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &resultAlertConfigModel)...)
 }
 
-func computeAlertConfigurationOutput(alert *matlas.AlertConfiguration, definedOutputs []tfAlertConfigurationOutputModel, defaultLabel string) []tfAlertConfigurationOutputModel {
+func computeAlertConfigurationOutput(alert *admin.GroupAlertsConfig, definedOutputs []tfAlertConfigurationOutputModel, defaultLabel string) []tfAlertConfigurationOutputModel {
 	resultOutputs := make([]tfAlertConfigurationOutputModel, len(definedOutputs))
 	for i, defined := range definedOutputs {
 		resultOutput := tfAlertConfigurationOutputModel{}
@@ -291,26 +291,26 @@ func computeAlertConfigurationOutput(alert *matlas.AlertConfiguration, definedOu
 	return resultOutputs
 }
 
-func newTFAlertConfigurationDSModel(apiRespConfig *matlas.AlertConfiguration, projectID string) tfAlertConfigurationDSModel {
+func newTFAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) tfAlertConfigurationDSModel {
 	return tfAlertConfigurationDSModel{
 		ID: types.StringValue(encodeStateID(map[string]string{
-			encodedIDKeyAlertID:   apiRespConfig.ID,
+			encodedIDKeyAlertID:   *apiRespConfig.Id,
 			encodedIDKeyProjectID: projectID,
 		})),
 		ProjectID:             types.StringValue(projectID),
-		AlertConfigurationID:  types.StringValue(apiRespConfig.ID),
-		EventType:             types.StringValue(apiRespConfig.EventTypeName),
-		Created:               types.StringValue(apiRespConfig.Created),
-		Updated:               types.StringValue(apiRespConfig.Updated),
+		AlertConfigurationID:  types.StringValue(*apiRespConfig.Id),
+		EventType:             types.StringValue(*apiRespConfig.EventTypeName),
+		Created:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Created)),
+		Updated:               types.StringPointerValue(util.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
-		ThresholdConfig:       newTFThresholdConfigModel(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
-		Notification:          newTFNotificationModelList(apiRespConfig.Notifications, []tfNotificationModel{}),
-		Matcher:               newTFMatcherModelList(apiRespConfig.Matchers, []tfMatcherModel{}),
+		MetricThresholdConfig: newTFMetricThresholdConfigModelV2(apiRespConfig.MetricThreshold, []tfMetricThresholdConfigModel{}),
+		ThresholdConfig:       newTFThresholdConfigModelV2(apiRespConfig.Threshold, []tfThresholdConfigModel{}),
+		Notification:          newTFNotificationModelListV2(apiRespConfig.Notifications, []tfNotificationModel{}),
+		Matcher:               newTFMatcherModelListV2(apiRespConfig.Matchers, []tfMatcherModel{}),
 	}
 }
 
-func outputAlertConfiguration(alert *matlas.AlertConfiguration, outputType, resourceLabel string) string {
+func outputAlertConfiguration(alert *admin.GroupAlertsConfig, outputType, resourceLabel string) string {
 	if outputType == "resource_hcl" {
 		return outputAlertConfigurationResourceHcl(resourceLabel, alert)
 	}
@@ -321,124 +321,119 @@ func outputAlertConfiguration(alert *matlas.AlertConfiguration, outputType, reso
 	return ""
 }
 
-func outputAlertConfigurationResourceHcl(label string, alert *matlas.AlertConfiguration) string {
+func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsConfig) string {
 	f := hclwrite.NewEmptyFile()
 	root := f.Body()
 	resource := root.AppendNewBlock("resource", []string{"mongodbatlas_alert_configuration", label}).Body()
 
-	resource.SetAttributeValue("project_id", cty.StringVal(alert.GroupID))
-	resource.SetAttributeValue("event_type", cty.StringVal(alert.EventTypeName))
+	resource.SetAttributeValue("project_id", cty.StringVal(*alert.GroupId))
+	resource.SetAttributeValue("event_type", cty.StringVal(*alert.EventTypeName))
 
 	if alert.Enabled != nil {
 		resource.SetAttributeValue("enabled", cty.BoolVal(*alert.Enabled))
 	}
 
 	for _, matcher := range alert.Matchers {
-		values := convertMatcherToCtyValues(matcher)
-
-		appendBlockWithCtyValues(resource, "matcher", []string{}, values)
+		appendBlockWithCtyValues(resource, "matcher", []string{}, convertMatcherToCtyValues(matcher))
 	}
 
 	if alert.MetricThreshold != nil {
-		values := convertMetricThresholdToCtyValues(*alert.MetricThreshold)
-
-		appendBlockWithCtyValues(resource, "metric_threshold_config", []string{}, values)
+		appendBlockWithCtyValues(resource, "metric_threshold_config", []string{}, convertMetricThresholdToCtyValues(*alert.MetricThreshold))
 	}
 
 	if alert.Threshold != nil {
-		values := convertThresholdToCtyValues(*alert.Threshold)
-
-		appendBlockWithCtyValues(resource, "threshold_config", []string{}, values)
+		appendBlockWithCtyValues(resource, "threshold_config", []string{}, convertThresholdToCtyValues(alert.Threshold))
 	}
 
 	for i := 0; i < len(alert.Notifications); i++ {
-		values := convertNotificationToCtyValues(&alert.Notifications[i])
-
-		appendBlockWithCtyValues(resource, "notification", []string{}, values)
+		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&alert.Notifications[i]))
 	}
 
 	return string(f.Bytes())
 }
 
-func outputAlertConfigurationResourceImport(label string, alert *matlas.AlertConfiguration) string {
-	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", label, alert.GroupID, alert.ID)
+func outputAlertConfigurationResourceImport(label string, alert *admin.GroupAlertsConfig) string {
+	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", label, *alert.GroupId, *alert.Id)
 }
 
-func convertMatcherToCtyValues(matcher matlas.Matcher) map[string]cty.Value {
+func convertMatcherToCtyValues(matcher map[string]interface{}) map[string]cty.Value {
+	fieldName, _ := matcher["fieldName"].(string)
+	operator, _ := matcher["operator"].(string)
+	value, _ := matcher["value"].(string)
 	return map[string]cty.Value{
-		"field_name": cty.StringVal(matcher.FieldName),
-		"operator":   cty.StringVal(matcher.Operator),
-		"value":      cty.StringVal(matcher.Value),
+		"field_name": cty.StringVal(fieldName),
+		"operator":   cty.StringVal(operator),
+		"value":      cty.StringVal(value),
 	}
 }
 
-func convertMetricThresholdToCtyValues(metric matlas.MetricThreshold) map[string]cty.Value {
+func convertMetricThresholdToCtyValues(metric admin.ServerlessMetricThreshold) map[string]cty.Value {
+	var t float64
+	if metric.Threshold != nil {
+		t = *metric.Threshold
+	}
 	return map[string]cty.Value{
-		"metric_name": cty.StringVal(metric.MetricName),
-		"operator":    cty.StringVal(metric.Operator),
-		"threshold":   cty.NumberFloatVal(metric.Threshold),
-		"units":       cty.StringVal(metric.Units),
-		"mode":        cty.StringVal(metric.Mode),
+		"metric_name": ctyStringPtrVal(metric.MetricName),
+		"operator":    ctyStringPtrVal(metric.Operator),
+		"threshold":   cty.NumberFloatVal(t),
+		"units":       ctyStringPtrVal(metric.Units),
+		"mode":        ctyStringPtrVal(metric.Mode),
 	}
 }
 
-func convertThresholdToCtyValues(threshold matlas.Threshold) map[string]cty.Value {
+func convertThresholdToCtyValues(threshold *admin.GreaterThanRawThreshold) map[string]cty.Value {
+	var t int
+	if threshold.Threshold != nil {
+		t = *threshold.Threshold
+	}
 	return map[string]cty.Value{
-		"operator":  cty.StringVal(threshold.Operator),
-		"units":     cty.StringVal(threshold.Units),
-		"threshold": cty.NumberFloatVal(threshold.Threshold),
+		"operator":  ctyStringPtrVal(threshold.Operator),
+		"units":     ctyStringPtrVal(threshold.Units),
+		"threshold": cty.NumberFloatVal(float64(t)), // int in new SDK but keeping float64 for backward compatibility
 	}
 }
 
-func convertNotificationToCtyValues(notification *matlas.Notification) map[string]cty.Value {
+func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootForGroup) map[string]cty.Value {
 	values := map[string]cty.Value{}
 
-	if notification.ChannelName != "" {
-		values["channel_name"] = cty.StringVal(notification.ChannelName)
+	if util.IsStringPresent(notification.ChannelName) {
+		values["channel_name"] = cty.StringVal(*notification.ChannelName)
 	}
 
-	if notification.DatadogRegion != "" {
-		values["datadog_region"] = cty.StringVal(notification.DatadogRegion)
+	if util.IsStringPresent(notification.DatadogRegion) {
+		values["datadog_region"] = cty.StringVal(*notification.DatadogRegion)
 	}
 
-	if notification.EmailAddress != "" {
-		values["email_address"] = cty.StringVal(notification.EmailAddress)
+	if util.IsStringPresent(notification.EmailAddress) {
+		values["email_address"] = cty.StringVal(*notification.EmailAddress)
 	}
 
-	if notification.FlowName != "" {
-		values["flow_name"] = cty.StringVal(notification.FlowName)
+	if notification.IntervalMin != nil && *notification.IntervalMin > 0 {
+		values["interval_min"] = cty.NumberIntVal(int64(*notification.IntervalMin))
 	}
 
-	if notification.IntervalMin > 0 {
-		values["interval_min"] = cty.NumberIntVal(int64(notification.IntervalMin))
+	if util.IsStringPresent(notification.MobileNumber) {
+		values["mobile_number"] = cty.StringVal(*notification.MobileNumber)
 	}
 
-	if notification.MobileNumber != "" {
-		values["mobile_number"] = cty.StringVal(notification.MobileNumber)
+	if util.IsStringPresent(notification.OpsGenieRegion) {
+		values["ops_genie_region"] = cty.StringVal(*notification.OpsGenieRegion)
 	}
 
-	if notification.OpsGenieRegion != "" {
-		values["ops_genie_region"] = cty.StringVal(notification.OpsGenieRegion)
+	if util.IsStringPresent(notification.TeamId) {
+		values["team_id"] = cty.StringVal(*notification.TeamId)
 	}
 
-	if notification.OrgName != "" {
-		values["org_name"] = cty.StringVal(notification.OrgName)
+	if util.IsStringPresent(notification.TeamName) {
+		values["team_name"] = cty.StringVal(*notification.TeamName)
 	}
 
-	if notification.TeamID != "" {
-		values["team_id"] = cty.StringVal(notification.TeamID)
+	if util.IsStringPresent(notification.TypeName) {
+		values["type_name"] = cty.StringVal(*notification.TypeName)
 	}
 
-	if notification.TeamName != "" {
-		values["team_name"] = cty.StringVal(notification.TeamName)
-	}
-
-	if notification.TypeName != "" {
-		values["type_name"] = cty.StringVal(notification.TypeName)
-	}
-
-	if notification.Username != "" {
-		values["username"] = cty.StringVal(notification.Username)
+	if util.IsStringPresent(notification.Username) {
+		values["username"] = cty.StringVal(*notification.Username)
 	}
 
 	if notification.DelayMin != nil && *notification.DelayMin > 0 {
@@ -449,8 +444,8 @@ func convertNotificationToCtyValues(notification *matlas.Notification) map[strin
 		values["email_enabled"] = cty.BoolVal(*notification.EmailEnabled)
 	}
 
-	if notification.SMSEnabled != nil && *notification.SMSEnabled {
-		values["sms_enabled"] = cty.BoolVal(*notification.SMSEnabled)
+	if notification.SmsEnabled != nil && *notification.SmsEnabled {
+		values["sms_enabled"] = cty.BoolVal(*notification.SmsEnabled)
 	}
 
 	if len(notification.Roles) > 0 {
@@ -466,4 +461,11 @@ func convertNotificationToCtyValues(notification *matlas.Notification) map[strin
 	}
 
 	return values
+}
+
+func ctyStringPtrVal(ptr *string) cty.Value {
+	if ptr == nil {
+		return cty.StringVal("")
+	}
+	return cty.StringVal(*ptr)
 }
