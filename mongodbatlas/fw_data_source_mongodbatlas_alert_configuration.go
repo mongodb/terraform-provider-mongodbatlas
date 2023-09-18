@@ -368,20 +368,28 @@ func convertMatcherToCtyValues(matcher map[string]interface{}) map[string]cty.Va
 }
 
 func convertMetricThresholdToCtyValues(metric admin.ServerlessMetricThreshold) map[string]cty.Value {
+	var t float64
+	if metric.Threshold != nil {
+		t = *metric.Threshold
+	}
 	return map[string]cty.Value{
-		"metric_name": cty.StringVal(*metric.MetricName),
-		"operator":    cty.StringVal(*metric.Operator),
-		"threshold":   cty.NumberFloatVal(*metric.Threshold),
-		"units":       cty.StringVal(*metric.Units),
-		"mode":        cty.StringVal(*metric.Mode),
+		"metric_name": ctyStringPtrVal(metric.MetricName),
+		"operator":    ctyStringPtrVal(metric.Operator),
+		"threshold":   cty.NumberFloatVal(t),
+		"units":       ctyStringPtrVal(metric.Units),
+		"mode":        ctyStringPtrVal(metric.Mode),
 	}
 }
 
 func convertThresholdToCtyValues(threshold *admin.GreaterThanRawThreshold) map[string]cty.Value {
+	var t int
+	if threshold.Threshold != nil {
+		t = *threshold.Threshold
+	}
 	return map[string]cty.Value{
-		"operator":  cty.StringVal(*threshold.Operator),
-		"units":     cty.StringVal(*threshold.Units),
-		"threshold": cty.NumberFloatVal(float64(*threshold.Threshold)), // int in new SDK but keeping float64 for backward compatibility
+		"operator":  ctyStringPtrVal(threshold.Operator),
+		"units":     ctyStringPtrVal(threshold.Units),
+		"threshold": cty.NumberFloatVal(float64(t)), // int in new SDK but keeping float64 for backward compatibility
 	}
 }
 
@@ -453,4 +461,11 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 	}
 
 	return values
+}
+
+func ctyStringPtrVal(ptr *string) cty.Value {
+	if ptr == nil {
+		return cty.StringVal("")
+	}
+	return cty.StringVal(*ptr)
 }
