@@ -12,8 +12,6 @@ description: |-
 
 -> **NOTE** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
--> **API Key Access List** This resource requires an Atlas API Access Key List to utilize this feature. This means to manage this resources you must have the IP address or CIDR block that the Terraform connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using. See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list) for details.
-
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
 -> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.

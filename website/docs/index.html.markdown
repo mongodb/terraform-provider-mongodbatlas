@@ -28,12 +28,10 @@ provider "mongodbatlas" {
 ```
 ## Configure Atlas Programmatic Access
 
-In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/) and IP access list entries.
-The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and IP access.  
+In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
+The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
-
-**API Key Access List**: Some Atlas API resources such as Cloud Backup Restores, Cloud Backup Snapshots, and Cloud Backup Schedules **require** an Atlas API Key Access List to utilize these feature.  Hence, if using Terraform, or any other programmatic control, to manage these resources you must have the IP address or CIDR block that the connection is coming from added to the Atlas API Key Access List of the Atlas API key you are using.   See [Resources that require API Key List](https://www.mongodb.com/docs/atlas/configure-api-access/#use-api-resources-that-require-an-access-list)
 
 ## Configure MongoDB Atlas for Government
 
