@@ -62,7 +62,7 @@ resource "mongodbatlas_project_ip_access_list" "cidr" {
 resource "mongodbatlas_cluster" "cluster" {
   project_id             = mongodbatlas_project.project.id
   name                   = "MongoDB-Atlas-cluster-tf-test"
-  mongo_db_major_version = "4.4"
+  mongo_db_major_version = var.version
   cluster_type           = "REPLICASET"
   replication_specs {
     num_shards = 1

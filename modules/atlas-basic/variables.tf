@@ -32,6 +32,12 @@ variable "region" {
     type        = string
 }
 
+variable "version" {
+  description = "Atlas cluster version"
+  default     = "4.4"
+  type        = string
+}
+
 
 variable "user" {
   description = "MongoDB Atlas User"
