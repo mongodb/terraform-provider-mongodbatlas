@@ -9,7 +9,6 @@ import (
 	"hash/crc32"
 	"log"
 	"os"
-	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -30,7 +29,6 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -558,62 +556,6 @@ func valRegion(reg interface{}, opt ...string) (string, error) {
 	}
 
 	return strings.ReplaceAll(region, "-", "_"), nil
-}
-
-func flattenLabels(l []matlas.Label) []map[string]interface{} {
-	labels := make([]map[string]interface{}, len(l))
-	for i, v := range l {
-		labels[i] = map[string]interface{}{
-			"key":   v.Key,
-			"value": v.Value,
-		}
-	}
-
-	return labels
-}
-
-func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
-	list := d.Get("labels").(*schema.Set)
-	res := make([]matlas.Label, list.Len())
-
-	for i, val := range list.List() {
-		v := val.(map[string]interface{})
-		res[i] = matlas.Label{
-			Key:   v["key"].(string),
-			Value: v["value"].(string),
-		}
-	}
-
-	return res
-}
-
-func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
-	for _, v := range list {
-		if reflect.DeepEqual(v, item) || v.Key == item.Key {
-			return true
-		}
-	}
-
-	return false
-}
-
-func removeLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
-	var pos int
-
-	for _, v := range list {
-		if reflect.DeepEqual(v, item) {
-			list = append(list[:pos], list[pos+1:]...)
-
-			if pos > 0 {
-				pos--
-			}
-
-			continue
-		}
-		pos++
-	}
-
-	return list
 }
 
 func expandStringList(list []interface{}) (res []string) {

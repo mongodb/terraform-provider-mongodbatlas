@@ -579,6 +579,100 @@ func TestAccClusterAdvancedClusterConfig_ReplicationSpecsAnalyticsAutoScaling(t 
 	})
 }
 
+func TestAccClusterAdvancedCluster_WithTags(t *testing.T) {
+	var (
+		cluster                matlas.AdvancedCluster
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		dataSourceName         = "data.mongodbatlas_advanced_cluster.test"
+		dataSourceClustersName = "data.mongodbatlas_advanced_clusters.test"
+		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName            = acctest.RandomWithPrefix("test-acc")
+		rName                  = acctest.RandomWithPrefix("test-acc")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasAdvancedClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "0"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{
+					{
+						Key:   "key 1",
+						Value: "value 1",
+					},
+					{
+						Key:   "key 2",
+						Value: "value 2",
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap2),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap2),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap2),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, rName, []matlas.Tag{
+					{
+						Key:   "key 3",
+						Value: "value 3",
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasAdvancedClusterAttributes(&cluster, rName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap3),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap3),
+					resource.TestCheckResourceAttr(dataSourceClustersName, "results.0.tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceClustersName, "results.0.tags.*", tagsMap3),
+				),
+			},
+		},
+	})
+}
+
+var tagsMap1 = map[string]string{
+	"key":   "key 1",
+	"value": "value 1",
+}
+
+var tagsMap2 = map[string]string{
+	"key":   "key 2",
+	"value": "value 2",
+}
+
+var tagsMap3 = map[string]string{
+	"key":   "key 3",
+	"value": "value 3",
+}
+
 func testAccCheckMongoDBAtlasAdvancedClusterExists(resourceName string, cluster *matlas.AdvancedCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
@@ -687,6 +781,58 @@ data "mongodbatlas_advanced_clusters" "test" {
 	project_id = mongodbatlas_advanced_cluster.test.project_id
 }
 	`, orgID, projectName, name)
+}
+
+func testAccMongoDBAtlasAdvancedClusterConfigWithTags(orgID, projectName, name string, tags []matlas.Tag) string {
+	var tagsConf string
+	for _, label := range tags {
+		tagsConf += fmt.Sprintf(`
+			tags {
+				key   = "%s"
+				value = "%s"
+			}
+		`, label.Key, label.Value)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+
+			replication_specs {
+				region_configs {
+					electable_specs {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}
+			}
+
+			%[4]s
+		}
+
+		data "mongodbatlas_advanced_cluster" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+			name 	     = mongodbatlas_advanced_cluster.test.name
+		}
+
+		data "mongodbatlas_advanced_clusters" "test" {
+			project_id = mongodbatlas_advanced_cluster.test.project_id
+		}
+	`, orgID, projectName, name, tagsConf)
 }
 
 func testAccMongoDBAtlasAdvancedClusterConfigSingleProvider(orgID, projectName, name string) string {

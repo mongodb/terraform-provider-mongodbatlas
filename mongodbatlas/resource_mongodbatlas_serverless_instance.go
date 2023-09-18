@@ -18,6 +18,7 @@ import (
 
 const (
 	errorServerlessInstanceListStatus = "error awaiting serverless instance list status IDLE: %s"
+	errorServerlessInstanceSetting    = "error setting `%s` for serverless instance (%s): %s"
 )
 
 func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
@@ -40,7 +41,7 @@ func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
-	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") {
+	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
 		serverlessBackupOptions := &matlas.ServerlessBackupOptions{
 			ServerlessContinuousBackupEnabled: pointy.Bool(d.Get("continuous_backup_enabled").(bool)),
 		}
@@ -48,6 +49,11 @@ func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema
 		ServerlessUpdateRequestParams := &matlas.ServerlessUpdateRequestParams{
 			ServerlessBackupOptions:      serverlessBackupOptions,
 			TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+		}
+
+		if d.HasChange("tags") {
+			tags := expandTagSliceFromSetSchema(d)
+			ServerlessUpdateRequestParams.Tag = &tags
 		}
 
 		_, _, err := conn.ServerlessInstances.Update(ctx, projectID, instanceName, ServerlessUpdateRequestParams)
@@ -150,6 +156,7 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"tags": &tagsSchema,
 	}
 }
 
@@ -241,51 +248,55 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 	}
 
 	if err := d.Set("id", serverlessInstance.ID); err != nil {
-		return diag.Errorf("error setting `is` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "id", d.Id(), err)
 	}
 
 	if err := d.Set("provider_settings_backing_provider_name", serverlessInstance.ProviderSettings.BackingProviderName); err != nil {
-		return diag.Errorf("error setting `provider_settings_backing_provider_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_backing_provider_name", d.Id(), err)
 	}
 
 	if err := d.Set("provider_settings_provider_name", serverlessInstance.ProviderSettings.ProviderName); err != nil {
-		return diag.Errorf("error setting `provider_settings_provider_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_provider_name", d.Id(), err)
 	}
 
 	if err := d.Set("provider_settings_region_name", serverlessInstance.ProviderSettings.RegionName); err != nil {
-		return diag.Errorf("error setting `provider_settings_region_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_region_name", d.Id(), err)
 	}
 
 	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
-		return diag.Errorf("error setting `connection_strings_standard_srv` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
 	}
 
 	if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
-		return diag.Errorf("error setting `connection_strings_private_endpoint_srv` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 	}
 
 	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
-		return diag.Errorf("error setting `create_date` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "create_date", d.Id(), err)
 	}
 
 	if err := d.Set("mongo_db_version", serverlessInstance.MongoDBVersion); err != nil {
-		return diag.Errorf("error setting `mongo_db_version` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
 	if err := d.Set("links", flattenServerlessInstanceLinks(serverlessInstance.Links)); err != nil {
-		return diag.Errorf("error setting `links` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
 	if err := d.Set("state_name", serverlessInstance.StateName); err != nil {
-		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "state_name", d.Id(), err)
 	}
 
 	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
-		return diag.Errorf("error setting `termination_protection_enabled` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "termination_protection_enabled", d.Id(), err)
 	}
 
 	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		return diag.Errorf("error setting `continuous_backup_enabled` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
+	}
+
+	if err := d.Set("tags", flattenTags(serverlessInstance.Tags)); err != nil {
+		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
 	return nil
@@ -313,6 +324,11 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 		ProviderSettings:             serverlessProviderSettings,
 		ServerlessBackupOptions:      serverlessBackupOptions,
 		TerminationProtectionEnabled: pointy.Bool(d.Get("termination_protection_enabled").(bool)),
+	}
+
+	if _, ok := d.GetOk("tags"); ok {
+		tagsSlice := expandTagSliceFromSetSchema(d)
+		serverlessInstanceRequest.Tag = &tagsSlice
 	}
 
 	_, _, err := conn.ServerlessInstances.Create(ctx, projectID, serverlessInstanceRequest)

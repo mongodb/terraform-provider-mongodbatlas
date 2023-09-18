@@ -114,16 +114,11 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Set: func(v interface{}) int {
-					var buf bytes.Buffer
-					m := v.(map[string]interface{})
-					buf.WriteString(m["key"].(string))
-					buf.WriteString(m["value"].(string))
-					return HashCodeString(buf.String())
-				},
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Set:        HashFunctionForKeyValuePair,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -139,6 +134,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 					},
 				},
 			},
+			"tags": &tagsSchema,
 			"mongo_db_major_version": {
 				Type:      schema.TypeString,
 				Optional:  true,
@@ -322,6 +318,31 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 	}
 }
 
+var tagsSchema = schema.Schema{
+	Type:     schema.TypeSet,
+	Optional: true,
+	Elem: &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"key": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"value": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+		},
+	},
+}
+
+func HashFunctionForKeyValuePair(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(m["key"].(string))
+	buf.WriteString(m["value"].(string))
+	return HashCodeString(buf.String())
+}
+
 func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -383,6 +404,10 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 		return diag.FromErr(fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
 	}
 	request.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+
+	if _, ok := d.GetOk("tags"); ok {
+		request.Tags = expandTagSliceFromSetSchema(d)
+	}
 
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		request.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
@@ -521,6 +546,10 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "labels", clusterName, err))
 	}
 
+	if err := d.Set("tags", flattenTags(&cluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "tags", clusterName, err))
+	}
+
 	if err := d.Set("mongo_db_major_version", cluster.MongoDBMajorVersion); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "mongo_db_major_version", clusterName, err))
 	}
@@ -653,6 +682,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		}
 
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+	}
+
+	if d.HasChange("tags") {
+		cluster.Tags = expandTagSliceFromSetSchema(d)
 	}
 
 	if d.HasChange("mongo_db_major_version") {
@@ -1370,4 +1403,87 @@ func getAdvancedClusterContainerID(containers []matlas.Container, cluster *matla
 	}
 
 	return ""
+}
+
+func flattenLabels(l []matlas.Label) []map[string]interface{} {
+	labels := make([]map[string]interface{}, len(l))
+	for i, v := range l {
+		labels[i] = map[string]interface{}{
+			"key":   v.Key,
+			"value": v.Value,
+		}
+	}
+
+	return labels
+}
+
+func flattenTags(l *[]*matlas.Tag) []map[string]interface{} {
+	if l == nil {
+		return []map[string]interface{}{}
+	}
+	tags := make([]map[string]interface{}, len(*l))
+	for i, v := range *l {
+		tags[i] = map[string]interface{}{
+			"key":   v.Key,
+			"value": v.Value,
+		}
+	}
+	return tags
+}
+
+func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
+	list := d.Get("labels").(*schema.Set)
+	res := make([]matlas.Label, list.Len())
+
+	for i, val := range list.List() {
+		v := val.(map[string]interface{})
+		res[i] = matlas.Label{
+			Key:   v["key"].(string),
+			Value: v["value"].(string),
+		}
+	}
+
+	return res
+}
+
+func expandTagSliceFromSetSchema(d *schema.ResourceData) []*matlas.Tag {
+	list := d.Get("tags").(*schema.Set)
+	res := make([]*matlas.Tag, list.Len())
+	for i, val := range list.List() {
+		v := val.(map[string]interface{})
+		res[i] = &matlas.Tag{
+			Key:   v["key"].(string),
+			Value: v["value"].(string),
+		}
+	}
+	return res
+}
+
+func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
+	for _, v := range list {
+		if reflect.DeepEqual(v, item) || v.Key == item.Key {
+			return true
+		}
+	}
+
+	return false
+}
+
+func removeLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
+	var pos int
+
+	for _, v := range list {
+		if reflect.DeepEqual(v, item) {
+			list = append(list[:pos], list[pos+1:]...)
+
+			if pos > 0 {
+				pos--
+			}
+
+			continue
+		}
+		pos++
+	}
+
+	return list
 }

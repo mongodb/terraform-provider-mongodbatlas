@@ -94,6 +94,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
+
+  tags {
+    key   = "environment"
+    value = "dev"
+  }
 }
 
 resource "mongodbatlas_project" "project" {

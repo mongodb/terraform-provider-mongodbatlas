@@ -304,16 +304,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 			"labels": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Set: func(v interface{}) int {
-					var buf bytes.Buffer
-					m := v.(map[string]interface{})
-					buf.WriteString(m["key"].(string))
-					buf.WriteString(m["value"].(string))
-					return HashCodeString(buf.String())
-				},
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Set:        HashFunctionForKeyValuePair,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -329,6 +324,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"tags":                   &tagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"termination_protection_enabled": {
 				Type:     schema.TypeBool,
@@ -487,6 +483,11 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+
+	if _, ok := d.GetOk("tags"); ok {
+		tagsSlice := expandTagSliceFromSetSchema(d)
+		clusterRequest.Tags = &tagsSlice
+	}
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
@@ -706,6 +707,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "labels", clusterName, err))
 	}
 
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "tags", clusterName, err))
+	}
+
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "version_release_system", clusterName, err))
 	}
@@ -860,6 +865,11 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+	}
+
+	if d.HasChange("tags") {
+		tagsSlice := expandTagSliceFromSetSchema(d)
+		cluster.Tags = &tagsSlice
 	}
 
 	// when Provider instance type changes this argument must be passed explicitly in patch request

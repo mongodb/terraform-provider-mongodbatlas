@@ -19,8 +19,8 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 		instanceName            = acctest.RandomWithPrefix("test-acc-serverless")
 		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName             = acctest.RandomWithPrefix("test-acc-serverless")
-		datasourceName          = "data.mongodbatlas_serverless_instance.test_two"
-		datasourceInstancesName = "data.mongodbatlas_serverless_instances.data_serverless"
+		datasourceName          = "data.mongodbatlas_serverless_instance.test"
+		datasourceInstancesName = "data.mongodbatlas_serverless_instances.test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
@@ -48,6 +48,80 @@ func TestAccServerlessInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.continuous_backup_enabled"),
 					resource.TestCheckResourceAttrSet(datasourceInstancesName, "results.0.termination_protection_enabled"),
 					testAccCheckConnectionStringPrivateEndpointIsPresentWithNoElement(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccServerlessInstance_WithTags(t *testing.T) {
+	var (
+		serverlessInstance      matlas.Cluster
+		resourceName            = "mongodbatlas_serverless_instance.test"
+		instanceName            = acctest.RandomWithPrefix("test-acc-serverless")
+		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName             = acctest.RandomWithPrefix("test-acc-serverless")
+		dataSourceName          = "data.mongodbatlas_serverless_instance.test"
+		dataSourceInstancesName = "data.mongodbatlas_serverless_instances.test"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasServerlessInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMongoDBAtlasServerlessInstanceConfigWithTags(orgID, projectName, instanceName, []matlas.Tag{}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceInstancesName, "results.0.tags.#", "0"),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasServerlessInstanceConfigWithTags(orgID, projectName, instanceName, []matlas.Tag{
+					{
+						Key:   "key 1",
+						Value: "value 1",
+					},
+					{
+						Key:   "key 2",
+						Value: "value 2",
+					},
+				},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap2),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap2),
+					resource.TestCheckResourceAttr(dataSourceInstancesName, "results.0.tags.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceInstancesName, "results.0.tags.*", tagsMap1),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceInstancesName, "results.0.tags.*", tagsMap2),
+				),
+			},
+			{
+				Config: testAccMongoDBAtlasServerlessInstanceConfigWithTags(orgID, projectName, instanceName, []matlas.Tag{
+					{
+						Key:   "key 3",
+						Value: "value 3",
+					},
+				},
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasServerlessInstanceExists(resourceName, &serverlessInstance),
+					resource.TestCheckResourceAttr(resourceName, "name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "tags.*", tagsMap3),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "tags.*", tagsMap3),
+					resource.TestCheckResourceAttr(dataSourceInstancesName, "results.0.tags.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(dataSourceInstancesName, "results.0.tags.*", tagsMap3),
 				),
 			},
 		},
@@ -163,7 +237,10 @@ func testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, name string
 		`
 	}
 
-	return fmt.Sprintf(`
+	return fmt.Sprintf(serverlessConfig, orgID, projectName, name, lifecycle)
+}
+
+const serverlessConfig = `
 	resource "mongodbatlas_project" "test" {
 		name   = %[2]q
 		org_id = %[1]q
@@ -179,14 +256,25 @@ func testAccMongoDBAtlasServerlessInstanceConfig(orgID, projectName, name string
 		%[4]s
 	}
 
-	data "mongodbatlas_serverless_instance" "test_two" {
+	data "mongodbatlas_serverless_instance" "test" {
 		name        = mongodbatlas_serverless_instance.test.name
 		project_id  = mongodbatlas_serverless_instance.test.project_id
 	}
 
-	data "mongodbatlas_serverless_instances" "data_serverless" {
+	data "mongodbatlas_serverless_instances" "test" {
 		project_id         = mongodbatlas_serverless_instance.test.project_id
 	}
+`
 
-	`, orgID, projectName, name, lifecycle)
+func testAccMongoDBAtlasServerlessInstanceConfigWithTags(orgID, projectName, name string, tags []matlas.Tag) string {
+	var tagsConf string
+	for _, label := range tags {
+		tagsConf += fmt.Sprintf(`
+			tags {
+				key   = "%s"
+				value = "%s"
+			}
+		`, label.Key, label.Value)
+	}
+	return fmt.Sprintf(serverlessConfig, orgID, projectName, name, tagsConf)
 }

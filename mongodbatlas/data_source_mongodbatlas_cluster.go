@@ -284,8 +284,9 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 				Computed: true,
 			},
 			"labels": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -299,6 +300,7 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"tags":                   &dsTagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"container_id": {
 				Type:     schema.TypeString,
@@ -436,6 +438,10 @@ func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceDa
 
 	if err := d.Set("labels", flattenLabels(cluster.Labels)); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "labels", clusterName, err))
+	}
+
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "tags", clusterName, err))
 	}
 
 	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
