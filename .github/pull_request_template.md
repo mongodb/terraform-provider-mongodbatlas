@@ -19,5 +19,6 @@ Link to any related issue(s):
 - [ ] I have added tests that prove my fix is effective or that my feature works per HashiCorp requirements
 - [ ] I have added any necessary documentation (if appropriate)
 - [ ] I have run make fmt and formatted my code
+- [ ] If changes include deprecations or removals, I defined an isolated PR with a relevant title as it will be used in the auto-generated changelog.
 
 ## Further comments
