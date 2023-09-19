@@ -21,9 +21,19 @@
 **Deprecations and Removals**
 
 - Deprecation of labels attributes in cluster and advance_cluster resources.
-- Remove 1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
 - Remove deprecated fields in alert\_configuration resource [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
 - Remove api\_keys attribute from mongodbatlas\_project [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
+- Remove attributes in encryption_at_rest resource: aws_kms, azure_key_vault, google_cloud_kms [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
+- Remove 1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
+  - provider: duration_seconds
+  - advanced_cluster resource: bi_connector
+  - cloud_backup_snapshot_restore_job resource: delivery_type
+  - cloud_provider_access_setup resource: aws
+  - cluster resource: bi_connector, provider_backup_enabled, aws_private_link, aws_private_link_srv
+  - database_user resource: provider_backup_enabled
+  - project_api_key resource: role_names
+  - cluster and clusters data sources: bi_connector
+  - project_key and project_keys data sources: role_names
 
 **Closed Issues**
 
