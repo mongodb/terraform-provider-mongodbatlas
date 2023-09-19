@@ -7,23 +7,23 @@ locals {
 
   ip_address_list = [
     {
-      ip_address = "47.225.213.178"
+      ip_address = var.ip_address[0]
       comment    = "IP Address 1"
     },
 
     {
-      ip_address = "47.225.214.179"
+      ip_address = var.ip_address[1]
       comment    = "IP Address 2"
     },
   ]
 
   cidr_block_list = [
     {
-      cidr_block = "10.1.0.0/16"
+      cidr_block = var.cidr_block[0]
       comment    = "CIDR Block 1"
     },
     {
-      cidr_block = "12.2.0.0/16"
+      cidr_block = var.cidr_block[1]
       comment    = "CIDR Block 2"
     },
   ]
@@ -31,7 +31,7 @@ locals {
 
 # Project Resource
 resource "mongodbatlas_project" "project" {
-  name   = "TenantUpgradeTest"
+  name   = var.project_name
   org_id = var.atlas_org_id
 }
 
@@ -61,22 +61,22 @@ resource "mongodbatlas_project_ip_access_list" "cidr" {
 
 resource "mongodbatlas_cluster" "cluster" {
   project_id             = mongodbatlas_project.project.id
-  name                   = "MongoDB-Atlas-cluster-tf-test"
-  mongo_db_major_version = var.version
-  cluster_type           = "REPLICASET"
+  name                   = var.cluster_name
+  mongo_db_major_version = var.mongo_version
+  cluster_type           = var.cluster_type
   replication_specs {
-    num_shards = 1
+    num_shards = var.num_shards
     regions_config {
       region_name     = var.region
-      electable_nodes = 3
-      priority        = 7
-      read_only_nodes = 0
+      electable_nodes = var.electable_nodes
+      priority        = var.priority
+      read_only_nodes = var.read_only_nodes
     }
   }
   # Provider Settings "block"
-  auto_scaling_disk_gb_enabled = true
+  auto_scaling_disk_gb_enabled = var.auto_scaling_disk_gb_enabled
   provider_name                = var.provider_name
-  disk_size_gb                 = 10
+  disk_size_gb                 = var.disk_size_gb
   provider_instance_size_name  = var.provider_instance_size_name
 }
 
@@ -88,12 +88,12 @@ resource "mongodbatlas_database_user" "user1" {
   auth_database_name = "admin"
 
   roles {
-    role_name     = "readWrite"
+    role_name     = var.role_name
     database_name = var.database_name[0]
   }
   labels {
     key   = "Name"
-    value = "DB User1"
+    value = var.database_name[0]
   }
 
   scopes {
@@ -105,7 +105,7 @@ resource "mongodbatlas_database_user" "user1" {
 resource "mongodbatlas_privatelink_endpoint" "pe_east" {
   project_id    = mongodbatlas_project.project.id
   provider_name = var.provider_name
-  region        = "us-east-1"
+  region        = var.aws_region
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "pe_east_service" {

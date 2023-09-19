@@ -10,6 +10,61 @@ variable "private_key" {
   description = "Private API key to authenticate to Atlas"
   type        = string
 }
+
+# project
+variable "project_name" {
+  description = "Atlas project name"
+  default     = "TenantUpgradeTest"
+  type        = string
+}
+
+#cluster
+variable "cluster_name" {
+  description = "Atlas cluster name"
+  default     = "cluster"
+  type        = string
+}
+
+variable "cluster_type" {
+  description = "Atlas cluster type"
+  default     = "REPLICASET"
+  type        = string
+}
+
+variable "num_shards" {
+    description = "Atlas cluster number of shards"
+    default     = 1
+    type        = number
+}
+
+variable "priority" {
+    description = "Atlas cluster priority"
+    default     = 7
+    type        = number
+}
+
+variable "read_only_nodes" {
+    description = "Atlas cluster number of read only nodes"
+    default     = 0
+    type        = number
+}
+variable "electable_nodes" {
+    description = "Atlas cluster number of electable nodes"
+    default     = 3
+    type        = number
+}
+
+variable "auto_scaling_disk_gb_enabled" {
+    description = "Atlas cluster auto scaling disk enabled"
+    default     = false
+    type        = bool
+}
+
+variable "disk_size_gb" {
+    description = "Atlas cluster disk size in GB"
+    default     = 10
+    type        = number
+}
 variable "provider_name" {
   description = "Atlas cluster provider name"
   default     = "AWS"
@@ -31,8 +86,13 @@ variable "region" {
     default     = "US_EAST_1"
     type        = string
 }
+variable "aws_region"{
+    description = "AWS region"
+    default     = "us-east-1"
+    type        = string
+}
 
-variable "version" {
+variable "mongo_version" {
   description = "Atlas cluster version"
   default     = "4.4"
   type        = string
@@ -51,4 +111,60 @@ variable "password" {
 variable "database_name" {
   description = "The Database in the cluster"
   type        = list(string)
+}
+
+# database user
+variable "role_name" {
+    description = "Atlas database user role name"
+    default     = "readWrite"
+    type        = string
+}
+
+# IP Access List
+variable "cidr_block" {
+    description = "IP Access List CIDRs"
+    type        = list(string)
+    default     = ["10.1.0.0/16","12.2.0.0/16"]
+}
+
+variable "ip_address" {
+    description = "IP Access List IP Addresses"
+    type        = list(string)
+    default     = ["47.225.213.178","47.225.214.179"]
+}
+# aws
+
+variable "aws_vpc_cidr_block" {
+    description = "AWS VPC CIDR block"
+    default     = "10.0.0.0/16"
+    type        = string
+
+}
+
+variable "aws_route_table_cidr_block" {
+    description = "AWS route table CIDR block"
+    default     = "0.0.0.0/0"
+    type        = string
+}
+
+variable "aws_subnet_cidr_block1" {
+    description = "AWS subnet CIDR block"
+    default     = "10.0.1.0/24"
+    type        = string
+}
+variable "aws_subnet_cidr_block2" {
+  description = "AWS subnet CIDR block"
+  default     = "10.0.2.0/24"
+  type        = string
+}
+
+variable "aws_subnet_availability_zone1" {
+    description = "AWS subnet availability zone"
+    default     = "us-east-1a"
+    type        = string
+}
+variable "aws_subnet_availability_zone2" {
+  description = "AWS subnet availability zone"
+  default     = "us-east-1b"
+  type        = string
 }
