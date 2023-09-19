@@ -9,11 +9,8 @@
 ### Pre-release the provider 
 We pre-release the provider to make for testing purpose. **A Pre-release is not published to the Hashicorp Terraform Registry**.
 
-- Create and push the pre-release tag (`X.Y.Z-pre`) to master
-```bash
-git tag [YOUR_TAG]-pre
-git push origin [YOUR_TAG]-pre
-```
+- Create a pre-release (`vX.Y.Z-pre1`) from [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases). Click in "Generate release notes" to autofill the description.
+
 - You will see the release in the [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) once the [release action](.github/workflows/release.yml) has completed.
 
 ### Generate the CHANGELOG.md 
@@ -22,11 +19,6 @@ We use a tool called [github changelog generator](https://github.com/github-chan
 - Update `since_tag` and `future-release` in [.github_changelog_generator](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/.github_changelog_generator)
 - **There is a bug with `github_changelog_generator` ([#971](https://github.com/github-changelog-generator/github-changelog-generator/issues/971))**: Make sure to update the `future-tag` with the pre-release tag. Once you generate the changelog, update `future-tag` with the final release tag in [.github_changelog_generator](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/.github_changelog_generator). Then, manually update the generated changelog to remove references to the pre-release tag
 - Run the following command: 
-
-    ```bash 
-    github_changelog_generator -u mongodb -p terraform-provider-mongodbatlas -t <GH_TOKEN> --enhancement-label "**Enhancements**" --bugs-label "**Bug Fixes**"  --issues-label "**Closed Issues**" --pr-label "**Internal Improvements**"
-    ```
-    or using docker image
     ```bash 
     docker run -it --rm -v "$(pwd)":/usr/local/src/your-app githubchangeloggenerator/github-changelog-generator -u mongodb -p terraform-provider-mongodbatlas -t <GH_TOKEN> --enhancement-label "**Enhancements**" --bugs-label "**Bug Fixes**"  --issues-label "**Closed Issues**" --pr-label "**Internal Improvements**"
     ```
