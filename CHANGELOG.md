@@ -7,7 +7,7 @@
 **Enhancements**
 
 - Adds support for the `tags` attribute in `cluster`, `advanced\_cluster`, and `serverless\_instance` [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
-- Add database\_user username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Adds database\_user username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
 - Support for new mongodbatlas\_atlas\_user and mongodbatlas\_atlas\_users data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
@@ -66,7 +66,7 @@
 - Migrate Resource: mongodbatlas\_database\_user to Terraform Plugin Framework [\#1388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1388) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Update project documentation to remove api\_keys references [\#1386](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1386) ([maastha](https://github.com/maastha))
 - Migrates `alert\_configuration` resource and removes deprecated fields [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
-- Merge master into CLOUDP-18958 [\#1384](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1384) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Prepares migration to Terraform framework [\#1384](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1384) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Migrates `mongodbatlas\_encryption\_at\_rest` resource to Terraform Plugin Framework [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
 - Adds new framework provider, main and acceptance tests to use mux server with existing sdk v2 provider [\#1366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1366) ([AgustinBettati](https://github.com/AgustinBettati))
 - Migrates `mongodbatlas\_project` resource to Terraform Plugin Framework and remove api\_keys attribute [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
