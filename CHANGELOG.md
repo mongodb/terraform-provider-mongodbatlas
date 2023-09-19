@@ -14,7 +14,7 @@
 
 - Populates `total\_count` in `mongodbatlas\_alert\_configurations` data source  [\#1476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1476) ([lantoli](https://github.com/lantoli))
 - Improves error handling for `cloud\_backup\_schedule` resource. [\#1474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1474) ([marcosuma](https://github.com/marcosuma))
-- Handle incorrect ids when importing alert\_configuration or project\_ip\_access\_list resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
+- Handles incorrect ids when importing `alert\_configuration` or `project\_ip\_access\_list` resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
 - Fix when removing collectionName from user role [\#1471](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1471) ([marcosuma](https://github.com/marcosuma))
 - Changelog Spelling Fixes  [\#1457](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1457) ([Zuhairahmed](https://github.com/Zuhairahmed))
 
