@@ -6,7 +6,7 @@
 
 **Enhancements**
 
-- Support new tags attribute in cluster, advanced\_cluster, and serverless\_instance [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
+- Adds support for the `tags` attribute in `cluster`, `advanced\_cluster`, and `serverless\_instance` [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
 - Add database\_user username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
 - Support for new mongodbatlas\_atlas\_user and mongodbatlas\_atlas\_users data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
 
