@@ -7,7 +7,8 @@
 **Enhancements**
 
 - Support new tags attribute in cluster, advanced\_cluster, and serverless\_instance [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
-- Sdd database\_user username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Add database\_user username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Support for new mongodbatlas\_atlas\_user and mongodbatlas\_atlas\_users data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
 
@@ -16,6 +17,13 @@
 - Handle incorrect ids when importing alert\_configuration or project\_ip\_access\_list resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
 - Fix when removing collectionName from user role [\#1471](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1471) ([marcosuma](https://github.com/marcosuma))
 - Changelog Spelling Fixes  [\#1457](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1457) ([Zuhairahmed](https://github.com/Zuhairahmed))
+
+**Deprecations and Removals**
+
+- Deprecation of labels attributes in cluster and advance_cluster resources.
+- Remove 1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
+- Remove deprecated fields in alert\_configuration resource [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
+- Remove api\_keys attribute from mongodbatlas\_project [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
 
 **Closed Issues**
 
@@ -36,11 +44,9 @@
 - Bump github.com/hashicorp/hcl/v2 from 2.17.0 to 2.18.0 [\#1453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1453) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump actions/checkout from 3 to 4 [\#1452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1452) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Fix docs and example fix for project\_api\_key resource after removing role\_names deprecated field [\#1441](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1441) ([AgustinBettati](https://github.com/AgustinBettati))
-- Support for new mongodbatlas\_atlas\_user and mongodbatlas\_atlas\_users data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
 - Add breaking changes strategy for Terraform [\#1431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1431) ([wtrocki](https://github.com/wtrocki))
 - Extract Configure and Metadata framework functions into single implementation [\#1424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1424) ([AgustinBettati](https://github.com/AgustinBettati))
 - Fix INTMDB-1017 - Updated alert configuration schema with required params [\#1421](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1421) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Remove 1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
 - IP Access List doc updates for Terraform Resources, Data Sources [\#1414](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1414) ([zach-carr](https://github.com/zach-carr))
 - Avoid diff in state after import for undefined optional attribute in alert config notification [\#1412](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1412) ([AgustinBettati](https://github.com/AgustinBettati))
 - Migrate Resource: mongodbatlas\_project\_ip\_access\_list to Terraform Plugin Framework [\#1411](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1411) ([andreaangiolillo](https://github.com/andreaangiolillo))
