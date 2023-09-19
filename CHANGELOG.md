@@ -67,7 +67,7 @@
 - Update project documentation to remove api\_keys references [\#1386](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1386) ([maastha](https://github.com/maastha))
 - Migrates `alert\_configuration` resource and removes deprecated fields [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
 - Merge master into CLOUDP-18958 [\#1384](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1384) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Migrate mongodbatlas\_encryption\_at\_rest to Terraform Plugin Framework [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
+- Migrates `mongodbatlas\_encryption\_at\_rest` resource to Terraform Plugin Framework [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
 - Adds new framework provider, main and acceptance tests to use mux server with existing sdk v2 provider [\#1366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1366) ([AgustinBettati](https://github.com/AgustinBettati))
 - Migrates `mongodbatlas\_project` resource to Terraform Plugin Framework and remove api\_keys attribute [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
 
