@@ -23,8 +23,9 @@ We use a tool called [github changelog generator](https://github.com/github-chan
     docker run -it --rm -v "$(pwd)":/usr/local/src/your-app githubchangeloggenerator/github-changelog-generator -u mongodb -p terraform-provider-mongodbatlas -t <GH_TOKEN> --enhancement-label "**Enhancements**" --bugs-label "**Bug Fixes**"  --issues-label "**Closed Issues**" --pr-label "**Internal Improvements**"
     ```
     To obtain your github personal access token you can use the following guide: [Authorizing a personal access token for use with SAML single sign-on](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on)
--  Make any manual adjustments if needed, and open a PR against the **master** branch
--  Example: [#1308](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1308)
+- Create a JIRA ticket and open a PR against the **master** branch. Make any manual adjustments if needed taking into account date format and format parameter names and resources/data source names if they begin with `mongodbatlas`.
+- Example: [#1478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1478). 
+- If the right most version digit is 0 then create a new doc in /website/docs/guides/X.Y.0-upgrade-guide.html
 
 ### Release the provider
 - Follow the same steps in the pre-release but provide the final release tag (example `v1.9.0`). This will trigger the release action that will release the provider to the GitHub Release page. Harshicorp has a process in place that will retrieve the latest release from the GitHub repository and add the binaries to the Hashicorp Terraform Registry.
