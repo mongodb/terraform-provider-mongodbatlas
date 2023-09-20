@@ -32,6 +32,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "storage_databases.0.collections.0.data_sources.0.database", "sample_airbnb"),
 				),
 			},
 			{
@@ -43,6 +44,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "storage_stores.0.read_preference.0.tag_sets.#"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "storage_stores.0.read_preference.0.tag_sets.0.tags.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_databases.0.collections.0.data_sources.0.database_regex", ".sample_airbnb"),
 				),
 			},
 			{
@@ -514,7 +516,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 			name = "VirtualCollection0"
 			data_sources {
 					collection = "listingsAndReviews"
-					database = "sample_airbnb"
+					database_regex = ".sample_airbnb"
 					store_name =  "ClusterTest"
 			}
 	}
