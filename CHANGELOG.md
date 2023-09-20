@@ -6,7 +6,7 @@
 
 **Enhancements**
 
-- Adds support for the `tags` attribute in `mongodbatlas_cluster`, `mongodbatlas_advanced_cluster`, and `mongodbatlas_serverless_instance`. See [Atlas Resource Tags](https://www.mongodb.com/docs/atlas/tags/) to learn more. [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
+- Support for `tags` attribute in `mongodbatlas_cluster`, `mongodbatlas_advanced_cluster`, and `mongodbatlas_serverless_instance`. See [Atlas Resource Tags](https://www.mongodb.com/docs/atlas/tags/) to learn more. [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
 - Support for new `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users` data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
