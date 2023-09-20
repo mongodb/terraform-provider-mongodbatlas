@@ -136,6 +136,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    }
 }
 
+```
+
 
 ## Argument Reference
 
