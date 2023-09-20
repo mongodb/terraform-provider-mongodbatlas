@@ -661,6 +661,7 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 			Database:            stringPtr(dataSourceFromConfMap["database"].(string)),
 			Collection:          stringPtr(dataSourceFromConfMap["collection"].(string)),
 			CollectionRegex:     stringPtr(dataSourceFromConfMap["collection_regex"].(string)),
+			DatabaseRegex:       stringPtr(dataSourceFromConfMap["database_regex"].(string)),
 			DefaultFormat:       stringPtr(dataSourceFromConfMap["default_format"].(string)),
 			Path:                stringPtr(dataSourceFromConfMap["path"].(string)),
 			ProvenanceFieldName: stringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
