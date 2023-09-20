@@ -1,4 +1,76 @@
 # Changelog
+
+## [v1.12.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.0) (2023-09-20)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.11.1...v1.12.0)
+
+**Enhancements**
+
+- Support for `tags` attribute in `mongodbatlas_cluster`, `mongodbatlas_advanced_cluster`, and `mongodbatlas_serverless_instance`. See [Atlas Resource Tags](https://www.mongodb.com/docs/atlas/tags/) to learn more. [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
+- Support for new `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users` data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
+
+**Bug Fixes**
+
+- Populates `total_count` in `mongodbatlas_alert_configurations` data source  [\#1476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1476) ([lantoli](https://github.com/lantoli))
+- Improves error handling for `cloud_backup_schedule` resource. [\#1474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1474) ([marcosuma](https://github.com/marcosuma))
+- Handles incorrect ids when importing `alert_configuration` or `project_ip_access_list` resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
+- Fix when removing `collectionName` from user role [\#1471](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1471) ([marcosuma](https://github.com/marcosuma))
+- Changelog Spelling Fixes  [\#1457](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1457) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Adds `mongodbatlas_database_user` username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
+
+**Deprecations and Removals**
+
+- Deprecation of `labels` attribute in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources.
+- Remove deprecated fields in `mongodbatlas_alert_configuration` resource [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
+- Removal of `api_keys` attribute from `mongodbatlas_project` [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
+- Removal of attributes in `mongodbatlas_encryption_at_rest` resource: aws_kms, azure_key_vault, google_cloud_kms [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
+- Removal of MongoDB Atlas Terraform Provider v1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
+  - provider: duration_seconds
+  - advanced_cluster resource: bi_connector
+  - cloud_backup_snapshot_restore_job resource: delivery_type
+  - cloud_provider_access_setup resource: aws
+  - cluster resource: bi_connector, provider_backup_enabled, aws_private_link, aws_private_link_srv
+  - database_user resource: provider_backup_enabled
+  - project_api_key resource: role_names
+  - cluster and clusters data sources: bi_connector
+  - project_key and project_keys data sources: role_names
+
+**Closed Issues**
+
+- Alert notification interval\_min not working [\#1464](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1464)
+- Changing DB user role from readwrite@DB.Col1 to readwrite@DB doesn't work [\#1462](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1462)
+- Unable to deploy a DISK\_PARTITION\_UTILIZATION\_DATA AlertConfiguration [\#1410](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1410)
+- Error: The terraform-provider-mongodbatlas\_v1.11.0 plugin crashed [\#1396](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1396)
+- Trigger resource does not force replacement when app id changes [\#1310](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1310)
+
+**Internal Improvements**
+
+- Bump goreleaser/goreleaser-action from 4 to 5 [\#1470](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1470) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/aws/aws-sdk-go from 1.45.4 to 1.45.8 [\#1469](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1469) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Merge feature branch into master [\#1460](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1460) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Bump github.com/aws/aws-sdk-go from 1.45.2 to 1.45.4 [\#1459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1459) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/hashicorp/terraform-plugin-testing from 1.4.0 to 1.5.1 [\#1455](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1455) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/zclconf/go-cty from 1.13.3 to 1.14.0 [\#1454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1454) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/hashicorp/hcl/v2 from 2.17.0 to 2.18.0 [\#1453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1453) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump actions/checkout from 3 to 4 [\#1452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1452) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Fix docs and example fix for project\_api\_key resource after removing role\_names deprecated field [\#1441](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1441) ([AgustinBettati](https://github.com/AgustinBettati))
+- Add breaking changes strategy for Terraform [\#1431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1431) ([wtrocki](https://github.com/wtrocki))
+- Extract Configure and Metadata framework functions into single implementation [\#1424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1424) ([AgustinBettati](https://github.com/AgustinBettati))
+- Fix INTMDB-1017 - Updated alert configuration schema with required params [\#1421](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1421) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- IP Access List doc updates for Terraform Resources, Data Sources [\#1414](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1414) ([zach-carr](https://github.com/zach-carr))
+- Avoid diff in state after import for undefined optional attribute in alert config notification [\#1412](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1412) ([AgustinBettati](https://github.com/AgustinBettati))
+- Migrate Resource: mongodbatlas\_project\_ip\_access\_list to Terraform Plugin Framework [\#1411](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1411) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Remove validation of empty public\_key and private\_key attributes in provider config to avoid breaking change [\#1402](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1402) ([AgustinBettati](https://github.com/AgustinBettati))
+- Migrate DataSource mongodbatlas\_alert\_configuration to Terraform Plugin Framework [\#1397](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1397) ([AgustinBettati](https://github.com/AgustinBettati))
+- Migrate DataSource: mongodbatlas\_project\_ip\_access\_list to Terraform Plugin Framework [\#1395](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1395) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Migrate Resource: mongodbatlas\_database\_user to Terraform Plugin Framework [\#1388](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1388) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Update project documentation to remove api\_keys references [\#1386](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1386) ([maastha](https://github.com/maastha))
+- Migrates `mongodbatlas_alert_configuration` resource and removes deprecated fields [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
+- Prepares migration to Terraform framework [\#1384](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1384) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Migrates `mongodbatlas_encryption_at_rest` resource to Terraform Plugin Framework [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
+- Adds new framework provider, main and acceptance tests to use mux server with existing sdk v2 provider [\#1366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1366) ([AgustinBettati](https://github.com/AgustinBettati))
+- Migrates `mongodbatlas_project` resource to Terraform Plugin Framework and remove api\_keys attribute [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
+
 ## [v1.11.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.11.1) (2023-09-06)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.11.0...v1.11.1)
