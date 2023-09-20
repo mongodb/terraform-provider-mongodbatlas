@@ -6,22 +6,22 @@
 
 **Enhancements**
 
-- Adds support for the `tags` attribute in `cluster`, `advanced\_cluster`, and `serverless\_instance` [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
-- Adds database\_user username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
-- Support for new mongodbatlas\_atlas\_user and mongodbatlas\_atlas\_users data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
+- Adds support for the `tags` attribute in `mongodbatlas_cluster`, `mongodbatlas_advanced_cluster`, and `mongodbatlas_serverless_instance`. See [Atlas Resource Tags](https://www.mongodb.com/docs/atlas/tags/) to learn more. [\#1461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1461) ([AgustinBettati](https://github.com/AgustinBettati))
+- Support for new `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users` data sources [\#1432](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1432) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
 
-- Populates `total\_count` in `mongodbatlas\_alert\_configurations` data source  [\#1476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1476) ([lantoli](https://github.com/lantoli))
-- Improves error handling for `cloud\_backup\_schedule` resource. [\#1474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1474) ([marcosuma](https://github.com/marcosuma))
-- Handles incorrect ids when importing `alert\_configuration` or `project\_ip\_access\_list` resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
+- Populates `total_count` in `mongodbatlas_alert_configurations` data source  [\#1476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1476) ([lantoli](https://github.com/lantoli))
+- Improves error handling for `cloud_backup_schedule` resource. [\#1474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1474) ([marcosuma](https://github.com/marcosuma))
+- Handles incorrect ids when importing `alert_configuration` or `project_ip_access_list` resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
 - Fix when removing collectionName from user role [\#1471](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1471) ([marcosuma](https://github.com/marcosuma))
 - Changelog Spelling Fixes  [\#1457](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1457) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Adds `mongodbatlas_database_user` username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
 
 **Deprecations and Removals**
 
-- Deprecation of labels attributes in cluster and advance_cluster resources.
-- Remove deprecated fields in alert\_configuration resource [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
+- Deprecation of `labels` attribute in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources.
+- Remove deprecated fields in `mongodbatlas_alert_configuration` resource [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
 - Remove api\_keys attribute from mongodbatlas\_project [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
 - Remove attributes in encryption_at_rest resource: aws_kms, azure_key_vault, google_cloud_kms [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
 - Remove 1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
