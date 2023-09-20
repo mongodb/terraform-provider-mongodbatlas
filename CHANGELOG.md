@@ -22,7 +22,7 @@
 
 - Deprecation of `labels` attribute in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources.
 - Remove deprecated fields in `mongodbatlas_alert_configuration` resource [\#1385](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1385) ([AgustinBettati](https://github.com/AgustinBettati))
-- Remove api\_keys attribute from mongodbatlas\_project [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
+- Remove `api_keys` attribute from `mongodbatlas_project` [\#1365](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1365) ([maastha](https://github.com/maastha))
 - Remove attributes in encryption_at_rest resource: aws_kms, azure_key_vault, google_cloud_kms [\#1383](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1383) ([maastha](https://github.com/maastha))
 - Remove 1.12.0 deprecated fields. [\#1418](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1418) ([marcosuma](https://github.com/marcosuma))
   - provider: duration_seconds
