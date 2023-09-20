@@ -32,6 +32,9 @@ const (
 	errorReadEncryptionAtRest    = "error getting Encryption At Rest: %s"
 	errorDeleteEncryptionAtRest  = "error deleting Encryption At Rest: (%s): %s"
 	errorUpdateEncryptionAtRest  = "error updating Encryption At Rest: %s"
+	retryStrategyPendingState    = "PENDING"
+	retryStrategyCompletedState  = "COMPLETED"
+	retryStrategyErrorState      = "ERROR"
 )
 
 var _ resource.ResourceWithConfigure = &EncryptionAtRestRS{}
@@ -227,16 +230,17 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"RETRY"},
-		Target:     []string{"COMPLETED", "ERROR"},
+		Pending:    []string{retryStrategyPendingState},
+		Target:     []string{retryStrategyCompletedState, retryStrategyErrorState},
 		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, conn, encryptionAtRestReq),
 		Timeout:    1 * time.Minute,
 		MinTimeout: 1 * time.Second,
 		Delay:      0,
 	}
 
-	encryptionResp, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	var encryptionResp interface{}
+	var err error
+	if encryptionResp, err = stateConf.WaitForStateContext(ctx); err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorCreateEncryptionAtRest, projectID), err.Error())
 		return
 	}
@@ -262,11 +266,11 @@ func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, 
 				log.Println("retrying ")
 
 				encryptionAtRestReq.GroupID = projectID
-				return encryptionResp, "RETRY", nil
+				return encryptionResp, retryStrategyPendingState, nil
 			}
-			return encryptionResp, "ERROR", err
+			return encryptionResp, retryStrategyErrorState, err
 		}
-		return encryptionResp, "COMPLETED", nil
+		return encryptionResp, retryStrategyCompletedState, nil
 	}
 }
 
