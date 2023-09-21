@@ -1,5 +1,22 @@
 # Changelog
 
+## [v1.12.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.1-pre1) (2023-09-22)
+
+[Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.0...v1.12.1-pre1)
+
+**Bug Fixes**
+
+- Adds missing DatabaseRegex field when creating FederatedDataSource [\#1486](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1486) ([marcosuma](https://github.com/marcosuma))
+
+**Closed Issues**
+
+- `tags` vs. `labels` usage in `mongodbatlas_cluster` resource[\#1370](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1370)
+
+**Internal Improvements**
+
+- Updates 1.12.0 release guide and Changelog [\#1488](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1488) ([maastha](https://github.com/maastha))
+- Adjusts PR template so we ensure removals and deprecations are made in isolated PRs [\#1480](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1480) ([AgustinBettati](https://github.com/AgustinBettati))
+
 ## [v1.12.0](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.0) (2023-09-20)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.11.1...v1.12.0)
