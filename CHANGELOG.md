@@ -11,10 +11,11 @@
 
 **Bug Fixes**
 
+- **Breaking Change**: Fixes an issue where removing `collectionName` from user role doesn't work [\#1471](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1471) ([marcosuma](https://github.com/marcosuma)).
+  - Note: As a result, `mongodbatlas_database_user` no longer requires `roles.collection_name` attribute and doesn't support an empty `collection_name`. You should remove any usage of `roles.collection_name = ""` in configurations for this resource when you upgrade to this version. For more details see:  https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.12.0-upgrade-guide. 
 - Populates `total_count` in `mongodbatlas_alert_configurations` data source  [\#1476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1476) ([lantoli](https://github.com/lantoli))
 - Improves error handling for `cloud_backup_schedule` resource. [\#1474](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1474) ([marcosuma](https://github.com/marcosuma))
 - Handles incorrect ids when importing `alert_configuration` or `project_ip_access_list` resources [\#1472](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1472) ([lantoli](https://github.com/lantoli))
-- Fix when removing `collectionName` from user role [\#1471](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1471) ([marcosuma](https://github.com/marcosuma))
 - Changelog Spelling Fixes  [\#1457](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1457) ([Zuhairahmed](https://github.com/Zuhairahmed))
 - Adds `mongodbatlas_database_user` username parameter OIDC footnote in docs [\#1458](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1458) ([Zuhairahmed](https://github.com/Zuhairahmed))
 
