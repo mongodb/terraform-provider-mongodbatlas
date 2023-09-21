@@ -14,7 +14,7 @@ The Terraform MongoDB Atlas Provider version 1.12.0 has a number of new and exci
 - You can now manage [Atlas Resource Tags](https://www.mongodb.com/docs/atlas/tags/)  in [`mongodbatlas_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster), [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster), and [`mongodbatlas_serverless_instance`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/serverless_instance). 
 - You can now programmatically retrieve Atlas Organizational User details with [`mongodbatlas_atlas_user`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/atlas_user) and [`mongodbatlas_atlas_users`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/atlas_users) data sources 
 
-**Changes:**   
+**Breaking Changes:**   
 - Fix `mongodbatlas_database_user` to not require `roles.collection_name` attribute and not support empty `collection_name`. Users should remove any usage of `roles.collection_name = ""` in configuration for this resource for upgrading to this version.
 
 
