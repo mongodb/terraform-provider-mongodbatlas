@@ -30,7 +30,6 @@ resource "mongodbatlas_event_trigger" "trigger" {
     }
 }
 
-
 resource "aws_iam_role" "sage_maker_execution_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -125,7 +124,6 @@ resource "aws_lambda_function" "lambda_function_to_read_mdb_events" {
   timeout = 300
 }
 
-
 resource "aws_cloudwatch_event_rule" "event_rule_to_match_mdb_events" {
   description = "Event Rule to match MongoDB change events."
   event_bus_name = aws_cloudwatch_event_bus.event_bus_for_capturing_mdb_events.name
@@ -137,7 +135,6 @@ resource "aws_cloudwatch_event_rule" "event_rule_to_match_mdb_events" {
   is_enabled = true
   name = "pull-mdb-events"
 }
-
 
 resource "aws_cloudwatch_event_target" "read_mdb_event_target" {
   event_bus_name = aws_cloudwatch_event_bus.event_bus_for_capturing_mdb_events.name
@@ -268,15 +265,12 @@ resource "aws_cloudwatch_event_target" "write_event_from_lambda_to_target" {
   arn =  aws_lambda_function.lambda_function_to_write_to_mdb.arn
 }
 
-
 resource "aws_lambda_permission" "event_bridge_lambda_permission1" {
   function_name = aws_lambda_function.lambda_function_to_read_mdb_events.arn
   action = "lambda:InvokeFunction"
   principal = "events.amazonaws.com"
   source_arn = aws_cloudwatch_event_rule.event_rule_to_match_mdb_events.arn
 }
-
-
 
 resource "aws_lambda_permission" "event_bridge_lambda_permission2" {
   function_name = aws_lambda_function.lambda_function_to_write_to_mdb.arn
