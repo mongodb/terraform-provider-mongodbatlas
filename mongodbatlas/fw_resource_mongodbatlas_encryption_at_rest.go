@@ -2,11 +2,11 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"reflect"
-	"strings"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -260,8 +260,9 @@ func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, 
 	return func() (interface{}, string, error) {
 		encryptionResp, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
 		if err != nil {
-			if strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") ||
-				strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
+			if errors.Is(err, errors.New("CANNOT_ASSUME_ROLE")) ||
+				errors.Is(err, errors.New("INVALID_AWS_CREDENTIALS")) ||
+				errors.Is(err, errors.New("CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED")) {
 				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
 				log.Println("retrying ")
 
