@@ -130,7 +130,7 @@ variable "cidr_block" {
 variable "ip_address" {
     description = "IP Access List IP Addresses"
     type        = list(string)
-    default     = ["47.225.213.178","47.225.214.179"]
+    default     = ["208.169.90.207","0.0.0.0"]
 }
 # aws
 
