@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 )
 
@@ -32,9 +33,6 @@ const (
 	errorReadEncryptionAtRest    = "error getting Encryption At Rest: %s"
 	errorDeleteEncryptionAtRest  = "error deleting Encryption At Rest: (%s): %s"
 	errorUpdateEncryptionAtRest  = "error updating Encryption At Rest: %s"
-	retryStrategyPendingState    = "PENDING"
-	retryStrategyCompletedState  = "COMPLETED"
-	retryStrategyErrorState      = "ERROR"
 )
 
 var _ resource.ResourceWithConfigure = &EncryptionAtRestRS{}
@@ -230,8 +228,8 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{retryStrategyPendingState},
-		Target:     []string{retryStrategyCompletedState, retryStrategyErrorState},
+		Pending:    []string{retrystrategy.RetryStrategyPendingState},
+		Target:     []string{retrystrategy.RetryStrategyCompletedState, retrystrategy.RetryStrategyErrorState},
 		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, conn, encryptionAtRestReq),
 		Timeout:    1 * time.Minute,
 		MinTimeout: 1 * time.Second,
@@ -267,11 +265,11 @@ func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, 
 				log.Println("retrying ")
 
 				encryptionAtRestReq.GroupID = projectID
-				return encryptionResp, retryStrategyPendingState, nil
+				return encryptionResp, retrystrategy.RetryStrategyPendingState, nil
 			}
-			return encryptionResp, retryStrategyErrorState, err
+			return encryptionResp, retrystrategy.RetryStrategyErrorState, err
 		}
-		return encryptionResp, retryStrategyCompletedState, nil
+		return encryptionResp, retrystrategy.RetryStrategyCompletedState, nil
 	}
 }
 
