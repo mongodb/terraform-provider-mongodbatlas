@@ -44,7 +44,15 @@ jobs:
         with:
           filename: coverage.xml
           format: markdown
+          hide_complexity: true
+          output: both
           badge: true
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
   lint:
     runs-on: ubuntu-latest
     steps:
