@@ -36,8 +36,8 @@ jobs:
         run: make test
       - name: Convert coverage report to Cobertura format
         run: |
-          go get github.com/axw/gocov/gocov
-          go get github.com/AlekSi/gocov-xml
+          go install github.com/axw/gocov/gocov
+          go install github.com/AlekSi/gocov-xml
           gocov convert coverage.out | gocov-xml > coverage.xml
       - name: Code Coverage Summary Report
         uses: irongut/CodeCoverageSummary@v1.3.0
