@@ -34,8 +34,17 @@ jobs:
           go-version-file: 'go.mod'
       - name: Unit Test
         run: make test
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Convert coverage report to Cobertura format
+        run: |
+          go get github.com/axw/gocov/gocov
+          go get github.com/AlekSi/gocov-xml
+          gocov convert coverage.out | gocov-xml > coverage.xml
+      - name: Code Coverage Summary Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          format: markdown
+          badge: true
   lint:
     runs-on: ubuntu-latest
     steps:
