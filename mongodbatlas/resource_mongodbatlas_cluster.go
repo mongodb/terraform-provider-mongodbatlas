@@ -12,13 +12,14 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -885,6 +886,22 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
+	/*
+		Check if advaced configuration option has a changes to update it
+	*/
+	if d.HasChange("advanced_configuration") {
+		ac := d.Get("advanced_configuration")
+		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName+argResp.DefaultReadConcern, err))
+				}
+			}
+		}
+	}
+
 	if isUpgradeRequired(d) {
 		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
 
@@ -919,22 +936,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-		}
-	}
-
-	/*
-		Check if advaced configuration option has a changes to update it
-	*/
-	if d.HasChange("advanced_configuration") {
-		ac := d.Get("advanced_configuration")
-		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
-				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName, err))
-				}
-			}
 		}
 	}
 
@@ -1650,12 +1651,10 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 				"oplog_size_mb": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					Computed: true,
 				},
 				"oplog_min_retention_hours": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					Computed: true,
 				},
 				"sample_size_bi_connector": {
 					Type:     schema.TypeInt,
