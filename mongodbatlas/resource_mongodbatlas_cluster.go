@@ -1656,7 +1656,6 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 				"oplog_min_retention_hours": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					Computed: true,
 				},
 				"sample_size_bi_connector": {
 					Type:     schema.TypeInt,
