@@ -124,21 +124,29 @@ variable "role_name" {
 variable "cidr_block" {
     description = "IP Access List CIDRs"
     type        = list(string)
-    default     = ["10.1.0.0/16","12.2.0.0/16"]
 }
 
 variable "ip_address" {
     description = "IP Access List IP Addresses"
     type        = list(string)
-    default     = ["208.169.90.207","0.0.0.0"]
 }
 # aws
 
 variable "aws_vpc_cidr_block" {
     description = "AWS VPC CIDR block"
-    default     = "10.0.0.0/16"
     type        = string
 
+}
+
+# aws vpc
+variable "aws_vpc_ingress" {
+  description = "AWS VPC ingress CIDR block"
+  type        = string
+}
+
+variable "aws_vpc_egress" {
+  description = "AWS VPC egress CIDR block"
+  type        = string
 }
 
 variable "aws_route_table_cidr_block" {
@@ -167,4 +175,40 @@ variable "aws_subnet_availability_zone2" {
   description = "AWS subnet availability zone"
   default     = "us-east-1b"
   type        = string
+}
+
+variable "aws_sg_ingress_from_port" {
+    description = "AWS security group ingress from port"
+    default     = 27017
+    type        = number
+}
+
+variable "aws_sg_ingress_to_port" {
+    description = "AWS security group ingress to port"
+    default     = 27017
+    type        = number
+}
+
+variable "aws_sg_ingress_protocol" {
+    description = "AWS security group ingress protocol"
+    default     = "tcp"
+    type        = string
+}
+
+variable "aws_sg_egress_from_port" {
+    description = "AWS security group egress from port"
+    default     = 0
+    type        = number
+}
+
+variable "aws_sg_egress_to_port" {
+    description = "AWS security group egress to port"
+    default     = 0
+    type        = number
+}
+
+variable "aws_sg_egress_protocol" {
+    description = "AWS security group egress protocol"
+    default     = "-1"
+    type        = string
 }

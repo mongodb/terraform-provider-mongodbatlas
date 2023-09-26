@@ -41,17 +41,19 @@ resource "aws_security_group" "sg_east" {
   description = "Default security group for all instances in vpc"
   vpc_id      = aws_vpc.vpc_east.id
   ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "tcp"
+    from_port = var.aws_sg_ingress_from_port
+    to_port   = var.aws_sg_ingress_to_port
+    protocol  = var.aws_sg_ingress_protocol
     cidr_blocks = [
-      "0.0.0.0/0",
+      var.aws_vpc_cidr_block,
     ]
   }
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = var.aws_vpc_ingress_from_port
+    to_port     = var.aws_vpc_egress_to_port
+    protocol    = var.aws_sg_egress_protocol
+    cidr_blocks = [
+      var.aws_vpc_cidr_block
+    ]
   }
 }
