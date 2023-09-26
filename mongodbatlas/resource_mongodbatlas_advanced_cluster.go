@@ -719,9 +719,6 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	/*
-		Update advanced configuration options if needed
-	*/
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
 		if aclist, ok := ac.([]interface{}); ok && len(aclist) > 0 {
