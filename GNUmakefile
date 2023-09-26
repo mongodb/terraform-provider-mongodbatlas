@@ -37,7 +37,7 @@ install: fmtcheck
 
 .PHONY: test
 test: fmtcheck
-	go test $(TEST) -timeout=30s -parallel=4
+	go test $(TEST) -timeout=30s -parallel=4 -race -covermode=atomic -coverprofile=coverage.out
 
 .PHONY: testacc
 testacc: fmtcheck
