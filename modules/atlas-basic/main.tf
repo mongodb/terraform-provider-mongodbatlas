@@ -2,30 +2,21 @@ provider "mongodbatlas" {
   public_key  = var.public_key
   private_key = var.private_key
 }
-
 locals {
-
   ip_address_list = [
+    for ip in var.ip_address :
     {
-      ip_address = var.ip_address[0]
-      comment    = "IP Address 1"
-    },
-
-    {
-      ip_address = var.ip_address[1]
-      comment    = "IP Address 2"
-    },
+      ip_address = ip
+      comment    = "IP Address ${ip}"
+    }
   ]
 
   cidr_block_list = [
+    for cidr in var.cidr_block :
     {
-      cidr_block = var.cidr_block[0]
-      comment    = "CIDR Block 1"
-    },
-    {
-      cidr_block = var.cidr_block[1]
-      comment    = "CIDR Block 2"
-    },
+      cidr_block = cidr
+      comment    = "CIDR Block ${cidr}"
+    }
   ]
 }
 
@@ -81,19 +72,21 @@ resource "mongodbatlas_cluster" "cluster" {
 }
 
 # DATABASE USER
-resource "mongodbatlas_database_user" "user1" {
-  username           = var.user[0]
-  password           = var.password[0]
-  project_id         =mongodbatlas_project.project.id
+resource "mongodbatlas_database_user" "user" {
+  count             = length(var.db_users)
+  username          = var.db_users[count.index]
+  password          = var.db_passwords[count.index]
+  project_id        = mongodbatlas_project.project.id
   auth_database_name = "admin"
 
   roles {
     role_name     = var.role_name
-    database_name = var.database_name[0]
+    database_name = var.database_names[count.index]
   }
+
   labels {
     key   = "Name"
-    value = var.database_name[0]
+    value = var.database_names[count.index]
   }
 
   scopes {
@@ -115,10 +108,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "pe_east_service" {
   provider_name       = var.provider_name
 }
 
-
-output "user1" {
-  value = mongodbatlas_database_user.user1.username
-}
 
 output "project_id" {
   value = mongodbatlas_project.project.id

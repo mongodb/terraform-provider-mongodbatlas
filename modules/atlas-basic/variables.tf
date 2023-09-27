@@ -104,11 +104,11 @@ variable "user" {
   type        = list(string)
   default     = ["dbuser1", "dbuser2"]
 }
-variable "password" {
+variable "db_passwords" {
   description = "MongoDB Atlas User Password"
   type        = list(string)
 }
-variable "database_name" {
+variable "database_names" {
   description = "The Database in the cluster"
   type        = list(string)
 }
@@ -134,8 +134,8 @@ variable "ip_address" {
 
 variable "aws_vpc_cidr_block" {
     description = "AWS VPC CIDR block"
+    default = "10.0.0.0/16"
     type        = string
-
 }
 
 # aws vpc
@@ -157,12 +157,10 @@ variable "aws_route_table_cidr_block" {
 
 variable "aws_subnet_cidr_block1" {
     description = "AWS subnet CIDR block"
-    default     = "10.0.1.0/24"
     type        = string
 }
 variable "aws_subnet_cidr_block2" {
   description = "AWS subnet CIDR block"
-  default     = "10.0.2.0/24"
   type        = string
 }
 
@@ -211,4 +209,9 @@ variable "aws_sg_egress_protocol" {
     description = "AWS security group egress protocol"
     default     = "-1"
     type        = string
+}
+
+variable "db_users" {
+    description = "Atlas database users"
+    type        = list(string)
 }

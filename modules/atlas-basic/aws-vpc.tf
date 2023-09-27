@@ -49,8 +49,8 @@ resource "aws_security_group" "sg_east" {
     ]
   }
   egress {
-    from_port   = var.aws_vpc_ingress_from_port
-    to_port     = var.aws_vpc_egress_to_port
+    from_port   = var.aws_sg_egress_from_port
+    to_port     = var.aws_sg_egress_to_port
     protocol    = var.aws_sg_egress_protocol
     cidr_blocks = [
       var.aws_vpc_cidr_block
