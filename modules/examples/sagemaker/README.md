@@ -16,6 +16,6 @@ This Partner Solutions template enables you to begin working with your machine l
 The Partner Solutions template will generate and configure the following resources:
  - a [MongoDB Partner Event Bus](http://mongodb.com/docs/atlas/app-services/triggers/aws-eventbridge/#std-label-aws-eventbridge)
  - a [database trigger](https://www.mongodb.com/docs/atlas/app-services/triggers/database-triggers/) with your Atlas Cluster
- - lambda functions to run the machine learning model and send the classification results to your MongoDB Atlas Cluster. (See [iris_classifier](sagemaker-example/iris_classifier/) for an example of machine learning model to use with this template. See [lambda_functions](sagemaker-example/lambda_functions/) for an example of lambda functions to use to read and write data to your MongoDB Atlas cluster.)
+ - lambda functions to run the machine learning model and send the classification results to your MongoDB Atlas Cluster. (See [iris_classifier](https://github.com/mongodb/mongodbatlas-cloudformation-resources/tree/master/examples/quickstart-mongodb-atlas-analytics-amazon-sagemaker-integration/sagemaker-example/iris_classifier) for an example of machine learning model to use with this template. See [lambda_functions](https://github.com/mongodb/mongodbatlas-cloudformation-resources/tree/master/examples/quickstart-mongodb-atlas-analytics-amazon-sagemaker-integration/sagemaker-example/lambda_functions) for an example of lambda functions to use to read and write data to your MongoDB Atlas cluster.)
 
 
