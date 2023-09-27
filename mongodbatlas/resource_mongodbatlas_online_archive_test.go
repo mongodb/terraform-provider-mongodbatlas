@@ -87,7 +87,6 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
-					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_field.0.field_name", "last_review"),
 				),
 			},
 			{
@@ -97,6 +96,12 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
 					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "schedule.#"),
+				),
+			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
 				),
 			},
 		},
@@ -132,7 +137,6 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "collection_type"),
-					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_field.0.field_name", "last_review"),
 				),
 			},
 			{
