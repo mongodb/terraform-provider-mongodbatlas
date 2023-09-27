@@ -12,14 +12,15 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"golang.org/x/exp/slices"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-	"golang.org/x/exp/slices"
 )
 
 type acCtxKey string
@@ -718,6 +719,19 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
+	if d.HasChange("advanced_configuration") {
+		ac := d.Get("advanced_configuration")
+		if aclist, ok := ac.([]interface{}); ok && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, clusterName, err))
+				}
+			}
+		}
+	}
+
 	// Has changes
 	if !reflect.DeepEqual(cluster, clusterChangeDetect) {
 		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
@@ -741,22 +755,6 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 		})
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterAdvancedUpdate, clusterName, err))
-		}
-	}
-
-	/*
-		Update advanced configuration options if needed
-	*/
-	if d.HasChange("advanced_configuration") {
-		ac := d.Get("advanced_configuration")
-		if aclist, ok := ac.([]interface{}); ok && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
-				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedClusterAdvancedConfUpdate, clusterName, err))
-				}
-			}
 		}
 	}
 
