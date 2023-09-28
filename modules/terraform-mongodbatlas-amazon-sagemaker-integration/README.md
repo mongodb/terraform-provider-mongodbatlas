@@ -9,7 +9,7 @@ This Partner Solutions template enables you to begin working with your machine l
 
 ## MongoDB Atlas terraform Resources used by the templates
 
-- [mongodbatlas_event_trigger](../../../mongodbatlas/data_source_mongodbatlas_event_trigger.go)
+- [mongodbatlas_event_trigger](../../mongodbatlas/data_source_mongodbatlas_event_trigger.go)
 
 
 ## Environment Configured by the Partner Solutions template

@@ -4,7 +4,7 @@
 
 
 module "mongodb-atlas-analytics-amazon-sagemaker-integration" {
-  source = "../../mongodb-atlas-analytics-amazon-sagemaker-integration"
+  source = "../../terraform-mongodbatlas-amazon-sagemaker-integration"
 
   public_key = "<public_key>"
   private_key = "<private_key>"

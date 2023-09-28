@@ -1,5 +1,5 @@
 module "atlas-basic"  {
-  source = "../../atlas-basic"
+  source = "../../terraform-mongodbatlas-basic"
 
   public_key = "<publicKey>"
   private_key = "<privateKey>"
