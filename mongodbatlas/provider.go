@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"log"
@@ -263,8 +262,9 @@ func addBetaFeatures(provider *schema.Provider) {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	assumeRoleValue, ok := d.GetOk("assume_role")
 	awsRoleDefined := ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil
-	if err := setDefaultsAndValidations(d, awsRoleDefined); err != nil {
-		return nil, diag.FromErr(err)
+	diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
+	if diagnostics.HasError() {
+		return nil, diagnostics
 	}
 
 	config := Config{
@@ -285,22 +285,24 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		var err error
 		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
-			return nil, diag.FromErr(err)
+			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
 	}
 
 	client, err := config.NewClient(ctx)
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return nil, append(diagnostics, diag.FromErr(err)...)
 	}
-	return client, nil
+	return client, diagnostics
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) error {
+func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag.Diagnostics {
+	diagnostics := []diag.Diagnostic{}
+
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
-			return err
+			return append(diagnostics, diag.FromErr(err)...)
 		}
 	}
 
@@ -308,70 +310,72 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) erro
 		"MONGODB_ATLAS_BASE_URL",
 		"MCLI_OPS_MANAGER_URL",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
 		"MONGODB_ATLAS_PUBLIC_KEY",
 		"MCLI_PUBLIC_API_KEY",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		return errors.New(MissingAuthAttrError)
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
 		"MONGODB_ATLAS_PRIVATE_KEY",
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		return errors.New(MissingAuthAttrError)
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
 		"MONGODB_REALM_BASE_URL",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "region", []string{
 		"AWS_REGION",
 		"TF_VAR_AWS_REGION",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "sts_endpoint", []string{
 		"STS_ENDPOINT",
 		"TF_VAR_STS_ENDPOINT",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "aws_access_key_id", []string{
 		"AWS_ACCESS_KEY_ID",
 		"TF_VAR_AWS_ACCESS_KEY_ID",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "aws_secret_access_key", []string{
 		"AWS_SECRET_ACCESS_KEY",
 		"TF_VAR_AWS_SECRET_ACCESS_KEY",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
-	err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
+	if err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
 		"AWS_SESSION_TOKEN",
 		"TF_VAR_AWS_SESSION_TOKEN",
-	})
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
 
-	return err
+	return diagnostics
 }
 
 func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []string) error {

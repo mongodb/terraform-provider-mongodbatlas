@@ -297,7 +297,7 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, awsRoleD
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
 		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 		}
 	}
 
@@ -307,7 +307,7 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, awsRoleD
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
 		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 		}
 	}
 
