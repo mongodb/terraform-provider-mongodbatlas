@@ -47,7 +47,6 @@ jobs:
           filename: coverage.xml
           format: markdown
           hide_complexity: true
-          hide_branch_rate: false
           output: both
           badge: true
       - name: Add Coverage PR Comment
