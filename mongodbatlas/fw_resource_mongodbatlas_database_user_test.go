@@ -600,12 +600,9 @@ func testAccCheckMongoDBAtlasDatabaseUserImportStateIDFunc(resourceName string) 
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		projectID, username, authDatabaseName, err := splitDatabaseUserImportID(rs.Primary.ID)
-		if err != nil {
-			return "", fmt.Errorf("error splitting database User info from ID: %s", rs.Primary.ID)
-		}
+		ids := decodeStateID(rs.Primary.ID)
 
-		return fmt.Sprintf("%s-%s-%s", projectID, username, authDatabaseName), nil
+		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
 	}
 }
 

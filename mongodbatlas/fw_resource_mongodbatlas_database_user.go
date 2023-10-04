@@ -3,7 +3,6 @@ package mongodbatlas
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 
@@ -391,9 +390,14 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 		return nil, diagnostic
 	}
 
-	id := fmt.Sprintf("%s-%s-%s", dbUser.GroupID, dbUser.Username, dbUser.DatabaseName)
+	// ID is encoded to preserve format defined in previous versions.
+	encodedID := encodeStateID(map[string]string{
+		"project_id":         dbUser.GroupID,
+		"username":           dbUser.Username,
+		"auth_database_name": dbUser.DatabaseName,
+	})
 	databaseUserModel := &tfDatabaseUserModel{
-		ID:               types.StringValue(id),
+		ID:               types.StringValue(encodedID),
 		ProjectID:        types.StringValue(dbUser.GroupID),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
