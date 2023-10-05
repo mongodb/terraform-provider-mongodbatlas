@@ -1128,8 +1128,8 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 	}
 
 	if d.HasChange("provider_disk_type_name") {
-		_, new := d.GetChange("provider_disk_type_name")
-		diskTypeName := cast.ToString(new)
+		_, newdiskTypeName := d.GetChange("provider_disk_type_name")
+		diskTypeName := cast.ToString(newdiskTypeName)
 		if diskTypeName != "" { // ensure disk type is not included in request if attribute is removed, prevents errors in NVME intances
 			providerSettings.DiskTypeName = diskTypeName
 		}
