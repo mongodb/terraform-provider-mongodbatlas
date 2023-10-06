@@ -201,6 +201,9 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 				"team_name": schema.StringAttribute{
 					Computed: true,
 				},
+				"notifier_id": schema.StringAttribute{
+					Computed: true,
+				},
 				"type_name": schema.StringAttribute{
 					Computed: true,
 				},
@@ -426,6 +429,10 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 
 	if util.IsStringPresent(notification.TeamName) {
 		values["team_name"] = cty.StringVal(*notification.TeamName)
+	}
+
+	if util.IsStringPresent(notification.NotifierId) {
+		values["notifier_id"] = cty.StringVal(*notification.NotifierId)
 	}
 
 	if util.IsStringPresent(notification.TypeName) {
