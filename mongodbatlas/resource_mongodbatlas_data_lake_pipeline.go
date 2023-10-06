@@ -20,6 +20,7 @@ const (
 	errorDataLakePipelineDelete      = "error deleting MongoDB Atlas DataLake Pipeline (%s): %s"
 	errorDataLakePipelineUpdate      = "error updating MongoDB Atlas DataLake Pipeline: %s"
 	errorDataLakePipelineSetting     = "error setting `%s` for MongoDB Atlas DataLake Pipeline (%s): %s"
+	errorDataLakeSetting             = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
 )
 
 func resourceMongoDBAtlasDataLakePipeline() *schema.Resource {
