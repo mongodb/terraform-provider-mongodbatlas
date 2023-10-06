@@ -1,14 +1,12 @@
 package mongodbatlas
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -23,7 +21,6 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasDataLakeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, name),
@@ -36,25 +33,6 @@ func TestAccDataSourceClusterRSDataLakePipeline_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckMongoDBAtlasDataLakeDestroy(s *terraform.State) error {
-	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_data_lake" {
-			continue
-		}
-
-		ids := decodeStateID(rs.Primary.ID)
-		// Try to find the database user
-		_, _, err := conn.DataLakes.Get(context.Background(), ids["project_id"], ids["name"])
-		if err == nil {
-			return fmt.Errorf("datalake (%s) still exists", ids["project_id"])
-		}
-	}
-
-	return nil
 }
 
 func testAccDataSourceMongoDBAtlasDataLakePipelineConfig(projectID, clusterName, pipelineName string) string {
