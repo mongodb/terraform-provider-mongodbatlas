@@ -21,7 +21,7 @@ require (
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
 	github.com/zclconf/go-cty v1.14.0
-	go.mongodb.org/atlas v0.33.0
+	go.mongodb.org/atlas v0.33.1-0.20231004211218-011ec2beab4c
 	go.mongodb.org/atlas-sdk/v20230201006 v20230201006.0.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
