@@ -102,12 +102,11 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 }
 
 func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
-	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	var (
 		alert          = &matlas.AlertConfiguration{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
 		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		serviceKey     = os.Getenv("PAGER_DUTY_SERVICE_KEY")
+		serviceKey     = "dummykey111111111111111111111111"
 	)
 
 	resource.Test(t, resource.TestCase{
