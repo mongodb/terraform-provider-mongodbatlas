@@ -411,7 +411,7 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -436,7 +436,7 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -461,7 +461,7 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -486,7 +486,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
