@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	atlasSDK "go.mongodb.org/atlas-sdk/v20230201006/admin"
+	atlasSDK "go.mongodb.org/atlas-sdk/v20231001001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
