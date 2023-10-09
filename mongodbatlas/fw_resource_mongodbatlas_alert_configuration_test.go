@@ -372,7 +372,8 @@ const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
 func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		serviceKey   = dummy32CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
@@ -383,7 +384,7 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(projectID, serviceKey, true),
+				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(orgID, projectName, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -403,19 +404,20 @@ func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		ddAPIKey     = dummy32CharKey
 		ddRegion     = "US"
 		alert        = &matlas.AlertConfiguration{}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(projectID, ddAPIKey, ddRegion, true),
+				Config: testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(orgID, projectName, ddAPIKey, ddRegion, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -428,18 +430,19 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		serviceKey   = dummy32CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(projectID, serviceKey, true),
+				Config: testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(orgID, projectName, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -452,18 +455,19 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		apiKey       = dummy36CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(projectID, apiKey, true),
+				Config: testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(orgID, projectName, apiKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -476,18 +480,19 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
 		apiKey       = dummy36CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(projectID, apiKey, true),
+				Config: testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(orgID, projectName, apiKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(resourceName, alert),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -775,19 +780,23 @@ func testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, proj
 	`, orgID, projectName, enabled, threshold)
 }
 
-func testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(projectID, dataDogAPIKey, dataDogRegion string, enabled bool) string {
+func testAccMongoDBAtlasAlertConfigurationConfigWithDataDog(orgID, projectName, dataDogAPIKey, dataDogRegion string, enabled bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_third_party_integration" "atlas_datadog" {
-  project_id = "%[1]s"
+  project_id = mongodbatlas_project.test.id
   type = "DATADOG"
-  api_key = "%[3]s"
-  region = "%[4]s"
+  api_key = "%[4]s"
+  region = "%[5]s"
 }
 
 resource "mongodbatlas_alert_configuration" "test" {
-  project_id = "%[1]s"
+  project_id = mongodbatlas_project.test.id
   event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
-  enabled    = %t
+  enabled    = %[3]t
 
   notification {
     type_name     = "GROUP"
@@ -818,57 +827,69 @@ resource "mongodbatlas_alert_configuration" "test" {
     units       = "HOURS"
   }
 }
-	`, projectID, enabled, dataDogAPIKey, dataDogRegion)
+	`, orgID, projectName, enabled, dataDogAPIKey, dataDogRegion)
 }
 
-func testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(projectID, serviceKey string, enabled bool) string {
+func testAccMongoDBAtlasAlertConfigurationPagerDutyConfig(orgID, projectName, serviceKey string, enabled bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_alert_configuration" "test" {
-  project_id = %[1]q
+  project_id = mongodbatlas_project.test.id
   event_type = "NO_PRIMARY"
-  enabled    = "%[3]t"
+  enabled    = "%[4]t"
 
   notification {
     type_name    = "PAGER_DUTY"
-    service_key  = %[2]q
+    service_key  = %[3]q
     delay_min    = 0
   }
 }
-	`, projectID, serviceKey, enabled)
+	`, orgID, projectName, serviceKey, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(projectID, apiKey string, enabled bool) string {
+func testAccMongoDBAtlasAlertConfigurationOpsGenieConfig(orgID, projectName, apiKey string, enabled bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_alert_configuration" "test" {
-  project_id = %[1]q
+  project_id = mongodbatlas_project.test.id
   event_type = "NO_PRIMARY"
-  enabled    = "%[3]t"
+  enabled    = "%[4]t"
 
   notification {
     type_name          = "OPS_GENIE"
-    ops_genie_api_key  = %[2]q
+    ops_genie_api_key  = %[3]q
     ops_genie_region   = "US"
     delay_min          = 0
   }
 }
-	`, projectID, apiKey, enabled)
+	`, orgID, projectName, apiKey, enabled)
 }
 
-func testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(projectID, apiKey string, enabled bool) string {
+func testAccMongoDBAtlasAlertConfigurationVictorOpsConfig(orgID, projectName, apiKey string, enabled bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_alert_configuration" "test" {
-  project_id = %[1]q
+  project_id = mongodbatlas_project.test.id
   event_type = "NO_PRIMARY"
-  enabled    = "%[3]t"
+  enabled    = "%[4]t"
 
   notification {
     type_name              = "VICTOR_OPS"
-    victor_ops_api_key     = %[2]q
+    victor_ops_api_key     = %[3]q
     victor_ops_routing_key = "testing"
     delay_min              = 0
   }
 }
-	`, projectID, apiKey, enabled)
+	`, orgID, projectName, apiKey, enabled)
 }
 
 func testAccMongoDBAtlasAlertConfigurationConfigEmptyMetricThresholdConfig(orgID, projectName string, enabled bool) string {
