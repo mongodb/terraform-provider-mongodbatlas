@@ -1125,7 +1125,14 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		ProviderName:     providerName,
 		RegionName:       region,
 		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
-		DiskTypeName:     cast.ToString(d.Get("provider_disk_type_name")),
+	}
+
+	if d.HasChange("provider_disk_type_name") {
+		_, newdiskTypeName := d.GetChange("provider_disk_type_name")
+		diskTypeName := cast.ToString(newdiskTypeName)
+		if diskTypeName != "" { // ensure disk type is not included in request if attribute is removed, prevents errors in NVME intances
+			providerSettings.DiskTypeName = diskTypeName
+		}
 	}
 
 	if providerName == "TENANT" {
@@ -1144,12 +1151,6 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		}
 
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
-	}
-
-	if d.Get("provider_name") == "AZURE" {
-		if v, ok := d.GetOk("provider_disk_type_name"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
-			providerSettings.DiskTypeName = cast.ToString(v)
-		}
 	}
 
 	return providerSettings, nil
