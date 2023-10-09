@@ -364,12 +364,16 @@ func TestAccConfigRSAlertConfiguration_importConfigNotifications(t *testing.T) {
 	})
 }
 
+// dummy keys used for credential values in third party notifications
+const dummy32CharKey = "11111111111111111111111111111111"
+const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
+
 // used for testing notification that does not define interval_min attribute
 func TestAccConfigRSAlertConfiguration_importPagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		serviceKey   = "dummykey111111111111111111111111"
+		serviceKey   = dummy32CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
@@ -400,7 +404,7 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		ddAPIKey     = "11111111111111111111111111111111"
+		ddAPIKey     = dummy32CharKey
 		ddRegion     = "US"
 		alert        = &matlas.AlertConfiguration{}
 	)
@@ -425,7 +429,7 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		serviceKey   = "dummykey111111111111111111111111"
+		serviceKey   = dummy32CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
@@ -449,7 +453,7 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		apiKey       = "11111111-1111-1111-1111-111111111111"
+		apiKey       = dummy36CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
@@ -473,7 +477,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		apiKey       = "11111111-1111-1111-1111-111111111111"
+		apiKey       = dummy36CharKey
 		alert        = &matlas.AlertConfiguration{}
 	)
 
