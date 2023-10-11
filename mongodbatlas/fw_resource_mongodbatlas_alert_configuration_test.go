@@ -896,12 +896,7 @@ resource "mongodbatlas_project" "test" {
 	name   = %[2]q
 	org_id = %[1]q
 }
-resource "mongodbatlas_project" "test" {
-	name   = %[2]q
-	org_id = %[1]q
-}
 resource "mongodbatlas_alert_configuration" "test" {
-  project_id = mongodbatlas_project.test.id
   project_id = mongodbatlas_project.test.id
   event_type = "NO_PRIMARY"
   enabled    = "true"
