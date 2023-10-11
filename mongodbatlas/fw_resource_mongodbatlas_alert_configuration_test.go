@@ -447,7 +447,7 @@ func TestAccConfigRSAlertConfiguration_DataDog(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -472,7 +472,7 @@ func TestAccConfigRSAlertConfiguration_PagerDuty(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -497,7 +497,7 @@ func TestAccConfigRSAlertConfiguration_OpsGenie(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -522,7 +522,7 @@ func TestAccConfigRSAlertConfiguration_VictorOps(t *testing.T) {
 		alert        = &matlas.AlertConfiguration{}
 	)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
@@ -896,7 +896,12 @@ resource "mongodbatlas_project" "test" {
 	name   = %[2]q
 	org_id = %[1]q
 }
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_alert_configuration" "test" {
+  project_id = mongodbatlas_project.test.id
   project_id = mongodbatlas_project.test.id
   event_type = "NO_PRIMARY"
   enabled    = "true"

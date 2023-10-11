@@ -22,7 +22,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -866,7 +866,7 @@ func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currS
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
 		return []tfMetricThresholdConfigModel{
 			{
-				MetricName: conversion.StringNullIfEmpty(*t.MetricName),
+				MetricName: conversion.StringNullIfEmpty(t.MetricName),
 				Operator:   conversion.StringNullIfEmpty(*t.Operator),
 				Threshold:  types.Float64Value(*t.Threshold),
 				Units:      conversion.StringNullIfEmpty(*t.Units),
@@ -877,7 +877,7 @@ func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currS
 	currState := currStateSlice[0]
 	newState := tfMetricThresholdConfigModel{}
 	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringNullIfEmpty(*t.MetricName)
+		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
 	}
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)

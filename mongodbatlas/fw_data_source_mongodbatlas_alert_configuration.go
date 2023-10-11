@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 )
 
 var _ datasource.DataSource = &AlertConfigurationDS{}
@@ -376,7 +376,7 @@ func convertMetricThresholdToCtyValues(metric admin.ServerlessMetricThreshold) m
 		t = *metric.Threshold
 	}
 	return map[string]cty.Value{
-		"metric_name": ctyStringPtrVal(metric.MetricName),
+		"metric_name": cty.StringVal(metric.MetricName),
 		"operator":    ctyStringPtrVal(metric.Operator),
 		"threshold":   cty.NumberFloatVal(t),
 		"units":       ctyStringPtrVal(metric.Units),

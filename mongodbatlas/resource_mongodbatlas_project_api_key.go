@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -244,7 +244,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 
 	if d.HasChange("description") {
 		newDescription := d.Get("description").(string)
-		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &admin.CreateAtlasProjectApiKey{
+		if _, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, &admin.UpdateAtlasProjectApiKey{
 			Desc: &newDescription,
 		}).Execute(); err != nil {
 			return diag.Errorf("error updating description in api key(%s): %s", apiKeyID, err)
