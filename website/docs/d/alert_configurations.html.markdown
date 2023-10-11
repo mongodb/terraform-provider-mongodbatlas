@@ -116,7 +116,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 
 * `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
 
-* `operator` - Operator to apply when checking the current metric value against the threshold value.
+* `operator` - The operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
     - `LESS_THAN`
@@ -127,7 +127,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 * `mode` - This must be set to AVERAGE. Atlas computes the current metric value as an average.
 
 ### Threshold Config
-* `operator` - Operator to apply when checking the current metric value against the threshold value.
+* `operator` - The operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
     - `LESS_THAN`
@@ -147,7 +147,7 @@ Notifications to send when an alert condition is detected.
 * `email_address` - Email address to which alert notifications are sent. Required for the EMAIL notifications type.
 * `email_enabled` - Flag indicating email notifications should be sent. Atlas returns this value if `type_name` is set  to `ORG`, `GROUP`, or `USER`.
 * `flowdock_api_token` - The Flowdock personal API token. Required for the `FLOWDOCK` notifications type. If the token later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
-* `flow_name` - Flowdock flow name in lower-case letters. Required for the `FLOWDOCK` notifications type
+* `flow_name` - Flowdock flow name in lower-case letters. Required for the `FLOWDOCK` notifications type.
 * `interval_min` - Number of minutes to wait between successive notifications for unacknowledged alerts that are not resolved. The minimum value is 5.
 * `mobile_number` - Mobile number to which alert notifications are sent. Required for the SMS notifications type.
 * `ops_genie_api_key` - Opsgenie API Key. Required for the `OPS_GENIE` notifications type. If the key later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
