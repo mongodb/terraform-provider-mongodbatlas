@@ -102,21 +102,21 @@ func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 }
 
 func TestAccConfigDSAlertConfiguration_withPagerDuty(t *testing.T) {
-	SkipTestExtCred(t) // Will skip because requires external credentials aka api key
 	var (
 		alert          = &matlas.AlertConfiguration{}
 		dataSourceName = "data.mongodbatlas_alert_configuration.test"
-		projectID      = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		serviceKey     = os.Getenv("PAGER_DUTY_SERVICE_KEY")
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName    = acctest.RandomWithPrefix("test-acc")
+		serviceKey     = dummy32CharKey
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheckBasic(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(projectID, serviceKey, true),
+				Config: testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(orgID, projectName, serviceKey, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
@@ -245,16 +245,20 @@ func testAccDSMongoDBAtlasAlertConfigurationWithOutputs(orgID, projectName, outp
 	`, orgID, projectName, outputLabel)
 }
 
-func testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(projectID, serviceKey string, enabled bool) string {
+func testAccDSMongoDBAtlasAlertConfigurationConfigWithPagerDuty(orgID, projectName, serviceKey string, enabled bool) string {
 	return fmt.Sprintf(`
+resource "mongodbatlas_project" "test" {
+	name   = %[2]q
+	org_id = %[1]q
+}
 resource "mongodbatlas_alert_configuration" "test" {
-  project_id = %[1]q
+  project_id = mongodbatlas_project.test.id
   event_type = "NO_PRIMARY"
-  enabled    = "%[3]t"
+  enabled    = "%[4]t"
 
   notification {
     type_name    = "PAGER_DUTY"
-    service_key  = %[2]q
+    service_key  = %[3]q
     delay_min    = 0
   }
 }
@@ -263,5 +267,5 @@ data "mongodbatlas_alert_configuration" "test" {
   project_id             = "${mongodbatlas_alert_configuration.test.project_id}"
   alert_configuration_id = "${mongodbatlas_alert_configuration.test.id}"
 }
-	`, projectID, serviceKey, enabled)
+	`, orgID, projectName, serviceKey, enabled)
 }

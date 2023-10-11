@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -744,9 +745,9 @@ func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, curr
 				Roles:          value.Roles,
 				ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
 				DatadogRegion:  conversion.StringPtrNullIfEmpty(value.DatadogRegion),
-				DelayMin:       types.Int64Value(int64(*value.DelayMin)),
+				DelayMin:       types.Int64PointerValue(util.IntPtrToInt64Ptr(value.DelayMin)),
 				EmailAddress:   conversion.StringPtrNullIfEmpty(value.EmailAddress),
-				IntervalMin:    types.Int64Value(int64(*value.IntervalMin)),
+				IntervalMin:    types.Int64PointerValue(util.IntPtrToInt64Ptr(value.IntervalMin)),
 				MobileNumber:   conversion.StringPtrNullIfEmpty(value.MobileNumber),
 				OpsGenieRegion: conversion.StringPtrNullIfEmpty(value.OpsGenieRegion),
 				TeamID:         conversion.StringPtrNullIfEmpty(value.TeamId),
@@ -804,8 +805,8 @@ func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, curr
 			newState.Username = conversion.StringPtrNullIfEmpty(value.Username)
 		}
 
-		newState.IntervalMin = types.Int64Value(int64(*value.IntervalMin))
-		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
+		newState.IntervalMin = types.Int64PointerValue(util.IntPtrToInt64Ptr(value.IntervalMin))
+		newState.DelayMin = types.Int64PointerValue(util.IntPtrToInt64Ptr(value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
 		newState.SMSEnabled = types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled)
 
