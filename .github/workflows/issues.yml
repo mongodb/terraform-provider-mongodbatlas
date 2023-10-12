@@ -58,4 +58,11 @@
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            Thanks for opening this issue. The ticket [${{ steps.create.outputs.jira-ticket-id }}](https://jira.mongodb.org/browse/${{ steps.create.outputs.jira-ticket-id }}) was created for internal tracking.
+            Thanks for opening this issue! Please make sure to provide the following information to help us reproduce the issue:
+              - Terraform configuration file used to reproduce the issue
+              - Terraform log files from the run where the issue occurred
+              - Terraform Atlas provider version used to reproduce the issue
+              - Terraform version used to reproduce the issue
+              - Confirmation if Terraform OSS, Terraform Cloud, or Terraform Enterprise deployment 
+
+            The ticket [${{ steps.create.outputs.jira-ticket-id }}](https://jira.mongodb.org/browse/${{ steps.create.outputs.jira-ticket-id }}) was created for internal tracking.
