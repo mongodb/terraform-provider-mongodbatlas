@@ -259,9 +259,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		"ASSUME_ROLE_ARN",
 		"TF_VAR_ASSUME_ROLE_ARN",
 	}, "").(string) != "")
-  
-  diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
-  if diagnostics.HasError() {
+
+	diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
+	if diagnostics.HasError() {
 		return nil, diagnostics
 	}
 
