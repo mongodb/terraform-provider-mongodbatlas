@@ -30,6 +30,7 @@ func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
 					testAccCheckMongoDBAtlasAlertConfigurationExists(dataSourceName, alert),
 					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.notifier_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
