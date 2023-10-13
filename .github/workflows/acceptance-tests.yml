@@ -121,7 +121,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
-        run: source ./scripts/scripts/generate-credentials-with-sts-assume-role.sh
+        run: source ./scripts/generate-credentials-with-sts-assume-role.sh
             
   cluster_outage_simulation:
     needs: [ change-detection ]
