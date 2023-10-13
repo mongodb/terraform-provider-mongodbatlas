@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -160,6 +160,7 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	err = populateProjectsDataSourceModel(ctx, conn, connV2, &stateModel, projectsRes)
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &stateModel)...)

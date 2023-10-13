@@ -21,6 +21,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority              = 7
     }
   }
+
+  tags {
+    key   = "environment"
+    value = "dev"
+  }
 }
 
 resource "mongodbatlas_project" "project" {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -661,6 +661,7 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 			Database:            stringPtr(dataSourceFromConfMap["database"].(string)),
 			Collection:          stringPtr(dataSourceFromConfMap["collection"].(string)),
 			CollectionRegex:     stringPtr(dataSourceFromConfMap["collection_regex"].(string)),
+			DatabaseRegex:       stringPtr(dataSourceFromConfMap["database_regex"].(string)),
 			DefaultFormat:       stringPtr(dataSourceFromConfMap["default_format"].(string)),
 			Path:                stringPtr(dataSourceFromConfMap["path"].(string)),
 			ProvenanceFieldName: stringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
@@ -865,24 +866,24 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 		{
 			"mode":                  atlasReadPreference.GetMode(),
 			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
-			"tag_sets":              flattenTagSets(atlasReadPreference.TagSets),
+			"tag_sets":              flattenReadPreferenceTagSets(atlasReadPreference.TagSets),
 		},
 	}
 }
 
-func flattenTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+func flattenReadPreferenceTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
 	tfTagSets := make([]map[string]interface{}, 0)
 
 	for i := range tagSets {
 		tfTagSets = append(tfTagSets, map[string]interface{}{
-			"tags": flattenTags(tagSets[i]),
+			"tags": flattenReadPreferenceTags(tagSets[i]),
 		})
 	}
 
 	return tfTagSets
 }
 
-func flattenTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
+func flattenReadPreferenceTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
 	tfTags := make([]map[string]interface{}, 0)
 
 	for i := range tags {

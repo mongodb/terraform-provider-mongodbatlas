@@ -35,49 +35,52 @@ func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema
 	}
 
 	if err := d.Set("provider_settings_backing_provider_name", serverlessInstance.ProviderSettings.BackingProviderName); err != nil {
-		return diag.Errorf("error setting `provider_settings_backing_provider_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_backing_provider_name", d.Id(), err)
 	}
 
 	if err := d.Set("provider_settings_provider_name", serverlessInstance.ProviderSettings.ProviderName); err != nil {
-		return diag.Errorf("error setting `provider_settings_provider_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_provider_name", d.Id(), err)
 	}
 
 	if err := d.Set("provider_settings_region_name", serverlessInstance.ProviderSettings.RegionName); err != nil {
-		return diag.Errorf("error setting `provider_settings_region_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "provider_settings_region_name", d.Id(), err)
 	}
 
 	if err := d.Set("connection_strings_standard_srv", serverlessInstance.ConnectionStrings.StandardSrv); err != nil {
-		return diag.Errorf("error setting `connection_strings_standard_srv` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
 	}
 
 	if len(serverlessInstance.ConnectionStrings.PrivateEndpoint) > 0 {
 		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(serverlessInstance.ConnectionStrings.PrivateEndpoint)); err != nil {
-			return diag.Errorf("error setting `connection_strings_private_endpoint_srv` for serverless instance (%s): %s", d.Id(), err)
+			return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 		}
 	}
 
 	if err := d.Set("create_date", serverlessInstance.CreateDate); err != nil {
-		return diag.Errorf("error setting `create_date` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "create_date", d.Id(), err)
 	}
 
 	if err := d.Set("mongo_db_version", serverlessInstance.MongoDBVersion); err != nil {
-		return diag.Errorf("error setting `mongo_db_version` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
 	if err := d.Set("links", flattenServerlessInstanceLinks(serverlessInstance.Links)); err != nil {
-		return diag.Errorf("error setting `links` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
 	if err := d.Set("state_name", serverlessInstance.StateName); err != nil {
-		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "state_name", d.Id(), err)
 	}
 
 	if err := d.Set("termination_protection_enabled", serverlessInstance.TerminationProtectionEnabled); err != nil {
-		return diag.Errorf("error setting `termination_protection_enabled` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "termination_protection_enabled", d.Id(), err)
 	}
 
 	if err := d.Set("continuous_backup_enabled", serverlessInstance.ServerlessBackupOptions.ServerlessContinuousBackupEnabled); err != nil {
-		return diag.Errorf("error setting `state_name` for serverless instance (%s): %s", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
+	}
+	if err := d.Set("tags", flattenTags(serverlessInstance.Tags)); err != nil {
+		return diag.Errorf(errorClusterAdvancedSetting, "tags", d.Id(), err)
 	}
 
 	d.SetId(encodeStateID(map[string]string{
@@ -163,5 +166,6 @@ func returnServerlessInstanceDSSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"tags": &dsTagsSchema,
 	}
 }

@@ -2,11 +2,11 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"reflect"
-	"strings"
 	"time"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -20,8 +20,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
 )
 
@@ -225,28 +227,23 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		encryptionAtRestReq.GoogleCloudKms = *newAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
 	}
 
-	var encryptionResp *matlas.EncryptionAtRest
-	var err error
-	for i := 0; i < 5; i++ {
-		encryptionResp, _, err = conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
-		if err != nil {
-			if strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") || strings.Contains(err.Error(), "INVALID_AWS_CREDENTIALS") ||
-				strings.Contains(err.Error(), "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
-				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
-				log.Println("retrying ")
-				time.Sleep(10 * time.Second)
-				encryptionAtRestReq.GroupID = projectID
-				continue
-			}
-		}
-		if err != nil {
-			resp.Diagnostics.AddError(fmt.Sprintf(errorCreateEncryptionAtRest, projectID), err.Error())
-			return
-		}
-		break
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{retrystrategy.RetryStrategyPendingState},
+		Target:     []string{retrystrategy.RetryStrategyCompletedState, retrystrategy.RetryStrategyErrorState},
+		Refresh:    resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, conn, encryptionAtRestReq),
+		Timeout:    1 * time.Minute,
+		MinTimeout: 1 * time.Second,
+		Delay:      0,
 	}
 
-	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp, encryptionAtRestPlan)
+	var encryptionResp interface{}
+	var err error
+	if encryptionResp, err = stateConf.WaitForStateContext(ctx); err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf(errorCreateEncryptionAtRest, projectID), err.Error())
+		return
+	}
+
+	encryptionAtRestPlanNew := newTFEncryptionAtRestRSModel(ctx, projectID, encryptionResp.(*matlas.EncryptionAtRest), encryptionAtRestPlan)
 	resetDefaultsFromConfigOrState(ctx, encryptionAtRestPlan, encryptionAtRestPlanNew, encryptionAtRestConfig)
 
 	// set state to fully populated data
@@ -254,6 +251,25 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+}
+
+func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, conn *matlas.Client, encryptionAtRestReq *matlas.EncryptionAtRest) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		encryptionResp, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
+		if err != nil {
+			if errors.Is(err, errors.New("CANNOT_ASSUME_ROLE")) ||
+				errors.Is(err, errors.New("INVALID_AWS_CREDENTIALS")) ||
+				errors.Is(err, errors.New("CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED")) {
+				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
+				log.Println("retrying ")
+
+				encryptionAtRestReq.GroupID = projectID
+				return encryptionResp, retrystrategy.RetryStrategyPendingState, nil
+			}
+			return encryptionResp, retrystrategy.RetryStrategyErrorState, err
+		}
+		return encryptionResp, retrystrategy.RetryStrategyCompletedState, nil
 	}
 }
 

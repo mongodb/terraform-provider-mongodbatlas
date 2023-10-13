@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"log"
 	"os"
-	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -30,7 +28,6 @@ import (
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 var (
@@ -144,8 +141,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service":                                 dataSourceMongoDBAtlasPrivateEndpointServiceLink(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                      dataSourceMongoDBAtlasPrivateLinkEndpointServerless(),
 		"mongodbatlas_privatelink_endpoints_service_serverless":                     dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless(),
-		"mongodbatlas_privatelink_endpoint_service_adl":                             dataSourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
-		"mongodbatlas_privatelink_endpoints_service_adl":                            dataSourceMongoDBAtlasPrivateLinkEndpointsServiceADL(),
 		"mongodbatlas_cloud_backup_schedule":                                        dataSourceMongoDBAtlasCloudBackupSchedule(),
 		"mongodbatlas_third_party_integrations":                                     dataSourceMongoDBAtlasThirdPartyIntegrations(),
 		"mongodbatlas_third_party_integration":                                      dataSourceMongoDBAtlasThirdPartyIntegration(),
@@ -158,8 +153,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_ldap_verify":                                                  dataSourceMongoDBAtlasLDAPVerify(),
 		"mongodbatlas_search_index":                                                 dataSourceMongoDBAtlasSearchIndex(),
 		"mongodbatlas_search_indexes":                                               dataSourceMongoDBAtlasSearchIndexes(),
-		"mongodbatlas_data_lake":                                                    dataSourceMongoDBAtlasDataLake(),
-		"mongodbatlas_data_lakes":                                                   dataSourceMongoDBAtlasDataLakes(),
 		"mongodbatlas_data_lake_pipeline_run":                                       dataSourceMongoDBAtlasDataLakePipelineRun(),
 		"mongodbatlas_data_lake_pipeline_runs":                                      dataSourceMongoDBAtlasDataLakePipelineRuns(),
 		"mongodbatlas_data_lake_pipeline":                                           dataSourceMongoDBAtlasDataLakePipeline(),
@@ -222,7 +215,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint":                                        resourceMongoDBAtlasPrivateLinkEndpoint(),
 		"mongodbatlas_privatelink_endpoint_serverless":                             resourceMongoDBAtlasPrivateLinkEndpointServerless(),
 		"mongodbatlas_privatelink_endpoint_service":                                resourceMongoDBAtlasPrivateEndpointServiceLink(),
-		"mongodbatlas_privatelink_endpoint_service_adl":                            resourceMongoDBAtlasPrivateLinkEndpointServiceADL(),
 		"mongodbatlas_privatelink_endpoint_service_serverless":                     resourceMongoDBAtlasPrivateLinkEndpointServiceServerless(),
 		"mongodbatlas_third_party_integration":                                     resourceMongoDBAtlasThirdPartyIntegration(),
 		"mongodbatlas_cloud_provider_access":                                       resourceMongoDBAtlasCloudProviderAccess(),
@@ -233,7 +225,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_provider_access_setup":                                 resourceMongoDBAtlasCloudProviderAccessSetup(),
 		"mongodbatlas_cloud_provider_access_authorization":                         resourceMongoDBAtlasCloudProviderAccessAuthorization(),
 		"mongodbatlas_search_index":                                                resourceMongoDBAtlasSearchIndex(),
-		"mongodbatlas_data_lake":                                                   resourceMongoDBAtlasDataLake(),
 		"mongodbatlas_data_lake_pipeline":                                          resourceMongoDBAtlasDataLakePipeline(),
 		"mongodbatlas_event_trigger":                                               resourceMongoDBAtlasEventTriggers(),
 		"mongodbatlas_cloud_backup_schedule":                                       resourceMongoDBAtlasCloudBackupSchedule(),
@@ -264,13 +255,14 @@ func addBetaFeatures(provider *schema.Provider) {
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	assumeRoleValue, ok := d.GetOk("assume_role")
-
 	awsRoleDefined := (ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil) || (MultiEnvDefaultFunc([]string{
 		"ASSUME_ROLE_ARN",
 		"TF_VAR_ASSUME_ROLE_ARN",
 	}, "").(string) != "")
-	if err := setDefaultsAndValidations(d, awsRoleDefined); err != nil {
-		return nil, diag.FromErr(err)
+  
+  diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
+  if diagnostics.HasError() {
+		return nil, diagnostics
 	}
 
 	config := Config{
@@ -291,22 +283,24 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		var err error
 		config, err = configureCredentialsSTS(config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
 		if err != nil {
-			return nil, diag.FromErr(err)
+			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
 	}
 
 	client, err := config.NewClient(ctx)
 	if err != nil {
-		return nil, diag.FromErr(err)
+		return nil, append(diagnostics, diag.FromErr(err)...)
 	}
-	return client, nil
+	return client, diagnostics
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) error {
+func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag.Diagnostics {
+	diagnostics := []diag.Diagnostic{}
+
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
 	if *mongodbgovCloud {
 		if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
-			return err
+			return append(diagnostics, diag.FromErr(err)...)
 		}
 	}
 
@@ -314,75 +308,77 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) erro
 		"MONGODB_ATLAS_BASE_URL",
 		"MCLI_OPS_MANAGER_URL",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
 		"MONGODB_ATLAS_PUBLIC_KEY",
 		"MCLI_PUBLIC_API_KEY",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		return errors.New(MissingAuthAttrError)
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
 		"MONGODB_ATLAS_PRIVATE_KEY",
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		return errors.New(MissingAuthAttrError)
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
 		"MONGODB_REALM_BASE_URL",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "region", []string{
 		"AWS_REGION",
 		"TF_VAR_AWS_REGION",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "sts_endpoint", []string{
 		"STS_ENDPOINT",
 		"TF_VAR_STS_ENDPOINT",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "aws_access_key_id", []string{
 		"AWS_ACCESS_KEY_ID",
 		"TF_VAR_AWS_ACCESS_KEY_ID",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "aws_secret_access_key", []string{
 		"AWS_SECRET_ACCESS_KEY",
 		"TF_VAR_AWS_SECRET_ACCESS_KEY",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
 	if err := setValueFromConfigOrEnv(d, "secret_name", []string{
 		"SECRET_NAME",
 		"TF_VAR_SECRET_NAME",
 	}); err != nil {
-		return err
+		return append(diagnostics, diag.FromErr(err)...)
 	}
 
-	err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
+	if err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
 		"AWS_SESSION_TOKEN",
 		"TF_VAR_AWS_SESSION_TOKEN",
-	})
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
 
 	assumeRoles := d.Get("assume_role").([]interface{})
 	if len(assumeRoles) == 0 {
@@ -392,12 +388,12 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) erro
 		}, "").(string)
 		if roleArn != "" {
 			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
-				return err
+				return append(diagnostics, diag.FromErr(err)...)
 			}
 		}
 	}
 
-	return err
+	return diagnostics
 }
 
 func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []string) error {
@@ -582,62 +578,6 @@ func valRegion(reg interface{}, opt ...string) (string, error) {
 	}
 
 	return strings.ReplaceAll(region, "-", "_"), nil
-}
-
-func flattenLabels(l []matlas.Label) []map[string]interface{} {
-	labels := make([]map[string]interface{}, len(l))
-	for i, v := range l {
-		labels[i] = map[string]interface{}{
-			"key":   v.Key,
-			"value": v.Value,
-		}
-	}
-
-	return labels
-}
-
-func expandLabelSliceFromSetSchema(d *schema.ResourceData) []matlas.Label {
-	list := d.Get("labels").(*schema.Set)
-	res := make([]matlas.Label, list.Len())
-
-	for i, val := range list.List() {
-		v := val.(map[string]interface{})
-		res[i] = matlas.Label{
-			Key:   v["key"].(string),
-			Value: v["value"].(string),
-		}
-	}
-
-	return res
-}
-
-func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
-	for _, v := range list {
-		if reflect.DeepEqual(v, item) || v.Key == item.Key {
-			return true
-		}
-	}
-
-	return false
-}
-
-func removeLabel(list []matlas.Label, item matlas.Label) []matlas.Label {
-	var pos int
-
-	for _, v := range list {
-		if reflect.DeepEqual(v, item) {
-			list = append(list[:pos], list[pos+1:]...)
-
-			if pos > 0 {
-				pos--
-			}
-
-			continue
-		}
-		pos++
-	}
-
-	return list
 }
 
 func expandStringList(list []interface{}) (res []string) {

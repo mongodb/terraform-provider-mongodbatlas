@@ -25,6 +25,8 @@ jobs:
   unit-test:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,6 +36,26 @@ jobs:
           go-version-file: 'go.mod'
       - name: Unit Test
         run: make test
+      - name: Convert coverage report to Cobertura format
+        run: |
+          go install github.com/axw/gocov/gocov@latest
+          go install github.com/AlekSi/gocov-xml@latest
+          gocov convert coverage.out | gocov-xml > coverage.xml
+      - name: Code Coverage Summary Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          format: markdown
+          hide_complexity: true
+          hide_branch_rate: false
+          output: both
+          badge: true
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
   lint:
     runs-on: ubuntu-latest
     steps:

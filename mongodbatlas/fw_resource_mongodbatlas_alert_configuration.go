@@ -19,8 +19,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	conversion "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -101,6 +103,7 @@ type tfNotificationModel struct {
 	OpsGenieAPIKey           types.String `tfsdk:"ops_genie_api_key"`
 	TeamID                   types.String `tfsdk:"team_id"`
 	TeamName                 types.String `tfsdk:"team_name"`
+	NotifierID               types.String `tfsdk:"notifier_id"`
 	TypeName                 types.String `tfsdk:"type_name"`
 	ChannelName              types.String `tfsdk:"channel_name"`
 	VictorOpsAPIKey          types.String `tfsdk:"victor_ops_api_key"`
@@ -320,6 +323,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 								stringplanmodifier.UseStateForUnknown(),
 							},
 						},
+						"notifier_id": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
 						"type_name": schema.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
@@ -534,7 +541,8 @@ func (r *AlertConfigurationRS) ImportState(ctx context.Context, req resource.Imp
 	parts := strings.SplitN(req.ID, "-", 2)
 
 	if len(parts) != 2 {
-		resp.Diagnostics.AddError("import format error: to import a cluster, use the format {project_id}-{id}", "")
+		resp.Diagnostics.AddError("import format error", "to import an alert configuration, use the format {project_id}-{alert_configuration_id}")
+		return
 	}
 
 	projectID := parts[0]
@@ -578,6 +586,7 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]matlas.No
 			ServiceKey:               value.ServiceKey.ValueString(),
 			SMSEnabled:               value.SMSEnabled.ValueBoolPointer(),
 			TeamID:                   value.TeamID.ValueString(),
+			NotifierID:               value.NotifierID.ValueString(),
 			TypeName:                 value.TypeName.ValueString(),
 			Username:                 value.Username.ValueString(),
 			VictorOpsAPIKey:          value.VictorOpsAPIKey.ValueString(),
@@ -668,6 +677,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 				TeamID:         conversion.StringNullIfEmpty(value.TeamID),
 				TypeName:       conversion.StringNullIfEmpty(value.TypeName),
 				Username:       conversion.StringNullIfEmpty(value.Username),
+				NotifierID:     types.StringValue(value.NotifierID),
 				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
 				SMSEnabled:     types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled),
 			}
@@ -720,10 +730,95 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 			newState.Username = conversion.StringNullIfEmpty(value.Username)
 		}
 
+		newState.NotifierID = types.StringValue(value.NotifierID)
 		newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
 		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
 		newState.SMSEnabled = types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled)
+
+		notifications[i] = newState
+	}
+
+	return notifications
+}
+
+func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, currStateNotifications []tfNotificationModel) []tfNotificationModel {
+	notifications := make([]tfNotificationModel, len(n))
+
+	if len(n) != len(currStateNotifications) { // notifications were modified elsewhere from terraform, or import statement is being called
+		for i := range n {
+			value := n[i]
+			notifications[i] = tfNotificationModel{
+				TeamName:       conversion.StringPtrNullIfEmpty(value.TeamName),
+				Roles:          value.Roles,
+				ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
+				DatadogRegion:  conversion.StringPtrNullIfEmpty(value.DatadogRegion),
+				DelayMin:       types.Int64PointerValue(util.IntPtrToInt64Ptr(value.DelayMin)),
+				EmailAddress:   conversion.StringPtrNullIfEmpty(value.EmailAddress),
+				IntervalMin:    types.Int64PointerValue(util.IntPtrToInt64Ptr(value.IntervalMin)),
+				MobileNumber:   conversion.StringPtrNullIfEmpty(value.MobileNumber),
+				OpsGenieRegion: conversion.StringPtrNullIfEmpty(value.OpsGenieRegion),
+				TeamID:         conversion.StringPtrNullIfEmpty(value.TeamId),
+				NotifierID:     types.StringPointerValue(value.NotifierId),
+				TypeName:       conversion.StringPtrNullIfEmpty(value.TypeName),
+				Username:       conversion.StringPtrNullIfEmpty(value.Username),
+				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
+				SMSEnabled:     types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled),
+			}
+		}
+		return notifications
+	}
+
+	for i := range n {
+		value := n[i]
+		currState := currStateNotifications[i]
+		newState := tfNotificationModel{
+			TeamName: conversion.StringPtrNullIfEmpty(value.TeamName),
+			Roles:    value.Roles,
+		}
+
+		// sentive attributes do not use value returned from API
+		newState.APIToken = conversion.StringNullIfEmpty(currState.APIToken.ValueString())
+		newState.DatadogAPIKey = conversion.StringNullIfEmpty(currState.DatadogAPIKey.ValueString())
+		newState.OpsGenieAPIKey = conversion.StringNullIfEmpty(currState.OpsGenieAPIKey.ValueString())
+		newState.ServiceKey = conversion.StringNullIfEmpty(currState.ServiceKey.ValueString())
+		newState.VictorOpsAPIKey = conversion.StringNullIfEmpty(currState.VictorOpsAPIKey.ValueString())
+		newState.VictorOpsRoutingKey = conversion.StringNullIfEmpty(currState.VictorOpsRoutingKey.ValueString())
+		newState.WebhookURL = conversion.StringNullIfEmpty(currState.WebhookURL.ValueString())
+		newState.WebhookSecret = conversion.StringNullIfEmpty(currState.WebhookSecret.ValueString())
+		newState.MicrosoftTeamsWebhookURL = conversion.StringNullIfEmpty(currState.MicrosoftTeamsWebhookURL.ValueString())
+
+		// for optional attributes that are not computed we must check if they were previously defined in state
+		if !currState.ChannelName.IsNull() {
+			newState.ChannelName = conversion.StringPtrNullIfEmpty(value.ChannelName)
+		}
+		if !currState.DatadogRegion.IsNull() {
+			newState.DatadogRegion = conversion.StringPtrNullIfEmpty(value.DatadogRegion)
+		}
+		if !currState.EmailAddress.IsNull() {
+			newState.EmailAddress = conversion.StringPtrNullIfEmpty(value.EmailAddress)
+		}
+		if !currState.MobileNumber.IsNull() {
+			newState.MobileNumber = conversion.StringPtrNullIfEmpty(value.MobileNumber)
+		}
+		if !currState.OpsGenieRegion.IsNull() {
+			newState.OpsGenieRegion = conversion.StringPtrNullIfEmpty(value.OpsGenieRegion)
+		}
+		if !currState.TeamID.IsNull() {
+			newState.TeamID = conversion.StringPtrNullIfEmpty(value.TeamId)
+		}
+		if !currState.TypeName.IsNull() {
+			newState.TypeName = conversion.StringPtrNullIfEmpty(value.TypeName)
+		}
+		if !currState.Username.IsNull() {
+			newState.Username = conversion.StringPtrNullIfEmpty(value.Username)
+		}
+
+		newState.NotifierID = types.StringPointerValue(value.NotifierId)
+		newState.IntervalMin = types.Int64PointerValue(util.IntPtrToInt64Ptr(value.IntervalMin))
+		newState.DelayMin = types.Int64PointerValue(util.IntPtrToInt64Ptr(value.DelayMin))
+		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
+		newState.SMSEnabled = types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled)
 
 		notifications[i] = newState
 	}
@@ -764,6 +859,39 @@ func newTFMetricThresholdConfigModel(matlasMetricThreshold *matlas.MetricThresho
 	return []tfMetricThresholdConfigModel{newState}
 }
 
+func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currStateSlice []tfMetricThresholdConfigModel) []tfMetricThresholdConfigModel {
+	if t == nil {
+		return []tfMetricThresholdConfigModel{}
+	}
+	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
+		return []tfMetricThresholdConfigModel{
+			{
+				MetricName: conversion.StringNullIfEmpty(t.MetricName),
+				Operator:   conversion.StringNullIfEmpty(*t.Operator),
+				Threshold:  types.Float64Value(*t.Threshold),
+				Units:      conversion.StringNullIfEmpty(*t.Units),
+				Mode:       conversion.StringNullIfEmpty(*t.Mode),
+			},
+		}
+	}
+	currState := currStateSlice[0]
+	newState := tfMetricThresholdConfigModel{}
+	if !currState.MetricName.IsNull() {
+		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
+	}
+	if !currState.Operator.IsNull() {
+		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
+	}
+	if !currState.Units.IsNull() {
+		newState.Units = conversion.StringNullIfEmpty(*t.Units)
+	}
+	if !currState.Mode.IsNull() {
+		newState.Mode = conversion.StringNullIfEmpty(*t.Mode)
+	}
+	newState.Threshold = types.Float64Value(*t.Threshold)
+	return []tfMetricThresholdConfigModel{newState}
+}
+
 func newTFThresholdConfigModel(atlasThreshold *matlas.Threshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
 	if atlasThreshold == nil {
 		return []tfThresholdConfigModel{}
@@ -791,6 +919,33 @@ func newTFThresholdConfigModel(atlasThreshold *matlas.Threshold, currStateSlice 
 	return []tfThresholdConfigModel{newState}
 }
 
+func newTFThresholdConfigModelV2(t *admin.GreaterThanRawThreshold, currStateSlice []tfThresholdConfigModel) []tfThresholdConfigModel {
+	if t == nil {
+		return []tfThresholdConfigModel{}
+	}
+
+	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
+		return []tfThresholdConfigModel{
+			{
+				Operator:  conversion.StringNullIfEmpty(*t.Operator),
+				Threshold: types.Float64Value(float64(*t.Threshold)), // int in new SDK but keeping float64 for backward compatibility
+				Units:     conversion.StringNullIfEmpty(*t.Units),
+			},
+		}
+	}
+	currState := currStateSlice[0]
+	newState := tfThresholdConfigModel{}
+	if !currState.Operator.IsNull() {
+		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)
+	}
+	if !currState.Units.IsNull() {
+		newState.Units = conversion.StringNullIfEmpty(*t.Units)
+	}
+	newState.Threshold = types.Float64Value(float64(*t.Threshold))
+
+	return []tfThresholdConfigModel{newState}
+}
+
 func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatcherModel) []tfMatcherModel {
 	matchers := make([]tfMatcherModel, len(matlasSlice))
 	if len(matlasSlice) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
@@ -814,6 +969,41 @@ func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatc
 		}
 		if !currState.Value.IsNull() {
 			newState.Value = conversion.StringNullIfEmpty(value.Value)
+		}
+		matchers[i] = newState
+	}
+	return matchers
+}
+
+func newTFMatcherModelListV2(m []map[string]interface{}, currStateSlice []tfMatcherModel) []tfMatcherModel {
+	matchers := make([]tfMatcherModel, len(m))
+	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
+		for i, matcher := range m {
+			fieldName, _ := matcher["fieldName"].(string)
+			operator, _ := matcher["operator"].(string)
+			value, _ := matcher["value"].(string)
+			matchers[i] = tfMatcherModel{
+				FieldName: conversion.StringNullIfEmpty(fieldName),
+				Operator:  conversion.StringNullIfEmpty(operator),
+				Value:     conversion.StringNullIfEmpty(value),
+			}
+		}
+		return matchers
+	}
+	for i, matcher := range m {
+		currState := currStateSlice[i]
+		newState := tfMatcherModel{}
+		if !currState.FieldName.IsNull() {
+			fieldName, _ := matcher["fieldName"].(string)
+			newState.FieldName = conversion.StringNullIfEmpty(fieldName)
+		}
+		if !currState.Operator.IsNull() {
+			operator, _ := matcher["operator"].(string)
+			newState.Operator = conversion.StringNullIfEmpty(operator)
+		}
+		if !currState.Value.IsNull() {
+			value, _ := matcher["value"].(string)
+			newState.Value = conversion.StringNullIfEmpty(value)
 		}
 		matchers[i] = newState
 	}

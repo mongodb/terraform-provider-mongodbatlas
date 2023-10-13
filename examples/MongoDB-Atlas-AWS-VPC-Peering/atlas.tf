@@ -15,7 +15,7 @@ resource "mongodbatlas_cluster" "cluster-atlas" {
   replication_specs {
     num_shards = 1
     regions_config {
-      region_name     = "US_EAST_1"
+      region_name     = var.atlas_region
       electable_nodes = 3
       priority        = 7
       read_only_nodes = 0
@@ -42,23 +42,11 @@ resource "mongodbatlas_database_user" "db-user" {
   }
   depends_on = [mongodbatlas_project.aws_atlas]
 }
-resource "mongodbatlas_network_container" "atlas_container" {
-  atlas_cidr_block = var.atlas_vpc_cidr
-  project_id       = mongodbatlas_project.aws_atlas.id
-  provider_name    = "AWS"
-  region_name      = var.atlas_region
-}
-
-# tflint-ignore: terraform_unused_declarations
-data "mongodbatlas_network_container" "atlas_container" {
-  container_id = mongodbatlas_network_container.atlas_container.container_id
-  project_id   = mongodbatlas_project.aws_atlas.id
-}
 
 resource "mongodbatlas_network_peering" "aws-atlas" {
   accepter_region_name   = var.aws_region
   project_id             = mongodbatlas_project.aws_atlas.id
-  container_id           = mongodbatlas_network_container.atlas_container.container_id
+  container_id           = mongodbatlas_cluster.cluster-atlas.container_id
   provider_name          = "AWS"
   route_table_cidr_block = aws_vpc.primary.cidr_block
   vpc_id                 = aws_vpc.primary.id

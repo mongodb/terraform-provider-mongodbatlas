@@ -37,7 +37,7 @@ install: fmtcheck
 
 .PHONY: test
 test: fmtcheck
-	go test $(TEST) -timeout=30s -parallel=4
+	go test $(TEST) -timeout=30s -parallel=4 -race -covermode=atomic -coverprofile=coverage.out
 
 .PHONY: testacc
 testacc: fmtcheck
@@ -139,4 +139,4 @@ link-git-hooks: ## Install git hooks
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	go install github.com/icholy/gomajor@v0.9.5
 	## Fetch the latest major version and update imports.
-	gomajor get go.mongodb.org/atlas-sdk/v20230201001@latest
+	gomajor get go.mongodb.org/atlas-sdk/v20231001001@latest

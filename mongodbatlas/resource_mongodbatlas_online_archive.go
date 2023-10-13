@@ -513,7 +513,6 @@ func fromOnlineArchiveToMap(in *matlas.OnlineArchive) map[string]interface{} {
 
 func fromOnlineArchiveToMapInCreate(in *matlas.OnlineArchive) map[string]interface{} {
 	localSchema := fromOnlineArchiveToMap(in)
-	delete(localSchema, "partition_fields")
 	return localSchema
 }
 

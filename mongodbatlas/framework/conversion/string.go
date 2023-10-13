@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 )
 
 func TypesSetToString(ctx context.Context, set types.Set) []string {
@@ -21,8 +22,13 @@ func TypesListToString(ctx context.Context, set types.List) []string {
 // StringNullIfEmpty converts a string value to a Framework String value.
 // An empty string is converted to a null String. Useful for optional attributes.
 func StringNullIfEmpty(v string) types.String {
-	if v == "" {
-		return types.StringNull()
+	return StringPtrNullIfEmpty(&v)
+}
+
+// StringPtrNullIfEmpty is similar to StringNullIfEmpty but can also handle nil string pointers.
+func StringPtrNullIfEmpty(p *string) types.String {
+	if util.IsStringPresent(p) {
+		return types.StringValue(*p)
 	}
-	return types.StringValue(v)
+	return types.StringNull()
 }

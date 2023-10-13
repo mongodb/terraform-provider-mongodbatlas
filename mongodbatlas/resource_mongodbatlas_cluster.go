@@ -12,13 +12,14 @@ import (
 	"strings"
 	"time"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -304,16 +305,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 			"labels": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Set: func(v interface{}) int {
-					var buf bytes.Buffer
-					m := v.(map[string]interface{})
-					buf.WriteString(m["key"].(string))
-					buf.WriteString(m["value"].(string))
-					return HashCodeString(buf.String())
-				},
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Set:        HashFunctionForKeyValuePair,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -329,6 +325,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 					},
 				},
 			},
+			"tags":                   &tagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"termination_protection_enabled": {
 				Type:     schema.TypeBool,
@@ -487,6 +484,11 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
+
+	if _, ok := d.GetOk("tags"); ok {
+		tagsSlice := expandTagSliceFromSetSchema(d)
+		clusterRequest.Tags = &tagsSlice
+	}
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		clusterRequest.DiskSizeGB = pointy.Float64(v.(float64))
@@ -706,6 +708,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "labels", clusterName, err))
 	}
 
+	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "tags", clusterName, err))
+	}
+
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "version_release_system", clusterName, err))
 	}
@@ -862,6 +868,11 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
 	}
 
+	if d.HasChange("tags") {
+		tagsSlice := expandTagSliceFromSetSchema(d)
+		cluster.Tags = &tagsSlice
+	}
+
 	// when Provider instance type changes this argument must be passed explicitly in patch request
 	if d.HasChange("provider_instance_size_name") {
 		if _, ok := d.GetOk("cloud_backup"); ok {
@@ -874,6 +885,22 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	timeout := d.Timeout(schema.TimeoutUpdate)
+
+	/*
+		Check if advaced configuration option has a changes to update it
+	*/
+	if d.HasChange("advanced_configuration") {
+		ac := d.Get("advanced_configuration")
+		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
+				if err != nil {
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName+argResp.DefaultReadConcern, err))
+				}
+			}
+		}
+	}
 
 	if isUpgradeRequired(d) {
 		updatedCluster, _, err := upgradeCluster(ctx, conn, cluster, projectID, clusterName, timeout)
@@ -909,22 +936,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
-		}
-	}
-
-	/*
-		Check if advaced configuration option has a changes to update it
-	*/
-	if d.HasChange("advanced_configuration") {
-		ac := d.Get("advanced_configuration")
-		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
-			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
-				_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
-				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, clusterName, err))
-				}
-			}
 		}
 	}
 
@@ -1114,7 +1125,14 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		ProviderName:     providerName,
 		RegionName:       region,
 		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
-		DiskTypeName:     cast.ToString(d.Get("provider_disk_type_name")),
+	}
+
+	if d.HasChange("provider_disk_type_name") {
+		_, newdiskTypeName := d.GetChange("provider_disk_type_name")
+		diskTypeName := cast.ToString(newdiskTypeName)
+		if diskTypeName != "" { // ensure disk type is not included in request if attribute is removed, prevents errors in NVME intances
+			providerSettings.DiskTypeName = diskTypeName
+		}
 	}
 
 	if providerName == "TENANT" {
@@ -1133,12 +1151,6 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		}
 
 		providerSettings.EncryptEBSVolume = pointy.Bool(true)
-	}
-
-	if d.Get("provider_name") == "AZURE" {
-		if v, ok := d.GetOk("provider_disk_type_name"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
-			providerSettings.DiskTypeName = cast.ToString(v)
-		}
 	}
 
 	return providerSettings, nil
@@ -1645,7 +1657,6 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 				"oplog_min_retention_hours": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					Computed: true,
 				},
 				"sample_size_bi_connector": {
 					Type:     schema.TypeInt,

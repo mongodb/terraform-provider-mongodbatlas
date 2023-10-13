@@ -31,6 +31,7 @@ service-account.json
 log.*
 test.env
 __debug_*
+coverage.out
 
 website/vendor
 

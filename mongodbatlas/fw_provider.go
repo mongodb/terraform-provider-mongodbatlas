@@ -29,6 +29,7 @@ import (
 const (
 	DeprecationMessageParameterToResource = "this parameter is deprecated and will be removed in %s, please transition to %s"
 	DeprecationByDateMessageParameter     = "this parameter is deprecated and will be removed by %s"
+	DeprecationByDateWithReplacement      = "this parameter is deprecated and will be removed by %s, please transition to %s"
 	DeprecationMessage                    = "this resource is deprecated and will be removed in %s, please transition to %s"
 	endPointSTSDefault                    = "https://sts.amazonaws.com"
 	MissingAuthAttrError                  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
@@ -337,7 +338,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
 		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 		}
 	}
 
@@ -347,7 +348,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
 		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
+			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 		}
 	}
 

@@ -287,8 +287,9 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 							Computed: true,
 						},
 						"labels": {
-							Type:     schema.TypeSet,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Computed:   true,
+							Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key": {
@@ -302,6 +303,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 								},
 							},
 						},
+						"tags":                   &dsTagsSchema,
 						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 						"container_id": {
 							Type:     schema.TypeString,
@@ -401,6 +403,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"bi_connector_config":                             flattenBiConnectorConfig(clusters[i].BiConnector),
 			"replication_specs":                               flattenReplicationSpecs(clusters[i].ReplicationSpecs),
 			"labels":                                          flattenLabels(clusters[i].Labels),
+			"tags":                                            flattenTags(clusters[i].Tags),
 			"snapshot_backup_policy":                          snapshotBackupPolicy,
 			"termination_protection_enabled":                  clusters[i].TerminationProtectionEnabled,
 			"version_release_system":                          clusters[i].VersionReleaseSystem,

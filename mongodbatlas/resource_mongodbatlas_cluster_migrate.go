@@ -1,7 +1,6 @@
 package mongodbatlas
 
 import (
-	"bytes"
 	"context"
 	"log"
 
@@ -299,13 +298,7 @@ func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Set: func(v interface{}) int {
-					var buf bytes.Buffer
-					m := v.(map[string]interface{})
-					buf.WriteString(m["key"].(string))
-					buf.WriteString(m["value"].(string))
-					return HashCodeString(buf.String())
-				},
+				Set:      HashFunctionForKeyValuePair,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

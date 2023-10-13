@@ -36,6 +36,9 @@ echo "${projects}" | jq -c '.results[].id' | while read -r id; do
     fi
 
     echo "Deleting projectId ${clean_project_id}"
-    # This command will fail if the project has a cluster inside
-    atlas project delete "${clean_project_id}" --force
+    # This command can fail if project has a cluster, a private endpoint, or general failure. The echo command always succeeds so the subshell will succeed and continue
+    (
+        atlas project delete "${clean_project_id}" --force || \
+        echo "Failed to delete project with ID ${clean_project_id}"
+    )
 done

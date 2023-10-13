@@ -98,6 +98,12 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckNoResourceAttr(onlineArchiveResourceName, "schedule.#"),
 				),
 			},
+			{
+				Config: testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "partition_fields.0.field_name", "last_review"),
+				),
+			},
 		},
 	})
 }
