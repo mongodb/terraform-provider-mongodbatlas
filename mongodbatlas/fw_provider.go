@@ -8,7 +8,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -65,6 +67,20 @@ type tfAssumeRoleModel struct {
 	RoleARN           types.String `tfsdk:"role_arn"`
 	SessionName       types.String `tfsdk:"session_name"`
 	SourceIdentity    types.String `tfsdk:"source_identity"`
+}
+
+func (m *tfAssumeRoleModel) AttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"policy_arns":         types.SetType{ElemType: types.StringType},
+		"transitive_tag_keys": types.SetType{ElemType: types.StringType},
+		"tags":                types.MapType{ElemType: types.StringType},
+		"duration":            types.StringType,
+		"external_id":         types.StringType,
+		"policy":              types.StringType,
+		"role_arn":            types.StringType,
+		"session_name":        types.StringType,
+		"source_identity":     types.StringType,
+	}
 }
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -200,11 +216,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	var assumeRoles []tfAssumeRoleModel
-	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
-	awsRoleDefined := len(assumeRoles) > 0
-
-	data = setDefaultValuesWithValidations(&data, awsRoleDefined, resp)
+	data = setDefaultValuesWithValidations(ctx, &data, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -216,6 +228,9 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		RealmBaseURL: data.RealmBaseURL.ValueString(),
 	}
 
+	var assumeRoles []tfAssumeRoleModel
+	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
+	awsRoleDefined := len(assumeRoles) > 0
 	if awsRoleDefined {
 		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
@@ -279,7 +294,7 @@ func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *As
 
 const MongodbGovCloudURL = "https://cloud.mongodbgov.com"
 
-func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, awsRoleDefined bool, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
+func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
 		data.BaseURL = types.StringValue(MongodbGovCloudURL)
 	}
@@ -288,6 +303,32 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, awsRoleD
 			"MONGODB_ATLAS_BASE_URL",
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string))
+	}
+
+	awsRoleDefined := false
+	if len(data.AssumeRole.Elements()) == 0 {
+		assumeRoleArn := MultiEnvDefaultFunc([]string{
+			"ASSUME_ROLE_ARN",
+			"TF_VAR_ASSUME_ROLE_ARN",
+		}, "").(string)
+		if assumeRoleArn != "" {
+			awsRoleDefined = true
+			assumeRoleModel := []tfAssumeRoleModel{
+				{
+					Tags:              types.MapNull(types.StringType),
+					PolicyARNs:        types.SetNull(types.StringType),
+					TransitiveTagKeys: types.SetNull(types.StringType),
+					RoleARN:           types.StringValue(assumeRoleArn),
+				},
+			}
+			var diags diag.Diagnostics
+			data.AssumeRole, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: (&tfAssumeRoleModel{}).AttrTypes()}, assumeRoleModel)
+			if diags.HasError() {
+				resp.Diagnostics.AddError(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
+			}
+		}
+	} else {
+		awsRoleDefined = true
 	}
 
 	if data.PublicKey.ValueString() == "" {
@@ -351,6 +392,12 @@ func setDefaultValuesWithValidations(data *tfMongodbAtlasProviderModel, awsRoleD
 		}, "").(string))
 	}
 
+	if data.SecretName.ValueString() == "" {
+		data.SecretName = types.StringValue(MultiEnvDefaultFunc([]string{
+			"SECRET_NAME",
+			"TF_VAR_SECRET_NAME",
+		}, "").(string))
+	}
 	return *data
 }
 

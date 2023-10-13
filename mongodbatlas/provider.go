@@ -264,7 +264,11 @@ func addBetaFeatures(provider *schema.Provider) {
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil
+
+	awsRoleDefined := (ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil) || (MultiEnvDefaultFunc([]string{
+		"ASSUME_ROLE_ARN",
+		"TF_VAR_ASSUME_ROLE_ARN",
+	}, "").(string) != "")
 	if err := setDefaultsAndValidations(d, awsRoleDefined); err != nil {
 		return nil, diag.FromErr(err)
 	}
@@ -277,7 +281,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	if awsRoleDefined {
-		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
+		config.AssumeRole = expandAssumeRole(d.Get("assume_role").([]interface{})[0].(map[string]interface{}))
 		secret := d.Get("secret_name").(string)
 		region := d.Get("region").(string)
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -368,10 +372,30 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) erro
 		return err
 	}
 
+	if err := setValueFromConfigOrEnv(d, "secret_name", []string{
+		"SECRET_NAME",
+		"TF_VAR_SECRET_NAME",
+	}); err != nil {
+		return err
+	}
+
 	err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
 		"AWS_SESSION_TOKEN",
 		"TF_VAR_AWS_SESSION_TOKEN",
 	})
+
+	assumeRoles := d.Get("assume_role").([]interface{})
+	if len(assumeRoles) == 0 {
+		roleArn := MultiEnvDefaultFunc([]string{
+			"ASSUME_ROLE_ARN",
+			"TF_VAR_ASSUME_ROLE_ARN",
+		}, "").(string)
+		if roleArn != "" {
+			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
+				return err
+			}
+		}
+	}
 
 	return err
 }
