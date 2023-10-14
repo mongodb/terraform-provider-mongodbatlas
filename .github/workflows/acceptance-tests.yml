@@ -108,10 +108,6 @@ jobs:
 
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
-    # outputs:
-    #   sts_aws_access_key_id: ${{ steps.sts-assume-role-step.outputs.aws_access_key_id }}
-    #   sts_aws_secret_access_key: ${{ steps.sts-assume-role-step.outputs.aws_secret_access_key }}
-    #   sts_aws_session_token: ${{ steps.sts-assume-role-step.outputs.aws_session_token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -471,9 +467,6 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
           SECRET_NAME: ${{ vars.AWS_SECRET_NAME }}
-          # aws-access-key-id: ${{ needs.assume-role.outputs.AWS_ACCESS_KEY_ID }}
-          # aws-secret-access-key: ${{ needs.assume-role.outputs.AWS_SECRET_ACCESS_KEY }}
-          # aws-session-token: ${{ needs.assume-role.outputs.AWS_SESSION_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY}}
           AWS_SESSION_TOKEN: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN}}
