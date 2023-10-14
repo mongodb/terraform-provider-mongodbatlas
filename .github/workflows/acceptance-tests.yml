@@ -113,6 +113,11 @@ jobs:
       sts_aws_secret_access_key: ${{ steps.sts-assume-role-step.outputs.aws_secret_access_key }}
       sts_aws_session_token: ${{ steps.sts-assume-role-step.outputs.aws_session_token }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
       - id: sts-assume-role-step
         name: Generate STS Temporary credential for acceptance testing
         shell: bash
