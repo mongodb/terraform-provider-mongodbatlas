@@ -16,12 +16,14 @@ import (
 
 func TestAccBackupRSOnlineArchive(t *testing.T) {
 	var (
-		cluster                   matlas.Cluster
-		resourceName              = "mongodbatlas_cluster.online_archive_test"
-		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
-		orgID                     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName               = acctest.RandomWithPrefix("test-acc")
-		name                      = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		cluster                      matlas.Cluster
+		resourceName                 = "mongodbatlas_cluster.online_archive_test"
+		onlineArchiveResourceName    = "mongodbatlas_online_archive.users_archive"
+		onlineArchiveDataSourceName  = "data.mongodbatlas_online_archive.read_archive"
+		onlineArchivesDataSourceName = "data.mongodbatlas_online_archives.all"
+		orgID                        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName                  = acctest.RandomWithPrefix("test-acc")
+		name                         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +40,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1),
+				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 7),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -48,10 +50,13 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_expiration_rule.0.expire_after_days", "7"),
+					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_expiration_rule.0.expire_after_days", "7"),
+					resource.TestCheckResourceAttr(onlineArchivesDataSourceName, "results.0.data_expiration_rule.0.expire_after_days", "7"),
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 2),
+				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 2, 8),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -61,6 +66,9 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.end_minute"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_hour"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "schedule.0.start_minute"),
+					resource.TestCheckResourceAttr(onlineArchiveResourceName, "data_expiration_rule.0.expire_after_days", "8"),
+					resource.TestCheckResourceAttr(onlineArchiveDataSourceName, "data_expiration_rule.0.expire_after_days", "8"),
+					resource.TestCheckResourceAttr(onlineArchivesDataSourceName, "results.0.data_expiration_rule.0.expire_after_days", "8"),
 				),
 			},
 			{
@@ -140,7 +148,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1),
+				Config: testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, name, 1, 1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -214,9 +222,9 @@ func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resour
 	}
 }
 
-func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, startHour int) string {
+func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clusterName string, startHour, deleteExpirationDays int) string {
 	return fmt.Sprintf(`
-	%s
+	%[1]s
 	resource "mongodbatlas_online_archive" "users_archive" {
 		project_id = mongodbatlas_cluster.online_archive_test.project_id
 		cluster_name = mongodbatlas_cluster.online_archive_test.name
@@ -231,11 +239,15 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 			expire_after_days = 2
 		}
 
+		data_expiration_rule {
+			expire_after_days = %[3]d
+		}
+
 		schedule {
 			type = "DAILY"
 			end_hour = 1
 			end_minute = 1
-			start_hour = %d
+			start_hour = %[2]d
 			start_minute = 1
 		}
 
@@ -267,7 +279,7 @@ func testAccBackupRSOnlineArchiveConfigWithDailySchedule(orgID, projectName, clu
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour)
+	`, testAccBackupRSOnlineArchiveConfigFirstStep(orgID, projectName, clusterName), startHour, deleteExpirationDays)
 }
 
 func testAccBackupRSOnlineArchiveConfigWithoutSchedule(orgID, projectName, clusterName string) string {

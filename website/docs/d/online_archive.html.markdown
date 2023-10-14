@@ -33,7 +33,12 @@ data "mongodbatlas_online_archive" "test" {
 ## Attributes reference
 * `db_name`          -  Name of the database that contains the collection.
 * `coll_name`        -  Name of the collection.
-* `collection_type`  -  Classification of MongoDB database collection that you want to return, "TIMESERIES" or "STANDARD". Default is "STANDARD". 
+* `collection_type`  -  Classification of MongoDB database collection that you want to return, "TIMESERIES" or "STANDARD". Default is "STANDARD".
+* `criteria` - Criteria to use for archiving data. See [criteria](#criteria).
+* `data_expiration_rule` - Rule for specifying when data should be deleted from the archive. See [data expiration rule](#data-expiration-rule).
+* `schedule` - Regular frequency and duration when archiving process occurs. See [schedule](#schedule).
+* `partition_fields` - Fields to use to partition data. You can specify up to two frequently queried fields to use for partitioning data. Note that queries that don’t contain the specified fields will require a full collection scan of all archived documents, which will take longer and increase your costs. To learn more about how partition improves query performance, see [Data Structure in S3](https://docs.mongodb.com/datalake/admin/optimize-query-performance/#data-structure-in-s3). The value of a partition field can be up to a maximum of 700 characters. Documents with values exceeding 700 characters are not archived. See [partition fields](#partition).
+* `paused` - State of the online archive. This is required for pausing an active or resume a paused online archive. The resume request will fail if the collection has another active online archive.
 * `state`    - Status of the online archive. Valid values are: Pending, Archiving, Idle, Pausing, Paused, Orphaned and Deleted
 
 ### Criteria
@@ -42,6 +47,10 @@ data "mongodbatlas_online_archive" "test" {
 * `date_format`   - Syntax used to write the date after which data moves to the online archive. Date can be expressed as ISO 8601 or Epoch timestamps. The Epoch timestamp can be expressed as nanoseconds, milliseconds, or seconds. Set this parameter when `type` is `DATE`. You must set `type` to `DATE` if `collectionType` is `TIMESERIES`. Valid values:  ISODATE (default), EPOCH_SECONDS, EPOCH_MILLIS, EPOCH_NANOSECONDS.
 * `expire_after_days` - Number of days after the value in the criteria.dateField when MongoDB Cloud archives data in the specified cluster. Set this parameter when `type` is `DATE`.
 * `query` - JSON query to use to select documents for archiving. Atlas uses the specified query with the db.collection.find(query) command. The empty document {} to return all documents is not supported. Set this parameter when `type` is `CUSTOM`.
+
+### Data Expiration Rule
+* `expire_after_days` - Number of days used in the date criteria for nominating documents for deletion. Value must be between 7 and 9215.
+
 
 ### Schedule
 
