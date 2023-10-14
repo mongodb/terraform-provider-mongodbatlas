@@ -19,12 +19,12 @@ echo "$aws_region"
 export AWS_REGION="$aws_region"
 
 # Get the STS credentials
-CREDENTIALS=$(aws sts assume-role --role-arn ${ASSUME_ROLE_ARN} --role-session-name newSession --output text)
+CREDENTIALS=$(aws sts assume-role --role-arn "$ASSUME_ROLE_ARN" --role-session-name newSession --output text --query 'Credentials.[AccessKeyId, SecretAccessKey, SessionToken]')
 
 # Extract the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN from the STS credentials
-AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | awk '{print $1}')
-AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | awk '{print $2}')
-AWS_SESSION_TOKEN=$(echo $CREDENTIALS | awk '{print $3}')
+AWS_ACCESS_KEY_ID=$(echo "$CREDENTIALS" | awk '{print $1}')
+AWS_SECRET_ACCESS_KEY=$(echo "$CREDENTIALS" | awk '{print $2}')
+AWS_SESSION_TOKEN=$(echo "$CREDENTIALS" | awk '{print $3}')
 
 # Export the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN environment variables
 export AWS_ACCESS_KEY_ID
