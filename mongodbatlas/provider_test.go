@@ -160,15 +160,26 @@ func testCheckAwsEnv(tb testing.TB) {
 }
 
 func testCheckSTSAssumeRole(tb testing.TB) {
-	if os.Getenv("AWS_REGION") == "" ||
-		os.Getenv("STS_ENDPOINT") == "" ||
-		os.Getenv("ASSUME_ROLE_ARN") == "" ||
-		os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
-		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
-		os.Getenv("AWS_SESSION_TOKEN") == "" ||
-		os.Getenv("SECRET_NAME") == "" {
-		tb.Fatal(`'AWS_REGION', 'STS_ENDPOINT', 'SECRET_NAME', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN' and 'ASSUME_ROLE_ARN' 
-		must be set for acceptance testing with STS Assume Role.`)
+	if os.Getenv("AWS_REGION") == "" {
+		tb.Fatal(`'AWS_REGION' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("STS_ENDPOINT") == "" {
+		tb.Fatal(`'STS_ENDPOINT' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("ASSUME_ROLE_ARN") == "" {
+		tb.Fatal(`'ASSUME_ROLE_ARN' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
+		tb.Fatal(`'AWS_ACCESS_KEY_ID' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		tb.Fatal(`'AWS_SECRET_ACCESS_KEY' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		tb.Fatal(`'AWS_SESSION_TOKEN' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("SECRET_NAME") == "" {
+		tb.Fatal(`'SECRET_NAME' must be set for acceptance testing with STS Assume Role.`)
 	}
 }
 
