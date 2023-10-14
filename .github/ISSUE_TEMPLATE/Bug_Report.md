@@ -43,7 +43,7 @@ If you are not running the latest version of Terraform and the MongoDB Atlas Pro
 
 ### Terraform Configuration File 
 <!--
-Paste here all the required parts of your Terraform MongoDB Atlas Provider configuration file below here. You can alternatively consider creating a [**GitHub Gist**](https://gist.github.com/) with the information and share it here.
+Paste here all the required parts of your Terraform MongoDB Atlas Provider configuration file below. You can alternatively consider creating a [**GitHub Gist**](https://gist.github.com/) with the information and share it here.
 
 Please be sure to redact any sensitive information; common examples include API Keys, passwords, other secrets, or any items your project/business may consider sensitive such as hostnames or usernames.
 -->
