@@ -24,14 +24,14 @@ response=("$(aws sts assume-role \
     --output text \
     --query 'Credentials.[AccessKeyId, SecretAccessKey, SessionToken]')")
 
-# echo "${response[1]}"
-# echo "${response[2]}"
-# echo "${response[3]}"
+echo "${response[0]}"
+echo "${response[1]}"
+echo "${response[2]}"
 
-export STS_AWS_ACCESS_KEY_ID=${response[1]}
-export STS_AWS_SECRET_ACCESS_KEY=${response[2]}
-export STS_AWS_SESSION_TOKEN=${response[3]}
+export STS_AWS_ACCESS_KEY_ID=${response[0]}
+export STS_AWS_SECRET_ACCESS_KEY=${response[1]}
+export STS_AWS_SESSION_TOKEN=${response[2]}
 
-echo "aws_access_key_id=${response[1]}"; echo "aws_secret_access_key=${response[2]}"; echo "aws_session_token=${response[3]}" >> "$GITHUB_OUTPUT"
+echo "aws_access_key_id=${response[0]}"; echo "aws_secret_access_key=${response[1]}"; echo "aws_session_token=${response[2]}" >> "$GITHUB_OUTPUT"
 # echo "aws_secret_access_key=${response[2]}" >> "$GITHUB_OUTPUT"
 # echo "aws_session_token=${response[3]}" >> "$GITHUB_OUTPUT"
