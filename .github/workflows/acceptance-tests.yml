@@ -108,10 +108,10 @@ jobs:
 
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
-    outputs:
-      sts_aws_access_key_id: ${{ steps.sts-assume-role-step.outputs.aws_access_key_id }}
-      sts_aws_secret_access_key: ${{ steps.sts-assume-role-step.outputs.aws_secret_access_key }}
-      sts_aws_session_token: ${{ steps.sts-assume-role-step.outputs.aws_session_token }}
+    # outputs:
+    #   sts_aws_access_key_id: ${{ steps.sts-assume-role-step.outputs.aws_access_key_id }}
+    #   sts_aws_secret_access_key: ${{ steps.sts-assume-role-step.outputs.aws_secret_access_key }}
+    #   sts_aws_session_token: ${{ steps.sts-assume-role-step.outputs.aws_session_token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,7 +126,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
-        run: ./scripts/generate-credentials-with-sts-assume-role.sh
+        run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
+      - name: Store outputs into variables
+        run: |
+          echo "::set-output name=AWS_ACCESS_KEY_ID::$AWS_ACCESS_KEY_ID"
+          echo "::set-output name=AWS_SECRET_ACCESS_KEY::$AWS_SECRET_ACCESS_KEY"
+          echo "::set-output name=AWS_SESSION_TOKEN::$AWS_SESSION_TOKEN"
             
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -466,9 +471,12 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
           SECRET_NAME: ${{ vars.AWS_SECRET_NAME }}
-          AWS_ACCESS_KEY_ID: ${{needs.fetch-sts-assume-role-creds.outputs.sts_aws_access_key_id}}
-          AWS_SECRET_ACCESS_KEY: ${{needs.fetch-sts-assume-role-creds.outputs.sts_aws_secret_access_key}}
-          AWS_SESSION_TOKEN: ${{needs.fetch-sts-assume-role-creds.outputs.sts_aws_session_token}}
+          # aws-access-key-id: ${{ needs.assume-role.outputs.AWS_ACCESS_KEY_ID }}
+          # aws-secret-access-key: ${{ needs.assume-role.outputs.AWS_SECRET_ACCESS_KEY }}
+          # aws-session-token: ${{ needs.assume-role.outputs.AWS_SESSION_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY}}
+          AWS_SESSION_TOKEN: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN}}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
