@@ -4,6 +4,20 @@
 # and sets them as environment variables so those can be used at a later stage.
 # role-arn = arn:aws:iam::358363220050:role/terraform-provider-mongodbatlas-acceptancetests
 
+# Define a function to convert a string to lowercase
+function to_lowercase() {
+  echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+# Convert the input string to lowercase
+aws_region=$(to_lowercase "$AWS_REGION")
+# Replace all underscores with hyphens
+aws_region=${aws_region//_/-}
+
+# Print the output string
+echo "$aws_region"
+export AWS_REGION="$aws_region"
+
 response=("$(aws sts assume-role \
     --role-session-name "newSession" \
     --role-arn "$ASSUME_ROLE_ARN" \
