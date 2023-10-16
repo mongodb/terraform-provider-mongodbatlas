@@ -109,9 +109,9 @@ jobs:
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
     outputs:
-      AWS_ACCESS_KEY_ID: ${{ steps.store-variables.outputs.aws_access_key_id }}
-      AWS_SECRET_ACCESS_KEY: ${{ steps.store-variables.outputs.aws_secret_access_key }}
-      AWS_SESSION_TOKEN: ${{ steps.store-variables.outputs.aws_session_token }}
+      aws_access_key_id: ${{ steps.store-variables.outputs.aws_access_key_id }}
+      aws_secret_access_key: ${{ steps.store-variables.outputs.aws_secret_access_key }}
+      aws_session_token: ${{ steps.store-variables.outputs.aws_session_token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -131,6 +131,9 @@ jobs:
         id: store-variables
         shell: bash
         run: |
+          echo "$AWS_ACCESS_KEY_ID"
+          echo "$AWS_SECRET_ACCESS_KEY"
+          echo "$AWS_SESSION_TOKEN"
           echo "aws_access_key_id=$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
           echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
           echo "aws_session_token=$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
@@ -469,9 +472,9 @@ jobs:
           go-version-file: 'go.mod'
       - name: Check STS
         env:
-          AWS_ACCESS_KEY_ID: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ needs.fetch-sts-assume-role-creds.outputs.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.fetch-sts-assume-role-creds.outputs.aws_secret_access_key }}
+          AWS_SESSION_TOKEN: ${{ needs.fetch-sts-assume-role-creds.outputs.aws_session_token }}
         run: echo "$AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_SESSION_TOKEN"
       - name: Acceptance Tests
         env:
