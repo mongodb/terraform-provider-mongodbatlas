@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -359,10 +360,12 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	if data.Region.ValueString() == "" {
-		data.Region = types.StringValue(MultiEnvDefaultFunc([]string{
+		// Convert the input string to lowercase and replace all underscores with hyphens.
+		region := strings.ReplaceAll(strings.ToLower(MultiEnvDefaultFunc([]string{
 			"AWS_REGION",
 			"TF_VAR_AWS_REGION",
-		}, "").(string))
+		}, "").(string)), "_", "-")
+		data.Region = types.StringValue(region)
 	}
 
 	if data.StsEndpoint.ValueString() == "" {
