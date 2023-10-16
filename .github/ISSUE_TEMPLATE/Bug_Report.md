@@ -24,7 +24,7 @@ In order to follow the **"one-click reproducible issues" principle**, please fol
   * This means that you should kindly provide us the whole script contatining all the required instructions. This also includes but not limited to:
     * Terraform Atlas provider version used to reproduce the issue
     * Terraform version used to reproduce the issue
-  * Configurations that return errors when executed will be de-prioritised in favour of the ones that succeed.
+  * Configurations that cannot be properly executed will be de-prioritised in favour of the ones that succeed.
 * Share your configuration by **using variables**. Create a `variables.tf` file and share its content.
 * Before opening an issue, you have to try to specifically isolate it to **Terraform MongoDB Atlas** provider by **removing as many dependencies** as possible. If the issue only happens with other dependencies, then:
   * If other terraform providers are required, please make sure you also include those. Same "one-click reproducible issue" principle applies.
