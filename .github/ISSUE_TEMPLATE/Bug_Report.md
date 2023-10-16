@@ -20,7 +20,7 @@ Thank you for opening an issue. **These GitHub issues** are only for community r
 
 In order to follow the **"one-click reproducible issues" principle**, please follow these guidelines:
 
-* We should be able to make no changes to your provided script and **be able to run `terraform plan` and `terraform apply` with no errors**.
+* We should be able to make no changes to your provided script and **be able to run a local execution reproducing the issue**.
   * This means that you should kindly provide us the whole script contatining all the required instructions. This also includes but not limited to:
     * Terraform Atlas provider version used to reproduce the issue
     * Terraform version used to reproduce the issue
