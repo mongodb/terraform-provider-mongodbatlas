@@ -466,6 +466,12 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      - name: Check STS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN }}
+        run: echo "$AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_SESSION_TOKEN"
       - name: Acceptance Tests
         env:
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
