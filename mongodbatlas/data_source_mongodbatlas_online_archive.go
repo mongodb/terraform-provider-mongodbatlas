@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func dataSourceMongoDBAtlasOnlineArchives() *schema.Resource {
@@ -187,39 +186,40 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 }
 
 func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	atlasID := d.Get("archive_id").(string)
+	archiveID := d.Get("archive_id").(string)
 
-	archive, _, err := conn.OnlineArchives.Get(ctx, projectID, clusterName, atlasID)
+	archive, _, err := connV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error()))
+		return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", archiveID, err.Error()))
 	}
 
 	onlineArchiveMap := fromOnlineArchiveToMap(archive)
 
 	for key, val := range onlineArchiveMap {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", atlasID, err.Error()))
+			return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", archiveID, err.Error()))
 		}
 	}
 
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
-		"cluster_name": archive.ClusterName,
-		"archive_id":   archive.ID,
+		"cluster_name": clusterName,
+		"archive_id":   archiveID,
 	}))
 
 	return nil
 }
 
 func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	archives, _, err := conn.OnlineArchives.List(ctx, projectID, clusterName, &matlas.ListOptions{})
+
+	archives, _, err := connV2.OnlineArchiveApi.ListOnlineArchives(ctx, projectID, clusterName).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
@@ -227,8 +227,8 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.Res
 
 	results := make([]map[string]interface{}, 0, len(archives.Results))
 
-	for _, archive := range archives.Results {
-		archiveData := fromOnlineArchiveToMap(archive)
+	for i := range archives.Results {
+		archiveData := fromOnlineArchiveToMap(&archives.Results[i])
 		archiveData["project_id"] = projectID
 		results = append(results, archiveData)
 	}
