@@ -26,11 +26,11 @@ AWS_ACCESS_KEY_ID=$(echo "$CREDENTIALS" | awk '{print $1}')
 AWS_SECRET_ACCESS_KEY=$(echo "$CREDENTIALS" | awk '{print $2}')
 AWS_SESSION_TOKEN=$(echo "$CREDENTIALS" | awk '{print $3}')
 
-echo "aws_access_key_id=${AWS_ACCESS_KEY_ID}" >> "$GITHUB_OUTPUT"
-echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY"  >> "$GITHUB_OUTPUT"
-echo "aws_session_token=$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
-#  >> "$GITHUB_OUTPUT"
-#  >> "$GITHUB_OUTPUT"
+{
+  echo "aws_access_key_id=${AWS_ACCESS_KEY_ID}"
+  echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY"
+  echo "aws_session_token=$AWS_SESSION_TOKEN"
+} >> "$GITHUB_OUTPUT"
 
 # Export the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN environment variables
 # export AWS_ACCESS_KEY_ID
