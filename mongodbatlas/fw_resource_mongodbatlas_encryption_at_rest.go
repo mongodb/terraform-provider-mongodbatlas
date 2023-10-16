@@ -9,8 +9,6 @@ import (
 	"reflect"
 	"time"
 
-	matlas "go.mongodb.org/atlas/mongodbatlas"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -21,10 +19,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	validators "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -431,20 +429,23 @@ func handleGcpKmsConfig(ctx context.Context, earRSCurrent, earRSNew, earRSConfig
 	}
 }
 
-func handleAwsKmsConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
+func handleAwsKmsConfigDefaults(ctx context.Context, currentStateFile, newStateFile, earRSConfig *tfEncryptionAtRestRSModel) {
 	// this is required to avoid unnecessary change detection during plan after migration to Plugin Framework if user didn't set this block
-	if earRSCurrent.AwsKmsConfig == nil {
-		earRSNew.AwsKmsConfig = []tfAwsKmsConfigModel{}
+	if currentStateFile.AwsKmsConfig == nil {
+		newStateFile.AwsKmsConfig = []tfAwsKmsConfigModel{}
 		return
 	}
 
 	// handling sensitive values that are not returned in the API response, so we sync them from the config
 	// that user provided. encryptionAtRestRSConfig is nil during Read(), so we use the current plan
 	if earRSConfig != nil && len(earRSConfig.AwsKmsConfig) > 0 {
-		earRSNew.AwsKmsConfig[0].Region = earRSConfig.AwsKmsConfig[0].Region
+		newStateFile.AwsKmsConfig[0].Region = earRSConfig.AwsKmsConfig[0].Region
 	} else {
-		earRSNew.AwsKmsConfig[0].Region = earRSCurrent.AwsKmsConfig[0].Region
+		newStateFile.AwsKmsConfig[0].Region = currentStateFile.AwsKmsConfig[0].Region
 	}
+
+	// Secret access key is not returned by the API response
+	newStateFile.AwsKmsConfig[0].SecretAccessKey = currentStateFile.AwsKmsConfig[0].SecretAccessKey
 }
 
 func handleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSNew, earRSConfig *tfEncryptionAtRestRSModel) {
