@@ -108,6 +108,10 @@ jobs:
 
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
+    outputs:
+      AWS_ACCESS_KEY_ID: ${{ steps.store-variables.outputs.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ steps.store-variables.outputs.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ steps.store-variables.outputs.AWS_SESSION_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,10 +128,11 @@ jobs:
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
         run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
       - name: Store outputs into variables
+        id: store-variables
         run: |
-          echo "::set-output name=AWS_ACCESS_KEY_ID::$AWS_ACCESS_KEY_ID"
-          echo "::set-output name=AWS_SECRET_ACCESS_KEY::$AWS_SECRET_ACCESS_KEY"
-          echo "::set-output name=AWS_SESSION_TOKEN::$AWS_SESSION_TOKEN"
+          echo "AWS_ACCESS_KEY_ID::$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
+          echo "AWS_SECRET_ACCESS_KEY::$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
+          echo "AWS_SESSION_TOKEN::$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
             
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -467,9 +472,9 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
           SECRET_NAME: ${{ vars.AWS_SECRET_NAME }}
-          AWS_ACCESS_KEY_ID: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY}}
-          AWS_SESSION_TOKEN: ${{needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN}}
+          AWS_ACCESS_KEY_ID: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
