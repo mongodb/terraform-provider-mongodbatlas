@@ -109,9 +109,9 @@ jobs:
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
     outputs:
-      AWS_ACCESS_KEY_ID: ${{ steps.store-variables.outputs.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ steps.store-variables.outputs.AWS_SECRET_ACCESS_KEY }}
-      AWS_SESSION_TOKEN: ${{ steps.store-variables.outputs.AWS_SESSION_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ steps.store-variables.outputs.aws_access_key_id }}
+      AWS_SECRET_ACCESS_KEY: ${{ steps.store-variables.outputs.aws_secret_access_key }}
+      AWS_SESSION_TOKEN: ${{ steps.store-variables.outputs.aws_session_token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -129,10 +129,11 @@ jobs:
         run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
       - name: Store outputs into variables
         id: store-variables
+        shell: bash
         run: |
-          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
-          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
-          echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
+          echo "aws_access_key_id=$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
+          echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
+          echo "aws_session_token=$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
             
   cluster_outage_simulation:
     needs: [ change-detection ]
