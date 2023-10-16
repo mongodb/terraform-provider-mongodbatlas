@@ -109,9 +109,9 @@ jobs:
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
     outputs:
-      aws_access_key_id: ${{ steps.store-variables.outputs.aws_access_key_id }}
-      aws_secret_access_key: ${{ steps.store-variables.outputs.aws_secret_access_key }}
-      aws_session_token: ${{ steps.store-variables.outputs.aws_session_token }}
+      aws_access_key_id: ${{ steps.sts-assume-role-step.outputs.aws_access_key_id }}
+      aws_secret_access_key: ${{ steps.sts-assume-role-step.outputs.aws_secret_access_key }}
+      aws_session_token: ${{ steps.sts-assume-role-step.outputs.aws_session_token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
