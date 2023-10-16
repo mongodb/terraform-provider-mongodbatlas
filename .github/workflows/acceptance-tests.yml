@@ -130,9 +130,9 @@ jobs:
       - name: Store outputs into variables
         id: store-variables
         run: |
-          echo "AWS_ACCESS_KEY_ID::$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
-          echo "AWS_SECRET_ACCESS_KEY::$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
-          echo "AWS_SESSION_TOKEN::$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
+          echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN" >> "$GITHUB_OUTPUT"
             
   cluster_outage_simulation:
     needs: [ change-detection ]
