@@ -118,6 +118,18 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 				},
 			},
 		},
+		"data_expiration_rule": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"expire_after_days": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+				},
+			},
+		},
 		"schedule": {
 			Type:     schema.TypeList,
 			Computed: true,

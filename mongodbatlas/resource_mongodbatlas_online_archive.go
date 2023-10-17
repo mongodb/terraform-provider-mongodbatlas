@@ -98,6 +98,20 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"data_expiration_rule": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"expire_after_days": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+				},
+			},
+		},
 		"schedule": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -352,6 +366,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 	}
 
 	requestInput.Criteria = mapCriteria(d)
+	requestInput.DataExpirationRule = mapDataExpirationRule(d)
 	requestInput.Schedule = mapSchedule(d)
 
 	if partitions, ok := d.GetOk("partition_fields"); ok {
@@ -391,31 +406,42 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	// if the criteria or the paused is enable then perform an update
-	paused := d.HasChange("paused")
-	criteria := d.HasChange("criteria")
-	schedule := d.HasChange("schedule")
+	// if the criteria or the pausedHasChange is enable then perform an update
+	pausedHasChange := d.HasChange("paused")
+	criteriaHasChange := d.HasChange("criteria")
+	dataExpirationRuleHasChange := d.HasChange("data_expiration_rule")
+	scheduleHasChange := d.HasChange("schedule")
 
 	collectionTypeHasChange := d.HasChange("collection_type")
 
 	// nothing to do, let's go
-	if !paused && !criteria && !collectionTypeHasChange && !schedule {
+	if !pausedHasChange && !criteriaHasChange && !collectionTypeHasChange && !scheduleHasChange && !dataExpirationRuleHasChange {
 		return nil
 	}
 
 	request := admin.BackupOnlineArchive{}
 
 	// reading current value
-	if paused {
+	if pausedHasChange {
 		request.Paused = pointy.Bool(d.Get("paused").(bool))
 	}
 
-	if criteria {
+	if criteriaHasChange {
 		newCriteria := mapCriteria(d)
 		request.Criteria = &newCriteria
 	}
 
-	if schedule {
+	if dataExpirationRuleHasChange {
+		newExpirationRule := mapDataExpirationRule(d)
+		if newExpirationRule == nil {
+			// expiration rule has been removed from tf config, empty dataExpirationRule object needs to be sent in patch request
+			request.DataExpirationRule = &admin.DataExpirationRule{}
+		} else {
+			request.DataExpirationRule = newExpirationRule
+		}
+	}
+
+	if scheduleHasChange {
 		request.Schedule = mapSchedule(d)
 	}
 
@@ -491,6 +517,14 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{
 		schemaVals["schedule"] = []interface{}{schedule}
 	}
 
+	var dataExpirationRule map[string]interface{}
+	if in.DataExpirationRule != nil && in.DataExpirationRule.ExpireAfterDays != nil {
+		dataExpirationRule = map[string]interface{}{
+			"expire_after_days": in.DataExpirationRule.ExpireAfterDays,
+		}
+		schemaVals["data_expiration_rule"] = []interface{}{dataExpirationRule}
+	}
+
 	// partitions fields
 	if len(in.PartitionFields) == 0 {
 		return schemaVals
@@ -509,6 +543,18 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{
 	schemaVals["partition_fields"] = partitionFieldsMap
 
 	return schemaVals
+}
+
+func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
+	if dataExpireRules, ok := d.GetOk("data_expiration_rule"); ok && len(dataExpireRules.([]interface{})) > 0 {
+		dataExpireRule := dataExpireRules.([]interface{})[0].(map[string]interface{})
+		result := admin.DataExpirationRule{}
+		if expireAfterDays, ok := dataExpireRule["expire_after_days"]; ok {
+			result.ExpireAfterDays = pointy.Int(expireAfterDays.(int))
+		}
+		return &result
+	}
+	return nil
 }
 
 func mapCriteria(d *schema.ResourceData) admin.Criteria {
