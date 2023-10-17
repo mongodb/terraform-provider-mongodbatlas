@@ -17,6 +17,10 @@
 - Removes delete partition\_fields statements. [\#1499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1499) ([marcosuma](https://github.com/marcosuma))
 - Changes validation of empty provider credentials from Error to Warning [\#1501](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1501) ([AgustinBettati](https://github.com/AgustinBettati))
 - Use container\_id from created cluster in example [\#1475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1475) ([mckornfield](https://github.com/mckornfield))
+- Adjusts time for stale github issues to close after 1 week of inactivity [\#1512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1512) ([AgustinBettati](https://github.com/AgustinBettati))
+- Updates 1.10.0-upgrade-guide.html.markdown [\#1511](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1511) ([Zuhairahmed](https://github.com/Zuhairahmed))
+- Updates template issue with clearer guidelines. [\#1510](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1510) ([marcosuma](https://github.com/marcosuma))
+- Avoid including provider\_disk\_type\_name property in cluster update request if attribute was removed [\#1508](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1508) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Deprecations and Removals**
 
@@ -46,10 +50,6 @@
 - Migrates online archive resource and data sources to new SDK [\#1523](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1523) ([AgustinBettati](https://github.com/AgustinBettati))
 - Fixes cleanup-test-env script continues if delete of one project fails [\#1516](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1516) ([AgustinBettati](https://github.com/AgustinBettati))
 - Updates atlas-sdk to v20231001001 [\#1515](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1515) ([AgustinBettati](https://github.com/AgustinBettati))
-- Adjusts time for stale github issues to close after 1 week of inactivity [\#1512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1512) ([AgustinBettati](https://github.com/AgustinBettati))
-- Updates 1.10.0-upgrade-guide.html.markdown [\#1511](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1511) ([Zuhairahmed](https://github.com/Zuhairahmed))
-- Updates template issue with clearer guidelines. [\#1510](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1510) ([marcosuma](https://github.com/marcosuma))
-- Avoid including provider\_disk\_type\_name property in cluster update request if attribute was removed [\#1508](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1508) ([AgustinBettati](https://github.com/AgustinBettati))
 - Module naming convention [\#1500](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1500) ([govardhanpagidi](https://github.com/govardhanpagidi))
 - Updates cluster update handler to update advanced\_configuration first and make oplog\_min\_retention\_hours non-computed [\#1497](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1497) ([maastha](https://github.com/maastha))
 - Adds coverage report to PRs [\#1496](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1496) ([andreaangiolillo](https://github.com/andreaangiolillo))
