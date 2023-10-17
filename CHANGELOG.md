@@ -19,6 +19,7 @@
 - Use container\_id from created cluster in example [\#1475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1475) ([mckornfield](https://github.com/mckornfield))
 
 **Deprecations and Removals**
+
 - Removes the data source mongodbatlas_privatelink_endpoint_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
 - Removes the data source mongodbatlas_privatelink_endpoints_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
 - Removes mongodbatlas_privatelink_endpoint_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
