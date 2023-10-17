@@ -315,16 +315,15 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 		}, "").(string)
 		if assumeRoleArn != "" {
 			awsRoleDefined = true
-			assumeRoleModel := []tfAssumeRoleModel{
+			var diags diag.Diagnostics
+			data.AssumeRole, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: (&tfAssumeRoleModel{}).AttrTypes()}, []tfAssumeRoleModel{
 				{
 					Tags:              types.MapNull(types.StringType),
 					PolicyARNs:        types.SetNull(types.StringType),
 					TransitiveTagKeys: types.SetNull(types.StringType),
 					RoleARN:           types.StringValue(assumeRoleArn),
 				},
-			}
-			var diags diag.Diagnostics
-			data.AssumeRole, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: (&tfAssumeRoleModel{}).AttrTypes()}, assumeRoleModel)
+			})
 			if diags.HasError() {
 				resp.Diagnostics.AddError(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
 			}

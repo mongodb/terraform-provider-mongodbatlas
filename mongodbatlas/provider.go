@@ -254,13 +254,7 @@ func addBetaFeatures(provider *schema.Provider) {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := (ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil) || (MultiEnvDefaultFunc([]string{
-		"ASSUME_ROLE_ARN",
-		"TF_VAR_ASSUME_ROLE_ARN",
-	}, "").(string) != "")
-
-	diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
+	diagnostics := setDefaultsAndValidations(d)
 	if diagnostics.HasError() {
 		return nil, diagnostics
 	}
@@ -272,6 +266,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 
+	assumeRoleValue, ok := d.GetOk("assume_role")
+	awsRoleDefined := (ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil)
 	if awsRoleDefined {
 		config.AssumeRole = expandAssumeRole(d.Get("assume_role").([]interface{})[0].(map[string]interface{}))
 		secret := d.Get("secret_name").(string)
@@ -294,7 +290,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	return client, diagnostics
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag.Diagnostics {
+func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	diagnostics := []diag.Diagnostic{}
 
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
@@ -309,6 +305,23 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag
 		"MCLI_OPS_MANAGER_URL",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	awsRoleDefined := false
+	assumeRoles := d.Get("assume_role").([]interface{})
+	if len(assumeRoles) == 0 {
+		roleArn := MultiEnvDefaultFunc([]string{
+			"ASSUME_ROLE_ARN",
+			"TF_VAR_ASSUME_ROLE_ARN",
+		}, "").(string)
+		if roleArn != "" {
+			awsRoleDefined = true
+			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
+				return append(diagnostics, diag.FromErr(err)...)
+			}
+		}
+	} else {
+		awsRoleDefined = true
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
@@ -378,19 +391,6 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag
 		"TF_VAR_AWS_SESSION_TOKEN",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	assumeRoles := d.Get("assume_role").([]interface{})
-	if len(assumeRoles) == 0 {
-		roleArn := MultiEnvDefaultFunc([]string{
-			"ASSUME_ROLE_ARN",
-			"TF_VAR_ASSUME_ROLE_ARN",
-		}, "").(string)
-		if roleArn != "" {
-			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
-				return append(diagnostics, diag.FromErr(err)...)
-			}
-		}
 	}
 
 	return diagnostics
