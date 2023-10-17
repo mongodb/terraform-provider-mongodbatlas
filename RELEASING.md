@@ -9,7 +9,11 @@
 ### Pre-release the provider 
 We pre-release the provider to make for testing purpose. **A Pre-release is not published to the Hashicorp Terraform Registry**.
 
-- Create a pre-release (`vX.Y.Z-pre1`) from [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases). Click in "Generate release notes" to autofill the description.
+- Create and push the pre-release tag (`X.Y.Z-pre`) to master
+```bash
+git tag [YOUR_TAG]-pre
+git push origin [YOUR_TAG]-pre
+```
 
 - You will see the release in the [GitHub Release page](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) once the [release action](.github/workflows/release.yml) has completed.
 
