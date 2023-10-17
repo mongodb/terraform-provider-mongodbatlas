@@ -2,6 +2,13 @@ package util
 
 import "time"
 
+func SafeString(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
+
 // utility conversions that can potentially be defined in sdk
 func TimePtrToStringPtr(t *time.Time) *string {
 	if t == nil {
