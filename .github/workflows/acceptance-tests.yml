@@ -452,6 +452,7 @@ jobs:
   
   assume_role:
     needs: [ change-detection, fetch-sts-assume-role-creds]
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -460,12 +461,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-      - name: Check STS
-        env:
-          AWS_ACCESS_KEY_ID: ${{ needs.fetch-sts-assume-role-creds.outputs.aws_access_key_id }}
-          AWS_SECRET_ACCESS_KEY: ${{ needs.fetch-sts-assume-role-creds.outputs.aws_secret_access_key }}
-          AWS_SESSION_TOKEN: ${{ needs.fetch-sts-assume-role-creds.outputs.aws_session_token }}
-        run: echo "$AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY $AWS_SESSION_TOKEN"
       - name: Acceptance Tests
         env:
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
