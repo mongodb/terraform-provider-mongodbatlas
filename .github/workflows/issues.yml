@@ -58,7 +58,7 @@
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            Thanks for opening this issue! Please make sure to provide the following information to help us reproduce the issue:
+            Thanks for opening this issue! Please make sure you've followed [our guidelines](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/new?assignees=&labels=&projects=&template=Bug_Report.md) when opening the issue. In short, to help us reproduce the issue we need:
               - Terraform configuration file used to reproduce the issue
               - Terraform log files from the run where the issue occurred
               - Terraform Atlas provider version used to reproduce the issue
