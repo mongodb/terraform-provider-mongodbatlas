@@ -43,21 +43,13 @@
 
 **Internal Improvements**
 
-- Bump golang.org/x/net from 0.13.0 to 0.17.0 [\#1524](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1524) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Migrates online archive resource and data sources to new SDK [\#1523](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1523) ([AgustinBettati](https://github.com/AgustinBettati))
-- Bump github.com/hashicorp/terraform-plugin-framework from 1.4.0 to 1.4.1 [\#1521](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1521) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Bump github.com/zclconf/go-cty from 1.14.0 to 1.14.1 [\#1520](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1520) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Bump github.com/gruntwork-io/terratest from 0.45.0 to 0.46.0 [\#1519](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1519) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Bump github.com/aws/aws-sdk-go from 1.45.21 to 1.45.24 [\#1518](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1518) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Bump github.com/hashicorp/hcl/v2 from 2.18.0 to 2.18.1 [\#1517](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1517) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Fixes cleanup-test-env script continues if delete of one project fails [\#1516](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1516) ([AgustinBettati](https://github.com/AgustinBettati))
 - Updates atlas-sdk to v20231001001 [\#1515](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1515) ([AgustinBettati](https://github.com/AgustinBettati))
 - Adjusts time for stale github issues to close after 1 week of inactivity [\#1512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1512) ([AgustinBettati](https://github.com/AgustinBettati))
 - Updates 1.10.0-upgrade-guide.html.markdown [\#1511](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1511) ([Zuhairahmed](https://github.com/Zuhairahmed))
 - Updates template issue with clearer guidelines. [\#1510](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1510) ([marcosuma](https://github.com/marcosuma))
 - Avoid including provider\_disk\_type\_name property in cluster update request if attribute was removed [\#1508](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1508) ([AgustinBettati](https://github.com/AgustinBettati))
-- Bump github.com/aws/aws-sdk-go from 1.45.8 to 1.45.21 [\#1505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1505) ([dependabot[bot]](https://github.com/apps/dependabot))
-- Bump github.com/gruntwork-io/terratest from 0.44.0 to 0.45.0 [\#1504](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1504) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Module naming convention [\#1500](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1500) ([govardhanpagidi](https://github.com/govardhanpagidi))
 - Updates cluster update handler to update advanced\_configuration first and make oplog\_min\_retention\_hours non-computed [\#1497](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1497) ([maastha](https://github.com/maastha))
 - Adds coverage report to PRs [\#1496](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1496) ([andreaangiolillo](https://github.com/andreaangiolillo))
@@ -67,6 +59,14 @@
 - Uses retry.StateChangeConf for encryption-at-rest resource. [\#1477](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1477) ([marcosuma](https://github.com/marcosuma))
 - Bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.28.0 to 2.29.0, github.com/hashicorp/terraform-plugin-framework from 1.3.4 to 1.4.0, github.com/hashicorp/terraform-plugin-go from 0.18.0 to 0.19.0, github.com/hashicorp/terraform-plugin-mux from 0.11.2 to 0.12.0 [\#1468](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1468) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Bump github.com/hashicorp/terraform-plugin-framework-validators from 0.10.0 to 0.12.0 [\#1466](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1466) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump golang.org/x/net from 0.13.0 to 0.17.0 [\#1524](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1524) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/hashicorp/terraform-plugin-framework from 1.4.0 to 1.4.1 [\#1521](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1521) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/zclconf/go-cty from 1.14.0 to 1.14.1 [\#1520](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1520) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/gruntwork-io/terratest from 0.45.0 to 0.46.0 [\#1519](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1519) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/aws/aws-sdk-go from 1.45.21 to 1.45.24 [\#1518](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1518) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/hashicorp/hcl/v2 from 2.18.0 to 2.18.1 [\#1517](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1517) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/aws/aws-sdk-go from 1.45.8 to 1.45.21 [\#1505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1505) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Bump github.com/gruntwork-io/terratest from 0.44.0 to 0.45.0 [\#1504](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1504) ([dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [v1.12.1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.1-pre1) (2023-09-22)
 
