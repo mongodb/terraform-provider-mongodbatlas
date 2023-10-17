@@ -83,12 +83,12 @@ resource "mongodbatlas_online_archive" "test" {
 * `cluster_name` - (Required) Name of the cluster that contains the collection.
 * `db_name` - (Required) Name of the database that contains the collection.
 * `coll_name` - (Required) Name of the collection.
-* `collection_type` - Classification of MongoDB database collection that you want to return, "TIMESERIES" or "STANDARD". Default is "STANDARD". 
+* `collection_type` - Type of MongoDB collection that you want to return. This value can be "TIMESERIES" or "STANDARD". Default is "STANDARD". 
 * `criteria` - (Required) Criteria to use for archiving data. See [criteria](#criteria).
 * `data_expiration_rule` - (Optional) Rule for specifying when data should be deleted from the archive. See [data expiration rule](#data-expiration-rule).
 * `schedule` - Regular frequency and duration when archiving process occurs. See [schedule](#schedule).
-* `partition_fields` - (Recommended) Fields to use to partition data. You can specify up to two frequently queried fields to use for partitioning data. Note that queries that don’t contain the specified fields will require a full collection scan of all archived documents, which will take longer and increase your costs. To learn more about how partition improves query performance, see [Data Structure in S3](https://docs.mongodb.com/datalake/admin/optimize-query-performance/#data-structure-in-s3). The value of a partition field can be up to a maximum of 700 characters. Documents with values exceeding 700 characters are not archived. See [partition fields](#partition).
-* `paused` - (Optional) State of the online archive. This is required for pausing an active or resume a paused online archive. The resume request will fail if the collection has another active online archive.
+* `partition_fields` - (Recommended) Fields to use to partition data. You can specify up to two frequently queried fields to use for partitioning data. Queries that don’t contain the specified fields require a full collection scan of all archived documents, which takes longer and increases your costs. To learn more about how partition improves query performance, see [Data Structure in S3](https://docs.mongodb.com/datalake/admin/optimize-query-performance/#data-structure-in-s3). The value of a partition field can be up to a maximum of 700 characters. Documents with values exceeding 700 characters are not archived. See [partition fields](#partition).
+* `paused` - (Optional) State of the online archive. This is required for pausing an active online archive or resuming a paused online archive. If the collection has another active online archive, the resume request fails.
 
 ### Criteria
 
