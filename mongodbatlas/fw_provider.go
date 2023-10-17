@@ -236,7 +236,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if awsRoleDefined {
 		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
-		region := data.Region.ValueString()
+		region := strings.ReplaceAll(strings.ToLower(data.Region.ValueString()), "_", "-")
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
 		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
 		awsSessionToken := data.AwsSessionToken.ValueString()
@@ -360,12 +360,10 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	if data.Region.ValueString() == "" {
-		// Convert the input string to lowercase and replace all underscores with hyphens.
-		region := strings.ReplaceAll(strings.ToLower(MultiEnvDefaultFunc([]string{
+		data.Region = types.StringValue(MultiEnvDefaultFunc([]string{
 			"AWS_REGION",
 			"TF_VAR_AWS_REGION",
-		}, "").(string)), "_", "-")
-		data.Region = types.StringValue(region)
+		}, "").(string))
 	}
 
 	if data.StsEndpoint.ValueString() == "" {
