@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -220,7 +221,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if awsRoleDefined {
 		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
-		region := data.Region.ValueString()
+		region := strings.ReplaceAll(strings.ToLower(data.Region.ValueString()), "_", "-")
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
 		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
 		awsSessionToken := data.AwsSessionToken.ValueString()

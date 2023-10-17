@@ -271,7 +271,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	if awsRoleDefined {
 		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
 		secret := d.Get("secret_name").(string)
-		region := d.Get("region").(string)
+		region := strings.ReplaceAll(strings.ToLower(d.Get("region").(string)), "_", "-")
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
 		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
 		awsSessionToken := d.Get("aws_session_token").(string)
