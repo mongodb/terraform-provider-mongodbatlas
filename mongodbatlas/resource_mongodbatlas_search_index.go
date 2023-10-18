@@ -118,7 +118,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)
@@ -156,7 +156,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -170,7 +170,7 @@ func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -255,7 +255,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -330,10 +330,10 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]interface{} {
-	synonymsMap := make([]map[string]interface{}, len(synonyms))
+func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
+	synonymsMap := make([]map[string]any, len(synonyms))
 	for i, s := range synonyms {
-		synonymsMap[i] = map[string]interface{}{
+		synonymsMap[i] = map[string]any{
 			"name":              s.Name,
 			"analyzer":          s.Analyzer,
 			"source_collection": s.Source.Collection,
@@ -342,12 +342,12 @@ func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition)
 	return synonymsMap
 }
 
-func flattenSearchIndexSynonyms2(synonyms []map[string]interface{}) []map[string]interface{} {
-	synonymsMap := make([]map[string]interface{}, 0)
+func flattenSearchIndexSynonyms2(synonyms []map[string]any) []map[string]any {
+	synonymsMap := make([]map[string]any, 0)
 
 	for _, s := range synonyms {
-		sourceCollection := s["source"].(map[string]interface{})
-		synonym := map[string]interface{}{
+		sourceCollection := s["source"].(map[string]any)
+		synonym := map[string]any{
 			"name":              s["name"],
 			"analyzer":          s["analyzer"],
 			"source_collection": sourceCollection["collection"],
@@ -365,7 +365,7 @@ func marshallSearchIndexAnalyzers(fields []admin.ApiAtlasFTSAnalyzers) (string, 
 	return string(mappingFieldJSON), err
 }
 
-func marshallSearchIndexAnalyzers2(fields []map[string]interface{}) (string, error) {
+func marshallSearchIndexAnalyzers2(fields []map[string]any) (string, error) {
 	if len(fields) == 0 {
 		return "", nil
 	}
@@ -373,7 +373,7 @@ func marshallSearchIndexAnalyzers2(fields []map[string]interface{}) (string, err
 	return string(mappingFieldJSON), err
 }
 
-func marshallSearchIndexMappingsField(fields map[string]interface{}) (string, error) {
+func marshallSearchIndexMappingsField(fields map[string]any) (string, error) {
 	if len(fields) == 0 {
 		return "", nil
 	}
@@ -381,7 +381,7 @@ func marshallSearchIndexMappingsField(fields map[string]interface{}) (string, er
 	return string(mappingFieldJSON), err
 }
 
-func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -442,18 +442,18 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
 }
 
-func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]interface{} {
-	var synonymsList []map[string]interface{}
+func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]any {
+	var synonymsList []map[string]any
 
-	synonymsDoc := map[string]interface{}{}
+	synonymsDoc := map[string]any{}
 
 	if vSynonyms, vSynonymsOK := d.GetOk("synonyms"); vSynonymsOK {
 		for _, s := range vSynonyms.(*schema.Set).List() {
-			synonym := s.(map[string]interface{})
+			synonym := s.(map[string]any)
 
 			synonymsDoc["name"] = synonym["name"]
 			synonymsDoc["analyzer"] = synonym["analyzer"]
-			synonymsDoc["source"] = map[string]interface{}{
+			synonymsDoc["source"] = map[string]any{
 				"collection": synonym["source_collection"],
 			}
 			synonymsList = append(synonymsList, synonymsDoc)
@@ -463,7 +463,7 @@ func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]interface{} 
 }
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 interface{}
+	var j, j2 any
 
 	if old == "" {
 		old = "{}"
@@ -488,7 +488,7 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 }
 
 func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 interface{}
+	var j, j2 any
 
 	if old == "" {
 		old = "{}"
@@ -512,12 +512,12 @@ func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) 
 	return true
 }
 
-func unmarshalSearchIndexMappingFields(mappingString string) map[string]interface{} {
+func unmarshalSearchIndexMappingFields(mappingString string) map[string]any {
 	if mappingString == "" {
 		return nil
 	}
 
-	var fields map[string]interface{}
+	var fields map[string]any
 
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
@@ -527,12 +527,12 @@ func unmarshalSearchIndexMappingFields(mappingString string) map[string]interfac
 	return fields
 }
 
-func unmarshalSearchIndexAnalyzersFields(mappingString string) []map[string]interface{} {
+func unmarshalSearchIndexAnalyzersFields(mappingString string) []map[string]any {
 	if mappingString == "" {
 		return nil
 	}
 
-	var fields []map[string]interface{}
+	var fields []map[string]any
 
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
@@ -543,7 +543,7 @@ func unmarshalSearchIndexAnalyzersFields(mappingString string) []map[string]inte
 }
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		searchIndex, resp, err := client.Search.GetIndex(ctx, projectID, clusterName, indexID)
 		if err != nil {
 			return nil, "ERROR", err
