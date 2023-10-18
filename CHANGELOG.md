@@ -24,7 +24,7 @@
 
 **Deprecations and Removals**
 
-- Removes the data source mongodbatlas_privatelink_endpoint_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
+- Removes the data source `mongodbatlas_privatelink_endpoint_service_adl` [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
 - Removes the data source mongodbatlas_privatelink_endpoints_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
 - Removes mongodbatlas_privatelink_endpoint_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
 - Removes the resource mongodbatlas_privatelink_endpoints_service_adl [\#1503](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1503) ([marcosuma](https://github.com/marcosuma))
