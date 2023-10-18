@@ -159,6 +159,30 @@ func testCheckAwsEnv(tb testing.TB) {
 	}
 }
 
+func testCheckSTSAssumeRole(tb testing.TB) {
+	if os.Getenv("AWS_REGION") == "" {
+		tb.Fatal(`'AWS_REGION' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("STS_ENDPOINT") == "" {
+		tb.Fatal(`'STS_ENDPOINT' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("ASSUME_ROLE_ARN") == "" {
+		tb.Fatal(`'ASSUME_ROLE_ARN' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
+		tb.Fatal(`'AWS_ACCESS_KEY_ID' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		tb.Fatal(`'AWS_SECRET_ACCESS_KEY' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		tb.Fatal(`'AWS_SESSION_TOKEN' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("SECRET_NAME") == "" {
+		tb.Fatal(`'SECRET_NAME' must be set for acceptance testing with STS Assume Role.`)
+	}
+}
+
 func TestEncodeDecodeID(t *testing.T) {
 	expected := map[string]string{
 		"project_id":   "5cf5a45a9ccf6400e60981b6",
