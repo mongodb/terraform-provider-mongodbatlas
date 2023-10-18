@@ -16,7 +16,7 @@
 - Adjusts format of database user resource id as defined in previous versions [\#1506](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1506) ([AgustinBettati](https://github.com/AgustinBettati))
 - Removes delete partition\_fields statements. [\#1499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1499) ([marcosuma](https://github.com/marcosuma))
 - Changes validation of empty provider credentials from Error to Warning [\#1501](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1501) ([AgustinBettati](https://github.com/AgustinBettati))
-- Use container\_id from created cluster in example [\#1475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1475) ([mckornfield](https://github.com/mckornfield))
+- Uses `container_id` from created cluster in example [\#1475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1475) ([mckornfield](https://github.com/mckornfield))
 - Adjusts time for stale github issues to close after 1 week of inactivity [\#1512](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1512) ([AgustinBettati](https://github.com/AgustinBettati))
 - Updates 1.10.0-upgrade-guide.html.markdown [\#1511](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1511) ([Zuhairahmed](https://github.com/Zuhairahmed))
 - Updates template issue with clearer guidelines. [\#1510](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1510) ([marcosuma](https://github.com/marcosuma))
