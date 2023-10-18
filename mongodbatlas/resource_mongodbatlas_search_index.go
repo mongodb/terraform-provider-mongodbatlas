@@ -157,18 +157,16 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 }
 
 func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	_, err := conn.Search.DeleteIndex(ctx, projectID, clusterName, indexID)
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	_, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
-
 	return nil
 }
 
