@@ -38,7 +38,7 @@
 - Provider "registry.terraform.io/mongodb/mongodbatlas" planned an invalid value [\#1498](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1498)
 - IP allowlist range force replacement on 1.12.0 [\#1495](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1495)
 - Importing Online Archive resources is missing parameter partition\_fields in terraform state [\#1492](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1492)
-- mongodbatlas\_network\_container faulty optional variable regions [\#1490](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1490)
+- `mongodbatlas_network_container` faulty optional variable regions [\#1490](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1490)
 - Matcher not allowing null [\#1489](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1489)
 - Provider version 1.12.0 is breaking the resource mongodbatlas\_database\_user \(1.11.1 works correctly\) [\#1485](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1485)
 - `mongodbatlas_project_ip_access_list` causes invalid plans [\#1484](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1484)
