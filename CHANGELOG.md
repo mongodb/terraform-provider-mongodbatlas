@@ -11,7 +11,7 @@
 
 **Bug Fixes**
 
-- Encryption at rest returns inconsistent plan when setting secret access key [\#1529](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1529) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Fixes issue where Encryption at rest returns inconsistent plan when setting secret access key [\#1529](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1529) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Alert configuration data source nil pointer with third party notifications [\#1513](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1513) ([AgustinBettati](https://github.com/AgustinBettati))
 - Adjusts format of database user resource id as defined in previous versions [\#1506](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1506) ([AgustinBettati](https://github.com/AgustinBettati))
 - Removes delete `partition_fields` statements [\#1499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1499) ([marcosuma](https://github.com/marcosuma))
