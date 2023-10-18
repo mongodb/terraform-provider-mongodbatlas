@@ -6,7 +6,7 @@
 
 **Enhancements**
 
-- Supports new data expiration rule attribute in online archive [\#1528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1528) ([AgustinBettati](https://github.com/AgustinBettati))
+- Supports `data_expiration_rule` parameter in 'mongodbatlas_online_archive` [\#1528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1528) ([AgustinBettati](https://github.com/AgustinBettati))
 - Supports new notifier\_id attribute in alert configuration notifications [\#1514](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1514) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
