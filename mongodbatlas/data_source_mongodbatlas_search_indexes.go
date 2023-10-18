@@ -111,7 +111,7 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 			"name":             searchIndexes[i].Name,
 			"search_analyzer":  searchIndexes[i].SearchAnalyzer,
 			"status":           searchIndexes[i].Status,
-			"synonyms":         flattenSearchIndexSynonyms(searchIndexes[i].Synonyms),
+			"synonyms":         flattenSearchIndexSynonyms2(searchIndexes[i].Synonyms),
 		}
 
 		if searchIndexes[i].Mappings.Fields != nil {
@@ -123,7 +123,7 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 		}
 
 		if len(searchIndexes[i].Analyzers) > 0 {
-			searchIndexAnalyzers, err := marshallSearchIndexAnalyzers(searchIndexes[i].Analyzers)
+			searchIndexAnalyzers, err := marshallSearchIndexAnalyzers2(searchIndexes[i].Analyzers)
 			if err != nil {
 				return nil, err
 			}

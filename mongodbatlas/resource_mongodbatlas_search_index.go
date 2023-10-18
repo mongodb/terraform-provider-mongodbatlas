@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -258,25 +259,22 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 
 func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	searchIndex, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
-		// case 404
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if resp.StatusCode == 404 && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf("error getting search index information: %s", err)
 	}
+
 	if err := d.Set("index_id", indexID); err != nil {
 		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
@@ -321,7 +319,7 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	}
 
 	if searchIndex.Mappings.Fields != nil {
-		searchIndexMappingFields, err := marshallSearchIndexMappingsField(*searchIndex.Mappings.Fields)
+		searchIndexMappingFields, err := marshallSearchIndexMappingsField(searchIndex.Mappings.Fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -334,7 +332,19 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func flattenSearchIndexSynonyms(synonyms []map[string]interface{}) []map[string]interface{} {
+func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]interface{} {
+	synonymsMap := make([]map[string]interface{}, len(synonyms))
+	for i, s := range synonyms {
+		synonymsMap[i] = map[string]interface{}{
+			"name":              s.Name,
+			"analyzer":          s.Analyzer,
+			"source_collection": s.Source.Collection,
+		}
+	}
+	return synonymsMap
+}
+
+func flattenSearchIndexSynonyms2(synonyms []map[string]interface{}) []map[string]interface{} {
 	synonymsMap := make([]map[string]interface{}, 0)
 
 	for _, s := range synonyms {
@@ -349,11 +359,18 @@ func flattenSearchIndexSynonyms(synonyms []map[string]interface{}) []map[string]
 	return synonymsMap
 }
 
-func marshallSearchIndexAnalyzers(fields []map[string]interface{}) (string, error) {
+func marshallSearchIndexAnalyzers(fields []admin.ApiAtlasFTSAnalyzers) (string, error) {
 	if len(fields) == 0 {
 		return "", nil
 	}
+	mappingFieldJSON, err := json.Marshal(fields)
+	return string(mappingFieldJSON), err
+}
 
+func marshallSearchIndexAnalyzers2(fields []map[string]interface{}) (string, error) {
+	if len(fields) == 0 {
+		return "", nil
+	}
 	mappingFieldJSON, err := json.Marshal(fields)
 	return string(mappingFieldJSON), err
 }
@@ -362,7 +379,6 @@ func marshallSearchIndexMappingsField(fields map[string]interface{}) (string, er
 	if len(fields) == 0 {
 		return "", nil
 	}
-
 	mappingFieldJSON, err := json.Marshal(fields)
 	return string(mappingFieldJSON), err
 }

@@ -116,7 +116,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 
 	if len(searchIndex.Analyzers) > 0 {
-		searchIndexMappingFields, err := marshallSearchIndexAnalyzers(searchIndex.Analyzers)
+		searchIndexMappingFields, err := marshallSearchIndexAnalyzers2(searchIndex.Analyzers)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -146,7 +146,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms2(searchIndex.Synonyms)); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
