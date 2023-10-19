@@ -2,6 +2,7 @@ package mongodbatlas
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -30,12 +31,14 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 				Required: true,
 			},
 			"page_num": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:       schema.TypeInt,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(DeprecationByVersionMessageParameter, "1.15.0"),
 			},
 			"items_per_page": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:       schema.TypeInt,
+				Optional:   true,
+				Deprecated: fmt.Sprintf(DeprecationByVersionMessageParameter, "1.15.0"),
 			},
 			"results": {
 				Type:     schema.TypeList,
