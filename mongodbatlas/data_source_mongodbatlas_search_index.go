@@ -91,8 +91,7 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 }
 
 func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
@@ -102,7 +101,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("project_id, cluster_name and index_id must be configured")
 	}
 
-	searchIndex, _, err := conn.Search.GetIndex(ctx, projectID.(string), clusterName.(string), indexID.(string))
+	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID.(string), clusterName.(string), indexID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
 	}
@@ -116,7 +115,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 
 	if len(searchIndex.Analyzers) > 0 {
-		searchIndexMappingFields, err := marshallSearchIndexAnalyzers2(searchIndex.Analyzers)
+		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Analyzers)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -146,12 +145,12 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("synonyms", flattenSearchIndexSynonyms2(searchIndex.Synonyms)); err != nil {
+	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings.Fields != nil {
-		searchIndexMappingFields, err := marshallSearchIndexMappingsField2(*searchIndex.Mappings.Fields)
+	if len(searchIndex.Mappings.Fields) > 0 {
+		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
