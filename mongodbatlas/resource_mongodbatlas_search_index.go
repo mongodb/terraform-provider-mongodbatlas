@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 )
 
 func resourceMongoDBAtlasSearchIndex() *schema.Resource {
@@ -117,9 +118,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
-
+func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
 		return nil, errors.New("import format error: to import a search index, use the format {project_id}--{cluster_name}--{index_id}")
@@ -129,7 +128,8 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	clusterName := parts[1]
 	indexID := parts[2]
 
-	_, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
 	}
@@ -155,37 +155,34 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+func resourceMongoDBAtlasSearchIndexDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	_, err := conn.Search.DeleteIndex(ctx, projectID, clusterName, indexID)
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	_, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
-
 	return nil
 }
 
-func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	searchIndex, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
+	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
 	}
 
 	if d.HasChange("analyzer") {
-		searchIndex.Analyzer = d.Get("analyzer").(string)
+		searchIndex.Analyzer = stringPtr(d.Get("analyzer").(string))
 	}
 
 	if d.HasChange("analyzers") {
@@ -205,26 +202,24 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if d.HasChange("search_analyzer") {
-		searchIndex.SearchAnalyzer = d.Get("search_analyzer").(string)
+		searchIndex.SearchAnalyzer = stringPtr(d.Get("search_analyzer").(string))
 	}
 
 	if d.HasChange("mappings_dynamic") {
-		searchIndex.Mappings.Dynamic = d.Get("mappings_dynamic").(bool)
+		dynamic := d.Get("mappings_dynamic").(bool)
+		searchIndex.Mappings.Dynamic = &dynamic
 	}
 
 	if d.HasChange("mappings_fields") {
-		mappingFields := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
-		searchIndex.Mappings.Fields = &mappingFields
+		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
 	}
 
 	if d.HasChange("synonyms") {
-		synonyms := expandSearchIndexSynonyms(d)
-		searchIndex.Synonyms = synonyms
+		searchIndex.Synonyms = expandSearchIndexSynonyms(d)
 	}
 
-	searchIndex.IndexID = ""
-	dbSearchIndexRes, _, err := conn.Search.UpdateIndex(context.Background(), projectID, clusterName, indexID, searchIndex)
-	if err != nil {
+	searchIndex.IndexID = stringPtr("")
+	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", searchIndex.Name, err)
 	}
 
@@ -233,7 +228,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
 			Target:     []string{"STEADY"},
-			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
+			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,
 			Delay:      1 * time.Minute,
@@ -245,7 +240,7 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 			d.SetId(encodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
-				"index_id":     dbSearchIndexRes.IndexID,
+				"index_id":     indexID,
 			}))
 			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
 			d.SetId("")
@@ -256,27 +251,23 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	indexID := ids["index_id"]
 
-	searchIndex, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
-		// case 404
 		// deleted in the backend case
-		reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
-
-		if reset {
+		if resp.StatusCode == 404 && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.Errorf("error getting search index information: %s", err)
 	}
+
 	if err := d.Set("index_id", indexID); err != nil {
 		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
@@ -286,7 +277,7 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	}
 
 	if len(searchIndex.Analyzers) > 0 {
-		searchIndexMappingFields, err := marshallSearchIndexAnalyzers(searchIndex.Analyzers)
+		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Analyzers)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -320,8 +311,8 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings.Fields != nil {
-		searchIndexMappingFields, err := marshallSearchIndexMappingsField(*searchIndex.Mappings.Fields)
+	if len(searchIndex.Mappings.Fields) > 0 {
+		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -334,73 +325,53 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func flattenSearchIndexSynonyms(synonyms []map[string]interface{}) []map[string]interface{} {
-	synonymsMap := make([]map[string]interface{}, 0)
-
-	for _, s := range synonyms {
-		sourceCollection := s["source"].(map[string]interface{})
-		synonym := map[string]interface{}{
-			"name":              s["name"],
-			"analyzer":          s["analyzer"],
-			"source_collection": sourceCollection["collection"],
+func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
+	synonymsMap := make([]map[string]any, len(synonyms))
+	for i, s := range synonyms {
+		synonymsMap[i] = map[string]any{
+			"name":              s.Name,
+			"analyzer":          s.Analyzer,
+			"source_collection": s.Source.Collection,
 		}
-		synonymsMap = append(synonymsMap, synonym)
 	}
 	return synonymsMap
 }
 
-func marshallSearchIndexAnalyzers(fields []map[string]interface{}) (string, error) {
-	if len(fields) == 0 {
-		return "", nil
-	}
-
-	mappingFieldJSON, err := json.Marshal(fields)
-	return string(mappingFieldJSON), err
+func marshalSearchIndex(fields any) (string, error) {
+	bytes, err := json.Marshal(fields)
+	return string(bytes), err
 }
 
-func marshallSearchIndexMappingsField(fields map[string]interface{}) (string, error) {
-	if len(fields) == 0 {
-		return "", nil
-	}
-
-	mappingFieldJSON, err := json.Marshal(fields)
-	return string(mappingFieldJSON), err
-}
-
-func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
+func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-
 	clusterName := d.Get("cluster_name").(string)
-
-	indexMapping := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
-
-	searchIndexRequest := &matlas.SearchIndex{
-		Analyzer:       d.Get("analyzer").(string),
+	dynamic := d.Get("mappings_dynamic").(bool)
+	searchIndexRequest := &admin.ClusterSearchIndex{
+		Analyzer:       stringPtr(d.Get("analyzer").(string)),
 		Analyzers:      unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
-		Mappings: &matlas.IndexMapping{
-			Dynamic: d.Get("mappings_dynamic").(bool),
-			Fields:  &indexMapping,
+		Mappings: &admin.ApiAtlasFTSMappings{
+			Dynamic: &dynamic,
+			Fields:  unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string)),
 		},
 		Name:           d.Get("name").(string),
-		SearchAnalyzer: d.Get("search_analyzer").(string),
-		Status:         d.Get("status").(string),
+		SearchAnalyzer: stringPtr(d.Get("search_analyzer").(string)),
+		Status:         stringPtr(d.Get("status").(string)),
 		Synonyms:       expandSearchIndexSynonyms(d),
 	}
-
-	dbSearchIndexRes, _, err := conn.Search.CreateIndex(ctx, projectID, clusterName, searchIndexRequest)
+	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
 	}
+	indexID := util.SafeString(dbSearchIndexRes.IndexID)
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "MIGRATING"},
 			Target:     []string{"STEADY"},
-			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, dbSearchIndexRes.IndexID, conn),
+			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
 			MinTimeout: 1 * time.Minute,
 			Delay:      1 * time.Minute,
@@ -412,7 +383,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 			d.SetId(encodeStateID(map[string]string{
 				"project_id":   projectID,
 				"cluster_name": clusterName,
-				"index_id":     dbSearchIndexRes.IndexID,
+				"index_id":     indexID,
 			}))
 			resourceMongoDBAtlasSearchIndexDelete(ctx, d, meta)
 			d.SetId("")
@@ -422,25 +393,23 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	d.SetId(encodeStateID(map[string]string{
 		"project_id":   projectID,
 		"cluster_name": clusterName,
-		"index_id":     dbSearchIndexRes.IndexID,
+		"index_id":     indexID,
 	}))
 
 	return resourceMongoDBAtlasSearchIndexRead(ctx, d, meta)
 }
 
-func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]interface{} {
-	var synonymsList []map[string]interface{}
-
-	synonymsDoc := map[string]interface{}{}
-
-	if vSynonyms, vSynonymsOK := d.GetOk("synonyms"); vSynonymsOK {
+func expandSearchIndexSynonyms(d *schema.ResourceData) []admin.SearchSynonymMappingDefinition {
+	var synonymsList []admin.SearchSynonymMappingDefinition
+	if vSynonyms, ok := d.GetOk("synonyms"); ok {
 		for _, s := range vSynonyms.(*schema.Set).List() {
-			synonym := s.(map[string]interface{})
-
-			synonymsDoc["name"] = synonym["name"]
-			synonymsDoc["analyzer"] = synonym["analyzer"]
-			synonymsDoc["source"] = map[string]interface{}{
-				"collection": synonym["source_collection"],
+			synonym := s.(map[string]any)
+			synonymsDoc := admin.SearchSynonymMappingDefinition{
+				Name:     synonym["name"].(string),
+				Analyzer: synonym["analyzer"].(string),
+				Source: admin.SynonymSource{
+					Collection: synonym["source_collection"].(string),
+				},
 			}
 			synonymsList = append(synonymsList, synonymsDoc)
 		}
@@ -449,7 +418,7 @@ func expandSearchIndexSynonyms(d *schema.ResourceData) []map[string]interface{} 
 }
 
 func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 interface{}
+	var j, j2 any
 
 	if old == "" {
 		old = "{}"
@@ -474,7 +443,7 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 }
 
 func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) bool {
-	var j, j2 interface{}
+	var j, j2 any
 
 	if old == "" {
 		old = "{}"
@@ -498,43 +467,37 @@ func validateSearchAnalyzersDiff(k, old, newStr string, d *schema.ResourceData) 
 	return true
 }
 
-func unmarshalSearchIndexMappingFields(mappingString string) map[string]interface{} {
+func unmarshalSearchIndexMappingFields(mappingString string) map[string]any {
 	if mappingString == "" {
 		return nil
 	}
-
-	var fields map[string]interface{}
-
+	var fields map[string]any
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
 		return nil
 	}
-
 	return fields
 }
 
-func unmarshalSearchIndexAnalyzersFields(mappingString string) []map[string]interface{} {
+func unmarshalSearchIndexAnalyzersFields(mappingString string) []admin.ApiAtlasFTSAnalyzers {
 	if mappingString == "" {
 		return nil
 	}
-
-	var fields []map[string]interface{}
-
+	var fields []admin.ApiAtlasFTSAnalyzers
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
 		return nil
 	}
-
 	return fields
 }
 
-func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		searchIndex, resp, err := client.Search.GetIndex(ctx, projectID, clusterName, indexID)
+func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+		status := util.SafeString(searchIndex.Status)
 		if err != nil {
 			return nil, "ERROR", err
 		}
-
 		if err != nil && searchIndex == nil && resp == nil {
 			return nil, "", err
 		} else if err != nil {
@@ -546,11 +509,6 @@ func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID,
 			}
 			return nil, "", err
 		}
-
-		if searchIndex.Status != "" {
-			log.Printf("[DEBUG] status for Search Index : %s: %s", clusterName, searchIndex.Status)
-		}
-
-		return searchIndex, searchIndex.Status, nil
+		return searchIndex, status, nil
 	}
 }
