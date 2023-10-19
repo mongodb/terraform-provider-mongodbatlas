@@ -205,8 +205,8 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 		searchIndex.SearchAnalyzer = stringPtr(d.Get("search_analyzer").(string))
 	}
 
-	dynamic := d.Get("mappings_dynamic").(bool)
 	if d.HasChange("mappings_dynamic") {
+		dynamic := d.Get("mappings_dynamic").(bool)
 		searchIndex.Mappings.Dynamic = &dynamic
 	}
 
