@@ -115,7 +115,7 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 		}
 
 		if searchIndexes[i].Mappings.Fields != nil {
-			searchIndexMappingFields, err := marshallSearchIndexMappingsField(*searchIndexes[i].Mappings.Fields)
+			searchIndexMappingFields, err := marshallSearchIndexMappingsField2(*searchIndexes[i].Mappings.Fields)
 			if err != nil {
 				return nil, err
 			}

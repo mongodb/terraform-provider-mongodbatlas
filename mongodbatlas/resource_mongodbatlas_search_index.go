@@ -119,7 +119,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 }
 
 func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*MongoDBClient).Atlas
+	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
@@ -130,7 +130,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	clusterName := parts[1]
 	indexID := parts[2]
 
-	_, _, err := conn.Search.GetIndex(ctx, projectID, clusterName, indexID)
+	_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
 	}
@@ -253,7 +253,6 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 }
 
 func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -279,7 +278,7 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 	}
 
 	if len(searchIndex.Analyzers) > 0 {
-		searchIndexMappingFields, err := marshallSearchIndexAnalyzers(searchIndex.Analyzers)
+		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Analyzers)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -313,8 +312,8 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if searchIndex.Mappings.Fields != nil {
-		searchIndexMappingFields, err := marshallSearchIndexMappingsField(searchIndex.Mappings.Fields)
+	if len(searchIndex.Mappings.Fields) > 0 {
+		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -354,12 +353,9 @@ func flattenSearchIndexSynonyms2(synonyms []map[string]any) []map[string]any {
 	return synonymsMap
 }
 
-func marshallSearchIndexAnalyzers(fields []admin.ApiAtlasFTSAnalyzers) (string, error) {
-	if len(fields) == 0 {
-		return "", nil
-	}
-	mappingFieldJSON, err := json.Marshal(fields)
-	return string(mappingFieldJSON), err
+func marshalSearchIndex(fields any) (string, error) {
+	bytes, err := json.Marshal(fields)
+	return string(bytes), err
 }
 
 func marshallSearchIndexAnalyzers2(fields []map[string]any) (string, error) {
@@ -370,7 +366,7 @@ func marshallSearchIndexAnalyzers2(fields []map[string]any) (string, error) {
 	return string(mappingFieldJSON), err
 }
 
-func marshallSearchIndexMappingsField(fields map[string]any) (string, error) {
+func marshallSearchIndexMappingsField2(fields map[string]any) (string, error) {
 	if len(fields) == 0 {
 		return "", nil
 	}

@@ -151,7 +151,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 
 	if searchIndex.Mappings.Fields != nil {
-		searchIndexMappingFields, err := marshallSearchIndexMappingsField(*searchIndex.Mappings.Fields)
+		searchIndexMappingFields, err := marshallSearchIndexMappingsField2(*searchIndex.Mappings.Fields)
 		if err != nil {
 			return diag.FromErr(err)
 		}
