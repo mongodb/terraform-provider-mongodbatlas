@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
@@ -97,10 +98,12 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	}
 
 	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent)}
+	authConfig := realmAuth.NewConfig(nil)
 	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
 		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.RealmBaseURL))
+		authConfig.AuthURL, _ = url.Parse(c.Config.RealmBaseURL + "api/admin/v3.0/auth/providers/mongodb-cloud/login")
 	}
-	authConfig := realmAuth.NewConfig(nil)
+
 	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
 	if err != nil {
 		return nil, err
