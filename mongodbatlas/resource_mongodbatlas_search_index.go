@@ -119,8 +119,6 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 }
 
 func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*MongoDBClient).AtlasV2
-
 	parts := strings.SplitN(d.Id(), "--", 3)
 	if len(parts) != 3 {
 		return nil, errors.New("import format error: to import a search index, use the format {project_id}--{cluster_name}--{index_id}")
@@ -130,6 +128,7 @@ func resourceMongoDBAtlasSearchIndexImportState(ctx context.Context, d *schema.R
 	clusterName := parts[1]
 	indexID := parts[2]
 
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
@@ -338,40 +337,9 @@ func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition)
 	return synonymsMap
 }
 
-func flattenSearchIndexSynonyms2(synonyms []map[string]any) []map[string]any {
-	synonymsMap := make([]map[string]any, 0)
-
-	for _, s := range synonyms {
-		sourceCollection := s["source"].(map[string]any)
-		synonym := map[string]any{
-			"name":              s["name"],
-			"analyzer":          s["analyzer"],
-			"source_collection": sourceCollection["collection"],
-		}
-		synonymsMap = append(synonymsMap, synonym)
-	}
-	return synonymsMap
-}
-
 func marshalSearchIndex(fields any) (string, error) {
 	bytes, err := json.Marshal(fields)
 	return string(bytes), err
-}
-
-func marshallSearchIndexAnalyzers2(fields []map[string]any) (string, error) {
-	if len(fields) == 0 {
-		return "", nil
-	}
-	mappingFieldJSON, err := json.Marshal(fields)
-	return string(mappingFieldJSON), err
-}
-
-func marshallSearchIndexMappingsField2(fields map[string]any) (string, error) {
-	if len(fields) == 0 {
-		return "", nil
-	}
-	mappingFieldJSON, err := json.Marshal(fields)
-	return string(mappingFieldJSON), err
 }
 
 func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

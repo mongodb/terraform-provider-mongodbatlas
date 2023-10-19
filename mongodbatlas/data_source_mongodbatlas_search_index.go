@@ -91,8 +91,6 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 }
 
 func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	connV2 := meta.(*MongoDBClient).AtlasV2
-
 	projectID, projectIDOk := d.GetOk("project_id")
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
 	indexID, indexIDOk := d.GetOk("index_id")
@@ -101,6 +99,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("project_id, cluster_name and index_id must be configured")
 	}
 
+	connV2 := meta.(*MongoDBClient).AtlasV2
 	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID.(string), clusterName.(string), indexID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)

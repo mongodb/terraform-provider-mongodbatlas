@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 )
 
 func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
@@ -53,9 +53,6 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// Get client connection.
-	conn := meta.(*MongoDBClient).Atlas
-
 	projectID, projectIDOK := d.GetOk("project_id")
 	clusterName, clusterNameOk := d.GetOk("cluster_name")
 	databaseName, databaseNameOK := d.GetOk("database")
@@ -65,17 +62,14 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("project_id, cluster_name, database and collection_name must be configured")
 	}
 
-	options := &matlas.ListOptions{
-		PageNum:      d.Get("page_num").(int),
-		ItemsPerPage: d.Get("items_per_page").(int),
-	}
+	connV2 := meta.(*MongoDBClient).AtlasV2
+	searchIndexes, _, err := connV2.AtlasSearchApi.ListAtlasSearchIndexes(ctx, projectID.(string), clusterName.(string), collectionName.(string), databaseName.(string)).Execute()
 
-	searchIndexes, _, err := conn.Search.ListIndexes(ctx, projectID.(string), clusterName.(string), databaseName.(string), collectionName.(string), options)
 	if err != nil {
 		return diag.Errorf("error getting search indexes information: %s", err)
 	}
 
-	flattedSearchIndexes, err := flattenSearchIndexes(searchIndexes)
+	flattedSearchIndexes, err := flattenSearchIndexes(searchIndexes, projectID.(string), clusterName.(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -93,7 +87,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]interface{}, error) {
+func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, clusterName string) ([]map[string]interface{}, error) {
 	var searchIndexesMap []map[string]interface{}
 
 	if len(searchIndexes) == 0 {
@@ -103,6 +97,8 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 
 	for i := range searchIndexes {
 		searchIndexesMap[i] = map[string]interface{}{
+			"project_id":       projectID,
+			"cluster_name":     clusterName,
 			"analyzer":         searchIndexes[i].Analyzer,
 			"collection_name":  searchIndexes[i].CollectionName,
 			"database":         searchIndexes[i].Database,
@@ -111,11 +107,11 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 			"name":             searchIndexes[i].Name,
 			"search_analyzer":  searchIndexes[i].SearchAnalyzer,
 			"status":           searchIndexes[i].Status,
-			"synonyms":         flattenSearchIndexSynonyms2(searchIndexes[i].Synonyms),
+			"synonyms":         flattenSearchIndexSynonyms(searchIndexes[i].Synonyms),
 		}
 
-		if searchIndexes[i].Mappings.Fields != nil {
-			searchIndexMappingFields, err := marshallSearchIndexMappingsField2(*searchIndexes[i].Mappings.Fields)
+		if len(searchIndexes[i].Mappings.Fields) > 0 {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].Mappings.Fields)
 			if err != nil {
 				return nil, err
 			}
@@ -123,7 +119,7 @@ func flattenSearchIndexes(searchIndexes []*matlas.SearchIndex) ([]map[string]int
 		}
 
 		if len(searchIndexes[i].Analyzers) > 0 {
-			searchIndexAnalyzers, err := marshallSearchIndexAnalyzers2(searchIndexes[i].Analyzers)
+			searchIndexAnalyzers, err := marshalSearchIndex(searchIndexes[i].Analyzers)
 			if err != nil {
 				return nil, err
 			}
