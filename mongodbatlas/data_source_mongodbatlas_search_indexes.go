@@ -52,7 +52,7 @@ func dataSourceMongoDBAtlasSearchIndexes() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID, projectIDOK := d.GetOk("project_id")
 	clusterName, clusterNameOk := d.GetOk("cluster_name")
 	databaseName, databaseNameOK := d.GetOk("database")
@@ -87,16 +87,16 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, clusterName string) ([]map[string]interface{}, error) {
-	var searchIndexesMap []map[string]interface{}
+func flattenSearchIndexes(searchIndexes []admin.ClusterSearchIndex, projectID, clusterName string) ([]map[string]any, error) {
+	var searchIndexesMap []map[string]any
 
 	if len(searchIndexes) == 0 {
 		return nil, nil
 	}
-	searchIndexesMap = make([]map[string]interface{}, len(searchIndexes))
+	searchIndexesMap = make([]map[string]any, len(searchIndexes))
 
 	for i := range searchIndexes {
-		searchIndexesMap[i] = map[string]interface{}{
+		searchIndexesMap[i] = map[string]any{
 			"project_id":       projectID,
 			"cluster_name":     clusterName,
 			"analyzer":         searchIndexes[i].Analyzer,

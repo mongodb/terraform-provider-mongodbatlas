@@ -90,7 +90,7 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 	}
 }
 
-func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID, projectIDOk := d.GetOk("project_id")
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
 	indexID, indexIDOk := d.GetOk("index_id")
