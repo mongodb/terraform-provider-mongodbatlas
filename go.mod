@@ -3,12 +3,12 @@ module github.com/mongodb/terraform-provider-mongodbatlas
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.45.21
+	github.com/aws/aws-sdk-go v1.45.27
 	github.com/go-test/deep v1.1.0
-	github.com/gruntwork-io/terratest v0.45.0
+	github.com/gruntwork-io/terratest v0.46.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
-	github.com/hashicorp/hcl/v2 v2.18.0
-	github.com/hashicorp/terraform-plugin-framework v1.4.0
+	github.com/hashicorp/hcl/v2 v2.19.0
+	github.com/hashicorp/terraform-plugin-framework v1.4.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
 	github.com/hashicorp/terraform-plugin-go v0.19.0
@@ -20,9 +20,9 @@ require (
 	github.com/mongodb-forks/digest v1.0.5
 	github.com/mwielbut/pointy v1.1.0
 	github.com/spf13/cast v1.5.1
-	github.com/zclconf/go-cty v1.14.0
-	go.mongodb.org/atlas v0.33.0
-	go.mongodb.org/atlas-sdk/v20230201006 v20230201006.0.0
+	github.com/zclconf/go-cty v1.14.1
+	go.mongodb.org/atlas v0.34.0
+	go.mongodb.org/atlas-sdk/v20231001001 v20231001001.0.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
 )
@@ -123,13 +123,13 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.13.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

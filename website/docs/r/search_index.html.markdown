@@ -31,8 +31,8 @@ resource "mongodbatlas_search_index" "test-basic-search-index" {
 ### Advanced (with custom analyzers)
 ```terraform
 resource "mongodbatlas_search_index" "test-advanced-search-index" {
-  project_id = "%[1]s"
-  cluster_name = "%[2]s"
+  project_id = "<PROJECT_ID>"
+  cluster_name = "<CLUSTER_NAME>"
   analyzer = "lucene.standard"
   collection_name = "collection_test"
   database = "database_test"
@@ -74,20 +74,20 @@ EOF
   analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
-  "charFilters": {
+  "charFilters": [{
 	"type": "mapping",
 	"mappings": {"\\" : "/"}
-    	},
+    	}],
   "tokenizer": {
   "type": "nGram",
   "minGram": 2,
   "maxGram": 5
 		},
-  "tokenFilters": {
+  "tokenFilters": [{
 	"type": "length",
 	"min": 20,
 	"max": 33
-    	}
+    	}]
   }]
 EOF
   synonyms {
@@ -114,20 +114,20 @@ EOF
 analyzers = <<-EOF
   [{
   "name": "index_analyzer_test_name",
-  "charFilters": {
+  "charFilters": [{
 	"type": "mapping",
 	"mappings": {"\\" : "/"}
-    	},
+    	}],
   "tokenizer": {
   "type": "nGram",
   "minGram": 2,
   "maxGram": 5
 	},
-  "tokenFilters": {
+  "tokenFilters": [{
 	"type": "length",
 	"min": 20,
 	"max": 33
-    	}
+    	}]
   }]
 EOF
 ```
@@ -186,10 +186,10 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
     * `mongodb`
 * `charFilters` - Array containing zero or more character filters. Always require a `type` field, and some take additional options as well
   ```terraform
-  "charFilters":{
+  "charFilters":[{
    "type": "<FILTER_TYPE>",
    "ADDITIONAL_OPTION": VALUE
-  }
+  }]
   ```
   Atlas search supports four `types` of character filters:
     * [htmlStrip](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-htmlStrip-ref) - Strips out HTML constructs
@@ -198,10 +198,10 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
         ```terraform
           analyzers = <<-EOF [{
             "name": "analyzer_test",
-            "charFilters":{
+            "charFilters":[{
               "type": "htmlStrip",
               "ignoredTags": ["a"]
-              }   
+              }]   
             }] 
        ```
     * [icuNormalize](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-icuNormalize-ref) - Normalizes text with the [ICU](http://site.icu-project.org/) Normalizer. Based on Lucene's [ICUNormalizer2CharFilter](https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html)
@@ -258,10 +258,10 @@ An [Atlas Search analyzer](https://docs.atlas.mongodb.com/reference/atlas-search
 
 * `token_filters` - Array containing zero or more token filters. Always require a type field, and some take additional options as well:
   ```terraform
-  "tokenFilters":{
+  "tokenFilters":[{
     "type": "<FILTER_TYPE>",
     "ADDITIONAL-OPTIONS": VALUE
-  }
+  }]
   ```
   Atlas Search supports the following token filters:
     * [daitchMokotoffSoundex](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-daitchmokotoffsoundex-tf-ref) - Creates tokens for words that sound the same based on [Daitch-Mokotoff Soundex](https://en.wikipedia.org/wiki/Daitch%E2%80%93Mokotoff_Soundex) phonetic algorithm. This filter can generate multiple encodings for each input, where each encoded token is a 6 digit number:

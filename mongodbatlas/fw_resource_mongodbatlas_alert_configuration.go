@@ -20,8 +20,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -102,6 +103,7 @@ type tfNotificationModel struct {
 	OpsGenieAPIKey           types.String `tfsdk:"ops_genie_api_key"`
 	TeamID                   types.String `tfsdk:"team_id"`
 	TeamName                 types.String `tfsdk:"team_name"`
+	NotifierID               types.String `tfsdk:"notifier_id"`
 	TypeName                 types.String `tfsdk:"type_name"`
 	ChannelName              types.String `tfsdk:"channel_name"`
 	VictorOpsAPIKey          types.String `tfsdk:"victor_ops_api_key"`
@@ -320,6 +322,10 @@ func (r *AlertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
 							},
+						},
+						"notifier_id": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
 						},
 						"type_name": schema.StringAttribute{
 							Required: true,
@@ -580,6 +586,7 @@ func newNotificationList(tfNotificationSlice []tfNotificationModel) ([]matlas.No
 			ServiceKey:               value.ServiceKey.ValueString(),
 			SMSEnabled:               value.SMSEnabled.ValueBoolPointer(),
 			TeamID:                   value.TeamID.ValueString(),
+			NotifierID:               value.NotifierID.ValueString(),
 			TypeName:                 value.TypeName.ValueString(),
 			Username:                 value.Username.ValueString(),
 			VictorOpsAPIKey:          value.VictorOpsAPIKey.ValueString(),
@@ -670,6 +677,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 				TeamID:         conversion.StringNullIfEmpty(value.TeamID),
 				TypeName:       conversion.StringNullIfEmpty(value.TypeName),
 				Username:       conversion.StringNullIfEmpty(value.Username),
+				NotifierID:     types.StringValue(value.NotifierID),
 				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
 				SMSEnabled:     types.BoolValue(value.SMSEnabled != nil && *value.SMSEnabled),
 			}
@@ -722,6 +730,7 @@ func newTFNotificationModelList(matlasSlice []matlas.Notification, currStateNoti
 			newState.Username = conversion.StringNullIfEmpty(value.Username)
 		}
 
+		newState.NotifierID = types.StringValue(value.NotifierID)
 		newState.IntervalMin = types.Int64Value(int64(value.IntervalMin))
 		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
@@ -744,12 +753,13 @@ func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, curr
 				Roles:          value.Roles,
 				ChannelName:    conversion.StringPtrNullIfEmpty(value.ChannelName),
 				DatadogRegion:  conversion.StringPtrNullIfEmpty(value.DatadogRegion),
-				DelayMin:       types.Int64Value(int64(*value.DelayMin)),
+				DelayMin:       types.Int64PointerValue(util.IntPtrToInt64Ptr(value.DelayMin)),
 				EmailAddress:   conversion.StringPtrNullIfEmpty(value.EmailAddress),
-				IntervalMin:    types.Int64Value(int64(*value.IntervalMin)),
+				IntervalMin:    types.Int64PointerValue(util.IntPtrToInt64Ptr(value.IntervalMin)),
 				MobileNumber:   conversion.StringPtrNullIfEmpty(value.MobileNumber),
 				OpsGenieRegion: conversion.StringPtrNullIfEmpty(value.OpsGenieRegion),
 				TeamID:         conversion.StringPtrNullIfEmpty(value.TeamId),
+				NotifierID:     types.StringPointerValue(value.NotifierId),
 				TypeName:       conversion.StringPtrNullIfEmpty(value.TypeName),
 				Username:       conversion.StringPtrNullIfEmpty(value.Username),
 				EmailEnabled:   types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled),
@@ -804,8 +814,9 @@ func newTFNotificationModelListV2(n []admin.AlertsNotificationRootForGroup, curr
 			newState.Username = conversion.StringPtrNullIfEmpty(value.Username)
 		}
 
-		newState.IntervalMin = types.Int64Value(int64(*value.IntervalMin))
-		newState.DelayMin = types.Int64Value(int64(*value.DelayMin))
+		newState.NotifierID = types.StringPointerValue(value.NotifierId)
+		newState.IntervalMin = types.Int64PointerValue(util.IntPtrToInt64Ptr(value.IntervalMin))
+		newState.DelayMin = types.Int64PointerValue(util.IntPtrToInt64Ptr(value.DelayMin))
 		newState.EmailEnabled = types.BoolValue(value.EmailEnabled != nil && *value.EmailEnabled)
 		newState.SMSEnabled = types.BoolValue(value.SmsEnabled != nil && *value.SmsEnabled)
 
@@ -855,7 +866,7 @@ func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currS
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
 		return []tfMetricThresholdConfigModel{
 			{
-				MetricName: conversion.StringNullIfEmpty(*t.MetricName),
+				MetricName: conversion.StringNullIfEmpty(t.MetricName),
 				Operator:   conversion.StringNullIfEmpty(*t.Operator),
 				Threshold:  types.Float64Value(*t.Threshold),
 				Units:      conversion.StringNullIfEmpty(*t.Units),
@@ -866,7 +877,7 @@ func newTFMetricThresholdConfigModelV2(t *admin.ServerlessMetricThreshold, currS
 	currState := currStateSlice[0]
 	newState := tfMetricThresholdConfigModel{}
 	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringNullIfEmpty(*t.MetricName)
+		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
 	}
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(*t.Operator)

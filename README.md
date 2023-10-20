@@ -63,8 +63,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Autoclose stale issues and PRs
 
-- After 30 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 30 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 30 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
-- After 30 more days of no activity we automatically close the issue/PR.
+- After 7 days of no activity (no comments or commits on an issue/PR) we automatically tag it as "stale" and add a message: ```This issue/PR has gone 7 days without any activity and meets the project's definition of "stale". This will be auto-closed if there is no new activity over the next 7 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!```
+- After 7 more days of no activity we automatically close the issue/PR.
 
 ## Thanks
 

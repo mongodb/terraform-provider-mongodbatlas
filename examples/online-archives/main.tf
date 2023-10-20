@@ -11,6 +11,10 @@ resource "mongodbatlas_online_archive" "users_archive" {
     expire_after_days = 2
   }
 
+  data_expiration_rule {
+    expire_after_days = 90
+  }
+
   partition_fields {
     field_name = "created"
     order      = 0

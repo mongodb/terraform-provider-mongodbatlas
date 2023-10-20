@@ -2,6 +2,13 @@ package util
 
 import "time"
 
+func SafeString(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
+
 // utility conversions that can potentially be defined in sdk
 func TimePtrToStringPtr(t *time.Time) *string {
 	if t == nil {
@@ -26,6 +33,15 @@ func Int64PtrToIntPtr(i64 *int64) *int {
 
 	i := int(*i64)
 	return &i
+}
+
+func IntPtrToInt64Ptr(i *int) *int64 {
+	if i == nil {
+		return nil
+	}
+
+	i64 := int64(*i)
+	return &i64
 }
 
 // IsStringPresent returns true if the string is non-empty.

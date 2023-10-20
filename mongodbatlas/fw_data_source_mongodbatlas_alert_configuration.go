@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20230201006/admin"
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
 )
 
 var _ datasource.DataSource = &AlertConfigurationDS{}
@@ -201,6 +201,9 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 				"team_name": schema.StringAttribute{
 					Computed: true,
 				},
+				"notifier_id": schema.StringAttribute{
+					Computed: true,
+				},
 				"type_name": schema.StringAttribute{
 					Computed: true,
 				},
@@ -373,7 +376,7 @@ func convertMetricThresholdToCtyValues(metric admin.ServerlessMetricThreshold) m
 		t = *metric.Threshold
 	}
 	return map[string]cty.Value{
-		"metric_name": ctyStringPtrVal(metric.MetricName),
+		"metric_name": cty.StringVal(metric.MetricName),
 		"operator":    ctyStringPtrVal(metric.Operator),
 		"threshold":   cty.NumberFloatVal(t),
 		"units":       ctyStringPtrVal(metric.Units),
@@ -426,6 +429,10 @@ func convertNotificationToCtyValues(notification *admin.AlertsNotificationRootFo
 
 	if util.IsStringPresent(notification.TeamName) {
 		values["team_name"] = cty.StringVal(*notification.TeamName)
+	}
+
+	if util.IsStringPresent(notification.NotifierId) {
+		values["notifier_id"] = cty.StringVal(*notification.NotifierId)
 	}
 
 	if util.IsStringPresent(notification.TypeName) {
