@@ -45,7 +45,7 @@ func dataSourceMongoDBAtlasFederatedSettings() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedSettingsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedSettingsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

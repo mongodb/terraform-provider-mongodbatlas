@@ -136,7 +136,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLink() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	privateLinkID := getEncodedID(d.Get("private_link_id").(string), "private_link_id")
@@ -163,7 +163,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 		}
 		request.EndpointGroupName = endpointServiceID
 		request.GCPProjectID = gPI.(string)
-		request.Endpoints = expandGCPEndpoints(e.([]interface{}))
+		request.Endpoints = expandGCPEndpoints(e.([]any))
 	}
 
 	_, _, err := conn.PrivateEndpoints.AddOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, request)
@@ -209,7 +209,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkCreate(ctx context.Context, d
 	return resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -279,7 +279,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkRead(ctx context.Context, d *
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -327,7 +327,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkDelete(ctx context.Context, d
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 4)
@@ -372,7 +372,7 @@ func resourceMongoDBAtlasPrivateEndpointServiceLinkImportState(ctx context.Conte
 }
 
 func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID, endpointServiceID string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		i, resp, err := client.PrivateEndpoints.GetOnePrivateEndpoint(ctx, projectID, providerName, privateLinkID, endpointServiceID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
@@ -396,7 +396,7 @@ func resourceServiceEndpointRefreshFunc(ctx context.Context, client *matlas.Clie
 	}
 }
 
-func expandGCPEndpoint(tfMap map[string]interface{}) *matlas.GCPEndpoint {
+func expandGCPEndpoint(tfMap map[string]any) *matlas.GCPEndpoint {
 	if tfMap == nil {
 		return nil
 	}
@@ -413,7 +413,7 @@ func expandGCPEndpoint(tfMap map[string]interface{}) *matlas.GCPEndpoint {
 	return apiObject
 }
 
-func expandGCPEndpoints(tfList []interface{}) []*matlas.GCPEndpoint {
+func expandGCPEndpoints(tfList []any) []*matlas.GCPEndpoint {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -421,7 +421,7 @@ func expandGCPEndpoints(tfList []interface{}) []*matlas.GCPEndpoint {
 	var apiObjects []*matlas.GCPEndpoint
 
 	for _, tfMapRaw := range tfList {
-		if tfMap, ok := tfMapRaw.(map[string]interface{}); ok {
+		if tfMap, ok := tfMapRaw.(map[string]any); ok {
 			apiObject := expandGCPEndpoint(tfMap)
 			if apiObject == nil {
 				continue
@@ -433,12 +433,12 @@ func expandGCPEndpoints(tfList []interface{}) []*matlas.GCPEndpoint {
 	return apiObjects
 }
 
-func flattenGCPEndpoint(apiObject *matlas.GCPEndpoint) map[string]interface{} {
+func flattenGCPEndpoint(apiObject *matlas.GCPEndpoint) map[string]any {
 	if apiObject == nil {
 		return nil
 	}
 
-	tfMap := map[string]interface{}{}
+	tfMap := map[string]any{}
 
 	log.Printf("[DEBIG] apiObject : %+v", apiObject)
 
@@ -450,12 +450,12 @@ func flattenGCPEndpoint(apiObject *matlas.GCPEndpoint) map[string]interface{} {
 	return tfMap
 }
 
-func flattenGCPEndpoints(apiObjects []*matlas.GCPEndpoint) []interface{} {
+func flattenGCPEndpoints(apiObjects []*matlas.GCPEndpoint) []any {
 	if len(apiObjects) == 0 {
 		return nil
 	}
 
-	var tfList []interface{}
+	var tfList []any
 
 	for _, apiObject := range apiObjects {
 		if apiObject == nil {

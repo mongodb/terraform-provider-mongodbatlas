@@ -56,7 +56,7 @@ func dataSourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasClusterOutageSimulationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasClusterOutageSimulationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, projectIDOk := d.GetOk("project_id")

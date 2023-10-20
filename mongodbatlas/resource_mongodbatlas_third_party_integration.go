@@ -126,7 +126,7 @@ func resourceMongoDBAtlasThirdPartyIntegration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
@@ -159,7 +159,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationCreate(ctx context.Context, d *sch
 	return resourceMongoDBAtlasThirdPartyIntegrationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -192,7 +192,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -218,7 +218,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationUpdate(ctx context.Context, d *sch
 	return resourceMongoDBAtlasThirdPartyIntegrationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -234,7 +234,7 @@ func resourceMongoDBAtlasThirdPartyIntegrationDelete(ctx context.Context, d *sch
 	return nil
 }
 
-func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasThirdPartyIntegrationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, integrationType, err := splitIntegrationTypeID(d.Id())

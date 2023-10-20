@@ -232,11 +232,11 @@ func resourceMongoDBAtlasAdvancedClusterResourceV0() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func resourceMongoDBAtlasAdvancedClusterStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 	return migrateBIConnectorConfig(rawState), nil
 }
 
-func migrateBIConnectorConfig(rawState map[string]interface{}) map[string]interface{} {
+func migrateBIConnectorConfig(rawState map[string]any) map[string]any {
 	rawState["bi_connector_config"] = rawState["bi_connector"]
 	rawState["bi_connector"] = nil
 	return rawState

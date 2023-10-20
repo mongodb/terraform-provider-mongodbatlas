@@ -82,7 +82,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)

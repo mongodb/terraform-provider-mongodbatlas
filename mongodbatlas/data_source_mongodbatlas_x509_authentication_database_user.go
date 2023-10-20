@@ -59,7 +59,7 @@ func dataSourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)

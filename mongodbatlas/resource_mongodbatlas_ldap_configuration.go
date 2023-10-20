@@ -98,7 +98,7 @@ func resourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -137,7 +137,7 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.
 	}
 
 	if v, ok := d.GetOk("user_to_dn_mapping"); ok {
-		ldap.UserToDNMapping = expandDNMapping(v.([]interface{}))
+		ldap.UserToDNMapping = expandDNMapping(v.([]any))
 	}
 
 	ladpReq := &matlas.LDAPConfiguration{
@@ -154,7 +154,7 @@ func resourceMongoDBAtlasLDAPConfigurationCreate(ctx context.Context, d *schema.
 	return resourceMongoDBAtlasLDAPConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ldapResp, resp, err := conn.LDAPConfigurations.Get(context.Background(), d.Id())
@@ -195,7 +195,7 @@ func resourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -234,7 +234,7 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.
 	}
 
 	if d.HasChange("user_to_dn_mapping") {
-		ldap.UserToDNMapping = expandDNMapping(d.Get("user_to_dn_mapping").([]interface{}))
+		ldap.UserToDNMapping = expandDNMapping(d.Get("user_to_dn_mapping").([]any))
 	}
 
 	ldapReq := &matlas.LDAPConfiguration{
@@ -249,7 +249,7 @@ func resourceMongoDBAtlasLDAPConfigurationUpdate(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	_, _, err := conn.LDAPConfigurations.Delete(ctx, d.Id())
@@ -260,11 +260,11 @@ func resourceMongoDBAtlasLDAPConfigurationDelete(ctx context.Context, d *schema.
 	return nil
 }
 
-func expandDNMapping(p []interface{}) []*matlas.UserToDNMapping {
+func expandDNMapping(p []any) []*matlas.UserToDNMapping {
 	mappings := make([]*matlas.UserToDNMapping, len(p))
 
 	for k, v := range p {
-		mapping := v.(map[string]interface{})
+		mapping := v.(map[string]any)
 		mappings[k] = &matlas.UserToDNMapping{
 			Match:        mapping["match"].(string),
 			Substitution: mapping["substitution"].(string),
@@ -275,10 +275,10 @@ func expandDNMapping(p []interface{}) []*matlas.UserToDNMapping {
 	return mappings
 }
 
-func flattenDNMapping(usersDNMappings []*matlas.UserToDNMapping) []map[string]interface{} {
-	usersDN := make([]map[string]interface{}, 0)
+func flattenDNMapping(usersDNMappings []*matlas.UserToDNMapping) []map[string]any {
+	usersDN := make([]map[string]any, 0)
 	for _, v := range usersDNMappings {
-		usersDN = append(usersDN, map[string]interface{}{
+		usersDN = append(usersDN, map[string]any{
 			"match":        v.Match,
 			"substitution": v.Substitution,
 			"ldap_query":   v.LDAPQuery,

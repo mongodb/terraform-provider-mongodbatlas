@@ -109,7 +109,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobs() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{
@@ -139,14 +139,14 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobsRead(ctx context.Contex
 	return nil
 }
 
-func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []*matlas.CloudProviderSnapshotRestoreJob) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []*matlas.CloudProviderSnapshotRestoreJob) []map[string]any {
+	var results []map[string]any
 
 	if len(cloudProviderSnapshotRestoreJobs) > 0 {
-		results = make([]map[string]interface{}, len(cloudProviderSnapshotRestoreJobs))
+		results = make([]map[string]any, len(cloudProviderSnapshotRestoreJobs))
 
 		for k, cloudProviderSnapshotRestoreJob := range cloudProviderSnapshotRestoreJobs {
-			results[k] = map[string]interface{}{
+			results[k] = map[string]any{
 				"id":                        cloudProviderSnapshotRestoreJob.ID,
 				"cancelled":                 cloudProviderSnapshotRestoreJob.Cancelled,
 				"created_at":                cloudProviderSnapshotRestoreJob.CreatedAt,

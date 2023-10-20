@@ -55,7 +55,7 @@ func resourceMongoDBAtlasAPIKey() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 	createRequest := new(matlas.APIKeyInput)
@@ -86,7 +86,7 @@ func resourceMongoDBAtlasAPIKeyCreate(ctx context.Context, d *schema.ResourceDat
 	return resourceMongoDBAtlasAPIKeyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -122,7 +122,7 @@ func resourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -144,7 +144,7 @@ func resourceMongoDBAtlasAPIKeyUpdate(ctx context.Context, d *schema.ResourceDat
 	return resourceMongoDBAtlasAPIKeyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -157,7 +157,7 @@ func resourceMongoDBAtlasAPIKeyDelete(ctx context.Context, d *schema.ResourceDat
 	return nil
 }
 
-func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -189,13 +189,13 @@ func resourceMongoDBAtlasAPIKeyImportState(ctx context.Context, d *schema.Resour
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOrgAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, apiKeys []matlas.APIKey) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenOrgAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, apiKeys []matlas.APIKey) []map[string]any {
+	var results []map[string]any
 
 	if len(apiKeys) > 0 {
-		results = make([]map[string]interface{}, len(apiKeys))
+		results = make([]map[string]any, len(apiKeys))
 		for k, apiKey := range apiKeys {
-			results[k] = map[string]interface{}{
+			results[k] = map[string]any{
 				"api_key_id":  apiKey.ID,
 				"description": apiKey.Desc,
 				"public_key":  apiKey.PublicKey,

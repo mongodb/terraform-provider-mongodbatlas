@@ -90,7 +90,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetup() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -116,7 +116,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *sc
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*MongoDBClient).Atlas
@@ -177,7 +177,7 @@ func resourceMongoDBAtlasCloudProviderAccessSetupCreate(ctx context.Context, d *
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -201,11 +201,11 @@ func resourceMongoDBAtlasCloudProviderAccessSetupDelete(ctx context.Context, d *
 	return nil
 }
 
-func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interface{} {
+func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]any {
 	if role.ProviderName == "AWS" {
-		out := map[string]interface{}{
+		out := map[string]any{
 			"provider_name": role.ProviderName,
-			"aws_config": []interface{}{map[string]interface{}{
+			"aws_config": []any{map[string]any{
 				"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 				"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 			}},
@@ -215,14 +215,14 @@ func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interfac
 		return out
 	}
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"provider_name": role.ProviderName,
-		"azure_config": []interface{}{map[string]interface{}{
+		"azure_config": []any{map[string]any{
 			"atlas_azure_app_id":   role.AtlasAzureAppID,
 			"service_principal_id": role.AzureServicePrincipalID,
 			"tenant_id":            role.AzureTenantID,
 		}},
-		"aws_config":        []interface{}{map[string]interface{}{}},
+		"aws_config":        []any{map[string]any{}},
 		"created_date":      role.CreatedDate,
 		"last_updated_date": role.LastUpdatedDate,
 		"role_id":           role.AzureID,
@@ -231,7 +231,7 @@ func roleToSchemaSetup(role *matlas.CloudProviderAccessRole) map[string]interfac
 	return out
 }
 
-func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {

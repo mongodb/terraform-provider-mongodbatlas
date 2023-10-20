@@ -87,7 +87,7 @@ func featureUsagesSchema() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -106,8 +106,8 @@ func dataSourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schem
 	return nil
 }
 
-func flatCloudProviderAccessRolesAWS(roles *matlas.CloudProviderAccessRoles) (list []map[string]interface{}) {
-	list = make([]map[string]interface{}, 0, len(roles.AWSIAMRoles))
+func flatCloudProviderAccessRolesAWS(roles *matlas.CloudProviderAccessRoles) (list []map[string]any) {
+	list = make([]map[string]any, 0, len(roles.AWSIAMRoles))
 	for i := range roles.AWSIAMRoles {
 		role := &(roles.AWSIAMRoles[i])
 		list = append(list, roleToSchemaAWS(role))
@@ -116,8 +116,8 @@ func flatCloudProviderAccessRolesAWS(roles *matlas.CloudProviderAccessRoles) (li
 	return list
 }
 
-func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{} {
-	out := map[string]interface{}{
+func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]any {
+	out := map[string]any{
 		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		"authorized_date":                role.AuthorizedDate,
@@ -127,7 +127,7 @@ func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{
 		"role_id":                        role.RoleID,
 	}
 
-	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	features := make([]map[string]any, 0, len(role.FeatureUsages))
 
 	for _, featureUsage := range role.FeatureUsages {
 		features = append(features, featureToSchema(featureUsage))
@@ -138,8 +138,8 @@ func roleToSchemaAWS(role *matlas.CloudProviderAccessRole) map[string]interface{
 	return out
 }
 
-func featureToSchema(feature *matlas.FeatureUsage) map[string]interface{} {
-	return map[string]interface{}{
+func featureToSchema(feature *matlas.FeatureUsage) map[string]any {
+	return map[string]any{
 		"feature_type": feature.FeatureType,
 		"feature_id":   feature.FeatureID,
 	}

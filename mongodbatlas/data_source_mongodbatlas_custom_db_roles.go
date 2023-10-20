@@ -82,7 +82,7 @@ func dataSourceMongoDBAtlasCustomDBRoles() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -100,14 +100,14 @@ func dataSourceMongoDBAtlasCustomDBRolesRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenCustomDBRoles(customDBRoles []matlas.CustomDBRole) []map[string]interface{} {
-	var customDBRolesMap []map[string]interface{}
+func flattenCustomDBRoles(customDBRoles []matlas.CustomDBRole) []map[string]any {
+	var customDBRolesMap []map[string]any
 
 	if len(customDBRoles) > 0 {
-		customDBRolesMap = make([]map[string]interface{}, len(customDBRoles))
+		customDBRolesMap = make([]map[string]any, len(customDBRoles))
 
 		for k, customDBRole := range customDBRoles {
-			customDBRolesMap[k] = map[string]interface{}{
+			customDBRolesMap[k] = map[string]any{
 				"role_name":       customDBRole.RoleName,
 				"actions":         flattenActions(customDBRole.Actions),
 				"inherited_roles": flattenInheritedRoles(customDBRole.InheritedRoles),

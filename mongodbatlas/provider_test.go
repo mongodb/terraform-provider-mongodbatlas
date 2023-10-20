@@ -24,7 +24,7 @@ var testAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, erro
 var testAccProviderSdkV2 *schema.Provider
 
 // testMongoDBClient is used to configure client required for Framework-based acceptance tests
-var testMongoDBClient interface{}
+var testMongoDBClient any
 
 func init() {
 	testAccProviderSdkV2 = NewSdkV2Provider()

@@ -29,7 +29,7 @@ func dataSourceMongoDBAtlasServerlessInstances() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID, projectIDOK := d.GetOk("project_id")
 
 	if !(projectIDOK) {
@@ -57,7 +57,7 @@ func dataSourceMongoDBAtlasServerlessInstancesRead(ctx context.Context, d *schem
 	return nil
 }
 
-func getServerlessList(ctx context.Context, meta interface{}, projectID string, options *matlas.ListOptions, obtainedItemsCount int) ([]*matlas.Cluster, error) {
+func getServerlessList(ctx context.Context, meta any, projectID string, options *matlas.ListOptions, obtainedItemsCount int) ([]*matlas.Cluster, error) {
 	// Get client connection.
 	var list []*matlas.Cluster
 	options.PageNum++
@@ -82,16 +82,16 @@ func getServerlessList(ctx context.Context, meta interface{}, projectID string, 
 	return list, nil
 }
 
-func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[string]interface{} {
-	var serverlessInstancesMap []map[string]interface{}
+func flattenServerlessInstances(serverlessInstances []*matlas.Cluster) []map[string]any {
+	var serverlessInstancesMap []map[string]any
 
 	if len(serverlessInstances) == 0 {
 		return nil
 	}
-	serverlessInstancesMap = make([]map[string]interface{}, len(serverlessInstances))
+	serverlessInstancesMap = make([]map[string]any, len(serverlessInstances))
 
 	for i := range serverlessInstances {
-		serverlessInstancesMap[i] = map[string]interface{}{
+		serverlessInstancesMap[i] = map[string]any{
 			"connection_strings_standard_srv": serverlessInstances[i].ConnectionStrings.StandardSrv,
 			"create_date":                     serverlessInstances[i].CreateDate,
 			"id":                              serverlessInstances[i].ID,

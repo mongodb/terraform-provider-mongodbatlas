@@ -197,7 +197,7 @@ func schemaOnlineArchive() map[string]*schema.Schema {
 	}
 }
 
-func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -226,7 +226,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
@@ -237,7 +237,7 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))
 	}
 
-	results := make([]map[string]interface{}, 0, len(archives.Results))
+	results := make([]map[string]any, 0, len(archives.Results))
 
 	for i := range archives.Results {
 		archiveData := fromOnlineArchiveToMap(&archives.Results[i])

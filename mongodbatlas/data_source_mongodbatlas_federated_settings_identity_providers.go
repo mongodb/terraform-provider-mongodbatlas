@@ -212,7 +212,7 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProviders() *schema.Resource
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -241,14 +241,14 @@ func dataSourceMongoDBAtlasFederatedSettingsIdentityProvidersRead(ctx context.Co
 	return nil
 }
 
-func flattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []matlas.FederatedSettingsIdentityProvider) []map[string]interface{} {
-	var federatedSettingsIdentityProviderMap []map[string]interface{}
+func flattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider []matlas.FederatedSettingsIdentityProvider) []map[string]any {
+	var federatedSettingsIdentityProviderMap []map[string]any
 
 	if len(federatedSettingsIdentityProvider) > 0 {
-		federatedSettingsIdentityProviderMap = make([]map[string]interface{}, len(federatedSettingsIdentityProvider))
+		federatedSettingsIdentityProviderMap = make([]map[string]any, len(federatedSettingsIdentityProvider))
 
 		for i := range federatedSettingsIdentityProvider {
-			federatedSettingsIdentityProviderMap[i] = map[string]interface{}{
+			federatedSettingsIdentityProviderMap[i] = map[string]any{
 				"acs_url":                      federatedSettingsIdentityProvider[i].AcsURL,
 				"associated_domains":           federatedSettingsIdentityProvider[i].AssociatedDomains,
 				"associated_orgs":              flattenAssociatedOrgs(federatedSettingsIdentityProvider[i].AssociatedOrgs),
@@ -269,17 +269,17 @@ func flattenFederatedSettingsIdentityProvider(federatedSettingsIdentityProvider 
 	return federatedSettingsIdentityProviderMap
 }
 
-func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string]interface{} {
-	var associatedOrgsMap []map[string]interface{}
+func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string]any {
+	var associatedOrgsMap []map[string]any
 
 	if len(associatedOrgs) == 0 {
 		return nil
 	}
-	associatedOrgsMap = make([]map[string]interface{}, len(associatedOrgs))
+	associatedOrgsMap = make([]map[string]any, len(associatedOrgs))
 
 	for i := range associatedOrgs {
 		if associatedOrgs[i].UserConflicts == nil {
-			associatedOrgsMap[i] = map[string]interface{}{
+			associatedOrgsMap[i] = map[string]any{
 				"domain_allow_list":          associatedOrgs[i].DomainAllowList,
 				"domain_restriction_enabled": associatedOrgs[i].DomainRestrictionEnabled,
 				"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
@@ -289,7 +289,7 @@ func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string
 				"user_conflicts":             nil,
 			}
 		} else {
-			associatedOrgsMap[i] = map[string]interface{}{
+			associatedOrgsMap[i] = map[string]any{
 				"domain_allow_list":          associatedOrgs[i].DomainAllowList,
 				"domain_restriction_enabled": associatedOrgs[i].DomainRestrictionEnabled,
 				"identity_provider_id":       associatedOrgs[i].IdentityProviderID,
@@ -304,16 +304,16 @@ func flattenAssociatedOrgs(associatedOrgs []*matlas.AssociatedOrgs) []map[string
 	return associatedOrgsMap
 }
 
-func flattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]interface{} {
-	var userConflictsMap []map[string]interface{}
+func flattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]any {
+	var userConflictsMap []map[string]any
 
 	if len(userConflicts) == 0 {
 		return nil
 	}
-	userConflictsMap = make([]map[string]interface{}, len(userConflicts))
+	userConflictsMap = make([]map[string]any, len(userConflicts))
 
 	for i := range userConflicts {
-		userConflictsMap[i] = map[string]interface{}{
+		userConflictsMap[i] = map[string]any{
 			"email_address":          userConflicts[i].EmailAddress,
 			"federation_settings_id": userConflicts[i].FederationSettingsID,
 			"first_name":             userConflicts[i].FirstName,
@@ -325,13 +325,13 @@ func flattenUserConflicts(userConflicts matlas.UserConflicts) []map[string]inter
 	return userConflictsMap
 }
 
-func flattenPemFileInfo(pemFileInfo matlas.PemFileInfo) []map[string]interface{} {
-	var pemFileInfoMap []map[string]interface{}
+func flattenPemFileInfo(pemFileInfo matlas.PemFileInfo) []map[string]any {
+	var pemFileInfoMap []map[string]any
 
 	if len(pemFileInfo.Certificates) > 0 {
-		pemFileInfoMap = make([]map[string]interface{}, 1)
+		pemFileInfoMap = make([]map[string]any, 1)
 
-		pemFileInfoMap[0] = map[string]interface{}{
+		pemFileInfoMap[0] = map[string]any{
 			"certificates": flattenFederatedSettingsCertificates(pemFileInfo.Certificates),
 			"file_name":    pemFileInfo.FileName,
 		}
@@ -340,14 +340,14 @@ func flattenPemFileInfo(pemFileInfo matlas.PemFileInfo) []map[string]interface{}
 	return pemFileInfoMap
 }
 
-func flattenFederatedSettingsCertificates(certificates []*matlas.Certificates) []map[string]interface{} {
-	var certificatesMap []map[string]interface{}
+func flattenFederatedSettingsCertificates(certificates []*matlas.Certificates) []map[string]any {
+	var certificatesMap []map[string]any
 
 	if len(certificates) > 0 {
-		certificatesMap = make([]map[string]interface{}, len(certificates))
+		certificatesMap = make([]map[string]any, len(certificates))
 
 		for i := range certificates {
-			certificatesMap[i] = map[string]interface{}{
+			certificatesMap[i] = map[string]any{
 				"not_after":  certificates[i].NotAfter.String(),
 				"not_before": certificates[i].NotBefore.String(),
 			}
@@ -386,16 +386,16 @@ func (ra roleMappingsByGroupName) Less(i, j int) bool {
 	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
-func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]interface{} {
+func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]any {
 	sort.Sort(roleMappingsByGroupName(roleMappings))
 
-	var roleMappingsMap []map[string]interface{}
+	var roleMappingsMap []map[string]any
 
 	if len(roleMappings) > 0 {
-		roleMappingsMap = make([]map[string]interface{}, len(roleMappings))
+		roleMappingsMap = make([]map[string]any, len(roleMappings))
 
 		for i := range roleMappings {
-			roleMappingsMap[i] = map[string]interface{}{
+			roleMappingsMap[i] = map[string]any{
 				"external_group_name": roleMappings[i].ExternalGroupName,
 				"id":                  roleMappings[i].ID,
 				"role_assignments":    flattenRoleAssignments(roleMappings[i].RoleAssignments),
@@ -406,16 +406,16 @@ func flattenRoleMappings(roleMappings []*matlas.RoleMappings) []map[string]inter
 	return roleMappingsMap
 }
 
-func flattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[string]interface{} {
+func flattenRoleAssignments(roleAssignments []*matlas.RoleAssignments) []map[string]any {
 	sort.Sort(mRoleAssignment(roleAssignments))
 
-	var roleAssignmentsMap []map[string]interface{}
+	var roleAssignmentsMap []map[string]any
 
 	if len(roleAssignments) > 0 {
-		roleAssignmentsMap = make([]map[string]interface{}, len(roleAssignments))
+		roleAssignmentsMap = make([]map[string]any, len(roleAssignments))
 
 		for i := range roleAssignments {
-			roleAssignmentsMap[i] = map[string]interface{}{
+			roleAssignmentsMap[i] = map[string]any{
 				"group_id": roleAssignments[i].GroupID,
 				"org_id":   roleAssignments[i].OrgID,
 				"role":     roleAssignments[i].Role,

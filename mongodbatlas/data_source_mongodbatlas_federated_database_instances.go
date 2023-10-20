@@ -110,7 +110,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstances() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -131,14 +131,14 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 	return nil
 }
 
-func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []admin.DataLakeTenant) []map[string]interface{} {
-	var federatedDatabaseInstancesMap []map[string]interface{}
+func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []admin.DataLakeTenant) []map[string]any {
+	var federatedDatabaseInstancesMap []map[string]any
 
 	if len(federatedDatabaseInstances) > 0 {
-		federatedDatabaseInstancesMap = make([]map[string]interface{}, len(federatedDatabaseInstances))
+		federatedDatabaseInstancesMap = make([]map[string]any, len(federatedDatabaseInstances))
 
 		for i := range federatedDatabaseInstances {
-			federatedDatabaseInstancesMap[i] = map[string]interface{}{
+			federatedDatabaseInstancesMap[i] = map[string]any{
 				"project_id":            projectID,
 				"name":                  federatedDatabaseInstances[i].GetName(),
 				"state":                 federatedDatabaseInstances[i].GetState(),

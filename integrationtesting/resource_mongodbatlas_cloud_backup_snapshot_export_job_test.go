@@ -26,7 +26,7 @@ func TestResourceCloudBackupSnapshotExportJob(t *testing.T) {
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../examples/atlas-provider-snapshot-export-job",
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_id":  projectID,
 			"public_key":  publicKey,
 			"private_key": privateKey,

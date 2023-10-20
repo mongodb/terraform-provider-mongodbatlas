@@ -72,7 +72,7 @@ func dataSourceMongoDBAtlasLDAPConfiguration() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasLDAPConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 

@@ -324,7 +324,7 @@ func dataSourceMongoDBAtlasClusters() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasClustersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -346,8 +346,8 @@ func dataSourceMongoDBAtlasClustersRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, clusters []matlas.Cluster) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	for i := range clusters {
 		snapshotBackupPolicy, err := flattenCloudProviderSnapshotBackupPolicy(ctx, d, conn, clusters[i].GroupID, clusters[i].Name)
@@ -368,7 +368,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 
 			containerID = getContainerID(containers, &clusters[i])
 		}
-		result := map[string]interface{}{
+		result := map[string]any{
 			"advanced_configuration":                  flattenProcessArgs(processArgs),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,

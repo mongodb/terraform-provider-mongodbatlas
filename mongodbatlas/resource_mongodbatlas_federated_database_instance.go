@@ -335,7 +335,7 @@ func schemaFederatedDatabaseInstanceStores() *schema.Schema {
 	}
 }
 
-func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -358,7 +358,7 @@ func resourceMongoDBFederatedDatabaseInstanceCreate(ctx context.Context, d *sche
 	return resourceMongoDBAFederatedDatabaseInstanceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -406,7 +406,7 @@ func resourceMongoDBAFederatedDatabaseInstanceRead(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	ids := decodeStateID(d.Id())
@@ -432,7 +432,7 @@ func resourceMongoDBFederatedDatabaseInstanceUpdate(ctx context.Context, d *sche
 	return resourceMongoDBAFederatedDatabaseInstanceRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	ids := decodeStateID(d.Id())
@@ -446,7 +446,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceDelete(ctx context.Context, d 
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID, name, s3Bucket, err := splitDataFederatedInstanceImportID(d.Id())
@@ -456,7 +456,7 @@ func resourceMongoDBAtlasFederatedDatabaseInstanceImportState(ctx context.Contex
 
 	// test_s3_bucket is not part of the API response
 	if s3Bucket != "" {
-		cloudProviderConfig := []map[string][]map[string]interface{}{
+		cloudProviderConfig := []map[string][]map[string]any{
 			{
 				"aws": {
 					{
@@ -538,7 +538,7 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 
 	stores := make([]admin.DataLakeStoreSettings, len(storesFromConf))
 	for i, storeFromConf := range storesFromConf {
-		storeFromConfMap := storeFromConf.(map[string]interface{})
+		storeFromConfMap := storeFromConf.(map[string]any)
 		stores[i] = admin.DataLakeStoreSettings{
 			Name:                     stringPtr(storeFromConfMap["name"].(string)),
 			Provider:                 storeFromConfMap["provider"].(string),
@@ -549,7 +549,7 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 			Prefix:                   stringPtr(storeFromConfMap["prefix"].(string)),
 			Delimiter:                stringPtr(storeFromConfMap["delimiter"].(string)),
 			IncludeTags:              pointer(storeFromConfMap["include_tags"].(bool)),
-			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]interface{})),
+			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any)),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
 	}
@@ -557,7 +557,7 @@ func newStores(d *schema.ResourceData) []admin.DataLakeStoreSettings {
 	return stores
 }
 
-func newAdditionalStorageClasses(additionalStorageClassesFromConfig []interface{}) []string {
+func newAdditionalStorageClasses(additionalStorageClassesFromConfig []any) []string {
 	if len(additionalStorageClassesFromConfig) == 0 {
 		return nil
 	}
@@ -570,12 +570,12 @@ func newAdditionalStorageClasses(additionalStorageClassesFromConfig []interface{
 	return additionalStorageClasses
 }
 
-func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeAtlasStoreReadPreference {
-	readPreferenceFromConf, ok := storeFromConfMap["read_preference"].([]interface{})
+func newReadPreference(storeFromConfMap map[string]any) *admin.DataLakeAtlasStoreReadPreference {
+	readPreferenceFromConf, ok := storeFromConfMap["read_preference"].([]any)
 	if !ok || len(readPreferenceFromConf) == 0 {
 		return nil
 	}
-	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]interface{})
+	readPreferenceFromConfMap := readPreferenceFromConf[0].(map[string]any)
 	return &admin.DataLakeAtlasStoreReadPreference{
 		Mode:                stringPtr(readPreferenceFromConfMap["mode"].(string)),
 		MaxStalenessSeconds: intPtr(readPreferenceFromConfMap["max_staleness_seconds"].(int)),
@@ -583,21 +583,21 @@ func newReadPreference(storeFromConfMap map[string]interface{}) *admin.DataLakeA
 	}
 }
 
-func newTagSets(readPreferenceFromConfMap map[string]interface{}) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
+func newTagSets(readPreferenceFromConfMap map[string]any) [][]admin.DataLakeAtlasStoreReadPreferenceTag {
 	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
 
-	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]interface{})
+	tagSetsFromConf, ok := readPreferenceFromConfMap["tag_sets"].([]any)
 	if !ok || len(tagSetsFromConf) == 0 {
 		return nil
 	}
 
 	for ts := 0; ts < len(tagSetsFromConf); ts++ {
-		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]interface{})
-		tagsFromConfigMap := tagSetFromConfMap["tags"].([]interface{})
+		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]any)
+		tagsFromConfigMap := tagSetFromConfMap["tags"].([]any)
 		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
 
 		for t := 0; t < len(tagsFromConfigMap); t++ {
-			tagFromConfMap := tagsFromConfigMap[t].(map[string]interface{})
+			tagFromConfMap := tagsFromConfigMap[t].(map[string]any)
 
 			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
 				Name:  stringPtr(tagFromConfMap["name"].(string)),
@@ -618,7 +618,7 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 
 	dbs := make([]admin.DataLakeDatabaseInstance, len(storageDBsFromConf))
 	for i, storageDBFromConf := range storageDBsFromConf {
-		storageDBFromConfMap := storageDBFromConf.(map[string]interface{})
+		storageDBFromConfMap := storageDBFromConf.(map[string]any)
 
 		dbs[i] = admin.DataLakeDatabaseInstance{
 			Name:                   stringPtr(storageDBFromConfMap["name"].(string)),
@@ -630,7 +630,7 @@ func newDataFederationDatabase(d *schema.ResourceData) []admin.DataLakeDatabaseI
 	return dbs
 }
 
-func newDataFederationCollections(storageDBFromConfMap map[string]interface{}) []admin.DataLakeDatabaseCollection {
+func newDataFederationCollections(storageDBFromConfMap map[string]any) []admin.DataLakeDatabaseCollection {
 	collectionsFromConf := storageDBFromConfMap["collections"].(*schema.Set).List()
 	if len(collectionsFromConf) == 0 {
 		return nil
@@ -639,22 +639,22 @@ func newDataFederationCollections(storageDBFromConfMap map[string]interface{}) [
 	collections := make([]admin.DataLakeDatabaseCollection, len(collectionsFromConf))
 	for i, collectionFromConf := range collectionsFromConf {
 		collections[i] = admin.DataLakeDatabaseCollection{
-			Name:        stringPtr(collectionFromConf.(map[string]interface{})["name"].(string)),
-			DataSources: newDataFederationDataSource(collectionFromConf.(map[string]interface{})),
+			Name:        stringPtr(collectionFromConf.(map[string]any)["name"].(string)),
+			DataSources: newDataFederationDataSource(collectionFromConf.(map[string]any)),
 		}
 	}
 
 	return collections
 }
 
-func newDataFederationDataSource(collectionFromConf map[string]interface{}) []admin.DataLakeDatabaseDataSourceSettings {
+func newDataFederationDataSource(collectionFromConf map[string]any) []admin.DataLakeDatabaseDataSourceSettings {
 	dataSourcesFromConf := collectionFromConf["data_sources"].(*schema.Set).List()
 	if len(dataSourcesFromConf) == 0 {
 		return nil
 	}
 	dataSources := make([]admin.DataLakeDatabaseDataSourceSettings, len(dataSourcesFromConf))
 	for i, dataSourceFromConf := range dataSourcesFromConf {
-		dataSourceFromConfMap := dataSourceFromConf.(map[string]interface{})
+		dataSourceFromConfMap := dataSourceFromConf.(map[string]any)
 
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
 			AllowInsecure:       pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
@@ -667,14 +667,14 @@ func newDataFederationDataSource(collectionFromConf map[string]interface{}) []ad
 			ProvenanceFieldName: stringPtr(dataSourceFromConfMap["provenance_field_name"].(string)),
 			StoreName:           stringPtr(dataSourceFromConfMap["store_name"].(string)),
 			DatasetName:         stringPtr(dataSourceFromConfMap["dataset_name"].(string)),
-			Urls:                newUrls(dataSourceFromConfMap["urls"].([]interface{})),
+			Urls:                newUrls(dataSourceFromConfMap["urls"].([]any)),
 		}
 	}
 
 	return dataSources
 }
 
-func newUrls(urlsFromConfig []interface{}) []string {
+func newUrls(urlsFromConfig []any) []string {
 	if len(urlsFromConfig) == 0 {
 		return nil
 	}
@@ -688,16 +688,16 @@ func newUrls(urlsFromConfig []interface{}) []string {
 }
 
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
-	if cloudProvider, ok := d.Get("cloud_provider_config").([]interface{}); ok && len(cloudProvider) == 1 {
+	if cloudProvider, ok := d.Get("cloud_provider_config").([]any); ok && len(cloudProvider) == 1 {
 		return admin.NewDataLakeCloudProviderConfig(*newAWSConfig(cloudProvider))
 	}
 
 	return nil
 }
 
-func newAWSConfig(cloudProvider []interface{}) *admin.DataLakeAWSCloudProviderConfig {
-	if aws, ok := cloudProvider[0].(map[string]interface{})["aws"].([]interface{}); ok && len(aws) == 1 {
-		awsSchema := aws[0].(map[string]interface{})
+func newAWSConfig(cloudProvider []any) *admin.DataLakeAWSCloudProviderConfig {
+	if aws, ok := cloudProvider[0].(map[string]any)["aws"].([]any); ok && len(aws) == 1 {
+		awsSchema := aws[0].(map[string]any)
 		return admin.NewDataLakeAWSCloudProviderConfig(awsSchema["role_id"].(string), awsSchema["test_s3_bucket"].(string))
 	}
 
@@ -705,24 +705,24 @@ func newAWSConfig(cloudProvider []interface{}) *admin.DataLakeAWSCloudProviderCo
 }
 
 func newDataProcessRegion(d *schema.ResourceData) *admin.DataLakeDataProcessRegion {
-	if dataProcessRegion, ok := d.Get("data_process_region").([]interface{}); ok && len(dataProcessRegion) == 1 {
+	if dataProcessRegion, ok := d.Get("data_process_region").([]any); ok && len(dataProcessRegion) == 1 {
 		return &admin.DataLakeDataProcessRegion{
-			CloudProvider: dataProcessRegion[0].(map[string]interface{})["cloud_provider"].(string),
-			Region:        dataProcessRegion[0].(map[string]interface{})["region"].(string),
+			CloudProvider: dataProcessRegion[0].(map[string]any)["cloud_provider"].(string),
+			Region:        dataProcessRegion[0].(map[string]any)["region"].(string),
 		}
 	}
 
 	return nil
 }
 
-func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *admin.DataLakeCloudProviderConfig) []map[string]interface{} {
+func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *admin.DataLakeCloudProviderConfig) []map[string]any {
 	if cloudProviderConfig == nil {
 		return nil
 	}
 
 	aws := cloudProviderConfig.GetAws()
 
-	awsOut := []map[string]interface{}{
+	awsOut := []map[string]any{
 		{
 			"role_id":              aws.GetRoleId(),
 			"iam_assumed_role_arn": aws.GetIamAssumedRoleARN(),
@@ -731,19 +731,19 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 		},
 	}
 
-	currentCloudProviderConfig, ok := d.Get("cloud_provider_config").([]interface{})
+	currentCloudProviderConfig, ok := d.Get("cloud_provider_config").([]any)
 	if !ok || len(currentCloudProviderConfig) == 0 {
-		return []map[string]interface{}{
+		return []map[string]any{
 			{
 				"aws": &awsOut,
 			},
 		}
 	}
 	// test_s3_bucket is not part of the API response
-	if currentAWS, ok := currentCloudProviderConfig[0].(map[string]interface{})["aws"].([]interface{}); ok {
-		if testS3Bucket, ok := currentAWS[0].(map[string]interface{})["test_s3_bucket"].(string); ok {
+	if currentAWS, ok := currentCloudProviderConfig[0].(map[string]any)["aws"].([]any); ok {
+		if testS3Bucket, ok := currentAWS[0].(map[string]any)["test_s3_bucket"].(string); ok {
 			awsOut[0]["test_s3_bucket"] = testS3Bucket
-			return []map[string]interface{}{
+			return []map[string]any{
 				{
 					"aws": &awsOut,
 				},
@@ -754,12 +754,12 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 	return awsOut
 }
 
-func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []map[string]interface{} {
+func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []map[string]any {
 	if processRegion == nil || (processRegion.Region != "" && processRegion.CloudProvider != "") {
 		return nil
 	}
 
-	return []map[string]interface{}{
+	return []map[string]any{
 		{
 			"cloud_provider": processRegion.GetCloudProvider(),
 			"region":         processRegion.GetRegion(),
@@ -767,11 +767,11 @@ func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []
 	}
 }
 
-func flattenDataFederationDatabase(atlasDatabases []admin.DataLakeDatabaseInstance) []map[string]interface{} {
-	dbs := make([]map[string]interface{}, len(atlasDatabases))
+func flattenDataFederationDatabase(atlasDatabases []admin.DataLakeDatabaseInstance) []map[string]any {
+	dbs := make([]map[string]any, len(atlasDatabases))
 
 	for i, atlasDatabase := range atlasDatabases {
-		dbs[i] = map[string]interface{}{
+		dbs[i] = map[string]any{
 			"name":                     atlasDatabase.GetName(),
 			"max_wildcard_collections": atlasDatabase.GetMaxWildcardCollections(),
 			"collections":              flattenDataFederationCollections(atlasDatabase.Collections),
@@ -782,11 +782,11 @@ func flattenDataFederationDatabase(atlasDatabases []admin.DataLakeDatabaseInstan
 	return dbs
 }
 
-func flattenDataFederationDatabaseViews(atlasViews []admin.DataLakeApiBase) []map[string]interface{} {
-	views := make([]map[string]interface{}, len(atlasViews))
+func flattenDataFederationDatabaseViews(atlasViews []admin.DataLakeApiBase) []map[string]any {
+	views := make([]map[string]any, len(atlasViews))
 
 	for i, atlasView := range atlasViews {
-		views[i] = map[string]interface{}{
+		views[i] = map[string]any{
 			"name":     atlasView.GetName(),
 			"source":   atlasView.GetSource(),
 			"pipeline": atlasView.GetPipeline(),
@@ -796,11 +796,11 @@ func flattenDataFederationDatabaseViews(atlasViews []admin.DataLakeApiBase) []ma
 	return views
 }
 
-func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseCollection) []map[string]interface{} {
-	colls := make([]map[string]interface{}, len(atlasCollections))
+func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseCollection) []map[string]any {
+	colls := make([]map[string]any, len(atlasCollections))
 
 	for i, atlasCollection := range atlasCollections {
-		colls[i] = map[string]interface{}{
+		colls[i] = map[string]any{
 			"name":         atlasCollection.GetName(),
 			"data_sources": flattenDataFederationDataSources(atlasCollection.DataSources),
 		}
@@ -809,11 +809,11 @@ func flattenDataFederationCollections(atlasCollections []admin.DataLakeDatabaseC
 	return colls
 }
 
-func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseDataSourceSettings) []map[string]interface{} {
-	out := make([]map[string]interface{}, len(atlasDataSources))
+func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseDataSourceSettings) []map[string]any {
+	out := make([]map[string]any, len(atlasDataSources))
 
 	for i, AtlasDataSource := range atlasDataSources {
-		out[i] = map[string]interface{}{
+		out[i] = map[string]any{
 			"allow_insecure":        AtlasDataSource.GetAllowInsecure(),
 			"collection":            AtlasDataSource.GetCollection(),
 			"collection_regex":      AtlasDataSource.GetCollectionRegex(),
@@ -831,11 +831,11 @@ func flattenDataFederationDataSources(atlasDataSources []admin.DataLakeDatabaseD
 	return out
 }
 
-func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[string]interface{} {
-	store := make([]map[string]interface{}, 0)
+func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[string]any {
+	store := make([]map[string]any, 0)
 
 	for i := range stores {
-		store = append(store, map[string]interface{}{
+		store = append(store, map[string]any{
 			"name":                       stores[i].GetName(),
 			"provider":                   stores[i].GetProvider(),
 			"region":                     stores[i].GetRegion(),
@@ -857,12 +857,12 @@ func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[str
 	return store
 }
 
-func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPreference) []map[string]interface{} {
+func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPreference) []map[string]any {
 	if atlasReadPreference == nil {
 		return nil
 	}
 
-	return []map[string]interface{}{
+	return []map[string]any{
 		{
 			"mode":                  atlasReadPreference.GetMode(),
 			"max_staleness_seconds": atlasReadPreference.GetMaxStalenessSeconds(),
@@ -871,11 +871,11 @@ func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPre
 	}
 }
 
-func flattenReadPreferenceTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
-	tfTagSets := make([]map[string]interface{}, 0)
+func flattenReadPreferenceTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]any {
+	tfTagSets := make([]map[string]any, 0)
 
 	for i := range tagSets {
-		tfTagSets = append(tfTagSets, map[string]interface{}{
+		tfTagSets = append(tfTagSets, map[string]any{
 			"tags": flattenReadPreferenceTags(tagSets[i]),
 		})
 	}
@@ -883,11 +883,11 @@ func flattenReadPreferenceTagSets(tagSets [][]admin.DataLakeAtlasStoreReadPrefer
 	return tfTagSets
 }
 
-func flattenReadPreferenceTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]interface{} {
-	tfTags := make([]map[string]interface{}, 0)
+func flattenReadPreferenceTags(tags []admin.DataLakeAtlasStoreReadPreferenceTag) []map[string]any {
+	tfTags := make([]map[string]any, 0)
 
 	for i := range tags {
-		tfTags = append(tfTags, map[string]interface{}{
+		tfTags = append(tfTags, map[string]any{
 			"name":  tags[i].Name,
 			"value": tags[i].Value,
 		})

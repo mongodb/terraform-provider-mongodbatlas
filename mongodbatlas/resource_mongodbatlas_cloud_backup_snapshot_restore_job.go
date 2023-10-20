@@ -127,7 +127,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -136,7 +136,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 		ClusterName: d.Get("cluster_name").(string),
 	}
 
-	err := validateDeliveryType(d.Get("delivery_type_config").([]interface{}))
+	err := validateDeliveryType(d.Get("delivery_type_config").([]any))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -157,7 +157,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobCreate(ctx context.Context
 	return resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -213,7 +213,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, 
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -246,7 +246,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobDelete(ctx context.Context
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, clusterName, snapshotJobID, err := splitSnapshotRestoreJobImportID(d.Id())
@@ -277,8 +277,8 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Co
 		log.Printf("[WARN] Error setting snapshot_id for (%s): %s", d.Id(), err)
 	}
 
-	deliveryType := make(map[string]interface{})
-	deliveryTypeConfig := make(map[string]interface{})
+	deliveryType := make(map[string]any)
+	deliveryTypeConfig := make(map[string]any)
 
 	if u.DeliveryType == "automated" {
 		deliveryType["automated"] = "true"
@@ -290,7 +290,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRestoreJobImportState(ctx context.Co
 		deliveryTypeConfig["target_project_id"] = u.TargetGroupID
 	}
 
-	if err := d.Set("delivery_type_config", []interface{}{deliveryTypeConfig}); err != nil {
+	if err := d.Set("delivery_type_config", []any{deliveryTypeConfig}); err != nil {
 		log.Printf("[WARN] Error setting delivery_type for (%s): %s", d.Id(), err)
 	}
 
@@ -319,12 +319,12 @@ func splitSnapshotRestoreJobImportID(id string) (projectID, clusterName, snapsho
 	return
 }
 
-func validateDeliveryType(dt []interface{}) error {
+func validateDeliveryType(dt []any) error {
 	if len(dt) == 0 {
 		return nil
 	}
 
-	v := dt[0].(map[string]interface{})
+	v := dt[0].(map[string]any)
 	key := "delivery_type_config"
 
 	a, aOk := v["automated"]
@@ -384,9 +384,9 @@ func validateDeliveryType(dt []interface{}) error {
 
 func buildRequestSnapshotReq(d *schema.ResourceData) *matlas.CloudProviderSnapshotRestoreJob {
 	if _, ok := d.GetOk("delivery_type_config"); ok {
-		deliveryList := d.Get("delivery_type_config").([]interface{})
+		deliveryList := d.Get("delivery_type_config").([]any)
 
-		delivery := deliveryList[0].(map[string]interface{})
+		delivery := deliveryList[0].(map[string]any)
 
 		deliveryType := "automated"
 		if aut, _ := delivery["download"].(bool); aut {

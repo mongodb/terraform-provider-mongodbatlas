@@ -69,7 +69,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJob() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).AtlasV2
 
 	jobID := d.Get("job_id").(string)

@@ -142,7 +142,7 @@ func dataSourceMongoDBAtlasEventTriggers() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) error {
 	// Get client connection.
 	ctx := context.Background()
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
@@ -167,14 +167,14 @@ func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func flattenEventTriggers(eventTriggers []realm.EventTrigger) []map[string]interface{} {
-	var triggersMap []map[string]interface{}
+func flattenEventTriggers(eventTriggers []realm.EventTrigger) []map[string]any {
+	var triggersMap []map[string]any
 
 	if len(eventTriggers) > 0 {
-		triggersMap = make([]map[string]interface{}, len(eventTriggers))
+		triggersMap = make([]map[string]any, len(eventTriggers))
 
 		for i := range eventTriggers {
-			triggersMap[i] = map[string]interface{}{
+			triggersMap[i] = map[string]any{
 				"trigger_id":                  eventTriggers[i].ID,
 				"name":                        eventTriggers[i].Name,
 				"type":                        eventTriggers[i].Type,

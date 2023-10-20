@@ -146,7 +146,7 @@ func (r *ProjectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			_, _, err := conn.ProjectIPAccessList.Create(ctx, projectID, newMongoDBProjectIPAccessList(projectIPAccessListModel))
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||

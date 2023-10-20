@@ -57,7 +57,7 @@ func datasourceMongoDBAtlasCloudBackupSnapshotExportBuckets() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -86,17 +86,17 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsExportBucketsRead(ctx context.Con
 	return nil
 }
 
-func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnapshotExportBucket) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenCloudBackupSnapshotExportBuckets(buckets []*matlas.CloudProviderSnapshotExportBucket) []map[string]any {
+	var results []map[string]any
 
 	if len(buckets) == 0 {
 		return results
 	}
 
-	results = make([]map[string]interface{}, len(buckets))
+	results = make([]map[string]any, len(buckets))
 
 	for k, bucket := range buckets {
-		results[k] = map[string]interface{}{
+		results[k] = map[string]any{
 			"export_bucket_id": bucket.ID,
 			"bucket_name":      bucket.BucketName,
 			"cloud_provider":   bucket.CloudProvider,

@@ -56,7 +56,7 @@ func schemaMongoDBAtlasFederatedDatabaseQueryLimitDataSource() map[string]*schem
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)

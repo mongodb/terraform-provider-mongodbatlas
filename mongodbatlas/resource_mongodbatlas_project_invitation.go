@@ -59,7 +59,7 @@ func resourceMongoDBAtlasProjectInvitation() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -116,7 +116,7 @@ func resourceMongoDBAtlasProjectInvitationRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -140,7 +140,7 @@ func resourceMongoDBAtlasProjectInvitationCreate(ctx context.Context, d *schema.
 	return resourceMongoDBAtlasProjectInvitationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -155,7 +155,7 @@ func resourceMongoDBAtlasProjectInvitationDelete(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -174,7 +174,7 @@ func resourceMongoDBAtlasProjectInvitationUpdate(ctx context.Context, d *schema.
 	return resourceMongoDBAtlasProjectInvitationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasProjectInvitationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID, username, err := splitProjectInvitationImportID(d.Id())
 	if err != nil {
