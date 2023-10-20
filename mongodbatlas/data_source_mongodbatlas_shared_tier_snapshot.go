@@ -53,7 +53,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshot() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasSharedTierSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasSharedTierSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)

@@ -72,7 +72,7 @@ func dataSourceMongoDBAtlasCustomDBRole() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	roleName := d.Get("role_name").(string)

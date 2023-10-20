@@ -44,7 +44,7 @@ func resourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				ForceNew: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 1 || v > 24 {
 						errs = append(errs, fmt.Errorf("%q value should be between 1 and 24, got: %d", key, v))
@@ -96,7 +96,7 @@ func resourceMongoDBAtlasX509AuthDBUser() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -131,7 +131,7 @@ func resourceMongoDBAtlasX509AuthDBUserCreate(ctx context.Context, d *schema.Res
 	return resourceMongoDBAtlasX509AuthDBUserRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -173,7 +173,7 @@ func resourceMongoDBAtlasX509AuthDBUserRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -192,7 +192,7 @@ func resourceMongoDBAtlasX509AuthDBUserDelete(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -240,10 +240,10 @@ func resourceMongoDBAtlasX509AuthDBUserImportState(ctx context.Context, d *schem
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenCertificates(userCertificates []matlas.UserCertificate) []map[string]interface{} {
-	certificates := make([]map[string]interface{}, len(userCertificates))
+func flattenCertificates(userCertificates []matlas.UserCertificate) []map[string]any {
+	certificates := make([]map[string]any, len(userCertificates))
 	for i, v := range userCertificates {
-		certificates[i] = map[string]interface{}{
+		certificates[i] = map[string]any{
 			"id":         v.ID,
 			"created_at": v.CreatedAt,
 			"group_id":   v.GroupID,

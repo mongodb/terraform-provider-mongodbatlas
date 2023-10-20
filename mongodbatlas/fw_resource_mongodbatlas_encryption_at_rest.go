@@ -234,7 +234,7 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		Delay:      0,
 	}
 
-	var encryptionResp interface{}
+	var encryptionResp any
 	var err error
 	if encryptionResp, err = stateConf.WaitForStateContext(ctx); err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorCreateEncryptionAtRest, projectID), err.Error())
@@ -253,7 +253,7 @@ func (r *EncryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func resourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, projectID string, conn *matlas.Client, encryptionAtRestReq *matlas.EncryptionAtRest) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		encryptionResp, _, err := conn.EncryptionsAtRest.Create(ctx, encryptionAtRestReq)
 		if err != nil {
 			if errors.Is(err, errors.New("CANNOT_ASSUME_ROLE")) ||

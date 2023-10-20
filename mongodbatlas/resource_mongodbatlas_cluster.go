@@ -265,9 +265,9 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 						},
 					},
 				},
-				Set: func(v interface{}) int {
+				Set: func(v any) int {
 					var buf bytes.Buffer
-					m := v.(map[string]interface{})
+					m := v.(map[string]any)
 					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
 					buf.WriteString(m["zone_name"].(string))
 					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
@@ -352,7 +352,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -542,8 +542,8 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 		the advanced configuration option to attach it
 	*/
 	ac, ok := d.GetOk("advanced_configuration")
-	if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
-		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+	if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
+		advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 
 		if ok {
 			_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
@@ -575,7 +575,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -757,7 +757,7 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -891,8 +891,8 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	*/
 	if d.HasChange("advanced_configuration") {
 		ac := d.Get("advanced_configuration")
-		if aclist, ok1 := ac.([]interface{}); ok1 && len(aclist) > 0 {
-			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]interface{}))
+		if aclist, ok1 := ac.([]any); ok1 && len(aclist) > 0 {
+			advancedConfReq := expandProcessArgs(d, aclist[0].(map[string]any))
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, clusterName, advancedConfReq)
 				if err != nil {
@@ -963,7 +963,7 @@ func didErrOnPausedCluster(err error) bool {
 	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
 }
 
-func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -1002,7 +1002,7 @@ func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceDa
 	return nil
 }
 
-func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasClusterImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, name, err := splitSClusterImportID(d.Id())
@@ -1056,9 +1056,9 @@ func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	var biConnector matlas.BiConnector
 
 	if v, ok := d.GetOk("bi_connector_config"); ok {
-		biConn := v.([]interface{})
+		biConn := v.([]any)
 		if len(biConn) > 0 {
-			biConnMap := biConn[0].(map[string]interface{})
+			biConnMap := biConn[0].(map[string]any)
 
 			enabled := cast.ToBool(biConnMap["enabled"])
 
@@ -1072,9 +1072,9 @@ func expandBiConnectorConfig(d *schema.ResourceData) (*matlas.BiConnector, error
 	return &biConnector, nil
 }
 
-func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenBiConnectorConfig(biConnector *matlas.BiConnector) []any {
+	return []any{
+		map[string]any{
 			"enabled":         *biConnector.Enabled,
 			"read_preference": biConnector.ReadPreference,
 		},
@@ -1214,7 +1214,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 	if okRSpecs {
 		for _, s := range vRSpecs.(*schema.Set).List() {
-			spec := s.(map[string]interface{})
+			spec := s.(map[string]any)
 
 			replaceRegion := ""
 			originalRegion := ""
@@ -1230,10 +1230,10 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			if d.HasChange("replication_specs") {
 				// Get original and new object
-				var oldSpecs map[string]interface{}
+				var oldSpecs map[string]any
 				original, _ := d.GetChange("replication_specs")
 				for _, s := range original.(*schema.Set).List() {
-					oldSpecs = s.(map[string]interface{})
+					oldSpecs = s.(map[string]any)
 					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
 						id = oldSpecs["id"].(string)
 						break
@@ -1262,11 +1262,11 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	return rSpecs, nil
 }
 
-func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]interface{} {
-	specs := make([]map[string]interface{}, 0)
+func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]any {
+	specs := make([]map[string]any, 0)
 
 	for _, rSpec := range rSpecs {
-		spec := map[string]interface{}{
+		spec := map[string]any{
 			"id":             rSpec.ID,
 			"num_shards":     rSpec.NumShards,
 			"zone_name":      cast.ToString(rSpec.ZoneName),
@@ -1278,11 +1278,11 @@ func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]inter
 	return specs
 }
 
-func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
+func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, r := range regions {
-		region := r.(map[string]interface{})
+		region := r.(map[string]any)
 
 		r, err := valRegion(region["region_name"])
 		if err != nil {
@@ -1307,11 +1307,11 @@ func expandRegionsConfig(regions []interface{}, originalRegion, replaceRegion st
 	return regionsConfig, nil
 }
 
-func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[string]interface{} {
-	regions := make([]map[string]interface{}, 0)
+func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[string]any {
+	regions := make([]map[string]any, 0)
 
 	for regionName, regionConfig := range regionsConfig {
-		region := map[string]interface{}{
+		region := map[string]any{
 			"region_name":     regionName,
 			"priority":        regionConfig.Priority,
 			"analytics_nodes": regionConfig.AnalyticsNodes,
@@ -1324,7 +1324,7 @@ func flattenRegionsConfig(regionsConfig map[string]matlas.RegionsConfig) []map[s
 	return regions
 }
 
-func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas.ProcessArgs {
+func expandProcessArgs(d *schema.ResourceData, p map[string]any) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_read_concern"); ok {
@@ -1386,9 +1386,9 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]interface{}) *matlas
 	return res
 }
 
-func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenProcessArgs(p *matlas.ProcessArgs) []any {
+	return []any{
+		map[string]any{
 			"default_read_concern":                 p.DefaultReadConcern,
 			"default_write_concern":                p.DefaultWriteConcern,
 			"fail_index_key_too_long":              cast.ToBool(p.FailIndexKeyTooLong),
@@ -1405,7 +1405,7 @@ func flattenProcessArgs(p *matlas.ProcessArgs) []interface{} {
 }
 
 func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		c, resp, err := client.Clusters.Get(ctx, projectID, name)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
@@ -1432,7 +1432,7 @@ func resourceClusterRefreshFunc(ctx context.Context, name, projectID string, cli
 	}
 }
 
-func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	var err error
 	currentProvider, updatedProvider := d.GetChange("provider_name")
 
@@ -1448,7 +1448,7 @@ func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, m
 	return err
 }
 
-func formatMongoDBMajorVersion(val interface{}) string {
+func formatMongoDBMajorVersion(val any) string {
 	if strings.Contains(val.(string), ".") {
 		return val.(string)
 	}
@@ -1456,10 +1456,10 @@ func formatMongoDBMajorVersion(val interface{}) string {
 	return fmt.Sprintf("%.1f", cast.ToFloat32(val))
 }
 
-func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]interface{} {
-	connections := make([]map[string]interface{}, 0)
+func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map[string]any {
+	connections := make([]map[string]any, 0)
 
-	connections = append(connections, map[string]interface{}{
+	connections = append(connections, map[string]any{
 		"standard":         connectionStrings.Standard,
 		"standard_srv":     connectionStrings.StandardSrv,
 		"private":          connectionStrings.Private,
@@ -1470,10 +1470,10 @@ func flattenConnectionStrings(connectionStrings *matlas.ConnectionStrings) []map
 	return connections
 }
 
-func flattenPrivateEndpoint(privateEndpoints []matlas.PrivateEndpoint) []map[string]interface{} {
-	endpoints := make([]map[string]interface{}, 0)
+func flattenPrivateEndpoint(privateEndpoints []matlas.PrivateEndpoint) []map[string]any {
+	endpoints := make([]map[string]any, 0)
 	for _, endpoint := range privateEndpoints {
-		endpoints = append(endpoints, map[string]interface{}{
+		endpoints = append(endpoints, map[string]any{
 			"connection_string":                     endpoint.ConnectionString,
 			"srv_connection_string":                 endpoint.SRVConnectionString,
 			"srv_shard_optimized_connection_string": endpoint.SRVShardOptimizedConnectionString,
@@ -1484,10 +1484,10 @@ func flattenPrivateEndpoint(privateEndpoints []matlas.PrivateEndpoint) []map[str
 	return endpoints
 }
 
-func flattenEndpoints(listEndpoints []matlas.Endpoint) []map[string]interface{} {
-	endpoints := make([]map[string]interface{}, 0)
+func flattenEndpoints(listEndpoints []matlas.Endpoint) []map[string]any {
+	endpoints := make([]map[string]any, 0)
 	for _, endpoint := range listEndpoints {
-		endpoints = append(endpoints, map[string]interface{}{
+		endpoints = append(endpoints, map[string]any{
 			"region":        endpoint.Region,
 			"provider_name": endpoint.ProviderName,
 			"endpoint_id":   endpoint.EndpointID,

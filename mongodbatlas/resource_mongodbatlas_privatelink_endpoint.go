@@ -112,7 +112,7 @@ func resourceMongoDBAtlasPrivateLinkEndpoint() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
@@ -153,7 +153,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointCreate(ctx context.Context, d *schem
 	return resourceMongoDBAtlasPrivateLinkEndpointRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -227,7 +227,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -263,7 +263,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointDelete(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.Split(d.Id(), "-")
@@ -303,7 +303,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointImportState(ctx context.Context, d *
 }
 
 func resourcePrivateLinkEndpointRefreshFunc(ctx context.Context, client *matlas.Client, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		p, resp, err := client.PrivateEndpoints.Get(ctx, projectID, providerName, privateLinkID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {

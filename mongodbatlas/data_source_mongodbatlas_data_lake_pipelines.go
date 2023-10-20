@@ -137,7 +137,7 @@ func dataSourceMongoDBAtlasDataLakePipelines() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakePipelinesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasDataLakePipelinesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -155,14 +155,14 @@ func dataSourceMongoDBAtlasDataLakePipelinesRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func flattenDataLakePipelines(peers []*matlas.DataLakePipeline) []map[string]interface{} {
+func flattenDataLakePipelines(peers []*matlas.DataLakePipeline) []map[string]any {
 	if len(peers) == 0 {
 		return nil
 	}
 
-	pipelines := make([]map[string]interface{}, len(peers))
+	pipelines := make([]map[string]any, len(peers))
 	for i := range peers {
-		pipelines[i] = map[string]interface{}{
+		pipelines[i] = map[string]any{
 			"project_id":        peers[i].GroupID,
 			"name":              peers[i].Name,
 			"id":                peers[i].ID,

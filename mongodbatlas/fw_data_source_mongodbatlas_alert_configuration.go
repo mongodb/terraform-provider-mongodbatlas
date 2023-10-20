@@ -359,7 +359,7 @@ func outputAlertConfigurationResourceImport(label string, alert *admin.GroupAler
 	return fmt.Sprintf("terraform import mongodbatlas_alert_configuration.%s %s-%s\n", label, *alert.GroupId, *alert.Id)
 }
 
-func convertMatcherToCtyValues(matcher map[string]interface{}) map[string]cty.Value {
+func convertMatcherToCtyValues(matcher map[string]any) map[string]cty.Value {
 	fieldName, _ := matcher["fieldName"].(string)
 	operator, _ := matcher["operator"].(string)
 	value, _ := matcher["value"].(string)

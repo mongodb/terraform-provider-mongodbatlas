@@ -68,7 +68,7 @@ func dataSourceMongoDBAtlasSharedTierSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -90,14 +90,14 @@ func dataSourceMongoDBAtlasSharedTierSnapshotsRead(ctx context.Context, d *schem
 	return nil
 }
 
-func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnapshot) []map[string]interface{} {
+func flattenSharedTierSnapshots(sharedTierSnapshots []atlasSDK.BackupTenantSnapshot) []map[string]any {
 	if len(sharedTierSnapshots) == 0 {
 		return nil
 	}
 
-	results := make([]map[string]interface{}, len(sharedTierSnapshots))
+	results := make([]map[string]any, len(sharedTierSnapshots))
 	for k, sharedTierSnapshot := range sharedTierSnapshots {
-		results[k] = map[string]interface{}{
+		results[k] = map[string]any{
 			"snapshot_id":      sharedTierSnapshot.Id,
 			"mongo_db_version": sharedTierSnapshot.MongoDBVersion,
 			"status":           sharedTierSnapshot.Status,

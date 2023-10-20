@@ -70,7 +70,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -109,7 +109,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessCreate(ctx context.Context
 	return resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -152,7 +152,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessRead(ctx context.Context, 
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -194,7 +194,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessDelete(ctx context.Context
 	return nil
 }
 
-func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)
@@ -246,7 +246,7 @@ func resourceMongoDBAtlasPrivateLinkEndpointServerlessImportState(ctx context.Co
 }
 
 func resourcePrivateLinkEndpointServerlessRefreshFunc(ctx context.Context, client *matlas.Client, projectID, instanceName, privateLinkID string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		p, resp, err := client.ServerlessPrivateEndpoints.Get(ctx, projectID, instanceName, privateLinkID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 || resp.Response.StatusCode == 400 {

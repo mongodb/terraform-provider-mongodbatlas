@@ -72,7 +72,7 @@ type APIProjectAssignmentKeyInput struct {
 	RoleNames []string `json:"roles,omitempty"`
 }
 
-func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	createRequest := new(matlas.APIKeyInput)
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasProjectAPIKeyCreate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasProjectAPIKeyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -183,7 +183,7 @@ func resourceMongoDBAtlasProjectAPIKeyRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
@@ -209,8 +209,8 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 		// Adding new api_keys into the project
 		if len(newAPIKeys) > 0 {
 			for _, apiKey := range newAPIKeys {
-				projectID := apiKey.(map[string]interface{})["project_id"].(string)
-				roles := expandStringList(apiKey.(map[string]interface{})["role_names"].(*schema.Set).List())
+				projectID := apiKey.(map[string]any)["project_id"].(string)
+				roles := expandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 				_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, &matlas.AssignAPIKey{
 					Roles: roles,
 				})
@@ -222,7 +222,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 
 		// Removing api_keys from the project
 		for _, apiKey := range removedAPIKeys {
-			projectID := apiKey.(map[string]interface{})["project_id"].(string)
+			projectID := apiKey.(map[string]any)["project_id"].(string)
 			_, err := conn.ProjectAPIKeys.Unassign(ctx, projectID, apiKeyID)
 			if err != nil {
 				return diag.Errorf("error removing api_key(%s) from the project(%s): %s", apiKeyID, projectID, err)
@@ -231,8 +231,8 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 
 		// Updating the role names for the api_key
 		for _, apiKey := range changedAPIKeys {
-			projectID := apiKey.(map[string]interface{})["project_id"].(string)
-			roles := expandStringList(apiKey.(map[string]interface{})["role_names"].(*schema.Set).List())
+			projectID := apiKey.(map[string]any)["project_id"].(string)
+			roles := expandStringList(apiKey.(map[string]any)["role_names"].(*schema.Set).List())
 			_, err := conn.ProjectAPIKeys.Assign(ctx, projectID, apiKeyID, &matlas.AssignAPIKey{
 				Roles: roles,
 			})
@@ -254,7 +254,7 @@ func resourceMongoDBAtlasProjectAPIKeyUpdate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasProjectAPIKeyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -312,7 +312,7 @@ func resourceMongoDBAtlasProjectAPIKeyDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasProjectAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -366,7 +366,7 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 	res := make([]*APIProjectAssignmentKeyInput, projectAssignments.Len())
 
 	for i, value := range projectAssignments.List() {
-		v := value.(map[string]interface{})
+		v := value.(map[string]any)
 		res[i] = &APIProjectAssignmentKeyInput{
 			ProjectID: v["project_id"].(string),
 			RoleNames: expandStringList(v["role_names"].(*schema.Set).List()),
@@ -376,7 +376,7 @@ func ExpandProjectAssignmentSet(projectAssignments *schema.Set) []*APIProjectAss
 	return res
 }
 
-func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID string) ([]map[string]interface{}, error) {
+func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID string) ([]map[string]any, error) {
 	apiKeyOrgList, _, err := conn.Root.List(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error getting api key information: %s", err)
@@ -387,18 +387,18 @@ func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID str
 		return nil, fmt.Errorf("error getting api key information: %s", err)
 	}
 
-	var results []map[string]interface{}
+	var results []map[string]any
 	var atlasRoles []matlas.AtlasRole
 	var atlasRole matlas.AtlasRole
 	if len(projectAssignments) > 0 {
-		results = make([]map[string]interface{}, len(projectAssignments))
+		results = make([]map[string]any, len(projectAssignments))
 		for k, apiKey := range projectAssignments {
 			for _, roleName := range apiKey.RoleNames {
 				atlasRole.GroupID = apiKey.ProjectID
 				atlasRole.RoleName = roleName
 				atlasRoles = append(atlasRoles, atlasRole)
 			}
-			results[k] = map[string]interface{}{
+			results[k] = map[string]any{
 				"project_id": apiKey.ProjectID,
 				"role_names": flattenProjectAPIKeyRoles(apiKey.ProjectID, atlasRoles),
 			}
@@ -407,23 +407,23 @@ func newProjectAssignment(ctx context.Context, conn *matlas.Client, apiKeyID str
 	return results, nil
 }
 
-func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, removedAPIKeys []interface{}) {
+func getStateProjectAssignmentAPIKeys(d *schema.ResourceData) (newAPIKeys, changedAPIKeys, removedAPIKeys []any) {
 	currentAPIKeys, changes := d.GetChange("project_assignment")
 
 	rAPIKeys := currentAPIKeys.(*schema.Set).Difference(changes.(*schema.Set))
 	nAPIKeys := changes.(*schema.Set).Difference(currentAPIKeys.(*schema.Set))
-	changedAPIKeys = make([]interface{}, 0)
+	changedAPIKeys = make([]any, 0)
 
 	for _, changed := range nAPIKeys.List() {
 		for _, removed := range rAPIKeys.List() {
-			if changed.(map[string]interface{})["project_id"] == removed.(map[string]interface{})["project_id"] {
+			if changed.(map[string]any)["project_id"] == removed.(map[string]any)["project_id"] {
 				rAPIKeys.Remove(removed)
 			}
 		}
 
 		for _, current := range currentAPIKeys.(*schema.Set).List() {
-			if changed.(map[string]interface{})["project_id"] == current.(map[string]interface{})["project_id"] {
-				changedAPIKeys = append(changedAPIKeys, changed.(map[string]interface{}))
+			if changed.(map[string]any)["project_id"] == current.(map[string]any)["project_id"] {
+				changedAPIKeys = append(changedAPIKeys, changed.(map[string]any))
 				nAPIKeys.Remove(changed)
 			}
 		}

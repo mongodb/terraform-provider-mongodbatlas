@@ -25,7 +25,7 @@ func dataSourceMongoDBAtlasCustomDNSConfigurationAWS() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCustomDNSConfigurationAWSRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

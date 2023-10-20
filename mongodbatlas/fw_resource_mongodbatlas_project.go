@@ -842,7 +842,7 @@ If we get a defined error response, return that right away
 Else retry
 */
 func resourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		var target *matlas.ErrorResponse
 		clusters, _, err := client.AdvancedClusters.List(ctx, projectID, nil)
 		dependents := AtlastProjectDependents{AdvancedClusters: clusters}

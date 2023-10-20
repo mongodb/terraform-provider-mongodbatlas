@@ -72,7 +72,7 @@ func dataSourceMongoDBAtlasLDAPVerify() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	requestID := d.Get("request_id").(string)

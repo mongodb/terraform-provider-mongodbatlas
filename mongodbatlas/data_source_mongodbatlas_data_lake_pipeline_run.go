@@ -85,7 +85,7 @@ func dataSourceMongoDBAtlasDataLakePipelineRun() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)
@@ -154,13 +154,13 @@ func dataSourceMongoDBAtlasDataLakeRunRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func flattenDataLakePipelineRunStats(datalakeRunStats *matlas.DataLakePipelineRunStats) []map[string]interface{} {
+func flattenDataLakePipelineRunStats(datalakeRunStats *matlas.DataLakePipelineRunStats) []map[string]any {
 	if datalakeRunStats == nil {
 		return nil
 	}
 
-	maps := make([]map[string]interface{}, 1)
-	maps[0] = map[string]interface{}{
+	maps := make([]map[string]any, 1)
+	maps[0] = map[string]any{
 		"bytes_exported": datalakeRunStats.BytesExported,
 		"num_docs":       datalakeRunStats.NumDocs,
 	}

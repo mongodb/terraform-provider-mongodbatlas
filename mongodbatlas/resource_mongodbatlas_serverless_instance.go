@@ -34,7 +34,7 @@ func resourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasServerlessInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -160,7 +160,7 @@ func returnServerlessInstanceSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, name, err := splitServerlessInstanceImportID(d.Id())
@@ -193,7 +193,7 @@ func resourceMongoDBAtlasServerlessInstanceImportState(ctx context.Context, d *s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -226,7 +226,7 @@ func resourceMongoDBAtlasServerlessInstanceDelete(ctx context.Context, d *schema
 	return nil
 }
 
-func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -302,7 +302,7 @@ func resourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -360,7 +360,7 @@ func resourceMongoDBAtlasServerlessInstanceCreate(ctx context.Context, d *schema
 }
 
 func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		c, resp, err := client.ServerlessInstances.Get(ctx, projectID, name)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
@@ -388,7 +388,7 @@ func resourceServerlessInstanceRefreshFunc(ctx context.Context, name, projectID 
 }
 
 func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		c, resp, err := client.ServerlessInstances.List(ctx, projectID, nil)
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
@@ -417,11 +417,11 @@ func resourceServerlessInstanceListRefreshFunc(ctx context.Context, projectID st
 	}
 }
 
-func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]interface{} {
-	linksList := make([]map[string]interface{}, 0)
+func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]any {
+	linksList := make([]map[string]any, 0)
 
 	for _, link := range links {
-		mLink := map[string]interface{}{
+		mLink := map[string]any{
 			"href": link.Href,
 			"rel":  link.Rel,
 		}
@@ -431,8 +431,8 @@ func flattenServerlessInstanceLinks(links []*matlas.Link) []map[string]interface
 	return linksList
 }
 
-func flattenSRVConnectionString(srvConnectionStringArray []matlas.PrivateEndpoint) []interface{} {
-	srvconnections := make([]interface{}, 0)
+func flattenSRVConnectionString(srvConnectionStringArray []matlas.PrivateEndpoint) []any {
+	srvconnections := make([]any, 0)
 	for _, v := range srvConnectionStringArray {
 		srvconnections = append(srvconnections, v.SRVConnectionString)
 	}

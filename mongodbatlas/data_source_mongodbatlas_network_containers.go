@@ -85,7 +85,7 @@ func dataSourceMongoDBAtlasNetworkContainers() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasNetworkContainersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasNetworkContainersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -107,14 +107,14 @@ func dataSourceMongoDBAtlasNetworkContainersRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func flattenNetworkContainers(containers []matlas.Container) []map[string]interface{} {
-	var containersMap []map[string]interface{}
+func flattenNetworkContainers(containers []matlas.Container) []map[string]any {
+	var containersMap []map[string]any
 
 	if len(containers) > 0 {
-		containersMap = make([]map[string]interface{}, len(containers))
+		containersMap = make([]map[string]any, len(containers))
 
 		for i := range containers {
-			containersMap[i] = map[string]interface{}{
+			containersMap[i] = map[string]any{
 				"id":                    containers[i].ID,
 				"atlas_cidr_block":      containers[i].AtlasCIDRBlock,
 				"provider_name":         containers[i].ProviderName,

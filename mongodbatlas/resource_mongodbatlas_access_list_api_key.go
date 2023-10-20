@@ -38,7 +38,7 @@ func resourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"ip_address"},
-				ValidateFunc: func(i interface{}, k string) (s []string, es []error) {
+				ValidateFunc: func(i any, k string) (s []string, es []error) {
 					v, ok := i.(string)
 					if !ok {
 						es = append(es, fmt.Errorf("expected type of %s to be string", k))
@@ -70,7 +70,7 @@ func resourceMongoDBAtlasAccessListAPIKey() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
@@ -119,7 +119,7 @@ func resourceMongoDBAtlasAccessListAPIKeyCreate(ctx context.Context, d *schema.R
 	return resourceMongoDBAtlasAccessListAPIKeyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -156,11 +156,11 @@ func resourceMongoDBAtlasAccessListAPIKeyRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAccessListAPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return resourceMongoDBAtlasAccessListAPIKeyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -173,7 +173,7 @@ func resourceMongoDBAtlasAccessListAPIKeyDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
@@ -211,13 +211,13 @@ func resourceMongoDBAtlasAccessListAPIKeyImportState(ctx context.Context, d *sch
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenAccessListAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, accessListAPIKeys []*matlas.AccessListAPIKey) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenAccessListAPIKeys(ctx context.Context, conn *matlas.Client, orgID string, accessListAPIKeys []*matlas.AccessListAPIKey) []map[string]any {
+	var results []map[string]any
 
 	if len(accessListAPIKeys) > 0 {
-		results = make([]map[string]interface{}, len(accessListAPIKeys))
+		results = make([]map[string]any, len(accessListAPIKeys))
 		for k, accessListAPIKey := range accessListAPIKeys {
-			results[k] = map[string]interface{}{
+			results[k] = map[string]any{
 				"ip_address":        accessListAPIKey.IPAddress,
 				"cidr_block":        accessListAPIKey.CidrBlock,
 				"created":           accessListAPIKey.Created,

@@ -127,7 +127,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigs() *schema.Resour
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -156,15 +156,15 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigsRead(ctx context.
 	return nil
 }
 
-func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrganizations matlas.FederatedSettingsConnectedOrganizations) []map[string]interface{} {
-	var federatedSettingsConnectedOrganizationsMap []map[string]interface{}
+func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrganizations matlas.FederatedSettingsConnectedOrganizations) []map[string]any {
+	var federatedSettingsConnectedOrganizationsMap []map[string]any
 
 	if (federatedSettingsConnectedOrganizations.TotalCount) > 0 {
-		federatedSettingsConnectedOrganizationsMap = make([]map[string]interface{}, federatedSettingsConnectedOrganizations.TotalCount)
+		federatedSettingsConnectedOrganizationsMap = make([]map[string]any, federatedSettingsConnectedOrganizations.TotalCount)
 
 		for i := range federatedSettingsConnectedOrganizations.Results {
 			if federatedSettingsConnectedOrganizations.Results[i].UserConflicts == nil {
-				federatedSettingsConnectedOrganizationsMap[i] = map[string]interface{}{
+				federatedSettingsConnectedOrganizationsMap[i] = map[string]any{
 					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,
 					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.Results[i].DomainRestrictionEnabled,
 					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,
@@ -174,7 +174,7 @@ func flattenFederatedSettingsOrganizationConfigs(federatedSettingsConnectedOrgan
 					"user_conflicts":             nil,
 				}
 			} else {
-				federatedSettingsConnectedOrganizationsMap[i] = map[string]interface{}{
+				federatedSettingsConnectedOrganizationsMap[i] = map[string]any{
 					"domain_allow_list":          federatedSettingsConnectedOrganizations.Results[i].DomainAllowList,
 					"domain_restriction_enabled": federatedSettingsConnectedOrganizations.Results[i].DomainRestrictionEnabled,
 					"identity_provider_id":       federatedSettingsConnectedOrganizations.Results[i].IdentityProviderID,

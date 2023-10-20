@@ -23,7 +23,7 @@ func dataSourceMongoDBAtlasOrgID() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasOrgIDRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
