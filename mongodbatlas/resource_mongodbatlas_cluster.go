@@ -22,16 +22,6 @@ import (
 	"github.com/spf13/cast"
 )
 
-const (
-	errorClusterCreate      = "error creating MongoDB Cluster: %s"
-	errorClusterRead        = "error reading MongoDB Cluster (%s): %s"
-	errorClusterDelete      = "error deleting MongoDB Cluster (%s): %s"
-	errorClusterUpdate      = "error updating MongoDB Cluster (%s): %s"
-	errorClusterSetting     = "error setting `%s` for MongoDB Cluster (%s): %s"
-	errorAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	errorAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
-)
-
 var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 
 func resourceMongoDBAtlasCluster() *schema.Resource {
@@ -43,6 +33,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceMongoDBAtlasClusterImportState,
 		},
+		// https://github.com/mongodb/terraform-provider-mongodbatlas/commit/59b823935e877ecdc74d8dec1b77231febf0afc7#diff-bc230e3d1f56bb7a180c00458bc4698def11d06f7259db0d186e5deaa253ac7b
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
@@ -193,6 +184,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			// https://github.com/mongodb/terraform-provider-mongodbatlas/pull/515
 			"provider_auto_scaling_compute_min_instance_size": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -303,6 +295,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			// TODO **
 			"advanced_configuration": clusterAdvancedConfigurationSchema(),
 			"labels": {
 				Type:       schema.TypeSet,
@@ -327,6 +320,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			},
 			"tags":                   &tagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
+			// **
 			"termination_protection_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -343,12 +337,14 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 		},
+		// TODO **
 		CustomizeDiff: resourceClusterCustomizeDiff,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
 			Update: schema.DefaultTimeout(3 * time.Hour),
 			Delete: schema.DefaultTimeout(3 * time.Hour),
 		},
+		// **
 	}
 }
 
