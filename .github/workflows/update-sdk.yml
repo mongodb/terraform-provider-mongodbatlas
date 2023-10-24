@@ -27,7 +27,7 @@ jobs:
         if: steps.verify-changed-files.outputs.files_changed == 'true'
 
         with:
-          title: "fix: atlas GO sdk update"
+          title: "chore: atlas GO sdk update"
           commit-message: "build(deps): bump go.mongodb.org/atlas-sdk"
           delete-branch: true
           branch: atlas-sdk-update
