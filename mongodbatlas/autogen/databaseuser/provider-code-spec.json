@@ -1,0 +1,402 @@
+{
+	"provider": {
+		"name": "mongodbatlas"
+	},
+	"resources": [
+		{
+			"name": "database_user",
+			"schema": {
+				"attributes": [
+					{
+						"name": "aws_iamtype",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "NONE"
+							},
+							"description": "Human-readable label that indicates whether the new database user authenticates with the Amazon Web Services (AWS) Identity and Access Management (IAM) credentials associated with the user or the user's role.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"NONE\",\n\"USER\",\n\"ROLE\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "database_name",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "admin"
+							},
+							"description": "Database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"admin\",\n\"$external\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "delete_after_date",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "Date and time when MongoDB Cloud deletes the user. This parameter expresses its value in the ISO 8601 timestamp format in UTC and can include the time zone designation. You must specify a future date that falls within one week of making the Application Programming Interface (API) request."
+						}
+					},
+					{
+						"name": "group_id",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Unique 24-hexadecimal digit string that identifies the project.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthBetween(24, 24)"
+									}
+								},
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "regexp"
+											},
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^([a-f0-9]{24})$\"), \"\")"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "labels",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "key",
+										"string": {
+											"computed_optional_required": "computed_optional",
+											"description": "Key applied to tag and categorize this component.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+													}
+												}
+											]
+										}
+									},
+									{
+										"name": "value",
+										"string": {
+											"computed_optional_required": "computed_optional",
+											"description": "Value set to the Key applied to tag and categorize this component.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.LengthBetween(1, 255)"
+													}
+												}
+											]
+										}
+									}
+								]
+							},
+							"description": "List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console."
+						}
+					},
+					{
+						"name": "ldap_auth_type",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "NONE"
+							},
+							"description": "Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"NONE\",\n\"GROUP\",\n\"USER\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "links",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "href",
+										"string": {
+											"computed_optional_required": "computed_optional",
+											"description": "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`."
+										}
+									},
+									{
+										"name": "rel",
+										"string": {
+											"computed_optional_required": "computed_optional",
+											"description": "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`."
+										}
+									}
+								]
+							},
+							"description": "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships."
+						}
+					},
+					{
+						"name": "oidc_auth_type",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "NONE"
+							},
+							"description": "Human-readable label that indicates whether the new database user authenticates with OIDC federated authentication. To create a federated authentication user, specify the value of IDP_GROUP for this field.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"NONE\",\n\"IDP_GROUP\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "password",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"description": "Alphanumeric string that authenticates this database user against the database specified in `databaseName`. To authenticate with SCRAM-SHA, you must specify this parameter. This parameter doesn't appear in this response.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthAtLeast(8)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "roles",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "collection_name",
+										"string": {
+											"computed_optional_required": "computed_optional",
+											"description": "Collection on which this role applies."
+										}
+									},
+									{
+										"name": "database_name",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "Database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB."
+										}
+									},
+									{
+										"name": "role_name",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "Human-readable label that identifies a group of privileges assigned to a database user. This value can either be a built-in role or a custom role.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.OneOf(\n\"atlasAdmin\",\n\"backup\",\n\"clusterMonitor\",\n\"dbAdmin\",\n\"dbAdminAnyDatabase\",\n\"enableSharding\",\n\"read\",\n\"readAnyDatabase\",\n\"readWrite\",\n\"readWriteAnyDatabase\",\n\"\u003ca custom role name\u003e\",\n)"
+													}
+												}
+											]
+										}
+									}
+								]
+							},
+							"description": "List that provides the pairings of one role with one applicable database."
+						}
+					},
+					{
+						"name": "scopes",
+						"list_nested": {
+							"computed_optional_required": "computed_optional",
+							"nested_object": {
+								"attributes": [
+									{
+										"name": "name",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "Human-readable label that identifies the cluster or MongoDB Atlas Data Lake that this database user can access.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.LengthBetween(1, 64)"
+													}
+												},
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "regexp"
+															},
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-zA-Z0-9][a-zA-Z0-9-]*$\"), \"\")"
+													}
+												}
+											]
+										}
+									},
+									{
+										"name": "type",
+										"string": {
+											"computed_optional_required": "required",
+											"description": "Category of resource that this database user can access.",
+											"validators": [
+												{
+													"custom": {
+														"imports": [
+															{
+																"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+															}
+														],
+														"schema_definition": "stringvalidator.OneOf(\n\"CLUSTER\",\n\"DATA_LAKE\",\n)"
+													}
+												}
+											]
+										}
+									}
+								]
+							},
+							"description": "List that contains clusters and MongoDB Atlas Data Lakes that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters and MongoDB Atlas Data Lakes in the project."
+						}
+					},
+					{
+						"name": "username",
+						"string": {
+							"computed_optional_required": "required",
+							"description": "Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:\n\n| Authentication Method | Parameter Needed | Parameter Value | username Format |\n|---|---|---|---|\n| AWS IAM | awsType | ROLE | \u003cabbr title=\"Amazon Resource Name\"\u003eARN\u003c/abbr\u003e |\n| AWS IAM | awsType | USER | \u003cabbr title=\"Amazon Resource Name\"\u003eARN\u003c/abbr\u003e |\n| x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| x.509 | x509Type | MANAGED | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | USER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | GROUP | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| OIDC | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |\n| SCRAM-SHA | awsType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |\n",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.LengthAtMost(1024)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "x509type",
+						"string": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": "NONE"
+							},
+							"description": "X.509 method that MongoDB Cloud uses to authenticate the database user.\n\n- For application-managed X.509, specify `MANAGED`.\n- For self-managed X.509, specify `CUSTOMER`.\n\nUsers created with the `CUSTOMER` method require a Common Name (CN) in the **username** parameter. You must create externally authenticated users on the `$external` database.",
+							"validators": [
+								{
+									"custom": {
+										"imports": [
+											{
+												"path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+											}
+										],
+										"schema_definition": "stringvalidator.OneOf(\n\"NONE\",\n\"CUSTOMER\",\n\"MANAGED\",\n)"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "envelope",
+						"bool": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": false
+							},
+							"description": "Flag that indicates whether Application wraps the response in an `envelope` JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body."
+						}
+					},
+					{
+						"name": "pretty",
+						"bool": {
+							"computed_optional_required": "computed_optional",
+							"default": {
+								"static": false
+							},
+							"description": "Flag that indicates whether the response body should be in the \u003ca href=\"https://en.wikipedia.org/wiki/Prettyprint\" target=\"_blank\" rel=\"noopener noreferrer\"\u003eprettyprint\u003c/a\u003e format."
+						}
+					}
+				]
+			}
+		}
+	],
+	"version": "0.1"
+}

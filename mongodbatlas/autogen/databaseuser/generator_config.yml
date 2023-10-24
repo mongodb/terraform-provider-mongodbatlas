@@ -1,0 +1,14 @@
+# command for generating provider code spec: tfplugingen-openapi generate --config generator_config.yml --output provider-code-spec.json ../api-spec/openapi.json
+# command for generate framework code using provider code spec: tfplugingen-framework generate resources --input ./provider-code-spec-manual.json --package autogen
+provider:
+  name: mongodbatlas
+resources:
+  database_user:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers
+      method: POST
+
+    

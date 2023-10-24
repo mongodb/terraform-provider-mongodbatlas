@@ -38,6 +38,22 @@ type tfDatabaseUserDSModel struct {
 	Scopes           []tfScopeModel `tfsdk:"scopes"`
 }
 
+type tfRoleModel struct {
+	RoleName       types.String `tfsdk:"role_name"`
+	CollectionName types.String `tfsdk:"collection_name"`
+	DatabaseName   types.String `tfsdk:"database_name"`
+}
+
+type tfLabelModel struct {
+	Key   types.String `tfsdk:"key"`
+	Value types.String `tfsdk:"value"`
+}
+
+type tfScopeModel struct {
+	Name types.String `tfsdk:"name"`
+	Type types.String `tfsdk:"type"`
+}
+
 var _ datasource.DataSource = &DatabaseUserDS{}
 var _ datasource.DataSourceWithConfigure = &DatabaseUserDS{}
 
@@ -161,10 +177,62 @@ func newTFDatabaseDSUserModel(ctx context.Context, dbUser *matlas.DatabaseUser) 
 		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
 		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
 		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
-		Roles:            newTFRolesModel(dbUser.Roles),
-		Labels:           newTFLabelsModel(dbUser.Labels),
-		Scopes:           newTFScopesModel(dbUser.Scopes),
+		Roles:            newTFRolesModelLegacy(dbUser.Roles),
+		Labels:           newTFLabelsModelLegacy(dbUser.Labels),
+		Scopes:           newTFScopesModelLegacy(dbUser.Scopes),
 	}
 
 	return databaseUserModel, nil
+}
+
+func newTFScopesModelLegacy(scopes []matlas.Scope) []tfScopeModel {
+	if len(scopes) == 0 {
+		return nil
+	}
+
+	out := make([]tfScopeModel, len(scopes))
+	for i, v := range scopes {
+		out[i] = tfScopeModel{
+			Name: types.StringValue(v.Name),
+			Type: types.StringValue(v.Type),
+		}
+	}
+
+	return out
+}
+
+func newTFLabelsModelLegacy(labels []matlas.Label) []tfLabelModel {
+	if len(labels) == 0 {
+		return nil
+	}
+
+	out := make([]tfLabelModel, len(labels))
+	for i, v := range labels {
+		out[i] = tfLabelModel{
+			Key:   types.StringValue(v.Key),
+			Value: types.StringValue(v.Value),
+		}
+	}
+
+	return out
+}
+
+func newTFRolesModelLegacy(roles []matlas.Role) []tfRoleModel {
+	if len(roles) == 0 {
+		return nil
+	}
+
+	out := make([]tfRoleModel, len(roles))
+	for i, v := range roles {
+		out[i] = tfRoleModel{
+			RoleName:     types.StringValue(v.RoleName),
+			DatabaseName: types.StringValue(v.DatabaseName),
+		}
+
+		if v.CollectionName != "" {
+			out[i].CollectionName = types.StringValue(v.CollectionName)
+		}
+	}
+
+	return out
 }

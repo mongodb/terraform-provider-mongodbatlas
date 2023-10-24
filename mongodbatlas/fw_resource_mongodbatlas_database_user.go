@@ -6,18 +6,12 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	autogen "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/autogen/databaseuser/output"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
@@ -40,172 +34,12 @@ func NewDatabaseUserRS() resource.Resource {
 	}
 }
 
-type tfDatabaseUserModel struct {
-	ID               types.String `tfsdk:"id"`
-	ProjectID        types.String `tfsdk:"project_id"`
-	AuthDatabaseName types.String `tfsdk:"auth_database_name"`
-	Username         types.String `tfsdk:"username"`
-	Password         types.String `tfsdk:"password"`
-	X509Type         types.String `tfsdk:"x509_type"`
-	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
-	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
-	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
-	Roles            types.Set    `tfsdk:"roles"`
-	Labels           types.Set    `tfsdk:"labels"`
-	Scopes           types.Set    `tfsdk:"scopes"`
-}
-
-type tfRoleModel struct {
-	RoleName       types.String `tfsdk:"role_name"`
-	CollectionName types.String `tfsdk:"collection_name"`
-	DatabaseName   types.String `tfsdk:"database_name"`
-}
-
-type tfLabelModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
-}
-
-type tfScopeModel struct {
-	Name types.String `tfsdk:"name"`
-	Type types.String `tfsdk:"type"`
-}
-
-var RoleObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"role_name":       types.StringType,
-	"collection_name": types.StringType,
-	"database_name":   types.StringType,
-}}
-
-var LabelObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
-}}
-
-var ScopeObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"name": types.StringType,
-	"type": types.StringType,
-}}
-
 func (r *DatabaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"auth_database_name": schema.StringAttribute{
-				Required: true,
-			},
-			"username": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"password": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
-				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("x509_type"),
-						path.MatchRelative().AtParent().AtName("ldap_auth_type"),
-						path.MatchRelative().AtParent().AtName("aws_iam_type"),
-					}...),
-				},
-			},
-			"x509_type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("NONE"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("NONE", "MANAGED", "CUSTOMER"),
-				},
-			},
-			"oidc_auth_type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("NONE"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("NONE", "IDP_GROUP"),
-				},
-			},
-			"ldap_auth_type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("NONE"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("NONE", "USER", "GROUP"),
-				},
-			},
-			"aws_iam_type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("NONE"),
-				Validators: []validator.String{
-					stringvalidator.OneOf("NONE", "USER", "ROLE"),
-				},
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"roles": schema.SetNestedBlock{
-				Validators: []validator.Set{
-					setvalidator.IsRequired(),
-				},
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"collection_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"database_name": schema.StringAttribute{
-							Required: true,
-						},
-						"role_name": schema.StringAttribute{
-							Required: true,
-						},
-					},
-				},
-			},
-			"labels": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Optional: true,
-							Computed: true,
-						},
-						"value": schema.StringAttribute{
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
-			"scopes": schema.SetNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"name": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = autogen.DatabaseUserResourceSchema(ctx)
 }
 
 func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var databaseUserPlan *tfDatabaseUserModel
+	var databaseUserPlan *autogen.DatabaseUserModel
 
 	diags := req.Plan.Get(ctx, &databaseUserPlan)
 	resp.Diagnostics.Append(diags...)
@@ -220,7 +54,7 @@ func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq)
+	dbUser, _, err := conn.DatabaseUsers.Create(ctx, databaseUserPlan.ProjectId.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
@@ -239,7 +73,7 @@ func (r *DatabaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 }
 
 func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var databaseUserState *tfDatabaseUserModel
+	var databaseUserState *autogen.DatabaseUserModel
 	var err error
 	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
 	if resp.Diagnostics.HasError() {
@@ -247,12 +81,12 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	username := databaseUserState.Username.ValueString()
-	projectID := databaseUserState.ProjectID.ValueString()
+	projectID := databaseUserState.ProjectId.ValueString()
 	authDatabaseName := databaseUserState.AuthDatabaseName.ValueString()
 
 	// Use the ID only with the IMPORT operation
-	if databaseUserState.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
-		projectID, username, authDatabaseName, err = splitDatabaseUserImportID(databaseUserState.ID.ValueString())
+	if databaseUserState.Id.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
+		projectID, username, authDatabaseName, err = splitDatabaseUserImportID(databaseUserState.Id.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
 			return
@@ -286,7 +120,7 @@ func (r *DatabaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var databaseUserPlan *tfDatabaseUserModel
+	var databaseUserPlan *autogen.DatabaseUserModel
 
 	diags := req.Plan.Get(ctx, &databaseUserPlan)
 	resp.Diagnostics.Append(diags...)
@@ -301,7 +135,7 @@ func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	conn := r.client.Atlas
-	dbUser, _, err := conn.DatabaseUsers.Update(ctx, databaseUserPlan.ProjectID.ValueString(), databaseUserPlan.Username.ValueString(), dbUserReq)
+	dbUser, _, err := conn.DatabaseUsers.Update(ctx, databaseUserPlan.ProjectId.ValueString(), databaseUserPlan.Username.ValueString(), dbUserReq)
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
@@ -320,7 +154,7 @@ func (r *DatabaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 }
 
 func (r *DatabaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var databaseUserState *tfDatabaseUserModel
+	var databaseUserState *autogen.DatabaseUserModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
 	if resp.Diagnostics.HasError() {
@@ -328,7 +162,7 @@ func (r *DatabaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	conn := r.client.Atlas
-	_, err := conn.DatabaseUsers.Delete(ctx, databaseUserState.AuthDatabaseName.ValueString(), databaseUserState.ProjectID.ValueString(), databaseUserState.Username.ValueString())
+	_, err := conn.DatabaseUsers.Delete(ctx, databaseUserState.AuthDatabaseName.ValueString(), databaseUserState.ProjectId.ValueString(), databaseUserState.Username.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())
 		return
@@ -339,10 +173,10 @@ func (r *DatabaseUserRS) ImportState(ctx context.Context, req resource.ImportSta
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserModel) (*matlas.DatabaseUser, diag.Diagnostics) {
-	var rolesModel []*tfRoleModel
-	var labelsModel []*tfLabelModel
-	var scopesModel []*tfScopeModel
+func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *autogen.DatabaseUserModel) (*matlas.DatabaseUser, diag.Diagnostics) {
+	var rolesModel []autogen.RolesValue
+	var labelsModel []autogen.LabelsValue
+	var scopesModel []autogen.ScopesValue
 
 	diags := dbUserModel.Roles.ElementsAs(ctx, &rolesModel, false)
 	if diags.HasError() {
@@ -360,13 +194,13 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 	}
 
 	return &matlas.DatabaseUser{
-		GroupID:      dbUserModel.ProjectID.ValueString(),
+		GroupID:      dbUserModel.ProjectId.ValueString(),
 		Username:     dbUserModel.Username.ValueString(),
 		Password:     dbUserModel.Password.ValueString(),
 		X509Type:     dbUserModel.X509Type.ValueString(),
-		AWSIAMType:   dbUserModel.AWSIAMType.ValueString(),
-		OIDCAuthType: dbUserModel.OIDCAuthType.ValueString(),
-		LDAPAuthType: dbUserModel.LDAPAuthType.ValueString(),
+		AWSIAMType:   dbUserModel.AwsIamType.ValueString(),
+		OIDCAuthType: dbUserModel.OidcAuthType.ValueString(),
+		LDAPAuthType: dbUserModel.LdapAuthType.ValueString(),
 		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
 		Roles:        newMongoDBAtlasRoles(rolesModel),
 		Labels:       newMongoDBAtlasLabels(labelsModel),
@@ -374,18 +208,18 @@ func newMongoDBDatabaseUser(ctx context.Context, dbUserModel *tfDatabaseUserMode
 	}, nil
 }
 
-func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbUser *matlas.DatabaseUser) (*tfDatabaseUserModel, diag.Diagnostics) {
-	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, newTFRolesModel(dbUser.Roles))
+func newTFDatabaseUserModel(ctx context.Context, model *autogen.DatabaseUserModel, dbUser *matlas.DatabaseUser) (*autogen.DatabaseUserModel, diag.Diagnostics) {
+	rolesSet, diagnostic := types.SetValueFrom(ctx, autogen.RolesValue{}.Type(ctx), newTFRolesModel(ctx, dbUser.Roles))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	labelsSet, diagnostic := types.SetValueFrom(ctx, LabelObjectType, newTFLabelsModel(dbUser.Labels))
+	labelsSet, diagnostic := types.SetValueFrom(ctx, autogen.LabelsValue{}.Type(ctx), newTFLabelsModel(ctx, dbUser.Labels))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
 
-	scopesSet, diagnostic := types.SetValueFrom(ctx, ScopeObjectType, newTFScopesModel(dbUser.Scopes))
+	scopesSet, diagnostic := types.SetValueFrom(ctx, autogen.ScopesValue{}.Type(ctx), newTFScopesModel(dbUser.Scopes))
 	if diagnostic.HasError() {
 		return nil, diagnostic
 	}
@@ -396,15 +230,15 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 		"username":           dbUser.Username,
 		"auth_database_name": dbUser.DatabaseName,
 	})
-	databaseUserModel := &tfDatabaseUserModel{
-		ID:               types.StringValue(encodedID),
-		ProjectID:        types.StringValue(dbUser.GroupID),
+	databaseUserModel := &autogen.DatabaseUserModel{
+		Id:               types.StringValue(encodedID),
+		ProjectId:        types.StringValue(dbUser.GroupID),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
 		X509Type:         types.StringValue(dbUser.X509Type),
-		OIDCAuthType:     types.StringValue(dbUser.OIDCAuthType),
-		LDAPAuthType:     types.StringValue(dbUser.LDAPAuthType),
-		AWSIAMType:       types.StringValue(dbUser.AWSIAMType),
+		OidcAuthType:     types.StringValue(dbUser.OIDCAuthType),
+		LdapAuthType:     types.StringValue(dbUser.LDAPAuthType),
+		AwsIamType:       types.StringValue(dbUser.AWSIAMType),
 		Roles:            rolesSet,
 		Labels:           labelsSet,
 		Scopes:           scopesSet,
@@ -418,59 +252,67 @@ func newTFDatabaseUserModel(ctx context.Context, model *tfDatabaseUserModel, dbU
 	return databaseUserModel, nil
 }
 
-func newTFScopesModel(scopes []matlas.Scope) []tfScopeModel {
+func newTFScopesModel(scopes []matlas.Scope) []autogen.ScopesValue {
 	if len(scopes) == 0 {
 		return nil
 	}
 
-	out := make([]tfScopeModel, len(scopes))
+	out := make([]autogen.ScopesValue, len(scopes))
 	for i, v := range scopes {
-		out[i] = tfScopeModel{
-			Name: types.StringValue(v.Name),
-			Type: types.StringValue(v.Type),
+		out[i] = autogen.ScopesValue{
+			Name:  types.StringValue(v.Name),
+			Typee: types.StringValue(v.Type),
 		}
 	}
 
 	return out
 }
 
-func newTFLabelsModel(labels []matlas.Label) []tfLabelModel {
+func newTFLabelsModel(ctx context.Context, labels []matlas.Label) []basetypes.ObjectValuable {
 	if len(labels) == 0 {
 		return nil
 	}
 
-	out := make([]tfLabelModel, len(labels))
+	out := make([]basetypes.ObjectValuable, len(labels))
 	for i, v := range labels {
-		out[i] = tfLabelModel{
+		value := autogen.LabelsValue{
 			Key:   types.StringValue(v.Key),
 			Value: types.StringValue(v.Value),
 		}
+
+		objVal, _ := value.ToObjectValue(ctx)
+		objValuable, _ := autogen.LabelsType{}.ValueFromObject(ctx, objVal)
+		out[i] = objValuable
 	}
 
 	return out
 }
 
-func newTFRolesModel(roles []matlas.Role) []tfRoleModel {
+func newTFRolesModel(ctx context.Context, roles []matlas.Role) []basetypes.ObjectValuable {
 	if len(roles) == 0 {
 		return nil
 	}
 
-	out := make([]tfRoleModel, len(roles))
+	out := make([]basetypes.ObjectValuable, len(roles))
 	for i, v := range roles {
-		out[i] = tfRoleModel{
+		value := autogen.RolesValue{
 			RoleName:     types.StringValue(v.RoleName),
 			DatabaseName: types.StringValue(v.DatabaseName),
 		}
 
 		if v.CollectionName != "" {
-			out[i].CollectionName = types.StringValue(v.CollectionName)
+			value.CollectionName = types.StringValue(v.CollectionName)
 		}
+
+		objVal, _ := value.ToObjectValue(ctx)
+		objValuable, _ := autogen.RolesType{}.ValueFromObject(ctx, objVal)
+		out[i] = objValuable
 	}
 
 	return out
 }
 
-func newMongoDBAtlasRoles(roles []*tfRoleModel) []matlas.Role {
+func newMongoDBAtlasRoles(roles []autogen.RolesValue) []matlas.Role {
 	if len(roles) == 0 {
 		return []matlas.Role{}
 	}
@@ -487,7 +329,7 @@ func newMongoDBAtlasRoles(roles []*tfRoleModel) []matlas.Role {
 	return out
 }
 
-func newMongoDBAtlasLabels(labels []*tfLabelModel) []matlas.Label {
+func newMongoDBAtlasLabels(labels []autogen.LabelsValue) []matlas.Label {
 	if len(labels) == 0 {
 		return []matlas.Label{}
 	}
@@ -503,7 +345,7 @@ func newMongoDBAtlasLabels(labels []*tfLabelModel) []matlas.Label {
 	return out
 }
 
-func newMongoDBAtlasScopes(scopes []*tfScopeModel) []matlas.Scope {
+func newMongoDBAtlasScopes(scopes []autogen.ScopesValue) []matlas.Scope {
 	if len(scopes) == 0 {
 		return []matlas.Scope{}
 	}
@@ -512,7 +354,7 @@ func newMongoDBAtlasScopes(scopes []*tfScopeModel) []matlas.Scope {
 	for i, v := range scopes {
 		out[i] = matlas.Scope{
 			Name: v.Name.ValueString(),
-			Type: v.Type.ValueString(),
+			Type: v.Typee.ValueString(),
 		}
 	}
 
