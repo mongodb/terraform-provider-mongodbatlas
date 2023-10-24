@@ -22,8 +22,6 @@ import (
 	"github.com/spf13/cast"
 )
 
-var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
-
 func resourceMongoDBAtlasCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasClusterCreate,
@@ -442,7 +440,7 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(fmt.Errorf("`advanced_configuration.oplog_size_mb` cannot be <= 0"))
 		}
 	}
-
+	///////////////////////////////////
 	providerSettings, err := expandProviderSetting(d)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))

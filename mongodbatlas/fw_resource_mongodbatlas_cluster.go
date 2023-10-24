@@ -3,9 +3,13 @@ package mongodbatlas
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"go.mongodb.org/atlas/mongodbatlas"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
@@ -24,24 +28,34 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mwielbut/pointy"
+	"github.com/spf13/cast"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/planmodifiers"
 )
 
 const (
-	clusterResourceName     = "cluster"
-	errorClusterCreate      = "error creating MongoDB Cluster: %s"
-	errorClusterRead        = "error reading MongoDB Cluster (%s): %s"
-	errorClusterDelete      = "error deleting MongoDB Cluster (%s): %s"
-	errorClusterUpdate      = "error updating MongoDB Cluster (%s): %s"
-	errorClusterSetting     = "error setting `%s` for MongoDB Cluster (%s): %s"
-	errorAdvancedConfUpdate = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
-	errorAdvancedConfRead   = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	clusterResourceName              = "cluster"
+	errorClusterCreate               = "error creating MongoDB Cluster: %s"
+	errorClusterRead                 = "error reading MongoDB Cluster (%s): %s"
+	errorClusterDelete               = "error deleting MongoDB Cluster (%s): %s"
+	errorClusterUpdate               = "error updating MongoDB Cluster (%s): %s"
+	errorClusterSetting              = "error setting `%s` for MongoDB Cluster (%s): %s"
+	errorAdvancedConfUpdate          = "error updating Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorAdvancedConfRead            = "error reading Advanced Configuration Option form MongoDB Cluster (%s): %s"
+	errorInvalidCreateValues         = "Invalid values. Unable to CREATE cluster"
+	errorSnapshotBackupPolicyRead    = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
+	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
+	defaultTimeout                   = (3 * time.Hour)
 )
 
 var _ resource.ResourceWithConfigure = &ClusterRS{}
 var _ resource.ResourceWithImportState = &ClusterRS{}
 var _ resource.ResourceWithModifyPlan = &ClusterRS{}
+
+var defaultLabel = matlas.Label{Key: "Infrastructure Tool", Value: "MongoDB Atlas Terraform Provider"}
 
 type ClusterRS struct {
 	RSCommon
@@ -60,6 +74,8 @@ func NewClusterRS() resource.Resource {
 // https://discuss.hashicorp.com/t/is-it-possible-to-have-statefunc-like-behavior-with-the-plugin-framework/58377/2
 // TODO timeouts
 // TODO provider name change from TENANT -
+// TODO test labels
+// TODO bug - tenantDisksize
 func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -585,30 +601,191 @@ func (r ClusterRS) ModifyPlan(ctx context.Context, req resource.ModifyPlanReques
 }
 
 func (r *ClusterRS) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
-	// conn := r.client.Atlas
-	// var plan tfClusterRSModel
+	conn := r.client.Atlas
 
-	// response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
-	// if response.Diagnostics.HasError() {
-	// 	return
-	// }
-	// createTimeout := r.CreateTimeout(ctx, plan.Timeouts)
+	var plan tfClusterRSModel
+	var autoScaling *matlas.AutoScaling
 
-	// plan.ID = types.StringValue("TODO")
+	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
-	// // TODO: initialize and set newState
+	projectID := plan.ProjectID.ValueString()
+	providerName := plan.ProviderName.ValueString()
 
-	// // set state to fully populated data
-	// response.Diagnostics.Append(response.State.Set(ctx, &newState)...)
+	computeEnabled := plan.AutoScalingComputeEnabled.ValueBool()
+	scaleDownEnabled := plan.AutoScalingComputeScaleDownEnabled.ValueBool()
+	diskGBEnabled := plan.AutoScalingDiskGbEnabled.ValueBoolPointer()
+
+	validateClusterConfig(plan, response)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	if providerName != "TENANT" {
+		autoScaling = &matlas.AutoScaling{
+			DiskGBEnabled: diskGBEnabled,
+			Compute: &matlas.Compute{
+				Enabled:          &computeEnabled,
+				ScaleDownEnabled: &scaleDownEnabled,
+			},
+		}
+	}
+
+	providerSettings, err := newAtlasProviderSetting(plan)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to CREATE cluster. Error in translating provider settings", fmt.Sprintf(errorClusterCreate, err))
+		return
+	}
+
+	replicationSpecs, err := newAtlasReplicationSpecs(plan)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to CREATE cluster. Error in translating replication specs", fmt.Sprintf(errorClusterCreate, err))
+		return
+	}
+
+	clusterRequest := &matlas.Cluster{
+		Name:                     plan.Name.ValueString(),
+		EncryptionAtRestProvider: plan.EncryptionAtRestProvider.ValueString(),
+		ClusterType:              plan.ClusterID.ValueString(),
+		BackupEnabled:            plan.BackupEnabled.ValueBoolPointer(),
+		PitEnabled:               plan.PitEnabled.ValueBoolPointer(),
+		AutoScaling:              autoScaling,
+		ProviderSettings:         providerSettings,
+		ReplicationSpecs:         replicationSpecs,
+	}
+
+	if cloudBackup := plan.CloudBackup; !cloudBackup.IsNull() {
+		clusterRequest.ProviderBackupEnabled = cloudBackup.ValueBoolPointer()
+	}
+
+	if biConnector := plan.BiConnectorConfig; biConnector != nil && len(biConnector) > 0 {
+		biConnector, err := newAtlasBiConnectorConfig(plan)
+		if err != nil {
+			response.Diagnostics.AddError("Unable to CREATE cluster. Error in translating bi_connector_config", fmt.Sprintf(errorClusterCreate, err))
+			return
+		}
+		clusterRequest.BiConnector = biConnector
+	}
+
+	labels := newAtlasLabels(plan.Labels)
+	if containsLabelOrKey(labels, defaultLabel) {
+		response.Diagnostics.AddError("Unable to CREATE cluster. Incorrect labels", fmt.Sprintf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		return
+	}
+	clusterRequest.Labels = append(labels, defaultLabel)
+
+	if tags := plan.Tags; tags != nil && len(tags) > 0 {
+		tagsSlice := newAtlasTags(tags)
+		clusterRequest.Tags = &tagsSlice
+	}
+
+	if v := plan.DiskSizeGb; !v.IsNull() {
+		clusterRequest.DiskSizeGB = v.ValueFloat64Pointer()
+	}
+
+	tenantDisksize := pointy.Float64(0)
+	if cast.ToFloat64(tenantDisksize) != 0 {
+		clusterRequest.DiskSizeGB = tenantDisksize
+	}
+	if v := plan.MongoDbMajorVersion; !v.IsNull() {
+		clusterRequest.MongoDBMajorVersion = formatMongoDBMajorVersion(v.ValueString())
+	}
+	if v := plan.ReplicationFactor; !v.IsNull() {
+		clusterRequest.ReplicationFactor = v.ValueInt64Pointer()
+	}
+	if v := plan.NumShards; !v.IsNull() {
+		clusterRequest.NumShards = v.ValueInt64Pointer()
+	}
+	if v := plan.TerminationProtectionEnabled; !v.IsNull() {
+		clusterRequest.TerminationProtectionEnabled = v.ValueBoolPointer()
+	}
+
+	if v := plan.VersionReleaseSystem; !v.IsNull() {
+		clusterRequest.VersionReleaseSystem = v.ValueString()
+	}
+
+	cluster, _, err := conn.Clusters.Create(ctx, projectID, clusterRequest)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		return
+	}
+
+	timeout, diags := plan.Timeouts.Create(ctx, defaultTimeout)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterRefreshFunc(ctx, plan.Name.ValueString(), projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 1 * time.Minute,
+		Delay:      3 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to CREATE cluster. Error during create in Atlas", fmt.Sprintf("you should not set `Infrastructure Tool` label, it is used for internal purposes"))
+		return
+	}
+
+	/*
+		So far, the cluster has created correctly, so we need to set up
+		the advanced configuration option to attach it
+	*/
+	// ac, ok := d.GetOk("advanced_configuration")
+	if ac := plan.AdvancedConfiguration; ac != nil && len(ac) > 0 {
+		advancedConfReq := newAtlasProcessArgs(plan.AdvancedConfiguration[0])
+
+		_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
+		if err != nil {
+			response.Diagnostics.AddError("Unable to CREATE cluster. Error when updating advanced_configuration in Atlas", fmt.Sprintf(errorClusterCreate, err))
+			return
+		}
+
+	}
+
+	// To pause a cluster
+	if v := plan.Paused.ValueBool(); v {
+		clusterRequest = &matlas.Cluster{
+			Paused: pointy.Bool(v),
+		}
+
+		_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, d.Get("name").(string), timeout)
+		if err != nil {
+			response.Diagnostics.AddError("Unable to CREATE cluster. Error when attempting to pause cluster in Atlas", fmt.Sprintf(errorClusterCreate, err))
+			return
+		}
+	}
+
+	plan.ID = types.StringValue(encodeStateID(map[string]string{
+		"cluster_id":    cluster.ID,
+		"project_id":    projectID,
+		"cluster_name":  cluster.Name,
+		"provider_name": providerName,
+	}))
+
+	response.Diagnostics.Append(response.State.Set(ctx, &plan)...)
 }
 
 func (r *ClusterRS) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
 	conn := r.client.Atlas
 
+	var isImport bool
 	var clusterState tfClusterRSModel
 	response.Diagnostics.Append(request.State.Get(ctx, &clusterState)...)
 	if response.Diagnostics.HasError() {
 		return
+	}
+
+	// Use the ID only with the IMPORT operation
+	if clusterState.ID.ValueString() != "" && (clusterState.ClusterID.ValueString() == "") {
+		isImport = true
 	}
 
 	ids := decodeStateID(clusterState.ID.ValueString())
@@ -626,78 +803,37 @@ func (r *ClusterRS) Read(ctx context.Context, request resource.ReadRequest, resp
 		return
 	}
 
-	newClusterState := newTFClusterModel(cluster, &clusterState)
+	newClusterState, err := newTFClusterModel(ctx, conn, isImport, cluster, &clusterState)
+	if err != nil {
+		response.Diagnostics.AddError("error during cluster READ when translating to model", fmt.Sprintf(errorClusterRead, clusterName, err.Error()))
+		return
+	}
 
 	// save updated data into Terraform state
 	response.Diagnostics.Append(response.State.Set(ctx, &newClusterState)...)
 }
 
-func newTFClusterModel(apiResp *mongodbatlas.Cluster, currState *tfClusterRSModel) tfClusterRSModel {
-	clusterModel := tfClusterRSModel{
-		ID:                                 currState.ID,
-		ProjectID:                          currState.ProjectID,
-		ClusterID:                          currState.ClusterID,
-		AutoScalingComputeEnabled:          types.BoolPointerValue(apiResp.AutoScaling.Compute.Enabled),
-		AutoScalingComputeScaleDownEnabled: types.BoolPointerValue(apiResp.AutoScaling.Compute.ScaleDownEnabled),
-
-		ProviderAutoScalingComputeMinInstanceSize: types.StringValue(apiResp.ProviderSettings.AutoScaling.Compute.MinInstanceSize),
-		ProviderAutoScalingComputeMaxInstanceSize: types.StringValue(apiResp.ProviderSettings.AutoScaling.Compute.MaxInstanceSize),
-		BackupEnabled: types.BoolPointerValue(apiResp.BackupEnabled),
-		CloudBackup:   types.BoolPointerValue(apiResp.ProviderBackupEnabled), //
-		ClusterType:   types.StringValue(apiResp.ClusterType),
-
-		DiskSizeGb:               types.Float64PointerValue(apiResp.DiskSizeGB),
-		EncryptionAtRestProvider: types.StringValue(apiResp.EncryptionAtRestProvider),
-		MongoDbMajorVersion:      types.StringValue(apiResp.MongoDBMajorVersion), // version formatting
-		MongoDbVersion:           types.StringValue(apiResp.MongoDBVersion),
-		MongoUri:                 types.StringValue(apiResp.MongoURI),
-
-		MongoUriUpdated:              types.StringValue(apiResp.MongoURIUpdated),
-		MongoUriWithOptions:          types.StringValue(apiResp.MongoURIWithOptions),
-		PitEnabled:                   types.BoolPointerValue(apiResp.PitEnabled),
-		Paused:                       types.BoolPointerValue(apiResp.Paused),
-		SrvAddress:                   types.StringValue(apiResp.SrvAddress),
-		StateName:                    types.StringValue(apiResp.StateName),
-		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
-		BiConnectorConfig:            nil,
-		ConnectionStrings:            nil,
-		ReplicationSpecs:             nil,
-		Labels:                       nil,
-		Tags:                         nil,
-		AdvancedConfiguration:        nil,
-		SnapshotBackupPolicy:         nil,
-		VersionReleaseSystem:         types.StringValue(apiResp.VersionReleaseSystem),
-
-		// MetricThresholdConfig: newTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
-
-	}
-	// connection_strings
-	// numshards
-	// bi connector
-	// flattenProviderSettings
-	// if providerName != "TENANT" {
-	// processArgs - adv config
-	// snapshotBackupPolicy
-
-	return clusterModel
-}
-
 func (r *ClusterRS) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
-	// conn := r.client.Atlas
-	// var state, plan tfClusterRSModel
+	conn := r.client.Atlas
+	var state, plan tfClusterRSModel
 
-	// response.Diagnostics.Append(request.State.Get(ctx, &state)...)
-	// if response.Diagnostics.HasError() {
-	// 	return
-	// }
+	response.Diagnostics.Append(request.State.Get(ctx, &state)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
-	// response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
-	// if response.Diagnostics.HasError() {
-	// 	return
-	// }
-	// updateTimeout := r.UpdateTimeout(ctx, plan.Timeouts)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &plan)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
-	// // save updated data into terraform state
+	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	// save updated data into terraform state
 	// response.Diagnostics.Append(response.State.Set(ctx, &plan)...)
 }
 
@@ -723,6 +859,653 @@ func (r *ClusterRS) Delete(ctx context.Context, request resource.DeleteRequest, 
 // If setting an attribute with the import identifier, it is recommended to use the ImportStatePassthroughID() call in this method.
 func (r *ClusterRS) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
+}
+
+func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, apiResp *mongodbatlas.Cluster, currState *tfClusterRSModel) (*tfClusterRSModel, error) {
+	var err error
+	projectID := apiResp.GroupID
+	clusterName := apiResp.Name
+
+	clusterModel := tfClusterRSModel{
+		// ID:                                 currState.ID,
+		// ClusterID:                          currState.ClusterID,
+		ProjectID:                          types.StringValue(projectID),
+		Name:                               types.StringValue(clusterName),
+		ProviderName:                       types.StringValue(apiResp.ProviderSettings.ProviderName),
+		AutoScalingComputeEnabled:          types.BoolPointerValue(apiResp.AutoScaling.Compute.Enabled),
+		AutoScalingComputeScaleDownEnabled: types.BoolPointerValue(apiResp.AutoScaling.Compute.ScaleDownEnabled),
+		ProviderAutoScalingComputeMinInstanceSize: types.StringValue(apiResp.ProviderSettings.AutoScaling.Compute.MinInstanceSize),
+		ProviderAutoScalingComputeMaxInstanceSize: types.StringValue(apiResp.ProviderSettings.AutoScaling.Compute.MaxInstanceSize),
+		BackupEnabled:                types.BoolPointerValue(apiResp.BackupEnabled),
+		CloudBackup:                  types.BoolPointerValue(apiResp.ProviderBackupEnabled), //
+		ClusterType:                  types.StringValue(apiResp.ClusterType),
+		DiskSizeGb:                   types.Float64PointerValue(apiResp.DiskSizeGB),
+		EncryptionAtRestProvider:     types.StringValue(apiResp.EncryptionAtRestProvider),
+		MongoDbMajorVersion:          types.StringValue(apiResp.MongoDBMajorVersion), // TODO version formatting
+		MongoDbVersion:               types.StringValue(apiResp.MongoDBVersion),
+		MongoUri:                     types.StringValue(apiResp.MongoURI),
+		MongoUriUpdated:              types.StringValue(apiResp.MongoURIUpdated),
+		MongoUriWithOptions:          types.StringValue(apiResp.MongoURIWithOptions),
+		PitEnabled:                   types.BoolPointerValue(apiResp.PitEnabled),
+		Paused:                       types.BoolPointerValue(apiResp.Paused),
+		SrvAddress:                   types.StringValue(apiResp.SrvAddress),
+		StateName:                    types.StringValue(apiResp.StateName),
+		TerminationProtectionEnabled: types.BoolPointerValue(apiResp.TerminationProtectionEnabled),
+		ReplicationFactor:            types.Int64PointerValue(apiResp.ReplicationFactor),
+		ConnectionStrings:            newTFConnectionStringsModel(apiResp.ConnectionStrings),
+		BiConnectorConfig:            newTFBiConnectorConfigModel(apiResp.BiConnector),
+		ReplicationSpecs:             newTFReplicationSpecsModel(apiResp.ReplicationSpecs),
+		Labels:                       removeDefaultLabel(newTFLabelsModel(apiResp.Labels)),
+		Tags:                         newTFTagsModel(apiResp.Tags),
+		VersionReleaseSystem:         types.StringValue(apiResp.VersionReleaseSystem),
+	}
+
+	if isImport {
+		clusterModel.ClusterID = types.StringValue(apiResp.ID)
+		// clusterModel.ProjectID = types.StringValue(apiResp.GroupID)
+		// clusterModel.Name = types.StringValue(apiResp.Name)
+		//  clusterModel.ProviderName = types.StringValue(apiResp.ProviderSettings.ProviderName)
+		clusterModel.CloudBackup = types.BoolPointerValue(apiResp.ProviderBackupEnabled)
+	} else {
+		clusterModel.ID = currState.ID
+		// clusterModel.ClusterID = currState.ClusterID
+		// clusterModel.ProjectID = currState.ProjectID
+
+		if !currState.CloudBackup.IsNull() {
+			clusterModel.CloudBackup = types.BoolPointerValue(apiResp.ProviderBackupEnabled)
+		}
+	}
+
+	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
+	if numShards := apiResp.NumShards; numShards != nil {
+		clusterModel.NumShards = types.Int64PointerValue(numShards)
+	}
+
+	if apiResp.ProviderSettings != nil {
+		setTFProviderSettings(&clusterModel, apiResp.ProviderSettings)
+	}
+
+	if v := apiResp.ProviderSettings.ProviderName; v != "TENANT" {
+		containers, _, err := conn.Containers.List(ctx, projectID,
+			&matlas.ContainersListOptions{ProviderName: v})
+		if err != nil {
+			return nil, fmt.Errorf(errorClusterRead, clusterName, err)
+		}
+
+		clusterModel.ContainerID = types.StringValue(getContainerID(containers, apiResp))
+		clusterModel.AutoScalingDiskGbEnabled = types.BoolPointerValue(apiResp.AutoScaling.DiskGBEnabled)
+
+	}
+
+	clusterModel.AdvancedConfiguration, err = newTFAdvancedConfigurationModelFromAtlas(ctx, conn, currState.ProjectID.ValueString(), apiResp.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	clusterModel.SnapshotBackupPolicy, err = newTFSnapshotBackupPolicyModel(ctx, currState, conn, projectID, clusterName)
+
+	return &clusterModel, nil
+}
+
+func newTFSnapshotBackupPolicyModel(ctx context.Context, currState *tfClusterRSModel, conn *matlas.Client, projectID, clusterName string) ([]tfSnapshotBackupPolicyModel, error) {
+	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
+	if err != nil {
+		if res.StatusCode == http.StatusNotFound ||
+			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
+			strings.Contains(err.Error(), "Not Found") ||
+			strings.Contains(err.Error(), "404") {
+			return []tfSnapshotBackupPolicyModel{}, nil
+		}
+
+		return []tfSnapshotBackupPolicyModel{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
+	}
+
+	return []tfSnapshotBackupPolicyModel{
+		{
+			ClusterID:             conversion.StringNullIfEmpty(backupPolicy.ClusterID),
+			ClusterName:           conversion.StringNullIfEmpty(backupPolicy.ClusterName),
+			NextSnapshot:          conversion.StringNullIfEmpty(backupPolicy.NextSnapshot),
+			ReferenceHourOfDay:    types.Int64PointerValue(backupPolicy.ReferenceHourOfDay),
+			ReferenceMinuteOfHour: types.Int64PointerValue(backupPolicy.ReferenceMinuteOfHour),
+			RestoreWindowDays:     types.Int64PointerValue(backupPolicy.RestoreWindowDays),
+			UpdateSnapshots:       types.BoolPointerValue(backupPolicy.UpdateSnapshots),
+			Policies:              newTFSnapshotPolicyModel(backupPolicy.Policies),
+		},
+	}, nil
+}
+
+func newTFSnapshotPolicyModel(policies []matlas.Policy) []tfSnapshotPolicyModel {
+	res := make([]tfSnapshotPolicyModel, len(policies))
+
+	for i, pe := range policies {
+		res[i] = tfSnapshotPolicyModel{
+			ID:         conversion.StringNullIfEmpty(pe.ID),
+			PolicyItem: newTFSnapshotPolicyItemModel(pe.PolicyItems),
+		}
+	}
+	return res
+}
+
+func newTFSnapshotPolicyItemModel(policyItems []matlas.PolicyItem) []tfSnapshotPolicyItemModel {
+	res := make([]tfSnapshotPolicyItemModel, len(policyItems))
+
+	for i, pe := range policyItems {
+		res[i] = tfSnapshotPolicyItemModel{
+			ID:                conversion.StringNullIfEmpty(pe.ID),
+			FrequencyInterval: types.Int64Value(cast.ToInt64(pe.FrequencyInterval)),
+			FrequencyType:     conversion.StringNullIfEmpty(pe.FrequencyType),
+			RetentionUnit:     conversion.StringNullIfEmpty(pe.RetentionUnit),
+			RetentionValue:    types.Int64Value(cast.ToInt64(pe.RetentionValue)),
+		}
+	}
+	return res
+}
+
+func setTFProviderSettings(clusterModel *tfClusterRSModel, settings *matlas.ProviderSettings) {
+	if settings.ProviderName == "TENANT" {
+		clusterModel.BackingProviderName = types.StringValue(settings.BackingProviderName)
+	}
+
+	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
+		clusterModel.ProviderDiskIops = types.Int64PointerValue(settings.DiskIOPS)
+	}
+	if settings.EncryptEBSVolume != nil {
+		clusterModel.ProviderEncryptEbsVolumeFlag = types.BoolPointerValue(settings.EncryptEBSVolume)
+	}
+	clusterModel.ProviderDiskTypeName = types.StringValue(settings.DiskTypeName)
+	clusterModel.ProviderInstanceSizeName = types.StringValue(settings.InstanceSizeName)
+	clusterModel.ProviderName = types.StringValue(settings.ProviderName)
+	clusterModel.ProviderRegionName = types.StringValue(settings.RegionName)
+	clusterModel.ProviderVolumeType = types.StringValue(settings.VolumeType)
+}
+
+func newTFAdvancedConfigurationModelFromAtlas(ctx context.Context, conn *matlas.Client, projectID string, clusterName string) ([]tfAdvancedConfigurationModel, error) {
+	processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, projectID, clusterName)
+
+	return newTfAdvancedConfigurationModel(processArgs), err
+}
+
+func newTfAdvancedConfigurationModel(p *matlas.ProcessArgs) []tfAdvancedConfigurationModel {
+	return []tfAdvancedConfigurationModel{
+		{
+			DefaultReadConcern:  conversion.StringNullIfEmpty(p.DefaultReadConcern),
+			DefaultWriteConcern: conversion.StringNullIfEmpty(p.DefaultWriteConcern),
+
+			FailIndexKeyTooLong:              types.BoolPointerValue(p.FailIndexKeyTooLong),
+			JavascriptEnabled:                types.BoolPointerValue(p.JavascriptEnabled),
+			MinimumEnabledTlsProtocol:        conversion.StringNullIfEmpty(p.MinimumEnabledTLSProtocol),
+			NoTableScan:                      types.BoolPointerValue(p.NoTableScan),
+			OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
+			OplogMinRetentionHours:           types.Int64Value(cast.ToInt64(p.OplogMinRetentionHours)),
+			SampleSizeBiConnector:            types.Int64PointerValue(p.SampleSizeBIConnector),
+			SampleRefreshIntervalBiConnector: types.Int64PointerValue(p.SampleRefreshIntervalBIConnector),
+			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(p.TransactionLifetimeLimitSeconds),
+		},
+	}
+}
+
+func removeDefaultLabel(labels []tfLabelModel) []tfLabelModel {
+	var result []tfLabelModel
+
+	for _, item := range labels {
+		if item.Key.ValueString() == defaultLabel.Key && item.Value.ValueString() == defaultLabel.Value {
+			continue
+		}
+		result = append(result, item)
+	}
+
+	return result
+}
+
+func newTFTagsModel(tags *[]*matlas.Tag) []tfTagModel {
+	res := make([]tfTagModel, len(*tags))
+
+	for i, v := range *tags {
+		res[i] = tfTagModel{
+			Key:   types.StringValue(v.Key),
+			Value: types.StringValue(v.Value),
+		}
+	}
+
+	return res
+}
+
+func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []tfReplicationSpecModel {
+	res := make([]tfReplicationSpecModel, len(replicationSpecs))
+
+	for i, rSpec := range replicationSpecs {
+		res[i] = tfReplicationSpecModel{
+			ID:            conversion.StringNullIfEmpty(rSpec.ID),
+			NumShards:     types.Int64PointerValue(rSpec.NumShards),
+			ZoneName:      conversion.StringNullIfEmpty(rSpec.ZoneName),
+			RegionsConfig: newTFRegionsConfigModel(rSpec.RegionsConfig),
+		}
+	}
+	return res
+}
+
+func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tfRegionConfigModel {
+	res := make([]tfRegionConfigModel, len(regionsConfig))
+
+	for regionName, regionConfig := range regionsConfig {
+		region := tfRegionConfigModel{
+			RegionName:     conversion.StringNullIfEmpty(regionName),
+			Priority:       types.Int64PointerValue(regionConfig.Priority),
+			AnalyticsNodes: types.Int64PointerValue(regionConfig.AnalyticsNodes),
+			ElectableNodes: types.Int64PointerValue(regionConfig.ElectableNodes),
+			ReadOnlyNodes:  types.Int64PointerValue(regionConfig.ReadOnlyNodes),
+		}
+		res = append(res, region)
+	}
+	return res
+}
+
+func newTFBiConnectorConfigModel(biConnector *matlas.BiConnector) []tfBiConnectorConfigModel {
+	if biConnector == nil {
+		return []tfBiConnectorConfigModel{}
+	}
+
+	return []tfBiConnectorConfigModel{
+		{
+			Enabled:        types.BoolPointerValue(biConnector.Enabled),
+			ReadPreference: conversion.StringNullIfEmpty(biConnector.ReadPreference),
+		},
+	}
+}
+
+func newTFConnectionStringsModel(connString *matlas.ConnectionStrings) []tfConnectionStringModel {
+	if connString == nil {
+		return []tfConnectionStringModel{}
+	}
+
+	return []tfConnectionStringModel{
+		{
+			Standard:        conversion.StringNullIfEmpty(connString.Standard),
+			StandardSrv:     conversion.StringNullIfEmpty(connString.StandardSrv),
+			Private:         conversion.StringNullIfEmpty(connString.Private),
+			PrivateSrv:      conversion.StringNullIfEmpty(connString.PrivateSrv),
+			PrivateEndpoint: newTFPrivateEndpointModel(connString.PrivateEndpoint),
+		},
+	}
+}
+
+func newTFPrivateEndpointModel(privateEndpoints []matlas.PrivateEndpoint) []tfPrivateEndpointModel {
+	// if len(privateEndpoints) == 0 {
+	// 	return []tfPrivateEndpointModel{}
+	// }
+
+	res := make([]tfPrivateEndpointModel, len(privateEndpoints))
+
+	for i, pe := range privateEndpoints {
+		res[i] = tfPrivateEndpointModel{
+			ConnectionString:                  conversion.StringNullIfEmpty(pe.ConnectionString),
+			SrvConnectionString:               conversion.StringNullIfEmpty(pe.SRVConnectionString),
+			SrvShardOptimizedConnectionString: conversion.StringNullIfEmpty(pe.SRVShardOptimizedConnectionString),
+			EndpointType:                      conversion.StringNullIfEmpty(pe.Type),
+			Endpoints:                         newTFEndpointModel(pe.Endpoints),
+		}
+	}
+	return res
+}
+
+func newTFEndpointModel(endpoints []matlas.Endpoint) []tfEndpointModel {
+	res := make([]tfEndpointModel, len(endpoints))
+
+	for i, e := range endpoints {
+		res[i] = tfEndpointModel{
+			Region:       conversion.StringNullIfEmpty(e.Region),
+			ProviderName: conversion.StringNullIfEmpty(e.ProviderName),
+			EndpointID:   conversion.StringNullIfEmpty(e.EndpointID),
+		}
+	}
+	return res
+}
+
+func newAtlasProcessArgs(tfModel tfAdvancedConfigurationModel) *matlas.ProcessArgs {
+	res := &matlas.ProcessArgs{}
+
+	if v := tfModel.DefaultReadConcern; !v.IsNull() {
+		res.DefaultReadConcern = v.ValueString()
+	}
+	if v := tfModel.DefaultWriteConcern; !v.IsNull() {
+		res.DefaultWriteConcern = v.ValueString()
+	}
+
+	if v := tfModel.FailIndexKeyTooLong; !v.IsNull() {
+		res.FailIndexKeyTooLong = v.ValueBoolPointer()
+	}
+
+	if v := tfModel.JavascriptEnabled; !v.IsNull() {
+		res.JavascriptEnabled = v.ValueBoolPointer()
+	}
+
+	if v := tfModel.MinimumEnabledTlsProtocol; !v.IsNull() {
+		res.MinimumEnabledTLSProtocol = v.ValueString()
+	}
+
+	if v := tfModel.NoTableScan; !v.IsNull() {
+		res.NoTableScan = v.ValueBoolPointer()
+	}
+
+	if v := tfModel.SampleSizeBiConnector; !v.IsNull() {
+		res.SampleSizeBIConnector = v.ValueInt64Pointer()
+	}
+
+	if v := tfModel.SampleRefreshIntervalBiConnector; !v.IsNull() {
+		res.SampleRefreshIntervalBIConnector = v.ValueInt64Pointer()
+	}
+
+	if v := tfModel.OplogSizeMB; !v.IsNull() {
+		if sizeMB := v.ValueInt64(); sizeMB != 0 {
+			res.OplogSizeMB = v.ValueInt64Pointer()
+		} else {
+			log.Printf(errorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
+		}
+	}
+
+	if v := tfModel.OplogMinRetentionHours; !v.IsNull() {
+		if minRetentionHours := v.ValueInt64(); minRetentionHours >= 0 {
+			res.OplogMinRetentionHours = pointy.Float64(cast.ToFloat64(v.ValueInt64()))
+		} else {
+			log.Printf(errorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
+		}
+	}
+
+	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
+		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
+			res.TransactionLifetimeLimitSeconds = pointy.Int64(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
+		} else {
+			log.Printf(errorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
+		}
+	}
+
+	if v := tfModel.TransactionLifetimeLimitSeconds; !v.IsNull() {
+		if transactionLimitSeconds := v.ValueInt64(); transactionLimitSeconds > 0 {
+			res.TransactionLifetimeLimitSeconds = v.ValueInt64Pointer()
+		} else {
+			log.Printf(errorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLimitSeconds))
+		}
+	}
+
+	return res
+}
+
+func newAtlasTags(list []tfTagModel) []*matlas.Tag {
+	res := make([]*matlas.Tag, len(list))
+	for i, v := range list {
+		res[i] = &matlas.Tag{
+			Key:   v.Key.ValueString(),
+			Value: v.Value.ValueString(),
+		}
+	}
+	return res
+}
+
+func newAtlasLabels(list []tfLabelModel) []matlas.Label {
+	res := make([]matlas.Label, len(list))
+
+	for i, v := range list {
+		res[i] = matlas.Label{
+			Key:   v.Key.ValueString(),
+			Value: v.Value.ValueString(),
+		}
+	}
+
+	return res
+}
+
+func newAtlasBiConnectorConfig(plan tfClusterRSModel) (*matlas.BiConnector, error) {
+	var biConnector matlas.BiConnector
+
+	if v := plan.BiConnectorConfig; v != nil {
+		if len(v) > 0 {
+			biConnMap := v[0]
+
+			biConnector = matlas.BiConnector{
+				Enabled:        biConnMap.Enabled.ValueBoolPointer(),
+				ReadPreference: biConnMap.ReadPreference.ValueString(),
+			}
+		}
+	}
+
+	return &biConnector, nil
+}
+
+func newAtlasProviderSetting(tfClusterModel tfClusterRSModel) (*matlas.ProviderSettings, error) {
+	var (
+		region, _          = valRegion(tfClusterModel.ProviderRegionName.ValueString())
+		minInstanceSize    = getInstanceSizeToInt(tfClusterModel.ProviderAutoScalingComputeMinInstanceSize.ValueString())
+		maxInstanceSize    = getInstanceSizeToInt(tfClusterModel.ProviderAutoScalingComputeMaxInstanceSize.ValueString())
+		instanceSize       = getInstanceSizeToInt(tfClusterModel.ProviderInstanceSizeName.ValueString())
+		compute            *matlas.Compute
+		autoScalingEnabled = tfClusterModel.AutoScalingComputeEnabled.ValueBool()
+		providerName       = tfClusterModel.ProviderName.ValueString()
+	)
+
+	if minInstanceSize != 0 && autoScalingEnabled {
+		if instanceSize < minInstanceSize {
+			return nil, fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
+		}
+
+		compute = &matlas.Compute{
+			MinInstanceSize: tfClusterModel.ProviderAutoScalingComputeMinInstanceSize.ValueString(),
+		}
+	}
+
+	if maxInstanceSize != 0 && autoScalingEnabled {
+		if instanceSize > maxInstanceSize {
+			return nil, fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
+		}
+
+		if compute == nil {
+			compute = &matlas.Compute{}
+		}
+		compute.MaxInstanceSize = tfClusterModel.ProviderAutoScalingComputeMaxInstanceSize.ValueString()
+	}
+
+	providerSettings := &matlas.ProviderSettings{
+		InstanceSizeName: tfClusterModel.ProviderInstanceSizeName.ValueString(),
+		ProviderName:     providerName,
+		RegionName:       region,
+		VolumeType:       tfClusterModel.ProviderVolumeType.ValueString(),
+	}
+
+	// TODO include in update()
+	// if d.HasChange("provider_disk_type_name") {
+	// 	_, newdiskTypeName := d.GetChange("provider_disk_type_name")
+	// 	diskTypeName := cast.ToString(newdiskTypeName)
+	// 	if diskTypeName != "" { // ensure disk type is not included in request if attribute is removed, prevents errors in NVME intances
+	// 		providerSettings.DiskTypeName = diskTypeName
+	// 	}
+	// }
+
+	if providerName == "TENANT" {
+		providerSettings.BackingProviderName = tfClusterModel.BackingProviderName.ValueString()
+	}
+
+	if autoScalingEnabled {
+		providerSettings.AutoScaling = &matlas.AutoScaling{Compute: compute}
+	}
+
+	if tfClusterModel.ProviderName.ValueString() == "AWS" {
+		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
+		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
+		if providerDiskIops := tfClusterModel.ProviderDiskIops; !providerDiskIops.IsNull() && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
+			providerSettings.DiskIOPS = providerDiskIops.ValueInt64Pointer()
+		}
+
+		providerSettings.EncryptEBSVolume = pointy.Bool(true)
+	}
+
+	return providerSettings, nil
+
+}
+
+func newAtlasReplicationSpecs(tfClusterModel tfClusterRSModel) ([]matlas.ReplicationSpec, error) {
+	rSpecs := make([]matlas.ReplicationSpec, 0)
+
+	vRSpecs := tfClusterModel.ReplicationSpecs
+	vPRName := tfClusterModel.ProviderRegionName
+
+	if vRSpecs == nil || len(vRSpecs) == 0 {
+		return rSpecs, nil
+	}
+
+	for _, spec := range vRSpecs {
+		// spec := s.(map[string]interface{})
+
+		replaceRegion := ""
+		originalRegion := ""
+		id := ""
+
+		// TODO update() logic
+		// if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
+		// 	if d.HasChange("provider_region_name") {
+		// 		replaceRegion = vPRName.(string)
+		// 		original, _ := d.GetChange("provider_region_name")
+		// 		originalRegion = original.(string)
+		// 	}
+		// }
+
+		// TODO update() logic
+		// if d.HasChange("replication_specs") {
+		// 	// Get original and new object
+		// 	var oldSpecs map[string]interface{}
+		// 	original, _ := d.GetChange("replication_specs")
+		// 	for _, s := range original.(*schema.Set).List() {
+		// 		oldSpecs = s.(map[string]interface{})
+		// 		if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
+		// 			id = oldSpecs["id"].(string)
+		// 			break
+		// 		}
+		// 	}
+		// 	if id == "" && oldSpecs != nil {
+		// 		id = oldSpecs["id"].(string)
+		// 	}
+		// }
+
+		// regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
+		regionsConfig, err := newAtlasRegionsConfig(spec.RegionsConfig, originalRegion, replaceRegion)
+		if err != nil {
+			return rSpecs, err
+		}
+
+		rSpec := matlas.ReplicationSpec{
+			ID:            id,
+			NumShards:     spec.NumShards.ValueInt64Pointer(),
+			ZoneName:      spec.ZoneName.ValueString(),
+			RegionsConfig: regionsConfig,
+		}
+		rSpecs = append(rSpecs, rSpec)
+	}
+}
+
+func newAtlasRegionsConfig(regions []tfRegionConfigModel, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
+	regionsConfig := make(map[string]matlas.RegionsConfig)
+
+	for _, region := range regions {
+		//region := r.(map[string]interface{})
+
+		r, err := valRegion(region.RegionName.ValueString())
+		if err != nil {
+			return regionsConfig, err
+		}
+
+		if replaceRegion != "" && r == originalRegion {
+			r, err = valRegion(replaceRegion)
+		}
+		if err != nil {
+			return regionsConfig, err
+		}
+
+		regionsConfig[r] = matlas.RegionsConfig{
+			AnalyticsNodes: region.AnalyticsNodes.ValueInt64Pointer(),
+			ElectableNodes: region.ElectableNodes.ValueInt64Pointer(),
+			Priority:       region.Priority.ValueInt64Pointer(),
+			ReadOnlyNodes:  region.ReadOnlyNodes.ValueInt64Pointer(),
+		}
+	}
+
+	return regionsConfig, nil
+}
+
+func validateClusterConfig(plan tfClusterRSModel, response *resource.CreateResponse) {
+	providerName := plan.ProviderName.ValueString()
+	computeEnabled := plan.AutoScalingComputeEnabled.ValueBool()
+	scaleDownEnabled := plan.AutoScalingComputeScaleDownEnabled.ValueBool()
+	minInstanceSize := plan.ProviderAutoScalingComputeMinInstanceSize.ValueString()
+	maxInstanceSize := plan.ProviderAutoScalingComputeMaxInstanceSize.ValueString()
+
+	if scaleDownEnabled && !computeEnabled {
+		response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`auto_scaling_compute_scale_down_enabled` must be set when `auto_scaling_compute_enabled` is set"))
+	}
+
+	if computeEnabled && maxInstanceSize == "" {
+		response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`provider_auto_scaling_compute_max_instance_size` must be set when `auto_scaling_compute_enabled` is set"))
+	}
+
+	if scaleDownEnabled && minInstanceSize == "" {
+		response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`provider_auto_scaling_compute_min_instance_size` must be set when `auto_scaling_compute_scale_down_enabled` is set"))
+	}
+
+	if plan.ReplicationSpecs != nil && len(plan.ReplicationSpecs) > 0 {
+		if plan.ClusterType.IsNull() {
+			response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`cluster_type` should be set when `replication_specs` is set"))
+		}
+		if plan.NumShards.IsNull() {
+			response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`num_shards` should be set when `replication_specs` is set"))
+		}
+	}
+
+	if providerName != "AWS" {
+		if plan.ProviderDiskIops.IsNull() {
+			response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`provider_disk_iops` shouldn't be set when provider name is `GCP` or `AZURE`"))
+		}
+		if plan.ProviderVolumeType.IsNull() {
+			response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`provider_volume_type` shouldn't be set when provider name is `GCP` or `AZURE`"))
+		}
+	}
+
+	if providerName != "AZURE" {
+		if plan.ProviderDiskTypeName.IsNull() {
+			response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`provider_volume_type` shouldn't be set when provider name is `GCP` or `AZURE`"))
+		}
+	}
+
+	if providerName == "AZURE" {
+		if plan.DiskSizeGb.IsNull() {
+			response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`provider_disk_type_name` shouldn't be set when provider name is `GCP` or `AWS`"))
+		}
+	}
+
+	if providerName == "TENANT" {
+		if instanceSizeName := plan.ProviderInstanceSizeName; !instanceSizeName.IsNull() {
+			if instanceSizeName.ValueString() == "M2" {
+				if diskSizeGB := plan.DiskSizeGb; !diskSizeGB.IsNull() {
+					if cast.ToFloat64(diskSizeGB.ValueFloat64()) != 2 {
+						response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`disk_size_gb` must be 2 for M2 shared tier"))
+					}
+				}
+			}
+			if instanceSizeName.ValueString() == "M5" {
+				if diskSizeGB := plan.DiskSizeGb; !diskSizeGB.IsNull() {
+					if cast.ToFloat64(diskSizeGB.ValueFloat64()) != 5 {
+						response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`disk_size_gb` must be 5 for M5 shared tier"))
+					}
+				}
+			}
+		}
+	}
+
+	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
+	// before that the cluster is created
+	if plan.AdvancedConfiguration != nil && len(plan.AdvancedConfiguration) > 0 {
+		if oplogSizeMB := plan.AdvancedConfiguration[0].OplogSizeMB; !oplogSizeMB.IsNull() {
+			if cast.ToInt64(oplogSizeMB.ValueInt64()) <= 0 {
+				response.Diagnostics.AddError(errorInvalidCreateValues, fmt.Sprintf("`advanced_configuration.oplog_size_mb` cannot be <= 0"))
+			}
+		}
+	}
 }
 
 type tfClusterRSModel struct {
@@ -761,11 +1544,10 @@ type tfClusterRSModel struct {
 	ProviderVolumeType                        types.String  `tfsdk:"provider_volume_type"`
 	ReplicationFactor                         types.Int64   `tfsdk:"replication_factor"`
 	RetainBackupsEnabled                      types.Bool    `tfsdk:"retain_backups_enabled"`
-	// SnapshotBackupPolicy                      types.List    `tfsdk:"snapshot_backup_policy"`
-	SrvAddress                   types.String `tfsdk:"srv_address"`
-	StateName                    types.String `tfsdk:"state_name"`
-	TerminationProtectionEnabled types.Bool   `tfsdk:"termination_protection_enabled"`
-	VersionReleaseSystem         types.String `tfsdk:"version_release_system"`
+	SrvAddress                                types.String  `tfsdk:"srv_address"`
+	StateName                                 types.String  `tfsdk:"state_name"`
+	TerminationProtectionEnabled              types.Bool    `tfsdk:"termination_protection_enabled"`
+	VersionReleaseSystem                      types.String  `tfsdk:"version_release_system"`
 
 	// Computed list attributes
 	ConnectionStrings    []tfConnectionStringModel     `tfsdk:"links"`
@@ -814,11 +1596,11 @@ type tfTagModel struct {
 type tfAdvancedConfigurationModel struct {
 	DefaultReadConcern               types.String `tfsdk:"default_read_concern"`
 	DefaultWriteConcern              types.String `tfsdk:"default_write_concern"`
-	FailIndexKeyTooLong              types.String `tfsdk:"fail_index_key_too_long"`
+	FailIndexKeyTooLong              types.Bool   `tfsdk:"fail_index_key_too_long"`
 	JavascriptEnabled                types.Bool   `tfsdk:"javascript_enabled"`
 	MinimumEnabledTlsProtocol        types.String `tfsdk:"minimum_enabled_tls_protocol"`
 	NoTableScan                      types.Bool   `tfsdk:"no_table_scan"`
-	OlogSizeMB                       types.Int64  `tfsdk:"oplog_size_mb"`
+	OplogSizeMB                      types.Int64  `tfsdk:"oplog_size_mb"`
 	OplogMinRetentionHours           types.Int64  `tfsdk:"oplog_min_retention_hours"`
 	SampleSizeBiConnector            types.Int64  `tfsdk:"sample_size_bi_connector"`
 	SampleRefreshIntervalBiConnector types.Int64  `tfsdk:"sample_refresh_interval_bi_connector"`
@@ -827,9 +1609,9 @@ type tfAdvancedConfigurationModel struct {
 
 type tfReplicationSpecModel struct {
 	ID            types.String          `tfsdk:"id"`
-	num_shards    types.Int64           `tfsdk:"num_shards"`
+	NumShards     types.Int64           `tfsdk:"num_shards"`
 	RegionsConfig []tfRegionConfigModel `tfsdk:"regions_config"`
-	zone_name     types.String          `tfsdk:"zone_name"`
+	ZoneName      types.String          `tfsdk:"zone_name"`
 }
 
 type tfRegionConfigModel struct {
@@ -862,7 +1644,7 @@ type tfPrivateEndpointModel struct {
 }
 
 type tfEndpointModel struct {
-	endpoint_id   types.String `tfsdk:"endpoint_id"`
-	provider_name types.String `tfsdk:"provider_name"`
-	region        types.String `tfsdk:"region"`
+	EndpointID   types.String `tfsdk:"endpoint_id"`
+	ProviderName types.String `tfsdk:"provider_name"`
+	Region       types.String `tfsdk:"region"`
 }
