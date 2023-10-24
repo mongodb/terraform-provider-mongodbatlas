@@ -49,11 +49,34 @@ linters-settings:
   maligned:
     suggest-new: true
   depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
+    rules:
+      main:
+        files:
+          - $all
+          - "!$test"
+        allow:
+          - $gostd
+          - github.com/mongodb
+          - github.com/hashicorp
+          - github.com/aws
+          - github.com/spf13/cast
+          - github.com/mwielbut/pointy
+          - github.com/zclconf/go-cty/cty
+          - github.com/go-test/deep
+        deny:
+          - pkg: "github.com/sirupsen/logrus"
+            desc: logging is allowed only by logutils.Log, logrus is allowed to use only in logutils package
+      test:
+        files:
+          - $test
+        allow:
+          - $gostd
+          - github.com/mongodb
+          - github.com/hashicorp
+          - github.com/spf13/cast
+          - github.com/mwielbut/pointy
+          - github.com/go-test/deep
+          - github.com/gruntwork-io/terratest/modules
   misspell:
     locale: US
     ignore-words:
@@ -72,7 +95,7 @@ linters-settings:
     settings:
       mnd:
         # don't include the "operation" and "assign"
-        checks: [case,return]
+        checks: [case, return]
   funlen:
     lines: 360
     statements: 120
@@ -137,10 +160,10 @@ issues:
 
     # Exclude some staticcheck messages
     - linters:
-      - staticcheck
+        - staticcheck
       text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
     - linters:
-      - gocritic
+        - gocritic
       text: "^hugeParam: req is heavy"
 
 run:
