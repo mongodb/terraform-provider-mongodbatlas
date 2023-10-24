@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -82,8 +83,8 @@ func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
-		awsRegion    = os.Getenv("AWS_REGION")
+		awsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
+		awsRegion    = strings.ReplaceAll(strings.ToLower(os.Getenv("AWS_REGION")), "_", "-")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp    = realm.EventTrigger{}
 	)
@@ -207,8 +208,8 @@ func TestAccConfigRSEventTriggerAuth_eventProcessor(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
-		awsRegion    = os.Getenv("AWS_REGION")
+		awsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
+		awsRegion    = strings.ReplaceAll(strings.ToLower(os.Getenv("AWS_REGION")), "_", "-")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp    = realm.EventTrigger{}
 	)
@@ -324,8 +325,8 @@ func TestAccConfigRSEventTriggerSchedule_eventProcessor(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_event_trigger.test"
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		awsAccountID = os.Getenv("AWS_ACCOUNT_ID")
-		awsRegion    = os.Getenv("AWS_REGION")
+		awsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
+		awsRegion    = strings.ReplaceAll(strings.ToLower(os.Getenv("AWS_REGION")), "_", "-")
 		appID        = os.Getenv("MONGODB_REALM_APP_ID")
 		eventResp    = realm.EventTrigger{}
 	)
