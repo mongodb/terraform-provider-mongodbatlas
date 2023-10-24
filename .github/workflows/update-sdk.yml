@@ -1,0 +1,35 @@
+name: Update SDK
+on:
+ schedule:
+   - cron: 30 8 * * TUE
+ workflow_dispatch:
+  
+jobs:
+  update-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: update
+        run: 	| 
+          go install github.com/icholy/gomajor@latest 
+          make update-atlas-sdk
+      - name: Verify Changed files
+        uses: tj-actions/verify-changed-files@78dc414e915e0664bcf0d2b42465a86cd47bcc3c
+        id: verify-changed-files
+        with:
+          files: |
+             ./internal/**/*
+      - uses: peter-evans/create-pull-request@v5
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+
+        with:
+          title: "chore: atlas GO sdk update"
+          commit-message: "build(deps): bump go.mongodb.org/atlas-sdk"
+          delete-branch: true
+          branch: atlas-sdk-update
+          body: |
+            Automatic update for MongoDB Atlas Go Client SDK
