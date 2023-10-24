@@ -16,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.52.2
+GOLANGCI_VERSION=v1.55.0
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -78,7 +78,7 @@ lint:
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
 	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/terraform-linters/tflint@v0.46.1
+	go install github.com/terraform-linters/tflint@v0.48.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
