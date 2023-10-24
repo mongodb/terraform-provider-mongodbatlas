@@ -65,7 +65,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-          cache: false
+          cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.7.0
         with:
