@@ -137,7 +137,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"num_shards": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  1,
+				Computed: true,
 			},
 			"cloud_backup": {
 				Type:          schema.TypeBool,
