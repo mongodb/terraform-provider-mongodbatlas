@@ -27,7 +27,7 @@ func dataSourceMongoDBAtlasThirdPartyIntegrations() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -46,12 +46,12 @@ func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *sc
 	return nil
 }
 
-func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdPartyIntegrations, projectID string) (list []map[string]interface{}) {
+func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdPartyIntegrations, projectID string) (list []map[string]any) {
 	if len(integrations.Results) == 0 {
 		return
 	}
 
-	list = make([]map[string]interface{}, 0, len(integrations.Results))
+	list = make([]map[string]any, 0, len(integrations.Results))
 
 	for _, integration := range integrations.Results {
 		service := integrationToSchema(d, integration)
@@ -62,7 +62,7 @@ func flattenIntegrations(d *schema.ResourceData, integrations *matlas.ThirdParty
 	return
 }
 
-func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]interface{} {
+func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) map[string]any {
 	integrationSchema := schemaToIntegration(d)
 	if integrationSchema.APIKey == "" {
 		integrationSchema.APIKey = integration.APIKey
@@ -89,7 +89,7 @@ func integrationToSchema(d *schema.ResourceData, integration *matlas.ThirdPartyI
 		integrationSchema.URL = integration.URL
 	}
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"type":                        integration.Type,
 		"api_key":                     integrationSchema.APIKey,
 		"region":                      integration.Region,

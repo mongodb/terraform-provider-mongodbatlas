@@ -118,7 +118,7 @@ func returnCloudBackupSnapshotExportJobSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -193,15 +193,15 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportJobRead(ctx context.Context, d
 	return nil
 }
 
-func flattenExportJobsComponents(components []*matlas.CloudProviderSnapshotExportJobComponent) []map[string]interface{} {
+func flattenExportJobsComponents(components []*matlas.CloudProviderSnapshotExportJobComponent) []map[string]any {
 	if len(components) == 0 {
 		return nil
 	}
 
-	customData := make([]map[string]interface{}, 0)
+	customData := make([]map[string]any, 0)
 
 	for i := range components {
-		customData = append(customData, map[string]interface{}{
+		customData = append(customData, map[string]any{
 			"export_id":        components[i].ExportID,
 			"replica_set_name": components[i].ReplicaSetName,
 		})
@@ -210,15 +210,15 @@ func flattenExportJobsComponents(components []*matlas.CloudProviderSnapshotExpor
 	return customData
 }
 
-func flattenExportJobsCustomData(data []*matlas.CloudProviderSnapshotExportJobCustomData) []map[string]interface{} {
+func flattenExportJobsCustomData(data []*matlas.CloudProviderSnapshotExportJobCustomData) []map[string]any {
 	if len(data) == 0 {
 		return nil
 	}
 
-	customData := make([]map[string]interface{}, 0)
+	customData := make([]map[string]any, 0)
 
 	for i := range data {
-		customData = append(customData, map[string]interface{}{
+		customData = append(customData, map[string]any{
 			"key":   data[i].Key,
 			"value": data[i].Value,
 		})
@@ -227,7 +227,7 @@ func flattenExportJobsCustomData(data []*matlas.CloudProviderSnapshotExportJobCu
 	return customData
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotExportJobCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -258,7 +258,7 @@ func expandExportJobCustomData(d *schema.ResourceData) []*matlas.CloudProviderSn
 	res := make([]*matlas.CloudProviderSnapshotExportJobCustomData, customData.Len())
 
 	for i, val := range customData.List() {
-		v := val.(map[string]interface{})
+		v := val.(map[string]any)
 		res[i] = &matlas.CloudProviderSnapshotExportJobCustomData{
 			Key:   v["key"].(string),
 			Value: v["value"].(string),
@@ -268,7 +268,7 @@ func expandExportJobCustomData(d *schema.ResourceData) []*matlas.CloudProviderSn
 	return res
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupSnapshotExportJobImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "--", 3)

@@ -68,7 +68,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMapping() *schema.Reso
 	}
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -107,7 +107,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx contex
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	federationSettingsID, federationSettingsIDOk := d.GetOk("federation_settings_id")
@@ -158,7 +158,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingCreate(ctx cont
 	return resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -197,7 +197,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingUpdate(ctx cont
 	return resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -213,7 +213,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingDelete(ctx cont
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	federationSettingsID, orgID, roleMappingID, err := splitFederatedSettingsOrganizationRoleMappingImportID(d.Id())
@@ -314,7 +314,7 @@ func expandRoleAssignments(d *schema.ResourceData) []matlas.RoleAssignments {
 			roleAssignment := matlas.RoleAssignments{}
 
 			for _, r := range rs.List() {
-				roleMap := r.(map[string]interface{})
+				roleMap := r.(map[string]any)
 
 				for _, role := range roleMap["roles"].(*schema.Set).List() {
 					roleAssignment.OrgID = roleMap["org_id"].(string)
@@ -332,15 +332,15 @@ func expandRoleAssignments(d *schema.ResourceData) []matlas.RoleAssignments {
 	return roleAssignmentsReturn
 }
 
-func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []map[string]interface{} {
+func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []map[string]any {
 	if len(roleAssignments) == 0 {
 		return nil
 	}
 
 	sort.Sort(roleAssignmentRefsByFields(roleAssignments))
 
-	var flattenedRoleAssignments []map[string]interface{}
-	var roleAssignment = map[string]interface{}{
+	var flattenedRoleAssignments []map[string]any
+	var roleAssignment = map[string]any{
 		"group_id": roleAssignments[0].GroupID,
 		"org_id":   roleAssignments[0].OrgID,
 		"roles":    []string{},
@@ -351,7 +351,7 @@ func flattenRoleAssignmentsSpecial(roleAssignments []*matlas.RoleAssignments) []
 			(roleAssignment["group_id"] != "" && roleAssignment["group_id"] != row.GroupID) {
 			flattenedRoleAssignments = append(flattenedRoleAssignments, roleAssignment)
 
-			roleAssignment = map[string]interface{}{
+			roleAssignment = map[string]any{
 				"group_id": row.GroupID,
 				"org_id":   row.OrgID,
 				"roles":    []string{},

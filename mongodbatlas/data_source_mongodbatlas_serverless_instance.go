@@ -14,7 +14,7 @@ func dataSourceMongoDBAtlasServerlessInstance() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasServerlessInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

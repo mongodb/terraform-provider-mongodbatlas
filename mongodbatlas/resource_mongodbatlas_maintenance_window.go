@@ -39,7 +39,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 1 || v > 7 {
 						errs = append(errs, fmt.Errorf("%q value should be between 1 and 7, got: %d", key, v))
@@ -52,7 +52,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"start_asap"},
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 23 {
 						errs = append(errs, fmt.Errorf("%q value should be between 0 and 23, got: %d", key, v))
@@ -88,7 +88,7 @@ func resourceMongoDBAtlasMaintenanceWindow() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -136,7 +136,7 @@ func resourceMongoDBAtlasMaintenanceWindowCreate(ctx context.Context, d *schema.
 	return resourceMongoDBAtlasMaintenanceWindowRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -181,7 +181,7 @@ func resourceMongoDBAtlasMaintenanceWindowRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -225,7 +225,7 @@ func resourceMongoDBAtlasMaintenanceWindowUpdate(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasMaintenanceWindowDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasMaintenanceWindowDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

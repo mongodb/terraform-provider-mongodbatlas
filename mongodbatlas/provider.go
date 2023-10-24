@@ -253,9 +253,9 @@ func addBetaFeatures(provider *schema.Provider) {
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil
+	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
 	diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
 	if diagnostics.HasError() {
 		return nil, diagnostics
@@ -269,7 +269,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	}
 
 	if awsRoleDefined {
-		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]interface{})[0].(map[string]interface{}))
+		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
 		secret := d.Get("secret_name").(string)
 		region := strings.ReplaceAll(strings.ToLower(d.Get("region").(string)), "_", "-")
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -380,7 +380,7 @@ func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []
 	return d.Set(attrName, val)
 }
 
-func MultiEnvDefaultFunc(ks []string, def interface{}) interface{} {
+func MultiEnvDefaultFunc(ks []string, def any) any {
 	for _, k := range ks {
 		if v := os.Getenv(k); v != "" {
 			return v
@@ -533,7 +533,7 @@ func decodeStateID(stateID string) map[string]string {
 	return decodedValues
 }
 
-func valRegion(reg interface{}, opt ...string) (string, error) {
+func valRegion(reg any, opt ...string) (string, error) {
 	region, err := cast.ToStringE(reg)
 	if err != nil {
 		return "", err
@@ -556,7 +556,7 @@ func valRegion(reg interface{}, opt ...string) (string, error) {
 	return strings.ReplaceAll(region, "-", "_"), nil
 }
 
-func expandStringList(list []interface{}) (res []string) {
+func expandStringList(list []any) (res []string) {
 	for _, v := range list {
 		res = append(res, v.(string))
 	}
@@ -705,7 +705,7 @@ var validAssumeRoleSourceIdentity = validation.All(
 
 // validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
 // and is within a minimum of 15 minutes and maximum of 12 hours
-func validAssumeRoleDuration(v interface{}, k string) (ws []string, errorResults []error) {
+func validAssumeRoleDuration(v any, k string) (ws []string, errorResults []error) {
 	duration, err := time.ParseDuration(v.(string))
 
 	if err != nil {
@@ -732,7 +732,7 @@ type AssumeRole struct {
 	Duration          time.Duration
 }
 
-func expandAssumeRole(tfMap map[string]interface{}) *AssumeRole {
+func expandAssumeRole(tfMap map[string]any) *AssumeRole {
 	if tfMap == nil {
 		return nil
 	}

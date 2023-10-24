@@ -5,11 +5,11 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/aws/aws-sdk-go v1.45.24
+	github.com/aws/aws-sdk-go v1.45.27
 	github.com/go-test/deep v1.1.0
 	github.com/gruntwork-io/terratest v0.46.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
-	github.com/hashicorp/hcl/v2 v2.18.1
+	github.com/hashicorp/hcl/v2 v2.19.0
 	github.com/hashicorp/terraform-plugin-framework v1.4.1
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.4.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.12.0
@@ -24,7 +24,7 @@ require (
 	github.com/spf13/cast v1.5.1
 	github.com/zclconf/go-cty v1.14.1
 	go.mongodb.org/atlas v0.34.0
-	go.mongodb.org/atlas-sdk/v20231001001 v20231001001.0.0
+	go.mongodb.org/atlas-sdk/v20231001001 v20231001001.1.0
 	go.mongodb.org/realm v0.1.0
 	golang.org/x/exp v0.0.0-20230809150735-7b3493d9a819
 )

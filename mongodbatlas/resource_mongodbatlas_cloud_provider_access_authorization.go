@@ -87,7 +87,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorization() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -126,7 +126,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationRead(ctx context.Contex
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -146,7 +146,7 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationCreate(ctx context.Cont
 	return authorizeRole(ctx, conn, d, projectID, targetRole)
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -170,24 +170,24 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationUpdate(ctx context.Cont
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationPlaceHolder(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 	return nil
 }
 
-func roleToSchemaAuthorization(role *matlas.CloudProviderAccessRole) map[string]interface{} {
-	out := map[string]interface{}{
+func roleToSchemaAuthorization(role *matlas.CloudProviderAccessRole) map[string]any {
+	out := map[string]any{
 		"role_id": role.RoleID,
-		"aws": []interface{}{map[string]interface{}{
+		"aws": []any{map[string]any{
 			"iam_assumed_role_arn": role.IAMAssumedRoleARN,
 		}},
 		"authorized_date": role.AuthorizedDate,
 	}
 
 	if role.ProviderName == "AZURE" {
-		out = map[string]interface{}{
+		out = map[string]any{
 			"role_id": role.AzureID,
-			"azure": []interface{}{map[string]interface{}{
+			"azure": []any{map[string]any{
 				"atlas_azure_app_id":   role.AtlasAzureAppID,
 				"service_principal_id": role.AzureServicePrincipalID,
 				"tenant_id":            role.AzureTenantID,
@@ -196,7 +196,7 @@ func roleToSchemaAuthorization(role *matlas.CloudProviderAccessRole) map[string]
 		}
 	}
 
-	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	features := make([]map[string]any, 0, len(role.FeatureUsages))
 	for _, featureUsage := range role.FeatureUsages {
 		features = append(features, featureToSchema(featureUsage))
 	}
@@ -250,8 +250,8 @@ func resourceMongoDBAtlasCloudProviderAccessAuthorizationResourceV0() *schema.Re
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	rawState["aws"] = []interface{}{}
+func resourceMongoDBAtlasCloudProviderAccessAuthorizationStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+	rawState["aws"] = []any{}
 
 	return rawState, nil
 }
@@ -268,7 +268,7 @@ func authorizeRole(ctx context.Context, client *matlas.Client, d *schema.Resourc
 			return diag.FromErr(fmt.Errorf("error CloudProviderAccessAuthorization missing iam_assumed_role_arn"))
 		}
 
-		req.IAMAssumedRoleARN = pointer(roleAWS.([]interface{})[0].(map[string]interface{})["iam_assumed_role_arn"].(string))
+		req.IAMAssumedRoleARN = pointer(roleAWS.([]any)[0].(map[string]any)["iam_assumed_role_arn"].(string))
 	}
 
 	if targetRole.ProviderName == AZURE {

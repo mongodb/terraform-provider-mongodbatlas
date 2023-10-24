@@ -70,7 +70,7 @@ func resourceMongoDBAtlasFederatedDatabaseQueryLimit() *schema.Resource {
 	}
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get(string("project_id")).(string)
@@ -95,7 +95,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitCreate(ctx context.Context, d *sc
 	return resourceMongoDBFederatedDatabaseQueryLimitRead(ctx, d, meta)
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -124,7 +124,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitRead(ctx context.Context, d *sche
 	return nil
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -144,7 +144,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitUpdate(ctx context.Context, d *sc
 	return resourceMongoDBFederatedDatabaseQueryLimitRead(ctx, d, meta)
 }
 
-func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -159,7 +159,7 @@ func resourceMongoDBFederatedDatabaseQueryLimitDelete(ctx context.Context, d *sc
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasFederatedDatabaseQueryLimitImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	parts := strings.Split(d.Id(), "--")
 

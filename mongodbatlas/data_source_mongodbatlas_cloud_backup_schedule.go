@@ -218,7 +218,7 @@ func dataSourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 
 // Almost the same as dataSourceMongoDBAtlasCloudProviderSnapshotBackupPolicyRead
 // just do not save the update_snapshots because is not specified in the DS
-func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)

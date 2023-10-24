@@ -123,7 +123,7 @@ func resourceMongoDBAtlasCloudBackupSnapshot() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -199,7 +199,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -259,7 +259,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotCreate(ctx context.Context, d *schem
 	return resourceMongoDBAtlasCloudBackupSnapshotRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -279,7 +279,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotDelete(ctx context.Context, d *schem
 }
 
 func resourceCloudBackupSnapshotRefreshFunc(ctx context.Context, requestParameters *matlas.SnapshotReqPathParameters, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		c, resp, err := client.CloudProviderSnapshots.GetOneCloudProviderSnapshot(ctx, requestParameters)
 
 		switch {
@@ -299,7 +299,7 @@ func resourceCloudBackupSnapshotRefreshFunc(ctx context.Context, requestParamete
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupSnapshotImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters, err := splitSnapshotImportID(d.Id())
@@ -349,12 +349,12 @@ func splitSnapshotImportID(id string) (*matlas.SnapshotReqPathParameters, error)
 	}, nil
 }
 
-func flattenCloudMember(apiObject *matlas.Member) map[string]interface{} {
+func flattenCloudMember(apiObject *matlas.Member) map[string]any {
 	if apiObject == nil {
 		return nil
 	}
 
-	tfMap := map[string]interface{}{}
+	tfMap := map[string]any{}
 
 	tfMap["cloud_provider"] = apiObject.CloudProvider
 	tfMap["id"] = apiObject.ID
@@ -363,12 +363,12 @@ func flattenCloudMember(apiObject *matlas.Member) map[string]interface{} {
 	return tfMap
 }
 
-func flattenCloudMembers(apiObjects []*matlas.Member) []interface{} {
+func flattenCloudMembers(apiObjects []*matlas.Member) []any {
 	if len(apiObjects) == 0 {
 		return nil
 	}
 
-	var tfList []interface{}
+	var tfList []any
 
 	for _, apiObject := range apiObjects {
 		if apiObject == nil {
@@ -388,10 +388,10 @@ const (
 	errorSnapshotBackupPolicySetting = "error setting `%s` for Cloud Provider Snapshot Backup Policy(%s): %s"
 )
 
-func flattenPolicies(policies []matlas.Policy) []map[string]interface{} {
-	actionList := make([]map[string]interface{}, 0)
+func flattenPolicies(policies []matlas.Policy) []map[string]any {
+	actionList := make([]map[string]any, 0)
 	for _, v := range policies {
-		actionList = append(actionList, map[string]interface{}{
+		actionList = append(actionList, map[string]any{
 			"id":          v.ID,
 			"policy_item": flattenPolicyItems(v.PolicyItems),
 		})
@@ -400,10 +400,10 @@ func flattenPolicies(policies []matlas.Policy) []map[string]interface{} {
 	return actionList
 }
 
-func flattenPolicyItems(items []matlas.PolicyItem) []map[string]interface{} {
-	policyItems := make([]map[string]interface{}, 0)
+func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
+	policyItems := make([]map[string]any, 0)
 	for _, v := range items {
-		policyItems = append(policyItems, map[string]interface{}{
+		policyItems = append(policyItems, map[string]any{
 			"id":                 v.ID,
 			"frequency_interval": v.FrequencyInterval,
 			"frequency_type":     v.FrequencyType,
@@ -415,20 +415,20 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]interface{} {
 	return policyItems
 }
 
-func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]interface{}, error) {
+func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
 	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
 		if res.StatusCode == http.StatusNotFound ||
 			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
 			strings.Contains(err.Error(), "Not Found") ||
 			strings.Contains(err.Error(), "404") {
-			return []map[string]interface{}{}, nil
+			return []map[string]any{}, nil
 		}
 
-		return []map[string]interface{}{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
+		return []map[string]any{}, fmt.Errorf(errorSnapshotBackupPolicyRead, clusterName, err)
 	}
 
-	return []map[string]interface{}{
+	return []map[string]any{
 		{
 			"cluster_id":               backupPolicy.ClusterID,
 			"cluster_name":             backupPolicy.ClusterName,

@@ -35,7 +35,7 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 	}
 }
 
-func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	endopointID := d.Get("endpoint_id").(string)

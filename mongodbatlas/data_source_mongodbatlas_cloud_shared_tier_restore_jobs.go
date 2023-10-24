@@ -84,7 +84,7 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobs() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -107,15 +107,15 @@ func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d 
 	return nil
 }
 
-func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[string]interface{} {
+func flattenShardTierRestoreJobs(sharedTierJobs []atlasSDK.TenantRestore) []map[string]any {
 	if len(sharedTierJobs) == 0 {
 		return nil
 	}
 
-	results := make([]map[string]interface{}, len(sharedTierJobs))
+	results := make([]map[string]any, len(sharedTierJobs))
 	for i := range sharedTierJobs {
 		sharedTierJob := &sharedTierJobs[i]
-		results[i] = map[string]interface{}{
+		results[i] = map[string]any{
 			"job_id":                      sharedTierJob.Id,
 			"status":                      sharedTierJob.Status,
 			"target_project_id":           sharedTierJob.TargetProjectId,

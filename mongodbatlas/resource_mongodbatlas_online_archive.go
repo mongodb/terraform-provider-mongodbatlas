@@ -194,7 +194,7 @@ func getMongoDBAtlasOnlineArchiveSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection
 	connV2 := meta.(*MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
@@ -236,7 +236,7 @@ func resourceMongoDBAtlasOnlineArchiveCreate(ctx context.Context, d *schema.Reso
 }
 
 func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *admin.APIClient) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		c, resp, err := client.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
@@ -263,7 +263,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 	}
 }
 
-func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 	ids := decodeStateID(d.Id())
 
@@ -290,7 +290,7 @@ func resourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	atlasID := ids["archive_id"]
@@ -310,7 +310,7 @@ func resourceMongoDBAtlasOnlineArchiveDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasOnlineArchiveImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 	parts := strings.Split(d.Id(), "-")
 
@@ -370,12 +370,12 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 	requestInput.Schedule = mapSchedule(d)
 
 	if partitions, ok := d.GetOk("partition_fields"); ok {
-		list := partitions.([]interface{})
+		list := partitions.([]any)
 
 		if len(list) > 0 {
 			partitionList := make([]admin.PartitionField, 0, len(list))
 			for _, partition := range list {
-				item := partition.(map[string]interface{})
+				item := partition.(map[string]any)
 				query := admin.PartitionField{
 					FieldName: item["field_name"].(string),
 					Order:     item["order"].(int),
@@ -397,7 +397,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 	return requestInput
 }
 
-func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	ids := decodeStateID(d.Id())
@@ -458,9 +458,9 @@ func resourceMongoDBAtlasOnlineArchiveUpdate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasOnlineArchiveRead(ctx, d, meta)
 }
 
-func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{} {
+func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 	// computed attribute
-	schemaVals := map[string]interface{}{
+	schemaVals := map[string]any{
 		"cluster_name":    in.ClusterName,
 		"archive_id":      in.Id,
 		"paused":          in.Paused,
@@ -470,18 +470,18 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{
 		"db_name":         in.DbName,
 	}
 
-	criteria := map[string]interface{}{
+	criteria := map[string]any{
 		"type":        in.Criteria.Type,
 		"date_field":  in.Criteria.DateField,
 		"date_format": in.Criteria.DateFormat,
 		"query":       in.Criteria.Query,
 	}
 
-	var schedule map[string]interface{}
+	var schedule map[string]any
 	// When schedule is not provided in CREATE/UPDATE the GET returns Schedule.Type = DEFAULT
 	// In this case, we don't want to update the schema as there is no SCHEDULE
 	if in.Schedule != nil && in.Schedule.Type != scheduleTypeDefault {
-		schedule = map[string]interface{}{
+		schedule = map[string]any{
 			"type":         in.Schedule.Type,
 			"day_of_month": in.Schedule.DayOfMonth,
 			"day_of_week":  in.Schedule.DayOfWeek,
@@ -511,18 +511,18 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{
 		}
 	}
 
-	schemaVals["criteria"] = []interface{}{criteria}
+	schemaVals["criteria"] = []any{criteria}
 
 	if schedule != nil {
-		schemaVals["schedule"] = []interface{}{schedule}
+		schemaVals["schedule"] = []any{schedule}
 	}
 
-	var dataExpirationRule map[string]interface{}
+	var dataExpirationRule map[string]any
 	if in.DataExpirationRule != nil && in.DataExpirationRule.ExpireAfterDays != nil {
-		dataExpirationRule = map[string]interface{}{
+		dataExpirationRule = map[string]any{
 			"expire_after_days": in.DataExpirationRule.ExpireAfterDays,
 		}
-		schemaVals["data_expiration_rule"] = []interface{}{dataExpirationRule}
+		schemaVals["data_expiration_rule"] = []any{dataExpirationRule}
 	}
 
 	// partitions fields
@@ -530,9 +530,9 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{
 		return schemaVals
 	}
 
-	partitionFieldsMap := make([]map[string]interface{}, 0, len(in.PartitionFields))
+	partitionFieldsMap := make([]map[string]any, 0, len(in.PartitionFields))
 	for _, field := range in.PartitionFields {
-		fieldMap := map[string]interface{}{
+		fieldMap := map[string]any{
 			"field_name": field.FieldName,
 			"field_type": field.FieldType,
 			"order":      field.Order,
@@ -546,8 +546,8 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]interface{
 }
 
 func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
-	if dataExpireRules, ok := d.GetOk("data_expiration_rule"); ok && len(dataExpireRules.([]interface{})) > 0 {
-		dataExpireRule := dataExpireRules.([]interface{})[0].(map[string]interface{})
+	if dataExpireRules, ok := d.GetOk("data_expiration_rule"); ok && len(dataExpireRules.([]any)) > 0 {
+		dataExpireRule := dataExpireRules.([]any)[0].(map[string]any)
 		result := admin.DataExpirationRule{}
 		if expireAfterDays, ok := dataExpireRule["expire_after_days"]; ok {
 			result.ExpireAfterDays = pointy.Int(expireAfterDays.(int))
@@ -558,9 +558,9 @@ func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
 }
 
 func mapCriteria(d *schema.ResourceData) admin.Criteria {
-	criteriaList := d.Get("criteria").([]interface{})
+	criteriaList := d.Get("criteria").([]any)
 
-	criteria := criteriaList[0].(map[string]interface{})
+	criteria := criteriaList[0].(map[string]any)
 
 	criteriaInput := admin.Criteria{
 		Type: admin.PtrString(criteria["type"].(string)),
@@ -602,7 +602,7 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 		return scheduleInput
 	}
 
-	scheduleTFConfigList, ok := scheduleTFConfigInterface.([]interface{})
+	scheduleTFConfigList, ok := scheduleTFConfigInterface.([]any)
 	if !ok {
 		return scheduleInput
 	}
@@ -611,7 +611,7 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 		return scheduleInput
 	}
 
-	scheduleTFConfig := scheduleTFConfigList[0].(map[string]interface{})
+	scheduleTFConfig := scheduleTFConfigList[0].(map[string]any)
 	scheduleInput = &admin.OnlineArchiveSchedule{
 		Type: scheduleTFConfig["type"].(string),
 	}
@@ -643,7 +643,7 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	return scheduleInput
 }
 
-func isEmpty(val interface{}) bool {
+func isEmpty(val any) bool {
 	if val == nil {
 		return true
 	}

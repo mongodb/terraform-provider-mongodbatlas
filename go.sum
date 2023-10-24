@@ -236,8 +236,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkY
 github.com/aws/aws-sdk-go v1.15.78/go.mod h1:E3/ieXAlvM0XWO57iftYVDLLvQ824smPP3ATZkfNZeM=
 github.com/aws/aws-sdk-go v1.37.0/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go v1.44.122/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
-github.com/aws/aws-sdk-go v1.45.24 h1:TZx/CizkmCQn8Rtsb11iLYutEQVGK5PK9wAhwouELBo=
-github.com/aws/aws-sdk-go v1.45.24/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.45.27 h1:b+zOTPkAG4i2RvqPdHxkJZafmhhVaVHBp4r41Tu4I6U=
+github.com/aws/aws-sdk-go v1.45.27/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d h1:xDfNPAt8lFiC1UJrqV3uuy861HCTo708pDMbjHHdCas=
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d/go.mod h1:6QX/PXZ00z/TKoufEY6K/a0k6AhaJrQKdFe6OfVXsa4=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
@@ -489,8 +489,8 @@ github.com/hashicorp/hcl v0.0.0-20170504190234-a4b07c25de5f/go.mod h1:oZtUIOe8dh
 github.com/hashicorp/hcl/v2 v2.0.0/go.mod h1:oVVDG71tEinNGYCxinCYadcmKU9bglqW9pV3txagJ90=
 github.com/hashicorp/hcl/v2 v2.8.2/go.mod h1:bQTN5mpo+jewjJgh8jr0JUguIi7qPHUF6yIfAEN3jqY=
 github.com/hashicorp/hcl/v2 v2.9.1/go.mod h1:FwWsfWEjyV/CMj8s/gqAuiviY72rJ1/oayI9WftqcKg=
-github.com/hashicorp/hcl/v2 v2.18.1 h1:6nxnOJFku1EuSawSD81fuviYUV8DxFr3fp2dUi3ZYSo=
-github.com/hashicorp/hcl/v2 v2.18.1/go.mod h1:ThLC89FV4p9MPW804KVbe/cEXoQ8NZEh+JtMeeGErHE=
+github.com/hashicorp/hcl/v2 v2.19.0 h1:vq9ncaL/+JtHe2JFQo6h/D7HqkfrYQn+nRYG/WDKmLo=
+github.com/hashicorp/hcl/v2 v2.19.0/go.mod h1:ThLC89FV4p9MPW804KVbe/cEXoQ8NZEh+JtMeeGErHE=
 github.com/hashicorp/logutils v1.0.0 h1:dLEQVugN8vlakKOUE3ihGLTZJRB4j+M2cdTm/ORI65Y=
 github.com/hashicorp/logutils v1.0.0/go.mod h1:QIAnNjmIWmVIIkWDTG1z5v++HQmx9WQRO+LraFDTW64=
 github.com/hashicorp/terraform-config-inspect v0.0.0-20191212124732-c6ae6269b9d7 h1:Pc5TCv9mbxFN6UVX0LH6CpQrdTM5YjbVI2w15237Pjk=
@@ -744,8 +744,8 @@ github.com/zclconf/go-cty-yaml v1.0.2/go.mod h1:IP3Ylp0wQpYm50IHK8OZWKMu6sPJIUgK
 go.mongodb.org/atlas v0.12.0/go.mod h1:wVCnHcm/7/IfTjEB6K8K35PLG70yGz8BdkRwX0oK9/M=
 go.mongodb.org/atlas v0.34.0 h1:C6pDYjKWbjSZCsNoZpgNO6I5e/jH7OVwoQ0OXcoAFCg=
 go.mongodb.org/atlas v0.34.0/go.mod h1:L4BKwVx/OeEhOVjCSdgo90KJm4469iv7ZLzQms/EPTg=
-go.mongodb.org/atlas-sdk/v20231001001 v20231001001.0.0 h1:7hl8ap9WzQDcaAO3/FWYdUYee7+taWWpXA4T4bPv6IE=
-go.mongodb.org/atlas-sdk/v20231001001 v20231001001.0.0/go.mod h1:2DismEF/fnloT92wjCkA1hpbBGrjQ5fPNAbC48mkRD4=
+go.mongodb.org/atlas-sdk/v20231001001 v20231001001.1.0 h1:CT+kpV9xzrxHnOieTn+DfT2B4K48SnEIsoQ48kVrylY=
+go.mongodb.org/atlas-sdk/v20231001001 v20231001001.1.0/go.mod h1:2DismEF/fnloT92wjCkA1hpbBGrjQ5fPNAbC48mkRD4=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

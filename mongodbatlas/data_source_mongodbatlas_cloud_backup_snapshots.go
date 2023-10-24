@@ -121,7 +121,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -152,14 +152,14 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotsRead(ctx context.Context, d *sche
 	return nil
 }
 
-func flattenCloudBackupSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenCloudBackupSnapshots(cloudProviderSnapshots []*matlas.CloudProviderSnapshot) []map[string]any {
+	var results []map[string]any
 
 	if len(cloudProviderSnapshots) > 0 {
-		results = make([]map[string]interface{}, len(cloudProviderSnapshots))
+		results = make([]map[string]any, len(cloudProviderSnapshots))
 
 		for k, cloudProviderSnapshot := range cloudProviderSnapshots {
-			results[k] = map[string]interface{}{
+			results[k] = map[string]any{
 				"id":                 cloudProviderSnapshot.ID,
 				"created_at":         cloudProviderSnapshot.CreatedAt,
 				"description":        cloudProviderSnapshot.Description,

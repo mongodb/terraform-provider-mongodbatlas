@@ -107,7 +107,7 @@ func dataSourceMongoDBAtlasNetworkPeering() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)

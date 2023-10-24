@@ -253,7 +253,7 @@ func schemaDataLakePipelineSnapshots() *schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
@@ -279,7 +279,7 @@ func resourceMongoDBAtlasDataLakePipelineCreate(ctx context.Context, d *schema.R
 	return resourceMongoDBAtlasDataLakePipelineRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -349,7 +349,7 @@ func resourceMongoDBAtlasDataLakePipelineRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
@@ -370,7 +370,7 @@ func resourceMongoDBAtlasDataLakePipelineUpdate(ctx context.Context, d *schema.R
 	return resourceMongoDBAtlasDataLakePipelineRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -384,7 +384,7 @@ func resourceMongoDBAtlasDataLakePipelineDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasDataLakePipelineImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, name, err := splitDataLakePipelineImportID(d.Id())
@@ -474,8 +474,8 @@ func splitDataLakePipelineImportID(id string) (projectID, name string, err error
 }
 
 func newDataLakePipelineSink(d *schema.ResourceData) *matlas.DataLakePipelineSink {
-	if sink, ok := d.Get("sink").([]interface{}); ok && len(sink) == 1 {
-		sinkMap := sink[0].(map[string]interface{})
+	if sink, ok := d.Get("sink").([]any); ok && len(sink) == 1 {
+		sinkMap := sink[0].(map[string]any)
 		dataLakePipelineSink := &matlas.DataLakePipelineSink{}
 
 		if sinkType, ok := sinkMap["type"].(string); ok {
@@ -497,15 +497,15 @@ func newDataLakePipelineSink(d *schema.ResourceData) *matlas.DataLakePipelineSin
 	return nil
 }
 
-func newDataLakePipelinePartitionField(sinkMap map[string]interface{}) []*matlas.DataLakePipelinePartitionField {
-	partitionFields, ok := sinkMap["partition_fields"].([]interface{})
+func newDataLakePipelinePartitionField(sinkMap map[string]any) []*matlas.DataLakePipelinePartitionField {
+	partitionFields, ok := sinkMap["partition_fields"].([]any)
 	if !ok || len(partitionFields) == 0 {
 		return nil
 	}
 
 	fields := make([]*matlas.DataLakePipelinePartitionField, len(partitionFields))
 	for i, partitionField := range partitionFields {
-		fieldMap := partitionField.(map[string]interface{})
+		fieldMap := partitionField.(map[string]any)
 		fields[i] = &matlas.DataLakePipelinePartitionField{
 			FieldName: fieldMap["field_name"].(string),
 			Order:     int32(fieldMap["order"].(int)),
@@ -516,12 +516,12 @@ func newDataLakePipelinePartitionField(sinkMap map[string]interface{}) []*matlas
 }
 
 func newDataLakePipelineSource(d *schema.ResourceData) *matlas.DataLakePipelineSource {
-	source, ok := d.Get("source").([]interface{})
+	source, ok := d.Get("source").([]any)
 	if !ok || len(source) == 0 {
 		return nil
 	}
 
-	sourceMap := source[0].(map[string]interface{})
+	sourceMap := source[0].(map[string]any)
 	dataLakePipelineSource := &matlas.DataLakePipelineSource{}
 
 	if sourceType, ok := sourceMap["type"].(string); ok {
@@ -548,14 +548,14 @@ func newDataLakePipelineSource(d *schema.ResourceData) *matlas.DataLakePipelineS
 }
 
 func newDataLakePipelineTransformation(d *schema.ResourceData) []*matlas.DataLakePipelineTransformation {
-	trasformations, ok := d.Get("transformations").([]interface{})
+	trasformations, ok := d.Get("transformations").([]any)
 	if !ok || len(trasformations) == 0 {
 		return nil
 	}
 
 	dataLakePipelineTransformations := make([]*matlas.DataLakePipelineTransformation, len(trasformations))
 	for i, trasformation := range trasformations {
-		trasformationMap := trasformation.(map[string]interface{})
+		trasformationMap := trasformation.(map[string]any)
 		dataLakeTransformation := &matlas.DataLakePipelineTransformation{}
 
 		if transformationType, ok := trasformationMap["type"].(string); ok {
@@ -574,12 +574,12 @@ func newDataLakePipelineTransformation(d *schema.ResourceData) []*matlas.DataLak
 	return dataLakePipelineTransformations
 }
 
-func flattenDataLakePipelineSource(atlasPipelineSource *matlas.DataLakePipelineSource) []map[string]interface{} {
+func flattenDataLakePipelineSource(atlasPipelineSource *matlas.DataLakePipelineSource) []map[string]any {
 	if atlasPipelineSource == nil {
 		return nil
 	}
 
-	return []map[string]interface{}{
+	return []map[string]any{
 		{
 			"type":            atlasPipelineSource.Type,
 			"cluster_name":    atlasPipelineSource.ClusterName,
@@ -590,12 +590,12 @@ func flattenDataLakePipelineSource(atlasPipelineSource *matlas.DataLakePipelineS
 	}
 }
 
-func flattenDataLakePipelineSink(atlasPipelineSink *matlas.DataLakePipelineSink) []map[string]interface{} {
+func flattenDataLakePipelineSink(atlasPipelineSink *matlas.DataLakePipelineSink) []map[string]any {
 	if atlasPipelineSink == nil {
 		return nil
 	}
 
-	return []map[string]interface{}{
+	return []map[string]any{
 		{
 			"type":             atlasPipelineSink.Type,
 			"provider":         atlasPipelineSink.MetadataProvider,
@@ -605,14 +605,14 @@ func flattenDataLakePipelineSink(atlasPipelineSink *matlas.DataLakePipelineSink)
 	}
 }
 
-func flattenDataLakePipelineIngestionSchedules(atlasPipelineIngestionSchedules []*matlas.DataLakePipelineIngestionSchedule) []map[string]interface{} {
+func flattenDataLakePipelineIngestionSchedules(atlasPipelineIngestionSchedules []*matlas.DataLakePipelineIngestionSchedule) []map[string]any {
 	if len(atlasPipelineIngestionSchedules) == 0 {
 		return nil
 	}
 
-	out := make([]map[string]interface{}, len(atlasPipelineIngestionSchedules))
+	out := make([]map[string]any, len(atlasPipelineIngestionSchedules))
 	for i, schedule := range atlasPipelineIngestionSchedules {
-		out[i] = map[string]interface{}{
+		out[i] = map[string]any{
 			"id":                 schedule.ID,
 			"frequency_type":     schedule.FrequencyType,
 			"frequency_interval": schedule.FrequencyInterval,
@@ -624,14 +624,14 @@ func flattenDataLakePipelineIngestionSchedules(atlasPipelineIngestionSchedules [
 	return out
 }
 
-func flattenDataLakePipelineSnapshots(snapshots []*matlas.DataLakePipelineSnapshot) []map[string]interface{} {
+func flattenDataLakePipelineSnapshots(snapshots []*matlas.DataLakePipelineSnapshot) []map[string]any {
 	if len(snapshots) == 0 {
 		return nil
 	}
 
-	out := make([]map[string]interface{}, len(snapshots))
+	out := make([]map[string]any, len(snapshots))
 	for i, snapshot := range snapshots {
-		out[i] = map[string]interface{}{
+		out[i] = map[string]any{
 			"id":               snapshot.ID,
 			"provider":         snapshot.CloudProvider,
 			"created_at":       snapshot.CreatedAt,
@@ -650,14 +650,14 @@ func flattenDataLakePipelineSnapshots(snapshots []*matlas.DataLakePipelineSnapsh
 	return out
 }
 
-func flattenDataLakePipelineTransformations(atlasPipelineTransformation []*matlas.DataLakePipelineTransformation) []map[string]interface{} {
+func flattenDataLakePipelineTransformations(atlasPipelineTransformation []*matlas.DataLakePipelineTransformation) []map[string]any {
 	if len(atlasPipelineTransformation) == 0 {
 		return nil
 	}
 
-	out := make([]map[string]interface{}, len(atlasPipelineTransformation))
+	out := make([]map[string]any, len(atlasPipelineTransformation))
 	for i, atlasPipelineTransformation := range atlasPipelineTransformation {
-		out[i] = map[string]interface{}{
+		out[i] = map[string]any{
 			"type":  atlasPipelineTransformation.Type,
 			"field": atlasPipelineTransformation.Field,
 		}
@@ -665,14 +665,14 @@ func flattenDataLakePipelineTransformations(atlasPipelineTransformation []*matla
 	return out
 }
 
-func flattenDataLakePipelinePartitionFields(atlasDataLakePipelinePartitionFields []*matlas.DataLakePipelinePartitionField) []map[string]interface{} {
+func flattenDataLakePipelinePartitionFields(atlasDataLakePipelinePartitionFields []*matlas.DataLakePipelinePartitionField) []map[string]any {
 	if len(atlasDataLakePipelinePartitionFields) == 0 {
 		return nil
 	}
 
-	out := make([]map[string]interface{}, len(atlasDataLakePipelinePartitionFields))
+	out := make([]map[string]any, len(atlasDataLakePipelinePartitionFields))
 	for i, atlasDataLakePipelinePartitionField := range atlasDataLakePipelinePartitionFields {
-		out[i] = map[string]interface{}{
+		out[i] = map[string]any{
 			"field_name": atlasDataLakePipelinePartitionField.FieldName,
 			"order":      atlasDataLakePipelinePartitionField.Order,
 		}

@@ -236,7 +236,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 23 {
 						errs = append(errs, fmt.Errorf("%q value should be between 0 and 23, got: %d", key, v))
@@ -248,7 +248,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 59 {
 						errs = append(errs, fmt.Errorf("%q value should be between 0 and 59, got: %d", key, v))
@@ -279,7 +279,7 @@ func resourceMongoDBAtlasCloudBackupSchedule() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var diags diag.Diagnostics
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -311,7 +311,7 @@ func resourceMongoDBAtlasCloudBackupScheduleCreate(ctx context.Context, d *schem
 	return resourceMongoDBAtlasCloudBackupScheduleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -383,7 +383,7 @@ func resourceMongoDBAtlasCloudBackupScheduleRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -404,7 +404,7 @@ func resourceMongoDBAtlasCloudBackupScheduleUpdate(ctx context.Context, d *schem
 	return resourceMongoDBAtlasCloudBackupScheduleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -421,7 +421,7 @@ func resourceMongoDBAtlasCloudBackupScheduleDelete(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupScheduleImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -469,13 +469,13 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	export := matlas.Export{}
 
 	req.CopySettings = []matlas.CopySetting{}
-	if v, ok := d.GetOk("copy_settings"); ok && len(v.([]interface{})) > 0 {
-		req.CopySettings = expandCopySettings(v.([]interface{}))
+	if v, ok := d.GetOk("copy_settings"); ok && len(v.([]any)) > 0 {
+		req.CopySettings = expandCopySettings(v.([]any))
 	}
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		policyItem.ID = policyItemID(itemObj)
 		policyItem.FrequencyType = snapshotScheduleHourly
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
@@ -484,8 +484,8 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		policiesItem = append(policiesItem, policyItem)
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		policyItem.ID = policyItemID(itemObj)
 		policyItem.FrequencyType = snapshotScheduleDaily
 		policyItem.RetentionUnit = itemObj["retention_unit"].(string)
@@ -494,9 +494,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		policiesItem = append(policiesItem, policyItem)
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
-		items := v.([]interface{})
+		items := v.([]any)
 		for _, s := range items {
-			itemObj := s.(map[string]interface{})
+			itemObj := s.(map[string]any)
 			policyItem.ID = policyItemID(itemObj)
 			policyItem.FrequencyType = snapshotScheduleWeekly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
@@ -506,9 +506,9 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
-		items := v.([]interface{})
+		items := v.([]any)
 		for _, s := range items {
-			itemObj := s.(map[string]interface{})
+			itemObj := s.(map[string]any)
 			policyItem.ID = policyItemID(itemObj)
 			policyItem.FrequencyType = snapshotScheduleMonthly
 			policyItem.RetentionUnit = itemObj["retention_unit"].(string)
@@ -523,8 +523,8 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	}
 
 	if v, ok := d.GetOk("export"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		export.ExportBucketID = itemObj["export_bucket_id"].(string)
 		export.FrequencyType = itemObj["frequency_type"].(string)
 		req.Export = nil
@@ -565,11 +565,11 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, conn *matlas.Client,
 	return nil
 }
 
-func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[string]interface{} {
-	policyItems := make([]map[string]interface{}, 0)
+func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[string]any {
+	policyItems := make([]map[string]any, 0)
 	for _, v := range items {
 		if frequencyType == v.FrequencyType {
-			policyItems = append(policyItems, map[string]interface{}{
+			policyItems = append(policyItems, map[string]any{
 				"id":                 v.ID,
 				"frequency_interval": v.FrequencyInterval,
 				"frequency_type":     v.FrequencyType,
@@ -582,11 +582,11 @@ func flattenPolicyItem(items []matlas.PolicyItem, frequencyType string) []map[st
 	return policyItems
 }
 
-func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string]interface{} {
-	exportList := make([]map[string]interface{}, 0)
+func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string]any {
+	exportList := make([]map[string]any, 0)
 	emptyStruct := matlas.CloudProviderSnapshotBackupPolicy{}
 	if emptyStruct.Export != roles.Export {
-		exportList = append(exportList, map[string]interface{}{
+		exportList = append(exportList, map[string]any{
 			"frequency_type":   roles.Export.FrequencyType,
 			"export_bucket_id": roles.Export.ExportBucketID,
 		})
@@ -594,10 +594,10 @@ func flattenExport(roles *matlas.CloudProviderSnapshotBackupPolicy) []map[string
 	return exportList
 }
 
-func flattenCopySettings(copySettingList []matlas.CopySetting) []map[string]interface{} {
-	copySettings := make([]map[string]interface{}, 0)
+func flattenCopySettings(copySettingList []matlas.CopySetting) []map[string]any {
+	copySettings := make([]map[string]any, 0)
 	for _, v := range copySettingList {
-		copySettings = append(copySettings, map[string]interface{}{
+		copySettings = append(copySettings, map[string]any{
 			"cloud_provider":      v.CloudProvider,
 			"frequencies":         v.Frequencies,
 			"region_name":         v.RegionName,
@@ -608,7 +608,7 @@ func flattenCopySettings(copySettingList []matlas.CopySetting) []map[string]inte
 	return copySettings
 }
 
-func expandCopySetting(tfMap map[string]interface{}) *matlas.CopySetting {
+func expandCopySetting(tfMap map[string]any) *matlas.CopySetting {
 	if tfMap == nil {
 		return nil
 	}
@@ -623,7 +623,7 @@ func expandCopySetting(tfMap map[string]interface{}) *matlas.CopySetting {
 	return copySetting
 }
 
-func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
+func expandCopySettings(tfList []any) []matlas.CopySetting {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -631,7 +631,7 @@ func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
 	var copySettings []matlas.CopySetting
 
 	for _, tfMapRaw := range tfList {
-		tfMap, ok := tfMapRaw.(map[string]interface{})
+		tfMap, ok := tfMapRaw.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -641,7 +641,7 @@ func expandCopySettings(tfList []interface{}) []matlas.CopySetting {
 	return copySettings
 }
 
-func policyItemID(policyState map[string]interface{}) string {
+func policyItemID(policyState map[string]any) string {
 	// if the policyItem has the ID field, this is the update operation
 	// we return the ID that was stored in the TF state
 	if val, ok := policyState["id"]; ok {

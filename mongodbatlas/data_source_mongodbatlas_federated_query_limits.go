@@ -33,7 +33,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseQueryLimits() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -55,15 +55,15 @@ func dataSourceMongoDBAtlasFederatedDatabaseQueryLimitsRead(ctx context.Context,
 	return nil
 }
 
-func flattenFederatedDatabaseQueryLimits(projectID, tenantName string, queryLimits []*matlas.DataFederationQueryLimit) []map[string]interface{} {
-	var federatedDatabaseQueryLimitMap []map[string]interface{}
+func flattenFederatedDatabaseQueryLimits(projectID, tenantName string, queryLimits []*matlas.DataFederationQueryLimit) []map[string]any {
+	var federatedDatabaseQueryLimitMap []map[string]any
 	if len(queryLimits) == 0 {
 		return federatedDatabaseQueryLimitMap
 	}
 
-	federatedDatabaseQueryLimitMap = make([]map[string]interface{}, len(queryLimits))
+	federatedDatabaseQueryLimitMap = make([]map[string]any, len(queryLimits))
 	for i := range queryLimits {
-		federatedDatabaseQueryLimitMap[i] = map[string]interface{}{
+		federatedDatabaseQueryLimitMap[i] = map[string]any{
 			"project_id":         projectID,
 			"tenant_name":        queryLimits[i].TenantName,
 			"limit_name":         queryLimits[i].Name,

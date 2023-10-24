@@ -99,7 +99,7 @@ func resourceMongoDBAtlasGlobalCluster() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -107,7 +107,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 
 	if v, ok := d.GetOk("managed_namespaces"); ok {
 		for _, m := range v.(*schema.Set).List() {
-			mn := m.(map[string]interface{})
+			mn := m.(map[string]any)
 
 			addManagedNamespace := &matlas.ManagedNamespace{
 				Collection:     mn["collection"].(string),
@@ -167,7 +167,7 @@ func resourceMongoDBAtlasGlobalClusterCreate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasGlobalClusterRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -195,7 +195,7 @@ func resourceMongoDBAtlasGlobalClusterRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -256,7 +256,7 @@ func resourceMongoDBAtlasGlobalClusterUpdate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasGlobalClusterRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasGlobalClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasGlobalClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -280,14 +280,14 @@ func resourceMongoDBAtlasGlobalClusterDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenManagedNamespaces(managedNamespaces []matlas.ManagedNamespace) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenManagedNamespaces(managedNamespaces []matlas.ManagedNamespace) []map[string]any {
+	var results []map[string]any
 
 	if len(managedNamespaces) > 0 {
-		results = make([]map[string]interface{}, len(managedNamespaces))
+		results = make([]map[string]any, len(managedNamespaces))
 
 		for k, managedNamespace := range managedNamespaces {
-			results[k] = map[string]interface{}{
+			results[k] = map[string]any{
 				"db":                         managedNamespace.Db,
 				"collection":                 managedNamespace.Collection,
 				"custom_shard_key":           managedNamespace.CustomShardKey,
@@ -300,7 +300,7 @@ func flattenManagedNamespaces(managedNamespaces []matlas.ManagedNamespace) []map
 	return results
 }
 
-func resourceMongoDBAtlasGlobalClusterImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasGlobalClusterImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
 		return nil, errors.New("import format error: to import a global cluster, use the format {project_id}-{cluster-name}")
@@ -325,9 +325,9 @@ func resourceMongoDBAtlasGlobalClusterImportState(ctx context.Context, d *schema
 	return []*schema.ResourceData{d}, nil
 }
 
-func removeManagedNamespaces(ctx context.Context, conn *matlas.Client, remove []interface{}, projectID, clusterName string) error {
+func removeManagedNamespaces(ctx context.Context, conn *matlas.Client, remove []any, projectID, clusterName string) error {
 	for _, m := range remove {
-		mn := m.(map[string]interface{})
+		mn := m.(map[string]any)
 		addManagedNamespace := &matlas.ManagedNamespace{
 			Collection:     mn["collection"].(string),
 			Db:             mn["db"].(string),
@@ -351,9 +351,9 @@ func removeManagedNamespaces(ctx context.Context, conn *matlas.Client, remove []
 	return nil
 }
 
-func addManagedNamespaces(ctx context.Context, conn *matlas.Client, add []interface{}, projectID, clusterName string) error {
+func addManagedNamespaces(ctx context.Context, conn *matlas.Client, add []any, projectID, clusterName string) error {
 	for _, m := range add {
-		mn := m.(map[string]interface{})
+		mn := m.(map[string]any)
 
 		addManagedNamespace := &matlas.ManagedNamespace{
 			Collection:     mn["collection"].(string),
@@ -378,7 +378,7 @@ func addManagedNamespaces(ctx context.Context, conn *matlas.Client, add []interf
 	return nil
 }
 
-func newCustomZoneMapping(tfMap map[string]interface{}) *matlas.CustomZoneMapping {
+func newCustomZoneMapping(tfMap map[string]any) *matlas.CustomZoneMapping {
 	if tfMap == nil {
 		return nil
 	}
@@ -391,7 +391,7 @@ func newCustomZoneMapping(tfMap map[string]interface{}) *matlas.CustomZoneMappin
 	return apiObject
 }
 
-func newCustomZoneMappings(tfList []interface{}) []matlas.CustomZoneMapping {
+func newCustomZoneMappings(tfList []any) []matlas.CustomZoneMapping {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -399,7 +399,7 @@ func newCustomZoneMappings(tfList []interface{}) []matlas.CustomZoneMapping {
 	apiObjects := make([]matlas.CustomZoneMapping, len(tfList))
 	if len(tfList) > 0 {
 		for i, tfMapRaw := range tfList {
-			if tfMap, ok := tfMapRaw.(map[string]interface{}); ok {
+			if tfMap, ok := tfMapRaw.(map[string]any); ok {
 				apiObject := newCustomZoneMapping(tfMap)
 				if apiObject == nil {
 					continue

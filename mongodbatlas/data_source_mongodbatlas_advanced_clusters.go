@@ -238,7 +238,7 @@ func dataSourceMongoDBAtlasAdvancedClusters() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -260,8 +260,8 @@ func dataSourceMongoDBAtlasAdvancedClustersRead(ctx context.Context, d *schema.R
 	return nil
 }
 
-func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters []*matlas.AdvancedCluster, d *schema.ResourceData) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	for i := range clusters {
 		processArgs, _, err := conn.Clusters.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name)
@@ -273,7 +273,7 @@ func flattenAdvancedClusters(ctx context.Context, conn *matlas.Client, clusters 
 			log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", clusters[i].ID, err)
 		}
 
-		result := map[string]interface{}{
+		result := map[string]any{
 			"advanced_configuration":         flattenProcessArgs(processArgs),
 			"backup_enabled":                 clusters[i].BackupEnabled,
 			"bi_connector_config":            flattenBiConnectorConfig(clusters[i].BiConnector),

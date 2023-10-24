@@ -108,7 +108,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					var j, j2 interface{}
+					var j, j2 any
 					if err := json.Unmarshal([]byte(old), &j); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
@@ -130,7 +130,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					var j, j2 interface{}
+					var j, j2 any
 					if err := json.Unmarshal([]byte(old), &j); err != nil {
 						log.Printf("[ERROR] json.Unmarshal %v", err)
 						return false
@@ -210,7 +210,7 @@ func resourceMongoDBAtlasEventTriggers() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
@@ -289,7 +289,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	}
 
 	if v, ok := d.GetOk("event_processors"); ok {
-		eventTriggerReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(v.([]interface{}))
+		eventTriggerReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(v.([]any))
 	}
 
 	if v, ok := d.GetOk("unordered"); ok {
@@ -312,7 +312,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	return resourceMongoDBAtlasEventTriggersRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
@@ -402,7 +402,7 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
@@ -444,7 +444,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 	if typeTrigger == "SCHEDULED" {
 		eventTriggerConfig.Schedule = d.Get("config_schedule").(string)
 	}
-	eventReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(d.Get("event_processors").([]interface{}))
+	eventReq.EventProcessors = expandTriggerEventProcessorAWSEventBridge(d.Get("event_processors").([]any))
 
 	eventReq.Config = eventTriggerConfig
 
@@ -456,7 +456,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
@@ -476,22 +476,22 @@ func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func expandTriggerEventProcessorAWSEventBridge(p []interface{}) map[string]interface{} {
+func expandTriggerEventProcessorAWSEventBridge(p []any) map[string]any {
 	if len(p) == 0 {
 		return nil
 	}
 
-	aws := p[0].(map[string]interface{})
-	event := aws["aws_eventbridge"].([]interface{})
+	aws := p[0].(map[string]any)
+	event := aws["aws_eventbridge"].([]any)
 	if len(event) == 0 {
 		return nil
 	}
-	eventObj := event[0].(map[string]interface{})
+	eventObj := event[0].(map[string]any)
 
-	return map[string]interface{}{
-		"AWS_EVENTBRIDGE": map[string]interface{}{
+	return map[string]any{
+		"AWS_EVENTBRIDGE": map[string]any{
 			"type": "AWS_EVENTBRIDGE",
-			"config": map[string]interface{}{
+			"config": map[string]any{
 				"account_id": eventObj["config_account_id"].(string),
 				"region":     eventObj["config_region"].(string),
 			},
@@ -499,13 +499,13 @@ func expandTriggerEventProcessorAWSEventBridge(p []interface{}) map[string]inter
 	}
 }
 
-func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interface{}) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]any) []map[string]any {
+	results := make([]map[string]any, 0)
 	if eventProcessor != nil && eventProcessor["AWS_EVENTBRIDGE"] != nil {
-		event := eventProcessor["AWS_EVENTBRIDGE"].(map[string]interface{})
-		config := event["config"].(map[string]interface{})
-		mapEvent := map[string]interface{}{
-			"aws_eventbridge": []map[string]interface{}{
+		event := eventProcessor["AWS_EVENTBRIDGE"].(map[string]any)
+		config := event["config"].(map[string]any)
+		mapEvent := map[string]any{
+			"aws_eventbridge": []map[string]any{
 				{
 					"config_account_id": config["account_id"].(string),
 					"config_region":     config["region"].(string),
@@ -518,7 +518,7 @@ func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]interf
 	return results
 }
 
-func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return nil, err
@@ -554,7 +554,7 @@ func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.
 	return []*schema.ResourceData{d}, nil
 }
 
-func matchToString(value interface{}) string {
+func matchToString(value any) string {
 	b, err := json.Marshal(value)
 	if err != nil {
 		log.Printf("[ERROR] %v ", err)

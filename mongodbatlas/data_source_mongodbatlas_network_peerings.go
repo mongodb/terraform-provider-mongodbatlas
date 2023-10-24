@@ -113,7 +113,7 @@ func dataSourceMongoDBAtlasNetworkPeerings() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasNetworkPeeringsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasNetworkPeeringsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -132,13 +132,13 @@ func dataSourceMongoDBAtlasNetworkPeeringsRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func flattenNetworkPeerings(peers []matlas.Peer) []map[string]interface{} {
-	var peersMap []map[string]interface{}
+func flattenNetworkPeerings(peers []matlas.Peer) []map[string]any {
+	var peersMap []map[string]any
 
 	if len(peers) > 0 {
-		peersMap = make([]map[string]interface{}, len(peers))
+		peersMap = make([]map[string]any, len(peers))
 		for i := range peers {
-			peersMap[i] = map[string]interface{}{
+			peersMap[i] = map[string]any{
 				"peering_id":             peers[i].ID,
 				"container_id":           peers[i].ContainerID,
 				"accepter_region_name":   peers[i].AccepterRegionName,

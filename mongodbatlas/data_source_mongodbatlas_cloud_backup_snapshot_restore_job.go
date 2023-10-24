@@ -91,7 +91,7 @@ func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJob() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasCloudBackupSnapshotRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	requestParameters := &matlas.SnapshotReqPathParameters{

@@ -59,7 +59,7 @@ func resourceMongoDBAtlasTeam() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("org_id").(string)
 
@@ -81,7 +81,7 @@ func resourceMongoDBAtlasTeamCreate(ctx context.Context, d *schema.ResourceData,
 	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -125,7 +125,7 @@ func resourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, m
 	return nil
 }
 
-func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -215,7 +215,7 @@ func resourceMongoDBAtlasTeamUpdate(ctx context.Context, d *schema.ResourceData,
 	return resourceMongoDBAtlasTeamRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	orgID := ids["org_id"]
@@ -247,7 +247,7 @@ func resourceMongoDBAtlasTeamDelete(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasTeamImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)

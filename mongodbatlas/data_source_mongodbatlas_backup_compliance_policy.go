@@ -197,7 +197,7 @@ func dataSourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -269,11 +269,11 @@ func dataSourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sc
 	return nil
 }
 
-func flattenBackupPolicyItems(items []matlas.ScheduledPolicyItem, frequencyType string) []map[string]interface{} {
-	policyItems := make([]map[string]interface{}, 0)
+func flattenBackupPolicyItems(items []matlas.ScheduledPolicyItem, frequencyType string) []map[string]any {
+	policyItems := make([]map[string]any, 0)
 	for _, v := range items {
 		if frequencyType == v.FrequencyType {
-			policyItems = append(policyItems, map[string]interface{}{
+			policyItems = append(policyItems, map[string]any{
 				"id":                 v.ID,
 				"frequency_interval": v.FrequencyInterval,
 				"frequency_type":     v.FrequencyType,

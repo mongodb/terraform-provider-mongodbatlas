@@ -9,12 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccClusterRSSearchIndex_basic(t *testing.T) {
 	var (
-		index                 matlas.SearchIndex
 		resourceName          = "mongodbatlas_search_index.test"
 		clusterName           = acctest.RandomWithPrefix("test-acc-index")
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -30,7 +28,7 @@ func TestAccClusterRSSearchIndex_basic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
+					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -59,7 +57,6 @@ func TestAccClusterRSSearchIndex_basic(t *testing.T) {
 
 func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
 	var (
-		index           matlas.SearchIndex
 		resourceName    = "mongodbatlas_search_index.test"
 		clusterName     = acctest.RandomWithPrefix("test-acc-index")
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -74,7 +71,7 @@ func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
+					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -87,7 +84,6 @@ func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
 
 func TestAccClusterRSSearchIndex_withSynonyms(t *testing.T) {
 	var (
-		index           matlas.SearchIndex
 		resourceName    = "mongodbatlas_search_index.test"
 		datasourceName  = "data.mongodbatlas_search_indexes.data_index"
 		clusterName     = acctest.RandomWithPrefix("test-acc-index")
@@ -104,7 +100,7 @@ func TestAccClusterRSSearchIndex_withSynonyms(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexConfigSynonyms(orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
+					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
@@ -131,7 +127,6 @@ func TestAccClusterRSSearchIndex_withSynonyms(t *testing.T) {
 
 func TestAccClusterRSSearchIndex_importBasic(t *testing.T) {
 	var (
-		index        matlas.SearchIndex
 		resourceName = "mongodbatlas_search_index.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -145,7 +140,7 @@ func TestAccClusterRSSearchIndex_importBasic(t *testing.T) {
 			{
 				Config: testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName, &index),
+					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -162,10 +157,8 @@ func TestAccClusterRSSearchIndex_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matlas.SearchIndex) resource.TestCheckFunc {
+func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
@@ -174,16 +167,14 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string, index *matla
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-
 		ids := decodeStateID(rs.Primary.ID)
 
-		indexResponse, _, err := conn.Search.GetIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"])
-		if err == nil {
-			*index = *indexResponse
-			return nil
+		connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
+		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
+		if err != nil {
+			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
 		}
-
-		return fmt.Errorf("index (%s) does not exist", ids["index_id"])
+		return nil
 	}
 }
 
