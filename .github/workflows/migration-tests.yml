@@ -1,0 +1,48 @@
+name: Migration Tests
+
+on:
+  workflow_dispatch: {} # workflow can be run manually
+  workflow_call: # workflow runs after code-health
+    inputs:
+      parent-event-name:
+        required: true
+        type: string
+  pull_request: # you can run a specic job in your PR using GitHub labels
+    types: [ labeled ]
+
+jobs:
+  migration_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Get Last Release
+      id: get_last_release
+      run: |
+        LAST_RELEASE=$(git describe --abbrev=0 --tags)
+        echo "Last release: $LAST_RELEASE"
+        echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
+      shell: bash
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: 'go.mod'
+    - name: Acceptance Tests
+      env:
+        MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
+        MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
+        MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
+        MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+        MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+        SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+        MONGODB_ATLAS_USERNAME_CLOUD_DEV: ${{ vars.MONGODB_ATLAS_USERNAME_CLOUD_DEV }}
+        AZURE_ATLAS_APP_ID: ${{vars.AZURE_ATLAS_APP_ID}}
+        AZURE_SERVICE_PRINCIPAL_ID: ${{vars.AZURE_SERVICE_PRINCIPAL_ID}}
+        AZURE_TENANT_ID: ${{vars.AZURE_TENANT_ID}}
+        ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+        TF_LOG: ${{ vars.LOG_LEVEL }}
+        TF_ACC: 1
+        PARALLEL_GO_TEST: 20
+        CI: true
+        TEST_REGEX: "^TestAccConfigRSDatabaseUser_Migration_Basic"
+      run: make testacc
