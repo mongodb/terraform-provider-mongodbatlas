@@ -1,7 +1,7 @@
 # MongoDB Atlas Provider
+
 [![Code Health](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/code-health.yml)
 [![Acceptance Tests](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/acceptance-tests.yml)
-
 
 This is the repository for the Terraform MongoDB Atlas Provider, which allows one to use Terraform with MongoDB's Database as a Service offering, Atlas.
 Learn more about Atlas at  [https://www.mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
@@ -14,11 +14,12 @@ Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas
 
 Bugs should be filed under the Issues section of this repo.
 
-Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
+Feature requests can be submitted at <https://feedback.mongodb.com/forums/924145-atlas> - just select the Terraform plugin as the category or vote for an already suggested feature.
 
 ## Requirements
+
 - [Terraform](https://www.terraform.io/downloads.html) 1.0+
-- [Go](https://golang.org/doc/install) 1.20 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.21.3 (to build the provider plugin)
 
 ## Using the Provider
 
@@ -27,20 +28,23 @@ To use a released provider in your Terraform environment, run [`terraform init`]
 Documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/).
 
 ## Beta Features
-In order to use and/or test beta resources and datasources in this provider you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA` to true.
 
+In order to use and/or test beta resources and datasources in this provider you'll need to set the environment variable `MONGODB_ATLAS_ENABLE_BETA` to true.
 
 ```bash
 export MONGODB_ATLAS_ENABLE_BETA = true
 ```
+
 ## Logs
-To help with issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy. 
+
+To help with issues, you can turn on Logs with `export TF_LOG=TRACE`. Note: this is very noisy.
 
 To export logs to file, you can use `export TF_LOG_PATH=terraform.log`
 
-
 ## Supported OS and Architectures
+
 As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), we fully support the following operating system / architecture combinations:
+
 - Darwin / AMD64
 - Darwin / ARMv8
 - Linux / AMD64
@@ -49,16 +53,18 @@ As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/r
 - Windows / AMD64
 
 We ship binaries but do not prioritize fixes for the following operating system / architecture combinations:
+
 - Linux / 386
 - Windows / 386
 - FreeBSD / 386
 - FreeBSD / AMD64
 
-
 ## Troubleshooting
+
 See [Troubleshooting](website/docs/troubleshooting.html.markdown).
 
 ## Developing the Provider
+
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Autoclose stale issues and PRs
