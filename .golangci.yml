@@ -73,7 +73,6 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - dogsled
     - errcheck
     - funlen
@@ -94,14 +93,15 @@ linters:
     - rowserrcheck
     - exportloopref
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unused
-    - varcheck
     - whitespace
   # don't enable:
+  #   - deadcode
+  #   - varcheck
+  #   - structcheck
   #   - depguard # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
   #   - gocyclo # we already have funlen lint
   #   - dupl  # we have a lot of duplicate test cases
