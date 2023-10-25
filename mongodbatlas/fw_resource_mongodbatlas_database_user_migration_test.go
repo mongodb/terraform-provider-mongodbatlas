@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccConfigRSDatabaseUser_Migration_Basic(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.basic_ds"
 		username              = acctest.RandomWithPrefix("dbUser")
@@ -54,7 +54,7 @@ func TestAccConfigRSDatabaseUser_Migration_Basic(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithX509TypeCustomer(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = "CN=ellen@example.com,OU=users,DC=example,DC=com"
@@ -96,7 +96,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithX509TypeCustomer(t *testing.T) {
 		},
 	})
 }
-func TestAccConfigRSDatabaseUser_Migration_WithAWSIAMType(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
@@ -138,7 +138,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithAWSIAMType(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithLabels(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	var (
 		dbUser                matlas.DatabaseUser
 		resourceName          = "mongodbatlas_database_user.test"
@@ -205,7 +205,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithLabels(t *testing.T) {
 		},
 	})
 }
-func TestAccConfigRSDatabaseUser_Migration_WithEmptyLabels(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = acctest.RandomWithPrefix("test-acc")
@@ -247,7 +247,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithEmptyLabels(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithRoles(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = acctest.RandomWithPrefix("test-acc-user-")
@@ -316,7 +316,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithRoles(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithScopes(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = acctest.RandomWithPrefix("test-acc-user-")
@@ -374,7 +374,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopes(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithScopesAndEmpty(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = acctest.RandomWithPrefix("test-acc-user-")
@@ -422,7 +422,7 @@ func TestAccConfigRSDatabaseUser_Migration_WithScopesAndEmpty(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_Migration_WithLDAPAuthType(t *testing.T) {
+func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_database_user.test"
 		username              = "CN=david@example.com,OU=users,DC=example,DC=com"

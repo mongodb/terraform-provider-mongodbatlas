@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T) {
+func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -50,7 +50,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T
 	})
 }
 
-func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T) {
+func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
@@ -90,7 +90,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 	})
 }
 
-func TestAccProjectDSProjectIPAccessList_Migration_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	SkipTestExtCred(t)
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	vpcID := os.Getenv("AWS_VPC_ID")

@@ -33,11 +33,12 @@ func DebugPlan() plancheck.PlanCheck {
 	return debugPlan{}
 }
 
-func TestAccRSProject_Migration_NoProps(t *testing.T) {
+func TestAccMigrationRSProject_NoProps(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_project.test"
-		projectName  = acctest.RandomWithPrefix("test-acc-migration")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		resourceName          = "mongodbatlas_project.test"
+		projectName           = acctest.RandomWithPrefix("test-acc-migration")
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
@@ -46,7 +47,7 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -75,7 +76,7 @@ func TestAccRSProject_Migration_NoProps(t *testing.T) {
 	})
 }
 
-func TestAccRSProject_Migration_Teams(t *testing.T) {
+func TestAccMigrationRSProject_Teams(t *testing.T) {
 	var teamsIds = strings.Split(os.Getenv("MONGODB_ATLAS_TEAMS_IDS"), ",")
 	if len(teamsIds) < 2 {
 		t.Skip("`MONGODB_ATLAS_TEAMS_IDS` must have 2 team ids for this acceptance testing")
@@ -98,6 +99,7 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			})
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -107,7 +109,7 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -134,14 +136,15 @@ func TestAccRSProject_Migration_Teams(t *testing.T) {
 	})
 }
 
-func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
+func TestAccMigrationRSProject_WithFalseDefaultSettings(t *testing.T) {
 	var (
-		project         matlas.Project
-		resourceName    = "mongodbatlas_project.test"
-		projectName     = acctest.RandomWithPrefix("tf-acc-project")
-		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID  = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		configWithTeams = testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
+		project               matlas.Project
+		resourceName          = "mongodbatlas_project.test"
+		projectName           = acctest.RandomWithPrefix("tf-acc-project")
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID        = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		configWithTeams       = testAccMongoDBAtlasProjectConfigWithFalseDefaultSettings(projectName, orgID, projectOwnerID)
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -151,7 +154,7 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -177,7 +180,7 @@ func TestAccRSProject_Migration_WithFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccRSProject_Migration_WithLimits(t *testing.T) {
+func TestAccMigrationRSProject_WithLimits(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_project.test"
 		projectName  = acctest.RandomWithPrefix("tf-acc-project")
@@ -192,6 +195,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 				Value: 2,
 			},
 		})
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -201,7 +205,7 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -229,12 +233,13 @@ func TestAccRSProject_Migration_WithLimits(t *testing.T) {
 	})
 }
 
-func TestAccProjectRSProjectIPAccesslist_Migration_SettingIPAddress(t *testing.T) {
+func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
@@ -243,7 +248,7 @@ func TestAccProjectRSProjectIPAccesslist_Migration_SettingIPAddress(t *testing.T
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -270,12 +275,13 @@ func TestAccProjectRSProjectIPAccesslist_Migration_SettingIPAddress(t *testing.T
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T) {
+func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
@@ -284,7 +290,7 @@ func TestAccProjectRSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -311,12 +317,13 @@ func TestAccProjectRSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 	})
 }
 
-func TestAccProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *testing.T) {
+func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *testing.T) {
 	resourceName := "mongodbatlas_project_ip_access_list.test_1"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	const ipWhiteListCount = 20
 	accessList := make([]map[string]string, 0)
+	lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)
@@ -344,7 +351,7 @@ func TestAccProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *testing.T) 
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
