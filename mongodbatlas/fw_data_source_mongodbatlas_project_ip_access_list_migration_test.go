@@ -19,7 +19,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T)
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -60,7 +60,7 @@ func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{

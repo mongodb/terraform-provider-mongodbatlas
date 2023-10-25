@@ -41,7 +41,7 @@ func TestAccMigrationRSProject_NoProps(t *testing.T) {
 		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,7 +103,7 @@ func TestAccMigrationRSProject_Teams(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,7 +148,7 @@ func TestAccMigrationRSProject_WithFalseDefaultSettings(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasicOwnerID(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasicOwnerID(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +199,7 @@ func TestAccMigrationRSProject_WithLimits(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -242,7 +242,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -284,7 +284,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -345,7 +345,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasProjectIPAccessListDestroy,
 		Steps: []resource.TestStep{
 			{

@@ -28,7 +28,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:     func() { testAccMigrationPreCheck(t); testCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -81,7 +81,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_WithRole_basicAWS(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testCheckAwsEnv(t) },
+		PreCheck:     func() { testAccMigrationPreCheck(t); testCheckAwsEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -145,7 +145,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicAzure(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
+		PreCheck:     func() { testAccMigrationPreCheck(t); testCheckEncryptionAtRestEnvAzure(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -194,7 +194,7 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckGPCEnv(t) },
+		PreCheck:     func() { testAccMigrationPreCheck(t); testAccPreCheckGPCEnv(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
 		Steps: []resource.TestStep{
 			{

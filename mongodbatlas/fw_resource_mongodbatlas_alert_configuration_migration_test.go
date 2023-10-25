@@ -23,7 +23,7 @@ func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +65,7 @@ func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,7 +109,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -164,7 +164,7 @@ func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -206,7 +206,7 @@ func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testi
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{

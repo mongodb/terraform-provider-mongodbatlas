@@ -21,7 +21,7 @@ func TestAccMigrationConfigRSDatabaseUser_Basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -65,7 +65,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithX509TypeCustomer(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -106,7 +106,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithAWSIAMType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -149,7 +149,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLabels(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -215,7 +215,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithEmptyLabels(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -258,7 +258,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithRoles(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -328,7 +328,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopes(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -386,7 +386,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithScopesAndEmpty(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
@@ -432,7 +432,7 @@ func TestAccMigrationConfigRSDatabaseUser_WithLDAPAuthType(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
