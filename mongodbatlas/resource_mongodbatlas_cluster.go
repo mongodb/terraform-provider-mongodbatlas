@@ -137,7 +137,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"num_shards": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  1,
+				Computed: true,
 			},
 			"cloud_backup": {
 				Type:          schema.TypeBool,
@@ -388,10 +388,6 @@ func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceDa
 	if _, ok := d.GetOk("replication_specs"); ok {
 		if _, ok1 := d.GetOk("cluster_type"); !ok1 {
 			return diag.FromErr(fmt.Errorf("`cluster_type` should be set when `replication_specs` is set"))
-		}
-
-		if _, ok1 := d.GetOk("num_shards"); !ok1 {
-			return diag.FromErr(fmt.Errorf("`num_shards` should be set when `replication_specs` is set"))
 		}
 	}
 
