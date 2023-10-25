@@ -1,6 +1,9 @@
 package util
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 func SafeString(s *string) string {
 	if s != nil {
@@ -47,4 +50,9 @@ func IntPtrToInt64Ptr(i *int) *int64 {
 // IsStringPresent returns true if the string is non-empty.
 func IsStringPresent(strPtr *string) bool {
 	return strPtr != nil && len(*strPtr) > 0
+}
+
+// MongoDBRegionToAWSRegion converts region in US_EAST_1-like format to us-east-1-like
+func MongoDBRegionToAWSRegion(region string) string {
+	return strings.ReplaceAll(strings.ToLower(region), "_", "-")
 }
