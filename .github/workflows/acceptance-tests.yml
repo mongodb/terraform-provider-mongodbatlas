@@ -31,7 +31,7 @@ jobs:
       serverless: ${{ steps.filter.outputs.serverless }}
       network: ${{ steps.filter.outputs.network }}
       config: ${{ steps.filter.outputs.config }}
-      assume_role: ${{ steps.filter.outputs.config }}
+      assume_role: ${{ steps.filter.outputs.assume_role }}
     steps:
     - uses: actions/checkout@v4
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
