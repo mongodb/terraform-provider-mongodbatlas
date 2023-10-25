@@ -4,18 +4,20 @@ import (
 	"os"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 func TestAccConfigRSDatabaseUser_Migration_Basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_database_user.basic_ds"
-		username     = acctest.RandomWithPrefix("dbUser")
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
+		resourceName          = "mongodbatlas_database_user.basic_ds"
+		username              = acctest.RandomWithPrefix("dbUser")
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +26,7 @@ func TestAccConfigRSDatabaseUser_Migration_Basic(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
