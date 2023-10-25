@@ -92,7 +92,7 @@ func testAccPreCheckCloudProviderAccessAzure(tb testing.TB) {
 }
 
 func testAccMigrationPreCheckBasicOwnerID(tb testing.TB) {
-	testAccPreCheckBasicMigration(tb)
+	testAccMigrationPreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
 	}
