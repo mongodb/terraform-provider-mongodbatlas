@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -22,6 +21,7 @@ import (
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -222,7 +222,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if awsRoleDefined {
 		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
-		region := strings.ReplaceAll(strings.ToLower(data.Region.ValueString()), "_", "-")
+		region := util.MongoDBRegionToAWSRegion(data.Region.ValueString())
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
 		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
 		awsSessionToken := data.AwsSessionToken.ValueString()

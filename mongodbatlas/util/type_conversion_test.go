@@ -50,3 +50,20 @@ func TestIsStringPresent(t *testing.T) {
 		}
 	}
 }
+
+func TestMongoDBRegionToAWSRegion(t *testing.T) {
+	tests := []struct {
+		region   string
+		expected string
+	}{
+		{"US_EAST_1", "us-east-1"},
+		{"us-east-1", "us-east-1"},
+		{"nothing", "nothing"},
+	}
+
+	for _, test := range tests {
+		if resp := util.MongoDBRegionToAWSRegion(test.region); resp != test.expected {
+			t.Errorf("MongoDBRegionToAWSRegion(%v) = %v; want %v", test.region, resp, test.expected)
+		}
+	}
+}
