@@ -13,13 +13,14 @@ on:
     types: [ labeled ]
 
 jobs:  
-  mchange-detection:
+  change-detection:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
       repository-projects: read
     outputs:
-      dbuser-migration-tests: ${{ steps.filter.outputs.dbuser-migration-tests }}
+      project: ${{ steps.filter.outputs.project }}
+      config: ${{ steps.filter.outputs.config }}
     steps:
     - uses: actions/checkout@v4
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
@@ -27,13 +28,55 @@ jobs:
       id: filter
       with:
         filters: |
-          dbuser-migration-tests:
+          project:
+            - 'mongodbatlas/fw_data_source_mongodbatlas_project_ip_access_list*.go'
+            - 'mongodbatlas/fw_resource_mongodbatlas_project_ip_access_list*.go'
+          config:
+            - 'mongodbatlas/fw_data_source_mongodbatlas_alert_configuration*.go'
             - 'mongodbatlas/fw_data_source_mongodbatlas_database_user*.go'
+            - 'mongodbatlas/fw_data_source_mongodbatlas_atlas_user*.go'
+            - 'mongodbatlas/fw_resource_mongodbatlas_alert_configuration*.go'
             - 'mongodbatlas/fw_resource_mongodbatlas_database_user*.go'   
- 
-  dbuser-migration-tests:
-    needs: [ mchange-detection ]
-    if: ${{ needs.mchange-detection.outputs.dbuser-migration-tests == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-dbuser-migration-tests' || inputs.parent-event-name == 'release' }}
+
+  project: 
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || inputs.parent-event-name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get Last Release
+        id: get_last_release
+        run: |
+         LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
+         echo "Last release: $LAST_RELEASE"
+         echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
+        shell: bash
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+          MONGODB_ATLAS_API_KEYS_IDS: ${{ vars.MONGODB_ATLAS_API_KEYS_IDS }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ vars.MONGODB_ATLAS_TEAMS_IDS }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          CI: true
+          TEST_REGEX: "^TestAccProject.*_Migration_.*"
+        run: make testacc
+  
+  config:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -66,5 +109,5 @@ jobs:
           TF_ACC: 1
           PARALLEL_GO_TEST: 20
           CI: true
-          TEST_REGEX: "^TestAccConfigRSDatabaseUser_Migration"
+          TEST_REGEX: "^TestAccConfig.*_Migration_.*"
         run: make testacc
