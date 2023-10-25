@@ -10,7 +10,20 @@ on:
   pull_request:
     types: [ labeled ]
 
-jobs:  
+jobs: 
+  set-output:
+    runs-on: ubuntu-latest
+    outputs:
+      condition: ${{ steps.set-condition.outputs.condition }}
+    steps:
+      - name: Set Event Condition
+        id: set-condition
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.parent-event-name }}" = "release" ] || [ "${{ github.event.label.name }}" = "run-testacc-migration" ]; then
+            echo "::set-output name=condition::true"
+          else
+            echo "::set-output name=condition::false"
+          fi
   change-detection:
     runs-on: ubuntu-latest
     permissions:
@@ -21,7 +34,7 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
+      if: ${{ needs.set-output.outputs.condition == 'true' }}
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -38,7 +51,7 @@ jobs:
 
   project: 
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc-migration' || github.event.label.name == 'run-testacc-project-migration' || inputs.parent-event-name == 'release' }}
+    if: ${{ needs.set-output.outputs.condition == 'true' || needs.change-detection.outputs.project == 'true' || github.event.label.name == 'run-testacc-project-migration'}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -74,7 +87,7 @@ jobs:
   
   config:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc-migration' || github.event.label.name == 'run-testacc-config-migration' || inputs.parent-event-name == 'release' }}
+    if: ${{ needs.set-output.outputs.condition == 'true' || needs.change-detection.outputs.config == 'true' || github.event.label.name == 'run-testacc-config-migration'}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
