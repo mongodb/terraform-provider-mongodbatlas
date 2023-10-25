@@ -80,7 +80,7 @@ func resourceMongoDBAtlasCloudProviderAccess() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*MongoDBClient).Atlas
@@ -112,7 +112,7 @@ func resourceMongoDBAtlasCloudProviderAccessCreate(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// sadly there is no just get API
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -139,7 +139,7 @@ func resourceMongoDBAtlasCloudProviderAccessRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -169,7 +169,7 @@ func resourceMongoDBAtlasCloudProviderAccessUpdate(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudProviderAccessDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 
@@ -192,7 +192,7 @@ func resourceMongoDBAtlasCloudProviderAccessDelete(ctx context.Context, d *schem
 	return nil
 }
 
-func resourceMongoDBAtlasCloudProviderAccessImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudProviderAccessImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {
@@ -285,13 +285,13 @@ func resourceMongoDBAtlasCloudProviderAccessV0() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCloudProviderAccessStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	rawState["feature_usages"] = []interface{}{map[string]interface{}{}}
+func resourceMongoDBAtlasCloudProviderAccessStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
+	rawState["feature_usages"] = []any{map[string]any{}}
 	return rawState, nil
 }
 
-func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]interface{} {
-	out := map[string]interface{}{
+func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]any {
+	out := map[string]any{
 		"atlas_aws_account_arn":          role.AtlasAWSAccountARN,
 		"atlas_assumed_role_external_id": role.AtlasAssumedRoleExternalID,
 		"authorized_date":                role.AuthorizedDate,
@@ -301,7 +301,7 @@ func roleToSchema(role *matlas.CloudProviderAccessRole) map[string]interface{} {
 		"role_id":                        role.RoleID,
 	}
 
-	features := make([]map[string]interface{}, 0, len(role.FeatureUsages))
+	features := make([]map[string]any, 0, len(role.FeatureUsages))
 	for _, featureUsage := range role.FeatureUsages {
 		features = append(features, featureToSchema(featureUsage))
 	}

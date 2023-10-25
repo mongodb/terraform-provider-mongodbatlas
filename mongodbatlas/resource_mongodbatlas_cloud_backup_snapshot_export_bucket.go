@@ -60,7 +60,7 @@ func returnCloudBackupSnapshotExportBucketSchema() map[string]*schema.Schema {
 	}
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -89,7 +89,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketCreate(ctx context.Conte
 	return resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -129,7 +129,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketRead(ctx context.Context
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -159,7 +159,7 @@ func resourceMongoDBAtlasCloudBackupSnapshotExportBucketDelete(ctx context.Conte
 	return nil
 }
 
-func resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCloudBackupSnapshotExportBucketImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID, id, err := splitCloudBackupSnapshotExportBucketImportID(d.Id())
@@ -196,7 +196,7 @@ func splitCloudBackupSnapshotExportBucketImportID(id string) (projectID, bucketI
 }
 
 func resourceCloudBackupSnapshotExportBucketRefreshFunc(ctx context.Context, client *matlas.Client, projectID, exportBucketID string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		clusters, resp, err := client.Clusters.List(ctx, projectID, nil)
 		if err != nil {
 			// For our purposes, no clusters is equivalent to all changes having been APPLIED

@@ -111,7 +111,7 @@ func resourceMongoDBAtlasLDAPVerify() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -164,7 +164,7 @@ func resourceMongoDBAtlasLDAPVerifyCreate(ctx context.Context, d *schema.Resourc
 	return resourceMongoDBAtlasLDAPVerifyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -206,16 +206,16 @@ func resourceMongoDBAtlasLDAPVerifyRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func resourceMongoDBAtlasLDAPVerifyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasLDAPVerifyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	d.SetId("")
 
 	return nil
 }
 
-func flattenLinks(linksArray []*matlas.Link) []map[string]interface{} {
-	links := make([]map[string]interface{}, 0)
+func flattenLinks(linksArray []*matlas.Link) []map[string]any {
+	links := make([]map[string]any, 0)
 	for _, v := range linksArray {
-		links = append(links, map[string]interface{}{
+		links = append(links, map[string]any{
 			"href": v.Href,
 			"rel":  v.Rel,
 		})
@@ -224,10 +224,10 @@ func flattenLinks(linksArray []*matlas.Link) []map[string]interface{} {
 	return links
 }
 
-func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]interface{} {
-	validations := make([]map[string]interface{}, 0)
+func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]any {
+	validations := make([]map[string]any, 0)
 	for _, v := range validationsArray {
-		validations = append(validations, map[string]interface{}{
+		validations = append(validations, map[string]any{
 			"status":          v.Status,
 			"validation_type": v.ValidationType,
 		})
@@ -236,7 +236,7 @@ func flattenValidations(validationsArray []*matlas.LDAPValidation) []map[string]
 	return validations
 }
 
-func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -269,7 +269,7 @@ func resourceMongoDBAtlasLDAPVerifyImportState(ctx context.Context, d *schema.Re
 }
 
 func resourceLDAPGetStatusRefreshFunc(ctx context.Context, projectID, requestID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		p, resp, err := client.LDAPConfigurations.GetStatus(ctx, projectID, requestID)
 		if err != nil {
 			if resp.Response.StatusCode == 404 {

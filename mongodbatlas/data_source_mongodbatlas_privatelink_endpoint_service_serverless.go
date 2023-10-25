@@ -59,7 +59,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointServerless() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasPrivateEndpointServiceServerlessLinkRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

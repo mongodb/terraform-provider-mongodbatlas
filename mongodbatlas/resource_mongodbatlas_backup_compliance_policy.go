@@ -215,7 +215,7 @@ func resourceMongoDBAtlasBackupCompliancePolicy() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -240,8 +240,8 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	backupCompliancePolicyReq.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		backupPolicyItem.FrequencyType = snapshotScheduleHourly
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -249,8 +249,8 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		backupPolicyItem.FrequencyType = snapshotScheduleDaily
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -258,9 +258,9 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
-		items := v.([]interface{})
+		items := v.([]any)
 		for _, s := range items {
-			itemObj := s.(map[string]interface{})
+			itemObj := s.(map[string]any)
 			backupPolicyItem.FrequencyType = snapshotScheduleWeekly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -269,9 +269,9 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
-		items := v.([]interface{})
+		items := v.([]any)
 		for _, s := range items {
-			itemObj := s.(map[string]interface{})
+			itemObj := s.(map[string]any)
 			backupPolicyItem.FrequencyType = snapshotScheduleMonthly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -298,7 +298,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyCreate(ctx context.Context, d *sc
 	return resourceMongoDBAtlasBackupCompliancePolicyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -374,7 +374,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyRead(ctx context.Context, d *sche
 	return nil
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -409,8 +409,8 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 	backupCompliancePolicyUpdate.OnDemandPolicyItem = *expandDemandBackupPolicyItem(d)
 
 	if v, ok := d.GetOk("policy_item_hourly"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		backupPolicyItem.FrequencyType = snapshotScheduleHourly
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -418,8 +418,8 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
 	}
 	if v, ok := d.GetOk("policy_item_daily"); ok {
-		item := v.([]interface{})
-		itemObj := item[0].(map[string]interface{})
+		item := v.([]any)
+		itemObj := item[0].(map[string]any)
 		backupPolicyItem.FrequencyType = snapshotScheduleDaily
 		backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 		backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -427,9 +427,9 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 		backupPoliciesItem = append(backupPoliciesItem, backupPolicyItem)
 	}
 	if v, ok := d.GetOk("policy_item_weekly"); ok {
-		items := v.([]interface{})
+		items := v.([]any)
 		for _, s := range items {
-			itemObj := s.(map[string]interface{})
+			itemObj := s.(map[string]any)
 			backupPolicyItem.FrequencyType = snapshotScheduleWeekly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -438,9 +438,9 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 		}
 	}
 	if v, ok := d.GetOk("policy_item_monthly"); ok {
-		items := v.([]interface{})
+		items := v.([]any)
 		for _, s := range items {
-			itemObj := s.(map[string]interface{})
+			itemObj := s.(map[string]any)
 			backupPolicyItem.FrequencyType = snapshotScheduleMonthly
 			backupPolicyItem.RetentionUnit = itemObj["retention_unit"].(string)
 			backupPolicyItem.FrequencyInterval = itemObj["frequency_interval"].(int)
@@ -462,7 +462,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyUpdate(ctx context.Context, d *sc
 	return resourceMongoDBAtlasBackupCompliancePolicyRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// There is no resource to delete a backup compliance policy, it can only be updated.
 	log.Printf("[WARN] Note: Deleting a Backup Compliance Policy resource in Terraform does not remove the policy from your Atlas Project. " +
 		"To disable a Backup Compliance Policy, the security or legal representative specified for the Backup Compliance Policy must contact " +
@@ -472,7 +472,7 @@ func resourceMongoDBAtlasBackupCompliancePolicyDelete(ctx context.Context, d *sc
 	return nil
 }
 
-func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -498,10 +498,10 @@ func resourceMongoDBAtlasBackupCompliancePolicyImportState(ctx context.Context, 
 	return []*schema.ResourceData{d}, nil
 }
 
-func flattenOnDemandBackupPolicyItem(item matlas.PolicyItem) []map[string]interface{} {
-	policyItems := make([]map[string]interface{}, 0)
+func flattenOnDemandBackupPolicyItem(item matlas.PolicyItem) []map[string]any {
+	policyItems := make([]map[string]any, 0)
 
-	policyItems = append(policyItems, map[string]interface{}{
+	policyItems = append(policyItems, map[string]any{
 		"id":                 item.ID,
 		"frequency_interval": item.FrequencyInterval,
 		"frequency_type":     item.FrequencyType,
@@ -516,9 +516,9 @@ func expandDemandBackupPolicyItem(d *schema.ResourceData) *matlas.PolicyItem {
 	var onDemand matlas.PolicyItem
 
 	if v, ok := d.GetOk("on_demand_policy_item"); ok {
-		demandItem := v.([]interface{})
+		demandItem := v.([]any)
 		if len(demandItem) > 0 {
-			demandItemMap := demandItem[0].(map[string]interface{})
+			demandItemMap := demandItem[0].(map[string]any)
 
 			onDemand = matlas.PolicyItem{
 				ID:                demandItemMap["id"].(string),

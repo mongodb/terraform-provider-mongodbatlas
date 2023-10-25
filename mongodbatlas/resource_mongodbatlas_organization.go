@@ -63,7 +63,7 @@ func resourceMongoDBAtlasOrganization() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	organization, resp, err := conn.Organizations.Create(ctx, newCreateOrganizationRequest(d))
 	if err != nil {
@@ -94,7 +94,7 @@ func resourceMongoDBAtlasOrganizationCreate(ctx context.Context, d *schema.Resou
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
@@ -123,7 +123,7 @@ func resourceMongoDBAtlasOrganizationRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
@@ -147,7 +147,7 @@ func resourceMongoDBAtlasOrganizationUpdate(ctx context.Context, d *schema.Resou
 	return resourceMongoDBAtlasOrganizationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	config := Config{
 		PublicKey:  d.Get("public_key").(string),
@@ -166,7 +166,7 @@ func resourceMongoDBAtlasOrganizationDelete(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasOrganizationImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Id()
 

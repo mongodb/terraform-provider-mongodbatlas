@@ -75,7 +75,7 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerless() *schema.Resou
 	}
 }
 
-func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -100,17 +100,17 @@ func dataSourceMongoDBAtlasPrivateLinkEndpointsServiceServerlessRead(ctx context
 	return nil
 }
 
-func flattenServerlessPrivateLinkEndpoints(privateLinks []matlas.ServerlessPrivateEndpointConnection) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenServerlessPrivateLinkEndpoints(privateLinks []matlas.ServerlessPrivateEndpointConnection) []map[string]any {
+	var results []map[string]any
 
 	if len(privateLinks) == 0 {
 		return results
 	}
 
-	results = make([]map[string]interface{}, len(privateLinks))
+	results = make([]map[string]any, len(privateLinks))
 
 	for k := range privateLinks {
-		results[k] = map[string]interface{}{
+		results[k] = map[string]any{
 			"endpoint_id":                      privateLinks[k].ID,
 			"endpoint_service_name":            privateLinks[k].EndpointServiceName,
 			"cloud_provider_endpoint_id":       privateLinks[k].CloudProviderEndpointID,

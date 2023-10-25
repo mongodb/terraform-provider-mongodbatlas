@@ -41,7 +41,7 @@ func resourceMongoDBAtlasCustomDBRole() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.All(
 					validation.StringMatch(regexp.MustCompile(`[\w-]+`), "`role_name` can contain only letters, digits, underscores, and dashes"),
-					func(v interface{}, k string) (ws []string, es []error) {
+					func(v any, k string) (ws []string, es []error) {
 						value := v.(string)
 						if strings.HasPrefix(value, "x-gen") {
 							es = append(es, fmt.Errorf("`role_name` cannot start with 'xgen-'"))
@@ -106,7 +106,7 @@ var (
 	customRoleLock sync.Mutex
 )
 
-func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	customRoleLock.Lock()
 	defer customRoleLock.Unlock()
 	conn := meta.(*MongoDBClient).Atlas
@@ -121,7 +121,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			customDBRoleRes, _, err := conn.CustomDBRoles.Create(ctx, projectID, customDBRoleReq)
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
@@ -155,7 +155,7 @@ func resourceMongoDBAtlasCustomDBRoleCreate(ctx context.Context, d *schema.Resou
 	return resourceMongoDBAtlasCustomDBRoleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -186,7 +186,7 @@ func resourceMongoDBAtlasCustomDBRoleRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	customRoleLock.Lock()
 	defer customRoleLock.Unlock()
 	conn := meta.(*MongoDBClient).Atlas
@@ -218,7 +218,7 @@ func resourceMongoDBAtlasCustomDBRoleUpdate(ctx context.Context, d *schema.Resou
 	return resourceMongoDBAtlasCustomDBRoleRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -227,7 +227,7 @@ func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.Resou
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted", "failed"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			_, _, err := conn.CustomDBRoles.Get(ctx, projectID, roleName)
 			if err != nil {
 				if strings.Contains(err.Error(), "404") ||
@@ -258,7 +258,7 @@ func resourceMongoDBAtlasCustomDBRoleDelete(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -287,10 +287,10 @@ func resourceMongoDBAtlasCustomDBRoleImportState(ctx context.Context, d *schema.
 }
 
 func expandActions(d *schema.ResourceData) []matlas.Action {
-	actions := make([]matlas.Action, len(d.Get("actions").([]interface{})))
+	actions := make([]matlas.Action, len(d.Get("actions").([]any)))
 
-	for k, v := range d.Get("actions").([]interface{}) {
-		a := v.(map[string]interface{})
+	for k, v := range d.Get("actions").([]any) {
+		a := v.(map[string]any)
 		actions[k] = matlas.Action{
 			Action:    a["action"].(string),
 			Resources: expandActionResources(a["resources"].(*schema.Set)),
@@ -304,7 +304,7 @@ func expandActionResources(resources *schema.Set) []matlas.Resource {
 	actionResources := make([]matlas.Resource, resources.Len())
 
 	for k, v := range resources.List() {
-		resourceMap := v.(map[string]interface{})
+		resourceMap := v.(map[string]any)
 		actionResources[k] = matlas.Resource{
 			DB:         pointy.String(resourceMap["database_name"].(string)),
 			Collection: pointy.String(resourceMap["collection_name"].(string)),
@@ -315,10 +315,10 @@ func expandActionResources(resources *schema.Set) []matlas.Resource {
 	return actionResources
 }
 
-func flattenActions(actions []matlas.Action) []map[string]interface{} {
-	actionList := make([]map[string]interface{}, 0)
+func flattenActions(actions []matlas.Action) []map[string]any {
+	actionList := make([]map[string]any, 0)
 	for _, v := range actions {
-		actionList = append(actionList, map[string]interface{}{
+		actionList = append(actionList, map[string]any{
 			"action":    v.Action,
 			"resources": flattenActionResources(v.Resources),
 		})
@@ -327,16 +327,16 @@ func flattenActions(actions []matlas.Action) []map[string]interface{} {
 	return actionList
 }
 
-func flattenActionResources(resources []matlas.Resource) []map[string]interface{} {
-	actionResourceList := make([]map[string]interface{}, 0)
+func flattenActionResources(resources []matlas.Resource) []map[string]any {
+	actionResourceList := make([]map[string]any, 0)
 
 	for _, v := range resources {
 		if cluster := v.Cluster; cluster != nil {
-			actionResourceList = append(actionResourceList, map[string]interface{}{
+			actionResourceList = append(actionResourceList, map[string]any{
 				"cluster": v.Cluster,
 			})
 		} else {
-			actionResourceList = append(actionResourceList, map[string]interface{}{
+			actionResourceList = append(actionResourceList, map[string]any{
 				"database_name":   cast.ToString(v.DB),
 				"collection_name": cast.ToString(v.Collection),
 			})
@@ -352,7 +352,7 @@ func expandInheritedRoles(d *schema.ResourceData) []matlas.InheritedRole {
 
 	if len(vIR) != 0 {
 		for i := range vIR {
-			r := vIR[i].(map[string]interface{})
+			r := vIR[i].(map[string]any)
 
 			ir[i] = matlas.InheritedRole{
 				Db:   r["database_name"].(string),
@@ -364,10 +364,10 @@ func expandInheritedRoles(d *schema.ResourceData) []matlas.InheritedRole {
 	return ir
 }
 
-func flattenInheritedRoles(roles []matlas.InheritedRole) []map[string]interface{} {
-	inheritedRoleList := make([]map[string]interface{}, 0)
+func flattenInheritedRoles(roles []matlas.InheritedRole) []map[string]any {
+	inheritedRoleList := make([]map[string]any, 0)
 	for _, v := range roles {
-		inheritedRoleList = append(inheritedRoleList, map[string]interface{}{
+		inheritedRoleList = append(inheritedRoleList, map[string]any{
 			"database_name": v.Db,
 			"role_name":     v.Role,
 		})

@@ -318,7 +318,7 @@ func dataSourceMongoDBAtlasCluster() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)

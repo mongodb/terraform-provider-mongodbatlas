@@ -42,7 +42,7 @@ func dataSourceMongoDBAtlasTeam() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasTeamRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
 		conn             = meta.(*MongoDBClient).Atlas
 		orgID            = d.Get("org_id").(string)

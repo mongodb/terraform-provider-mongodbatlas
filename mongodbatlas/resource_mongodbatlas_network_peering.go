@@ -153,7 +153,7 @@ func resourceMongoDBAtlasNetworkPeering() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -263,7 +263,7 @@ func resourceMongoDBAtlasNetworkPeeringCreate(ctx context.Context, d *schema.Res
 	return resourceMongoDBAtlasNetworkPeeringRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -390,7 +390,7 @@ func resourceMongoDBAtlasNetworkPeeringRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -458,7 +458,7 @@ func resourceMongoDBAtlasNetworkPeeringUpdate(ctx context.Context, d *schema.Res
 	return resourceMongoDBAtlasNetworkPeeringRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -490,7 +490,7 @@ func resourceMongoDBAtlasNetworkPeeringDelete(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 3)
@@ -529,7 +529,7 @@ func resourceMongoDBAtlasNetworkPeeringImportState(ctx context.Context, d *schem
 }
 
 func resourceNetworkPeeringRefreshFunc(ctx context.Context, peerID, projectID, containerID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		c, resp, err := client.Peers.Get(ctx, projectID, peerID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {

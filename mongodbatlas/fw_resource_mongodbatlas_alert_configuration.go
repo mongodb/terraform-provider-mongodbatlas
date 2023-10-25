@@ -975,7 +975,7 @@ func newTFMatcherModelList(matlasSlice []matlas.Matcher, currStateSlice []tfMatc
 	return matchers
 }
 
-func newTFMatcherModelListV2(m []map[string]interface{}, currStateSlice []tfMatcherModel) []tfMatcherModel {
+func newTFMatcherModelListV2(m []map[string]any, currStateSlice []tfMatcherModel) []tfMatcherModel {
 	matchers := make([]tfMatcherModel, len(m))
 	if len(m) != len(currStateSlice) { // matchers were modified elsewhere from terraform, or import statement is being called
 		for i, matcher := range m {

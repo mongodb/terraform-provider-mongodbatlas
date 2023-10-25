@@ -48,7 +48,7 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 	}
 }
 
-func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchivesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 
@@ -66,15 +66,15 @@ func dataSourceMongoDBAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive
 	return nil
 }
 
-func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []*matlas.PrivateLinkEndpointDataLake) []map[string]interface{} {
+func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []*matlas.PrivateLinkEndpointDataLake) []map[string]any {
 	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
-		return []map[string]interface{}{}
+		return []map[string]any{}
 	}
 
-	results := make([]map[string]interface{}, len(atlasPrivateLinkEndpointDataLakes))
+	results := make([]map[string]any, len(atlasPrivateLinkEndpointDataLakes))
 
 	for i, atlasPrivateLinkEndpointDataLake := range atlasPrivateLinkEndpointDataLakes {
-		results[i] = map[string]interface{}{
+		results[i] = map[string]any{
 			"endpoint_id":   atlasPrivateLinkEndpointDataLake.EndpointID,
 			"provider_name": atlasPrivateLinkEndpointDataLake.Provider,
 			"comment":       atlasPrivateLinkEndpointDataLake.Comment,

@@ -69,7 +69,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappings() *schema.R
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -104,14 +104,14 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationRoleMappingsRead(ctx con
 	return nil
 }
 
-func flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMappings) []map[string]interface{} {
-	var federatedSettingsOrganizationRoleMappingMap []map[string]interface{}
+func flattenFederatedSettingsOrganizationRoleMappings(federatedSettingsOrganizationRoleMapping *matlas.FederatedSettingsOrganizationRoleMappings) []map[string]any {
+	var federatedSettingsOrganizationRoleMappingMap []map[string]any
 
 	if federatedSettingsOrganizationRoleMapping.TotalCount > 0 {
-		federatedSettingsOrganizationRoleMappingMap = make([]map[string]interface{}, federatedSettingsOrganizationRoleMapping.TotalCount)
+		federatedSettingsOrganizationRoleMappingMap = make([]map[string]any, federatedSettingsOrganizationRoleMapping.TotalCount)
 
 		for i := range federatedSettingsOrganizationRoleMapping.Results {
-			federatedSettingsOrganizationRoleMappingMap[i] = map[string]interface{}{
+			federatedSettingsOrganizationRoleMappingMap[i] = map[string]any{
 				"external_group_name": federatedSettingsOrganizationRoleMapping.Results[i].ExternalGroupName,
 				"id":                  federatedSettingsOrganizationRoleMapping.Results[i].ID,
 				"role_assignments":    flattenRoleAssignments(federatedSettingsOrganizationRoleMapping.Results[i].RoleAssignments),

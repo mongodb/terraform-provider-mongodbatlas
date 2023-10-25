@@ -320,14 +320,14 @@ func resourceMongoDBAtlasClusterResourceV0() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasClusterStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func resourceMongoDBAtlasClusterStateUpgradeV0(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 	log.Println("[INFO] Found MongoDB Cluser state v0; migrating to v1")
 
 	return migrateAdvancedConfiguration(rawState), nil
 }
 
-func migrateAdvancedConfiguration(rawState map[string]interface{}) map[string]interface{} {
-	rawState["advanced_configuration"] = []interface{}{}
+func migrateAdvancedConfiguration(rawState map[string]any) map[string]any {
+	rawState["advanced_configuration"] = []any{}
 
 	return rawState
 }

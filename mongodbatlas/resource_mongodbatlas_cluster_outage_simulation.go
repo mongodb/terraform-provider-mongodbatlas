@@ -77,7 +77,7 @@ func resourceMongoDBAtlasClusterOutageSimulation() *schema.Resource {
 	}
 }
 
-func resourceMongoDBClusterOutageSimulationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBClusterOutageSimulationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -116,10 +116,10 @@ func resourceMongoDBClusterOutageSimulationCreate(ctx context.Context, d *schema
 }
 
 func newOutageFilters(d *schema.ResourceData) []matlas.ClusterOutageSimulationOutageFilter {
-	outageFilters := make([]matlas.ClusterOutageSimulationOutageFilter, len(d.Get("outage_filters").([]interface{})))
+	outageFilters := make([]matlas.ClusterOutageSimulationOutageFilter, len(d.Get("outage_filters").([]any)))
 
-	for k, v := range d.Get("outage_filters").([]interface{}) {
-		a := v.(map[string]interface{})
+	for k, v := range d.Get("outage_filters").([]any) {
+		a := v.(map[string]any)
 		outageFilters[k] = matlas.ClusterOutageSimulationOutageFilter{
 			CloudProvider: pointy.String(a["cloud_provider"].(string)),
 			RegionName:    pointy.String(a["region_name"].(string)),
@@ -130,7 +130,7 @@ func newOutageFilters(d *schema.ResourceData) []matlas.ClusterOutageSimulationOu
 	return outageFilters
 }
 
-func resourceMongoDBAClusterOutageSimulationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAClusterOutageSimulationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -158,7 +158,7 @@ func resourceMongoDBAClusterOutageSimulationRead(ctx context.Context, d *schema.
 	return nil
 }
 
-func resourceMongoDBAtlasClusterOutageSimulationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasClusterOutageSimulationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	ids := decodeStateID(d.Id())
@@ -189,12 +189,12 @@ func resourceMongoDBAtlasClusterOutageSimulationDelete(ctx context.Context, d *s
 	return nil
 }
 
-func resourceMongoDBClusterOutageSimulationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBClusterOutageSimulationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	return diag.FromErr(fmt.Errorf("updating a Cluster Outage Simulation is not supported"))
 }
 
 func resourceClusterOutageSimulationRefreshFunc(ctx context.Context, clusterName, projectID string, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		outageSimulation, resp, err := client.ClusterOutageSimulation.GetOutageSimulation(ctx, projectID, clusterName)
 
 		if err != nil {
@@ -237,10 +237,10 @@ func convertOutageSimulationToSchema(outageSimulation *matlas.ClusterOutageSimul
 	return nil
 }
 
-func convertOutageFiltersToSchema(outageFilters []matlas.ClusterOutageSimulationOutageFilter, d *schema.ResourceData) []map[string]interface{} {
-	outageFilterList := make([]map[string]interface{}, 0)
+func convertOutageFiltersToSchema(outageFilters []matlas.ClusterOutageSimulationOutageFilter, d *schema.ResourceData) []map[string]any {
+	outageFilterList := make([]map[string]any, 0)
 	for _, v := range outageFilters {
-		outageFilterList = append(outageFilterList, map[string]interface{}{
+		outageFilterList = append(outageFilterList, map[string]any{
 			"cloud_provider": v.CloudProvider,
 			"region_name":    v.RegionName,
 			"type":           v.Type,

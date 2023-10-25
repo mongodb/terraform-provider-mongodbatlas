@@ -130,7 +130,7 @@ func dataSourceMongoDBAtlasEventTrigger() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasEventTriggerRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn, err := meta.(*MongoDBClient).GetRealmClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)

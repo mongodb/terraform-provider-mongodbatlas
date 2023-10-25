@@ -8,17 +8,17 @@ import (
 )
 
 func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
-	v0State := map[string]interface{}{
+	v0State := map[string]any{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
 		"provider_instance_size_name": "M10",
 		"provider_name":               "AWS",
-		"replication_specs": []interface{}{
-			map[string]interface{}{
+		"replication_specs": []any{
+			map[string]any{
 				"num_shards": 1,
 			},
 		},
-		"advanced_configuration": map[string]interface{}{},
+		"advanced_configuration": map[string]any{},
 	}
 
 	v0Config := terraform.NewResourceConfigRaw(v0State)
@@ -44,17 +44,17 @@ func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
-	v0State := map[string]interface{}{
+	v0State := map[string]any{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
 		"provider_instance_size_name": "M10",
 		"provider_name":               "AWS",
-		"replication_specs": []interface{}{
-			map[string]interface{}{
+		"replication_specs": []any{
+			map[string]any{
 				"num_shards": 1,
 			},
 		},
-		"advanced_configuration": map[string]interface{}{
+		"advanced_configuration": map[string]any{
 			"fail_index_key_too_long":              "true",
 			"javascript_enabled":                   "true",
 			"minimum_enabled_tls_protocol":         "TLS1_2",
@@ -87,17 +87,17 @@ func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
 }
 
 func TestAccClusterRSClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *testing.T) {
-	v0State := map[string]interface{}{
+	v0State := map[string]any{
 		"project_id":                  "test-id",
 		"name":                        "test-cluster",
 		"provider_instance_size_name": "M10",
 		"provider_name":               "AWS",
-		"replication_specs": []interface{}{
-			map[string]interface{}{
+		"replication_specs": []any{
+			map[string]any{
 				"num_shards": 1,
 			},
 		},
-		"advanced_configuration": map[string]interface{}{
+		"advanced_configuration": map[string]any{
 			"fail_index_key_too_long":              "true",
 			"javascript_enabled":                   "true",
 			"minimum_enabled_tls_protocol":         "TLS1_2",

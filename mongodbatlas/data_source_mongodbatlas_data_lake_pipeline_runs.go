@@ -89,7 +89,7 @@ func dataSourceMongoDBAtlasDataLakePipelineRuns() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
 	name := d.Get("pipeline_name").(string)
@@ -108,17 +108,17 @@ func dataSourceMongoDBAtlasDataLakeRunsRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func flattenDataLakePipelineRunResult(datalakePipelineRuns []*matlas.DataLakePipelineRun) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenDataLakePipelineRunResult(datalakePipelineRuns []*matlas.DataLakePipelineRun) []map[string]any {
+	var results []map[string]any
 
 	if len(datalakePipelineRuns) == 0 {
 		return results
 	}
 
-	results = make([]map[string]interface{}, len(datalakePipelineRuns))
+	results = make([]map[string]any, len(datalakePipelineRuns))
 
 	for k, run := range datalakePipelineRuns {
-		results[k] = map[string]interface{}{
+		results[k] = map[string]any{
 			"id":                    run.ID,
 			"created_date":          run.CreatedDate,
 			"last_updated_date":     run.LastUpdatedDate,

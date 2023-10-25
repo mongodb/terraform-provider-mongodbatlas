@@ -114,7 +114,7 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 	queryType := d.Get("type").(string)
 

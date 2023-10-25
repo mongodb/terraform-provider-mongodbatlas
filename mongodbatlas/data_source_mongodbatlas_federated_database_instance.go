@@ -315,7 +315,7 @@ func schemaFederatedDatabaseInstanceStoresDataSource() *schema.Schema {
 	}
 }
 
-func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)

@@ -40,7 +40,7 @@ func dataSourceMongoDBAtlasAPIKey() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasAPIKeyRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

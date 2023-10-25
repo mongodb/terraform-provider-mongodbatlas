@@ -42,7 +42,7 @@ func resourceMongoDBAtlasCustomDNSConfiguration() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 	orgID := d.Get("project_id").(string)
 
@@ -60,7 +60,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationCreate(ctx context.Context, d *sc
 	return resourceMongoDBAtlasCustomDNSConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	dnsResp, resp, err := conn.CustomAWSDNS.Get(context.Background(), d.Id())
@@ -84,7 +84,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationRead(ctx context.Context, d *sche
 	return nil
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	if d.HasChange("enabled") {
@@ -99,7 +99,7 @@ func resourceMongoDBAtlasCustomDNSConfigurationUpdate(ctx context.Context, d *sc
 	return resourceMongoDBAtlasCustomDNSConfigurationRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasCustomDNSConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasCustomDNSConfigurationDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	_, _, err := conn.CustomAWSDNS.Update(ctx, d.Id(), &matlas.AWSCustomDNSSetting{

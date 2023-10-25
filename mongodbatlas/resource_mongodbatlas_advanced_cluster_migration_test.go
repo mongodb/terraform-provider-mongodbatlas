@@ -8,16 +8,16 @@ import (
 )
 
 func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing.T) {
-	v0State := map[string]interface{}{
+	v0State := map[string]any{
 		"project_id":   "test-id",
 		"name":         "test-cluster",
 		"cluster_type": "REPLICASET",
-		"replication_specs": []interface{}{
-			map[string]interface{}{
-				"region_configs": []interface{}{
-					map[string]interface{}{
-						"electable_specs": []interface{}{
-							map[string]interface{}{
+		"replication_specs": []any{
+			map[string]any{
+				"region_configs": []any{
+					map[string]any{
+						"electable_specs": []any{
+							map[string]any{
 								"instance_size": "M30",
 								"node_count":    3,
 							},
@@ -29,8 +29,8 @@ func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing
 				},
 			},
 		},
-		"bi_connector": []interface{}{
-			map[string]interface{}{
+		"bi_connector": []any{
+			map[string]any{
 				"enabled":         1,
 				"read_preference": "secondary",
 			},
@@ -60,35 +60,35 @@ func TestAccClusterRSAdvancedClusterMigrateState_empty_advancedConfig(t *testing
 }
 
 func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T) {
-	v0State := map[string]interface{}{
+	v0State := map[string]any{
 		"project_id":     "test-id",
 		"name":           "test-cluster",
 		"cluster_type":   "REPLICASET",
 		"backup_enabled": true,
 		"disk_size_gb":   256,
-		"replication_specs": []interface{}{
-			map[string]interface{}{
+		"replication_specs": []any{
+			map[string]any{
 				"zone_name": "Test Zone",
-				"region_configs": []interface{}{
-					map[string]interface{}{
+				"region_configs": []any{
+					map[string]any{
 						"priority":      7,
 						"provider_name": "AWS",
 						"region_name":   "US_EAST_1",
-						"electable_specs": []interface{}{
-							map[string]interface{}{
+						"electable_specs": []any{
+							map[string]any{
 								"instance_size": "M30",
 								"node_count":    3,
 							},
 						},
-						"read_only_specs": []interface{}{
-							map[string]interface{}{
+						"read_only_specs": []any{
+							map[string]any{
 								"disk_iops":     0,
 								"instance_size": "M30",
 								"node_count":    0,
 							},
 						},
-						"auto_scaling": []interface{}{
-							map[string]interface{}{
+						"auto_scaling": []any{
+							map[string]any{
 								"compute_enabled":            true,
 								"compute_max_instance_size":  "M60",
 								"compute_min_instance_size":  "M30",
@@ -124,7 +124,7 @@ func TestAccClusterRSAdvancedClusterV0StateUpgrade_ReplicationSpecs(t *testing.T
 		return
 	}
 
-	if len(v1State["replication_specs"].([]interface{})) != len(v0State["replication_specs"].([]interface{})) {
+	if len(v1State["replication_specs"].([]any)) != len(v0State["replication_specs"].([]any)) {
 		t.Error("migrated replication specs did not contain the same number of elements")
 
 		return

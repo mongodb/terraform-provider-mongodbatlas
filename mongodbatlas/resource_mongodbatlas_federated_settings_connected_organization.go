@@ -56,7 +56,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resource 
 	}
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -100,7 +100,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Con
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -140,7 +140,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigUpdate(ctx context.C
 	return resourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -155,7 +155,7 @@ func resourceMongoDBAtlasFederatedSettingsOrganizationConfigDelete(ctx context.C
 	return nil
 }
 
-func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasFederatedSettingsOrganizationConfigImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 	federationSettingsID, orgID, err := splitFederatedSettingsOrganizationConfigImportID(d.Id())
 	if err != nil {

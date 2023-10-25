@@ -24,7 +24,7 @@ func TestTerraformResourceMongoDBAtlasCloudProviderAccess_basicAWS(t *testing.T)
 
 	terraformOptions := &terraform.Options{
 		TerraformDir: testFiles,
-		Vars: map[string]interface{}{
+		Vars: map[string]any{
 			"project_id":                 mongoSecrets.ProjectID,
 			"cloud_provider_access_name": "AWS",
 			"public_key":                 mongoSecrets.PublicKey,

@@ -65,11 +65,12 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+          cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.7.0
         with:
-          version: v1.52.2
-          args: --timeout 9m0s
+          version: v1.55.0
+          args: --timeout 10m
   website-lint:
     runs-on: ubuntu-latest
     steps:

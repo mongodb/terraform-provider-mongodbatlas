@@ -110,7 +110,7 @@ func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfig() *schema.Resourc
 		},
 	}
 }
-func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasFederatedSettingsOrganizationConfigRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

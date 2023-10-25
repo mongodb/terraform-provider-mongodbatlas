@@ -55,7 +55,7 @@ func resourceMongoDBAtlasAuditing() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasAuditingCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAuditingCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -83,7 +83,7 @@ func resourceMongoDBAtlasAuditingCreate(ctx context.Context, d *schema.ResourceD
 	return resourceMongoDBAtlasAuditingRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*MongoDBClient).Atlas
 
 	auditing, resp, err := conn.Auditing.Get(context.Background(), d.Id())
@@ -115,7 +115,7 @@ func resourceMongoDBAtlasAuditingRead(ctx context.Context, d *schema.ResourceDat
 	return nil
 }
 
-func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -141,7 +141,7 @@ func resourceMongoDBAtlasAuditingUpdate(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func resourceMongoDBAtlasAuditingDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasAuditingDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
 	conn := meta.(*MongoDBClient).Atlas
 

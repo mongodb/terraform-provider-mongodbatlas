@@ -99,7 +99,7 @@ func resourceMongoDBAtlasNetworkContainer() *schema.Resource {
 	}
 }
 
-func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	projectID := d.Get("project_id").(string)
@@ -148,7 +148,7 @@ func resourceMongoDBAtlasNetworkContainerCreate(ctx context.Context, d *schema.R
 	return resourceMongoDBAtlasNetworkContainerRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -212,7 +212,7 @@ func resourceMongoDBAtlasNetworkContainerRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	ids := decodeStateID(d.Id())
@@ -251,7 +251,7 @@ func resourceMongoDBAtlasNetworkContainerUpdate(ctx context.Context, d *schema.R
 	return resourceMongoDBAtlasNetworkContainerRead(ctx, d, meta)
 }
 
-func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -273,7 +273,7 @@ func resourceMongoDBAtlasNetworkContainerDelete(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	conn := meta.(*MongoDBClient).Atlas
 
 	parts := strings.SplitN(d.Id(), "-", 2)
@@ -314,7 +314,7 @@ func resourceMongoDBAtlasNetworkContainerImportState(ctx context.Context, d *sch
 }
 
 func resourceNetworkContainerRefreshFunc(ctx context.Context, d *schema.ResourceData, client *matlas.Client) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		ids := decodeStateID(d.Id())
 		projectID := ids["project_id"]
 		containerID := ids["container_id"]

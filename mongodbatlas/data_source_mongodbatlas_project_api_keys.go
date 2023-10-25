@@ -74,7 +74,7 @@ func dataSourceMongoDBAtlasProjectAPIKeys() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 	options := &matlas.ListOptions{
@@ -103,16 +103,16 @@ func dataSourceMongoDBAtlasProjectAPIKeysRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID string, apiKeys []matlas.APIKey) ([]map[string]interface{}, error) {
-	var results []map[string]interface{}
+func flattenProjectAPIKeys(ctx context.Context, conn *matlas.Client, projectID string, apiKeys []matlas.APIKey) ([]map[string]any, error) {
+	var results []map[string]any
 
 	if len(apiKeys) == 0 {
 		return nil, nil
 	}
 
-	results = make([]map[string]interface{}, len(apiKeys))
+	results = make([]map[string]any, len(apiKeys))
 	for k, apiKey := range apiKeys {
-		results[k] = map[string]interface{}{
+		results[k] = map[string]any{
 			"api_key_id":  apiKey.ID,
 			"description": apiKey.Desc,
 			"public_key":  apiKey.PublicKey,

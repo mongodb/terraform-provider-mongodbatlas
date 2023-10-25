@@ -76,7 +76,7 @@ func dataSourceMongoDBAtlasOrganizations() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
 
@@ -109,11 +109,11 @@ func dataSourceMongoDBAtlasOrganizationsRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func flattenOrganizationLinks(links []*matlas.Link) []map[string]interface{} {
-	linksList := make([]map[string]interface{}, 0)
+func flattenOrganizationLinks(links []*matlas.Link) []map[string]any {
+	linksList := make([]map[string]any, 0)
 
 	for _, link := range links {
-		mLink := map[string]interface{}{
+		mLink := map[string]any{
 			"href": link.Href,
 			"rel":  link.Rel,
 		}
@@ -123,17 +123,17 @@ func flattenOrganizationLinks(links []*matlas.Link) []map[string]interface{} {
 	return linksList
 }
 
-func flattenOrganizations(organizations []*matlas.Organization) []map[string]interface{} {
-	var results []map[string]interface{}
+func flattenOrganizations(organizations []*matlas.Organization) []map[string]any {
+	var results []map[string]any
 
 	if len(organizations) == 0 {
 		return results
 	}
 
-	results = make([]map[string]interface{}, len(organizations))
+	results = make([]map[string]any, len(organizations))
 
 	for k, organization := range organizations {
-		results[k] = map[string]interface{}{
+		results[k] = map[string]any{
 			"id":         organization.ID,
 			"name":       organization.Name,
 			"is_deleted": organization.IsDeleted,
