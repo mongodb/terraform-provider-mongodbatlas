@@ -7,6 +7,9 @@ import (
 	"reflect"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20231001001/admin"
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,11 +22,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mwielbut/pointy"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
-	"github.com/mwielbut/pointy"
-	"go.mongodb.org/atlas-sdk/v20231001001/admin"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -37,6 +39,8 @@ const (
 	encodedIDKeyAlertID            = "id"
 	encodedIDKeyProjectID          = "project_id"
 )
+
+// temp
 
 var _ resource.ResourceWithConfigure = &AlertConfigurationRS{}
 var _ resource.ResourceWithImportState = &AlertConfigurationRS{}
