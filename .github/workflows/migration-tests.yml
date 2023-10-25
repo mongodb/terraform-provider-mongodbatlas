@@ -2,8 +2,6 @@ name: 'Migration Tests'
 
 on:
   workflow_dispatch: {} # workflow can be run manually
-  schedule:
-    - cron: "0 4 * * *" # workflow runs every day at 04:00 AM
   workflow_call: # workflow runs after code-health
     inputs:
       parent-event-name:
@@ -40,7 +38,7 @@ jobs:
 
   project: 
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-project' || inputs.parent-event-name == 'release' }}
+    if: ${{ needs.change-detection.outputs.project == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc-migration' || github.event.label.name == 'run-testacc-project-migration' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -76,7 +74,7 @@ jobs:
   
   config:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc-migration' || github.event.label.name == 'run-testacc-config-migration' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
