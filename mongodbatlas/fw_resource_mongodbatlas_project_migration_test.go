@@ -239,7 +239,7 @@ func TestAccMigrationProjectRSProjectIPAccesslist_SettingIPAddress(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-	lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
@@ -281,7 +281,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_SettingCIDRBlock(t *testing.T)
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-	lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckBasic(t) },
@@ -323,7 +323,7 @@ func TestAccMigrationProjectRSProjectIPAccessList_Multiple_SettingMultiple(t *te
 	projectName := acctest.RandomWithPrefix("test-acc")
 	const ipWhiteListCount = 20
 	accessList := make([]map[string]string, 0)
-	lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
+	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	for i := 0; i < ipWhiteListCount; i++ {
 		entry := make(map[string]string)
