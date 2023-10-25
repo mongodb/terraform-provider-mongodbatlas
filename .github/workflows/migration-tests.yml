@@ -1,13 +1,13 @@
 name: 'Migration Tests'
 
 on:
-  workflow_dispatch: {} # workflow can be run manually
+  workflow_dispatch: {}
   workflow_call: # workflow runs after code-health
     inputs:
       parent-event-name:
         required: true
         type: string
-  pull_request: # you can run a specic job in your PR using GitHub labels
+  pull_request:
     types: [ labeled ]
 
 jobs:  
