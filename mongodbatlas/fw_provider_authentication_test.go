@@ -17,7 +17,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		clusterCount = "0"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testCheckSTSAssumeRole(t) },
+		PreCheck:                 func() { testCheckSTSAssumeRole(t); testCheckRegularCredsAreEmpty(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasProjectDestroy,
 		Steps: []resource.TestStep{

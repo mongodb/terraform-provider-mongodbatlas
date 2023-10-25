@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -24,6 +23,7 @@ import (
 	sdkv2schema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	cstmvalidator "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/validator"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -72,19 +72,17 @@ type tfAssumeRoleModel struct {
 	SourceIdentity    types.String `tfsdk:"source_identity"`
 }
 
-func (m *tfAssumeRoleModel) AttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"policy_arns":         types.SetType{ElemType: types.StringType},
-		"transitive_tag_keys": types.SetType{ElemType: types.StringType},
-		"tags":                types.MapType{ElemType: types.StringType},
-		"duration":            types.StringType,
-		"external_id":         types.StringType,
-		"policy":              types.StringType,
-		"role_arn":            types.StringType,
-		"session_name":        types.StringType,
-		"source_identity":     types.StringType,
-	}
-}
+var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"policy_arns":         types.SetType{ElemType: types.StringType},
+	"transitive_tag_keys": types.SetType{ElemType: types.StringType},
+	"tags":                types.MapType{ElemType: types.StringType},
+	"duration":            types.StringType,
+	"external_id":         types.StringType,
+	"policy":              types.StringType,
+	"role_arn":            types.StringType,
+	"session_name":        types.StringType,
+	"source_identity":     types.StringType,
+}}
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
@@ -237,7 +235,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if awsRoleDefined {
 		config.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
 		secret := data.SecretName.ValueString()
-		region := strings.ReplaceAll(strings.ToLower(data.Region.ValueString()), "_", "-")
+		region := util.MongoDBRegionToAWSRegion(data.Region.ValueString())
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
 		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
 		awsSessionToken := data.AwsSessionToken.ValueString()
@@ -317,7 +315,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 		if assumeRoleArn != "" {
 			awsRoleDefined = true
 			var diags diag.Diagnostics
-			data.AssumeRole, diags = types.ListValueFrom(ctx, types.ObjectType{AttrTypes: (&tfAssumeRoleModel{}).AttrTypes()}, []tfAssumeRoleModel{
+			data.AssumeRole, diags = types.ListValueFrom(ctx, AssumeRoleType, []tfAssumeRoleModel{
 				{
 					Tags:              types.MapNull(types.StringType),
 					PolicyARNs:        types.SetNull(types.StringType),
@@ -326,7 +324,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 				},
 			})
 			if diags.HasError() {
-				resp.Diagnostics.AddError(diags.Errors()[0].Summary(), diags.Errors()[0].Detail())
+				resp.Diagnostics.Append(diags...)
 			}
 		}
 	} else {

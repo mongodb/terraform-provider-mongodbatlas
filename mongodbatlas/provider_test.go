@@ -159,6 +159,12 @@ func testCheckAwsEnv(tb testing.TB) {
 	}
 }
 
+func testCheckRegularCredsAreEmpty(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" {
+		tb.Fatal(`"MONGODB_ATLAS_PUBLIC_KEY" and "MONGODB_ATLAS_PRIVATE_KEY" are defined in this test and they should not.`)
+	}
+}
+
 func testCheckSTSAssumeRole(tb testing.TB) {
 	if os.Getenv("AWS_REGION") == "" {
 		tb.Fatal(`'AWS_REGION' must be set for acceptance testing with STS Assume Role.`)
