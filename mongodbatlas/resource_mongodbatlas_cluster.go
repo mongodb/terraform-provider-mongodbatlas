@@ -79,7 +79,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"backup_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Clusters running MongoDB FCV 4.2 or later and any new Atlas clusters of any type do not support this parameter",
 			},
 			"retain_backups_enabled": {
@@ -90,19 +90,16 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"bi_connector_config": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 						"read_preference": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -293,7 +290,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"paused": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"srv_address": {
 				Type:     schema.TypeString,
@@ -308,19 +305,16 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
-				Computed:   true,
 				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 						"value": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -339,7 +333,7 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 			"version_release_system": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LTS",
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 		},
@@ -1615,7 +1609,6 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
