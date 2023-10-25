@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
@@ -271,7 +272,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 	if awsRoleDefined {
 		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
 		secret := d.Get("secret_name").(string)
-		region := strings.ReplaceAll(strings.ToLower(d.Get("region").(string)), "_", "-")
+		region := util.MongoDBRegionToAWSRegion(d.Get("region").(string))
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
 		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
 		awsSessionToken := d.Get("aws_session_token").(string)

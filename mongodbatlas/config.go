@@ -100,8 +100,9 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent)}
 	authConfig := realmAuth.NewConfig(nil)
 	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
-		optsRealm = append(optsRealm, realm.SetBaseURL(c.Config.RealmBaseURL))
-		authConfig.AuthURL, _ = url.Parse(c.Config.RealmBaseURL + "api/admin/v3.0/auth/providers/mongodb-cloud/login")
+		adminURL := c.Config.RealmBaseURL + "api/admin/v3.0/"
+		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
+		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
 	}
 
 	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
