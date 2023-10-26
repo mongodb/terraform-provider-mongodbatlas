@@ -268,7 +268,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 	}
 
 	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := (ok && len(assumeRoleValue.([]interface{})) > 0 && assumeRoleValue.([]interface{})[0] != nil)
+	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
 	if awsRoleDefined {
 		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
 		secret := d.Get("secret_name").(string)
