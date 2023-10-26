@@ -15,7 +15,8 @@ func ClusterAutoScalingMinInstanceModifier() planmodifier.String {
 }
 
 func (m clusterAutoScalingMinInstanceModifier) Description(_ context.Context) string {
-	return "This planmodifier ensures that value of provider_auto_scaling_compute_min_instance_size is only considered in the plan if both auto_scaling_compute_scale_down_enabled and auto_scaling_compute_enabled are set to true"
+	return "This planmodifier ensures that value of provider_auto_scaling_compute_min_instance_size is" +
+		"only considered in the plan if both auto_scaling_compute_scale_down_enabled and auto_scaling_compute_enabled are set to true"
 }
 
 func (m clusterAutoScalingMinInstanceModifier) MarkdownDescription(ctx context.Context) string {
