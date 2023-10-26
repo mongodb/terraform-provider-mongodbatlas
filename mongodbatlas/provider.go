@@ -309,7 +309,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	awsRoleDefined := false
-	assumeRoles := d.Get("assume_role").([]interface{})
+	assumeRoles := d.Get("assume_role").([]any)
 	if len(assumeRoles) == 0 {
 		roleArn := MultiEnvDefaultFunc([]string{
 			"ASSUME_ROLE_ARN",
