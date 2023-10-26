@@ -81,12 +81,12 @@ func TestAccConfigRSEventTriggerDatabase_basic(t *testing.T) {
 func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 	SkipTestForCI(t)
 	var (
-		resourceName = "mongodbatlas_event_trigger.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		awsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
-		awsRegion    = strings.ReplaceAll(strings.ToLower(os.Getenv("AWS_REGION")), "_", "-")
-		appID        = os.Getenv("MONGODB_REALM_APP_ID")
-		eventResp    = realm.EventTrigger{}
+		resourceName            = "mongodbatlas_event_trigger.test"
+		projectID               = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		eventBridgeAwsAccountID = os.Getenv("AWS_EVENTBRIDGE_ACCOUNT_ID")
+		eventBridgeAwsRegion    = strings.ReplaceAll(strings.ToLower(os.Getenv("AWS_REGION")), "_", "-")
+		appID                   = os.Getenv("MONGODB_REALM_APP_ID")
+		eventResp               = realm.EventTrigger{}
 	)
 	event := realm.EventTriggerRequest{
 		Name:       acctest.RandomWithPrefix("test-acc"),
@@ -121,14 +121,14 @@ func TestAccConfigRSEventTriggerDatabase_eventProccesor(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasEventTriggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE"`, awsAccountID, awsRegion, &event),
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &event),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, awsAccountID, awsRegion, &eventUpdated),
+				Config: testAccMongoDBAtlasEventTriggerDatabaseConfigDatabaseEP(projectID, appID, `"INSERT", "UPDATE", "DELETE"`, eventBridgeAwsAccountID, eventBridgeAwsRegion, &eventUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMongoDBAtlasEventTriggerExists(resourceName, &eventResp),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
