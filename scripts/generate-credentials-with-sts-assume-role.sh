@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -Eeou pipefail
+
 # This script uses aws sts assume-role to generate temporary credentials
 # and outputs them in $GITHUB_OUTPUT so those can be used in other workflow jobs.
 # role-arn = arn:aws:iam::358363220050:role/terraform-provider-mongodbatlas-acceptancetests
