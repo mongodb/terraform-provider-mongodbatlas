@@ -31,6 +31,7 @@ jobs:
       serverless: ${{ steps.filter.outputs.serverless }}
       network: ${{ steps.filter.outputs.network }}
       config: ${{ steps.filter.outputs.config }}
+      assume_role: ${{ steps.filter.outputs.assume_role }}
     steps:
     - uses: actions/checkout@v4
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
@@ -38,6 +39,8 @@ jobs:
       id: filter
       with:
         filters: |
+          assume_role:
+            - 'mongodbatlas/**provider**.go'
           cluster_outage_simulation:
             - 'mongodbatlas/**cluster_outage_simulation**.go'
           advanced_cluster:
@@ -102,6 +105,28 @@ jobs:
             - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
             - 'mongodbatlas/resource_mongodbatlas_team*.go'
             - 'mongodbatlas/resource_mongodbatlas_third_party_integration*.go'     
+
+  fetch-sts-assume-role-creds:
+    runs-on: ubuntu-latest
+    outputs:
+      aws_access_key_id: ${{ steps.sts-assume-role-step.outputs.aws_access_key_id }}
+      aws_secret_access_key: ${{ steps.sts-assume-role-step.outputs.aws_secret_access_key }}
+      aws_session_token: ${{ steps.sts-assume-role-step.outputs.aws_session_token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+      - id: sts-assume-role-step
+        name: Generate STS Temporary credential for acceptance testing
+        shell: bash
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
+        run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
 
   cluster_outage_simulation:
     needs: [ change-detection ]
@@ -423,4 +448,34 @@ jobs:
           PARALLEL_GO_TEST: 20
           CI: true
           TEST_REGEX: "^TestAccConfig"
+        run: make testacc
+
+  assume_role:
+    needs: [ change-detection, fetch-sts-assume-role-creds]
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Acceptance Tests
+        env:
+          ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
+          SECRET_NAME: ${{ vars.AWS_SECRET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ needs.fetch-sts-assume-role-creds.outputs.AWS_SESSION_TOKEN }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          CI: true
+          TEST_REGEX: "^TestAccSTSAssumeRole"
         run: make testacc
