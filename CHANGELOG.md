@@ -1,12 +1,12 @@
 # Changelog
 
-## [v1.12.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.2) (2023-10-18)
+## [v1.12.2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.2) (2023-10-19)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.1...v1.12.2)
 
 **Enhancements**
 
-- Supports `data_expiration_rule` parameter in 'mongodbatlas_online_archive` [\#1528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1528) ([AgustinBettati](https://github.com/AgustinBettati))
+- Supports `data_expiration_rule` parameter in `mongodbatlas_online_archive` [\#1528](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1528) ([AgustinBettati](https://github.com/AgustinBettati))
 - Supports new `notifier_id` parameter in `mongodbatlas_alert_configuration` [\#1514](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1514) ([AgustinBettati](https://github.com/AgustinBettati))
 
 **Bug Fixes**
