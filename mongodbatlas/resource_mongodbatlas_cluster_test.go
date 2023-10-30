@@ -1423,9 +1423,8 @@ func TestAccCluster_WithDefaultBiConnectorAndAdvancedConfiguration_MatinainsBack
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
-		ProtoV6ProviderFactories: testAccProviderV6Factories,
-		CheckDestroy:             testAccCheckMongoDBAtlasClusterDestroy,
+		PreCheck:     func() { testAccPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
