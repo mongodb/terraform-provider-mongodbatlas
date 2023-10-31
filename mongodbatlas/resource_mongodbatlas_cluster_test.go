@@ -1415,7 +1415,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_maintainsBackwardCompatibility(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
-		resourceName = "mongodbatlas_cluster.backward_compatibility_test"
+		resourceName = "mongodbatlas_cluster.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acctest.RandomWithPrefix("test-acc")
 		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
