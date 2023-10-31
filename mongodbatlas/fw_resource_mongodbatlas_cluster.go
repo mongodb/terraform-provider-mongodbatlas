@@ -2,9 +2,12 @@ package mongodbatlas
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -75,6 +78,7 @@ func NewClusterRS() resource.Resource {
 // TODO provider name change from TENANT -
 // TODO test labels
 // TODO bug - tenantDisksize
+// mongodbversion format
 func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -652,7 +656,7 @@ func (r *ClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	replicationSpecs, err := newAtlasReplicationSpecs(&plan)
+	replicationSpecs, err := updateAtlasReplicationSpecs(&plan)
 	if err != nil {
 		response.Diagnostics.AddError("Unable to CREATE cluster. Error in translating replication specs", fmt.Sprintf(errorClusterCreate, err))
 		return
@@ -776,14 +780,24 @@ func (r *ClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		}
 	}
 
-	plan.ID = types.StringValue(encodeStateID(map[string]string{
-		"cluster_id":    cluster.ID,
-		"project_id":    projectID,
-		"cluster_name":  cluster.Name,
-		"provider_name": providerName,
-	}))
+	// get latest state from Atlas
+	cluster, resp, err := conn.Clusters.Get(ctx, projectID, cluster.Name)
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			response.State.RemoveResource(ctx)
+			return
+		}
+		response.Diagnostics.AddError("error in getting cluster during CREATE from Atlas", fmt.Sprintf(errorClusterCreate, cluster.Name, err.Error()))
+		return
+	}
 
-	response.Diagnostics.Append(response.State.Set(ctx, &plan)...)
+	newClusterState, err := newTFClusterModel(ctx, conn, false, cluster, &plan)
+	if err != nil {
+		response.Diagnostics.AddError("error in getting cluster during CREATE when translating to model", fmt.Sprintf(errorClusterCreate, cluster.Name, err.Error()))
+		return
+	}
+
+	response.Diagnostics.Append(response.State.Set(ctx, &newClusterState)...)
 }
 
 func (r *ClusterRS) Read(ctx context.Context, req resource.ReadRequest, response *resource.ReadResponse) {
@@ -827,32 +841,488 @@ func (r *ClusterRS) Read(ctx context.Context, req resource.ReadRequest, response
 }
 
 func (r *ClusterRS) Update(ctx context.Context, req resource.UpdateRequest, response *resource.UpdateResponse) {
-	// conn := r.client.Atlas
+	conn := r.client.Atlas
 	var state, plan tfClusterRSModel
 
 	response.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if response.Diagnostics.HasError() {
-		return
-	}
-
 	response.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	// timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
-	// response.Diagnostics.Append(diags...)
+	ids := decodeStateID(state.ID.ValueString())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	clusterReq := new(matlas.Cluster)
+	clusterChangeDetect := new(matlas.Cluster)
+	clusterChangeDetect.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
+
+	if !plan.Name.Equal(state.Name) {
+		clusterReq.Name = plan.Name.ValueString()
+	}
+
+	err := updateBiConnectorConfig(clusterReq, &plan, &state)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating bi_connector_config", fmt.Sprintf(errorClusterUpdate, err))
+	}
+
+	err = updateProviderSettings(clusterReq, &plan, &state)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating provider settings for cluster", fmt.Sprintf(errorClusterUpdate, err))
+	}
+
+	err = updateReplicationSpecs(clusterReq, &plan, &state, plan.Name.ValueString())
+	if err != nil {
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating replication_specs for cluster", fmt.Sprintf(errorClusterUpdate, err))
+	}
+
+	clusterReq.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
+	updateAutoScaling(clusterReq, &plan, &state)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating auto_scaling_* properties for cluster", fmt.Sprintf(errorClusterUpdate, err))
+	}
+
+	err = updateOtherClusterProps(clusterReq, &plan, &state)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating properties for cluster", fmt.Sprintf(errorClusterUpdate, err))
+	}
+
 	if response.Diagnostics.HasError() {
 		return
 	}
 
+	timeout, diags := plan.Timeouts.Update(ctx, defaultTimeout)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	err = updateAdvancedConfiguration(ctx, conn, clusterReq, &plan, &state)
+	if err != nil {
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating advanced_configuration for cluster", fmt.Sprintf(errorClusterUpdate, err))
+		return
+	}
+
+	if isUpgradeRequired2(plan.ProviderInstanceSizeName.ValueString(), state.ProviderInstanceSizeName.ValueString()) {
+		updatedCluster, _, err := upgradeCluster(ctx, conn, clusterReq, projectID, clusterName, timeout)
+
+		if err != nil {
+			response.Diagnostics.AddError("Unable to UPDATE cluster. Error in upgrading the cluster", fmt.Sprintf(errorClusterUpdate, err))
+			return
+		}
+
+		plan.ID = types.StringValue(encodeStateID(map[string]string{
+			"cluster_id":    updatedCluster.ID,
+			"project_id":    projectID,
+			"cluster_name":  updatedCluster.Name,
+			"provider_name": updatedCluster.ProviderSettings.ProviderName,
+		}))
+	} else if !reflect.DeepEqual(clusterReq, clusterChangeDetect) {
+		err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+			_, _, err := updateCluster(ctx, conn, clusterReq, projectID, clusterName, timeout)
+
+			if didErrOnPausedCluster(err) {
+				clusterRequest := &matlas.Cluster{
+					Paused: pointy.Bool(false),
+				}
+
+				_, _, err = updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+			}
+
+			if err != nil {
+				return retry.NonRetryableError(fmt.Errorf(errorClusterUpdate, clusterName, err))
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating cluster", fmt.Sprintf(errorClusterUpdate, clusterName, err))
+			return
+		}
+	}
+
+	if plan.Paused.ValueBool() && !isSharedTier(plan.ProviderInstanceSizeName.ValueString()) {
+		clusterRequest := &matlas.Cluster{
+			Paused: pointy.Bool(true),
+		}
+
+		_, _, err := updateCluster(ctx, conn, clusterRequest, projectID, clusterName, timeout)
+		if err != nil {
+			response.Diagnostics.AddError("Unable to UPDATE(PAUSE) cluster. Error in PAUSING cluster", fmt.Sprintf(errorClusterUpdate, clusterName, err))
+		}
+	}
+
+	// get latest state from Atlas
+	cluster, resp, err := conn.Clusters.Get(ctx, projectID, clusterName)
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			response.State.RemoveResource(ctx)
+			return
+		}
+		response.Diagnostics.AddError("error in getting cluster during UPDATE from Atlas", fmt.Sprintf(errorClusterUpdate, clusterName, err.Error()))
+		return
+	}
+
+	newClusterState, err := newTFClusterModel(ctx, conn, false, cluster, &plan)
+	if err != nil {
+		response.Diagnostics.AddError("error in getting cluster during UPDATE when translating to model", fmt.Sprintf(errorClusterUpdate, clusterName, err.Error()))
+		return
+	}
+
 	// save updated data into terraform state
-	// response.Diagnostics.Append(response.State.Set(ctx, &plan)...)
+	response.Diagnostics.Append(response.State.Set(ctx, &newClusterState)...)
+}
+
+func didErrOnPausedCluster(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var target *matlas.ErrorResponse
+
+	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
+}
+
+func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
+	request.Name = name
+
+	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
+		Target:     []string{"IDLE"},
+		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return cluster, resp, nil
+}
+
+func isUpgradeRequired2(plannedInstanceSizeName, stateInstanceSizeName string) bool {
+	return stateInstanceSizeName != plannedInstanceSizeName && isSharedTier(stateInstanceSizeName)
+}
+
+func isSharedTier(instanceSize string) bool {
+	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
+}
+
+func updateAdvancedConfiguration(ctx context.Context, conn *matlas.Client, clusterReq *matlas.Cluster, plan, state *tfClusterRSModel) error {
+	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
+		if len(plan.AdvancedConfiguration) > 0 {
+			advancedConfReq := newAtlasProcessArgs(&plan.AdvancedConfiguration[0])
+			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
+				clusterName := plan.Name.ValueString()
+				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, plan.ProjectID.ValueString(), clusterName, advancedConfReq)
+				if err != nil {
+					return fmt.Errorf(errorAdvancedConfUpdate, clusterName+argResp.DefaultReadConcern, err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func updateOtherClusterProps(clusterReq *matlas.Cluster, plan, state *tfClusterRSModel) error {
+	if !plan.EncryptionAtRestProvider.Equal(state.EncryptionAtRestProvider) {
+		clusterReq.EncryptionAtRestProvider = plan.EncryptionAtRestProvider.ValueString()
+	}
+
+	if !plan.MongoDBMajorVersion.Equal(state.MongoDBMajorVersion) {
+		clusterReq.MongoDBMajorVersion = formatMongoDBMajorVersion(plan.MongoDBMajorVersion.ValueString())
+	}
+
+	if !plan.ClusterType.Equal(state.ClusterType) {
+		clusterReq.ClusterType = plan.ClusterType.ValueString()
+	}
+
+	if !plan.BackupEnabled.Equal(state.BackupEnabled) {
+		clusterReq.BackupEnabled = plan.BackupEnabled.ValueBoolPointer()
+	}
+
+	if !plan.DiskSizeGb.Equal(state.DiskSizeGb) {
+		clusterReq.DiskSizeGB = plan.DiskSizeGb.ValueFloat64Pointer()
+	}
+
+	if !plan.CloudBackup.Equal(state.CloudBackup) {
+		clusterReq.ProviderBackupEnabled = plan.CloudBackup.ValueBoolPointer()
+	}
+
+	if !plan.PitEnabled.Equal(state.PitEnabled) {
+		clusterReq.PitEnabled = plan.PitEnabled.ValueBoolPointer()
+	}
+
+	if !plan.ReplicationFactor.Equal(state.ReplicationFactor) {
+		clusterReq.ReplicationFactor = plan.ReplicationFactor.ValueInt64Pointer()
+	}
+
+	if !plan.NumShards.Equal(state.NumShards) {
+		clusterReq.NumShards = plan.NumShards.ValueInt64Pointer()
+	}
+
+	if !plan.VersionReleaseSystem.Equal(state.VersionReleaseSystem) {
+		clusterReq.VersionReleaseSystem = plan.VersionReleaseSystem.ValueString()
+	}
+
+	if !plan.TerminationProtectionEnabled.Equal(state.TerminationProtectionEnabled) {
+		clusterReq.TerminationProtectionEnabled = plan.TerminationProtectionEnabled.ValueBoolPointer()
+	}
+
+	if hasLabelsChanged(plan.Labels, state.Labels) {
+		if containsLabelOrKey(newAtlasLabels(plan.Labels), defaultLabel) {
+			return fmt.Errorf("you should not set `Infrastructure Tool` label, it is used for internal purposes")
+		}
+		clusterReq.Labels = append(newAtlasLabels(plan.Labels), defaultLabel)
+	}
+
+	if hasTagsChanged(plan.Tags, state.Tags) {
+		tagsSlice := newAtlasTags(plan.Tags)
+		clusterReq.Tags = &tagsSlice
+	}
+
+	// when Provider instance type changes this argument must be passed explicitly in patch request
+	if !plan.ProviderInstanceSizeName.Equal(state.ProviderInstanceSizeName) {
+		if !plan.CloudBackup.IsNull() {
+			clusterReq.ProviderBackupEnabled = plan.CloudBackup.ValueBoolPointer()
+		}
+	}
+
+	if !plan.Paused.Equal(state.Paused) && !plan.Paused.ValueBool() {
+		clusterReq.Paused = plan.Paused.ValueBoolPointer()
+	}
+	return nil
+}
+
+func hasLabelsChanged(planLabels, stateLables []tfLabelModel) bool {
+	sort.Slice(planLabels, func(i, j int) bool {
+		return planLabels[i].Key.ValueString() < planLabels[j].Key.ValueString()
+	})
+	sort.Slice(stateLables, func(i, j int) bool {
+		return stateLables[i].Key.ValueString() < stateLables[j].Key.ValueString()
+	})
+	return !reflect.DeepEqual(planLabels, stateLables)
+}
+
+func hasTagsChanged(planTags, stateTags []tfTagModel) bool {
+	sort.Slice(planTags, func(i, j int) bool {
+		return planTags[i].Key.ValueString() < planTags[j].Key.ValueString()
+	})
+	sort.Slice(stateTags, func(i, j int) bool {
+		return stateTags[i].Key.ValueString() < stateTags[j].Key.ValueString()
+	})
+	return !reflect.DeepEqual(planTags, stateTags)
+}
+
+func updateReplicationSpecs(clusterReq *matlas.Cluster, plan, state *tfClusterRSModel, clusterName string) error {
+	// if areTFReplicationSpecSlicesEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
+	// 	return nil
+	// }
+
+	rSpecs := make([]matlas.ReplicationSpec, 0)
+
+	vRSpecs := plan.ReplicationSpecs
+	// vPRName := plan.ProviderRegionName
+
+	if len(vRSpecs) > 0 {
+		for _, newSpec := range vRSpecs { // for each plan.replication_specs
+
+			replaceRegion := ""
+			originalRegion := ""
+			id := ""
+
+			// if plan.provider_name is GCP and plan.cluster_type is REPLICASET
+			// and plan.provider_region_name != state.provider_region_name (has changed) then
+			// get newProviderRegion(plan) and oldProviderRegion(state)
+			if plan.ProviderRegionName.ValueString() == "GCP" && plan.ClusterType.ValueString() == "REPLICASET" {
+				if !state.ProviderRegionName.Equal(plan.ProviderRegionName) {
+					replaceRegion = plan.ProviderRegionName.ValueString()
+					originalRegion = state.ProviderRegionName.ValueString()
+				}
+			}
+
+			// Get original and new object
+			var oldSpecs *tfReplicationSpecModel
+			original := state.ReplicationSpecs
+			for _, oldSpecsPtr := range original { // iterate over state.replication_specs
+				oldSpecs = &oldSpecsPtr
+				if newSpec.ZoneName.ValueString() == oldSpecs.ZoneName.ValueString() { // find plan.replication_specs with matching zone_name
+					id = oldSpecs.ID.ValueString() // and get it's id
+					break
+				}
+			}
+			if id == "" && oldSpecs != nil { // if match not found with same zone name
+				id = oldSpecs.ID.ValueString() // then id = plan.replication_specs[i]
+			}
+
+			regionsConfig, err := updateRegionConfigs(newSpec.RegionsConfig, originalRegion, replaceRegion)
+			if err != nil {
+				return err
+			}
+
+			rSpec := matlas.ReplicationSpec{
+				ID:            id,
+				NumShards:     newSpec.NumShards.ValueInt64Pointer(),
+				ZoneName:      newSpec.ZoneName.ValueString(),
+				RegionsConfig: regionsConfig,
+			}
+			rSpecs = append(rSpecs, rSpec)
+
+		}
+
+	}
+	clusterReq.ReplicationSpecs = rSpecs
+
+	return nil
+}
+
+func updateRegionConfigs(regions []tfRegionConfigModel, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
+	regionsConfig := make(map[string]matlas.RegionsConfig)
+
+	for _, region := range regions { // for each plan.region_configs
+
+		r, err := valRegion(region.RegionName.ValueString()) // r = plan.region_configs[i].region_name
+		if err != nil {
+			return regionsConfig, err
+		}
+
+		if replaceRegion != "" && r == originalRegion {
+			r, err = valRegion(replaceRegion)
+		}
+		if err != nil {
+			return regionsConfig, err
+		}
+
+		regionsConfig[r] = matlas.RegionsConfig{
+			AnalyticsNodes: region.AnalyticsNodes.ValueInt64Pointer(),
+			ElectableNodes: region.ElectableNodes.ValueInt64Pointer(),
+			Priority:       region.Priority.ValueInt64Pointer(),
+			ReadOnlyNodes:  region.ReadOnlyNodes.ValueInt64Pointer(),
+		}
+	}
+
+	return regionsConfig, nil
+}
+
+func updateBiConnectorConfig(clusterReq *matlas.Cluster, plan, state *tfClusterRSModel) error {
+	if !reflect.DeepEqual(plan.BiConnectorConfig, state.BiConnectorConfig) {
+		biConnector, err := newAtlasBiConnectorConfig(plan)
+		if err != nil {
+			return fmt.Errorf(errorClusterCreate, err)
+
+		}
+		clusterReq.BiConnector = biConnector
+	}
+	return nil
+}
+
+func updateAutoScaling(clusterReq *matlas.Cluster, plan, state *tfClusterRSModel) {
+	if !plan.AutoScalingDiskGBEnabled.Equal(state.AutoScalingDiskGBEnabled) {
+		clusterReq.AutoScaling.DiskGBEnabled = plan.AutoScalingDiskGBEnabled.ValueBoolPointer()
+	}
+
+	if !plan.AutoScalingComputeEnabled.Equal(state.AutoScalingComputeEnabled) {
+		clusterReq.AutoScaling.Compute.Enabled = plan.AutoScalingComputeEnabled.ValueBoolPointer()
+	}
+
+	if !plan.AutoScalingComputeScaleDownEnabled.Equal(state.AutoScalingComputeScaleDownEnabled) {
+		clusterReq.AutoScaling.Compute.ScaleDownEnabled = plan.AutoScalingComputeScaleDownEnabled.ValueBoolPointer()
+	}
+}
+
+func updateProviderSettings(cluster *matlas.Cluster, plan, state *tfClusterRSModel) error {
+	properties := []string{"ProviderDiskIops", "BackingProviderName", "ProviderDiskTypeName",
+		"ProviderInstanceSizeName", "ProviderName", "ProviderRegionName", "ProviderVolumeType",
+		"ProviderAutoScalingComputeMaxInstanceSize", "ProviderAutoScalingComputeMinInstanceSize"}
+
+	// If at least one of the provider settings argument has changed, expand all provider settings
+	vplan := reflect.ValueOf(plan).Elem()
+	vstate := reflect.ValueOf(state).Elem()
+
+	for _, prop := range properties {
+		fieldPlan := vplan.FieldByName(prop).Interface()
+		fieldState := vstate.FieldByName(prop).Interface()
+
+		if !reflect.ValueOf(fieldPlan).MethodByName("Equal").IsValid() {
+			return fmt.Errorf("the property %s in ProviderSettings does not have an Equal method", prop)
+		}
+
+		result := reflect.ValueOf(fieldPlan).MethodByName("Equal").Call([]reflect.Value{reflect.ValueOf(fieldState)})
+
+		if len(result) == 0 || !result[0].Bool() { // not equal
+			var err error
+			cluster.ProviderSettings, err = newAtlasProviderSetting(plan)
+			if err != nil {
+				return fmt.Errorf(errorClusterUpdate, plan.Name.ValueString(), err)
+			}
+
+		}
+	}
+
+	return nil
 }
 
 func (r *ClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, response *resource.DeleteResponse) {
-	// conn := r.client.Atlas
-	// var state tfClusterRSModel
+	conn := r.client.Atlas
+
+	var clusterState tfClusterRSModel
+	response.Diagnostics.Append(req.State.Get(ctx, &clusterState)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	ids := decodeStateID(clusterState.ID.ValueString())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	var options *matlas.DeleteAdvanceClusterOptions
+	if v := clusterState.RetainBackupsEnabled; !v.IsNull() {
+		options = &matlas.DeleteAdvanceClusterOptions{
+			RetainBackups: v.ValueBoolPointer(),
+		}
+	}
+
+	_, err := conn.Clusters.Delete(ctx, projectID, clusterName, options)
+	if err != nil {
+		response.Diagnostics.AddError("error during cluster DELETE in Atlas", fmt.Sprintf(errorClusterDelete, clusterName, err.Error()))
+		return
+	}
+
+	log.Println("[INFO] Waiting for MongoDB Cluster to be destroyed")
+
+	timeout, diags := clusterState.Timeouts.Create(ctx, defaultTimeout)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
+		Target:     []string{"DELETED"},
+		Refresh:    resourceClusterRefreshFunc(ctx, clusterName, projectID, conn),
+		Timeout:    timeout,
+		MinTimeout: 30 * time.Second,
+		Delay:      1 * time.Minute, // Wait 30 secs before starting
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		response.Diagnostics.AddError("error during cluster DELETE in Atlas", fmt.Sprintf(errorClusterDelete, clusterName, err.Error()))
+		return
+	}
 
 	// response.Diagnostics.Append(request.State.Get(ctx, &state)...)
 
@@ -881,7 +1351,7 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 
 	clusterModel := tfClusterRSModel{
 		// ID:                                 currState.ID,
-		// ClusterID:                          currState.ClusterID,
+		ClusterID:                          types.StringValue(apiResp.ID),
 		ProjectID:                          types.StringValue(projectID),
 		Name:                               types.StringValue(clusterName),
 		ProviderName:                       types.StringValue(apiResp.ProviderSettings.ProviderName),
@@ -914,7 +1384,7 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 	}
 
 	if isImport {
-		clusterModel.ClusterID = types.StringValue(apiResp.ID)
+		// clusterModel.ClusterID = types.StringValue(apiResp.ID)
 		// clusterModel.ProjectID = types.StringValue(apiResp.GroupID)
 		// clusterModel.Name = types.StringValue(apiResp.Name)
 		//  clusterModel.ProviderName = types.StringValue(apiResp.ProviderSettings.ProviderName)
@@ -958,6 +1428,13 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 	if err != nil {
 		return nil, err
 	}
+
+	clusterModel.ID = types.StringValue(encodeStateID(map[string]string{
+		"cluster_id":    currState.ClusterID.ValueString(),
+		"project_id":    projectID,
+		"cluster_name":  currState.Name.ValueString(),
+		"provider_name": currState.ProviderName.ValueString(),
+	}))
 
 	return &clusterModel, nil
 }
@@ -1145,10 +1622,6 @@ func newTFConnectionStringsModel(connString *matlas.ConnectionStrings) []tfConne
 }
 
 func newTFPrivateEndpointModel(privateEndpoints []matlas.PrivateEndpoint) []tfPrivateEndpointModel {
-	// if len(privateEndpoints) == 0 {
-	// 	return []tfPrivateEndpointModel{}
-	// }
-
 	res := make([]tfPrivateEndpointModel, len(privateEndpoints))
 
 	for i, pe := range privateEndpoints {
@@ -1347,67 +1820,29 @@ func newAtlasProviderSetting(tfClusterModel *tfClusterRSModel) (*matlas.Provider
 	return providerSettings, nil
 }
 
-func newAtlasReplicationSpecs(tfClusterModel *tfClusterRSModel) ([]matlas.ReplicationSpec, error) {
+// https://github.com/mongodb/terraform-provider-mongodbatlas/pull/463
+func updateAtlasReplicationSpecs(tfClusterModel *tfClusterRSModel) ([]matlas.ReplicationSpec, error) {
 	rSpecs := make([]matlas.ReplicationSpec, 0)
 
-	vRSpecs := tfClusterModel.ReplicationSpecs
-	// vPRName := tfClusterModel.ProviderRegionName
-
-	if len(vRSpecs) == 0 {
-		return rSpecs, nil
-	}
-
-	for _, spec := range vRSpecs {
-		// spec := s.(map[string]interface{})
-
-		replaceRegion := ""
-		originalRegion := ""
-		id := ""
-
-		// TODO update() logic
-		// if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
-		// 	if d.HasChange("provider_region_name") {
-		// 		replaceRegion = vPRName.(string)
-		// 		original, _ := d.GetChange("provider_region_name")
-		// 		originalRegion = original.(string)
-		// 	}
-		// }
-
-		// TODO update() logic
-		// if d.HasChange("replication_specs") {
-		// 	// Get original and new object
-		// 	var oldSpecs map[string]interface{}
-		// 	original, _ := d.GetChange("replication_specs")
-		// 	for _, s := range original.(*schema.Set).List() {
-		// 		oldSpecs = s.(map[string]interface{})
-		// 		if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
-		// 			id = oldSpecs["id"].(string)
-		// 			break
-		// 		}
-		// 	}
-		// 	if id == "" && oldSpecs != nil {
-		// 		id = oldSpecs["id"].(string)
-		// 	}
-		// }
-
-		// regionsConfig, err := expandRegionsConfig(spec["regions_config"].(*schema.Set).List(), originalRegion, replaceRegion)
-		regionsConfig, err := newAtlasRegionsConfig(spec.RegionsConfig, originalRegion, replaceRegion)
+	for _, repSpec := range tfClusterModel.ReplicationSpecs {
+		regionsConfig, err := newAtlasRegionsConfig(repSpec.RegionsConfig)
 		if err != nil {
-			return rSpecs, err
+			return nil, err
 		}
 
 		rSpec := matlas.ReplicationSpec{
-			ID:            id,
-			NumShards:     spec.NumShards.ValueInt64Pointer(),
-			ZoneName:      spec.ZoneName.ValueString(),
+			// ID:            id,
+			NumShards:     repSpec.NumShards.ValueInt64Pointer(),
+			ZoneName:      repSpec.ZoneName.ValueString(),
 			RegionsConfig: regionsConfig,
 		}
 		rSpecs = append(rSpecs, rSpec)
 	}
-	return nil, nil // TODO complete
+
+	return rSpecs, nil
 }
 
-func newAtlasRegionsConfig(regions []tfRegionConfigModel, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
+func updatedAtlasRegionsConfig(regions []tfRegionConfigModel, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
 	for _, region := range regions {
@@ -1421,6 +1856,30 @@ func newAtlasRegionsConfig(regions []tfRegionConfigModel, originalRegion, replac
 		if replaceRegion != "" && r == originalRegion {
 			r, err = valRegion(replaceRegion)
 		}
+		if err != nil {
+			return regionsConfig, err
+		}
+
+		regionsConfig[r] = matlas.RegionsConfig{
+			AnalyticsNodes: region.AnalyticsNodes.ValueInt64Pointer(),
+			ElectableNodes: region.ElectableNodes.ValueInt64Pointer(),
+			Priority:       region.Priority.ValueInt64Pointer(),
+			ReadOnlyNodes:  region.ReadOnlyNodes.ValueInt64Pointer(),
+		}
+	}
+
+	return regionsConfig, nil
+}
+
+func newAtlasRegionsConfig(regions []tfRegionConfigModel) (map[string]matlas.RegionsConfig, error) {
+	regionsConfig := make(map[string]matlas.RegionsConfig)
+
+	for _, region := range regions {
+		r, err := valRegion(region.RegionName.ValueString())
+		if err != nil {
+			return regionsConfig, err
+		}
+
 		if err != nil {
 			return regionsConfig, err
 		}
@@ -1611,8 +2070,8 @@ type tfAdvancedConfigurationModel struct {
 type tfReplicationSpecModel struct {
 	ID            types.String          `tfsdk:"id"`
 	ZoneName      types.String          `tfsdk:"zone_name"`
-	RegionsConfig []tfRegionConfigModel `tfsdk:"regions_config"`
 	NumShards     types.Int64           `tfsdk:"num_shards"`
+	RegionsConfig []tfRegionConfigModel `tfsdk:"regions_config"`
 }
 
 type tfRegionConfigModel struct {
@@ -1648,4 +2107,68 @@ type tfEndpointModel struct {
 	EndpointID   types.String `tfsdk:"endpoint_id"`
 	ProviderName types.String `tfsdk:"provider_name"`
 	Region       types.String `tfsdk:"region"`
+}
+
+// handling replication_specs
+func areTFReplicationSpecSlicesEqual(a, b []tfReplicationSpecModel) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	sort.Sort(ByReplicationSpecModel(a))
+	sort.Sort(ByReplicationSpecModel(b))
+
+	for i := range a {
+		// Also sort the underlying RegionsConfig
+		sort.Sort(ByRegionConfigModel(a[i].RegionsConfig))
+		sort.Sort(ByRegionConfigModel(b[i].RegionsConfig))
+
+		if !a[i].Equal(b[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (r tfReplicationSpecModel) Equal(other tfReplicationSpecModel) bool {
+	if !r.ID.Equal(other.ID) || !r.ZoneName.Equal(other.ZoneName) || !r.NumShards.Equal(other.NumShards) {
+		return false
+	}
+
+	if len(r.RegionsConfig) != len(other.RegionsConfig) {
+		return false
+	}
+
+	for i, region := range r.RegionsConfig {
+		if !region.Equal(other.RegionsConfig[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (r tfRegionConfigModel) Equal(other tfRegionConfigModel) bool {
+	return r.RegionName.Equal(other.RegionName) &&
+		r.ElectableNodes.Equal(other.ElectableNodes) &&
+		r.Priority.Equal(other.Priority) &&
+		r.ReadOnlyNodes.Equal(other.ReadOnlyNodes) &&
+		r.AnalyticsNodes.Equal(other.AnalyticsNodes)
+}
+
+type ByReplicationSpecModel []tfReplicationSpecModel
+
+func (a ByReplicationSpecModel) Len() int      { return len(a) }
+func (a ByReplicationSpecModel) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByReplicationSpecModel) Less(i, j int) bool {
+	return a[i].ID.ValueString() < a[j].ID.ValueString()
+}
+
+type ByRegionConfigModel []tfRegionConfigModel
+
+func (a ByRegionConfigModel) Len() int      { return len(a) }
+func (a ByRegionConfigModel) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByRegionConfigModel) Less(i, j int) bool {
+	return a[i].RegionName.ValueString() < a[j].RegionName.ValueString()
 }

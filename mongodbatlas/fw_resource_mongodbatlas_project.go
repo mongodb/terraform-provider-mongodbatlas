@@ -674,6 +674,7 @@ func updateProjectSettings(ctx context.Context, conn *matlas.Client, projectStat
 func updateProjectLimits(ctx context.Context, connV2 *admin.APIClient, projectState, projectPlan *tfProjectRSModel) error {
 	var planLimits []tfLimitModel
 	var stateLimits []tfLimitModel
+
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
 	_ = projectState.Limits.ElementsAs(ctx, &stateLimits, false)
 

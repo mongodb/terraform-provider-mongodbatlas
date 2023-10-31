@@ -943,16 +943,6 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 	return resourceMongoDBAtlasClusterRead(ctx, d, meta)
 }
 
-func didErrOnPausedCluster(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	var target *matlas.ErrorResponse
-
-	return errors.As(err, &target) && target.ErrorCode == "CANNOT_UPDATE_PAUSED_CLUSTER"
-}
-
 func resourceMongoDBAtlasClusterDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
 	conn := meta.(*MongoDBClient).Atlas
@@ -1186,10 +1176,6 @@ func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSe
 	}
 }
 
-func isSharedTier(instanceSize string) bool {
-	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
-}
-
 func isUpgradeRequired(d *schema.ResourceData) bool {
 	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
@@ -1203,13 +1189,16 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 	vPRName, okPRName := d.GetOk("provider_region_name")
 
 	if okRSpecs {
-		for _, s := range vRSpecs.(*schema.Set).List() {
+		for _, s := range vRSpecs.(*schema.Set).List() { // for each plan.replication_specs
 			spec := s.(map[string]any)
 
 			replaceRegion := ""
 			originalRegion := ""
 			id := ""
 
+			// if plan.provider_name is GCP and plan.cluster_type is REPLICASET
+			// and plan.provider_region_name != state.provider_region_name (has changed) then
+			// get newProviderRegion(plan) and oldProviderRegion(state)
 			if okPRName && d.Get("provider_name").(string) == "GCP" && cast.ToString(d.Get("cluster_type")) == "REPLICASET" {
 				if d.HasChange("provider_region_name") {
 					replaceRegion = vPRName.(string)
@@ -1218,19 +1207,19 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 				}
 			}
 
-			if d.HasChange("replication_specs") {
+			if d.HasChange("replication_specs") { // if replication_specs changed
 				// Get original and new object
 				var oldSpecs map[string]any
 				original, _ := d.GetChange("replication_specs")
-				for _, s := range original.(*schema.Set).List() {
+				for _, s := range original.(*schema.Set).List() { // iterate over state.replication_specs
 					oldSpecs = s.(map[string]any)
-					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) {
-						id = oldSpecs["id"].(string)
+					if spec["zone_name"].(string) == cast.ToString(oldSpecs["zone_name"]) { // find plan.replication_specs with matching zone_name
+						id = oldSpecs["id"].(string) // and get it's id
 						break
 					}
 				}
-				if id == "" && oldSpecs != nil {
-					id = oldSpecs["id"].(string)
+				if id == "" && oldSpecs != nil { // if match not found with same zone name
+					id = oldSpecs["id"].(string) // then id = plan.replication_specs[i]
 				}
 			}
 
@@ -1271,10 +1260,10 @@ func flattenReplicationSpecs(rSpecs []matlas.ReplicationSpec) []map[string]any {
 func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (map[string]matlas.RegionsConfig, error) {
 	regionsConfig := make(map[string]matlas.RegionsConfig)
 
-	for _, r := range regions {
+	for _, r := range regions { // for each plan.region_configs
 		region := r.(map[string]any)
 
-		r, err := valRegion(region["region_name"])
+		r, err := valRegion(region["region_name"]) // r = plan.region_configs[i].region_name
 		if err != nil {
 			return regionsConfig, err
 		}
@@ -1670,32 +1659,6 @@ func clusterAdvancedConfigurationSchema() *schema.Schema {
 
 func updateCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
 	cluster, resp, err := conn.Clusters.Update(ctx, projectID, name, request)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceClusterRefreshFunc(ctx, name, projectID, conn),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cluster, resp, nil
-}
-
-func upgradeCluster(ctx context.Context, conn *matlas.Client, request *matlas.Cluster, projectID, name string, timeout time.Duration) (*matlas.Cluster, *matlas.Response, error) {
-	request.Name = name
-
-	cluster, resp, err := conn.Clusters.Upgrade(ctx, projectID, request)
 	if err != nil {
 		return nil, nil, err
 	}
