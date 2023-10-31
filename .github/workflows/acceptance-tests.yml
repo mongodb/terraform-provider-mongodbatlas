@@ -32,6 +32,7 @@ jobs:
       network: ${{ steps.filter.outputs.network }}
       config: ${{ steps.filter.outputs.config }}
       assume_role: ${{ steps.filter.outputs.assume_role }}
+      event_trigger: ${{ steps.filter.outputs.event_trigger }}
     steps:
     - uses: actions/checkout@v4
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
@@ -81,7 +82,6 @@ jobs:
             - 'mongodbatlas/data_source_mongodbatlas_custom_db_role*.go'
             - 'mongodbatlas/data_source_mongodbatlas_custom_dns_configuration_cluster_aws*.go'
             - 'mongodbatlas/fw_data_source_mongodbatlas_database_user*.go'
-            - 'mongodbatlas/data_source_mongodbatlas_event_trigger*.go'
             - 'mongodbatlas/data_source_mongodbatlas_maintenance_window*.go'
             - 'mongodbatlas/data_source_mongodbatlas_org_id*.go'
             - 'mongodbatlas/data_source_mongodbatlas_org_invitation*.go'
@@ -97,14 +97,17 @@ jobs:
             - 'mongodbatlas/resource_mongodbatlas_custom_db_role*.go'
             - 'mongodbatlas/resource_mongodbatlas_custom_dns_configuration_cluster_aws*.go'
             - 'mongodbatlas/fw_resource_mongodbatlas_database_user*.go'
-            - 'mongodbatlas/resource_mongodbatlas_event_trigger*.go'
             - 'mongodbatlas/resource_mongodbatlas_maintenance_window*.go'
             - 'mongodbatlas/resource_mongodbatlas_org_invitation*.go'
             - 'mongodbatlas/resource_mongodbatlas_organization*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_api_key*.go'
             - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
             - 'mongodbatlas/resource_mongodbatlas_team*.go'
-            - 'mongodbatlas/resource_mongodbatlas_third_party_integration*.go'     
+            - 'mongodbatlas/resource_mongodbatlas_third_party_integration*.go'
+          event_trigger:
+            - 'mongodbatlas/resource_mongodbatlas_event_trigger*.go'
+            - 'mongodbatlas/data_source_mongodbatlas_event_trigger*.go'
+
 
   fetch-sts-assume-role-creds:
     runs-on: ubuntu-latest
@@ -478,4 +481,40 @@ jobs:
           PARALLEL_GO_TEST: 20
           CI: true
           TEST_REGEX: "^TestAccSTSAssumeRole"
+        run: make testacc
+
+  event_trigger:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV_NETWORK }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_TRIGGER_PROJECT_ID_CLOUD_DEV }}
+
+          AWS_EVENTBRIDGE_ACCOUNT_ID: ${{ secrets.AWS_EVENTBRIDGE_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+
+          MONGODB_REALM_APP_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_TRIGGER_APP_ID_CLOUD_DEV }}
+          MONGODB_REALM_FUNCTION_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_TRIGGER_FUNCTION_ID_CLOUD_DEV }}
+          MONGODB_REALM_SERVICE_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_TRIGGER_SERVICE_ID_CLOUD_DEV }}
+
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          CI: true
+          TEST_REGEX: "^TestAccConfigRSEventTrigger"
         run: make testacc
