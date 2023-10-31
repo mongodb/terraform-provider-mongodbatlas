@@ -5,29 +5,31 @@ import (
 	"os"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
-func TestAccConfigRSAlertConfiguration_Migration_NotificationsWithMetricThreshold(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_NotificationsWithMetricThreshold(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true)
+		resourceName          = "mongodbatlas_alert_configuration.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		alert                 = &matlas.AlertConfiguration{}
+		config                = testAccMongoDBAtlasAlertConfigurationConfig(orgID, projectName, true)
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -52,23 +54,24 @@ func TestAccConfigRSAlertConfiguration_Migration_NotificationsWithMetricThreshol
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_Migration_WithThreshold(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_WithThreshold(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName, true, 1)
+		resourceName          = "mongodbatlas_alert_configuration.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		alert                 = &matlas.AlertConfiguration{}
+		config                = testAccMongoDBAtlasAlertConfigurationConfigWithThresholdUpdated(orgID, projectName, true, 1)
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -95,23 +98,24 @@ func TestAccConfigRSAlertConfiguration_Migration_WithThreshold(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_Migration_EmptyOptionalBlocks(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalBlocks(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, projectName)
+		resourceName          = "mongodbatlas_alert_configuration.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		alert                 = &matlas.AlertConfiguration{}
+		config                = testAccMongoDBAtlasAlertConfigurationConfigEmptyOptionalBlocks(orgID, projectName)
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -139,7 +143,7 @@ func TestAccConfigRSAlertConfiguration_Migration_EmptyOptionalBlocks(t *testing.
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_Migration_MultipleMatchers(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_MultipleMatchers(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_alert_configuration.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -156,16 +160,17 @@ func TestAccConfigRSAlertConfiguration_Migration_MultipleMatchers(t *testing.T) 
 				Operator:  "CONTAINS",
 				Value:     "MONGOS",
 			})
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -190,23 +195,24 @@ func TestAccConfigRSAlertConfiguration_Migration_MultipleMatchers(t *testing.T) 
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_Migration_EmptyOptionalAttributes(t *testing.T) {
+func TestAccMigrationConfigRSAlertConfiguration_EmptyOptionalAttributes(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_alert_configuration.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acctest.RandomWithPrefix("test-acc")
-		alert        = &matlas.AlertConfiguration{}
-		config       = testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName)
+		resourceName          = "mongodbatlas_alert_configuration.test"
+		orgID                 = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName           = acctest.RandomWithPrefix("test-acc")
+		alert                 = &matlas.AlertConfiguration{}
+		config                = testAccMongoDBAtlasAlertConfigurationConfigWithEmptyOptionalAttributes(orgID, projectName)
+		lastVersionConstraint = os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckBasic(t) },
+		PreCheck:     func() { testAccMigrationPreCheckBasic(t) },
 		CheckDestroy: testAccCheckMongoDBAtlasAlertConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
