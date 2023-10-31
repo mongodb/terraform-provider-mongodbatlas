@@ -485,6 +485,7 @@ jobs:
 
   event_trigger:
     needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.config == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-config' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
