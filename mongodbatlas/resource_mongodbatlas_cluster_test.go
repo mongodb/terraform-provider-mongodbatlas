@@ -1412,7 +1412,7 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 	})
 }
 
-func TestAccCluster_WithDefaultBiConnectorAndAdvancedConfiguration_MatinainsBackwardCompatibility(t *testing.T) {
+func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_maintainsBackwardCompatibility(t *testing.T) {
 	var (
 		cluster      matlas.Cluster
 		resourceName = "mongodbatlas_cluster.backward_compatibility_test"
