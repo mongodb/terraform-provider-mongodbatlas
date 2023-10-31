@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
@@ -253,9 +254,7 @@ func addBetaFeatures(provider *schema.Provider) {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-	assumeRoleValue, ok := d.GetOk("assume_role")
-	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
-	diagnostics := setDefaultsAndValidations(d, awsRoleDefined)
+	diagnostics := setDefaultsAndValidations(d)
 	if diagnostics.HasError() {
 		return nil, diagnostics
 	}
@@ -267,10 +266,12 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 		RealmBaseURL: d.Get("realm_base_url").(string),
 	}
 
+	assumeRoleValue, ok := d.GetOk("assume_role")
+	awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
 	if awsRoleDefined {
 		config.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
 		secret := d.Get("secret_name").(string)
-		region := d.Get("region").(string)
+		region := util.MongoDBRegionToAWSRegion(d.Get("region").(string))
 		awsAccessKeyID := d.Get("aws_access_key_id").(string)
 		awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
 		awsSessionToken := d.Get("aws_session_token").(string)
@@ -289,7 +290,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (any, diag.D
 	return client, diagnostics
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag.Diagnostics {
+func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	diagnostics := []diag.Diagnostic{}
 
 	mongodbgovCloud := pointy.Bool(d.Get("is_mongodbgov_cloud").(bool))
@@ -304,6 +305,23 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag
 		"MCLI_OPS_MANAGER_URL",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	awsRoleDefined := false
+	assumeRoles := d.Get("assume_role").([]any)
+	if len(assumeRoles) == 0 {
+		roleArn := MultiEnvDefaultFunc([]string{
+			"ASSUME_ROLE_ARN",
+			"TF_VAR_ASSUME_ROLE_ARN",
+		}, "").(string)
+		if roleArn != "" {
+			awsRoleDefined = true
+			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
+				return append(diagnostics, diag.FromErr(err)...)
+			}
+		}
+	} else {
+		awsRoleDefined = true
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
@@ -357,6 +375,13 @@ func setDefaultsAndValidations(d *schema.ResourceData, awsRoleDefined bool) diag
 	if err := setValueFromConfigOrEnv(d, "aws_secret_access_key", []string{
 		"AWS_SECRET_ACCESS_KEY",
 		"TF_VAR_AWS_SECRET_ACCESS_KEY",
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	if err := setValueFromConfigOrEnv(d, "secret_name", []string{
+		"SECRET_NAME",
+		"TF_VAR_SECRET_NAME",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
 	}

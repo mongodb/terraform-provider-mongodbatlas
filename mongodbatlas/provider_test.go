@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	matlas "go.mongodb.org/atlas/mongodbatlas"
+
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	matlas "go.mongodb.org/atlas/mongodbatlas"
 )
 
 const (
@@ -50,12 +51,26 @@ func TestSdkV2Provider(t *testing.T) {
 	}
 }
 
+func testAccMigrationPreCheck(tb testing.TB) {
+	testAccPreCheck(tb)
+	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
+		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
+	}
+}
+
 func testAccPreCheck(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+}
+
+func testAccMigrationPreCheckBasic(tb testing.TB) {
+	testAccPreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_LAST_VERSION") == "" {
+		tb.Fatal("`MONGODB_ATLAS_LAST_VERSION` must be set for migration acceptance testing")
 	}
 }
 
@@ -73,6 +88,13 @@ func testAccPreCheckCloudProviderAccessAzure(tb testing.TB) {
 		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" ||
 		os.Getenv("AZURE_TENANT_ID") == "" {
 		tb.Fatal("`AZURE_ATLAS_APP_ID`, `AZURE_SERVICE_PRINCIPAL_ID`, and `AZURE_TENANT_ID` must be set for acceptance testing")
+	}
+}
+
+func testAccMigrationPreCheckBasicOwnerID(tb testing.TB) {
+	testAccMigrationPreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
 	}
 }
 
@@ -156,6 +178,36 @@ func testCheckAwsEnv(tb testing.TB) {
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" {
 		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_CUSTOMER_MASTER_KEY_ID` must be set for acceptance testing")
+	}
+}
+
+func testCheckRegularCredsAreEmpty(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" {
+		tb.Fatal(`"MONGODB_ATLAS_PUBLIC_KEY" and "MONGODB_ATLAS_PRIVATE_KEY" are defined in this test and they should not.`)
+	}
+}
+
+func testCheckSTSAssumeRole(tb testing.TB) {
+	if os.Getenv("AWS_REGION") == "" {
+		tb.Fatal(`'AWS_REGION' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("STS_ENDPOINT") == "" {
+		tb.Fatal(`'STS_ENDPOINT' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("ASSUME_ROLE_ARN") == "" {
+		tb.Fatal(`'ASSUME_ROLE_ARN' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
+		tb.Fatal(`'AWS_ACCESS_KEY_ID' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		tb.Fatal(`'AWS_SECRET_ACCESS_KEY' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("AWS_SESSION_TOKEN") == "" {
+		tb.Fatal(`'AWS_SESSION_TOKEN' must be set for acceptance testing with STS Assume Role.`)
+	}
+	if os.Getenv("SECRET_NAME") == "" {
+		tb.Fatal(`'SECRET_NAME' must be set for acceptance testing with STS Assume Role.`)
 	}
 }
 

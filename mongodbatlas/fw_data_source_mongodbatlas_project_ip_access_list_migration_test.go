@@ -10,20 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
 
-func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T) {
+func TestAccMigrationProjectDSProjectIPAccessList_SettingIPAddress(t *testing.T) {
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	ipAddress := fmt.Sprintf("179.154.226.%d", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
+	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -50,20 +51,21 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingIPAddress(t *testing.T
 	})
 }
 
-func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T) {
+func TestAccMigrationProjectDSProjectIPAccessList_SettingCIDRBlock(t *testing.T) {
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	projectName := acctest.RandomWithPrefix("test-acc")
 	cidrBlock := fmt.Sprintf("179.154.226.%d/32", acctest.RandIntRange(0, 255))
 	comment := fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
+	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheckBasic(t) },
+		PreCheck: func() { testAccMigrationPreCheckBasic(t) },
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},
@@ -90,7 +92,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingCIDRBlock(t *testing.T
 	})
 }
 
-func TestAccProjectDSProjectIPAccessList_Migration_SettingAWSSecurityGroup(t *testing.T) {
+func TestAccMigrationProjectDSProjectIPAccessList_SettingAWSSecurityGroup(t *testing.T) {
 	SkipTestExtCred(t)
 	dataSourceName := "data.mongodbatlas_project_ip_access_list.test"
 	vpcID := os.Getenv("AWS_VPC_ID")
@@ -102,6 +104,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingAWSSecurityGroup(t *te
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	awsSGroup := os.Getenv("AWS_SECURITY_GROUP_ID")
 	comment := fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
+	lastVersionConstraint := os.Getenv("MONGODB_ATLAS_LAST_VERSION")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
@@ -109,7 +112,7 @@ func TestAccProjectDSProjectIPAccessList_Migration_SettingAWSSecurityGroup(t *te
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: lastVersionConstraint,
 						Source:            "mongodb/mongodbatlas",
 					},
 				},

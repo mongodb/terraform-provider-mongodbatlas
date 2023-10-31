@@ -12,7 +12,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 	"github.com/mwielbut/pointy"
 )
 
@@ -1406,6 +1408,49 @@ func TestAccClusterRSCluster_basicAWS_PausedToUnpaused(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
 					resource.TestCheckResourceAttr(resourceName, "paused", "false"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccClusterRSCluster_withDefaultBiConnectorAndAdvancedConfiguration_maintainsBackwardCompatibility(t *testing.T) {
+	var (
+		cluster      matlas.Cluster
+		resourceName = "mongodbatlas_cluster.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acctest.RandomWithPrefix("test-acc")
+		name         = fmt.Sprintf("test-acc-%s", acctest.RandString(10))
+		config       = testAccMongoDBAtlasClusterConfigAWS(orgID, projectName, name, true, true)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckBasic(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+				},
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasClusterExists(resourceName, &cluster),
+					testAccCheckMongoDBAtlasClusterAttributes(&cluster, name),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						testutils.DebugPlan(),
+					},
+				},
+				PlanOnly: true,
 			},
 		},
 	})
