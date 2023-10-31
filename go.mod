@@ -7,7 +7,7 @@ toolchain go1.21.3
 require (
 	github.com/aws/aws-sdk-go v1.46.3
 	github.com/go-test/deep v1.1.0
-	github.com/gruntwork-io/terratest v0.46.1
+	github.com/gruntwork-io/terratest v0.46.5
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/hcl/v2 v2.19.1
 	github.com/hashicorp/terraform-plugin-framework v1.4.2
