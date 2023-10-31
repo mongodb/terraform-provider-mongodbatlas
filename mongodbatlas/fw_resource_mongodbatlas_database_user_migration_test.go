@@ -24,7 +24,7 @@ func TestAccConfigRSDatabaseUser_Migration_Basic(t *testing.T) {
 			{
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"mongodbatlas": {
-						VersionConstraint: "1.11.0",
+						VersionConstraint: "1.12.2",
 						Source:            "mongodb/mongodbatlas",
 					},
 				},

@@ -75,10 +75,12 @@ func NewClusterRS() resource.Resource {
 // TODO StateFunc: formatMongoDBMajorVersion mongo_db_major_version
 // https://discuss.hashicorp.com/t/is-it-possible-to-have-statefunc-like-behavior-with-the-plugin-framework/58377/2
 // TODO timeouts
+// auto scaling plan modifiers
 // TODO provider name change from TENANT -
 // TODO test labels
 // TODO bug - tenantDisksize
 // mongodbversion format
+// https://mongodb.stackenterprise.co/questions/1015 - test replication specs set update behavior
 func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	s := schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -117,9 +119,9 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				},
 			},
 			"backup_enabled": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
+				Optional: true,
+				Computed: true,
+				// Default:     booldefault.StaticBool(false),
 				Description: "Clusters running MongoDB FCV 4.2 or later and any new Atlas clusters of any type do not support this parameter",
 			},
 			"retain_backups_enabled": schema.BoolAttribute{
@@ -172,7 +174,7 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 			},
 			"cloud_backup": schema.BoolAttribute{
 				Optional: true,
-				Default:  booldefault.StaticBool(false),
+				// Default:  booldefault.StaticBool(false),
 				Validators: []validator.Bool{
 					boolvalidator.ConflictsWith(path.MatchRoot("backup_enabled")),
 				},
@@ -274,7 +276,7 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 			},
 			"paused": schema.BoolAttribute{
 				Optional: true,
-				Default:  booldefault.StaticBool(false),
+				// Default:  booldefault.StaticBool(false),
 			},
 			"srv_address": schema.StringAttribute{
 				Computed: true,
@@ -296,7 +298,7 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 			"version_release_system": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("LTS"),
+				// Default:  stringdefault.StaticString("LTS"),
 				Validators: []validator.String{
 					stringvalidator.OneOf("LTS", "CONTINUOUS"),
 				},
@@ -327,11 +329,11 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
 							Optional: true,
-							Computed: true,
+							// Computed: true,
 						},
 						"value": schema.StringAttribute{
 							Optional: true,
-							Computed: true,
+							// Computed: true,
 						},
 					},
 				},
@@ -787,13 +789,13 @@ func (r *ClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp
 			response.State.RemoveResource(ctx)
 			return
 		}
-		response.Diagnostics.AddError("error in getting cluster during CREATE from Atlas", fmt.Sprintf(errorClusterCreate, cluster.Name, err.Error()))
+		response.Diagnostics.AddError("error in getting cluster during CREATE from Atlas", fmt.Sprintf(errorClusterCreate, err.Error()))
 		return
 	}
 
 	newClusterState, err := newTFClusterModel(ctx, conn, false, cluster, &plan)
 	if err != nil {
-		response.Diagnostics.AddError("error in getting cluster during CREATE when translating to model", fmt.Sprintf(errorClusterCreate, cluster.Name, err.Error()))
+		response.Diagnostics.AddError("error in getting cluster during CREATE when translating to model", fmt.Sprintf(errorClusterCreate, err.Error()))
 		return
 	}
 
@@ -864,28 +866,28 @@ func (r *ClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 
 	err := updateBiConnectorConfig(clusterReq, &plan, &state)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating bi_connector_config", fmt.Sprintf(errorClusterUpdate, err))
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating bi_connector_config", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 	}
 
 	err = updateProviderSettings(clusterReq, &plan, &state)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating provider settings for cluster", fmt.Sprintf(errorClusterUpdate, err))
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating provider settings for cluster", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 	}
 
 	err = updateReplicationSpecs(clusterReq, &plan, &state, plan.Name.ValueString())
 	if err != nil {
-		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating replication_specs for cluster", fmt.Sprintf(errorClusterUpdate, err))
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating replication_specs for cluster", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 	}
 
 	clusterReq.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
 	updateAutoScaling(clusterReq, &plan, &state)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating auto_scaling_* properties for cluster", fmt.Sprintf(errorClusterUpdate, err))
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating auto_scaling_* properties for cluster", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 	}
 
 	err = updateOtherClusterProps(clusterReq, &plan, &state)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating properties for cluster", fmt.Sprintf(errorClusterUpdate, err))
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating properties for cluster", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 	}
 
 	if response.Diagnostics.HasError() {
@@ -900,7 +902,7 @@ func (r *ClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 
 	err = updateAdvancedConfiguration(ctx, conn, clusterReq, &plan, &state)
 	if err != nil {
-		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating advanced_configuration for cluster", fmt.Sprintf(errorClusterUpdate, err))
+		response.Diagnostics.AddError("Unable to UPDATE cluster. Error in updating advanced_configuration for cluster", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 		return
 	}
 
@@ -908,7 +910,7 @@ func (r *ClusterRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		updatedCluster, _, err := upgradeCluster(ctx, conn, clusterReq, projectID, clusterName, timeout)
 
 		if err != nil {
-			response.Diagnostics.AddError("Unable to UPDATE cluster. Error in upgrading the cluster", fmt.Sprintf(errorClusterUpdate, err))
+			response.Diagnostics.AddError("Unable to UPDATE cluster. Error in upgrading the cluster", fmt.Sprintf(errorClusterUpdate, clusterReq.Name, err))
 			return
 		}
 
@@ -1323,17 +1325,6 @@ func (r *ClusterRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 		response.Diagnostics.AddError("error during cluster DELETE in Atlas", fmt.Sprintf(errorClusterDelete, clusterName, err.Error()))
 		return
 	}
-
-	// response.Diagnostics.Append(request.State.Get(ctx, &state)...)
-
-	// if response.Diagnostics.HasError() {
-	// 	return
-	// }
-	// deleteTimeout := r.DeleteTimeout(ctx, state.Timeouts)
-
-	// tflog.Debug(ctx, "deleting TODO", map[string]interface{}{
-	// 	"id": state.ID.ValueString(),
-	// })
 }
 
 // ImportState is called when the provider must import the state of a resource instance.
