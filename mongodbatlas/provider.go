@@ -25,10 +25,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"github.com/mwielbut/pointy"
 	"github.com/spf13/cast"
 	"github.com/zclconf/go-cty/cty"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 )
 
 var (
@@ -197,6 +198,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
+		// "mongodbatlas_cluster":                           resourceMongoDBAtlasCluster(),
 		"mongodbatlas_advanced_cluster":                                            resourceMongoDBAtlasAdvancedCluster(),
 		"mongodbatlas_api_key":                                                     resourceMongoDBAtlasAPIKey(),
 		"mongodbatlas_access_list_api_key":                                         resourceMongoDBAtlasAccessListAPIKey(),

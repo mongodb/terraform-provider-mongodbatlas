@@ -29,9 +29,18 @@ func (m clusterAutoScalingMaxInstanceModifier) PlanModifyString(ctx context.Cont
 		return
 	}
 
-	if canScalePlan.ValueBool() && req.PlanValue != resp.PlanValue {
-		resp.PlanValue = req.PlanValue
-		return // do nothing, let the change be detected, if any
+	// Do nothing if there is no state value.
+	if req.StateValue.IsNull() {
+		return
+	}
+
+	// Do nothing if there is a known planned value AND computeEnabled is true
+	if !req.PlanValue.IsUnknown() && canScalePlan.ValueBool() {
+		return
+	}
+
+	if !canScalePlan.ValueBool() {
+		resp.PlanValue = req.StateValue
 	}
 
 	resp.PlanValue = req.StateValue // we want to ignore this value in the plan in this case
