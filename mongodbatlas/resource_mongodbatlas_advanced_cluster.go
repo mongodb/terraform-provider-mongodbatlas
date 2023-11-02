@@ -118,19 +118,16 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
-				Computed:   true,
 				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 						"value": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -154,7 +151,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			"paused": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
@@ -173,7 +170,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 						"num_shards": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      1,
+							Computed:     true,
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 						"region_configs": {
@@ -306,7 +303,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			"version_release_system": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LTS",
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 			"advanced_configuration": clusterAdvancedConfigurationSchema(),
