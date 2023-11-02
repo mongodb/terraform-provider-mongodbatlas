@@ -6,31 +6,31 @@
 
 **Enhancements**
 
-- Adds acceptDataRisksAndForceReplicaSetReconfig parameter in mongodbatlas\_cluster and mongodbatlas\_advanced\_cluster [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
+- Adds acceptDataRisksAndForceReplicaSetReconfig parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
 - Overrides to attribute behavior for resource elems. [\#1572](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1572) ([marcosuma](https://github.com/marcosuma))
 - Fixes 'computed' and 'default' usage based on the documentation [\#1564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1564) ([marcosuma](https://github.com/marcosuma))
-- Fixes global num\_shards adding it as computed and removing the default. [\#1548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1548) ([marcosuma](https://github.com/marcosuma))
+- Fixes global `num_shards`` adding it as computed and removing the default. [\#1548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1548) ([marcosuma](https://github.com/marcosuma))
 
 **Deprecations and Removals**
 
-- Deprecates page\_num and items\_per\_page in datasource mongodbatlas\_search\_indexes [\#1538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1538) ([lantoli](https://github.com/lantoli))
+- Deprecates `page_num`` and `items_per_page` in datasource `mongodbatlas_search_indexes` [\#1538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1538) ([lantoli](https://github.com/lantoli))
 
 **Closed Issues**
 
 - `replication_specs` do not support deep diff [\#1544](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1544)
-- There is no "team\_id" argument/attribute reference in "mongodbatlas\_project\_invitation" resource block. [\#1535](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1535)
-- Provides a mongodbatlas\_privatelink\_endpoint by region when using `data "mongodbatlas_privatelink_endpoint"`  [\#1525](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1525)
+- There is no `team_id` argument/attribute reference in `mongodbatlas_project_invitation` resource block. [\#1535](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1535)
+- Provides a `mongodbatlas_privatelink_endpoint` by region when using data source `mongodbatlas_privatelink_endpoint`  [\#1525](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1525)
 - Error message: Either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set [\#1483](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1483)
-- Unable to update Slack alert\_configurations via Oauth integration  [\#1074](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1074)
+- Unable to update Slack `alert_configurations` via Oauth integration  [\#1074](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1074)
 
 **Internal Improvements**
 
-- Disable assume\_role [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
-- Fixes import documentation for project\_api\_key resource [\#1582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1582) ([lantoli](https://github.com/lantoli))
-- Fixes attributes paused, version\_release\_system and tags in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
+- Disable `assume_role` [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Fixes import documentation for `project_api_key` resource [\#1582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1582) ([lantoli](https://github.com/lantoli))
+- Fixes attributes paused, `version_release_system` and tags in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
 - Updates run condition in migration tests github action [\#1580](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1580) ([maastha](https://github.com/maastha))
 - Does not delete project for trigger acctest. [\#1573](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1573) ([marcosuma](https://github.com/marcosuma))
 - Bumps google.golang.org/grpc from 1.57.0 to 1.57.1 [\#1570](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1570) ([dependabot[bot]](https://github.com/apps/dependabot))
