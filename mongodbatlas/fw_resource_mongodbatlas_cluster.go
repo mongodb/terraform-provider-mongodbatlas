@@ -474,27 +474,27 @@ func clusterRSAdvancedConfigurationSchemaBlock() schema.ListNestedBlock {
 			Attributes: map[string]schema.Attribute{
 				"default_read_concern": schema.StringAttribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"default_write_concern": schema.StringAttribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"fail_index_key_too_long": schema.BoolAttribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"javascript_enabled": schema.BoolAttribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"minimum_enabled_tls_protocol": schema.StringAttribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"no_table_scan": schema.BoolAttribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"oplog_min_retention_hours": schema.Int64Attribute{
 					Optional: true,
@@ -503,19 +503,19 @@ func clusterRSAdvancedConfigurationSchemaBlock() schema.ListNestedBlock {
 				},
 				"oplog_size_mb": schema.Int64Attribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"sample_refresh_interval_bi_connector": schema.Int64Attribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"sample_size_bi_connector": schema.Int64Attribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 				"transaction_lifetime_limit_seconds": schema.Int64Attribute{
 					Optional: true,
-					Computed: true,
+					// Computed: true,
 				},
 			},
 		},
@@ -1512,7 +1512,7 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 		if !currState.BackingProviderName.IsNull() {
 			clusterModel.BackingProviderName = currState.BackingProviderName
 		}
-		clusterModel.ProviderEncryptEbsVolume = types.BoolNull()
+		// clusterModel.ProviderEncryptEbsVolume = types.BoolUnknown()
 	}
 
 	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
@@ -1664,7 +1664,8 @@ func newTFReplicationSpecsModel(replicationSpecs []matlas.ReplicationSpec) []tfR
 }
 
 func newTFRegionsConfigModel(regionsConfig map[string]matlas.RegionsConfig) []tfRegionConfigModel {
-	res := make([]tfRegionConfigModel, len(regionsConfig))
+	// res := make([]tfRegionConfigModel, len(regionsConfig))
+	res := []tfRegionConfigModel{}
 
 	for regionName, regionConfig := range regionsConfig {
 		region := tfRegionConfigModel{
