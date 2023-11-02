@@ -170,7 +170,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 						"num_shards": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Computed:     true,
+							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 						"region_configs": {
