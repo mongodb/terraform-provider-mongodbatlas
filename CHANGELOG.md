@@ -30,7 +30,7 @@
 
 - Disable `assume_role` [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Fixes import documentation for `project_api_key` resource [\#1582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1582) ([lantoli](https://github.com/lantoli))
-- Fixes attributes paused, `version_release_system` and tags in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
+- Fixes attributes `paused`, `version_release_system` and `tags` in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
 - Updates run condition in migration tests github action [\#1580](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1580) ([maastha](https://github.com/maastha))
 - Does not delete project for trigger acctest. [\#1573](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1573) ([marcosuma](https://github.com/marcosuma))
 - Updates migration tests to run separately and use last released version of provider for plan checks [\#1565](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1565) ([maastha](https://github.com/maastha))
