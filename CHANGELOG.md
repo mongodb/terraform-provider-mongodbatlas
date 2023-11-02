@@ -34,7 +34,7 @@
 - Updates run condition in migration tests github action [\#1580](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1580) ([maastha](https://github.com/maastha))
 - Does not delete project for trigger acctest. [\#1573](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1573) ([marcosuma](https://github.com/marcosuma))
 - Updates migration tests to run separately and use last released version of provider for plan checks [\#1565](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1565) ([maastha](https://github.com/maastha))
-- Fixes region and aws account to be used for trigger acc test [\#1558](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1558) ([marcosuma](https://github.com/marcosuma))
+- Fixes aws region and aws account to be used for trigger acceptance test [\#1558](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1558) ([marcosuma](https://github.com/marcosuma))
 - Adds sdk autoupdates [\#1557](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1557) ([wtrocki](https://github.com/wtrocki))
 - Fixes linter cache [\#1555](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1555) ([lantoli](https://github.com/lantoli))
 - Updates to Go 1.21.3 [\#1550](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1550) ([lantoli](https://github.com/lantoli))
