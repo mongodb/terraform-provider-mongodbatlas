@@ -6,7 +6,7 @@
 
 **Enhancements**
 
-- Adds acceptDataRisksAndForceReplicaSetReconfig parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
+- Adds `acceptDataRisksAndForceReplicaSetReconfig` parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
