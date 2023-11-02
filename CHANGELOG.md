@@ -1,22 +1,22 @@
 # Changelog
 
-## [v1.12.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.3) (2023-11-02)
+## [v1.12.3](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.12.3) (2023-11-03)
 
 [Full Changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/compare/v1.12.2...v1.12.3)
 
 **Enhancements**
 
-- Adds `acceptDataRisksAndForceReplicaSetReconfig` parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
+- Adds `acceptDataRisksAndForceReplicaSetReconfig` parameter in `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources [\#1575](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1575) ([lantoli](https://github.com/lantoli))
 
 **Bug Fixes**
 
-- Overrides to attribute behavior for resource elems. [\#1572](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1572) ([marcosuma](https://github.com/marcosuma))
-- Fixes 'computed' and 'default' usage based on the documentation [\#1564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1564) ([marcosuma](https://github.com/marcosuma))
-- Fixes global `num_shards` adding it as computed and removing the default. [\#1548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1548) ([marcosuma](https://github.com/marcosuma))
+- Overrides to attribute behavior for resource elems. in `mongodbatlas_cluster` resource [\#1572](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1572) ([marcosuma](https://github.com/marcosuma))
+- Fixes `computed` and `default` usage in `mongodbatlas_cluster` resource based on the documentation [\#1564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1564) ([marcosuma](https://github.com/marcosuma))
+- Fixes global `num_shards` adding it as computed and removing the default in `mongodbatlas_cluster` resource [\#1548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1548) ([marcosuma](https://github.com/marcosuma))
 
 **Deprecations and Removals**
 
-- Deprecates `page_num` and `items_per_page` in datasource `mongodbatlas_search_indexes` [\#1538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1538) ([lantoli](https://github.com/lantoli))
+- Deprecates `page_num` and `items_per_page` in data source `mongodbatlas_search_indexes` [\#1538](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1538) ([lantoli](https://github.com/lantoli))
 
 **Closed Issues**
 
@@ -28,6 +28,7 @@
 
 **Internal Improvements**
 
+- Updates to Go 1.21.3 [\#1550](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1550) ([lantoli](https://github.com/lantoli))
 - Disable `assume_role` acceptance test workflow [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Fixes import documentation for `project_api_key` resource [\#1582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1582) ([lantoli](https://github.com/lantoli))
 - Fixes attributes `paused`, `version_release_system` and `tags` in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
@@ -37,7 +38,6 @@
 - Fixes aws region and aws account to be used for trigger acceptance test [\#1558](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1558) ([marcosuma](https://github.com/marcosuma))
 - Adds sdk autoupdates [\#1557](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1557) ([wtrocki](https://github.com/wtrocki))
 - Fixes linter cache [\#1555](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1555) ([lantoli](https://github.com/lantoli))
-- Updates to Go 1.21.3 [\#1550](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1550) ([lantoli](https://github.com/lantoli))
 - Sets format for AWS region value in the provider definition [\#1549](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1549) ([marcosuma](https://github.com/marcosuma))
 - Adds file .tool-versions for asdf [\#1546](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1546) ([lantoli](https://github.com/lantoli))
 - Fixes the realm URL when it is set. [\#1545](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1545) ([marcosuma](https://github.com/marcosuma))
