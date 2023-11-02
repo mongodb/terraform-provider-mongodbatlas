@@ -42,7 +42,7 @@ In addition to all arguments above, the following attributes are exported:
 * `api_key_id` - Unique identifier for this Organization API key.
 ## Import
 
-API Keys must be imported using org ID, API Key ID e.g.
+API Keys must be imported using project ID, API Key ID e.g.
 
 ```
 $ terraform import mongodbatlas_api_key.test 5d09d6a59ccf6445652a444a-6576974933969669
