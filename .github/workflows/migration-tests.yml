@@ -25,6 +25,7 @@ jobs:
             echo "::set-output name=condition::false"
           fi
   change-detection:
+    needs: set-output
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
