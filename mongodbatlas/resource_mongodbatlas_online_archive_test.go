@@ -167,7 +167,6 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 
 func populateWithSampleData(resourceName string, cluster *matlas.Cluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 		conn := testMongoDBClient.(*MongoDBClient).Atlas
 
 		rs, ok := s.RootModule().Resources[resourceName]
