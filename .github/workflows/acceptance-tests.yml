@@ -11,6 +11,7 @@ on:
         type: string
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
+  merge_group: # needed for merge queue
 
 jobs:  
   change-detection:
