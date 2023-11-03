@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/testutils"
 )
 
-func TestAccBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
+func TestAccMigrationBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	var (
 		cluster                   matlas.Cluster
 		resourceName              = "mongodbatlas_cluster.online_archive_test"
