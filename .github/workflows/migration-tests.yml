@@ -19,6 +19,7 @@ jobs:
     outputs:
       project: ${{ steps.filter.outputs.project }}
       config: ${{ steps.filter.outputs.config }}
+      backup_online_archive: ${{ steps.filter.outputs.backup_online_archive }}
       shouldTriggerResourceTest: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
     steps:
     - uses: actions/checkout@v4
@@ -35,7 +36,9 @@ jobs:
             - 'mongodbatlas/fw_data_source_mongodbatlas_database_user*.go'
             - 'mongodbatlas/fw_data_source_mongodbatlas_atlas_user*.go'
             - 'mongodbatlas/fw_resource_mongodbatlas_alert_configuration*.go'
-            - 'mongodbatlas/fw_resource_mongodbatlas_database_user*.go'   
+            - 'mongodbatlas/fw_resource_mongodbatlas_database_user*.go'
+          backup_online_archive:
+            - 'mongodbatlas/**online_archive**.go'
 
   project: 
     needs: [ change-detection ]
@@ -109,4 +112,37 @@ jobs:
           PARALLEL_GO_TEST: 20
           CI: true
           TEST_REGEX: "^TestAccMigrationConfig"
+        run: make testacc
+
+  backup_online_archive:
+    needs: [ change-detection ]
+    if: ${{ needs.change-detection.outputs.backup_online_archive == 'true' || github.event.label.name == 'run-testacc-backup-online-archive'||  needs.change-detection.outputs.shouldTriggerResourceTest == 'true'}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get Last Release
+        id: get_last_release
+        run: |
+         LAST_RELEASE=$(curl -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
+         echo "Last release: $LAST_RELEASE"
+         echo "MONGODB_ATLAS_LAST_VERSION=$LAST_RELEASE" >> $GITHUB_ENV
+        shell: bash
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - name: Migration Tests
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TF_ACC: 1
+          PARALLEL_GO_TEST: 20
+          TEST_REGEX: "^TestAccMigrationBackup"
         run: make testacc
