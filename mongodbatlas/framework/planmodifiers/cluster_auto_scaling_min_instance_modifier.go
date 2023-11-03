@@ -50,10 +50,5 @@ func (m clusterAutoScalingMinInstanceModifier) PlanModifyString(ctx context.Cont
 		resp.PlanValue = req.StateValue
 	}
 
-	// if canScaleDown.ValueBool() && canScale.ValueBool() && req.PlanValue != resp.PlanValue {
-	// 	resp.PlanValue = req.PlanValue
-	// 	return // do nothing, let the change be detected, if any
-	// }
-
 	resp.PlanValue = req.StateValue // we want to ignore this value in the plan in this case
 }
