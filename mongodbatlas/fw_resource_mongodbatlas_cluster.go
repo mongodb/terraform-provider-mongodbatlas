@@ -123,7 +123,6 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				},
 			},
 			"retain_backups_enabled": schema.BoolAttribute{
-				// TODO make sure this is handled for null values
 				Optional:    true,
 				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
 			},
@@ -161,15 +160,12 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				// TODO StateFunc: formatMongoDBMajorVersion,
-
 			},
 			"mongo_db_major_version_formatted": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				// TODO StateFunc: formatMongoDBMajorVersion,
 			},
 			"num_shards": schema.Int64Attribute{
 				Optional: true,
@@ -177,7 +173,6 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),
 				},
-				// Default:  int64default.StaticInt64(1),
 			},
 			"cloud_backup": schema.BoolAttribute{
 				Optional: true,
@@ -251,7 +246,6 @@ func (r *ClusterRS) Schema(ctx context.Context, request resource.SchemaRequest, 
 				},
 			},
 			// https://github.com/mongodb/terraform-provider-mongodbatlas/pull/515
-			// TODO ensure test cases cover this
 			"provider_auto_scaling_compute_max_instance_size": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -485,7 +479,6 @@ func clusterRSAdvancedConfigurationSchemaBlock() schema.ListNestedBlock {
 				},
 				"oplog_min_retention_hours": schema.Int64Attribute{
 					Optional: true,
-					Computed: true,
 				},
 				"oplog_size_mb": schema.Int64Attribute{
 					Optional: true,
@@ -735,7 +728,7 @@ func (r *ClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	scaleDownEnabled := plan.AutoScalingComputeScaleDownEnabled.ValueBool()
 	diskGBEnabled := plan.AutoScalingDiskGBEnabled.ValueBoolPointer()
 
-	validateClusterConfig(&plan, response)
+	validateClusterConfig(ctx, &plan, response)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -853,8 +846,10 @@ func (r *ClusterRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	if ac := plan.AdvancedConfiguration; len(ac) > 0 {
-		advancedConfReq := newAtlasProcessArgs(&plan.AdvancedConfiguration[0])
+	var acmodel []tfAdvancedConfigurationModel
+	plan.AdvancedConfiguration.ElementsAs(ctx, &acmodel, true)
+	if len(acmodel) > 0 {
+		advancedConfReq := newAtlasProcessArgs(&acmodel[0])
 
 		_, _, err := conn.Clusters.UpdateProcessArgs(ctx, projectID, cluster.Name, advancedConfReq)
 		if err != nil {
@@ -1116,8 +1111,11 @@ func isSharedTier(instanceSize string) bool {
 
 func updateAdvancedConfiguration(ctx context.Context, conn *matlas.Client, clusterReq *matlas.Cluster, plan, state *tfClusterRSModel) error {
 	if !reflect.DeepEqual(plan.AdvancedConfiguration, state.AdvancedConfiguration) {
-		if len(plan.AdvancedConfiguration) > 0 {
-			advancedConfReq := newAtlasProcessArgs(&plan.AdvancedConfiguration[0])
+		var acmodel []tfAdvancedConfigurationModel
+		plan.AdvancedConfiguration.ElementsAs(ctx, &acmodel, true)
+
+		if len(acmodel) > 0 {
+			advancedConfReq := newAtlasProcessArgs(&acmodel[0])
 			if !reflect.DeepEqual(advancedConfReq, matlas.ProcessArgs{}) {
 				clusterName := plan.Name.ValueString()
 				argResp, _, err := conn.Clusters.UpdateProcessArgs(ctx, plan.ProjectID.ValueString(), clusterName, advancedConfReq)
@@ -1221,6 +1219,7 @@ func hasTagsChanged(planTags, stateTags []tfTagModel) bool {
 	return !reflect.DeepEqual(planTags, stateTags)
 }
 
+// TODO implement replicationSpecs create and update
 func updateReplicationSpecs(clusterReq *matlas.Cluster, plan, state *tfClusterRSModel, clusterName string) error {
 	// if areTFReplicationSpecSlicesEqual(plan.ReplicationSpecs, state.ReplicationSpecs) {
 	// 	return nil
@@ -1507,8 +1506,9 @@ func newTFClusterModel(ctx context.Context, conn *matlas.Client, isImport bool, 
 		clusterModel.AutoScalingDiskGBEnabled = types.BoolPointerValue(apiResp.AutoScaling.DiskGBEnabled)
 	}
 
-	clusterModel.AdvancedConfigurationOutput, err = newTFAdvancedConfigurationModelFromAtlas(ctx, conn, currState.ProjectID.ValueString(), apiResp.Name)
-	clusterModel.AdvancedConfiguration = currState.AdvancedConfiguration
+	// clusterModel.AdvancedConfigurationOutput, err = newTFAdvancedConfigurationModelFromAtlas(ctx, conn, currState.ProjectID.ValueString(), apiResp.Name)
+	// clusterModel.AdvancedConfiguration = currState.AdvancedConfiguration
+	clusterModel.AdvancedConfiguration, err = newTFAdvancedConfigurationModelFromAtlas(ctx, conn, currState.ProjectID.ValueString(), apiResp.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -1555,18 +1555,21 @@ func newTFAdvancedConfigurationModelFromAtlas(ctx context.Context, conn *matlas.
 func newTfAdvancedConfigurationModel(ctx context.Context, p *matlas.ProcessArgs) types.List {
 	res := []tfAdvancedConfigurationModel{
 		{
-			DefaultReadConcern:               conversion.StringNullIfEmpty(p.DefaultReadConcern),
-			DefaultWriteConcern:              conversion.StringNullIfEmpty(p.DefaultWriteConcern),
-			FailIndexKeyTooLong:              types.BoolPointerValue(p.FailIndexKeyTooLong),
-			JavascriptEnabled:                types.BoolPointerValue(p.JavascriptEnabled),
-			MinimumEnabledTLSProtocol:        conversion.StringNullIfEmpty(p.MinimumEnabledTLSProtocol),
-			NoTableScan:                      types.BoolPointerValue(p.NoTableScan),
-			OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
+			DefaultReadConcern:        conversion.StringNullIfEmpty(p.DefaultReadConcern),
+			DefaultWriteConcern:       conversion.StringNullIfEmpty(p.DefaultWriteConcern),
+			FailIndexKeyTooLong:       types.BoolPointerValue(p.FailIndexKeyTooLong),
+			JavascriptEnabled:         types.BoolPointerValue(p.JavascriptEnabled),
+			MinimumEnabledTLSProtocol: conversion.StringNullIfEmpty(p.MinimumEnabledTLSProtocol),
+			NoTableScan:               types.BoolPointerValue(p.NoTableScan),
+			// OplogSizeMB:                      types.Int64PointerValue(p.OplogSizeMB),
 			OplogMinRetentionHours:           types.Int64Value(cast.ToInt64(p.OplogMinRetentionHours)),
 			SampleSizeBiConnector:            types.Int64PointerValue(p.SampleSizeBIConnector),
 			SampleRefreshIntervalBiConnector: types.Int64PointerValue(p.SampleRefreshIntervalBIConnector),
 			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(p.TransactionLifetimeLimitSeconds),
 		},
+	}
+	if p.OplogMinRetentionHours != nil {
+		res[0].OplogMinRetentionHours = types.Int64PointerValue(p.OplogSizeMB)
 	}
 
 	s, _ := types.ListValueFrom(ctx, tfAdvancedConfigurationType, res)
@@ -1751,38 +1754,38 @@ func newTFEndpointModel(ctx context.Context, endpoints []matlas.Endpoint) types.
 func newAtlasProcessArgs(tfModel *tfAdvancedConfigurationModel) *matlas.ProcessArgs {
 	res := &matlas.ProcessArgs{}
 
-	if v := tfModel.DefaultReadConcern; !v.IsNull() {
+	if v := tfModel.DefaultReadConcern; !v.IsUnknown() {
 		res.DefaultReadConcern = v.ValueString()
 	}
-	if v := tfModel.DefaultWriteConcern; !v.IsNull() {
+	if v := tfModel.DefaultWriteConcern; !v.IsUnknown() {
 		res.DefaultWriteConcern = v.ValueString()
 	}
 
-	if v := tfModel.FailIndexKeyTooLong; !v.IsNull() {
+	if v := tfModel.FailIndexKeyTooLong; !v.IsUnknown() {
 		res.FailIndexKeyTooLong = v.ValueBoolPointer()
 	}
 
-	if v := tfModel.JavascriptEnabled; !v.IsNull() {
+	if v := tfModel.JavascriptEnabled; !v.IsUnknown() {
 		res.JavascriptEnabled = v.ValueBoolPointer()
 	}
 
-	if v := tfModel.MinimumEnabledTLSProtocol; !v.IsNull() {
+	if v := tfModel.MinimumEnabledTLSProtocol; !v.IsUnknown() {
 		res.MinimumEnabledTLSProtocol = v.ValueString()
 	}
 
-	if v := tfModel.NoTableScan; !v.IsNull() {
+	if v := tfModel.NoTableScan; !v.IsUnknown() {
 		res.NoTableScan = v.ValueBoolPointer()
 	}
 
-	if v := tfModel.SampleSizeBiConnector; !v.IsNull() {
+	if v := tfModel.SampleSizeBiConnector; !v.IsUnknown() {
 		res.SampleSizeBIConnector = v.ValueInt64Pointer()
 	}
 
-	if v := tfModel.SampleRefreshIntervalBiConnector; !v.IsNull() {
+	if v := tfModel.SampleRefreshIntervalBiConnector; !v.IsUnknown() {
 		res.SampleRefreshIntervalBIConnector = v.ValueInt64Pointer()
 	}
 
-	if v := tfModel.OplogSizeMB; !v.IsNull() {
+	if v := tfModel.OplogSizeMB; !v.IsUnknown() {
 		if sizeMB := v.ValueInt64(); sizeMB != 0 {
 			res.OplogSizeMB = v.ValueInt64Pointer()
 		} else {
@@ -1798,7 +1801,7 @@ func newAtlasProcessArgs(tfModel *tfAdvancedConfigurationModel) *matlas.ProcessA
 		}
 	}
 
-	if v := tfModel.TransactionLifetimeLimitSeconds; !v.IsNull() {
+	if v := tfModel.TransactionLifetimeLimitSeconds; !v.IsUnknown() {
 		if transactionLimitSeconds := v.ValueInt64(); transactionLimitSeconds > 0 {
 			res.TransactionLifetimeLimitSeconds = v.ValueInt64Pointer()
 		} else {
@@ -1989,7 +1992,7 @@ func newAtlasRegionsConfig(regions []tfRegionConfigModel) (map[string]matlas.Reg
 	return regionsConfig, nil
 }
 
-func validateClusterConfig(plan *tfClusterRSModel, response *resource.CreateResponse) {
+func validateClusterConfig(ctx context.Context, plan *tfClusterRSModel, response *resource.CreateResponse) {
 	providerName := plan.ProviderName.ValueString()
 	computeEnabled := plan.AutoScalingComputeEnabled.ValueBool()
 	scaleDownEnabled := plan.AutoScalingComputeScaleDownEnabled.ValueBool()
@@ -2057,10 +2060,10 @@ func validateClusterConfig(plan *tfClusterRSModel, response *resource.CreateResp
 		}
 	}
 
-	// We need to validate the oplog_size_mb attr of the advanced configuration option to show the error
-	// before that the cluster is created
-	if plan.AdvancedConfiguration != nil && len(plan.AdvancedConfiguration) > 0 {
-		if oplogSizeMB := plan.AdvancedConfiguration[0].OplogSizeMB; !oplogSizeMB.IsNull() {
+	var acmodel []tfAdvancedConfigurationModel
+	plan.AdvancedConfiguration.ElementsAs(ctx, &acmodel, true)
+	if len(acmodel) > 0 {
+		if oplogSizeMB := acmodel[0].OplogSizeMB; !oplogSizeMB.IsUnknown() {
 			if cast.ToInt64(oplogSizeMB.ValueInt64()) <= 0 {
 				response.Diagnostics.AddError(errorInvalidCreateValues, "`advanced_configuration.oplog_size_mb` cannot be <= 0")
 			}
@@ -2110,14 +2113,16 @@ type tfClusterRSModel struct {
 	CloudBackup                               types.Bool     `tfsdk:"cloud_backup"`
 	AutoScalingDiskGBEnabled                  types.Bool     `tfsdk:"auto_scaling_disk_gb_enabled"`
 
-	Labels                      []tfLabelModel                 `tfsdk:"labels"`
-	Tags                        []tfTagModel                   `tfsdk:"tags"`
-	ReplicationSpecs            []tfReplicationSpecModel       `tfsdk:"replication_specs"`
-	BiConnectorConfig           []tfBiConnectorConfigModel     `tfsdk:"bi_connector_config"`
-	SnapshotBackupPolicy        types.List                     `tfsdk:"snapshot_backup_policy"`
-	ConnectionStrings           types.List                     `tfsdk:"connection_strings"`
-	AdvancedConfiguration       []tfAdvancedConfigurationModel `tfsdk:"advanced_configuration"`
-	AdvancedConfigurationOutput types.List                     `tfsdk:"advanced_configuration_output"`
+	Labels                []tfLabelModel             `tfsdk:"labels"`
+	Tags                  []tfTagModel               `tfsdk:"tags"`
+	ReplicationSpecs      []tfReplicationSpecModel   `tfsdk:"replication_specs"`
+	BiConnectorConfig     []tfBiConnectorConfigModel `tfsdk:"bi_connector_config"`
+	SnapshotBackupPolicy  types.List                 `tfsdk:"snapshot_backup_policy"`
+	ConnectionStrings     types.List                 `tfsdk:"connection_strings"`
+	AdvancedConfiguration types.List                 `tfsdk:"advanced_configuration"`
+
+	// AdvancedConfiguration       []tfAdvancedConfigurationModel `tfsdk:"advanced_configuration"`
+	// AdvancedConfigurationOutput types.List                     `tfsdk:"advanced_configuration_output"`
 }
 
 type tfSnapshotBackupPolicyModel struct {
