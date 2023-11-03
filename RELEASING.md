@@ -31,6 +31,8 @@ We use a tool called [github changelog generator](https://github.com/github-chan
     ```
     To obtain your github personal access token you can use the following guide: [Authorizing a personal access token for use with SAML single sign-on](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on)
 - Create a JIRA ticket and open a PR against the **master** branch. Make any manual adjustments if needed taking into account date format and format parameter names and resources/data source names if they begin with `mongodbatlas`.
+- Include the PM as a PR reviewer
+- Contact Documentation team in Slack to review the PR
 - Example: [#1478](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1478). 
 - If the right most version digit is 0 then create a new doc in /website/docs/guides/X.Y.0-upgrade-guide.html
 
