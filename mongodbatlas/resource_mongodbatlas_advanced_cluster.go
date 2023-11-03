@@ -118,19 +118,16 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Set:        HashFunctionForKeyValuePair,
-				Computed:   true,
 				Deprecated: fmt.Sprintf(DeprecationByDateWithReplacement, "September 2024", "tags"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 						"value": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -154,7 +151,7 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			"paused": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 			"pit_enabled": {
 				Type:     schema.TypeBool,
@@ -306,10 +303,15 @@ func resourceMongoDBAtlasAdvancedCluster() *schema.Resource {
 			"version_release_system": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LTS",
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
 			"advanced_configuration": clusterAdvancedConfigurationSchema(),
+			"accept_data_risks_and_force_replica_set_reconfig": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(3 * time.Hour),
@@ -373,7 +375,12 @@ func advancedClusterRegionConfigsSpecsSchema() *schema.Schema {
 }
 
 func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
+		if v.(string) != "" {
+			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
+		}
+	}
+
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -409,7 +416,6 @@ func resourceMongoDBAtlasAdvancedClusterCreate(ctx context.Context, d *schema.Re
 	if _, ok := d.GetOk("tags"); ok {
 		request.Tags = expandTagSliceFromSetSchema(d)
 	}
-
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
 		request.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
 	}
@@ -596,6 +602,10 @@ func resourceMongoDBAtlasAdvancedClusterRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "version_release_system", clusterName, err))
 	}
 
+	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", cluster.AcceptDataRisksAndForceReplicaSetReconfig); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterAdvancedSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
+	}
+
 	/*
 		Get the advaced configuration options and set up to the terraform state
 	*/
@@ -711,6 +721,10 @@ func resourceMongoDBAtlasAdvancedClusterUpdate(ctx context.Context, d *schema.Re
 
 	if d.HasChange("version_release_system") {
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
+	}
+
+	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {
+		cluster.AcceptDataRisksAndForceReplicaSetReconfig = d.Get("accept_data_risks_and_force_replica_set_reconfig").(string)
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {

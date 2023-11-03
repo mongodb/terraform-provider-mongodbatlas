@@ -27,6 +27,7 @@ jobs:
           MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
+          PROJECT_TO_NOT_DELETE: ${{vars.MONGODB_ATLAS_ACCTEST_TRIGGER_PROJECT_ID_CLOUD_DEV}}
         run: ./scripts/cleanup-test-env.sh      
   clenup-test-env-network:
     runs-on: ubuntu-latest

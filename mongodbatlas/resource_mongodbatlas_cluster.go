@@ -332,6 +332,11 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LTS", "CONTINUOUS"}, false),
 			},
+			"accept_data_risks_and_force_replica_set_reconfig": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Submit this field alongside your topology reconfiguration to request a new regional outage resistant topology",
+			},
 		},
 		// TODO **
 		CustomizeDiff: resourceClusterCustomizeDiff,
@@ -345,7 +350,12 @@ func resourceMongoDBAtlasCluster() *schema.Resource {
 }
 
 func resourceMongoDBAtlasClusterCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
+	if v, ok := d.GetOk("accept_data_risks_and_force_replica_set_reconfig"); ok {
+		if v.(string) != "" {
+			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
+		}
+	}
+
 	conn := meta.(*MongoDBClient).Atlas
 
 	projectID := d.Get("project_id").(string)
@@ -704,6 +714,10 @@ func resourceMongoDBAtlasClusterRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(fmt.Errorf(errorClusterSetting, "version_release_system", clusterName, err))
 	}
 
+	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", cluster.AcceptDataRisksAndForceReplicaSetReconfig); err != nil {
+		return diag.FromErr(fmt.Errorf(errorClusterSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
+	}
+
 	if providerName != "TENANT" {
 		containers, _, err := conn.Containers.List(ctx, projectID,
 			&matlas.ContainersListOptions{ProviderName: providerName})
@@ -842,6 +856,10 @@ func resourceMongoDBAtlasClusterUpdate(ctx context.Context, d *schema.ResourceDa
 
 	if d.HasChange("version_release_system") {
 		cluster.VersionReleaseSystem = d.Get("version_release_system").(string)
+	}
+
+	if d.HasChange("accept_data_risks_and_force_replica_set_reconfig") {
+		cluster.AcceptDataRisksAndForceReplicaSetReconfig = d.Get("accept_data_risks_and_force_replica_set_reconfig").(string)
 	}
 
 	if d.HasChange("termination_protection_enabled") {
