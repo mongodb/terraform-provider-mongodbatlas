@@ -28,6 +28,8 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
+        base: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
+        ref: ${{ github.event.pull_request.head.ref || github.event.merge_group.head_ref }}
         filters: |
           project:
             - 'mongodbatlas/fw_data_source_mongodbatlas_project_ip_access_list*.go'
