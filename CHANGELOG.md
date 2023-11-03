@@ -29,7 +29,7 @@
 **Internal Improvements**
 
 - Updates to Go 1.21.3 [\#1550](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1550) ([lantoli](https://github.com/lantoli))
-- Disable `assume_role` acceptance test workflow [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
+- Disables `assume_role` acceptance test workflow [\#1583](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1583) ([andreaangiolillo](https://github.com/andreaangiolillo))
 - Fixes import documentation for `project_api_key` resource [\#1582](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1582) ([lantoli](https://github.com/lantoli))
 - Fixes attributes `paused`, `version_release_system` and `tags` in advanced cluster resource [\#1581](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1581) ([lantoli](https://github.com/lantoli))
 - Updates run condition in migration tests github action [\#1580](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/1580) ([maastha](https://github.com/maastha))
