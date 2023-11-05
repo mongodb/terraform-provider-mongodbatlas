@@ -139,3 +139,7 @@ link-git-hooks: ## Install git hooks
 .PHONY: update-atlas-sdk
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	./scripts/update-sdk.sh
+
+.PHONY: try-atlas-sdk-preview
+try-atlas-sdk-preview: ## Use SDK Preview, DONT MERGE
+	./scripts/update-sdk-preview.sh
