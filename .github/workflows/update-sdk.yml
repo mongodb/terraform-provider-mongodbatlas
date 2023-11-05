@@ -14,9 +14,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: Update files
-        run: 	| 
-          go install github.com/icholy/gomajor@latest 
-          make update-atlas-sdk
+        run:  make tools update-atlas-sdk
       - name: Verify Changed files
         uses: tj-actions/verify-changed-files@v16
         id: verify-changed-files
@@ -28,5 +26,4 @@ jobs:
           commit-message: "build(deps): bump go.mongodb.org/atlas-sdk"
           delete-branch: true
           branch: atlas-sdk-update
-          body: |
-            Automatic update for MongoDB Atlas Go Client SDK
+          body: Automatic update for MongoDB Atlas Go Client SDK
