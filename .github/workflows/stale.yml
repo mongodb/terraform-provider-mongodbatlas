@@ -16,7 +16,7 @@ jobs:
           stale-pr-message: 'This PR has gone 7 days without any activity and meets the project’s definition of "stale". This will be auto-closed if there is no new activity over the next 7 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!'
           stale-issue-label: 'stale'
           stale-pr-label: 'stale'
-          days-before-stale: 7
-          days-before-close: 7
+          days-before-stale: 5
+          days-before-close: 5
           exempt-pr-labels: 'not_stale'
           exempt-issue-labels: 'not_stale'
