@@ -77,6 +77,7 @@ lint:
 .PHONY: tools
 tools:  ## Install dev tools
 	@echo "==> Installing dependencies..."
+	go install github.com/icholy/gomajor@latest
 	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/terraform-linters/tflint@v0.48.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
@@ -138,3 +139,4 @@ link-git-hooks: ## Install git hooks
 .PHONY: update-atlas-sdk
 update-atlas-sdk: ## Update the atlas-sdk dependency
 	./scripts/update-sdk.sh
+
