@@ -1,7 +1,7 @@
-name: Update SDK
+name: Update Atlas Go SDK
 on:
  schedule:
-   - cron: 30 8 * * TUE
+   - cron: "30 8 * * TUE" # Every Tuesday at 8:30 AM 
  workflow_dispatch:
   
 jobs:
