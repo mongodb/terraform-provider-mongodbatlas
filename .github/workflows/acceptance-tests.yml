@@ -11,7 +11,6 @@ on:
         type: string
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
-  merge_group: # needed for merge queue
 
 jobs:  
   change-detection:
@@ -40,8 +39,6 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
-        base: ${{ github.event.merge_group.base_ref}}
-        ref: ${{ github.event.merge_group.head_ref }}
         filters: |
           assume_role:
             - 'mongodbatlas/**provider**.go'
