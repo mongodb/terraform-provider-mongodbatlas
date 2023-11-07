@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"go.mongodb.org/atlas-sdk/v20231001001/admin"
+	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
