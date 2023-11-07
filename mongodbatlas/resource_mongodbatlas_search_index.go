@@ -115,6 +115,10 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Optional: true,
 		},
+		"type": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
 	}
 }
 
@@ -179,6 +183,10 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
+	}
+
+	if d.HasChange("type") {
+		searchIndex.Type = stringPtr(d.Get("type").(string))
 	}
 
 	if d.HasChange("analyzer") {
@@ -272,6 +280,10 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("error setting `index_id` for search index (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("type", searchIndex.Type); err != nil {
+		return diag.Errorf("error setting `type` for search index (%s): %s", d.Id(), err)
+	}
+
 	if err := d.Set("analyzer", searchIndex.Analyzer); err != nil {
 		return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
 	}
@@ -283,7 +295,7 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		}
 
 		if err := d.Set("analyzers", searchIndexMappingFields); err != nil {
-			return diag.Errorf("error setting `analyzer` for search index (%s): %s", d.Id(), err)
+			return diag.Errorf("error setting `analyzers` for search index (%s): %s", d.Id(), err)
 		}
 	}
 
@@ -348,6 +360,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	clusterName := d.Get("cluster_name").(string)
 	dynamic := d.Get("mappings_dynamic").(bool)
 	searchIndexRequest := &admin.ClusterSearchIndex{
+		Type:           stringPtr(d.Get("type").(string)),
 		Analyzer:       stringPtr(d.Get("analyzer").(string)),
 		Analyzers:      unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string)),
 		CollectionName: d.Get("collection_name").(string),
