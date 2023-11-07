@@ -39,7 +39,7 @@ jobs:
         run: grep --include=\*versions.tf -rnl './examples' -e 'version =' | grep -vE "test-upgrade" | xargs sed -i '/^\s*version =/d'
       - name: Fix format after sostitutions
         run: grep --include=\*versions.tf -rnl './examples' -e 'source[[:space:]]\+=' | grep -vE "test-upgrade" | xargs sed -i 's@\(\([[:space:]]*\)source\)[[:space:]]\+=[[:space:]]*@\2source = @g'
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ matrix.terraform_version }}
           # Needed to use the output of `terraform validate -json`
