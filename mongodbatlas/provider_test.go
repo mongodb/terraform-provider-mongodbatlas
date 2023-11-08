@@ -328,3 +328,12 @@ func testCheckPrivateEndpointServiceDataFederationOnlineArchiveRun(tb testing.TB
 		tb.Skip("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
 }
+
+func testAccPreCheckSearchIndex(tb testing.TB) {
+	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
+		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`,  `MONGODB_ATLAS_ORG_ID`, and `MONGODB_ATLAS_PROJECT_ID` must be set for acceptance testing")
+	}
+}

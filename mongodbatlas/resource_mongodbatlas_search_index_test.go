@@ -21,7 +21,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		datasourceName        = "data.mongodbatlas_search_indexes.data_index"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		updatedAnalyzer = "lucene.simple"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -93,7 +93,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		updatedAnalyzer = "lucene.standard"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
@@ -133,7 +133,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		name         = "name_test"
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheckBasic(t) },
+		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
 		ProtoV6ProviderFactories: testAccProviderV6Factories,
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
