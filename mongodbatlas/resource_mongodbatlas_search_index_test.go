@@ -56,6 +56,7 @@ func TestAccClusterRSSearchIndex_basic(t *testing.T) {
 }
 
 func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
+	// change
 	var (
 		resourceName    = "mongodbatlas_search_index.test"
 		clusterName     = acctest.RandomWithPrefix("test-acc-index")
