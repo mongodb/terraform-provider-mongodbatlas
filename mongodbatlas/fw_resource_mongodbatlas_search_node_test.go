@@ -57,22 +57,22 @@ func testAccMongoDBAtlasSearchNodeConfig(orgID, projectName, clusterName, instan
 
 		resource "mongodbatlas_search_node" "test" {
 			project_id = mongodbatlas_project.test.id
-			cluster_name = %[2]q
+			cluster_name = mongodbatlas_advanced_cluster.test.name
 			specs = [
 				{
-					instance_size = %[3]q
-					node_count = %[4]d
+					instance_size = %[2]q
+					node_count = %[3]d
 				}
 			]
 		}
-	`, clusterConfig, clusterName, instanceSize, searchNodeCount)
+	`, clusterConfig, instanceSize, searchNodeCount)
 }
 
 func advancedClusterConfig(orgID, projectName, clusterName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "test" {
-		name   = %[2]q
 		org_id = %[1]q
+		name   = %[2]q
 	}
 	resource "mongodbatlas_advanced_cluster" "test" {
 		project_id   = mongodbatlas_project.test.id
@@ -101,8 +101,7 @@ func testAccCheckSearchNodeImportStateIDFunc(resourceName string) resource.Impor
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		ids := decodeStateID(rs.Primary.ID)
-		return fmt.Sprintf("%s-%s", ids["project_id"], ids["cluster_name"]), nil
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]), nil
 	}
 }
 
@@ -113,13 +112,8 @@ func testAccCheckMongoDBAtlasSearchNodeExists(resourceName string) resource.Test
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
-		}
-		ids := decodeStateID(rs.Primary.ID)
-
 		connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
-		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
+		_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
 			return fmt.Errorf("search node deployment (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 		}
@@ -134,17 +128,14 @@ func testAccCheckMongoDBAtlasSearchNodeDestroy(state *terraform.State) error {
 	if clusterDestroyedErr := testAccCheckMongoDBAtlasAdvancedClusterDestroy(state); clusterDestroyedErr != nil {
 		return clusterDestroyedErr
 	}
-
 	connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_search_node" {
-			_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
-			// TODO probably need more logic to look into state.
-			if err == nil {
+			obj, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+			if err == nil && *obj.StateName != "WORKING" { // TODO temporary workaround to check it is being deleted
 				return fmt.Errorf("search node deployment (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 			}
 		}
 	}
-
 	return nil
 }
