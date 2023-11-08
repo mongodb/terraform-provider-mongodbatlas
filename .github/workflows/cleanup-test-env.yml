@@ -6,7 +6,7 @@ on:
     - cron: "0 3 * * *" # workflow runs every day at 03:00 AM
 
 jobs:  
-  clenup-test-env-general:
+  cleanup-test-env-general:
     runs-on: ubuntu-latest
     steps:
       - name: setup Atlas CLI
@@ -29,7 +29,7 @@ jobs:
           MONGODB_ATLAS_OPS_MANAGER_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
           PROJECT_TO_NOT_DELETE: ${{vars.MONGODB_ATLAS_ACCTEST_TRIGGER_PROJECT_ID_CLOUD_DEV}}
         run: ./scripts/cleanup-test-env.sh      
-  clenup-test-env-network:
+  cleanup-test-env-network:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Atlas CLI
