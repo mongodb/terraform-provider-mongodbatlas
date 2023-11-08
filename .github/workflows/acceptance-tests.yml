@@ -48,6 +48,7 @@ jobs:
             - 'mongodbatlas/**advanced_cluster**.go'
           cluster:
             - 'mongodbatlas/**mongodbatlas_cluster**.go'
+            - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
           generic:
             - 'mongodbatlas/data_source_mongodbatlas_backup_compliance_policy*.go'
             - 'mongodbatlas/resource_mongodbatlas_backup_compliance_policy*.go'
@@ -101,7 +102,6 @@ jobs:
             - 'mongodbatlas/resource_mongodbatlas_org_invitation*.go'
             - 'mongodbatlas/resource_mongodbatlas_organization*.go'
             - 'mongodbatlas/resource_mongodbatlas_project_api_key*.go'
-            - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
             - 'mongodbatlas/resource_mongodbatlas_team*.go'
             - 'mongodbatlas/resource_mongodbatlas_third_party_integration*.go'
           event_trigger:
