@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccClusterRSSearchIndex_basic(t *testing.T) {
+func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
 		resourceName          = "mongodbatlas_search_index.test"
 		clusterName           = acctest.RandomWithPrefix("test-acc-index")
@@ -55,8 +55,7 @@ func TestAccClusterRSSearchIndex_basic(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
-	// change
+func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_search_index.test"
 		clusterName     = acctest.RandomWithPrefix("test-acc-index")
@@ -83,7 +82,7 @@ func TestAccClusterRSSearchIndex_withMapping(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSSearchIndex_withSynonyms(t *testing.T) {
+func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_search_index.test"
 		datasourceName  = "data.mongodbatlas_search_indexes.data_index"
@@ -126,7 +125,7 @@ func TestAccClusterRSSearchIndex_withSynonyms(t *testing.T) {
 	})
 }
 
-func TestAccClusterRSSearchIndex_importBasic(t *testing.T) {
+func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_search_index.test"
 		clusterName  = acctest.RandomWithPrefix("test-acc-index")
