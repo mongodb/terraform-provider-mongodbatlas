@@ -181,15 +181,15 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string) resource.Tes
 func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "aws_conf" {
-			project_id   = "%[1]s"
-			name         = "%[2]s"
+			project_id   = %[1]q
+			name         = %[2]q
 			disk_size_gb = 10
 		
 			cluster_type = "REPLICASET"
 			replication_specs {
 				num_shards = 1
 				regions_config {
-					region_name     = "US_EAST_2"
+					region_name     = "US_WEST_2"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
@@ -228,15 +228,15 @@ func testAccMongoDBAtlasSearchIndexConfig(projectID, clusterName string) string 
 func testAccMongoDBAtlasSearchIndexConfigAdvanced(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "aws_conf" {
-			project_id   = "%[1]s"
-			name         = "%[2]s"
+			project_id   = %[1]q
+			name         = %[2]q
 			disk_size_gb = 10
 
 			cluster_type = "REPLICASET"
 			replication_specs {
 				num_shards = 1
 				regions_config {
-					region_name     = "US_EAST_2"
+					region_name     = "US_WEST_2"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
@@ -342,7 +342,7 @@ func testAccMongoDBAtlasSearchIndexConfigSynonyms(orgID, projectName, clusterNam
 			replication_specs {
 				num_shards = 1
 				regions_config {
-					region_name     = "US_EAST_2"
+					region_name     = "US_WEST_2"
 					electable_nodes = 3
 					priority        = 7
 					read_only_nodes = 0
