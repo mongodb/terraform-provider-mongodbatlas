@@ -119,6 +119,11 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+		"fields": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: validateSearchIndexMappingDiff,
+		},
 	}
 }
 
@@ -220,6 +225,10 @@ func resourceMongoDBAtlasSearchIndexUpdate(ctx context.Context, d *schema.Resour
 
 	if d.HasChange("mappings_fields") {
 		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
+	}
+
+	if d.HasChange("fields") {
+		searchIndex.Mappings.Fields = unmarshalSearchIndexMappingFields(d.Get("fields").(string))
 	}
 
 	if d.HasChange("synonyms") {
@@ -334,6 +343,17 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		}
 	}
 
+	if len(searchIndex.Fields) > 0 {
+		fields, err := marshalSearchIndex(searchIndex.Fields)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		if err := d.Set("fields", fields); err != nil {
+			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
+		}
+	}
+
 	return nil
 }
 
@@ -369,6 +389,7 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 			Dynamic: &dynamic,
 			Fields:  unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string)),
 		},
+		Fields:         unmarshalSearchIndexFields(d.Get("fields").(string)),
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: stringPtr(d.Get("search_analyzer").(string)),
 		Status:         stringPtr(d.Get("status").(string)),
@@ -443,9 +464,11 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 
 	if err := json.Unmarshal([]byte(old), &j); err != nil {
 		log.Printf("[ERROR] cannot unmarshal old search index mapping json %v", err)
+		return false
 	}
 	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
 		log.Printf("[ERROR] cannot unmarshal new search index mapping json %v", err)
+		return false
 	}
 	if diff := deep.Equal(&j, &j2); diff != nil {
 		log.Printf("[DEBUG] deep equal not passed: %v", diff)
@@ -487,6 +510,18 @@ func unmarshalSearchIndexMappingFields(mappingString string) map[string]any {
 	var fields map[string]any
 	if err := json.Unmarshal([]byte(mappingString), &fields); err != nil {
 		log.Printf("[ERROR] cannot unmarshal search index mapping fields: %v", err)
+		return nil
+	}
+	return fields
+}
+
+func unmarshalSearchIndexFields(fieldsStr string) []map[string]any {
+	if fieldsStr == "" {
+		return nil
+	}
+	var fields []map[string]any
+	if err := json.Unmarshal([]byte(fieldsStr), &fields); err != nil {
+		log.Printf("[ERROR] cannot unmarshal search index fields: %v", err)
 		return nil
 	}
 	return fields
