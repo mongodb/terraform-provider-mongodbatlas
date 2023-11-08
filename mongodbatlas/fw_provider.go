@@ -423,6 +423,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		NewDatabaseUserRS,
 		NewAlertConfigurationRS,
 		NewProjectIPAccessListRS,
+		NewSearchNodeRS,
 	}
 }
 
