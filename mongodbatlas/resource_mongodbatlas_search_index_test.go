@@ -88,8 +88,8 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
 		resourceName                     = "mongodbatlas_search_index.test"
 		datasourceName                   = "data.mongodbatlas_search_indexes.data_index"
-		clusterName, clusterTerraformStr = getClusterInfo()
 		projectID                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName, clusterTerraformStr = getClusterInfo(projectID)
 		name                             = "name_test"
 		updatedAnalyzer                  = "lucene.standard"
 	)
@@ -400,15 +400,15 @@ func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) r
 	}
 }
 
-func getClusterInfo() (clusterName, clusterTerraformStr string) {
+func getClusterInfo(projectID string) (clusterName, clusterTerraformStr string) {
 	// Allows faster test execution in local, don't use in CI
 	clusterName = os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 	if clusterName == "" {
 		clusterName = acctest.RandomWithPrefix("test-acc-index")
 		clusterTerraformStr = fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test_cluster" {
-			project_id   = mongodbatlas_project.test.id
-			name         = %q
+			project_id   = %[1]q
+			name         = %[2]q
 			disk_size_gb = 10
 		
 			cluster_type = "REPLICASET"
@@ -428,9 +428,8 @@ func getClusterInfo() (clusterName, clusterTerraformStr string) {
 			// Provider Settings "block"
 			provider_name               = "AWS"
 			provider_instance_size_name = "M10"
-		
 		}
-		`, clusterName)
+		`, projectID, clusterName)
 	}
 	return clusterName, clusterTerraformStr
 }
