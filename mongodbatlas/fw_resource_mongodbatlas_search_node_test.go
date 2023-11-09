@@ -131,8 +131,8 @@ func testAccCheckMongoDBAtlasSearchNodeDestroy(state *terraform.State) error {
 	connV2 := testAccProviderSdkV2.Meta().(*MongoDBClient).AtlasV2
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_search_node" {
-			obj, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
-			if err == nil && *obj.StateName != "WORKING" { // TODO temporary workaround to check it is being deleted
+			_, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+			if err == nil {
 				return fmt.Errorf("search node deployment (%s:%s) still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"])
 			}
 		}
