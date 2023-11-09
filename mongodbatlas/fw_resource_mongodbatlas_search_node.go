@@ -96,7 +96,7 @@ func (r *SearchNodeRS) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"state_name": schema.StringAttribute{
 				Computed: true,
 			},
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{ // TODO: requires docs update
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
 				Delete: true,

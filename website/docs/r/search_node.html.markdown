@@ -38,6 +38,8 @@ resource "mongodbatlas_search_node" "test" {
 
 ### Specs
 
+Specs list is defined as a [list nested attribute](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/attributes/list-nested) containing a single element.
+
 TODO: add proper link here
 * `instance_size` - (Required) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
 * `node_count` - (Required) Number of search nodes in the cluster.
