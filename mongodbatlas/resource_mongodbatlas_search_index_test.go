@@ -26,9 +26,9 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasSearchIndexConfig(t, projectID, clusterName),
+				Config: testAccSearchIndexConfig(t, projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
+					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -69,9 +69,9 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasSearchIndexConfigAdvanced(t, projectID, clusterName),
+				Config: testAccSearchIndexConfigAdvanced(t, projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
+					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -98,9 +98,9 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasSearchIndexConfigSynonyms(t, orgID, projectName, clusterName),
+				Config: testAccSearchIndexConfigSynonyms(t, orgID, projectName, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
+					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
@@ -138,16 +138,16 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMongoDBAtlasSearchIndexConfig(t, projectID, clusterName),
+				Config: testAccSearchIndexConfig(t, projectID, clusterName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckMongoDBAtlasSearchIndexExists(resourceName),
+					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 				),
 			},
 			{
-				Config:            testAccMongoDBAtlasSearchIndexConfig(t, projectID, clusterName),
+				Config:            testAccSearchIndexConfig(t, projectID, clusterName),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -157,7 +157,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string) resource.TestCheckFunc {
+func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -178,7 +178,7 @@ func testAccCheckMongoDBAtlasSearchIndexExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccMongoDBAtlasSearchIndexConfig(t *testing.T, projectID, clusterName string) string {
+func testAccSearchIndexConfig(t *testing.T, projectID, clusterName string) string {
 	ret := fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "aws_conf" {
 			project_id   = %[1]q
@@ -223,12 +223,12 @@ func testAccMongoDBAtlasSearchIndexConfig(t *testing.T, projectID, clusterName s
 			
 		}
 	`, projectID, clusterName)
-	t.Log("testAccMongoDBAtlasSearchIndexConfig")
+	t.Log("testAccSearchIndexConfig")
 	t.Log(ret)
 	return ret
 }
 
-func testAccMongoDBAtlasSearchIndexConfigAdvanced(t *testing.T, projectID, clusterName string) string {
+func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterName string) string {
 	ret := fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "aws_conf" {
 			project_id   = %[1]q
@@ -328,12 +328,12 @@ func testAccMongoDBAtlasSearchIndexConfigAdvanced(t *testing.T, projectID, clust
 			EOF
 		}
 	`, projectID, clusterName)
-	t.Log("testAccMongoDBAtlasSearchIndexConfigAdvanced")
+	t.Log("testAccSearchIndexConfigAdvanced")
 	t.Log(ret)
 	return ret
 }
 
-func testAccMongoDBAtlasSearchIndexConfigSynonyms(t *testing.T, orgID, projectName, clusterName string) string {
+func testAccSearchIndexConfigSynonyms(t *testing.T, orgID, projectName, clusterName string) string {
 	ret := fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name   = %[2]q
@@ -395,7 +395,7 @@ func testAccMongoDBAtlasSearchIndexConfigSynonyms(t *testing.T, orgID, projectNa
 			index_id 			= mongodbatlas_search_index.test.index_id
 		}
 	`, orgID, projectName, clusterName)
-	t.Log("testAccMongoDBAtlasSearchIndexConfigSynonyms")
+	t.Log("testAccSearchIndexConfigSynonyms")
 	t.Log(ret)
 	return ret
 }
