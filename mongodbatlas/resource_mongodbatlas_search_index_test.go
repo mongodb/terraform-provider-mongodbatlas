@@ -12,14 +12,13 @@ import (
 )
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
-	t.SkipNow()
 	var (
-		resourceName          = "mongodbatlas_search_index.test"
-		clusterName           = acctest.RandomWithPrefix("test-acc-index")
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name                  = "name_test"
-		datasourceIndexesName = "data.mongodbatlas_search_indexes.data_index"
-		datasourceName        = "data.mongodbatlas_search_indexes.data_index"
+		resourceName                                     = "mongodbatlas_search_index.test"
+		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
+		datasourceIndexesName                            = "data.mongodbatlas_search_indexes.data_index"
+		datasourceName                                   = "data.mongodbatlas_search_indexes.data_index"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -27,10 +26,10 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfig(t, projectID, clusterName),
+				Config: testAccSearchIndexConfig(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(datasourceName, "name"),
@@ -126,12 +125,11 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 }
 
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
-	t.SkipNow()
 	var (
-		resourceName = "mongodbatlas_search_index.test"
-		clusterName  = acctest.RandomWithPrefix("test-acc-index")
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name         = "name_test"
+		resourceName                                     = "mongodbatlas_search_index.test"
+		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -139,16 +137,16 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfig(t, projectID, clusterName),
+				Config: testAccSearchIndexConfig(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 				),
 			},
 			{
-				Config:            testAccSearchIndexConfig(t, projectID, clusterName),
+				Config:            testAccSearchIndexConfig(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -179,51 +177,25 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccSearchIndexConfig(t *testing.T, projectID, clusterName string) string {
-	ret := fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "aws_conf" {
-			project_id   = %[1]q
-			name         = %[2]q
-			disk_size_gb = 10
-		
-			cluster_type = "REPLICASET"
-			replication_specs {
-				num_shards = 1
-				regions_config {
-					region_name     = "US_WEST_2"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
-				}
-			}
-			backup_enabled               = false
-			auto_scaling_disk_gb_enabled = false
-		
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-		}
-
+func testAccSearchIndexConfig(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
+	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			project_id       = mongodbatlas_cluster.aws_conf.project_id
-			cluster_name     = mongodbatlas_cluster.aws_conf.name
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+			name             = %[3]q
 			collection_name  = "collection_test"
 			database         = "database_test"
 			mappings_dynamic = "true"
-			name             = "name_test"
 			search_analyzer  = "lucene.standard"
 		}
 
 		data "mongodbatlas_search_indexes" "data_index" {
-			cluster_name           = mongodbatlas_search_index.test.cluster_name
-			project_id         = mongodbatlas_search_index.test.project_id
-			database   = "database_test"
+			cluster_name 		= %[1]s
+			project_id  		= mongodbatlas_search_index.test.project_id
+			database   			= "database_test"
 			collection_name = "collection_test"			
 		}
-	`, projectID, clusterName)
-	t.Log("testAccSearchIndexConfig")
-	t.Log(ret)
-	return ret
+	`, clusterNameStr, projectID, indexName)
 }
 
 func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
