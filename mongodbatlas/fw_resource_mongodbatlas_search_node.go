@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	retrystrategy "github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/framework/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/mongodbatlas/util"
 	"go.mongodb.org/atlas-sdk/v20231001002/admin"
 )
@@ -118,8 +119,7 @@ func (r *SearchNodeRS) Create(ctx context.Context, req resource.CreateRequest, r
 	projectID := searchNodePlan.ProjectID.ValueString()
 	clusterName := searchNodePlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchNodePlan)
-	_, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute()
-	if err != nil {
+	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search node creation", err.Error())
 		return
 	}
@@ -177,8 +177,7 @@ func (r *SearchNodeRS) Update(ctx context.Context, req resource.UpdateRequest, r
 	projectID := searchNodePlan.ProjectID.ValueString()
 	clusterName := searchNodePlan.ClusterName.ValueString()
 	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchNodePlan)
-	_, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute()
-	if err != nil {
+	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search node update", err.Error())
 		return
 	}
@@ -211,8 +210,7 @@ func (r *SearchNodeRS) Delete(ctx context.Context, req resource.DeleteRequest, r
 	connV2 := r.client.AtlasV2
 	projectID := searchNodeState.ProjectID.ValueString()
 	clusterName := searchNodeState.ClusterName.ValueString()
-	_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
-	if err != nil {
+	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search node delete", err.Error())
 		return
 	}
@@ -222,8 +220,7 @@ func (r *SearchNodeRS) Delete(ctx context.Context, req resource.DeleteRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err = waitSearchNodeDelete(ctx, projectID, clusterName, connV2, deleteTimeout)
-	if err != nil {
+	if err := waitSearchNodeDelete(ctx, projectID, clusterName, connV2, deleteTimeout); err != nil {
 		resp.Diagnostics.AddError("error during search node delete", err.Error())
 		return
 	}
@@ -259,8 +256,9 @@ func splitSearchNodeImportID(id string) (projectID, clusterName string, err erro
 
 func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) (*admin.ApiSearchDeploymentResponse, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"PAUSED", "PLANNING", "WORKING", "DELETED", "PENDING"},
-		Target:     []string{"IDLE"},
+		Pending: []string{retrystrategy.RetryStrategyPausedState, retrystrategy.RetryStrategyPlanningState, retrystrategy.RetryStrategyWorkingState,
+			retrystrategy.RetryStrategyDeletedState, retrystrategy.RetryStrategyPendingState},
+		Target:     []string{retrystrategy.RetryStrategyIdleState},
 		Refresh:    searchNodeRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
@@ -279,8 +277,9 @@ func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName s
 
 func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"IDLE", "PAUSED", "PLANNING", "WORKING", "PENDING"},
-		Target:     []string{"DELETED"},
+		Pending: []string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyPausedState, retrystrategy.RetryStrategyPlanningState,
+			retrystrategy.RetryStrategyWorkingState, retrystrategy.RetryStrategyPendingState},
+		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    searchNodeRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
@@ -298,10 +297,10 @@ func searchNodeRefreshFunc(ctx context.Context, projectID, clusterName string, c
 		}
 		if err != nil {
 			if resp.StatusCode == 400 {
-				return "", "DELETED", nil
+				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if resp.StatusCode == 503 {
-				return "", "PENDING", nil
+				return "", retrystrategy.RetryStrategyPendingState, nil
 			}
 			return nil, "", err
 		}
