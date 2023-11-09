@@ -57,12 +57,11 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 }
 
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
-	t.SkipNow()
 	var (
 		resourceName                                     = "mongodbatlas_search_index.test"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
-		name                                             = "name_test"
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
 		updatedAnalyzer                                  = "lucene.simple"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,10 +70,10 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigAdvanced(t, projectID, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigAdvanced(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
@@ -90,7 +89,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		datasourceName                                   = "data.mongodbatlas_search_indexes.data_index"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
-		name                                             = "name_test"
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
 		updatedAnalyzer                                  = "lucene.standard"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -99,10 +98,10 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigSynonyms(t, projectID, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigSynonyms(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "name", indexName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "analyzer", updatedAnalyzer),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
@@ -227,12 +226,12 @@ func testAccSearchIndexConfig(t *testing.T, projectID, clusterName string) strin
 	return ret
 }
 
-func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterNameStr, clusterTerraformStr string) string {
-	ret := clusterTerraformStr + fmt.Sprintf(`
+func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
+	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			project_id       = %[1]q
-			cluster_name     = %[2]s
-
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+			name             = %[3]q
 			analyzer         = "lucene.simple"
 			collection_name  = "collection_test"
 			database         = "database_test"
@@ -269,7 +268,6 @@ func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterNameStr, c
 				}
 			}
 			EOF
-			name             = "name_test"
 			search_analyzer  = "lucene.standard"
 			analyzers        = <<-EOF
 			[
@@ -301,22 +299,19 @@ func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterNameStr, c
 			]
 			EOF
 		}
-	`, projectID, clusterNameStr)
-	t.Log("testAccSearchIndexConfigAdvanced")
-	t.Log(ret)
-	return ret
+	`, clusterNameStr, projectID, indexName)
 }
 
-func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterNameStr, clusterTerraformStr string) string {
+func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			project_id       = %[1]q
-			cluster_name     = %[2]s
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+			name             = %[3]q
 			analyzer         = "lucene.standard"
 			collection_name  = "collection_test"
 			database         = "database_test"
 			mappings_dynamic = "true"
-			name             = "name_test"
 			search_analyzer  = "lucene.standard"
 			synonyms {
 				analyzer          = "lucene.simple"
@@ -326,18 +321,18 @@ func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterNameStr, c
 		}
 
 		data "mongodbatlas_search_indexes" "data_index" {
-			project_id       = mongodbatlas_search_index.test.project_id
-			cluster_name     = %[2]s
-			database   = "database_test"
+			cluster_name   	= %[1]s
+			project_id    	= mongodbatlas_search_index.test.project_id
+			database   			= "database_test"
 			collection_name = "collection_test"
 		}
 
 		data "mongodbatlas_search_index" "test_two" {
-			project_id       = mongodbatlas_search_index.test.project_id
-			cluster_name     = %[2]s
+			cluster_name	= %[1]s
+			project_id		= mongodbatlas_search_index.test.project_id
 			index_id 			= mongodbatlas_search_index.test.index_id
 		}
-	`, projectID, clusterNameStr)
+	`, clusterNameStr, projectID, indexName)
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
