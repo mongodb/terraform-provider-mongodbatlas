@@ -217,10 +217,7 @@ func testAccSearchIndexConfig(t *testing.T, projectID, clusterName string) strin
 			cluster_name           = mongodbatlas_search_index.test.cluster_name
 			project_id         = mongodbatlas_search_index.test.project_id
 			database   = "database_test"
-			collection_name = "collection_test"
-			page_num = 1
-			items_per_page = 100
-			
+			collection_name = "collection_test"			
 		}
 	`, projectID, clusterName)
 	t.Log("testAccSearchIndexConfig")
@@ -385,8 +382,6 @@ func testAccSearchIndexConfigSynonyms(t *testing.T, orgID, projectName, clusterN
 			project_id         = mongodbatlas_search_index.test.project_id
 			database   = "database_test"
 			collection_name = "collection_test"
-			page_num = 1
-			items_per_page = 100
 		}
 
 		data "mongodbatlas_search_index" "test_two" {
