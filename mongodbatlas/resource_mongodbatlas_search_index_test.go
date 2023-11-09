@@ -59,11 +59,11 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 func TestAccSearchIndexRS_withMapping(t *testing.T) {
 	t.SkipNow()
 	var (
-		resourceName    = "mongodbatlas_search_index.test"
-		clusterName     = acctest.RandomWithPrefix("test-acc-index")
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		name            = "name_test"
-		updatedAnalyzer = "lucene.simple"
+		resourceName                                     = "mongodbatlas_search_index.test"
+		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		name                                             = "name_test"
+		updatedAnalyzer                                  = "lucene.simple"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -71,7 +71,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigAdvanced(t, projectID, clusterName),
+				Config: testAccSearchIndexConfigAdvanced(t, projectID, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -227,36 +227,11 @@ func testAccSearchIndexConfig(t *testing.T, projectID, clusterName string) strin
 	return ret
 }
 
-func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterName string) string {
-	ret := fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "aws_conf" {
-			project_id   = %[1]q
-			name         = %[2]q
-			disk_size_gb = 10
-
-			cluster_type = "REPLICASET"
-			replication_specs {
-				num_shards = 1
-				regions_config {
-					region_name     = "US_WEST_2"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
-				}
-			}
-
-			backup_enabled               = false
-			auto_scaling_disk_gb_enabled = false
-
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-
-		}
-
+func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterNameStr, clusterTerraformStr string) string {
+	ret := clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
-			project_id   = mongodbatlas_cluster.aws_conf.project_id
-			cluster_name = mongodbatlas_cluster.aws_conf.name
+			project_id       = %[1]q
+			cluster_name     = %[2]s
 
 			analyzer         = "lucene.simple"
 			collection_name  = "collection_test"
@@ -326,14 +301,14 @@ func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterName strin
 			]
 			EOF
 		}
-	`, projectID, clusterName)
+	`, projectID, clusterNameStr)
 	t.Log("testAccSearchIndexConfigAdvanced")
 	t.Log(ret)
 	return ret
 }
 
 func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterNameStr, clusterTerraformStr string) string {
-	ret := clusterTerraformStr + fmt.Sprintf(`
+	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			project_id       = %[1]q
 			cluster_name     = %[2]s
@@ -351,21 +326,18 @@ func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterNameStr, c
 		}
 
 		data "mongodbatlas_search_indexes" "data_index" {
-			project_id       = %[1]q
+			project_id       = mongodbatlas_search_index.test.project_id
 			cluster_name     = %[2]s
 			database   = "database_test"
 			collection_name = "collection_test"
 		}
 
 		data "mongodbatlas_search_index" "test_two" {
-			project_id       = %[1]q
+			project_id       = mongodbatlas_search_index.test.project_id
 			cluster_name     = %[2]s
 			index_id 			= mongodbatlas_search_index.test.index_id
 		}
 	`, projectID, clusterNameStr)
-	t.Log("testAccSearchIndexConfigSynonyms")
-	t.Log(ret)
-	return ret
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
