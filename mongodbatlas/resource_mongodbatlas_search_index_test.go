@@ -348,29 +348,26 @@ func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerra
 		clusterName = acctest.RandomWithPrefix("test-acc-index")
 		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
 		clusterTerraformStr = fmt.Sprintf(`
-		resource "mongodbatlas_cluster" "test_cluster" {
-			project_id   = %[1]q
-			name         = %[2]q
-			disk_size_gb = 10
-		
-			cluster_type = "REPLICASET"
-			replication_specs {
-				num_shards = 1
-				regions_config {
-					region_name     = "US_WEST_2"
-					electable_nodes = 3
-					priority        = 7
-					read_only_nodes = 0
+			resource "mongodbatlas_cluster" "test_cluster" {
+				project_id   									= %[1]q
+				name         									= %[2]q
+				disk_size_gb 									= 10
+				backup_enabled               	= false
+				auto_scaling_disk_gb_enabled	= false
+				provider_name               	= "AWS"
+				provider_instance_size_name 	= "M10"
+			
+				cluster_type = "REPLICASET"
+				replication_specs {
+					num_shards = 1
+					regions_config {
+						region_name     = "US_WEST_2"
+						electable_nodes = 3
+						priority        = 7
+						read_only_nodes = 0
+					}
 				}
 			}
-		
-			backup_enabled               = false
-			auto_scaling_disk_gb_enabled = false
-		
-			// Provider Settings "block"
-			provider_name               = "AWS"
-			provider_instance_size_name = "M10"
-		}
 		`, projectID, clusterName)
 	}
 	return clusterName, clusterNameStr, clusterTerraformStr
