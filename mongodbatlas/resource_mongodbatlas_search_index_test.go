@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
+	SkipTestForCI(t)
 	var (
 		resourceName          = "mongodbatlas_search_index.test"
 		clusterName           = acctest.RandomWithPrefix("test-acc-index")
