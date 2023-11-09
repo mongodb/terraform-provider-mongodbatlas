@@ -86,12 +86,12 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 
 func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 	var (
-		resourceName                     = "mongodbatlas_search_index.test"
-		datasourceName                   = "data.mongodbatlas_search_indexes.data_index"
-		projectID                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		clusterName, clusterTerraformStr = getClusterInfo(projectID)
-		name                             = "name_test"
-		updatedAnalyzer                  = "lucene.standard"
+		resourceName                                     = "mongodbatlas_search_index.test"
+		datasourceName                                   = "data.mongodbatlas_search_indexes.data_index"
+		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		name                                             = "name_test"
+		updatedAnalyzer                                  = "lucene.standard"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -99,7 +99,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigSynonyms(t, projectID, clusterName, clusterTerraformStr),
+				Config: testAccSearchIndexConfigSynonyms(t, projectID, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
@@ -332,11 +332,11 @@ func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, clusterName strin
 	return ret
 }
 
-func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterName, clusterTerraformStr string) string {
+func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterNameStr, clusterTerraformStr string) string {
 	ret := clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			project_id       = %[1]q
-			cluster_name     = %[2]q
+			cluster_name     = %[2]s
 			analyzer         = "lucene.standard"
 			collection_name  = "collection_test"
 			database         = "database_test"
@@ -352,17 +352,17 @@ func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, clusterName, clus
 
 		data "mongodbatlas_search_indexes" "data_index" {
 			project_id       = %[1]q
-			cluster_name     = %[2]q
+			cluster_name     = %[2]s
 			database   = "database_test"
 			collection_name = "collection_test"
 		}
 
 		data "mongodbatlas_search_index" "test_two" {
 			project_id       = %[1]q
-			cluster_name     = %[2]q
+			cluster_name     = %[2]s
 			index_id 			= mongodbatlas_search_index.test.index_id
 		}
-	`, projectID, clusterName)
+	`, projectID, clusterNameStr)
 	t.Log("testAccSearchIndexConfigSynonyms")
 	t.Log(ret)
 	return ret
@@ -400,11 +400,14 @@ func testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName string) r
 	}
 }
 
-func getClusterInfo(projectID string) (clusterName, clusterTerraformStr string) {
+func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerraformStr string) {
 	// Allows faster test execution in local, don't use in CI
 	clusterName = os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
-	if clusterName == "" {
+	if clusterName != "" {
+		clusterNameStr = fmt.Sprintf("%q", clusterName)
+	} else {
 		clusterName = acctest.RandomWithPrefix("test-acc-index")
+		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
 		clusterTerraformStr = fmt.Sprintf(`
 		resource "mongodbatlas_cluster" "test_cluster" {
 			project_id   = %[1]q
@@ -431,5 +434,5 @@ func getClusterInfo(projectID string) (clusterName, clusterTerraformStr string) 
 		}
 		`, projectID, clusterName)
 	}
-	return clusterName, clusterTerraformStr
+	return clusterName, clusterNameStr, clusterTerraformStr
 }
