@@ -473,7 +473,7 @@ jobs:
 
   search_index:
     needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_index == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-cluster' || inputs.parent-event-name == 'release' }}
+    if: ${{ needs.change-detection.outputs.search_index == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-index' || inputs.parent-event-name == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
