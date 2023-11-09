@@ -34,7 +34,6 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttrSet(datasourceName, "name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(datasourceName, "name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "collection_name"),
 					resource.TestCheckResourceAttrSet(datasourceName, "database"),
 					resource.TestCheckResourceAttrSet(datasourceName, "search_analyzer"),
@@ -183,8 +182,8 @@ func testAccSearchIndexConfig(projectID, indexName, clusterNameStr, clusterTerra
 			cluster_name     = %[1]s
 			project_id       = %[2]q
 			name             = %[3]q
-			collection_name  = "collection_test"
 			database         = "database_test"
+			collection_name  = "collection_test"
 			mappings_dynamic = "true"
 			search_analyzer  = "lucene.standard"
 		}
