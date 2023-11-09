@@ -26,7 +26,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfig(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfig(projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
@@ -69,7 +69,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigAdvanced(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigAdvanced(projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
@@ -97,7 +97,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfigSynonyms(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfigSynonyms(projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
@@ -137,7 +137,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccSearchIndexConfig(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
+				Config: testAccSearchIndexConfig(projectID, indexName, clusterNameStr, clusterTerraformStr),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSearchIndexExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", indexName),
@@ -146,7 +146,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 				),
 			},
 			{
-				Config:            testAccSearchIndexConfig(t, projectID, indexName, clusterNameStr, clusterTerraformStr),
+				Config:            testAccSearchIndexConfig(projectID, indexName, clusterNameStr, clusterTerraformStr),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: testAccCheckMongoDBAtlasSearchIndexImportStateIDFunc(resourceName),
 				ImportState:       true,
@@ -177,7 +177,7 @@ func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccSearchIndexConfig(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
+func testAccSearchIndexConfig(projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]s
@@ -198,7 +198,7 @@ func testAccSearchIndexConfig(t *testing.T, projectID, indexName, clusterNameStr
 	`, clusterNameStr, projectID, indexName)
 }
 
-func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
+func testAccSearchIndexConfigAdvanced(projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]s
@@ -274,7 +274,7 @@ func testAccSearchIndexConfigAdvanced(t *testing.T, projectID, indexName, cluste
 	`, clusterNameStr, projectID, indexName)
 }
 
-func testAccSearchIndexConfigSynonyms(t *testing.T, projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
+func testAccSearchIndexConfigSynonyms(projectID, indexName, clusterNameStr, clusterTerraformStr string) string {
 	return clusterTerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]s
