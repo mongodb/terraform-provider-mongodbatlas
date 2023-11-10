@@ -308,13 +308,11 @@ func testAccSearchIndexConfigMapping(projectID, indexName, databaseName, cluster
 								}
 						 }
 					],
-					"tokenizer":[
-						 {
+					"tokenizer": {
 								"type":"nGram",
-								"minGram":2,
-								"maxGram":5s
-						 }
-					],
+								"minGram": 2,
+								"maxGram": 5
+					},
 					"tokenFilters":[
 						 {
 								"type":"length",
@@ -373,10 +371,10 @@ func testAccSearchIndexConfigVector(projectID, indexName, databaseName, clusterN
 			
 			fields = <<-EOF
 				[{
-					type: "vector",
-					path: "plot_embedding",
-					numDimensions: 2048,
-					similarity: "cosine"
+					"type": "vector",
+					"path": "plot_embedding",
+					"numDimensions": 2048,
+					"similarity": "cosine"
 				}]
 				EOF
 		}

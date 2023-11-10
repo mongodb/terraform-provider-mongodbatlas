@@ -17,6 +17,10 @@ import (
 	"go.mongodb.org/atlas-sdk/v20231115001/admin"
 )
 
+const (
+	vectorSearch = "vectorSearch"
+)
+
 func resourceMongoDBAtlasSearchIndex() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceMongoDBAtlasSearchIndexCreate,
@@ -324,22 +328,24 @@ func resourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-	}
-
 	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if len(searchIndex.Mappings.Fields) > 0 {
-		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
-		if err != nil {
-			return diag.FromErr(err)
+	if searchIndex.Mappings != nil {
+		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-			return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+		if len(searchIndex.Mappings.Fields) > 0 {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+			}
 		}
 	}
 
@@ -379,16 +385,23 @@ func resourceMongoDBAtlasSearchIndexCreate(ctx context.Context, d *schema.Resour
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	dynamic := d.Get("mappings_dynamic").(bool)
+	var mappings *admin.ApiAtlasFTSMappings
+	indexType := d.Get("type").(string)
+
+	if indexType != vectorSearch {
+		mappings = &admin.ApiAtlasFTSMappings{
+			Dynamic: &dynamic,
+			Fields:  unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string)),
+		}
+	}
+
 	searchIndexRequest := &admin.ClusterSearchIndex{
-		Type:           stringPtr(d.Get("type").(string)),
+		Type:           stringPtr(indexType),
 		Analyzer:       stringPtr(d.Get("analyzer").(string)),
 		Analyzers:      unmarshalSearchIndexAnalyzersFields(d.Get("analyzers").(string)),
 		CollectionName: d.Get("collection_name").(string),
 		Database:       d.Get("database").(string),
-		Mappings: &admin.ApiAtlasFTSMappings{
-			Dynamic: &dynamic,
-			Fields:  unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string)),
-		},
+		Mappings:       mappings,
 		Fields:         unmarshalSearchIndexFields(d.Get("fields").(string)),
 		Name:           d.Get("name").(string),
 		SearchAnalyzer: stringPtr(d.Get("search_analyzer").(string)),
@@ -524,6 +537,7 @@ func unmarshalSearchIndexFields(fieldsStr string) []map[string]any {
 		log.Printf("[ERROR] cannot unmarshal search index fields: %v", err)
 		return nil
 	}
+
 	return fields
 }
 

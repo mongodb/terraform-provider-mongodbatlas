@@ -140,21 +140,23 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `searchAnalyzer` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
-		return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-	}
-
 	if err := d.Set("synonyms", flattenSearchIndexSynonyms(searchIndex.Synonyms)); err != nil {
 		return diag.Errorf("error setting `synonyms` for search index (%s): %s", d.Id(), err)
 	}
 
-	if len(searchIndex.Mappings.Fields) > 0 {
-		searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
-		if err != nil {
-			return diag.FromErr(err)
+	if searchIndex.Mappings != nil {
+		if err := d.Set("mappings_dynamic", searchIndex.Mappings.Dynamic); err != nil {
+			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
-		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-			return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+
+		if len(searchIndex.Mappings.Fields) > 0 {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.Mappings.Fields)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+			}
 		}
 	}
 
