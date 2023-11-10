@@ -21,11 +21,6 @@ var integrationTypes = []string{
 	"PROMETHEUS",
 }
 
-var deprecatedIntegrationTypes = []string{
-	"NEW_RELIC",
-	"FLOWDOCK",
-}
-
 var requiredPerType = map[string][]string{
 	"PAGER_DUTY":      {"service_key"},
 	"DATADOG":         {"api_key", "region"},
@@ -291,14 +286,6 @@ func validateIntegrationType() schema.SchemaValidateDiagFunc {
 				Detail:   fmt.Sprintf("Third Party integration type %q is not a valid value. Possible values are: %q.", value, integrationTypes),
 			}
 			diags = append(diags, diagError)
-		}
-		if isElementExist(deprecatedIntegrationTypes, value) {
-			diagWarn := diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Warning deprecated Third Party Integration type",
-				Detail:   fmt.Sprintf("Third Party integration type %q is a deprecated value. This field type values %q are deprecated and will be removed in 1.9.0 release", value, deprecatedIntegrationTypes),
-			}
-			diags = append(diags, diagWarn)
 		}
 		return diags
 	}

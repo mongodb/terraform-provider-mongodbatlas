@@ -14,7 +14,7 @@ func TestAccConfigDSThirdPartyIntegrations_basic(t *testing.T) {
 	SkipTestForCI(t)
 	var (
 		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
-		intgTypes       = []string{"NEW_RELIC", "OPS_GENIE", "DATADOG", "VICTOR_OPS", "WEBHOOK", "PROMETHEUS"}
+		intgTypes       = []string{"OPS_GENIE", "DATADOG", "VICTOR_OPS", "WEBHOOK", "PROMETHEUS"}
 		hclConfig       = make([]*thirdPartyConfig, 0, len(intgTypes))
 		dsName          = "data.mongodbatlas_third_party_integrations.test"
 		integrationType = ""
