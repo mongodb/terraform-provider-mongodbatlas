@@ -16,7 +16,7 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		resourceName                                     = "mongodbatlas_search_index.test"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(t, projectID)
-		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		datasourceIndexesName                            = "data.mongodbatlas_search_indexes.data_index"
 		datasourceName                                   = "data.mongodbatlas_search_indexes.data_index"
 	)
@@ -59,7 +59,7 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		resourceName                                     = "mongodbatlas_search_index.test"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(t, projectID)
-		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		updatedAnalyzer                                  = "lucene.simple"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,7 +87,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		datasourceName                                   = "data.mongodbatlas_search_indexes.data_index"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(t, projectID)
-		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		updatedAnalyzer                                  = "lucene.standard"
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -128,7 +128,7 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 		resourceName                                     = "mongodbatlas_search_index.test"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(t, projectID)
-		indexName                                        = acctest.RandomWithPrefix("test-acc-index-name")
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -345,7 +345,7 @@ func getClusterInfo(t *testing.T, projectID string) (clusterName, clusterNameStr
 		clusterNameStr = fmt.Sprintf("%q", clusterName)
 		t.Logf("DONT DO THIS IN CI ONLY IN LOCAL, using exisiting cluster name: %s", clusterName)
 	} else {
-		clusterName = acctest.RandomWithPrefix("test-acc-index")
+		clusterName = acctest.RandomWithPrefix("test-acc-index-cluster")
 		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
 		clusterTerraformStr = fmt.Sprintf(`
 			resource "mongodbatlas_cluster" "test_cluster" {
