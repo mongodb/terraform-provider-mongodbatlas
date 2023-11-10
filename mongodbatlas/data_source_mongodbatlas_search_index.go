@@ -87,6 +87,15 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 		},
+		"type": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"fields": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: validateSearchIndexMappingDiff,
+		},
 	}
 }
 
@@ -103,6 +112,10 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID.(string), clusterName.(string), indexID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
+	}
+
+	if err := d.Set("type", searchIndex.Type); err != nil {
+		return diag.Errorf("error setting `type` for search index (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("index_id", indexID); err != nil {
@@ -157,6 +170,17 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
 				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
 			}
+		}
+	}
+
+	if len(searchIndex.Fields) > 0 {
+		fields, err := marshalSearchIndex(searchIndex.Fields)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		if err := d.Set("fields", fields); err != nil {
+			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
 		}
 	}
 
