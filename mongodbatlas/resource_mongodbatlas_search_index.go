@@ -477,11 +477,9 @@ func validateSearchIndexMappingDiff(k, old, newStr string, d *schema.ResourceDat
 
 	if err := json.Unmarshal([]byte(old), &j); err != nil {
 		log.Printf("[ERROR] cannot unmarshal old search index mapping json %v", err)
-		return false
 	}
 	if err := json.Unmarshal([]byte(newStr), &j2); err != nil {
 		log.Printf("[ERROR] cannot unmarshal new search index mapping json %v", err)
-		return false
 	}
 	if diff := deep.Equal(&j, &j2); diff != nil {
 		log.Printf("[DEBUG] deep equal not passed: %v", diff)
