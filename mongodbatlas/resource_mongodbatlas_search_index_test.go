@@ -14,6 +14,8 @@ import (
 const (
 	collectionName = "collection_test"
 	searchAnalyzer = "lucene.standard"
+	resourceName   = "mongodbatlas_search_index.test"
+	datasourceName = "data.mongodbatlas_search_index.data_index"
 )
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
@@ -22,8 +24,6 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
-		resourceName                                     = "mongodbatlas_search_index.test"
-		datasourceName                                   = "data.mongodbatlas_search_index.data_index"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -62,8 +62,6 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
-		resourceName                                     = "mongodbatlas_search_index.test"
-		datasourceName                                   = "data.mongodbatlas_search_index.data_index"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -104,8 +102,6 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
 		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
-		resourceName                                     = "mongodbatlas_search_index.test"
-		datasourceName                                   = "data.mongodbatlas_search_index.data_index"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
@@ -149,7 +145,6 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 
 func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	var (
-		resourceName                                     = "mongodbatlas_search_index.test"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
 		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
