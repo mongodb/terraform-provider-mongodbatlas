@@ -175,6 +175,44 @@ func TestAccSearchIndexRS_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccSearchIndexRS_withVector(t *testing.T) {
+	var (
+		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		clusterName, clusterNameStr, clusterTerraformStr = getClusterInfo(projectID)
+		indexName                                        = acctest.RandomWithPrefix("test-acc-index")
+		databaseName                                     = acctest.RandomWithPrefix("test-acc-db")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheckSearchIndex(t) },
+		ProtoV6ProviderFactories: testAccProviderV6Factories,
+		CheckDestroy:             testAccCheckMongoDBAtlasSearchIndexDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSearchIndexConfigVector(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSearchIndexExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", indexName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
+					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
+					resource.TestCheckResourceAttr(resourceName, "search_analyzer", searchAnalyzer),
+
+					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
+					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
+					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
+					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
+					resource.TestCheckResourceAttr(datasourceName, "mappings_dynamic", "true"),
+					resource.TestCheckResourceAttr(datasourceName, "search_analyzer", searchAnalyzer),
+					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
+					resource.TestCheckResourceAttrSet(datasourceName, "index_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckSearchIndexExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -320,6 +358,35 @@ func testAccSearchIndexConfigSynonyms(projectID, indexName, databaseName, cluste
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterNameStr, projectID, indexName, databaseName, collectionName, searchAnalyzer)
+}
+
+func testAccSearchIndexConfigVector(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
+	return clusterTerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_search_index" "test" {
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+			name             = %[3]q
+			database         = %[4]q
+			collection_name  = %[5]q
+		
+			type = "vectorSearch"
+			
+			fields = <<-EOF
+				[{
+					type: "vector",
+					path: "plot_embedding",
+					numDimensions: 2048,
+					similarity: "cosine"
+				}]
+				EOF
+		}
+	
+		data "mongodbatlas_search_index" "data_index" {
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+			index_id 				 = mongodbatlas_search_index.test.index_id
+		}
+	`, clusterNameStr, projectID, indexName, databaseName, collectionName)
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
