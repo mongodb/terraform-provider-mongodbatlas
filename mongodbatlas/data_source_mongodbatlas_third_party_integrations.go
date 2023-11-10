@@ -130,18 +130,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 		out.Type = _type.(string)
 	}
 
-	if accountID, ok := in.GetOk("account_id"); ok {
-		out.AccountID = accountID.(string)
-	}
-
-	if writeToken, ok := in.GetOk("write_token"); ok {
-		out.WriteToken = writeToken.(string)
-	}
-
-	if readToken, ok := in.GetOk("read_token"); ok {
-		out.ReadToken = readToken.(string)
-	}
-
 	if apiKey, ok := in.GetOk("api_key"); ok {
 		out.APIKey = apiKey.(string)
 	}
@@ -202,18 +190,6 @@ func schemaToIntegration(in *schema.ResourceData) (out *matlas.ThirdPartyIntegra
 }
 
 func updateIntegrationFromSchema(d *schema.ResourceData, integration *matlas.ThirdPartyIntegration) {
-	if d.HasChange("account_id") {
-		integration.AccountID = d.Get("account_id").(string)
-	}
-
-	if d.HasChange("write_token") {
-		integration.WriteToken = d.Get("write_token").(string)
-	}
-
-	if d.HasChange("read_token") {
-		integration.ReadToken = d.Get("read_token").(string)
-	}
-
 	integration.APIKey = d.Get("api_key").(string)
 
 	if d.HasChange("region") {
