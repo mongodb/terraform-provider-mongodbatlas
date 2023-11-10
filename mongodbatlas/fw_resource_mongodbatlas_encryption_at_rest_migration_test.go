@@ -224,3 +224,58 @@ func TestAccMigrationAdvRS_EncryptionAtRest_basicGCP(t *testing.T) {
 		},
 	})
 }
+
+func TestAccMigrationAdvRS_EncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
+	SkipTestExtCred(t)
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+		awsKms = matlas.AwsKms{
+			Enabled:             pointy.Bool(true),
+			AccessKeyID:         os.Getenv("AWS_ACCESS_KEY_ID"),
+			SecretAccessKey:     os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			CustomerMasterKeyID: os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID"),
+			Region:              os.Getenv("AWS_REGION"),
+			RoleID:              os.Getenv("AWS_ROLE_ID"),
+		}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccMigrationPreCheck(t); testCheckAwsEnv(t) },
+		CheckDestroy: testAccCheckMongoDBAtlasEncryptionAtRestDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: map[string]resource.ExternalProvider{
+					"mongodbatlas": {
+						VersionConstraint: "1.11.0",
+						Source:            "mongodb/mongodbatlas",
+					},
+					"aws": {
+						VersionConstraint: "5.1.0",
+						Source:            "hashicorp/aws",
+					},
+				},
+
+				Config: testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMongoDBAtlasEncryptionAtRestExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.Region),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.RoleID),
+				),
+			},
+			{
+				ProtoV6ProviderFactories: testAccProviderV6Factories,
+				Config:                   testAccMongoDBAtlasEncryptionAtRestConfigAwsKms(projectID, &awsKms),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						DebugPlan(),
+					},
+				},
+				PlanOnly: true,
+			},
+		},
+	})
+}
