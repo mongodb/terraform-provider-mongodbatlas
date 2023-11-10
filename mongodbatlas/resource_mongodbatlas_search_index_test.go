@@ -11,6 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+const (
+	collectionName = "collection_test"
+)
+
 func TestAccSearchIndexRS_basic(t *testing.T) {
 	var (
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
@@ -33,14 +37,14 @@ func TestAccSearchIndexRS_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(resourceName, "collection_name", "collection_test"),
+					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", "lucene.standard"),
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(datasourceName, "collection_name", "collection_test"),
+					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "mappings_dynamic", "true"),
 					resource.TestCheckResourceAttr(datasourceName, "search_analyzer", "lucene.standard"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -74,14 +78,14 @@ func TestAccSearchIndexRS_withMapping(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(resourceName, "collection_name", "collection_test"),
+					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", "lucene.standard"),
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(datasourceName, "collection_name", "collection_test"),
+					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "search_analyzer", "lucene.standard"),
 					resource.TestCheckResourceAttr(datasourceName, "mappings_dynamic", "false"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -116,18 +120,18 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(resourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(resourceName, "collection_name", "collection_test"),
+					resource.TestCheckResourceAttr(resourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(resourceName, "search_analyzer", "lucene.standard"),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.0.analyzer", "lucene.simple"),
 					resource.TestCheckResourceAttr(resourceName, "synonyms.0.name", "synonym_test"),
-					resource.TestCheckResourceAttr(resourceName, "synonyms.0.source_collection", "collection_test"),
+					resource.TestCheckResourceAttr(resourceName, "synonyms.0.source_collection", collectionName),
 
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
 					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(datasourceName, "cluster_name", clusterName),
 					resource.TestCheckResourceAttr(datasourceName, "database", databaseName),
-					resource.TestCheckResourceAttr(datasourceName, "collection_name", "collection_test"),
+					resource.TestCheckResourceAttr(datasourceName, "collection_name", collectionName),
 					resource.TestCheckResourceAttr(datasourceName, "search_analyzer", "lucene.standard"),
 					resource.TestCheckResourceAttr(datasourceName, "mappings_dynamic", "true"),
 					resource.TestCheckResourceAttr(datasourceName, "name", indexName),
@@ -135,7 +139,7 @@ func TestAccSearchIndexRS_withSynonyms(t *testing.T) {
 					resource.TestCheckResourceAttr(datasourceName, "synonyms.#", "1"),
 					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.analyzer", "lucene.simple"),
 					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.name", "synonym_test"),
-					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.source_collection", "collection_test"),
+					resource.TestCheckResourceAttr(datasourceName, "synonyms.0.source_collection", collectionName),
 				),
 			},
 		},
@@ -203,7 +207,7 @@ func testAccSearchIndexConfigBasic(projectID, indexName, databaseName, clusterNa
 			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
-			collection_name  = "collection_test"
+			collection_name  = %[5]q
 			mappings_dynamic = "true"
 			search_analyzer  = "lucene.standard"
 		}
@@ -213,7 +217,7 @@ func testAccSearchIndexConfigBasic(projectID, indexName, databaseName, clusterNa
 			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectID, indexName, databaseName)
+	`, clusterNameStr, projectID, indexName, databaseName, collectionName)
 }
 
 func testAccSearchIndexConfigMapping(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
@@ -223,7 +227,7 @@ func testAccSearchIndexConfigMapping(projectID, indexName, databaseName, cluster
 			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
-			collection_name  = "collection_test"
+			collection_name  = %[5]q
 			search_analyzer  = "lucene.standard"
 			mappings_dynamic = false
 			mappings_fields  = <<-EOF
@@ -294,7 +298,7 @@ func testAccSearchIndexConfigMapping(projectID, indexName, databaseName, cluster
 			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectID, indexName, databaseName)
+	`, clusterNameStr, projectID, indexName, databaseName, collectionName)
 }
 
 func testAccSearchIndexConfigSynonyms(projectID, indexName, databaseName, clusterNameStr, clusterTerraformStr string) string {
@@ -304,13 +308,13 @@ func testAccSearchIndexConfigSynonyms(projectID, indexName, databaseName, cluste
 			project_id       = %[2]q
 			name             = %[3]q
 			database         = %[4]q
-			collection_name  = "collection_test"
+			collection_name  = %[5]q
 			search_analyzer  = "lucene.standard"
 			mappings_dynamic = true
 			synonyms {
 				analyzer          = "lucene.simple"
 				name              = "synonym_test"
-				source_collection = "collection_test"
+				source_collection = %[5]q
 			}
 		}
 
@@ -319,7 +323,7 @@ func testAccSearchIndexConfigSynonyms(projectID, indexName, databaseName, cluste
 			project_id       = %[2]q
 			index_id 				 = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterNameStr, projectID, indexName, databaseName)
+	`, clusterNameStr, projectID, indexName, databaseName, collectionName)
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
