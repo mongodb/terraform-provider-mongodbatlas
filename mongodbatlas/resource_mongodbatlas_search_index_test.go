@@ -12,7 +12,6 @@ import (
 )
 
 func TestAccSearchIndexRS_basic(t *testing.T) {
-	SkipTestForCI(t)
 	var (
 		resourceName                                     = "mongodbatlas_search_index.test"
 		projectID                                        = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
