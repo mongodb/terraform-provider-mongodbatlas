@@ -14,10 +14,6 @@ The Terraform MongoDB Atlas Provider offers two either-or/mutually exclusive pat
 the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. See example of this Two Resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/aws) and AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/azure). 
 
 * A Single Resource path: using the `mongodbatlas_cloud_provider_access` that at provision time sets up all the required configuration for a given provider, then with a subsequent update it can perform the authorize of the role. Note this path requires two `terraform apply` commands, once for setup and once for auth. This resource supports only `AWS`.
-* A Two Resource path: consisting of `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`. The first resource, `mongodbatlas_cloud_provider_access_setup`, only generates
-the initial configuration (create, delete operations). The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the role_id of the first resource. This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. See example of this Two Resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/aws) and AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/azure). 
-
-* A Single Resource path: using the `mongodbatlas_cloud_provider_access` that at provision time sets up all the required configuration for a given provider, then with a subsequent update it can perform the authorize of the role. Note this path requires two `terraform apply` commands, once for setup and once for auth. This resource supports only `AWS`.
 **WARNING:** The resource `mongodbatlas_cloud_provider_access` is deprecated and will be removed in version v1.14.0, use the Two Resource path instead.
 
 -> **IMPORTANT** If you want to move from the single resource path to the two resources path see the [migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/0.9.1-upgrade-guide#migration-to-cloud-provider-access-setup)
@@ -86,7 +82,7 @@ can be imported using project ID and the provider name and mongodbatlas role id,
 $ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf99403840e8934-AWS-5fc17d476f7a33224f5b224e
 ```
 
-## mongodbatlas_cloud_provider_authorization
+## mongodbatlas_cloud_provider_access_authorization
 
 This is the second resource in the two-resource path as described above.
 `mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS or AZURE IAM roles in Atlas.
@@ -104,8 +100,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    project_id =  mongodbatlas_cloud_provider_access_setup.setup_only.project_id
    role_id    =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
-   aws_config {
-      atlas_aws_account_arn = "arn:aws:iam::772401394250:role/test-user-role"
+   aws {
+      iam_assumed_role_arn = "arn:aws:iam::772401394250:role/test-user-role"
    }
 }
 
