@@ -360,7 +360,7 @@ func getClusterInfo(projectID string) (clusterName, clusterNameStr, clusterTerra
 	if clusterName != "" {
 		clusterNameStr = fmt.Sprintf("%q", clusterName)
 	} else {
-		clusterName = acctest.RandomWithPrefix("test-acc-index-cluster")
+		clusterName = acctest.RandomWithPrefix("test-acc-index")
 		clusterNameStr = "mongodbatlas_cluster.test_cluster.name"
 		clusterTerraformStr = fmt.Sprintf(`
 			resource "mongodbatlas_cluster" "test_cluster" {
