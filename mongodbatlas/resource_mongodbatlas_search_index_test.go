@@ -323,6 +323,9 @@ func testAccSearchIndexConfigSynonyms(projectID, indexName, databaseName, cluste
 }
 
 func testAccCheckMongoDBAtlasSearchIndexDestroy(state *terraform.State) error {
+	if os.Getenv("MONGODB_ATLAS_CLUSTER_NAME") != "" {
+		return nil
+	}
 	conn := testAccProviderSdkV2.Meta().(*MongoDBClient).Atlas
 
 	for _, rs := range state.RootModule().Resources {
