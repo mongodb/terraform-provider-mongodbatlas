@@ -19,7 +19,6 @@ runs:
         go-version-file: "go.mod"
     - name: Acceptance Tests
       shell: bash
-      working-directory: mongodbatlas
       run: make testacc
     - name: Print bye
       shell: bash
