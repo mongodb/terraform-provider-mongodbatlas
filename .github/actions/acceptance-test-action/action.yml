@@ -1,0 +1,26 @@
+name: "Acceptance Test Action"
+description: "Cache artifacts like dependencies and build outputs to improve workflow execution time"
+author: "GitHub"
+inputs:
+  forceTestAcc:
+    description: "if unconditionally trigger tests"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Print hello
+      shell: bash
+      run: |
+        echo HELLO HELLO 
+        echo boolean: ${{ inputs.forceTestAcc }} : ok
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: "go.mod"
+    - name: Acceptance Tests
+      shell: bash
+      working-directory: mongodbatlas
+      run: make testacc
+    - name: Print bye
+      shell: bash
+      run: echo BYE BYE

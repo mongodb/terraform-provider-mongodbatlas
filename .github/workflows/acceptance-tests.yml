@@ -13,6 +13,23 @@ on:
     types: [ labeled ]
 
 jobs:  
+  test-search-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/acceptance-test-action
+        env:
+          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
+          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
+          MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_SEARCH_INDEX_PROJECT_ID_CLOUD_DEV }}
+          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+          TF_LOG: ${{ vars.LOG_LEVEL }}
+          TEST_REGEX: "^TestAccSearchIndex"
+        with:
+          forceTestAcc: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
   change-detection:
     runs-on: ubuntu-latest
     permissions:
@@ -131,7 +148,6 @@ jobs:
           SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
           TF_LOG: ${{ vars.LOG_LEVEL }}
           TF_ACC: 1
-          PARALLEL_GO_TEST: 20
           TEST_REGEX: "^TestAccOutageSimulationCluster"
         run: make testacc
 
