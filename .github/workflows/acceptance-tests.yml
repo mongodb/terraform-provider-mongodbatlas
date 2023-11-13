@@ -12,6 +12,8 @@ on:
   pull_request: # you can run a specic job in your PR using GitHub labels
     types: [ labeled ]
 
+env:
+    FORCE_TEST_ACC: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
 jobs:  
   search_index:
     runs-on: ubuntu-latest
@@ -24,12 +26,8 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_SEARCH_INDEX_PROJECT_ID_CLOUD_DEV }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TEST_REGEX: "^TestAccSearchIndex"
         with:
-          forceTestAcc: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+          forceTestAcc: ${{ env.FORCE_TEST_ACC || github.event.label.name == 'run-testacc-search-index' }}
           testRegex: "^TestAccSearchIndex"
           filters: |
             src: 
