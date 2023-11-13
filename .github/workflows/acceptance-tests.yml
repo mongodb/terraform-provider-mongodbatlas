@@ -15,9 +15,6 @@ on:
 jobs:  
   test-search-index:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-      repository-projects: read
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/acceptance-test-action
