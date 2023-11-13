@@ -13,7 +13,7 @@ on:
     types: [ labeled ]
 
 jobs:  
-  test-search-index:
+  search_index:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -492,30 +492,3 @@ jobs:
           CI: true
           TEST_REGEX: "^TestAccSTSAssumeRole"
         run: make testacc
-
-  search_index:
-    needs: [ change-detection ]
-    if: ${{ needs.change-detection.outputs.search_index == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || github.event.label.name == 'run-testacc-search-index' || inputs.parent-event-name == 'release' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_KEY_CLOUD_DEV }}
-          MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
-          MONGODB_ATLAS_PROJECT_ID: ${{ vars.MONGODB_ATLAS_ACCTEST_SEARCH_INDEX_PROJECT_ID_CLOUD_DEV }}
-          SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-          ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-          TF_LOG: ${{ vars.LOG_LEVEL }}
-          TF_ACC: 1
-          PARALLEL_GO_TEST: 20
-          TEST_REGEX: "^TestAccSearchIndex"
-        run: make testacc
-        
