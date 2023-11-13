@@ -14,6 +14,10 @@ on:
 
 env:
     FORCE_TEST_ACC: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+    TF_LOG: ${{ vars.LOG_LEVEL }}
+    SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+    ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+    PARALLEL_GO_TEST: "20"
 jobs:  
   search_index:
     runs-on: ubuntu-latest

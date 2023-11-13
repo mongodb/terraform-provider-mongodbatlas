@@ -27,9 +27,5 @@ runs:
       if: ${{ inputs.forceTestAcc || steps.filter.outputs.src == 'true'}}
       env:
         TEST_REGEX: ${{ inputs.testRegex }}
-        TF_LOG: ${{ vars.LOG_LEVEL }}
-        SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
-        ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-        PARALLEL_GO_TEST: "20"
       shell: bash
       run: make testacc
