@@ -1,6 +1,6 @@
 name: "Acceptance Test Action"
-description: "Cache artifacts like dependencies and build outputs to improve workflow execution time"
-author: "GitHub"
+description: "Run acceptance tests for a resource"
+author: "MongoDB"
 inputs:
   forceTestAcc:
     description: "if unconditionally trigger tests"
