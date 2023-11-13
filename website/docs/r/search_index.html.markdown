@@ -118,7 +118,7 @@ EOF
 
 ## Argument Reference
 
-* `type` - (Optional) Type of index: `search` or `vectorSearch`. Default type is search.
+* `type` - (Optional) Type of index: `search` or `vectorSearch`. Default type is `search`.
 * `name` - (Required) The name of the search index you want to create.
 * `project_id` - (Required) The ID of the organization or project you want to create the search index within.
 * `cluster_name` - (Required) The name of the cluster where you want to create the search index within.
@@ -401,7 +401,7 @@ Synonyms mapping definition to use in the index.
   }
 ```
 
-### Fields (search  index)
+### Fields (vector  index)
 
 **** DON'T MERGE, TO BE DEFINED
 e.g. in https://docs.google.com/document/d/1dMsLahFNZU3AWR0Qflsimr5TK44I7BBl3nMvVbyEXyU/edit
