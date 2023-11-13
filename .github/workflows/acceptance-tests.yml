@@ -30,6 +30,7 @@ jobs:
           TEST_REGEX: "^TestAccSearchIndex"
         with:
           forceTestAcc: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+          testRegex: "^TestAccSearchIndex"
           filters: |
             src: 
               - 'mongodbatlas/resource_mongodbatlas_search_index*.go'

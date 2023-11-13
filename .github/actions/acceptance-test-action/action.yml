@@ -8,6 +8,9 @@ inputs:
   filters:
     description: "files to detect if tests should be run"
     required: true
+  testRegex:
+    description: "regular expression for test methods"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -15,19 +18,18 @@ runs:
       id: filter
       with:
         filters: ${{ inputs.filters }}
-    - name: Print hello
-      shell: bash
-      run: |
-        echo HELLO HELLO 
-        echo boolean: ${{ inputs.forceTestAcc }} : ok
     - name: Set up Go
+      if: ${{ inputs.forceTestAcc || steps.filter.outputs.src == 'true'}}
       uses: actions/setup-go@v4
       with:
         go-version-file: "go.mod"
     - name: Acceptance Tests
-      if: ${{ steps.filter.outputs.src == 'true'}}
+      if: ${{ inputs.forceTestAcc || steps.filter.outputs.src == 'true'}}
+      env:
+        TEST_REGEX: ${{ inputs.testRegex }}
+        TF_LOG: ${{ vars.LOG_LEVEL }}
+        SKIP_TEST_EXTERNAL_CREDENTIALS: ${{ vars.SKIP_TEST_EXTERNAL_CREDENTIALS }}
+        ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
+        PARALLEL_GO_TEST: "20"
       shell: bash
       run: make testacc
-    - name: Print bye
-      shell: bash
-      run: echo BYE BYE
