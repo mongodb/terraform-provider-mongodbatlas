@@ -34,11 +34,11 @@ resource "mongodbatlas_search_node" "test" {
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `cluster_name` - (Required) Label that identifies the cluster to create search nodes for.
 * `specs` - (Required) List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element. See [specs](#specs).
-* `timeouts`- (Optional) The duration of time to wait for search nodes to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with an time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The attribute must be defined with [nested attributes](https://developer.hashicorp.com/terraform/plugin/framework/resources/timeouts#attribute). The default timeout for create, update, and delete is `3h`. Learn more about timeouts [here](https://developer.hashicorp.com/terraform/plugin/framework/resources/timeouts).
+* `timeouts`- (Optional) The time to wait for search nodes to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, .... The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The attribute must be defined with [nested attributes](https://developer.hashicorp.com/terraform/plugin/framework/resources/timeouts#attribute). The default timeout for create, update, and delete is `3h`. Learn more about timeouts [here](https://developer.hashicorp.com/terraform/plugin/framework/resources/timeouts).
 
 ### Specs
 
-Specs list is defined as a [list nested attribute](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/attributes/list-nested) containing a single element.
+Specs list is defined as a ["list nested attribute"](https://developer.hashicorp.com/terraform/plugin/framework/handling-data/attributes/list-nested) containing a single element.
 
 TODO: add proper link here
 * `instance_size` - (Required) Hardware specification for the search node instance sizes. The [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/) describes the valid values. More details can also be found in the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-tier).
