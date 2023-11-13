@@ -35,6 +35,7 @@ resource "mongodbatlas_search_index" "test-basic-search-vector" {
   cluster_name = "<CLUSTER_NAME>"
   collection_name = "collection_test"
   database = "database_test"
+  type = "vectorSearch"
   fields = <<-EOF
 [{
       "type": "vector",
