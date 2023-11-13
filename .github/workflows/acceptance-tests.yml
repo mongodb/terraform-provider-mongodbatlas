@@ -15,6 +15,9 @@ on:
 jobs:  
   test-search-index:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      repository-projects: read
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/acceptance-test-action
@@ -30,6 +33,9 @@ jobs:
           TEST_REGEX: "^TestAccSearchIndex"
         with:
           forceTestAcc: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
+          filters: |
+            - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
+
   change-detection:
     runs-on: ubuntu-latest
     permissions:

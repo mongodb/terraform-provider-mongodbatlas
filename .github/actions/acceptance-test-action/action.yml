@@ -5,9 +5,17 @@ inputs:
   forceTestAcc:
     description: "if unconditionally trigger tests"
     required: true
+  filters:
+    description: "files to detect if tests should be run"
+    required: true
 runs:
   using: "composite"
   steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          src: ${{ inputs.filters }}
     - name: Print hello
       shell: bash
       run: |
@@ -18,6 +26,7 @@ runs:
       with:
         go-version-file: "go.mod"
     - name: Acceptance Tests
+      if: ${{ steps.filter.outputs.src == 'true'}}
       shell: bash
       run: make testacc
     - name: Print bye
