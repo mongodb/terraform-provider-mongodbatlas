@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -27,6 +28,10 @@ import (
 
 var _ resource.ResourceWithConfigure = &ProjectRS{}
 var _ resource.ResourceWithImportState = &ProjectRS{}
+
+const (
+	searchNodeDoesNotExistsError = "ATLAS_FTS_DEPLOYMENT_DOES_NOT_EXIST"
+)
 
 func NewSearchNodeRS() resource.Resource {
 	return &SearchNodeRS{
@@ -256,8 +261,7 @@ func splitSearchNodeImportID(id string) (projectID, clusterName string, err erro
 
 func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) (*admin.ApiSearchDeploymentResponse, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{retrystrategy.RetryStrategyPausedState, retrystrategy.RetryStrategyPlanningState, retrystrategy.RetryStrategyWorkingState,
-			retrystrategy.RetryStrategyDeletedState, retrystrategy.RetryStrategyPendingState},
+		Pending:    []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyIdleState},
 		Refresh:    searchNodeRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeout,
@@ -277,8 +281,7 @@ func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName s
 
 func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, client *admin.APIClient, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyPausedState, retrystrategy.RetryStrategyPlanningState,
-			retrystrategy.RetryStrategyWorkingState, retrystrategy.RetryStrategyPendingState},
+		Pending:    []string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    searchNodeRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeout,
@@ -296,7 +299,7 @@ func searchNodeRefreshFunc(ctx context.Context, projectID, clusterName string, c
 			return nil, "", err
 		}
 		if err != nil {
-			if resp.StatusCode == 400 {
+			if resp.StatusCode == 400 && strings.Contains(err.Error(), searchNodeDoesNotExistsError) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
 			if resp.StatusCode == 503 {

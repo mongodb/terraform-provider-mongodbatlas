@@ -5,8 +5,7 @@ const (
 	RetryStrategyCompletedState = "COMPLETED"
 	RetryStrategyErrorState     = "ERROR"
 	RetryStrategyPausedState    = "PAUSED"
-	RetryStrategyPlanningState  = "PLANNING"
-	RetryStrategyWorkingState   = "WORKING"
-	RetryStrategyDeletedState   = "DELETED"
+	RetryStrategyUpdatingState  = "UPDATING"
 	RetryStrategyIdleState      = "IDLE"
+	RetryStrategyDeletedState   = "DELETED"
 )
