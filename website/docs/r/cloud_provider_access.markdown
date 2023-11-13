@@ -73,7 +73,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `role_id`                        - Unique ID of this role.
 
-* -> **NOTE:** the two sub-attributes of the `aws_config block` will likely be needed on the external AWS account side as the constraints on the trust policy of an IAM role you're granting Atlas access to. They can be accessed via `mongodbatlas_cloud_provider_access_setup.<role>`. For example, the trust policy will reference `mongodbatlas_cloud_provider_access_setup.<role>.aws_config[0].atlas_aws_account_arn` in its `Principal` statement, and the `mongodbatlas_cloud_provider_access_setup.<role>.aws_config[0].atlas_assumed_role_external_id` in its `Condition.StringEquals.sts:ExternalId` statement.
+-> **NOTE:** Code examples of how the mongodbatlas_cloud_provider_access_setup resource and its attributes should be used to permit Atlas to access resources in your own cloud provider accounts are in Github, for [AWS](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/aws) and for [Azure](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-cloud-provider-access/azure) 
 
 ## Import: mongodbatlas_cloud_provider_access_setup
 For consistency is has the same format as the regular mongodbatlas_cloud_provider_access resource 
