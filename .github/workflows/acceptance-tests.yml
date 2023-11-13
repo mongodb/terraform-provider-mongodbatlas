@@ -34,9 +34,10 @@ jobs:
         with:
           forceTestAcc: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.label.name == 'run-testacc' || inputs.parent-event-name == 'release' }}
           filters: |
-            - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
-            - 'mongodbatlas/resource_mongodbatlas_UNEXISTING*.go'
-            
+            src: 
+              - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
+              - 'mongodbatlas/resource_mongodbatlas_UNEXISTING*.go'
+
   change-detection:
     runs-on: ubuntu-latest
     permissions:

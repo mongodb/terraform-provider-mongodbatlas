@@ -14,9 +14,7 @@ runs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
-        filters: |
-          src: 
-            ${{ inputs.filters }}
+        filters: ${{ inputs.filters }}
     - name: Print hello
       shell: bash
       run: |
