@@ -36,7 +36,6 @@ jobs:
           filters: |
             src: 
               - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
-              - 'mongodbatlas/resource_mongodbatlas_UNEXISTING*.go'
 
   change-detection:
     runs-on: ubuntu-latest
@@ -58,7 +57,6 @@ jobs:
       config: ${{ steps.filter.outputs.config }}
       assume_role: ${{ steps.filter.outputs.assume_role }}
       event_trigger: ${{ steps.filter.outputs.event_trigger }}
-      search_index: ${{ steps.filter.outputs.search_index }}
     steps:
     - uses: actions/checkout@v4
       if: ${{ github.event_name == 'push' ||  github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || inputs.parent-event-name == 'release' }}
@@ -132,8 +130,6 @@ jobs:
           event_trigger:
             - 'mongodbatlas/resource_mongodbatlas_event_trigger*.go'
             - 'mongodbatlas/data_source_mongodbatlas_event_trigger*.go'
-          search_index:
-            - 'mongodbatlas/resource_mongodbatlas_search_index*.go'
   
   cluster_outage_simulation:
     needs: [ change-detection ]
