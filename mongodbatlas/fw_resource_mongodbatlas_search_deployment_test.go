@@ -37,16 +37,23 @@ func TestAccSearchNode_basic(t *testing.T) {
 }
 
 func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instanceSize string, searchNodeCount int) resource.TestStep {
+	resourceChecks := searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)
+	dataSourceChecks := searchNodeChecks(fmt.Sprintf("data.%s", resourceName), clusterName, instanceSize, searchNodeCount)
 	return resource.TestStep{
 		Config: testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, instanceSize, searchNodeCount),
-		Check: resource.ComposeTestCheckFunc(
-			testAccCheckMongoDBAtlasSearchNodeExists(resourceName),
-			resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
-			resource.TestCheckResourceAttr(resourceName, "specs.0.instance_size", instanceSize),
-			resource.TestCheckResourceAttr(resourceName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
-			resource.TestCheckResourceAttrSet(resourceName, "state_name"),
-		),
+		Check:  resource.ComposeTestCheckFunc(append(resourceChecks, dataSourceChecks...)...),
+	}
+}
+
+func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCount int) []resource.TestCheckFunc {
+	return []resource.TestCheckFunc{
+		testAccCheckMongoDBAtlasSearchNodeExists(targetName),
+		resource.TestCheckResourceAttrSet(targetName, "id"),
+		resource.TestCheckResourceAttrSet(targetName, "project_id"),
+		resource.TestCheckResourceAttr(targetName, "cluster_name", clusterName),
+		resource.TestCheckResourceAttr(targetName, "specs.0.instance_size", instanceSize),
+		resource.TestCheckResourceAttr(targetName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
+		resource.TestCheckResourceAttrSet(targetName, "state_name"),
 	}
 }
 
@@ -64,6 +71,11 @@ func testAccMongoDBAtlasSearchDeploymentConfig(orgID, projectName, clusterName, 
 					node_count = %[3]d
 				}
 			]
+		}
+
+		data "mongodbatlas_search_deployment" "test" {
+			project_id = mongodbatlas_search_deployment.test.project_id
+			cluster_name = mongodbatlas_search_deployment.test.cluster_name
 		}
 	`, clusterConfig, instanceSize, searchNodeCount)
 }

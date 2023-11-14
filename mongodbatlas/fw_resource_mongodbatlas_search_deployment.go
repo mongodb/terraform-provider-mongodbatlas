@@ -31,12 +31,13 @@ var _ resource.ResourceWithImportState = &SearchDeploymentRS{}
 
 const (
 	searchDeploymentDoesNotExistsError = "ATLAS_FTS_DEPLOYMENT_DOES_NOT_EXIST"
+	searchDeploymentName               = "search_deployment"
 )
 
 func NewSearchDeploymentRS() resource.Resource {
 	return &SearchDeploymentRS{
 		RSCommon: RSCommon{
-			resourceName: "search_deployment",
+			resourceName: searchDeploymentName,
 		},
 	}
 }
@@ -114,22 +115,22 @@ func (r *SearchDeploymentRS) Schema(ctx context.Context, req resource.SchemaRequ
 const defaultSearchNodeTimeout time.Duration = 3 * time.Hour
 
 func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var searchNodePlan tfSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchNodePlan)...)
+	var searchDeploymentPlan tfSearchDeploymentRSModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.client.AtlasV2
-	projectID := searchNodePlan.ProjectID.ValueString()
-	clusterName := searchNodePlan.ClusterName.ValueString()
-	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchNodePlan)
+	projectID := searchDeploymentPlan.ProjectID.ValueString()
+	clusterName := searchDeploymentPlan.ClusterName.ValueString()
+	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchDeploymentPlan)
 	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
 
-	createTimeout, diags := searchNodePlan.Timeouts.Create(ctx, defaultSearchNodeTimeout)
+	createTimeout, diags := searchDeploymentPlan.Timeouts.Create(ctx, defaultSearchNodeTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -139,7 +140,7 @@ func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, searchNodePlan.Timeouts)
+	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -148,22 +149,22 @@ func (r *SearchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var searchNodePlan tfSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &searchNodePlan)...)
+	var searchDeploymentPlan tfSearchDeploymentRSModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &searchDeploymentPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.client.AtlasV2
-	projectID := searchNodePlan.ProjectID.ValueString()
-	clusterName := searchNodePlan.ClusterName.ValueString()
+	projectID := searchDeploymentPlan.ProjectID.ValueString()
+	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting search deployment information", err.Error())
 		return
 	}
 
-	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, searchNodePlan.Timeouts)
+	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -172,22 +173,22 @@ func (r *SearchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var searchNodePlan tfSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchNodePlan)...)
+	var searchDeploymentPlan tfSearchDeploymentRSModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.client.AtlasV2
-	projectID := searchNodePlan.ProjectID.ValueString()
-	clusterName := searchNodePlan.ClusterName.ValueString()
-	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchNodePlan)
+	projectID := searchDeploymentPlan.ProjectID.ValueString()
+	clusterName := searchDeploymentPlan.ClusterName.ValueString()
+	searchDeploymentReq := newSearchDeploymentReq(ctx, &searchDeploymentPlan)
 	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
 
-	updateTimeout, diags := searchNodePlan.Timeouts.Update(ctx, defaultSearchNodeTimeout)
+	updateTimeout, diags := searchDeploymentPlan.Timeouts.Update(ctx, defaultSearchNodeTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -197,7 +198,7 @@ func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, searchNodePlan.Timeouts)
+	newSearchNodeModel, diagnostics := newTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -206,21 +207,21 @@ func (r *SearchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 }
 
 func (r *SearchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var searchNodeState *tfSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &searchNodeState)...)
+	var searchDeploymentState *tfSearchDeploymentRSModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &searchDeploymentState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.client.AtlasV2
-	projectID := searchNodeState.ProjectID.ValueString()
-	clusterName := searchNodeState.ClusterName.ValueString()
+	projectID := searchDeploymentState.ProjectID.ValueString()
+	clusterName := searchDeploymentState.ClusterName.ValueString()
 	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
 		return
 	}
 
-	deleteTimeout, diags := searchNodeState.Timeouts.Delete(ctx, defaultSearchNodeTimeout)
+	deleteTimeout, diags := searchDeploymentState.Timeouts.Delete(ctx, defaultSearchNodeTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -263,7 +264,7 @@ func waitSearchNodeStateTransition(ctx context.Context, projectID, clusterName s
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyIdleState},
-		Refresh:    searchNodeRefreshFunc(ctx, projectID, clusterName, client),
+		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeout,
 		MinTimeout: 1 * time.Minute,
 		Delay:      1 * time.Minute,
@@ -283,7 +284,7 @@ func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, cl
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
-		Refresh:    searchNodeRefreshFunc(ctx, projectID, clusterName, client),
+		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeout,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -292,7 +293,7 @@ func waitSearchNodeDelete(ctx context.Context, projectID, clusterName string, cl
 	return err
 }
 
-func searchNodeRefreshFunc(ctx context.Context, projectID, clusterName string, client *admin.APIClient) retry.StateRefreshFunc {
+func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		deploymentResp, resp, err := client.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 		if err != nil && deploymentResp == nil && resp == nil {
@@ -316,9 +317,9 @@ func searchNodeRefreshFunc(ctx context.Context, projectID, clusterName string, c
 	}
 }
 
-func newSearchDeploymentReq(ctx context.Context, searchNodePlan *tfSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {
+func newSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *tfSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {
 	var specs []tfSearchNodeSpecModel
-	searchNodePlan.Specs.ElementsAs(ctx, &specs, true)
+	searchDeploymentPlan.Specs.ElementsAs(ctx, &specs, true)
 
 	resultSpecs := make([]admin.ApiSearchDeploymentSpec, len(specs))
 	for i, spec := range specs {
@@ -333,13 +334,16 @@ func newSearchDeploymentReq(ctx context.Context, searchNodePlan *tfSearchDeploym
 	}
 }
 
-func newTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout timeouts.Value) (*tfSearchDeploymentRSModel, diag.Diagnostics) {
+func newTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value) (*tfSearchDeploymentRSModel, diag.Diagnostics) {
 	result := tfSearchDeploymentRSModel{
 		ID:          types.StringPointerValue(deployResp.Id),
 		ClusterName: types.StringValue(clusterName),
 		ProjectID:   types.StringPointerValue(deployResp.GroupId),
 		StateName:   types.StringPointerValue(deployResp.StateName),
-		Timeouts:    timeout,
+	}
+
+	if timeout != nil {
+		result.Timeouts = *timeout
 	}
 
 	specsList, diagnostics := types.ListValueFrom(ctx, SpecObjectType, newTFSpecsModel(deployResp.Specs))
